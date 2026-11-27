@@ -7678,11 +7678,41 @@ abstract class AppLocalizations {
   /// **'Replace'**
   String get checklists_replaceTemplate_confirm;
 
+  /// No description provided for @checklists_addGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Add gear'**
+  String get checklists_addGear;
+
+  /// No description provided for @checklists_addGearSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add gear set'**
+  String get checklists_addGearSet;
+
+  /// No description provided for @checklists_addGear_cylindersOnGearTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinders go on the Gear tab.'**
+  String get checklists_addGear_cylindersOnGearTab;
+
   /// No description provided for @checklists_addItem.
   ///
   /// In en, this message translates to:
   /// **'Add item'**
   String get checklists_addItem;
+
+  /// No description provided for @checklists_toPack.
+  ///
+  /// In en, this message translates to:
+  /// **'To pack'**
+  String get checklists_toPack;
+
+  /// No description provided for @checklists_packed.
+  ///
+  /// In en, this message translates to:
+  /// **'Packed'**
+  String get checklists_packed;
 
   /// No description provided for @checklists_item_titleLabel.
   ///
@@ -9583,6 +9613,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive requirement'**
   String get courses_requirement_kind_dive;
+
+  /// No description provided for @courses_requirement_kind_ccrHours.
+  ///
+  /// In en, this message translates to:
+  /// **'CCR hours'**
+  String get courses_requirement_kind_ccrHours;
+
+  /// No description provided for @courses_requirement_kind_diveQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives matching a search'**
+  String get courses_requirement_kind_diveQuery;
+
+  /// No description provided for @courses_requirement_field_targetHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Required hours'**
+  String get courses_requirement_field_targetHours;
+
+  /// No description provided for @courses_requirement_field_rebreather.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebreather'**
+  String get courses_requirement_field_rebreather;
+
+  /// No description provided for @courses_requirement_anyRebreather.
+  ///
+  /// In en, this message translates to:
+  /// **'Any rebreather'**
+  String get courses_requirement_anyRebreather;
+
+  /// No description provided for @courses_requirement_rebreatherRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed rebreather'**
+  String get courses_requirement_rebreatherRemoved;
+
+  /// No description provided for @courses_requirement_field_query.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive search'**
+  String get courses_requirement_field_query;
+
+  /// No description provided for @courses_requirement_hoursProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} of {target} hours'**
+  String courses_requirement_hoursProgress(String hours, int target);
+
+  /// No description provided for @courses_requirement_matchProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {target} matching dives'**
+  String courses_requirement_matchProgress(int count, int target);
 
   /// No description provided for @courses_requirement_suggestions.
   ///
@@ -44064,6 +44148,12 @@ abstract class AppLocalizations {
   /// **'Upload record'**
   String get settings_conflict_field_uploadFactsHlc;
 
+  /// No description provided for @settings_conflict_field_bagHlc.
+  ///
+  /// In en, this message translates to:
+  /// **'Bag record'**
+  String get settings_conflict_field_bagHlc;
+
   /// No description provided for @settings_conflict_field_url.
   ///
   /// In en, this message translates to:
@@ -45468,6 +45558,12 @@ abstract class AppLocalizations {
   /// **'Transmitter'**
   String get settings_conflict_ref_transmitter;
 
+  /// No description provided for @settings_conflict_ref_packedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Packed in'**
+  String get settings_conflict_ref_packedIn;
+
   /// No description provided for @settings_conflict_ref_trip.
   ///
   /// In en, this message translates to:
@@ -45593,6 +45689,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dives'**
   String get enum_requirementKind_dive;
+
+  /// No description provided for @enum_requirementKind_ccrHours.
+  ///
+  /// In en, this message translates to:
+  /// **'CCR hours'**
+  String get enum_requirementKind_ccrHours;
+
+  /// No description provided for @enum_requirementKind_diveQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching dives'**
+  String get enum_requirementKind_diveQuery;
 
   /// No description provided for @enum_preDiveSessionStatus_aborted.
   ///
@@ -57309,6 +57417,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{Everything in {name} is already packed} one{Packed {count} item from {name}} other{Packed {count} items from {name}}}'**
   String trips_gear_packedFromSet(int count, String name);
+
+  /// No description provided for @trips_bags_choose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a bag'**
+  String get trips_bags_choose;
+
+  /// No description provided for @trips_bags_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned'**
+  String get trips_bags_none;
+
+  /// No description provided for @trips_bags_move.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to bag'**
+  String get trips_bags_move;
+
+  /// No description provided for @trips_bags_section.
+  ///
+  /// In en, this message translates to:
+  /// **'Bags'**
+  String get trips_bags_section;
+
+  /// No description provided for @trips_bags_total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total weight: {weight}'**
+  String trips_bags_total(String weight);
+
+  /// No description provided for @trips_bags_subtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Known subtotal: {weight}'**
+  String trips_bags_subtotal(String weight);
+
+  /// No description provided for @trips_bags_missing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing weight: {items}'**
+  String trips_bags_missing(String items);
+
+  /// The first few names of gear with no weight, then how many more there are.
+  ///
+  /// In en, this message translates to:
+  /// **'{names} +{count}'**
+  String trips_bags_missingMore(String names, int count);
+
+  /// Joins the names of gear with no weight under a bag. Include any trailing space your language uses.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get trips_bags_missingSeparator;
 
   /// No description provided for @trips_gear_add_action.
   ///

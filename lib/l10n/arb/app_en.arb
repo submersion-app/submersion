@@ -3089,7 +3089,12 @@
     }
   },
   "checklists_replaceTemplate_confirm": "Replace",
+  "checklists_addGear": "Add gear",
+  "checklists_addGearSet": "Add gear set",
+  "checklists_addGear_cylindersOnGearTab": "Cylinders go on the Gear tab.",
   "checklists_addItem": "Add item",
+  "checklists_toPack": "To pack",
+  "checklists_packed": "Packed",
   "checklists_item_titleLabel": "Title",
   "checklists_item_titleRequired": "Title is required",
   "checklists_item_categoryLabel": "Category",
@@ -3711,6 +3716,15 @@
   "courses_requirement_field_targetCount": "Required dives",
   "courses_requirement_kind_checklist": "Check-off item",
   "courses_requirement_kind_dive": "Dive requirement",
+  "courses_requirement_kind_ccrHours": "CCR hours",
+  "courses_requirement_kind_diveQuery": "Dives matching a search",
+  "courses_requirement_field_targetHours": "Required hours",
+  "courses_requirement_field_rebreather": "Rebreather",
+  "courses_requirement_anyRebreather": "Any rebreather",
+  "courses_requirement_rebreatherRemoved": "Removed rebreather",
+  "courses_requirement_field_query": "Dive search",
+  "courses_requirement_hoursProgress": "{hours} of {target} hours",
+  "courses_requirement_matchProgress": "{count} of {target} matching dives",
   "courses_requirement_suggestions": "Suggested dives",
   "courses_requirement_allDives": "All dives",
   "courses_requirement_noDives": "No dives to link",
@@ -3810,6 +3824,26 @@
     "placeholders": {
       "error": {
         "type": "Object"
+      }
+    }
+  },
+  "@courses_requirement_hoursProgress": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      },
+      "target": {
+        "type": "int"
+      }
+    }
+  },
+  "@courses_requirement_matchProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "target": {
+        "type": "int"
       }
     }
   },
@@ -16631,6 +16665,7 @@
   "settings_conflict_field_turnPressureRule": "Turn pressure rule",
   "settings_conflict_field_tzOffsetMinutes": "Time zone offset in minutes",
   "settings_conflict_field_uploadFactsHlc": "Upload record",
+  "settings_conflict_field_bagHlc": "Bag record",
   "settings_conflict_field_url": "Address",
   "settings_conflict_field_usageDuration": "Time breathed",
   "settings_conflict_field_useDiveComputerCnsData": "CNS from the dive computer",
@@ -17004,6 +17039,7 @@
   "settings_conflict_ref_profileEvent": "Profile event",
   "settings_conflict_ref_scenario": "Scenario",
   "settings_conflict_ref_transmitter": "Transmitter",
+  "settings_conflict_ref_packedIn": "Packed in",
   "settings_conflict_ref_trip": "Trip",
   "settings_conflict_ref_tripCylinder": "Trip cylinder",
   "settings_conflict_ref_weightPreset": "Weight preset",
@@ -17027,6 +17063,8 @@
   "enum_manifestFormat_json": "JSON",
   "enum_requirementKind_checklist": "Checklist",
   "enum_requirementKind_dive": "Dives",
+  "enum_requirementKind_ccrHours": "CCR hours",
+  "enum_requirementKind_diveQuery": "Matching dives",
   "enum_preDiveSessionStatus_aborted": "Aborted",
   "enum_preDiveSessionStatus_completed": "Completed",
   "enum_preDiveSessionStatus_inProgress": "In progress",
@@ -21193,6 +21231,38 @@
       "name": {"type": "String"}
     }
   },
+  "trips_bags_choose": "Choose a bag",
+  "trips_bags_none": "Unassigned",
+  "trips_bags_move": "Move to bag",
+  "trips_bags_section": "Bags",
+  "trips_bags_total": "Total weight: {weight}",
+  "@trips_bags_total": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_bags_subtotal": "Known subtotal: {weight}",
+  "@trips_bags_subtotal": {
+    "placeholders": {
+      "weight": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_bags_missing": "Missing weight: {items}",
+  "@trips_bags_missing": {
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_bags_missingMore": "{names} +{count}",
+  "@trips_bags_missingMore": {"description": "The first few names of gear with no weight, then how many more there are.", "placeholders": {"names": {"type": "String"}, "count": {"type": "int"}}},
+  "trips_bags_missingSeparator": ", ",
+  "@trips_bags_missingSeparator": {"description": "Joins the names of gear with no weight under a bag. Include any trailing space your language uses."},
   "trips_gear_add_action": "Add",
   "trips_gear_add_fromEquipment": "From my equipment",
   "trips_gear_add_fromSet": "An equipment set",

@@ -51,6 +51,8 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'course_requirements': {
     'completed_at': 'Unix ms, checklist',
+    'equipment_id': 'the rebreather an hours-on-CCR requirement counts, null for any unit',
+    'query_json': 'the dive query of a dive-query requirement, as queryNodeToJson writes it',
   },
   'courses': {
     'agency': 'CertificationAgency enum',
@@ -783,6 +785,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'trip_checklist_items': {
     'due_date': 'Absolute due date, resolved from the template offset at apply time',
+    'is_done': 'The tick, ignored while equipment_id names gear the trip can pack, whose trip_equipment row says instead whether it is packed',
     'section_id': 'The section this item is grouped under, if any',
   },
   'trip_cylinder_events': {
@@ -812,6 +815,10 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'weather_code': 'Raw WMO weather code, kept so the description renders in the diver\'s locale at display time rather than frozen as English prose at fetch time',
     'wind_direction': 'enum: CurrentDirection.name',
     'wind_speed': 'm/s',
+  },
+  'trip_equipment': {
+    'bag_equipment_id': 'The inventory ID of the packed bag on this trip',
+    'bag_hlc': 'The clock of the last bag assignment, apart from hlc so a copy from a peer that does not know bags never outranks one',
   },
   'trip_itinerary_days': {
     'date': 'Unix timestamp',

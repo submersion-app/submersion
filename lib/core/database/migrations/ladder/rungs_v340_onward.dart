@@ -333,5 +333,22 @@ extension RungsFromV340 on AppDatabase {
     // in beforeOpen; the floor does not move.
     if (from < 383) await _assertSpeciesRevampSchema();
     if (from < 383) await reportProgress();
+
+    // v384 (issue #4934): trip_checklist_items.equipment_id, the inventory
+    // link whose pack state decides a gear item's tick. Nullable, no
+    // backfill. The floor rises to 384 (see minimumCompatibleSchemaVersion).
+    if (from < 384) await _assertTripChecklistEquipmentColumn();
+    if (from < 384) await reportProgress();
+
+    // v385 (issue #4945): trip_equipment.bag_equipment_id, the bag a packed
+    // item rides in, and bag_hlc, that assignment's own clock. Nullable, no
+    // backfill, re-asserted in beforeOpen; the floor does not move.
+    if (from < 385) await _assertTripEquipmentBagColumn();
+    if (from < 385) await reportProgress();
+
+    // v386: the nullable conditions for derived course requirements. The
+    // floor rises to 386 (see minimumCompatibleSchemaVersion).
+    if (from < 386) await _assertCourseRequirementConditionColumns();
+    if (from < 386) await reportProgress();
   }
 }

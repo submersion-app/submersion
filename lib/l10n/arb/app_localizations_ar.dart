@@ -5080,7 +5080,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get checklists_replaceTemplate_confirm => 'استبدال';
 
   @override
+  String get checklists_addGear => 'إضافة معدات';
+
+  @override
+  String get checklists_addGearSet => 'إضافة مجموعة معدات';
+
+  @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'تُضاف الأسطوانات في تبويب المعدات.';
+
+  @override
   String get checklists_addItem => 'إضافة عنصر';
+
+  @override
+  String get checklists_toPack => 'للتعبئة';
+
+  @override
+  String get checklists_packed => 'تمت التعبئة';
 
   @override
   String get checklists_item_titleLabel => 'العنوان';
@@ -6224,6 +6240,37 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get courses_requirement_kind_dive => 'متطلب غطس';
+
+  @override
+  String get courses_requirement_kind_ccrHours => 'ساعات CCR';
+
+  @override
+  String get courses_requirement_kind_diveQuery => 'غطسات تطابق بحثاً';
+
+  @override
+  String get courses_requirement_field_targetHours => 'الساعات المطلوبة';
+
+  @override
+  String get courses_requirement_field_rebreather => 'جهاز إعادة التنفس';
+
+  @override
+  String get courses_requirement_anyRebreather => 'أي جهاز إعادة تنفس';
+
+  @override
+  String get courses_requirement_rebreatherRemoved => 'جهاز إعادة تنفس محذوف';
+
+  @override
+  String get courses_requirement_field_query => 'بحث الغطسات';
+
+  @override
+  String courses_requirement_hoursProgress(String hours, int target) {
+    return '$hours من $target ساعة';
+  }
+
+  @override
+  String courses_requirement_matchProgress(int count, int target) {
+    return '$count من $target غطسات مطابقة';
+  }
 
   @override
   String get courses_requirement_suggestions => 'غطسات مقترحة';
@@ -28213,6 +28260,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'سجل الرفع';
 
   @override
+  String get settings_conflict_field_bagHlc => 'سجل الحقيبة';
+
+  @override
   String get settings_conflict_field_url => 'العنوان';
 
   @override
@@ -29044,6 +29094,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_transmitter => 'المرسل';
 
   @override
+  String get settings_conflict_ref_packedIn => 'معبأ في';
+
+  @override
   String get settings_conflict_ref_trip => 'الرحلة';
 
   @override
@@ -29132,6 +29185,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_requirementKind_dive => 'غوصات';
+
+  @override
+  String get enum_requirementKind_ccrHours => 'ساعات CCR';
+
+  @override
+  String get enum_requirementKind_diveQuery => 'غطسات مطابقة';
 
   @override
   String get enum_preDiveSessionStatus_aborted => 'أُلغيت';
@@ -36949,6 +37008,41 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get trips_bags_choose => 'اختر حقيبة';
+
+  @override
+  String get trips_bags_none => 'بلا حقيبة';
+
+  @override
+  String get trips_bags_move => 'نقل إلى حقيبة';
+
+  @override
+  String get trips_bags_section => 'الحقائب';
+
+  @override
+  String trips_bags_total(String weight) {
+    return 'الوزن الإجمالي: $weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return 'مجموع الأوزان المعروفة: $weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return 'أوزان غير مسجلة: $items';
+  }
+
+  @override
+  String trips_bags_missingMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String get trips_bags_missingSeparator => '، ';
 
   @override
   String get trips_gear_add_action => 'إضافة';

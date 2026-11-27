@@ -57,6 +57,7 @@ void loadTripSitting(EditSession<Trip> session, ProviderContainer container) {
   tripChecklistsList(
     checklists: container.read(tripChecklistsRepositoryProvider),
     items: container.read(tripChecklistRepositoryProvider),
+    viewer: () => container.read(validatedCurrentDiverIdProvider.future),
   ).load(session);
   tripPackedGearList(
     read: (id) => container.read(tripGearProvider(id).future),

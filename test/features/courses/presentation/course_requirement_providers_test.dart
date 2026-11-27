@@ -119,4 +119,47 @@ void main() {
     );
     expect(refreshed.requirements.single.linkedDives.single.diveNumber, 20);
   });
+
+  test('equipment-link changes refresh the CCR count', () async {
+    await _seed();
+    final db = DatabaseService.instance.database;
+    await db.customStatement(
+      "INSERT INTO equipment (id, name, type, created_at, updated_at) "
+      "VALUES ('rebreather-1', 'Unit A', 'rebreather', 1000, 1000)",
+    );
+    await db.customStatement(
+      "INSERT INTO dives (id, diver_id, dive_date_time, dive_mode, runtime, "
+      "created_at, updated_at) "
+      "VALUES ('dive-1', 'diver-1', 1000, 'ccr', 7200, 1000, 1000)",
+    );
+    await CourseRequirementRepository().createRequirement(
+      courseId: 'course-1',
+      name: 'CCR time on Unit A',
+      kind: RequirementKind.ccrHours,
+      equipmentId: 'rebreather-1',
+    );
+
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final provider = courseProgressProvider('course-1');
+    final subscription = container.listen(provider, (_, _) {});
+    addTearDown(subscription.close);
+
+    final before = await container.read(provider.future);
+    expect(before.requirements.single.derivedAmount, 0);
+
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(
+            diveId: 'dive-1',
+            equipmentId: 'rebreather-1',
+          ),
+        );
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+
+    final after = await container.read(provider.future);
+    expect(after.requirements.single.derivedAmount, 120);
+    expect(after.isComplete, isTrue);
+  });
 }

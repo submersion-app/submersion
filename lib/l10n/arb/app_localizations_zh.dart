@@ -4698,7 +4698,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get checklists_replaceTemplate_confirm => '更换';
 
   @override
+  String get checklists_addGear => '添加装备';
+
+  @override
+  String get checklists_addGearSet => '添加装备套装';
+
+  @override
+  String get checklists_addGear_cylindersOnGearTab => '气瓶请在装备标签页中添加。';
+
+  @override
   String get checklists_addItem => '添加事项';
+
+  @override
+  String get checklists_toPack => '待打包';
+
+  @override
+  String get checklists_packed => '已打包';
 
   @override
   String get checklists_item_titleLabel => '标题';
@@ -5790,6 +5805,37 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get courses_requirement_kind_dive => '潜水要求';
+
+  @override
+  String get courses_requirement_kind_ccrHours => 'CCR 时长';
+
+  @override
+  String get courses_requirement_kind_diveQuery => '符合搜索条件的潜水';
+
+  @override
+  String get courses_requirement_field_targetHours => '所需小时数';
+
+  @override
+  String get courses_requirement_field_rebreather => '循环呼吸器';
+
+  @override
+  String get courses_requirement_anyRebreather => '任意循环呼吸器';
+
+  @override
+  String get courses_requirement_rebreatherRemoved => '已移除的循环呼吸器';
+
+  @override
+  String get courses_requirement_field_query => '潜水搜索';
+
+  @override
+  String courses_requirement_hoursProgress(String hours, int target) {
+    return '$hours / $target 小时';
+  }
+
+  @override
+  String courses_requirement_matchProgress(int count, int target) {
+    return '$count / $target 次符合条件的潜水';
+  }
 
   @override
   String get courses_requirement_suggestions => '建议的潜水';
@@ -26267,6 +26313,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => '上传记录';
 
   @override
+  String get settings_conflict_field_bagHlc => '装备包记录';
+
+  @override
   String get settings_conflict_field_url => '地址';
 
   @override
@@ -27059,6 +27108,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_transmitter => '发射器';
 
   @override
+  String get settings_conflict_ref_packedIn => '装在';
+
+  @override
   String get settings_conflict_ref_trip => '行程';
 
   @override
@@ -27138,6 +27190,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_requirementKind_dive => '潜水';
+
+  @override
+  String get enum_requirementKind_ccrHours => 'CCR 时长';
+
+  @override
+  String get enum_requirementKind_diveQuery => '符合条件的潜水';
 
   @override
   String get enum_preDiveSessionStatus_aborted => '已中止';
@@ -34314,6 +34372,41 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get trips_bags_choose => '选择装备包';
+
+  @override
+  String get trips_bags_none => '未分配';
+
+  @override
+  String get trips_bags_move => '移到装备包';
+
+  @override
+  String get trips_bags_section => '装备包';
+
+  @override
+  String trips_bags_total(String weight) {
+    return '总重量：$weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return '已知重量小计：$weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return '重量缺失：$items';
+  }
+
+  @override
+  String trips_bags_missingMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String get trips_bags_missingSeparator => '、';
 
   @override
   String get trips_gear_add_action => '添加';

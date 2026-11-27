@@ -1,4 +1,6 @@
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 
 import '../../helpers/test_database.dart';
@@ -27,15 +29,46 @@ Future<void> _seedCourseFixture() async {
 }
 
 void main() {
-  setUp(() async {
-    await setUpTestDatabase();
-  });
+  test('v386 upgrades existing requirements without rewriting them', () async {
+    expect(AppDatabase.migrationVersions, contains(386));
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(386),
+    );
+    final db = AppDatabase(
+      NativeDatabase.memory(
+        setup: (rawDb) {
+          rawDb.execute('PRAGMA user_version = 385');
+          rawDb.execute('''
+          CREATE TABLE course_requirements (
+            id TEXT NOT NULL PRIMARY KEY,
+            kind TEXT NOT NULL,
+            target_count INTEGER NOT NULL)
+        ''');
+          rawDb.execute(
+            "INSERT INTO course_requirements VALUES ('r1', 'dive', 4)",
+          );
+        },
+      ),
+    );
+    addTearDown(db.close);
 
-  tearDown(() async {
-    await tearDownTestDatabase();
+    final row = await db
+        .customSelect(
+          "SELECT kind, target_count, equipment_id, query_json "
+          "FROM course_requirements WHERE id = 'r1'",
+        )
+        .getSingle();
+    expect(row.read<String>('kind'), 'dive');
+    expect(row.read<int>('target_count'), 4);
+    expect(row.readNullable<String>('equipment_id'), isNull);
+    expect(row.readNullable<String>('query_json'), isNull);
   });
 
   group('v121 course requirement schema', () {
+    setUp(setUpTestDatabase);
+    tearDown(tearDownTestDatabase);
+
     test('course_requirements has the expected columns', () async {
       final cols = await _columns('course_requirements');
       expect(
@@ -52,6 +85,8 @@ void main() {
           'created_at',
           'updated_at',
           'hlc',
+          'equipment_id',
+          'query_json',
         }),
       );
     });

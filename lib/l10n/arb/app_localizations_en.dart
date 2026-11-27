@@ -4910,7 +4910,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checklists_replaceTemplate_confirm => 'Replace';
 
   @override
+  String get checklists_addGear => 'Add gear';
+
+  @override
+  String get checklists_addGearSet => 'Add gear set';
+
+  @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'Cylinders go on the Gear tab.';
+
+  @override
   String get checklists_addItem => 'Add item';
+
+  @override
+  String get checklists_toPack => 'To pack';
+
+  @override
+  String get checklists_packed => 'Packed';
 
   @override
   String get checklists_item_titleLabel => 'Title';
@@ -6026,6 +6042,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get courses_requirement_kind_dive => 'Dive requirement';
+
+  @override
+  String get courses_requirement_kind_ccrHours => 'CCR hours';
+
+  @override
+  String get courses_requirement_kind_diveQuery => 'Dives matching a search';
+
+  @override
+  String get courses_requirement_field_targetHours => 'Required hours';
+
+  @override
+  String get courses_requirement_field_rebreather => 'Rebreather';
+
+  @override
+  String get courses_requirement_anyRebreather => 'Any rebreather';
+
+  @override
+  String get courses_requirement_rebreatherRemoved => 'Removed rebreather';
+
+  @override
+  String get courses_requirement_field_query => 'Dive search';
+
+  @override
+  String courses_requirement_hoursProgress(String hours, int target) {
+    return '$hours of $target hours';
+  }
+
+  @override
+  String courses_requirement_matchProgress(int count, int target) {
+    return '$count of $target matching dives';
+  }
 
   @override
   String get courses_requirement_suggestions => 'Suggested dives';
@@ -27428,6 +27475,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'Upload record';
 
   @override
+  String get settings_conflict_field_bagHlc => 'Bag record';
+
+  @override
   String get settings_conflict_field_url => 'Address';
 
   @override
@@ -28239,6 +28289,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_ref_transmitter => 'Transmitter';
 
   @override
+  String get settings_conflict_ref_packedIn => 'Packed in';
+
+  @override
   String get settings_conflict_ref_trip => 'Trip';
 
   @override
@@ -28320,6 +28373,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_requirementKind_dive => 'Dives';
+
+  @override
+  String get enum_requirementKind_ccrHours => 'CCR hours';
+
+  @override
+  String get enum_requirementKind_diveQuery => 'Matching dives';
 
   @override
   String get enum_preDiveSessionStatus_aborted => 'Aborted';
@@ -35882,6 +35941,41 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get trips_bags_choose => 'Choose a bag';
+
+  @override
+  String get trips_bags_none => 'Unassigned';
+
+  @override
+  String get trips_bags_move => 'Move to bag';
+
+  @override
+  String get trips_bags_section => 'Bags';
+
+  @override
+  String trips_bags_total(String weight) {
+    return 'Total weight: $weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return 'Known subtotal: $weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return 'Missing weight: $items';
+  }
+
+  @override
+  String trips_bags_missingMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String get trips_bags_missingSeparator => ', ';
 
   @override
   String get trips_gear_add_action => 'Add';

@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -64,29 +66,32 @@ void holdPassportTag(
   );
 }
 
-/// The trips the item is packed for, by id, as its sitting has them
-/// (issue #4527, phase 3): packed and unpacked from a passport's Trip
-/// card, written at Save. A trip's packed gear is the trip's, so its
-/// History has these rows too.
-final gearItemTripsList = SittingList<EquipmentItem, String>(
+/// The item's packed trips and bag choices, held until the passport is saved.
+final gearItemTripsList = SittingList<EquipmentItem, EquipmentPacking>(
   key: 'equipment.trips',
   cardId: GearItemCardId.passportTrip.name,
-  read: (item) async =>
-      (await TripEquipmentRepository().tripIdsForEquipment(item.id)).toList()
-        ..sort(),
+  read: (item) => TripEquipmentRepository().packingForEquipment(item.id),
   write: (item, loaded, current) async {
     final repository = TripEquipmentRepository();
-    final before = loaded.toSet();
-    final after = current.toSet();
-    for (final tripId in after.difference(before)) {
-      await repository.pack(tripId, [item.id]);
+    final before = {for (final row in loaded) row.tripId: row.bagId};
+    final after = {for (final row in current) row.tripId: row.bagId};
+    for (final row in after.entries) {
+      if (!before.containsKey(row.key)) {
+        if (row.value case final bagId?) {
+          await repository.packInBag(row.key, item.id, bagId);
+        } else {
+          await repository.pack(row.key, [item.id]);
+        }
+      } else if (before[row.key] != row.value) {
+        await repository.assignBag(row.key, item.id, row.value, orLoose: true);
+      }
     }
-    for (final tripId in before.difference(after)) {
-      await repository.unpack(tripId, item.id);
+    for (final tripId in before.keys) {
+      if (!after.containsKey(tripId)) await repository.unpack(tripId, item.id);
     }
     return null;
   },
-  same: (a, b) => sameIdSets(a, b, (id) => id),
+  same: (a, b) => setEquals(a.toSet(), b.toSet()),
 );
 
 /// [stored], the item's trips as the passport shows them, with the
@@ -100,7 +105,7 @@ List<PackedTrip> packedTripsInSitting(
 ) {
   final packed = gearItemTripsList.current(session);
   if (packed == null || !gearItemTripsList.isChanged(session)) return stored;
-  final ids = packed.toSet();
+  final ids = {for (final row in packed) row.tripId};
   final shown = {for (final p in stored) p.trip.id};
   return rankPackedTrips([
     for (final p in stored)
@@ -112,11 +117,15 @@ List<PackedTrip> packedTripsInSitting(
   ], DateTime.now());
 }
 
-/// Packs the item for [tripId] in the sitting.
-void packForTripInSitting(EditSession<EquipmentItem> session, String tripId) {
+/// Packs the item for [tripId] in the sitting, optionally into [bagId].
+void packForTripInSitting(
+  EditSession<EquipmentItem> session,
+  String tripId, {
+  String? bagId,
+}) {
   final current = gearItemTripsList.current(session);
-  if (current == null || current.contains(tripId)) return;
-  gearItemTripsList.set(session, [...current, tripId]);
+  if (current == null || current.any((row) => row.tripId == tripId)) return;
+  gearItemTripsList.set(session, [...current, (tripId: tripId, bagId: bagId)]);
 }
 
 /// Unpacks the item from [tripId] in the sitting.
@@ -127,7 +136,7 @@ void unpackFromTripInSitting(
   final current = gearItemTripsList.current(session);
   if (current == null) return;
   gearItemTripsList.set(session, [
-    for (final id in current)
-      if (id != tripId) id,
+    for (final row in current)
+      if (row.tripId != tripId) row,
   ]);
 }

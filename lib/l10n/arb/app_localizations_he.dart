@@ -4876,7 +4876,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get checklists_replaceTemplate_confirm => 'החלפה';
 
   @override
+  String get checklists_addGear => 'הוספת ציוד';
+
+  @override
+  String get checklists_addGearSet => 'הוספת ערכת ציוד';
+
+  @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'מכלים מוסיפים בלשונית ציוד.';
+
+  @override
   String get checklists_addItem => 'הוסף פריט';
+
+  @override
+  String get checklists_toPack => 'לאריזה';
+
+  @override
+  String get checklists_packed => 'ארוז';
 
   @override
   String get checklists_item_titleLabel => 'כותרת';
@@ -5985,6 +6001,37 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get courses_requirement_kind_dive => 'דרישת צלילה';
+
+  @override
+  String get courses_requirement_kind_ccrHours => 'שעות CCR';
+
+  @override
+  String get courses_requirement_kind_diveQuery => 'צלילות התואמות חיפוש';
+
+  @override
+  String get courses_requirement_field_targetHours => 'שעות נדרשות';
+
+  @override
+  String get courses_requirement_field_rebreather => 'רברדר';
+
+  @override
+  String get courses_requirement_anyRebreather => 'כל רברדר';
+
+  @override
+  String get courses_requirement_rebreatherRemoved => 'רברדר שהוסר';
+
+  @override
+  String get courses_requirement_field_query => 'חיפוש צלילות';
+
+  @override
+  String courses_requirement_hoursProgress(String hours, int target) {
+    return '$hours מתוך $target שעות';
+  }
+
+  @override
+  String courses_requirement_matchProgress(int count, int target) {
+    return '$count מתוך $target צלילות תואמות';
+  }
 
   @override
   String get courses_requirement_suggestions => 'צלילות מוצעות';
@@ -27194,6 +27241,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'יומן העלאה';
 
   @override
+  String get settings_conflict_field_bagHlc => 'יומן התיק';
+
+  @override
   String get settings_conflict_field_url => 'כתובת';
 
   @override
@@ -28004,6 +28054,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_ref_transmitter => 'משדר';
 
   @override
+  String get settings_conflict_ref_packedIn => 'ארוז בתוך';
+
+  @override
   String get settings_conflict_ref_trip => 'טיול';
 
   @override
@@ -28086,6 +28139,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_requirementKind_dive => 'צלילות';
+
+  @override
+  String get enum_requirementKind_ccrHours => 'שעות CCR';
+
+  @override
+  String get enum_requirementKind_diveQuery => 'צלילות תואמות';
 
   @override
   String get enum_preDiveSessionStatus_aborted => 'בוטל';
@@ -35598,6 +35657,41 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get trips_bags_choose => 'בחירת תיק';
+
+  @override
+  String get trips_bags_none => 'ללא תיק';
+
+  @override
+  String get trips_bags_move => 'העברה לתיק';
+
+  @override
+  String get trips_bags_section => 'תיקים';
+
+  @override
+  String trips_bags_total(String weight) {
+    return 'משקל כולל: $weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return 'סכום משקלים ידועים: $weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return 'חסר משקל: $items';
+  }
+
+  @override
+  String trips_bags_missingMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String get trips_bags_missingSeparator => ', ';
 
   @override
   String get trips_gear_add_action => 'הוספה';

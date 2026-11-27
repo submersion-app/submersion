@@ -90,6 +90,37 @@ void main() {
     expect(link.data['dive_id'], 'dive-1');
   });
 
+  test('both derived requirement kinds survive export and import', () async {
+    await seedFixture();
+    final db = DatabaseService.instance.database;
+    const queryJson = '{"version":1,"node":{"t":"text","words":["training"]}}';
+    await db.customStatement(
+      "INSERT INTO course_requirements (id, course_id, name, kind, "
+      "target_count, created_at, updated_at, equipment_id, query_json) "
+      "VALUES ('ccr', 'course-1', 'CCR time', 'ccrHours', 40, 1000, 1000, ?, NULL), "
+      "('search', 'course-1', 'Training dives', 'diveQuery', 20, 1000, 1000, NULL, ?)",
+      ['rebreather-1', queryJson],
+    );
+    final payload = await serializer.exportChangeset(
+      deviceId: 'dev-1',
+      hlcWatermark: null,
+      deletions: const [],
+    );
+    await db.customStatement(
+      "DELETE FROM course_requirements WHERE id != 'req-1'",
+    );
+    for (final row in payload.data.courseRequirements) {
+      await serializer.upsertRecord('courseRequirements', row);
+    }
+
+    final ccr = await serializer.fetchRecord('courseRequirements', 'ccr');
+    final search = await serializer.fetchRecord('courseRequirements', 'search');
+    expect(ccr, containsPair('kind', 'ccrHours'));
+    expect(ccr, containsPair('equipmentId', 'rebreather-1'));
+    expect(search, containsPair('kind', 'diveQuery'));
+    expect(search, containsPair('queryJson', queryJson));
+  });
+
   test('junction delta export rides the parent requirement hlc', () async {
     await seedFixture(requirementHlc: '2026-01-02T00:00:00.000Z-0000-peer-dev');
 

@@ -1,240 +1,327 @@
 <img src="assets/brand/readme-banner.png" alt="Submersion: Dive safe. Log everything." width="100%">
 
+[![Website](https://img.shields.io/badge/Website-submersion.app-0a7ea4?logo=safari&logoColor=white)](https://submersion.app)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 [![CI](https://img.shields.io/github/actions/workflow/status/submersion-app/submersion/ci.yaml?branch=main&label=CI&logo=githubactions&logoColor=white)](https://github.com/submersion-app/submersion/actions/workflows/ci.yaml)
 
-Download your dive computer, check the deco on the profile, plan tomorrow's dive
-with the gas you actually have, log who you dove with and what you saw, and keep
-every bit of it on your own hardware. Rec or tech, single tank or rebreather, it
-all fits in the same logbook.
+**Free &middot; Open source &middot; iOS &middot; Android &middot; macOS &middot; Windows &middot; Linux**
 
-Free and open source, on iOS, Android, macOS, Windows and Linux.
+# The complete dive app, free and open.
 
-<img align="left" width="50%" src="docs/assets/screenshots/readme/01-dive-logging.jpg" alt="Dive list beside a dive detail pane with header statistics, the dive profile with events, deco status, oxygen exposure and tissue loading">
+For recreational and technical divers, Submersion downloads from 358 dive
+computer models, analyses each profile with B&uuml;hlmann ZH-L16C, plans
+open-circuit and rebreather dives and tracks equipment service. It is free and
+open source under GPL-3.0. Your data is stored on your devices and synced only
+through storage you choose.
 
-### Comprehensive Dive Logging
+[Download](#download) &middot; [User guide](https://submersion.app/guide/) &middot; [submersion.app](https://submersion.app)
 
-Every dive, fully detailed and in your control.
+<img src="docs/assets/screenshots/readme/01-dive-detail.jpg" width="100%" alt="Submersion on macOS: a 130-foot deco dive in Guadeloupe in the dive list and its details, with the profile showing the deco ceiling and stops, the gas switch to EAN50 and a photo, and the deco status, oxygen and tissue loading cards below">
 
-- Depth, duration, temperatures, conditions, weather and tide
-- Any number of cylinders: air, nitrox, trimix, CCR and SCR
-- Buddies, divemasters, trips, tags, ratings and signatures
-- Cards, or a sortable table with the columns you choose
+### [Logging and analysis](#logbook)
 
-<br clear="all"><br>
+Submersion downloads, logs and analyses every dive, and keeps sites, trips,
+photos and equipment together.
 
-<img align="right" width="50%" src="docs/assets/screenshots/readme/02-profile-deco.jpg" alt="Tissue loading panel with a bar per compartment and a heat map of on-gassing and off-gassing over the dive">
+### [A safer diver](#safety)
 
-### Profile &amp; Decompression Analysis
+Each dive gets a safety review. The planner handles open circuit and
+rebreathers, and every item of equipment has a service schedule.
 
-Serious technical-diving instrumentation.
+### [Your data stays yours](#your-data)
 
-- B&uuml;hlmann ZH-L16C with your own gradient factors
-- All 16 tissue compartments, nitrogen and helium
-- CNS%, OTU and ppO&#8322; with daily and weekly totals
-- Your computer's NDL, ceiling and TTS beside the model's
+Submersion has no accounts or servers. Sync uses your own storage, and all data
+exports to open formats.
 
-<br clear="all"><br>
+## Logbook
 
-<img align="left" width="50%" src="docs/assets/screenshots/readme/03-dive-computers.jpg" alt="Dive computer download review step showing a 70 percent match against an existing dive, both profiles overlaid, and four resolution actions">
+Submersion covers a dive from the computer download to long-term statistics.
+Every field is optional.
 
-### 350+ Dive Computers
+### Dive computer download and import
 
-Download straight from your computer.
+Submersion downloads over Bluetooth LE and USB. After the first download only
+new dives transfer, and known computers connect automatically. Existing
+logbooks import from UDDF, Subsurface, MacDive, Shearwater Cloud, Diving Log,
+DAN DL7, Garmin FIT and CSV files.
 
-- 30 manufacturers over Bluetooth LE and USB
-- Incremental downloads: only what is new
-- Duplicate review with four ways to resolve a match
-- Two computers on one dive, profiles overlaid
+<img src="docs/assets/screenshots/readme/02-duplicate-review.jpg" width="100%" alt="The import review step: a downloaded dive that matches one already in the logbook, both profiles overlaid, a 100% match, what is the same and what differs, and the choice to skip it or import it as new">
 
-<br clear="all"><br>
+- **358 supported models:** Support comes from libdivecomputer and covers 38
+  manufacturers. iOS supports Bluetooth only.
+  [See the tested models by platform.](https://submersion.app/computers/)
+- **Duplicate review:** A download that matches an existing dive is shown
+  beside it. You can skip it, import it as a new dive, replace the earlier
+  source or merge both computers into one dive.
+- **Online accounts and CSV:** Suunto, Garmin Connect and divelogs.de import
+  by signing in. CSV comes with presets for common apps, or columns can be
+  mapped by hand.
+- **Paper logs and Apple Health:** Scanned logbook pages are read with OCR for
+  review. On iOS, Apple Watch underwater workouts import with depth,
+  temperature and heart rate.
 
-> **Will it work with my computer?** The [support matrix](https://submersion.app/computers/)
-> lists every model, the connections each platform can use, and what divers have
-> reported. Tried one that is not verified yet? [Tell us how it went](https://github.com/submersion-app/submersion/issues/new?template=computer-report.yml&labels=computer-report).
+### Trips and itineraries
 
-<img align="right" width="50%" src="docs/assets/screenshots/readme/04-sites-maps.jpg" alt="Dive site list beside an interactive map with clustered markers and a dive heat map">
+Each trip has an itinerary and a page per day, with the day's dives on a map, a
+timeline and the photos.
 
-### Sites, Maps &amp; Marine Life
+<img src="docs/assets/screenshots/readme/03-trip-day.jpg" width="100%" alt="A trip's day page: three dives on a map, the day's timeline from sunrise to sunset, water conditions, a photo and the species seen that day">
 
-Where you dove, and what lives there.
+- **Home:** The Home page shows totals, recent trips, overdue service and the
+  latest profile.
+- **Conditions:** Weather is added for the date and location. Tides are
+  calculated offline from a global model.
+- **People:** Each dive records buddies and their roles, with signatures.
+- **Search:** Search accepts plain words, for example "Bonaire last year".
 
-- 3,900 dive sites, 17,000 charted wrecks and artificial reefs, and 3,600 dive centers built in
-- Clustering, a dive heat map, and offline map regions
-- Bathymetry overlays and 3D seafloor terrain
-- 685 species, recorded per dive and per site
+### Dive sites and maps
 
-<br clear="all"><br>
+A bundled catalogue covers 20,999 dive sites and 3,593 dive centers. Site
+terrain is shown in 3D where bathymetry is available.
 
-<img align="left" width="50%" src="docs/assets/screenshots/readme/05-planning.jpg" alt="Dive planner with a multi-segment profile, gas list and decompression schedule">
-
-### Dive Planning &amp; Gas
-
-Plan with the gas, gear and tissues you will actually have.
-
-- Multi-segment plans for OC, CCR, SCR and PSCR
-- Bailout checked against the worst moment of the profile
-- Contingencies, range tables and repetitive-dive seeding
-- MOD, best mix, rock bottom, and a real-gas blender
-
-<br clear="all"><br>
-
-<img align="right" width="50%" src="docs/assets/screenshots/readme/06-photos-gear.jpg" alt="A dive video shown full screen with a dive computer face overlay reading depth, NDL, time, gas and tank pressure, and a small dive profile marking the moment it was taken">
-
-### Photos, Gear &amp; Certifications
-
-The rest of what a dive leaves behind.
-
-- Photos and video matched to a dive by capture time
-- Each shot marked at its depth on the profile
-- Equipment with service schedules, reminders and costs
-- A wallet of certification cards, plus courses and checklists
-
-<br clear="all"><br>
-
-<img align="left" width="50%" src="docs/assets/screenshots/readme/07-statistics.jpg" alt="Dive statistics overview in dark mode with totals, personal records and most visited sites">
-
-### Insights &amp; Records
-
-See your diving life at a glance.
-
-- Ten pages: totals, progression, conditions, gas and more
-- Personal records: deepest, longest, coldest, warmest
-- Breakdowns by year, country, site and dive type
-- SAC trends, depth distribution and ascent-rate analysis
-
-<br clear="all"><br>
-
-<img align="right" width="50%" src="docs/assets/screenshots/readme/08-your-data.jpg" alt="Data settings with backup and restore, database cloud sync, photo and media sources, database storage, offline maps and data quality">
-
-### Your Data, Encrypted
-
-No server. No account. No lock-in.
-
-- SQLite encrypted at rest, opened with Face ID, Touch ID or a passphrase
-- End-to-end encrypted sync through your own iCloud, Google Drive, Dropbox or S3
-- Encrypted backups, one taken automatically before every upgrade
-- Export to UDDF 3.2, CSV, Excel, KML, GPX and printable PDF
-
-<br clear="all"><br>
+<img src="docs/assets/screenshots/readme/04-site-map.jpg" width="100%" alt="The site map: the dive site list beside a map of Bonaire with catalogue sites clustered along the coast and a heat map of the sites dived">
 
 <p align="center">
-  <img width="32%" src="docs/assets/screenshots/readme/09-profile-player.jpg" alt="Full-screen dive profile playback with depth, temperature, NDL, ppO2 and tank pressure over time">
-  <img width="32%" src="docs/assets/screenshots/readme/10-tissue-3d.jpg" alt="Three-dimensional landscape of the 16 tissue compartments over the course of a dive">
-  <img width="32%" src="docs/assets/screenshots/readme/11-site-terrain.jpg" alt="Three-dimensional seafloor terrain of a dive site with the dive's estimated path drawn on it">
+  <img src="docs/assets/screenshots/readme/05-seascape.jpg" width="60%" alt="The seafloor around a dive site in 3D from EMODnet bathymetry, seen from the sea toward the shore, with depth contours stepping down past 2,000 feet">
 </p>
 
-<p align="center"><sub>Full-screen profile playback &middot; The 16 tissue compartments as a landscape &middot; A site's 3D seafloor with the dive's path</sub></p>
+- **20,999 sites:** Sites and dive centers come from OpenStreetMap and other
+  open sources, with depth range, access and hazards where known.
+- **3D seafloor:** Site terrain is shown in 3D with depth contours and steep
+  walls, where bathymetry is available.
+- **Offline maps:** Map regions can be downloaded before a trip and used
+  without a connection.
+- **Tracks:** GPS tracks recorded on your phone or imported from GPX, KML, CSV
+  or FIT files are matched to your dives. Underwater navigation tracks import
+  from Seacraft ENC logs.
+
+### Media and species identification
+
+Photos and videos are linked from your library and matched to each dive. Video
+plays back with a virtual dive computer and a mini profile showing the dive at
+that moment. Species are identified on the device in photos and videos, with a
+label tracking each creature in video.
+
+<img src="docs/assets/screenshots/readme/06-media-browser.jpg" width="100%" alt="The media library: a grid of reef photos and video clips from a dive trip, with durations on the videos">
 
 <p align="center">
-  <img width="32%" src="docs/assets/screenshots/readme/12-marine-life.jpg" alt="Marine life statistics with species sightings">
-  <img width="32%" src="docs/assets/screenshots/readme/13-gas-blender.jpg" alt="Trimix blender showing the partial-pressure fill procedure and fill cost">
-  <img width="32%" src="docs/assets/screenshots/readme/14-themes.jpg" alt="Theme gallery showing the five app themes">
+  <a href="https://submersion.app/#media"><img src="docs/assets/screenshots/readme/07-video-species.jpg" width="60%" alt="Submersion playing a reef video, with species labels following the fish: Sergeant Majors, Black margate and Spanish Hogfish"></a>
 </p>
 
-<p align="center"><sub>Species sightings across the log &middot; The blender's fill procedure and cost &middot; Five themes, each in light and dark</sub></p>
+<p align="center"><sub>Species labels following the fish in a reef video. <a href="https://submersion.app/#media">Watch the clip on submersion.app</a>.</sub></p>
 
-## Why Submersion?
+- **Photos and videos on the profile:** Photos and video are matched to the
+  dive by capture time and placed on the profile at their depth. Underwater
+  colour correction is built in.
+- **Species in all media:** Photos and videos get species suggestions with a
+  confidence score, to accept or dismiss. In video, each creature is tracked
+  with its own label.
+- **Media sources:** Media can be linked from the device gallery, local
+  folders, network URLs, or iCloud, Google Drive, Dropbox and S3 storage.
+- **Platforms:** Photo identification runs on iPhone, iPad, Mac, Android,
+  Windows and Linux, and video identification on all except Linux. It needs a
+  one-time model download, and 8 GB of memory on Android.
 
-Most dive logging software falls into two categories: desktop applications stuck in the past, or mobile apps that lock your data in proprietary clouds. Submersion is different:
+### Profile analysis
 
-- **You control your data:** an SQLite database on your own hardware, encrypted at rest. No account, no server, no cloud dependency. Export everything, anytime.
-- **Truly cross-platform:** one app for iOS, Android, macOS, Windows and Linux, with the same details and analytics everywhere. Available in 11 languages.
-- **Open standards:** full UDDF 3.2 import and export, plus CSV, Excel, KML and GPX. No proprietary format trapping your dive history.
-- **350+ dive computers:** Bluetooth LE and USB, across 30 manufacturers, powered by [libdivecomputer](https://www.libdivecomputer.org/).
-- **Technical diving ready:** Bühlmann ZH-L16C with gradient factors, multi-gas and CCR/SCR support, CNS and OTU tracking, bailout planning and trimix blending.
-- **Sync on your terms:** end-to-end encrypted sync between your devices through your own iCloud, Google Drive, Dropbox or S3-compatible storage.
-- **Free forever:** open source under GPL-3.0. No ads, no subscription, no in-app purchases.
+Any point on the profile shows the deco status, oxygen exposure and loading of
+all 16 tissue compartments, calculated from the profile.
+
+<img src="docs/assets/screenshots/readme/08-tissue-cylinders.jpg" width="100%" alt="A rebreather dive's details: the profile, deco status, an oxygen toxicity warning, tissue loading with its heat map, and the diluent, bailout and oxygen cylinders">
+
+- **B&uuml;hlmann ZH-L16C:** The model uses gradient factors and tracks
+  nitrogen and helium. A heat map shows all 16 compartments over the dive.
+- **Cylinders and gas:** Each cylinder lists its mix, start and end pressure,
+  gas used, SAC, RMV and MOD.
+- **Multiple computers per dive:** Downloads from every computer worn on a
+  dive attach to that dive and can be overlaid on one chart.
+- **Playback and 3D:** Playback supports about twenty overlays, from
+  ppO&#8322; to gas density. The profile can also be viewed in 3D.
+
+### Statistics and connections
+
+Twelve pages of statistics cover depth and time trends, air consumption and
+conditions. Connections maps how sites, trips, equipment, species and buddies
+relate.
+
+<img src="docs/assets/screenshots/readme/09-insights-connections.jpg" width="100%" alt="Connections with the trips and people preset: a diver at the centre linked to their trips and the buddies on each">
+
+<p align="center">
+  <img src="docs/assets/screenshots/readme/10-insights-progression.jpg" width="60%" alt="Insights, Progression: maximum depth and runtime for 700 dives from 2020 to 2026, each with a rolling average">
+</p>
+
+- **Progression:** Maximum depth, runtime and bottom time are charted per dive
+  with a rolling average.
+- **Connections:** There are nine built-in maps, such as trips and people or
+  sites by species. Any site, buddy or item of equipment can be placed at the
+  centre.
+- **Observations:** Observations note changes such as dives getting deeper or
+  longer than the previous year.
+- **Records:** Personal records such as the deepest and longest dives have
+  their own page.
+
+## Safety
+
+Submersion reviews dives, calculates plans and tracks equipment. It is not a
+dive computer and does not replace training, a buddy or your computer.
+
+### Post-dive safety review
+
+Each dive is checked for fast ascents, missed deco and safety stops, sawtooth
+profiles, a high surfacing gradient factor, late gas switches and isobaric
+counterdiffusion. Findings show the time and the value.
+
+<img src="docs/assets/screenshots/readme/11-safety-review.jpg" width="100%" alt="A trimix rebreather dive with its safety review listing two isobaric counterdiffusion findings, marked on the profile, beside a critical oxygen toxicity card and tissue loading for nitrogen and helium">
+
+<p align="center">
+  <img src="docs/assets/screenshots/readme/12-buoyancy.jpg" width="30%" alt="The buoyancy card: the pull of gear, lead, body, suit and cylinders, net buoyancy from start to final stop, and the lead suggested for next time from the last eleven dives">
+</p>
+
+- **Severity:** Findings are graded info, caution or significant. Each rule
+  can be turned off.
+- **Buoyancy:** Net buoyancy is modelled across the dive, with a suggested
+  lead weight for the next one. What if recalculates for different lead, water
+  or exposure suit.
+- **Oxygen exposure:** CNS and OTU are totalled per dive, per day and over
+  seven days.
+- **Data source:** NDL, deco stops, TTS and CNS can each come from the dive
+  computer or from Submersion's calculation.
+
+### Dive planning
+
+Plans for OC, CCR, SCR and pSCR are built segment by segment. The deco
+schedule, gas consumption and contingencies update with each change.
+
+<img src="docs/assets/screenshots/readme/13-planner.jpg" width="100%" alt="A two-dive plan to 132 feet: segments and decompression settings, the profile with its ceiling and stops, the decompression schedule, gas consumption, warnings and the range table">
+
+- **Bailout:** On loop plans, bailout gas is checked against the worst point
+  of the dive, which is marked on the chart.
+- **Contingencies:** Deeper, longer and lost-gas variants are calculated,
+  along with a range table.
+- **Repetitive dives:** Dives planned as a series carry tissues, CNS, OTU and
+  cylinder pressures forward.
+- **Gas calculators:** Calculators cover MOD, best mix, MND, consumption, rock
+  bottom and gas density. The blender uses real-gas fills.
+
+### Equipment and service
+
+Each item has service intervals by date, dives, hours and exposure to salt,
+cold and oxygen. Equipment sets are shown on a diver figure with numbered
+items.
+
+<img src="docs/assets/screenshots/readme/14-gear-figure.jpg" width="100%" alt="A technical diving equipment set drawn on a diver figure, front and back, with 23 numbered items including double HP100 cylinders, a stage, lights and regulators">
+
+- **Regulator and O2 service:** Regulator service is due at 365 days or 100
+  dives, or after 50 cold dives. O2-clean intervals count hours on high
+  oxygen.
+- **Condition checks:** A short post-dive check-in feeds ten rules that flag
+  equipment trends.
+- **Passports and tags:** Cylinders and equipment can carry QR or NFC tags.
+  Without the app, a scan opens the cylinder's passport or the item's details
+  on submersion.app.
+- **Transmitters and reports:** Transmitters are linked to their cylinders.
+  Service and inventory reports export as PDF.
+
+### Certifications and checklists
+
+Each certification shows its last use and when a refresher is due. Pre-dive
+checklists run from templates, and the emergency card works offline.
+
+<img src="docs/assets/screenshots/readme/15-ready.jpg" width="100%" alt="A CCR certification with its currency: rebreather currency and a TDI refresher, each current with its due date, and the last refresher">
+
+- **Currency:** Built-in rules cover rebreather, decompression and other
+  certifications. Custom rules can be added.
+- **Checklists:** Templates include a BWRAF check, GUE EDGE, a CCR build with
+  O2 cell linearity checks and gear packing.
+- **Emergency card:** The card holds emergency numbers, nearby chambers,
+  contacts and medical notes, and works offline.
+- **No-fly time:** A no-fly countdown runs from the last dive using the
+  selected published guideline.
+
+## Your data
+
+Submersion is free and open source under GPL-3.0. It has no account, ads or
+subscription.
+
+### Storage and sync
+
+Data is stored on your devices. Sync runs through Google Drive, Dropbox, S3,
+WebDAV or Git, or iCloud on iPhone and iPad, with optional end-to-end
+encryption.
+
+<img src="docs/assets/screenshots/readme/16-sync-storage.jpg" width="100%" alt="Sync between devices, connected to S3-compatible storage on Cloudflare R2: sync complete, with automatic sync, nearby Bluetooth sync, sync at launch and on return, and encryption settings">
+
+- **Nearby devices:** Paired devices sync over Bluetooth without a cloud
+  service. Two Linux devices cannot find each other this way and sync through
+  storage instead.
+- **Encryption:** The database can be encrypted at rest, and the app locked
+  with a password, Face ID, Touch ID or Windows Hello.
+- **Backups:** A backup is made before every database upgrade. Scheduled
+  backups can go to a folder or cloud storage, optionally encrypted.
+- **Photos:** Photos and videos are linked from your library or folders, not
+  copied.
+
+### Export and data quality
+
+Dives export as UDDF 3.2, CSV, Excel or PDF logbooks, and sites as KML. The
+data quality check flags records that disagree with sensor data and offers a
+repair.
+
+<img src="docs/assets/screenshots/readme/17-data-quality.jpg" width="100%" alt="The data quality inbox: pressure records that disagree with the sensor data, each with a fix, a gas and MOD inconsistency, and transmitter serial mismatches">
+
+- **Raw data:** Raw dive computer data is kept, so dives can be re-parsed when
+  the parser improves.
+- **Change log:** Every edit is logged with its previous value and can be
+  reverted by field or by operation.
+- **Agent access:** On desktop, an AI assistant can access the logbook through
+  a local server with a token. Proposed changes are previewed before they are
+  written.
+- **Open source:** The source code is in this repository, under
+  [GPL-3.0](LICENSE).
+
+### iPhone, iPad, Android, Mac, Windows and Linux
+
+The same application and logbook on phones, tablets and desktops. Each layout
+fits its screen, and sync keeps your devices in step.
+
+<img src="docs/assets/screenshots/readme/18-platform-mac.jpg" width="100%" alt="Submersion on a Mac: the dive list beside a wreck dive's details, with its profile, deco status and tissue loading">
+
+<p align="center">
+  <img src="docs/assets/screenshots/readme/19-platform-ipad.jpg" width="73%" alt="The same dive on an iPad in landscape, with the dive list beside its details and profile">
+  <img src="docs/assets/screenshots/readme/20-platform-iphone.jpg" width="23%" alt="The same dive on an iPhone, with its summary and profile">
+</p>
+
+- **iPhone and iPad:** From the App Store. Dive computers connect over
+  Bluetooth.
+- **Android:** Phones and tablets, from Google Play or as an APK from GitHub
+  Releases.
+- **Mac, Windows and Linux:** Desktop layouts with side-by-side panes and
+  keyboard shortcuts. Agent access is desktop only.
+- **One logbook:** Sync through your own storage, or between nearby devices
+  over Bluetooth, keeps dives, equipment and settings the same on each.
+  Between two Linux devices, sync runs through storage.
 
 ## Download
 
-- **iOS:** [App Store](https://apps.apple.com/us/app/submersion-dive-log/id6757456915)
-- **Android:** [Google Play](https://play.google.com/store/apps/details?id=app.submersion),
-  or the APK from [GitHub Releases](https://github.com/submersion-app/submersion/releases)
-- **macOS / Windows / Linux:** [GitHub Releases](https://github.com/submersion-app/submersion/releases)
+Free on every platform. iOS is on the App Store and Android is on Google Play.
+Desktop builds, and the Android APK, are on GitHub Releases.
 
-New to Submersion? The [user guide](https://submersion.app/guide/) covers
-everything from your first dive to sync and backup.
+<p>
+  <a href="https://apps.apple.com/us/app/submersion-dive-log/id6757456915">App Store</a> &middot;
+  <a href="https://play.google.com/store/apps/details?id=app.submersion">Google Play</a> &middot;
+  <a href="https://github.com/submersion-app/submersion/releases">GitHub Releases</a> (macOS, Windows, Linux and the Android APK)
+</p>
 
-### Beta channel
+To build it yourself, see [Getting Started](#getting-started). Betas are on the
+[beta channel](#beta-channel).
 
-Want fixes and features weeks early? Every change merged into Submersion is
-published as a beta build. Betas may upgrade your dive log's database ahead
-of the stable release; downgrading is not supported, and devices that sync
-together should all use the same channel. A backup is taken automatically
-before any database upgrade.
+Found a bug, or want something added?
+[Open an issue on GitHub](https://github.com/submersion-app/submersion/issues).
+For anything else, [support@submersion.app](mailto:support@submersion.app).
 
-- **Desktop:** Settings > About > Update channel > Beta (updates then arrive
-  through the normal auto-updater), or download directly from
-  [beta-builds](https://github.com/submersion-app/beta-builds/releases)
-- **Android:** [join the open test](https://play.google.com/apps/testing/app.submersion),
-  then Play delivers beta updates automatically
-- **iOS / Mac App Store:** [join via TestFlight](https://testflight.apple.com/join/aMD393sB)
-
-## Data Philosophy
-
-Submersion is built on these principles:
-
-1. **Local-First:** your data lives on your device. The app works offline, always.
-2. **No Lock-In:** export your entire logbook to UDDF or CSV at any time. Switch apps without losing history.
-3. **No Account Required:** use the app immediately. No sign-up, no email, no tracking.
-4. **Open Source:** audit the code. Fork it. Improve it. Your dive log software should be transparent.
-
-## Features
-
-Beyond what the screens above show.
-
-### Import from Elsewhere
-
-- **File import:** Subsurface, MacDive, Shearwater Cloud, Garmin FIT, DAN DL7, Ratio and UDDF.
-- **CSV import:** presets for MySSI, Diving Log, DiveMate, Garmin Connect and Shearwater Cloud, or map the columns yourself.
-- **Apple Health:** underwater workouts recorded by an Apple Watch, with depth, temperature and heart rate.
-- **Paper logbooks:** scan the pages and OCR reads the entries for you to check and import.
-
-### In the Log
-
-- **Conditions:** visibility, current, swell, entry and exit method, altitude. Weather is fetched for the date and place; tides come from a bundled global model and work offline.
-- **People:** your role on the dive, dive center, operator and boat. A buddy or instructor can sign the dive on your screen.
-- **Gas detail:** oxygen and helium fractions per cylinder, start and end pressure, and the pressure trace from an air-integrated transmitter.
-- **Weights:** what you carried, where you put it, and whether it felt right.
-- **Your own fields:** colored tags, dive types you define, and custom fields for whatever your agency or your habits call for.
-- **Bulk edit:** fix a whole trip's entries at once.
-- **Safety review:** each profile is checked for fast ascents, sawtooth patterns and missed safety stops.
-- **Several divers:** separate profiles per diver, each with emergency contacts, medical notes and insurance details.
-
-### Sites & Trips
-
-- **Site records:** depth range, difficulty, water type, hazards, access notes, mooring and parking, with reverse-geocoded country and region.
-- **Reef data:** protection status, habitat, bleaching alerts and reef health for the sites you visit.
-- **Trips:** dates, resort or liveaboard, a day-by-day itinerary, preparation checklists, and a gallery for the whole trip.
-
-### Profile Analysis
-
-- **Playback:** play or scrub the profile, overlaying temperature, tank pressure, heart rate, SAC, ppO₂, ppN₂, ppHe, gas density, gradient factor, TTS, ceiling, NDL and deco stops.
-- **Ascent rate:** drawn on the profile and colored where it exceeds the limits.
-- **3D:** move through the dive in three dimensions, or view the 16 tissue compartments as a surface.
-- **Edit:** trim a profile that started on the boat, with undo if you get it wrong.
-
-### Planning & Calculators
-
-- **Weighting:** a buoyancy model built from your logged dives predicts what to carry for a new suit, cylinder or water type.
-- **Gas calculators:** MOD, best mix, maximum narcotic depth, consumption and rock bottom.
-- **Blender:** partial-pressure fills worked out with a real-gas equation, and the fill invoice.
-- **On the slate:** export the plan as a PDF for your wet notes.
-
-### Equipment & Training
-
-- **Equipment sets:** build a configuration once and apply it to a dive; a set can select itself by location.
-- **Service log:** what was done, when, and what it cost.
-- **Courses:** track a course's requirements and link each one to the dive that satisfied it.
-- **Checklists:** run a pre-dive checklist from a template and attach the session to the log.
-
-### Data & Preferences
-
-- **Data quality:** an assistant that finds duplicates and anomalies across the log and walks you through fixing them.
-- **PDF logbooks:** Simple, Detailed, Professional, PADI and NAUI layouts.
-- **Your units:** independent settings for depth, temperature, pressure, volume, weight, altitude and SAC.
-- **Your language:** 11 languages, five themes in light and dark, and keyboard shortcuts on the desktop.
+[User Guide](https://submersion.app/guide/) &middot;
+[Privacy Policy](https://submersion.app/privacy/) &middot;
+[Terms of Service](https://submersion.app/terms/)
 
 ## Getting Started
 
@@ -267,6 +354,21 @@ flutter run -d macos    # or: windows, linux, ios, android
 > team and will fail with `No profiles for 'app.submersion' were found`. See
 > [running a debug build without an Apple Developer account](#running-a-debug-build-without-an-apple-developer-account)
 > below. Linux, Windows, Android and the iOS Simulator need no signing setup.
+
+## Beta channel
+
+Want fixes and features weeks early? Every change merged into Submersion is
+published as a beta build. Betas may upgrade your dive log's database ahead
+of the stable release; downgrading is not supported, and devices that sync
+together should all use the same channel. A backup is taken automatically
+before any database upgrade.
+
+- **Desktop:** Settings > About > Update channel > Beta (updates then arrive
+  through the normal auto-updater), or download directly from
+  [beta-builds](https://github.com/submersion-app/beta-builds/releases)
+- **Android:** [join the open test](https://play.google.com/apps/testing/app.submersion),
+  then Play delivers beta updates automatically
+- **iOS / Mac App Store:** [join via TestFlight](https://testflight.apple.com/join/aMD393sB)
 
 ## Building from Source
 

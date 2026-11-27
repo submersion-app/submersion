@@ -18,6 +18,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_e
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/service_clock_snapshot_override.dart';
 
 const _equipment = EquipmentItem(
   id: 'equip-svc',
@@ -115,6 +116,7 @@ void main() {
           serviceClockStatusesProvider(
             _equipment.id,
           ).overrideWith((ref) async => const []),
+          serviceClockSnapshotOverride(_equipment.id),
         ].cast(),
         child: MaterialApp(
           locale: const Locale('en'),
