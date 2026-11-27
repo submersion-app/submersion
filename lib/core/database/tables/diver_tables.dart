@@ -616,6 +616,9 @@ class DiverSettings extends Table {
   TextColumn get siteDetailSections => text().nullable()();
   // Site detail page layout: detailed | list (v218). Null reads as detailed.
   TextColumn get siteDetailLayout => text().nullable()();
+  // Gear item page card order and visibility (v388, issue #4975): JSON array
+  // of {id, visible}. Null reads as the defaults.
+  TextColumn get equipmentDetailSections => text().nullable()();
   // Table view profile panel default visibility (v61)
   BoolColumn get showProfilePanelInTableView =>
       boolean().withDefault(const Constant(true))();

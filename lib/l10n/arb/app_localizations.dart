@@ -37353,6 +37353,162 @@ abstract class AppLocalizations {
   /// **'Your notes about the site'**
   String get siteDetailSection_notes_description;
 
+  /// No description provided for @equipmentDetailSection_sharingHistory_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Usage and sharing'**
+  String get equipmentDetailSection_sharingHistory_name;
+
+  /// No description provided for @settings_equipmentDetailSections_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment Detail Sections'**
+  String get settings_equipmentDetailSections_title;
+
+  /// No description provided for @settings_appearance_header_equipmentDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment Details'**
+  String get settings_appearance_header_equipmentDetails;
+
+  /// No description provided for @settings_conflict_field_equipmentDetailSections.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment detail sections'**
+  String get settings_conflict_field_equipmentDetailSections;
+
+  /// No description provided for @equipmentDetailSection_transmitter_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmitter'**
+  String get equipmentDetailSection_transmitter_name;
+
+  /// No description provided for @equipmentDetailSection_passport_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Passport'**
+  String get equipmentDetailSection_passport_name;
+
+  /// No description provided for @equipmentDetailSection_condition_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition'**
+  String get equipmentDetailSection_condition_name;
+
+  /// No description provided for @equipmentDetailSection_diveComputer_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Download dives and manage the computer\'s connection'**
+  String get equipmentDetailSection_diveComputer_description;
+
+  /// No description provided for @equipmentDetailSection_details_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand, model, serial number, purchase and size'**
+  String get equipmentDetailSection_details_description;
+
+  /// No description provided for @equipmentDetailSection_transmitter_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial, channel and the cylinder it reports for'**
+  String get equipmentDetailSection_transmitter_description;
+
+  /// No description provided for @equipmentDetailSection_location_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Where the item is kept, and its recent moves'**
+  String get equipmentDetailSection_location_description;
+
+  /// No description provided for @equipmentDetailSection_passport_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder fills and inspections, or the gear tag'**
+  String get equipmentDetailSection_passport_description;
+
+  /// No description provided for @equipmentDetailSection_twinSet_description.
+  ///
+  /// In en, this message translates to:
+  /// **'The cylinder this one is paired with'**
+  String get equipmentDetailSection_twinSet_description;
+
+  /// No description provided for @equipmentDetailSection_serviceClocks_description.
+  ///
+  /// In en, this message translates to:
+  /// **'When the next service is due'**
+  String get equipmentDetailSection_serviceClocks_description;
+
+  /// No description provided for @equipmentDetailSection_exposure_description.
+  ///
+  /// In en, this message translates to:
+  /// **'What the item has been through on your dives'**
+  String get equipmentDetailSection_exposure_description;
+
+  /// No description provided for @equipmentDetailSection_condition_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition findings and trends'**
+  String get equipmentDetailSection_condition_description;
+
+  /// No description provided for @equipmentDetailSection_childItems_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Cells and batteries installed in the item'**
+  String get equipmentDetailSection_childItems_description;
+
+  /// No description provided for @equipmentDetailSection_photos_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference photos of the item'**
+  String get equipmentDetailSection_photos_description;
+
+  /// No description provided for @equipmentDetailSection_observations_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-ins with condition notes and photos'**
+  String get equipmentDetailSection_observations_description;
+
+  /// No description provided for @equipmentDetailSection_components_description.
+  ///
+  /// In en, this message translates to:
+  /// **'The parts the item is assembled from'**
+  String get equipmentDetailSection_components_description;
+
+  /// No description provided for @equipmentDetailSection_unitConfigurations_description.
+  ///
+  /// In en, this message translates to:
+  /// **'The rebreather\'s saved configurations'**
+  String get equipmentDetailSection_unitConfigurations_description;
+
+  /// No description provided for @equipmentDetailSection_linkedFiles_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Files linked before Documents existed'**
+  String get equipmentDetailSection_linkedFiles_description;
+
+  /// No description provided for @equipmentDetailSection_sharingHistory_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Who used the item, and every share'**
+  String get equipmentDetailSection_sharingHistory_description;
+
+  /// No description provided for @equipmentDetailSection_serviceHistory_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Past services and repairs'**
+  String get equipmentDetailSection_serviceHistory_description;
+
+  /// No description provided for @equipmentDetailSection_notes_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Your notes about the item'**
+  String get equipmentDetailSection_notes_description;
+
+  /// No description provided for @equipmentDetailSection_documents_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Manuals, invoices and certificates'**
+  String get equipmentDetailSection_documents_description;
+
   /// No description provided for @settings_siteDetailSections_title.
   ///
   /// In en, this message translates to:

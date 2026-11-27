@@ -23272,6 +23272,101 @@ class AppLocalizationsHe extends AppLocalizations {
   String get siteDetailSection_notes_description => 'ההערות שלך על האתר';
 
   @override
+  String get equipmentDetailSection_sharingHistory_name => 'שימוש ושיתוף';
+
+  @override
+  String get settings_equipmentDetailSections_title => 'מקטעי פרטי הציוד';
+
+  @override
+  String get settings_appearance_header_equipmentDetails => 'פרטי ציוד';
+
+  @override
+  String get settings_conflict_field_equipmentDetailSections =>
+      'מקטעי פרטי הציוד';
+
+  @override
+  String get equipmentDetailSection_transmitter_name => 'משדר';
+
+  @override
+  String get equipmentDetailSection_passport_name => 'דרכון';
+
+  @override
+  String get equipmentDetailSection_condition_name => 'מצב';
+
+  @override
+  String get equipmentDetailSection_diveComputer_description =>
+      'הורדת צלילות וניהול החיבור של המחשב';
+
+  @override
+  String get equipmentDetailSection_details_description =>
+      'מותג, דגם, מספר סידורי, רכישה ומידה';
+
+  @override
+  String get equipmentDetailSection_transmitter_description =>
+      'מספר סידורי, ערוץ והמכל המשויך';
+
+  @override
+  String get equipmentDetailSection_location_description =>
+      'היכן הפריט מאוחסן, והעברות אחרונות';
+
+  @override
+  String get equipmentDetailSection_passport_description =>
+      'מילויים ובדיקות של המכל, או תג הציוד';
+
+  @override
+  String get equipmentDetailSection_twinSet_description => 'המכל שמוצמד לזה';
+
+  @override
+  String get equipmentDetailSection_serviceClocks_description =>
+      'מתי הטיפול הבא';
+
+  @override
+  String get equipmentDetailSection_exposure_description =>
+      'מה הפריט עבר בצלילות שלך';
+
+  @override
+  String get equipmentDetailSection_condition_description => 'ממצאי מצב ומגמות';
+
+  @override
+  String get equipmentDetailSection_childItems_description =>
+      'תאים וסוללות המותקנים בפריט';
+
+  @override
+  String get equipmentDetailSection_photos_description =>
+      'תמונות ייחוס של הפריט';
+
+  @override
+  String get equipmentDetailSection_observations_description =>
+      'בדיקות עם הערות מצב ותמונות';
+
+  @override
+  String get equipmentDetailSection_components_description =>
+      'החלקים שמהם מורכב הפריט';
+
+  @override
+  String get equipmentDetailSection_unitConfigurations_description =>
+      'התצורות השמורות של מכשיר הנשימה החוזרת';
+
+  @override
+  String get equipmentDetailSection_linkedFiles_description =>
+      'קבצים שקושרו לפני שהיו מסמכים';
+
+  @override
+  String get equipmentDetailSection_sharingHistory_description =>
+      'מי השתמש בפריט, וכל שיתוף';
+
+  @override
+  String get equipmentDetailSection_serviceHistory_description =>
+      'טיפולים ותיקונים קודמים';
+
+  @override
+  String get equipmentDetailSection_notes_description => 'ההערות שלך על הפריט';
+
+  @override
+  String get equipmentDetailSection_documents_description =>
+      'מדריכים, חשבוניות ותעודות';
+
+  @override
   String get settings_siteDetailSections_title => 'סעיפי פרטי האתר';
 
   @override

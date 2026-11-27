@@ -24,6 +24,7 @@ class _SectionConfig {
   final bool hasDiveProfile;
   final bool hasDiveDetails;
   final bool hasSiteDetails;
+  final bool hasEquipmentDetails;
   final bool hasDiveTableExtras;
 
   const _SectionConfig({
@@ -35,6 +36,7 @@ class _SectionConfig {
     this.hasDiveProfile = false,
     this.hasDiveDetails = false,
     this.hasSiteDetails = false,
+    this.hasEquipmentDetails = false,
     this.hasDiveTableExtras = false,
   });
 }
@@ -87,6 +89,7 @@ const _sectionConfigs = <String, _SectionConfig>{
       ListViewMode.compact,
       ListViewMode.table,
     ],
+    hasEquipmentDetails: true,
   ),
   'diveCenters': _SectionConfig(
     key: 'diveCenters',
@@ -261,6 +264,19 @@ class SectionAppearancePage extends ConsumerWidget {
             context.l10n.settings_appearance_header_siteDetails,
           ),
           ..._buildSiteDetailsSettings(context),
+        ],
+
+        // -- Equipment Details section (equipment only, issue #4975) --
+        if (config.hasEquipmentDetails) ...[
+          const Divider(),
+          _buildSectionHeader(
+            context,
+            context.l10n.settings_appearance_header_equipmentDetails,
+          ),
+          _buildDetailSectionsTile(
+            context,
+            '/settings/equipment-detail-sections',
+          ),
         ],
 
         const SizedBox(height: 32),
@@ -710,20 +726,25 @@ class SectionAppearancePage extends ConsumerWidget {
 
   List<Widget> _buildSiteDetailsSettings(BuildContext context) {
     return [
-      ListTile(
-        leading: const Icon(Icons.reorder),
-        title: Text(
-          context.l10n.settings_appearance_diveDetails_sectionOrderVisibility,
-        ),
-        subtitle: Text(
-          context
-              .l10n
-              .settings_appearance_diveDetails_sectionOrderVisibility_subtitle,
-        ),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () => context.push('/settings/site-detail-sections'),
-      ),
+      _buildDetailSectionsTile(context, '/settings/site-detail-sections'),
     ];
+  }
+
+  /// The "Section order and visibility" row, opening [location].
+  Widget _buildDetailSectionsTile(BuildContext context, String location) {
+    return ListTile(
+      leading: const Icon(Icons.reorder),
+      title: Text(
+        context.l10n.settings_appearance_diveDetails_sectionOrderVisibility,
+      ),
+      subtitle: Text(
+        context
+            .l10n
+            .settings_appearance_diveDetails_sectionOrderVisibility_subtitle,
+      ),
+      trailing: const Icon(Icons.chevron_right),
+      onTap: () => context.push(location),
+    );
   }
 
   // ---------------------------------------------------------------------------

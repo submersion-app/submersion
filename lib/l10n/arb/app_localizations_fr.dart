@@ -23839,6 +23839,107 @@ class AppLocalizationsFr extends AppLocalizations {
   String get siteDetailSection_notes_description => 'Vos notes sur le site';
 
   @override
+  String get equipmentDetailSection_sharingHistory_name =>
+      'Utilisation et partage';
+
+  @override
+  String get settings_equipmentDetailSections_title =>
+      'Sections du détail d\'équipement';
+
+  @override
+  String get settings_appearance_header_equipmentDetails =>
+      'Détails de l\'équipement';
+
+  @override
+  String get settings_conflict_field_equipmentDetailSections =>
+      'Sections du détail d\'équipement';
+
+  @override
+  String get equipmentDetailSection_transmitter_name => 'Émetteur';
+
+  @override
+  String get equipmentDetailSection_passport_name => 'Passeport';
+
+  @override
+  String get equipmentDetailSection_condition_name => 'État';
+
+  @override
+  String get equipmentDetailSection_diveComputer_description =>
+      'Télécharger les plongées et gérer la connexion de l\'ordinateur';
+
+  @override
+  String get equipmentDetailSection_details_description =>
+      'Marque, modèle, numéro de série, achat et taille';
+
+  @override
+  String get equipmentDetailSection_transmitter_description =>
+      'Numéro de série, canal et bloc associé';
+
+  @override
+  String get equipmentDetailSection_location_description =>
+      'Où l\'article est rangé, et ses derniers déplacements';
+
+  @override
+  String get equipmentDetailSection_passport_description =>
+      'Gonflages et inspections du bloc, ou étiquette de l\'équipement';
+
+  @override
+  String get equipmentDetailSection_twinSet_description =>
+      'Le bloc auquel celui-ci est couplé';
+
+  @override
+  String get equipmentDetailSection_serviceClocks_description =>
+      'Quand la prochaine révision est due';
+
+  @override
+  String get equipmentDetailSection_exposure_description =>
+      'Ce que l\'article a subi lors de vos plongées';
+
+  @override
+  String get equipmentDetailSection_condition_description =>
+      'Constats d\'état et tendances';
+
+  @override
+  String get equipmentDetailSection_childItems_description =>
+      'Cellules et batteries installées dans l\'article';
+
+  @override
+  String get equipmentDetailSection_photos_description =>
+      'Photos de référence de l\'article';
+
+  @override
+  String get equipmentDetailSection_observations_description =>
+      'Contrôles avec notes d\'état et photos';
+
+  @override
+  String get equipmentDetailSection_components_description =>
+      'Les pièces qui composent l\'article';
+
+  @override
+  String get equipmentDetailSection_unitConfigurations_description =>
+      'Configurations enregistrées du recycleur';
+
+  @override
+  String get equipmentDetailSection_linkedFiles_description =>
+      'Fichiers liés avant l\'existence des Documents';
+
+  @override
+  String get equipmentDetailSection_sharingHistory_description =>
+      'Qui a utilisé l\'article, et chaque partage';
+
+  @override
+  String get equipmentDetailSection_serviceHistory_description =>
+      'Révisions et réparations passées';
+
+  @override
+  String get equipmentDetailSection_notes_description =>
+      'Vos notes sur l\'article';
+
+  @override
+  String get equipmentDetailSection_documents_description =>
+      'Manuels, factures et certificats';
+
+  @override
   String get settings_siteDetailSections_title => 'Sections du détail du site';
 
   @override

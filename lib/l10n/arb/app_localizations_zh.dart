@@ -22565,6 +22565,87 @@ class AppLocalizationsZh extends AppLocalizations {
   String get siteDetailSection_notes_description => '你对潜水点的备注';
 
   @override
+  String get equipmentDetailSection_sharingHistory_name => '使用与共享';
+
+  @override
+  String get settings_equipmentDetailSections_title => '装备详情分区';
+
+  @override
+  String get settings_appearance_header_equipmentDetails => '装备详情';
+
+  @override
+  String get settings_conflict_field_equipmentDetailSections => '装备详情分区';
+
+  @override
+  String get equipmentDetailSection_transmitter_name => '发射器';
+
+  @override
+  String get equipmentDetailSection_passport_name => '护照';
+
+  @override
+  String get equipmentDetailSection_condition_name => '状况';
+
+  @override
+  String get equipmentDetailSection_diveComputer_description => '下载潜水并管理电脑的连接';
+
+  @override
+  String get equipmentDetailSection_details_description => '品牌、型号、序列号、购买信息和尺寸';
+
+  @override
+  String get equipmentDetailSection_transmitter_description => '序列号、频道及其对应的气瓶';
+
+  @override
+  String get equipmentDetailSection_location_description => '装备的存放位置及最近的移动';
+
+  @override
+  String get equipmentDetailSection_passport_description => '气瓶的充气和检验，或装备标签';
+
+  @override
+  String get equipmentDetailSection_twinSet_description => '与此气瓶配对的气瓶';
+
+  @override
+  String get equipmentDetailSection_serviceClocks_description => '下次保养的到期时间';
+
+  @override
+  String get equipmentDetailSection_exposure_description => '装备在你的潜水中经历了什么';
+
+  @override
+  String get equipmentDetailSection_condition_description => '状况发现与趋势';
+
+  @override
+  String get equipmentDetailSection_childItems_description => '装在装备中的电池芯和电池';
+
+  @override
+  String get equipmentDetailSection_photos_description => '装备的参考照片';
+
+  @override
+  String get equipmentDetailSection_observations_description =>
+      '附带状况备注和照片的检查记录';
+
+  @override
+  String get equipmentDetailSection_components_description => '组成该装备的部件';
+
+  @override
+  String get equipmentDetailSection_unitConfigurations_description =>
+      '循环呼吸器的已保存配置';
+
+  @override
+  String get equipmentDetailSection_linkedFiles_description => '在文档功能之前链接的文件';
+
+  @override
+  String get equipmentDetailSection_sharingHistory_description =>
+      '谁使用过该装备，以及每次共享';
+
+  @override
+  String get equipmentDetailSection_serviceHistory_description => '以往的保养和维修';
+
+  @override
+  String get equipmentDetailSection_notes_description => '你对该装备的备注';
+
+  @override
+  String get equipmentDetailSection_documents_description => '说明书、发票和证书';
+
+  @override
   String get settings_siteDetailSections_title => '潜水点详情区块';
 
   @override

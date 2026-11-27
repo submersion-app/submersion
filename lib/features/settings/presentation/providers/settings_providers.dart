@@ -9,6 +9,7 @@ import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/first_day_of_week.dart';
+import 'package:submersion/core/constants/equipment_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/o2_cell_unit.dart';
@@ -806,6 +807,9 @@ class AppSettings implements UnitFormatterSettings {
   /// How the Site Details page arranges the cards it shows.
   final DiveDetailLayout siteDetailLayout;
 
+  /// Ordered list of the gear item page's card visibility (issue #4975).
+  final List<EquipmentDetailSectionConfig> equipmentDetailSections;
+
   /// Home dashboard gauge-strip chip types the user has hidden.
   /// Ids are [HomeChipType.name] values; empty means all chips shown.
   /// Device-local, not per-diver.
@@ -1072,6 +1076,7 @@ class AppSettings implements UnitFormatterSettings {
     this.diveDetailLayout = DiveDetailLayout.detailed,
     this.siteDetailSections = SiteDetailSectionConfig.defaultSections,
     this.siteDetailLayout = DiveDetailLayout.detailed,
+    this.equipmentDetailSections = EquipmentDetailSectionConfig.defaultSections,
     this.hiddenHomeChips = const <String>{},
     this.hiddenHomeCards = const <String>{},
     this.homePanelOrder,
@@ -1326,6 +1331,8 @@ class AppSettings implements UnitFormatterSettings {
     List<SiteDetailSectionConfig>? siteDetailSections,
     bool clearSiteDetailSections = false,
     DiveDetailLayout? siteDetailLayout,
+    List<EquipmentDetailSectionConfig>? equipmentDetailSections,
+    bool clearEquipmentDetailSections = false,
     Set<String>? hiddenHomeChips,
     Set<String>? hiddenHomeCards,
     List<String>? homePanelOrder,
@@ -1615,6 +1622,9 @@ class AppSettings implements UnitFormatterSettings {
           ? SiteDetailSectionConfig.defaultSections
           : (siteDetailSections ?? this.siteDetailSections),
       siteDetailLayout: siteDetailLayout ?? this.siteDetailLayout,
+      equipmentDetailSections: clearEquipmentDetailSections
+          ? EquipmentDetailSectionConfig.defaultSections
+          : (equipmentDetailSections ?? this.equipmentDetailSections),
       hiddenHomeChips: hiddenHomeChips ?? this.hiddenHomeChips,
       hiddenHomeCards: hiddenHomeCards ?? this.hiddenHomeCards,
       homePanelOrder: homePanelOrder ?? this.homePanelOrder,
@@ -3490,6 +3500,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setSiteDetailLayout(DiveDetailLayout layout) =>
       _update((s) => s.copyWith(siteDetailLayout: layout));
+
+  Future<void> setEquipmentDetailSections(
+    List<EquipmentDetailSectionConfig> sections,
+  ) {
+    final copy = List<EquipmentDetailSectionConfig>.unmodifiable(sections);
+    return _update((s) => s.copyWith(equipmentDetailSections: copy));
+  }
+
+  Future<void> resetEquipmentDetailSections() =>
+      _update((s) => s.copyWith(clearEquipmentDetailSections: true));
 
   /// Record whether Site Details card [id] shows unfolded in the list
   /// layout. Fold state rides in the card list, so this rewrites that list

@@ -133,12 +133,13 @@ Future<GearPageHarness> pumpGearPage(
   List<EquipmentItem> children = const [],
   List<EquipmentFinding> findings = const [],
   List<Object> extraOverrides = const [],
+  MockSettingsNotifier? settingsNotifier,
 }) async {
   final shown = item ?? apex;
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
-  final overrides = await getBaseOverrides();
+  final overrides = await getBaseOverrides(settingsNotifier: settingsNotifier);
   late GearPageHarness harness;
   final serviceRecords = CountingServiceRecords();
   final page = EquipmentDetailPage(

@@ -21,6 +21,7 @@ import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
+import 'package:submersion/core/constants/equipment_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/first_day_of_week.dart';
 import 'package:submersion/core/constants/gas_model.dart';
@@ -494,6 +495,11 @@ class DiverSettingsRepository {
                   SiteDetailSectionConfig.sectionsToJson(s.siteDetailSections),
                 ),
                 siteDetailLayout: Value(s.siteDetailLayout.name),
+                equipmentDetailSections: Value(
+                  EquipmentDetailSectionConfig.sectionsToJson(
+                    s.equipmentDetailSections,
+                  ),
+                ),
                 hasAcceptedPlanningDisclaimer: Value(
                   s.hasAcceptedPlanningDisclaimer,
                 ),
@@ -894,6 +900,11 @@ class DiverSettingsRepository {
         SiteDetailSectionConfig.sectionsToJson(settings.siteDetailSections),
       ),
       siteDetailLayout: Value(settings.siteDetailLayout.name),
+      equipmentDetailSections: Value(
+        EquipmentDetailSectionConfig.sectionsToJson(
+          settings.equipmentDetailSections,
+        ),
+      ),
       hasAcceptedPlanningDisclaimer: Value(
         settings.hasAcceptedPlanningDisclaimer,
       ),
@@ -1177,6 +1188,9 @@ class DiverSettingsRepository {
         row.siteDetailSections,
       ),
       siteDetailLayout: DiveDetailLayout.fromName(row.siteDetailLayout),
+      equipmentDetailSections: EquipmentDetailSectionConfig.sectionsFromJson(
+        row.equipmentDetailSections,
+      ),
       hasAcceptedPlanningDisclaimer: row.hasAcceptedPlanningDisclaimer,
     );
   }

@@ -24195,6 +24195,103 @@ class AppLocalizationsAr extends AppLocalizations {
   String get siteDetailSection_notes_description => 'ملاحظاتك عن الموقع';
 
   @override
+  String get equipmentDetailSection_sharingHistory_name =>
+      'الاستخدام والمشاركة';
+
+  @override
+  String get settings_equipmentDetailSections_title => 'أقسام تفاصيل المعدات';
+
+  @override
+  String get settings_appearance_header_equipmentDetails => 'تفاصيل المعدات';
+
+  @override
+  String get settings_conflict_field_equipmentDetailSections =>
+      'أقسام تفاصيل المعدات';
+
+  @override
+  String get equipmentDetailSection_transmitter_name => 'جهاز الإرسال';
+
+  @override
+  String get equipmentDetailSection_passport_name => 'الجواز';
+
+  @override
+  String get equipmentDetailSection_condition_name => 'الحالة';
+
+  @override
+  String get equipmentDetailSection_diveComputer_description =>
+      'تنزيل الغطسات وإدارة اتصال الكمبيوتر';
+
+  @override
+  String get equipmentDetailSection_details_description =>
+      'العلامة التجارية والطراز والرقم التسلسلي والشراء والمقاس';
+
+  @override
+  String get equipmentDetailSection_transmitter_description =>
+      'الرقم التسلسلي والقناة والأسطوانة المرتبطة';
+
+  @override
+  String get equipmentDetailSection_location_description =>
+      'مكان حفظ القطعة وآخر تنقلاتها';
+
+  @override
+  String get equipmentDetailSection_passport_description =>
+      'تعبئات الأسطوانة وفحوصها، أو بطاقة المعدات';
+
+  @override
+  String get equipmentDetailSection_twinSet_description =>
+      'الأسطوانة المقترنة بهذه';
+
+  @override
+  String get equipmentDetailSection_serviceClocks_description =>
+      'موعد الصيانة التالية';
+
+  @override
+  String get equipmentDetailSection_exposure_description =>
+      'ما تعرضت له القطعة في غطساتك';
+
+  @override
+  String get equipmentDetailSection_condition_description =>
+      'ملاحظات الحالة واتجاهاتها';
+
+  @override
+  String get equipmentDetailSection_childItems_description =>
+      'الخلايا والبطاريات المركبة في القطعة';
+
+  @override
+  String get equipmentDetailSection_photos_description => 'صور مرجعية للقطعة';
+
+  @override
+  String get equipmentDetailSection_observations_description =>
+      'فحوص مع ملاحظات الحالة والصور';
+
+  @override
+  String get equipmentDetailSection_components_description =>
+      'الأجزاء التي تتكون منها القطعة';
+
+  @override
+  String get equipmentDetailSection_unitConfigurations_description =>
+      'الإعدادات المحفوظة لجهاز إعادة التنفس';
+
+  @override
+  String get equipmentDetailSection_linkedFiles_description =>
+      'ملفات رُبطت قبل وجود المستندات';
+
+  @override
+  String get equipmentDetailSection_sharingHistory_description =>
+      'من استخدم القطعة، وكل مشاركة';
+
+  @override
+  String get equipmentDetailSection_serviceHistory_description =>
+      'الصيانات والإصلاحات السابقة';
+
+  @override
+  String get equipmentDetailSection_notes_description => 'ملاحظاتك عن القطعة';
+
+  @override
+  String get equipmentDetailSection_documents_description =>
+      'الأدلة والفواتير والشهادات';
+
+  @override
   String get settings_siteDetailSections_title => 'أقسام تفاصيل الموقع';
 
   @override

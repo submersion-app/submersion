@@ -342,6 +342,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     FieldKind.enumValue,
     enumLabel: equipmentDefaultStatusesLabeler,
   ),
+  'equipmentDetailSections': ConflictField(
+    (l) => l.settings_conflict_field_equipmentDetailSections,
+    FieldKind.opaque,
+  ),
   'equipmentListViewMode': ConflictField(
     (l) => l.settings_conflict_field_equipmentListViewMode,
     FieldKind.enumValue,

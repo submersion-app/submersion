@@ -23688,6 +23688,107 @@ class AppLocalizationsHu extends AppLocalizations {
       'Megjegyzések a merülőhelyről';
 
   @override
+  String get equipmentDetailSection_sharingHistory_name =>
+      'Használat és megosztás';
+
+  @override
+  String get settings_equipmentDetailSections_title =>
+      'Felszerelés-részletek szakaszai';
+
+  @override
+  String get settings_appearance_header_equipmentDetails =>
+      'Felszerelés részletei';
+
+  @override
+  String get settings_conflict_field_equipmentDetailSections =>
+      'Felszerelés-részletek szakaszai';
+
+  @override
+  String get equipmentDetailSection_transmitter_name => 'Jeladó';
+
+  @override
+  String get equipmentDetailSection_passport_name => 'Útlevél';
+
+  @override
+  String get equipmentDetailSection_condition_name => 'Állapot';
+
+  @override
+  String get equipmentDetailSection_diveComputer_description =>
+      'Merülések letöltése és a komputer kapcsolatának kezelése';
+
+  @override
+  String get equipmentDetailSection_details_description =>
+      'Márka, modell, sorozatszám, vásárlás és méret';
+
+  @override
+  String get equipmentDetailSection_transmitter_description =>
+      'Sorozatszám, csatorna és a hozzá tartozó palack';
+
+  @override
+  String get equipmentDetailSection_location_description =>
+      'Hol tárolod az eszközt, és a legutóbbi áthelyezések';
+
+  @override
+  String get equipmentDetailSection_passport_description =>
+      'A palack töltései és ellenőrzései, vagy a felszerelés címkéje';
+
+  @override
+  String get equipmentDetailSection_twinSet_description =>
+      'A palack, amellyel ez párban van';
+
+  @override
+  String get equipmentDetailSection_serviceClocks_description =>
+      'Mikor esedékes a következő szerviz';
+
+  @override
+  String get equipmentDetailSection_exposure_description =>
+      'Mit élt át az eszköz a merüléseiden';
+
+  @override
+  String get equipmentDetailSection_condition_description =>
+      'Állapotmegállapítások és trendek';
+
+  @override
+  String get equipmentDetailSection_childItems_description =>
+      'Az eszközbe szerelt cellák és akkumulátorok';
+
+  @override
+  String get equipmentDetailSection_photos_description =>
+      'Referenciafotók az eszközről';
+
+  @override
+  String get equipmentDetailSection_observations_description =>
+      'Ellenőrzések állapotjegyzetekkel és fotókkal';
+
+  @override
+  String get equipmentDetailSection_components_description =>
+      'Az alkatrészek, amelyekből az eszköz áll';
+
+  @override
+  String get equipmentDetailSection_unitConfigurations_description =>
+      'A rebreather mentett konfigurációi';
+
+  @override
+  String get equipmentDetailSection_linkedFiles_description =>
+      'A Dokumentumok előtt csatolt fájlok';
+
+  @override
+  String get equipmentDetailSection_sharingHistory_description =>
+      'Ki használta az eszközt, és minden megosztás';
+
+  @override
+  String get equipmentDetailSection_serviceHistory_description =>
+      'Korábbi szervizek és javítások';
+
+  @override
+  String get equipmentDetailSection_notes_description =>
+      'Megjegyzéseid az eszközről';
+
+  @override
+  String get equipmentDetailSection_documents_description =>
+      'Kézikönyvek, számlák és tanúsítványok';
+
+  @override
   String get settings_siteDetailSections_title =>
       'Merülőhely-részletek szekciói';
 
