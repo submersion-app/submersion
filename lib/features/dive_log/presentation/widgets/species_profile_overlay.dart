@@ -1,5 +1,5 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 import 'package:submersion/features/dive_log/presentation/providers/species_profile_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_highlight_range.dart';

@@ -187,6 +187,21 @@ void main() {
     expect(span.minDepth, profileDepthAt(profile, 540));
   });
 
+  test('a clip started before the descent keeps its own clock', () {
+    // Recording began 20 s before the profile; a track 30 s into the clip
+    // is 10 s into the dive, not 30.
+    final positions = place(
+      sightings: [sighting('shark')],
+      media: [item('v1', type: MediaType.video, elapsed: -20, duration: 60)],
+      tags: [tag('v1', 'shark')],
+      ids: {
+        'v1': [track('a', 'shark', startMs: 30000, endMs: 40000)],
+      },
+    );
+    final span = positions['shark']!.spans.single;
+    expect((span.start, span.end), (10, 20));
+  });
+
   test('a hand-tagged video with no track spans the whole clip', () {
     final positions = place(
       sightings: [sighting('turtle')],
@@ -294,6 +309,16 @@ void main() {
     expect(positions.maxDepthMeters, 30);
     expect(positions.minDepthMeters, profileDepthAt(profile, 2900));
     expect(positions.isEmpty, isFalse);
+  });
+
+  test('copyWith replaces only what it is given', () {
+    const p = SpeciesProfilePositions(
+      moments: [(seconds: 60, depthMeters: 3)],
+      spans: [],
+    );
+    final spans = [(start: 0, end: 10, minDepth: 0.0, maxDepth: 1.0)];
+    final q = p.copyWith(spans: spans);
+    expect((q.moments, q.spans), (p.moments, spans));
   });
 
   test('an empty profile gives no positions', () {

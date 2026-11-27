@@ -21,6 +21,14 @@ typedef SpeciesSpan = ({int start, int end, double minDepth, double maxDepth});
 class SpeciesProfilePositions {
   const SpeciesProfilePositions({required this.moments, required this.spans});
 
+  SpeciesProfilePositions copyWith({
+    List<SpeciesMoment>? moments,
+    List<SpeciesSpan>? spans,
+  }) => SpeciesProfilePositions(
+    moments: moments ?? this.moments,
+    spans: spans ?? this.spans,
+  );
+
   /// Time-sorted.
   final List<SpeciesMoment> moments;
 
@@ -97,7 +105,9 @@ Map<String, SpeciesProfilePositions> speciesProfilePositions({
         ));
         continue;
       }
-      final base = marker.elapsedSeconds;
+      // The clip's own start, unclamped: one begun before the descent keeps
+      // its tracks on the dive's clock, and the spans are clamped below.
+      final base = item.enrichment?.elapsedSeconds ?? marker.elapsedSeconds;
       final tracks = cropsOfSpecies(
         identificationsByMedia[item.id] ?? const <MediaIdentification>[],
         speciesId,
