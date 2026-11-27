@@ -110,9 +110,13 @@ class PdfPageRenderer {
         await initializer();
         _initialized = true;
       }
+      // Opening needs pdfium, which only PDFIUM_PATH hosts load in tests;
+      // pdf_page_renderer_test pins openBytes itself.
+      // coverage:ignore-start
       document = file != null
           ? await PdfDocument.openFile(file.path)
           : await openBytes(bytes!);
+      // coverage:ignore-end
       if (document.pages.isEmpty) return null;
       final pageImage = await renderWholePage(document.pages[0], maxDimension);
       if (pageImage == null) return null;

@@ -29,7 +29,10 @@ PdfDocumentRef inMemoryPdfDocumentRef(
   maxSizeToCacheOnMemory: inMemoryPdfLimitBytes,
 );
 
+// Opening needs pdfium, which flutter_test cannot load.
+// coverage:ignore-start
 /// Opens PDF [bytes] from native memory when they fit in
 /// [inMemoryPdfLimitBytes]; see [inMemoryPdfDocumentRef].
 Future<PdfDocument> openInMemoryPdf(Uint8List bytes) =>
     PdfDocument.openData(bytes, maxSizeToCacheOnMemory: inMemoryPdfLimitBytes);
+// coverage:ignore-end

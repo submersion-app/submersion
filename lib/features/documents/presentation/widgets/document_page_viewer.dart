@@ -140,6 +140,9 @@ class _PdfPageState extends State<_PdfPage> {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
         }
+        // Reached only once pdfium has loaded, which flutter_test cannot do;
+        // in_memory_pdf_viewer_test covers the viewer.
+        // coverage:ignore-start
         return inMemoryPdfViewer(
           widget.page.bytes!,
           sourceName: 'document-page-${widget.page.id}',
@@ -149,6 +152,7 @@ class _PdfPageState extends State<_PdfPage> {
                 _CannotDisplay(page: widget.page),
           ),
         );
+        // coverage:ignore-end
       },
     );
   }

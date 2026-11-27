@@ -93,6 +93,9 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage>
                 if (snapshot.connectionState != ConnectionState.done) {
                   return const Center(child: CircularProgressIndicator());
                 }
+                // Reached only once pdfium has loaded, which flutter_test
+                // cannot do; in_memory_pdf_viewer_test covers the viewer.
+                // coverage:ignore-start
                 return inMemoryPdfViewer(
                   resolved.bytes!,
                   sourceName: widget.item.id,
@@ -103,6 +106,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage>
                         _UnavailableState(item: widget.item),
                   ),
                 );
+                // coverage:ignore-end
               },
             );
           },
