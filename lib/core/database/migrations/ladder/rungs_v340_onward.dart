@@ -350,5 +350,11 @@ extension RungsFromV340 on AppDatabase {
     // floor rises to 386 (see minimumCompatibleSchemaVersion).
     if (from < 386) await _assertCourseRequirementConditionColumns();
     if (from < 386) await reportProgress();
+
+    // v387 (issue #5073): a dive site's address, phone, email, website and
+    // opening hours. Nullable, no backfill, re-asserted in beforeOpen; the
+    // floor does not move.
+    if (from < 387) await _assertSiteContactHoursColumns();
+    if (from < 387) await reportProgress();
   }
 }
