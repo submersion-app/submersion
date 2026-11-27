@@ -13,14 +13,29 @@ const _addresses = [
   'https://beta.web.submersion.app',
 ];
 
-/// The 1-based line numbers of [text] that spell either site's address.
+/// What a line names a site's host by: the constants, or the host itself.
+/// Beside an `https://` on the same line they make the full address once
+/// dart2js folds a constant interpolation, concatenation or pair of
+/// adjacent literals into one string.
+const _hostSpellings = [
+  'kstablewebsitehost',
+  'kbetawebsitehost',
+  'web.submersion.app',
+];
+
+/// The 1-based line numbers of [text] that spell, or build at compile time,
+/// either site's address.
 List<int> addressLines(String text) {
   final lines = text.split('\n');
   return [
     for (var i = 0; i < lines.length; i++)
-      if (_addresses.any(lines[i].toLowerCase().contains)) i + 1,
+      if (_spellsAddress(lines[i].toLowerCase())) i + 1,
   ];
 }
+
+bool _spellsAddress(String line) =>
+    _addresses.any(line.contains) ||
+    (line.contains('https://') && _hostSpellings.any(line.contains));
 
 void main() {
   test('the scan finds an address when one is there', () {
@@ -30,6 +45,19 @@ void main() {
     );
     expect(addressLines('see HTTPS://Beta.Web.Submersion.App/x'), [1]);
     expect(addressLines("const host = 'beta.web.submersion.app';"), isEmpty);
+    // dart2js folds a constant interpolation or concatenation into one
+    // literal, so these put the full address in main.dart.js too.
+    expect(addressLines(r"final u = 'https://$kBetaWebSiteHost';"), [1]);
+    expect(addressLines(r"final u = 'https://${kStableWebSiteHost}/';"), [1]);
+    expect(addressLines("const u = 'https://' + kStableWebSiteHost;"), [1]);
+    expect(addressLines("const u = 'https://' 'beta.web.submersion.app';"), [
+      1,
+    ]);
+    // Building the Uri at runtime is what the app does, and is allowed.
+    expect(
+      addressLines("Uri(scheme: 'https', host: kBetaWebSiteHost)"),
+      isEmpty,
+    );
   });
 
   test('nothing under lib/ spells either web site address', () {

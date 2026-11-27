@@ -137,7 +137,11 @@ jobs:
             exit 1
           fi
           if ! gh release view "$TAG" --repo "$RELEASE_REPO" --json tagName >/dev/null; then
-            echo "::error::There is no release ${TAG} in ${RELEASE_REPO}; check the tag (beta-builds keeps only the newest betas)."
+            hint=""
+            if [ "$SITE" = "beta" ]; then
+              hint=" (beta-builds keeps only the newest betas)"
+            fi
+            echo "::error::There is no release ${TAG} in ${RELEASE_REPO}; check the tag${hint}."
             exit 1
           fi
 
@@ -166,12 +170,17 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$SITE" = "beta" ]; then
-            gh release download "$TAG" --repo "$RELEASE_REPO" \
-              --pattern metadata.json --dir "$RUNNER_TEMP/meta"
+            if ! gh release download "$TAG" --repo "$RELEASE_REPO" \
+              --pattern metadata.json --dir "$RUNNER_TEMP/meta"; then
+              echo "::error::Release ${TAG} in ${RELEASE_REPO} has no metadata.json, so its source commit is unknown."
+              exit 1
+            fi
             rev=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1])).get("sourceSha") or "")' \
               "$RUNNER_TEMP/meta/metadata.json")
-            if [ -z "$rev" ]; then
-              echo "::error::Release ${TAG} in ${RELEASE_REPO} names no sourceSha in metadata.json."
+            # A full commit id and nothing else: the value reaches git's
+            # command line, where a leading dash would read as an option.
+            if ! [[ "$rev" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "::error::Release ${TAG} in ${RELEASE_REPO} names no valid sourceSha in metadata.json (got '${rev}')."
               exit 1
             fi
             git fetch -q --depth 1 origin "$rev"

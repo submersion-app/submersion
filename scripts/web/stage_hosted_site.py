@@ -3,7 +3,8 @@
 
 `.github/workflows/deploy-web.yml` publishes each stable release's
 `Submersion-<tag>-Web.zip` to GitHub Pages at https://web.submersion.app
-(issue #4161). This script does the parts worth testing:
+(issue #4161), and each beta's to https://beta.web.submersion.app (issue
+#4481). This script does the parts worth testing, for either site:
 
 `stage` unzips the bundle into an empty folder, refusing any entry that
 would land outside it, runs `scripts/check_web_bundle.py` on the result,
