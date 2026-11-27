@@ -25,6 +25,7 @@ extension _ViewerSightings on _MediaViewerPageState {
       if (!identical(_videoControllers[mediaId], controller)) return;
       final value = controller.value;
       if (!value.isInitialized || value.hasError || value.isPlaying) return;
+      if (diverMoved(controller)) return;
       if (value.position > const Duration(milliseconds: 250)) return;
       await controller.seekTo(Duration(milliseconds: stretches.first.startMs));
     } catch (e, stackTrace) {

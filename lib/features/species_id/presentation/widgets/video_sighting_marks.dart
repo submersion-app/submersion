@@ -31,6 +31,10 @@ class VideoSightingMarks extends ConsumerWidget {
   /// the amber face-tag marks.
   static const Color color = Colors.tealAccent;
 
+  /// Taller than the 4 px track, with a dark edge, so a band reads over the
+  /// analysed tint (the theme's tertiary colour, which may be close in hue).
+  static const double height = 6;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final total = duration.inMilliseconds;
@@ -57,14 +61,15 @@ class VideoSightingMarks extends ConsumerWidget {
             for (final s in stretches)
               Positioned(
                 left: math.min(at(s.startMs), width - minWidth),
-                top: 0,
+                top: (4 - height) / 2,
                 child: Container(
                   key: ValueKey('videoSightingMark_${s.startMs}'),
                   width: math.max(minWidth, at(s.endMs) - at(s.startMs)),
-                  height: 4,
+                  height: height,
                   decoration: BoxDecoration(
                     color: color,
-                    borderRadius: BorderRadius.circular(2),
+                    border: Border.all(color: Colors.black87, width: 1),
+                    borderRadius: BorderRadius.circular(3),
                   ),
                 ),
               ),

@@ -208,4 +208,63 @@ void main() {
     final bar = tester.widget<VideoControlsBar>(find.byType(VideoControlsBar));
     expect(bar.speciesId, 's1');
   });
+
+  testWidgets(
+    'a video the diver moved by hand stays put, even near its start',
+    (tester) async {
+      final player = _SeekRecorder();
+      final lookup = Completer<List<VideoStretch>>();
+      await pumpVideoViewer(
+        tester,
+        prefs,
+        platform: player,
+        focusSpeciesId: 's1',
+        overrides: [
+          videoSpeciesSightingsProvider((
+            mediaId: 'v1',
+            speciesId: 's1',
+          )).overrideWith((ref) => lookup.future),
+        ],
+      );
+
+      // Back to the very start by hand, before the lookup lands.
+      final track = tester.getRect(find.byKey(VideoControlsBar.trackKey));
+      await tester.tapAt(Offset(track.left + 1, track.center.dy));
+      await tester.pump();
+      final byHand = List.of(player.seeks);
+      expect(byHand, isNotEmpty);
+
+      lookup.complete(const [(startMs: 4200, endMs: 9000)]);
+      await settle(tester);
+
+      expect(player.seeks, byHand);
+    },
+  );
+
+  testWidgets('the fullscreen bar follows the species too', (tester) async {
+    await pumpVideoViewer(
+      tester,
+      prefs,
+      platform: _SeekRecorder(),
+      focusSpeciesId: 's1',
+      overrides: [
+        sightingsOf('v1', const [(startMs: 4200, endMs: 9000)]),
+      ],
+    );
+    await settle(tester);
+
+    await tester.tap(find.byTooltip('Full screen'));
+    await tester.pump();
+    // The fullscreen controls show on a tap of the video.
+    final playPause = find.byWidgetPredicate(
+      (w) => w is Semantics && w.properties.label == 'Play or pause video',
+    );
+    await tester.tap(playPause);
+    await tester.pump(const Duration(milliseconds: 500));
+
+    final bar = tester.widget<VideoControlsBar>(find.byType(VideoControlsBar));
+    expect(bar.speciesId, 's1');
+    await tester.tap(playPause);
+    await tester.pump(const Duration(milliseconds: 500));
+  });
 }

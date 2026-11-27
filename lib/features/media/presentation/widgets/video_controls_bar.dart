@@ -6,6 +6,7 @@ import 'package:video_player/video_player.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
+import 'package:submersion/features/media/presentation/helpers/video_diver_moves.dart';
 import 'package:submersion/features/media/presentation/helpers/playhead_glide.dart';
 import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/video_tag_marks.dart';
@@ -252,6 +253,8 @@ class _VideoControlsBarState extends State<VideoControlsBar>
   /// Seeks to [target], coalescing with any seek already in flight. The
   /// returned future completes once the player has reached the newest target.
   Future<void> _seekTo(Duration target) {
+    // Every seek the bar makes is the diver's own.
+    markDiverMoved(widget.controller);
     _pendingSeek = target;
     _seekTarget = target;
     _glide.expectSeek(target);
@@ -536,20 +539,25 @@ class _VideoControlsBarState extends State<VideoControlsBar>
     );
   }
 
+  /// The Next sighting button's size: an icon button at compact density.
+  static const double _nextSightingSize = 40;
+
   /// Steps to the species' next sighting; shown only with two or more,
   /// since with one there is nowhere else to go.
   Widget _nextSightingButton(String speciesId) => Consumer(
     builder: (context, ref, _) {
-      final stretches =
-          ref
-              .watch(
-                videoSpeciesSightingsProvider((
-                  mediaId: widget.mediaId,
-                  speciesId: speciesId,
-                )),
-              )
-              .value ??
-          const <VideoStretch>[];
+      final sightings = ref.watch(
+        videoSpeciesSightingsProvider((
+          mediaId: widget.mediaId,
+          speciesId: speciesId,
+        )),
+      );
+      // Its place is held while they load, so the track does not shrink
+      // under the playhead when they arrive.
+      if (!sightings.hasValue) {
+        return const SizedBox.square(dimension: _nextSightingSize);
+      }
+      final stretches = sightings.value ?? const <VideoStretch>[];
       if (stretches.length < 2) return const SizedBox.shrink();
       return IconButton(
         key: VideoControlsBar.nextSightingKey,

@@ -284,6 +284,10 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       });
       return;
     }
+    // A place the diver chose by hand carries over, so the fresh player is
+    // not taken for a new open and moved to a sighting (issue #5084).
+    final previous = _controller;
+    if (previous != null && diverMoved(previous)) markDiverMoved(next);
     setState(() => _controller = next);
     // It took the viewer's sound when it opened; a toggle since, while it
     // seeked and resumed, reached only the failed player.

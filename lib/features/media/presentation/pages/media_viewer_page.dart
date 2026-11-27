@@ -36,6 +36,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
 import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
 import 'package:submersion/features/media/presentation/helpers/set_time_seed.dart';
+import 'package:submersion/features/media/presentation/helpers/video_diver_moves.dart';
 import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
@@ -79,13 +80,13 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/media/presentation/match_confidence_display.dart';
+import 'package:submersion/features/species_id/presentation/providers/video_sighting_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/identification_labels.dart';
 import 'package:submersion/features/species_id/presentation/widgets/identification_trigger.dart';
 import 'package:submersion/features/species_id/presentation/widgets/labels_menu.dart';
 import 'package:submersion/features/species_id/presentation/widgets/photo_identification_layer.dart';
 import 'package:submersion/features/species_id/presentation/widgets/video_identification_layer.dart';
 import 'package:submersion/features/species_id/presentation/widgets/video_playhead_reporter.dart';
-import 'package:submersion/features/species_id/presentation/providers/video_sighting_providers.dart';
 
 part 'media_viewer_actions.dart';
 part 'media_viewer_bottom_metadata.dart';
