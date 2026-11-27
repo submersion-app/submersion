@@ -21,7 +21,7 @@ The certificates are emitted as a Dart raw-string constant so the
 SecurityContext can be built synchronously with no asset loading.
 
 Usage:
-    python3 scripts/gen_embedded_ca_bundle.py [path-to-cacert.pem]
+    python3 scripts/codegen/gen_embedded_ca_bundle.py [path-to-cacert.pem]
 
 With no argument, fetches the canonical bundle from curl.se. Pass a local
 path to pin a vendored copy for offline or reproducible builds.
@@ -32,7 +32,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parents[2]
 OUT = REPO_ROOT / "lib" / "core" / "network" / "embedded_ca_bundle.dart"
 CANONICAL_URL = "https://curl.se/ca/cacert.pem"
 
@@ -75,7 +75,7 @@ def main() -> int:
 
     dart = (
         "// GENERATED FILE - DO NOT EDIT BY HAND.\n"
-        "// Regenerate with: python3 scripts/gen_embedded_ca_bundle.py\n"
+        "// Regenerate with: python3 scripts/codegen/gen_embedded_ca_bundle.py\n"
         f"// Source: {source} ({len(certs)} root certificates).\n"
         "//\n"
         "// Public root CA baseline for Windows TLS verification. Always merged\n"
