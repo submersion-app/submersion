@@ -615,6 +615,98 @@ void main() {
     });
   });
 
+  group('build - sighting times (issue #5092)', () {
+    final a = dive('a', entry: DateTime.utc(2026, 7, 1, 9));
+    final b = dive('b', entry: DateTime.utc(2026, 7, 1, 9, 40));
+
+    int? timeOf(DiveMergeResult result, String speciesId) => result
+        .mergedSightings
+        .firstWhere((s) => s.speciesId == speciesId)
+        .seenAtSeconds;
+
+    test("a later dive's time shifts by its offset from the merged start", () {
+      final result = builder.build(
+        [a, b],
+        sightingsByDive: {
+          'b': [
+            const MarineSighting(
+              id: 's1',
+              speciesId: 'ray',
+              speciesName: 'Eagle Ray',
+              seenAtSeconds: 120,
+            ),
+          ],
+        },
+      );
+      expect(timeOf(result, 'ray'), 40 * 60 + 120);
+    });
+
+    test('one species on both dives keeps the earlier time', () {
+      final result = builder.build(
+        [a, b],
+        sightingsByDive: {
+          'a': [
+            const MarineSighting(
+              id: 's1',
+              speciesId: 'ray',
+              speciesName: 'Eagle Ray',
+              seenAtSeconds: 900,
+            ),
+          ],
+          'b': [
+            const MarineSighting(
+              id: 's2',
+              speciesId: 'ray',
+              speciesName: 'Eagle Ray',
+              seenAtSeconds: 60,
+            ),
+          ],
+        },
+      );
+      expect(timeOf(result, 'ray'), 900);
+    });
+
+    test('one species on both dives keeps whichever time exists', () {
+      final result = builder.build(
+        [a, b],
+        sightingsByDive: {
+          'a': [
+            const MarineSighting(
+              id: 's1',
+              speciesId: 'ray',
+              speciesName: 'Eagle Ray',
+            ),
+          ],
+          'b': [
+            const MarineSighting(
+              id: 's2',
+              speciesId: 'ray',
+              speciesName: 'Eagle Ray',
+              seenAtSeconds: 60,
+            ),
+          ],
+        },
+      );
+      expect(timeOf(result, 'ray'), 40 * 60 + 60);
+    });
+
+    test('a sighting with no time stays without one', () {
+      final result = builder.build(
+        [a, b],
+        sightingsByDive: {
+          'b': [
+            const MarineSighting(
+              id: 's1',
+              speciesId: 'ray',
+              speciesName: 'Eagle Ray',
+            ),
+          ],
+        },
+      );
+      expect(timeOf(result, 'ray'), isNull);
+    });
+  });
+
   group('build - preview profile', () {
     // A plateau profile: 0-depth at both ends, [depth] in between, sampled
     // every [cadence] seconds.

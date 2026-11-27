@@ -24,6 +24,7 @@ Future<Map<String, List<MarineSighting>>> loadMarineSightings(
             abundance: s.abundance,
             count: s.count,
             notes: s.notes,
+            seenAtSeconds: s.seenAtSeconds,
           ),
       ],
   };

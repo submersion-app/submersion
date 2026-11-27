@@ -227,6 +227,11 @@ void main() {
         runtimeMin: 20,
       );
 
+      // b's turtle was seen 60 s into b (issue #5092).
+      await db.customStatement(
+        "UPDATE sightings SET seen_at_seconds = 60 WHERE id = 'sight-b'",
+      );
+
       final outcome = await service.apply(['a', 'b']);
       final mergedId = outcome.mergedDive.id;
 
@@ -301,6 +306,8 @@ void main() {
       )..where((t) => t.diveId.equals(mergedId))).get();
       expect(sightings, hasLength(1));
       expect(sightings.single.count, 2);
+      // b starts 3600 s into the merged dive, and its time moves with it.
+      expect(sightings.single.seenAtSeconds, 3660);
 
       // Data sources carried, all non-primary.
       final sources = await (db.select(

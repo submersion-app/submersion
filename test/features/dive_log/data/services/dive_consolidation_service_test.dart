@@ -295,6 +295,7 @@ void main() {
     String id, {
     required String diveId,
     required String speciesId,
+    int? seenAt,
   }) async {
     await db
         .into(db.sightings)
@@ -303,6 +304,7 @@ void main() {
             id: id,
             diveId: diveId,
             speciesId: speciesId,
+            seenAtSeconds: Value(seenAt),
           ),
         );
   }
@@ -1537,6 +1539,77 @@ void main() {
         expect(await roles.buddyRoleIdsForDives(['t']), beforeT.buddy);
       },
     );
+
+    group('sighting times (issue #5092)', () {
+      Future<int?> timeOn(String diveId, String speciesId) async =>
+          (await (db.select(db.sightings)..where(
+                    (r) =>
+                        r.diveId.equals(diveId) & r.speciesId.equals(speciesId),
+                  ))
+                  .getSingle())
+              .seenAtSeconds;
+
+      test('a secondary time fills a target sighting without one', () async {
+        await seedConsolidatableFixture();
+        await seedSighting('sight-t1', diveId: 't', speciesId: 'fish');
+        await seedSighting(
+          'sight-s1',
+          diveId: 's',
+          speciesId: 'fish',
+          seenAt: 600,
+        );
+        await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+        expect(await timeOn('t', 'fish'), 600);
+      });
+
+      test('undo takes a filled time back off the target', () async {
+        await seedConsolidatableFixture();
+        await seedSighting('sight-t1', diveId: 't', speciesId: 'fish');
+        await seedSighting(
+          'sight-s1',
+          diveId: 's',
+          speciesId: 'fish',
+          seenAt: 600,
+        );
+        final outcome = await service.apply(
+          targetDiveId: 't',
+          secondaryDiveIds: ['s'],
+        );
+        await service.undo(outcome.snapshot);
+        expect(await timeOn('t', 'fish'), isNull);
+        expect(await timeOn('s', 'fish'), 600);
+      });
+
+      test('a target time is never replaced', () async {
+        await seedConsolidatableFixture();
+        await seedSighting(
+          'sight-t1',
+          diveId: 't',
+          speciesId: 'fish',
+          seenAt: 300,
+        );
+        await seedSighting(
+          'sight-s1',
+          diveId: 's',
+          speciesId: 'fish',
+          seenAt: 600,
+        );
+        await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+        expect(await timeOn('t', 'fish'), 300);
+      });
+
+      test('a secondary-only species keeps its time', () async {
+        await seedConsolidatableFixture();
+        await seedSighting(
+          'sight-s2',
+          diveId: 's',
+          speciesId: 'turtle',
+          seenAt: 900,
+        );
+        await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+        expect(await timeOn('t', 'turtle'), 900);
+      });
+    });
 
     test(
       'scenario 10: unions tags/buddies/equipment/dive-types/sightings, '

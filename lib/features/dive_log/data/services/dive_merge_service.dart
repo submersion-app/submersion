@@ -187,6 +187,7 @@ class DiveMergeService {
               abundance: SightingAbundance.fromStorage(row.abundance),
               count: row.count,
               notes: row.notes,
+              seenAtSeconds: row.seenAtSeconds,
             ),
           );
     }
@@ -666,6 +667,7 @@ class DiveMergeService {
                 abundance: Value(s.abundance.storageValue),
                 count: Value(s.count),
                 notes: Value(s.notes),
+                seenAtSeconds: Value(s.seenAtSeconds),
               ),
             );
         await _sync.markRecordPending(

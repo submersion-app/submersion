@@ -804,7 +804,20 @@ class DiveConsolidationService {
         for (final row in snapshot.sightingRows.where(
           (r) => r.diveId == secondary.id,
         )) {
-          if (!targetSpeciesIds.add(row.speciesId)) continue;
+          if (!targetSpeciesIds.add(row.speciesId)) {
+            // Same species on both: a time from the secondary fills the
+            // target's sighting when it has none; one computer's timeline,
+            // so no shift (issue #5092).
+            if (row.seenAtSeconds != null) {
+              await _fillSightingTime(
+                targetDiveId: targetDiveId,
+                speciesId: row.speciesId,
+                seconds: row.seenAtSeconds!,
+                now: now,
+              );
+            }
+            continue;
+          }
           final rowId = _uuid.v4();
           await _db
               .into(_db.sightings)
@@ -1034,6 +1047,34 @@ class DiveConsolidationService {
   }
 
   /// Moves the newest tide record among [secondaryDiveIds] to
+  /// Gives the target's sighting of [speciesId] the secondary's time
+  /// [seconds] when it has none (issue #5092). Undo restores the target's
+  /// sighting rows from the snapshot.
+  Future<void> _fillSightingTime({
+    required String targetDiveId,
+    required String speciesId,
+    required int seconds,
+    required int now,
+  }) async {
+    final untimed =
+        await (_db.select(_db.sightings)..where(
+              (t) =>
+                  t.diveId.equals(targetDiveId) &
+                  t.speciesId.equals(speciesId) &
+                  t.seenAtSeconds.isNull(),
+            ))
+            .get();
+    for (final row in untimed) {
+      await (_db.update(_db.sightings)..where((t) => t.id.equals(row.id)))
+          .write(SightingsCompanion(seenAtSeconds: Value(seconds)));
+      await _sync.markRecordPending(
+        entityType: 'sightings',
+        recordId: row.id,
+        localUpdatedAt: now,
+      );
+    }
+  }
+
   /// [targetDiveId] when the target has none, as [_moveHealthRecord] does:
   /// a draft's tide, recorded from where the diver went in, survives its
   /// fill (issue #637).

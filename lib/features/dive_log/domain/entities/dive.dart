@@ -1530,6 +1530,10 @@ class MarineSighting extends Equatable {
   final int count;
   final String notes;
 
+  /// When in the dive it was seen, in seconds from the dive start, or null
+  /// (issue #5092).
+  final int? seenAtSeconds;
+
   const MarineSighting({
     required this.id,
     required this.speciesId,
@@ -1537,6 +1541,7 @@ class MarineSighting extends Equatable {
     this.abundance = SightingAbundance.seen,
     this.count = 1,
     this.notes = '',
+    this.seenAtSeconds,
   });
 
   /// [abundance] and [count] together.
@@ -1549,6 +1554,7 @@ class MarineSighting extends Equatable {
     SightingAbundance? abundance,
     int? count,
     String? notes,
+    int? seenAtSeconds,
   }) {
     return MarineSighting(
       id: id ?? this.id,
@@ -1557,6 +1563,7 @@ class MarineSighting extends Equatable {
       abundance: abundance ?? this.abundance,
       count: count ?? this.count,
       notes: notes ?? this.notes,
+      seenAtSeconds: seenAtSeconds ?? this.seenAtSeconds,
     );
   }
 
@@ -1568,6 +1575,7 @@ class MarineSighting extends Equatable {
     abundance,
     count,
     notes,
+    seenAtSeconds,
   ];
 }
 
