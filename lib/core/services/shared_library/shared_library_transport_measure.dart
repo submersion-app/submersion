@@ -5,7 +5,7 @@ part of 'shared_library_transport.dart';
 /// only lists.
 extension SharedLibraryTransportMeasure on SharedLibraryTransport {
   /// Bytes this library holds: the files directly in its root and in its
-  /// members, sites, suggestions and backups folders. Files of a library
+  /// members, sites, suggestions, backups, documents and pages folders. Files of a library
   /// nested below this one are not counted (the same [_directlyIn] guard as
   /// [_listKind]). [partial] is set when a folder could not be listed or a
   /// file reported no size. Measurement only; nothing is deleted.
@@ -35,6 +35,8 @@ extension SharedLibraryTransportMeasure on SharedLibraryTransport {
       _sitesId,
       () => optional(SharedLibraryLayout.suggestionsDir),
       () => optional(SharedLibraryLayout.backupsDir),
+      () => optional(SharedLibraryLayout.documentsDir),
+      () => optional(SharedLibraryLayout.pagesDir),
     ]) {
       final String? folderId;
       try {

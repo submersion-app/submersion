@@ -6,9 +6,11 @@ import 'package:submersion/core/services/shared_library/crypto/library_cipher.da
 import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/crypto/keyslots.dart';
+import 'package:submersion/core/services/shared_library/library_document_record.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/site_document.dart';
 
+part 'shared_library_transport_documents.dart';
 part 'shared_library_transport_measure.dart';
 part 'shared_library_transport_removals.dart';
 
@@ -164,11 +166,15 @@ class SharedLibraryTransport {
   String? _sites;
   String? _suggestions;
   String? _backups;
+  String? _documents;
+  String? _pages;
 
   static const _sitePrefix = 'site-';
   static const _memberPrefix = 'member-';
   static const _removalPrefix = 'removed-';
   static const _suggestionPrefix = 'suggestion-';
+  static const _documentPrefix = 'document-';
+  static const _pageSuffix = '.bin';
 
   static String siteFileName(String siteId) => '$_sitePrefix$siteId.json';
   static String memberFileName(String memberId) =>
@@ -176,6 +182,8 @@ class SharedLibraryTransport {
   static String removalFileName(String memberId) =>
       '$_removalPrefix$memberId.json';
   static String suggestionFileName(String id) => '$_suggestionPrefix$id.json';
+  static String documentFileName(String id) => '$_documentPrefix$id.json';
+  static String pageFileName(String fileId) => '$fileId$_pageSuffix';
 
   /// Whether [id] can name a file in its folder: not empty, no separator,
   /// control character or `..`, and no trailing `.` (the file name
@@ -187,9 +195,18 @@ class SharedLibraryTransport {
       !id.contains(RegExp(r'[/\\\x00-\x1f]'));
 
   static String siteIdOf(CloudFileInfo f) => _idOf(f.name, _sitePrefix);
+  static String documentIdOf(CloudFileInfo f) => _idOf(f.name, _documentPrefix);
+  static String pageFileIdOf(CloudFileInfo f) => _pageIdOf(f.name);
   static String memberIdOf(CloudFileInfo f) => _idOf(f.name, _memberPrefix);
   static String suggestionIdOf(CloudFileInfo f) =>
       _idOf(f.name, _suggestionPrefix);
+
+  static String _pageIdOf(String name) {
+    final base = name.split('/').last;
+    return base.endsWith(_pageSuffix)
+        ? base.substring(0, base.length - _pageSuffix.length)
+        : base;
+  }
 
   static String _idOf(String name, String prefix) {
     final base = name.split('/').last;
@@ -228,7 +245,8 @@ class SharedLibraryTransport {
   /// segment would lead a WebDAV server out of it) and clear of a library's
   /// own subfolders.
   static bool isValidPrefix(String prefix) =>
-      !leavesLibraries(prefix) && !startsReserved(prefix);
+      !leavesLibraries(prefix) &&
+      !_startsWithAny(prefix, SharedLibraryLayout.reservedFolders);
 
   static List<String> _segments(String prefix) => [
     for (final s in prefix.split('/'))
@@ -245,11 +263,16 @@ class SharedLibraryTransport {
   static bool hasPolicyWildcards(String prefix) =>
       prefix.contains(RegExp(r'[*?$]'));
 
-  /// A first segment named after a library's own subfolder.
-  static bool startsReserved(String prefix) {
+  /// A first segment named after a library's own subfolder, including the
+  /// ones added since libraries were in use: what a new folder is checked
+  /// against.
+  static bool startsReserved(String prefix) =>
+      _startsWithAny(prefix, SharedLibraryLayout.reservedFolders) ||
+      _startsWithAny(prefix, SharedLibraryLayout.newlyReservedFolders);
+
+  static bool _startsWithAny(String prefix, Set<String> names) {
     final segments = _segments(prefix);
-    return segments.isNotEmpty &&
-        SharedLibraryLayout.reservedFolders.contains(segments.first);
+    return segments.isNotEmpty && names.contains(segments.first);
   }
 
   static String _trimSlashes(String s) => s.replaceAll(RegExp(r'^/+|/+$'), '');
@@ -413,8 +436,10 @@ class SharedLibraryTransport {
   }
 
   /// Every file of the library but the manifest and keyslots, by path:
-  /// what turning encryption on or off rewrites.
-  Future<Map<String, String>> sealableFiles() async {
+  /// what turning encryption on or off rewrites. [withPages] false leaves
+  /// out the shared documents' page files, which a backup refers to rather
+  /// than copies (issue #4713).
+  Future<Map<String, String>> sealableFiles({bool withPages = true}) async {
     final root = await _rootId();
     final files = <String, String>{};
     for (final name in [
@@ -435,6 +460,8 @@ class SharedLibraryTransport {
       ),
       (SharedLibraryLayout.sitesDir, await listSites()),
       (SharedLibraryLayout.suggestionsDir, await listSuggestions()),
+      (SharedLibraryLayout.documentsDir, await listDocuments()),
+      if (withPages) (SharedLibraryLayout.pagesDir, await listPageFiles()),
     ]) {
       for (final f in list) {
         files['$dir/${_base(f.id)}'] = f.id;
@@ -674,7 +701,8 @@ class SharedLibraryTransport {
   }
 
   /// Every stored file of the library by path, as stored (sealed files
-  /// stay sealed): what a backup keeps. Backups themselves are left out.
+  /// stay sealed): what a backup keeps. Backups themselves are left out, and
+  /// so are page files, which a backup refers to (issue #4713).
   Future<Map<String, Uint8List>> snapshot() async {
     final out = <String, Uint8List>{};
     final root = await _rootId();
@@ -691,7 +719,7 @@ class SharedLibraryTransport {
     }
     // A few downloads at a time: a large library's backup holds up every
     // sync while it runs.
-    final entries = (await sealableFiles()).entries.toList();
+    final entries = (await sealableFiles(withPages: false)).entries.toList();
     for (var i = 0; i < entries.length; i += _parallelReads) {
       final batch = entries.skip(i).take(_parallelReads).toList();
       final read = await Future.wait([
@@ -716,6 +744,8 @@ class SharedLibraryTransport {
       SharedLibraryLayout.sitesDir => await _sitesId(),
       SharedLibraryLayout.suggestionsDir => await _suggestionsId(),
       SharedLibraryLayout.backupsDir => await _backupsId(),
+      SharedLibraryLayout.documentsDir => await _documentsId(),
+      SharedLibraryLayout.pagesDir => await _pagesId(),
       _ => throw ArgumentError.value(path, 'path'),
     };
     return (folder, name);

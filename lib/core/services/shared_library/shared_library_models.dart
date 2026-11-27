@@ -802,6 +802,11 @@ abstract final class SharedLibraryLayout {
     suggestionsDir,
     'backups',
   };
+
+  /// Subfolders added after libraries were in use (issue #4713): refused
+  /// for a new library's folder, but a library already connected under
+  /// such a name keeps opening.
+  static const newlyReservedFolders = {documentsDir, pagesDir};
   static const manifestFile = 'submersion-shared-library.json';
 
   /// Manifest flag set while an owner rewrites every file into a new form
@@ -836,6 +841,12 @@ abstract final class SharedLibraryLayout {
   static const membersDir = 'members';
   static const sitesDir = 'sites';
   static const suggestionsDir = 'suggestions';
+
+  /// Shared documents (issue #4713): `document-<id>.json` files, and the
+  /// bytes of their pages as `<fileId>.bin`. Additive: an older app lists
+  /// neither folder.
+  static const documentsDir = 'documents';
+  static const pagesDir = 'pages';
 
   /// 2: signed roles, cards, edits and suggestions, `info.json`, optional
   /// encryption (issue #2567).
