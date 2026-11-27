@@ -25,7 +25,9 @@ Future<void> _pump(
   List<Sighting> sightings, {
   double width = 400,
   double height = 2400,
+  Map<String, int> photoCounts = const {},
   void Function(Sighting)? onOpen,
+  void Function(Sighting)? onOpenPhotos,
 }) async {
   tester.view.physicalSize = Size(width, height);
   tester.view.devicePixelRatio = 1;
@@ -40,9 +42,9 @@ Future<void> _pump(
             children: [
               DiveSightingsList(
                 sightings: sightings,
-                photoCounts: const {},
+                photoCounts: photoCounts,
                 onOpen: onOpen ?? (_) {},
-                onOpenPhotos: (_) {},
+                onOpenPhotos: onOpenPhotos ?? (_) {},
               ),
               // The cards below Marine life, so a fold cannot clamp the
               // scroll offset back onto the list.
@@ -103,6 +105,19 @@ void main() {
 
     await tester.tap(find.text('Species 1'));
     expect(opened?.speciesId, 'sp1');
+  });
+
+  testWidgets("a row's photo chip opens that species' photos", (tester) async {
+    Sighting? opened;
+    await _pump(
+      tester,
+      _sightings(3),
+      photoCounts: const {'sp2': 2},
+      onOpenPhotos: (s) => opened = s,
+    );
+
+    await tester.tap(find.byKey(const ValueKey('sighting_photos')));
+    expect(opened?.speciesId, 'sp2');
   });
 
   testWidgets('a wide card lays the species out in two columns', (
