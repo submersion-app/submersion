@@ -120,19 +120,31 @@ void main() {
           {'id': 42},
         ]),
       );
+      // Every card once; the cards the list lacked join it where the
+      // default order puts them, so only the saved entry is checked here.
+      expect(_ids(read).toSet(), EquipmentDetailSectionId.values.toSet());
       expect(read.length, EquipmentDetailSectionId.values.length);
-      expect(read.first.id, EquipmentDetailSectionId.notes);
-      expect(read.first.visible, isFalse);
+      final notes = read.where((s) => s.id == EquipmentDetailSectionId.notes);
+      expect(notes.single.visible, isFalse);
     });
 
     test('a missing visible flag reads as visible', () {
       final read = EquipmentDetailSectionConfig.sectionsFromJson(
         jsonEncode([
-          {'id': 'documents'},
+          {'id': 'documents', 'visible': false},
+          {'id': 'notes'},
         ]),
       );
-      expect(read.first.id, EquipmentDetailSectionId.documents);
-      expect(read.first.visible, isTrue);
+      expect(
+        read
+            .singleWhere((s) => s.id == EquipmentDetailSectionId.documents)
+            .visible,
+        isFalse,
+      );
+      expect(
+        read.singleWhere((s) => s.id == EquipmentDetailSectionId.notes).visible,
+        isTrue,
+      );
     });
 
     test('a card missing from a saved order joins it after its '
