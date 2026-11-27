@@ -69,6 +69,7 @@ Map<String, Object?> serviceRecordDocument(ServiceRecord r) => {
   'cost': r.cost,
   'currency': r.currency,
   'notes': r.notes,
+  'firmware_version': r.firmwareVersion,
 };
 
 Map<String, Object?> _exposureIntervals(Map<ExposureUnit, double> intervals) =>

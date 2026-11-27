@@ -17789,6 +17789,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_serviceCategory_calibration => 'Étalonnage';
 
   @override
+  String get equipment_serviceCategory_firmwareUpdate =>
+      'Mise à jour du firmware';
+
+  @override
+  String firmware_history_updatedTo(String version) {
+    return 'Firmware mis à jour vers $version';
+  }
+
+  @override
+  String firmware_history_changedTo(String version) {
+    return 'Firmware changé vers $version';
+  }
+
+  @override
   String get equipment_serviceCategory_warranty => 'Service sous garantie';
 
   @override

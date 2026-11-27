@@ -49,6 +49,12 @@ class ServiceRecordWrites extends WritableEntry {
     'cost': const FieldCodec.number(min: 0, max: 10000000, nullable: true),
     'currency': requiredCurrencyCodec,
     'notes': const FieldCodec.text(allowBlank: true, trim: true),
+    // The version a firmware update installed (issue #5104).
+    'firmware_version': const FieldCodec.text(
+      maxLength: 60,
+      nullable: true,
+      trim: true,
+    ),
   };
 
   @override
@@ -155,6 +161,7 @@ class ServiceRecordWrites extends WritableEntry {
         currency:
             values['currency'] as String? ?? await defaultCurrencyOf(diverId),
         notes: values['notes'] as String? ?? '',
+        firmwareVersion: values['firmware_version'] as String?,
         createdAt: now,
         updatedAt: now,
       ),
@@ -185,6 +192,7 @@ class ServiceRecordWrites extends WritableEntry {
         cost: kept<num>('cost', current.cost)?.toDouble(),
         currency: v['currency'] as String? ?? current.currency,
         notes: v['notes'] as String? ?? current.notes,
+        firmwareVersion: kept('firmware_version', current.firmwareVersion),
         createdAt: current.createdAt,
         updatedAt: current.updatedAt,
       ),

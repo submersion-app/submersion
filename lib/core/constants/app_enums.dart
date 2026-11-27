@@ -189,6 +189,9 @@ enum ServiceCategory {
   replacement('Part Replacement'),
   cleaning('Cleaning'),
   calibration('Calibration'),
+  // A firmware update (issue #5104): not a service, so it never moves the
+  // item's last service date. Older builds read it as `other`.
+  firmwareUpdate('Firmware Update'),
   warranty('Warranty Service'),
   recall('Recall/Safety'),
   other('Other');

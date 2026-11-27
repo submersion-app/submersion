@@ -16,6 +16,10 @@ class ServiceRecord extends Equatable {
   final String currency;
   final DateTime? nextServiceDue;
   final String notes;
+
+  /// The version a firmware update installed (issue #5104); null for every
+  /// other kind of record.
+  final String? firmwareVersion;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -30,6 +34,7 @@ class ServiceRecord extends Equatable {
     this.currency = 'USD',
     this.nextServiceDue,
     this.notes = '',
+    this.firmwareVersion,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -65,6 +70,7 @@ class ServiceRecord extends Equatable {
     String? currency,
     DateTime? nextServiceDue,
     String? notes,
+    Object? firmwareVersion = _undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -79,6 +85,9 @@ class ServiceRecord extends Equatable {
       currency: currency ?? this.currency,
       nextServiceDue: nextServiceDue ?? this.nextServiceDue,
       notes: notes ?? this.notes,
+      firmwareVersion: identical(firmwareVersion, _undefined)
+          ? this.firmwareVersion
+          : firmwareVersion as String?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -109,7 +118,12 @@ class ServiceRecord extends Equatable {
     currency,
     nextServiceDue,
     notes,
+    firmwareVersion,
     createdAt,
     updatedAt,
   ];
 }
+
+/// Marks a [ServiceRecord.copyWith] argument the caller left out, so
+/// `firmwareVersion: null` can clear the version.
+const Object _undefined = Object();

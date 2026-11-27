@@ -17693,6 +17693,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_serviceCategory_calibration => 'Kalibrálás';
 
   @override
+  String get equipment_serviceCategory_firmwareUpdate => 'Firmware-frissítés';
+
+  @override
+  String firmware_history_updatedTo(String version) {
+    return 'Firmware frissítve: $version';
+  }
+
+  @override
+  String firmware_history_changedTo(String version) {
+    return 'Firmware módosítva: $version';
+  }
+
+  @override
   String get equipment_serviceCategory_warranty => 'Garanciális szerviz';
 
   @override

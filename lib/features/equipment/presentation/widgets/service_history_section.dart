@@ -683,6 +683,8 @@ class _ServiceRecordTile extends ConsumerWidget {
         return Icons.cleaning_services;
       case ServiceCategory.calibration:
         return Icons.tune;
+      case ServiceCategory.firmwareUpdate:
+        return Icons.system_update_alt;
       case ServiceCategory.warranty:
         return Icons.verified_user;
       case ServiceCategory.recall:

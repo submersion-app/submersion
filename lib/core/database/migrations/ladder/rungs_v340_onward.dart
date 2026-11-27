@@ -356,5 +356,11 @@ extension RungsFromV340 on AppDatabase {
     // no backfill; re-asserted in beforeOpen. The floor does not move.
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
+
+    // v388 (issue #5104): service_records.firmware_version, the version a
+    // firmware update installed. Column only, no backfill; re-asserted in
+    // beforeOpen. The floor does not move.
+    if (from < 388) await _assertFirmwareRecordColumn();
+    if (from < 388) await reportProgress();
   }
 }

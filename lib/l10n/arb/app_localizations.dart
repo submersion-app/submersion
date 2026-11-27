@@ -28156,6 +28156,24 @@ abstract class AppLocalizations {
   /// **'Calibration'**
   String get equipment_serviceCategory_calibration;
 
+  /// No description provided for @equipment_serviceCategory_firmwareUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware update'**
+  String get equipment_serviceCategory_firmwareUpdate;
+
+  /// No description provided for @firmware_history_updatedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware updated to {version}'**
+  String firmware_history_updatedTo(String version);
+
+  /// No description provided for @firmware_history_changedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware changed to {version}'**
+  String firmware_history_changedTo(String version);
+
   /// No description provided for @equipment_serviceCategory_warranty.
   ///
   /// In en, this message translates to:

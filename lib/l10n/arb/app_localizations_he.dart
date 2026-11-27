@@ -17388,6 +17388,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceCategory_calibration => 'כיול';
 
   @override
+  String get equipment_serviceCategory_firmwareUpdate => 'עדכון קושחה';
+
+  @override
+  String firmware_history_updatedTo(String version) {
+    return 'הקושחה עודכנה ל-$version';
+  }
+
+  @override
+  String firmware_history_changedTo(String version) {
+    return 'הקושחה שונתה ל-$version';
+  }
+
+  @override
   String get equipment_serviceCategory_warranty => 'שירות אחריות';
 
   @override

@@ -109,6 +109,7 @@ class ServiceRecordRepository {
               record.nextServiceDue?.millisecondsSinceEpoch,
             ),
             notes: Value(record.notes),
+            firmwareVersion: Value(record.firmwareVersion),
             createdAt: Value(now.millisecondsSinceEpoch),
             updatedAt: Value(now.millisecondsSinceEpoch),
           ),
@@ -144,6 +145,7 @@ class ServiceRecordRepository {
         currency: Value(record.currency),
         nextServiceDue: Value(record.nextServiceDue?.millisecondsSinceEpoch),
         notes: Value(record.notes),
+        firmwareVersion: Value(record.firmwareVersion),
         updatedAt: Value(now),
       ),
     );
@@ -240,8 +242,21 @@ class ServiceRecordRepository {
   /// is left unwritten, so a record back-filled from paper does not send it
   /// to every peer with nothing changed.
   Future<void> _refreshEquipmentLastServiceDate(String equipmentId) async {
-    final mostRecent = await getMostRecentRecord(equipmentId);
-    final newest = mostRecent?.serviceDate.millisecondsSinceEpoch;
+    // A firmware update is not a service (issue #5104): it never makes an
+    // item look freshly serviced.
+    final mostRecent =
+        await (_db.select(_db.serviceRecords)
+              ..where(
+                (t) =>
+                    t.equipmentId.equals(equipmentId) &
+                    t.serviceCategory
+                        .equals(ServiceCategory.firmwareUpdate.name)
+                        .not(),
+              )
+              ..orderBy([(t) => OrderingTerm.desc(t.serviceDate)])
+              ..limit(1))
+            .getSingleOrNull();
+    final newest = mostRecent?.serviceDate;
     final item = await (_db.select(
       _db.equipment,
     )..where((t) => t.id.equals(equipmentId))).getSingleOrNull();
@@ -274,6 +289,7 @@ class ServiceRecordRepository {
           ? DateTime.fromMillisecondsSinceEpoch(row.nextServiceDue!)
           : null,
       notes: row.notes,
+      firmwareVersion: row.firmwareVersion,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );
@@ -299,6 +315,7 @@ class ServiceRecordRepository {
             )
           : null,
       notes: (row.data['notes'] as String?) ?? '',
+      firmwareVersion: row.data['firmware_version'] as String?,
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         row.data['created_at'] as int,
       ),

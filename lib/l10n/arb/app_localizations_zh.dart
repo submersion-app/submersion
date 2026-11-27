@@ -16900,6 +16900,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_serviceCategory_calibration => '校准';
 
   @override
+  String get equipment_serviceCategory_firmwareUpdate => '固件更新';
+
+  @override
+  String firmware_history_updatedTo(String version) {
+    return '固件已更新至 $version';
+  }
+
+  @override
+  String firmware_history_changedTo(String version) {
+    return '固件已更改为 $version';
+  }
+
+  @override
   String get equipment_serviceCategory_warranty => '保修服务';
 
   @override

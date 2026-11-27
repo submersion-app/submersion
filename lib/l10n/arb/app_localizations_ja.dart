@@ -17139,6 +17139,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get equipment_serviceCategory_calibration => '校正';
 
   @override
+  String get equipment_serviceCategory_firmwareUpdate => 'ファームウェア更新';
+
+  @override
+  String firmware_history_updatedTo(String version) {
+    return 'ファームウェアを $version に更新';
+  }
+
+  @override
+  String firmware_history_changedTo(String version) {
+    return 'ファームウェアを $version に変更';
+  }
+
+  @override
   String get equipment_serviceCategory_warranty => '保証修理';
 
   @override

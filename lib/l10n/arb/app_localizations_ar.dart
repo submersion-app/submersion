@@ -18047,6 +18047,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_serviceCategory_calibration => 'معايرة';
 
   @override
+  String get equipment_serviceCategory_firmwareUpdate =>
+      'تحديث البرنامج الثابت';
+
+  @override
+  String firmware_history_updatedTo(String version) {
+    return 'تم تحديث البرنامج الثابت إلى $version';
+  }
+
+  @override
+  String firmware_history_changedTo(String version) {
+    return 'تم تغيير البرنامج الثابت إلى $version';
+  }
+
+  @override
   String get equipment_serviceCategory_warranty => 'خدمة الضمان';
 
   @override
