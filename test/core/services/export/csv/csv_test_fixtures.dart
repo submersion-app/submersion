@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/opening_hours/opening_hours.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -30,6 +31,16 @@ const goldenSite = DiveSite(
   accessNotes: 'Boat only, 90 minutes out',
   mooringNumber: 'M-14',
   parkingInfo: 'Marina lot, pay and display',
+  address: 'Blue Hole Marina\nSan Pedro',
+  phone: '+501 555 0100',
+  email: 'dive@bluehole.bz',
+  website: 'bluehole.bz',
+  openingHours: OpeningHours(
+    note: 'Book ahead',
+    schedules: [
+      OpeningSchedule(days: {DateTime.saturday: DayHours.open24h()}),
+    ],
+  ),
   waterType: WaterType.salt,
   entryMethods: [EntryMethod.boat],
   exitMethods: [EntryMethod.shore],

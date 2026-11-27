@@ -117,6 +117,12 @@ void main() {
         expect(blue.accessNotes, goldenSite.accessNotes);
         expect(blue.mooringNumber, goldenSite.mooringNumber);
         expect(blue.parkingInfo, goldenSite.parkingInfo);
+        // Issue #5073: contact details and opening hours.
+        expect(blue.address, goldenSite.address);
+        expect(blue.phone, goldenSite.phone);
+        expect(blue.email, goldenSite.email);
+        expect(blue.website, goldenSite.website);
+        expect(blue.openingHours, goldenSite.openingHours);
         expect(blue.exitMethods, goldenSite.exitMethods);
         expect(sites.map((s) => s.name), contains('House Reef'));
       });
