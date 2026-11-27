@@ -79,4 +79,47 @@ void main() {
       throwsA(isA<ReadOnlyViolation>()),
     );
   });
+
+  test('writes hidden behind a WITH are refused', () async {
+    await expectLater(
+      readOnly.customStatement(
+        'WITH x AS (SELECT 1) INSERT INTO t (id) SELECT 5 FROM x',
+      ),
+      throwsA(isA<ReadOnlyViolation>()),
+    );
+    await expectLater(
+      readOnly.customSelect('WITH x AS (SELECT 1) DELETE FROM t').get(),
+      throwsA(isA<ReadOnlyViolation>()),
+    );
+  });
+
+  test('only reading pragmas pass', () async {
+    for (final pragma in [
+      'PRAGMA optimize',
+      'PRAGMA wal_checkpoint(TRUNCATE)',
+      'PRAGMA incremental_vacuum',
+    ]) {
+      await expectLater(
+        readOnly.customStatement(pragma),
+        throwsA(isA<ReadOnlyViolation>()),
+        reason: pragma,
+      );
+    }
+    final info = await readOnly.customSelect('PRAGMA table_info(t)').get();
+    expect(info, isNotEmpty);
+  });
+
+  test('a refusal is reported to the callback', () async {
+    final reported = <String>[];
+    final reporting = _TinyDb(
+      DatabaseConnection(
+        writer.executor,
+      ).interceptWith(ReadOnlyQueryInterceptor(onRefused: reported.add)),
+    );
+    await expectLater(
+      reporting.customStatement('DELETE FROM t'),
+      throwsA(isA<ReadOnlyViolation>()),
+    );
+    expect(reported, ['DELETE FROM t']);
+  });
 }

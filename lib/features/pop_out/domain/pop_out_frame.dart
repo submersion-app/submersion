@@ -92,10 +92,17 @@ PopOutFrame resolvePopOutFrame({
     }
   }
   host ??= displays.isEmpty ? mainWindow : displays.first;
+  // A display smaller than the default gets a window that fits it.
+  final width = displays.isEmpty || host.width >= defaultWidth
+      ? defaultWidth
+      : host.width;
+  final height = displays.isEmpty || host.height >= defaultHeight
+      ? defaultHeight
+      : host.height;
   return PopOutFrame(
-    x: host.x + (host.width - defaultWidth) / 2,
-    y: host.y + (host.height - defaultHeight) / 2,
-    width: defaultWidth,
-    height: defaultHeight,
+    x: host.x + (host.width - width) / 2,
+    y: host.y + (host.height - height) / 2,
+    width: width,
+    height: height,
   );
 }

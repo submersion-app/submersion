@@ -175,4 +175,43 @@ void main() {
       expect(windows.channel.sentOf<CursorMessage>(), isEmpty);
     });
   });
+
+  group('ShownDiveReporter going back', () {
+    testWidgets('going back reports the dive underneath again', (tester) async {
+      late WidgetRef capturedRef;
+      final navigatorKey = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: overrides().cast(),
+          child: MaterialApp(
+            navigatorKey: navigatorKey,
+            home: Consumer(
+              builder: (context, ref, _) {
+                capturedRef = ref;
+                return const ShownDiveReporter(
+                  diveId: 'list-pane-dive',
+                  child: SizedBox(),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(capturedRef.read(mainWindowDiveIdProvider), 'list-pane-dive');
+
+      navigatorKey.currentState!.push(
+        MaterialPageRoute<void>(
+          builder: (_) =>
+              const ShownDiveReporter(diveId: 'pushed-dive', child: SizedBox()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(capturedRef.read(mainWindowDiveIdProvider), 'pushed-dive');
+
+      navigatorKey.currentState!.pop();
+      await tester.pumpAndSettle();
+      expect(capturedRef.read(mainWindowDiveIdProvider), 'list-pane-dive');
+    });
+  });
 }

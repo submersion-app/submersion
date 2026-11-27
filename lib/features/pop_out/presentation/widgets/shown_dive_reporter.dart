@@ -23,10 +23,17 @@ class ShownDiveReporter extends ConsumerStatefulWidget {
 }
 
 class _ShownDiveReporterState extends ConsumerState<ShownDiveReporter> {
+  /// Whether this page's route was the top one when last looked at. A page
+  /// uncovered by going back (a dive opened from search, popped) reports
+  /// its dive again.
+  bool _wasCurrent = false;
+
   @override
-  void initState() {
-    super.initState();
-    _report();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final current = ModalRoute.isCurrentOf(context) ?? true;
+    if (current && !_wasCurrent) _report();
+    _wasCurrent = current;
   }
 
   @override

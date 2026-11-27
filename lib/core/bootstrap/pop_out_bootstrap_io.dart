@@ -54,9 +54,14 @@ Future<void> runPopOutApp(PopOutLaunch launch) async {
       });
   final prefs = await SharedPreferences.getInstance();
   final channel = createPopOutWindows().channelNamed(launch.channel);
+  // Registered before anything reports: the plugin drops calls from an
+  // engine that has not registered on the channel, which would lose the
+  // first focus report and, when the database cannot be reached, the
+  // close. The viewer's client takes the handler over once it runs.
+  channel.setHandler((_) {});
   await windowManager.ensureInitialized();
 
-  final connected = await _joinDatabases();
+  final connected = await _joinDatabases(channel);
   await _placeWindow(launch);
   await windowManager.setPreventClose(true);
   windowManager.addListener(_PopOutWindowEvents(channel));
@@ -83,16 +88,19 @@ Future<void> runPopOutApp(PopOutLaunch launch) async {
 
 /// Connects to the main window's database and local cache, both refusing
 /// writes. False when the main window has no database published.
-Future<bool> _joinDatabases() async {
+Future<bool> _joinDatabases(PopOutChannel channel) async {
+  // A refusal goes to the main window's log too, the one kept in a file.
+  void reportRefusal(String statement) =>
+      unawaited(channel.send(RefusedWriteMessage(statement)));
   final main = await connectToPublishedDatabase(
     kMainDatabasePortName,
-    interceptor: ReadOnlyQueryInterceptor(),
+    interceptor: ReadOnlyQueryInterceptor(onRefused: reportRefusal),
   );
   if (main == null) return false;
   DatabaseService.instance.attachSharedDatabase(AppDatabase(main));
   final cache = await connectToPublishedDatabase(
     kLocalCacheDatabasePortName,
-    interceptor: ReadOnlyQueryInterceptor(),
+    interceptor: ReadOnlyQueryInterceptor(onRefused: reportRefusal),
   );
   if (cache != null) {
     LocalCacheDatabaseService.instance.attachSharedDatabase(

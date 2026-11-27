@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' show IsolateNameServer;
 
 import 'package:drift/drift.dart';
@@ -30,16 +31,25 @@ void unpublishDatabase(String name) {
 /// Messages are serialized because the publishing engine is another isolate
 /// group, which can only receive plain values. [interceptor] wraps the
 /// connection; a pop-out passes one that refuses writes.
+///
+/// Null as well when the port does not answer within [connectTimeout]: a
+/// stale name left by a worker that is gone.
 Future<DatabaseConnection?> connectToPublishedDatabase(
   String name, {
   QueryInterceptor? interceptor,
+  Duration connectTimeout = const Duration(seconds: 5),
 }) async {
   final port = IsolateNameServer.lookupPortByName(name);
   if (port == null) return null;
-  final connection = await DriftIsolate.fromConnectPort(
-    port,
-    serialize: true,
-  ).connect(singleClientMode: false);
+  final DatabaseConnection connection;
+  try {
+    connection = await DriftIsolate.fromConnectPort(
+      port,
+      serialize: true,
+    ).connect(singleClientMode: false, connectTimeout: connectTimeout);
+  } on TimeoutException {
+    return null;
+  }
   return interceptor == null
       ? connection
       : connection.interceptWith(interceptor);

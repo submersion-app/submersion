@@ -98,4 +98,16 @@ void main() {
     expect(PopOutFrame.fromMap(null), isNull);
     expect(PopOutFrame.fromMap({'x': 'a'}), isNull);
   });
+
+  test('the default window fits a small display', () {
+    const small = PopOutFrame(x: 0, y: 25, width: 1024, height: 680);
+    final frame = resolvePopOutFrame(
+      saved: null,
+      displays: const [small],
+      mainWindow: const PopOutFrame(x: 0, y: 25, width: 800, height: 600),
+    );
+    expect(frame.width, lessThanOrEqualTo(1024));
+    expect(frame.height, lessThanOrEqualTo(680));
+    expect(frame.y, greaterThanOrEqualTo(25));
+  });
 }

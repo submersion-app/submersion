@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:ui' show IsolateNameServer;
 
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
@@ -63,5 +65,20 @@ void main() {
       await connectToPublishedDatabase('test.shared_ports.nothing_here'),
       isNull,
     );
+  });
+
+  test('connect gives up on a port nobody answers', () async {
+    const name = 'test.shared_ports.silent';
+    final silent = ReceivePort();
+    addTearDown(silent.close);
+    addTearDown(() => unpublishDatabase(name));
+    IsolateNameServer.registerPortWithName(silent.sendPort, name);
+
+    final connection = await connectToPublishedDatabase(
+      name,
+      connectTimeout: const Duration(milliseconds: 200),
+    ).timeout(const Duration(seconds: 5));
+
+    expect(connection, isNull);
   });
 }

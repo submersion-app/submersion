@@ -18,4 +18,5 @@ void unpublishDatabase(String name) {}
 Future<DatabaseConnection?> connectToPublishedDatabase(
   String name, {
   QueryInterceptor? interceptor,
+  Duration connectTimeout = const Duration(seconds: 5),
 }) async => null;
