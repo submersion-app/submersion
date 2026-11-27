@@ -60,13 +60,15 @@ void main() {
       );
     });
 
-    test('feet per minute for an imperial diver', () {
+    // Above 10 a decimal changes little and would not fit the axis gutter
+    // at phone width.
+    test('feet per minute for an imperial diver, whole above 10', () {
       expect(
         ascentRateAxisLabels(
           15,
           const UnitFormatter(AppSettings(depthUnit: DepthUnit.feet)),
         ).map((l) => l.label),
-        ['+49.2', '+24.6', '0', '-24.6', '-49.2'],
+        ['+49', '+25', '0', '-25', '-49'],
       );
     });
   });

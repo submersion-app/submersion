@@ -25,8 +25,8 @@ double ascentRateAtAxisValue(
 /// rate [maxAbsRate] (m/min) at the top edge, half of it at the quarter line,
 /// 0 at the middle, and the descents below, each with its plot [fraction]
 /// from the top. Fixed fractions keep the labels on the bars' own lines at
-/// any zoom. A label carries one decimal exactly when its value in the
-/// diver's unit is not whole, so a quarter of 15 reads +7.5, not +8.
+/// any zoom. A label below 10 in the diver's unit carries one decimal when it
+/// is not whole, so a quarter of 15 m/min reads +7.5, not +8.
 List<({double fraction, String label})> ascentRateAxisLabels(
   double maxAbsRate,
   UnitFormatter units,
@@ -44,9 +44,15 @@ List<({double fraction, String label})> ascentRateAxisLabels(
         ProfileRightAxisMetric.ascentRate,
         maxAbsRate * share,
         units,
-        minDecimals: _isWhole(units.convertDepth(maxAbsRate * share)) ? 0 : 1,
+        minDecimals: _needsDecimal(units.convertDepth(maxAbsRate * share))
+            ? 1
+            : 0,
       ),
     ),
 ];
 
-bool _isWhole(double value) => (value - value.roundToDouble()).abs() < 0.05;
+/// One decimal only where it matters and fits: a value below 10 that is not
+/// whole (7.5). Above 10 the decimal changes little, and a label like -49.2
+/// would not fit the right axis gutter at phone width.
+bool _needsDecimal(double value) =>
+    value.abs() < 10 && (value - value.roundToDouble()).abs() >= 0.05;

@@ -4291,8 +4291,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final rightAxisIsDepthScale =
         effectiveRightAxisMetric == ProfileRightAxisMetric.meanDepth;
     // Ascent rate labels its bars' own scale, fixed to the plot: zero at the
-    // middle, the saturation rate at the edges (issue #5069). Quarter-plot
-    // ticks put a label on the middle and on each edge.
+    // middle, the saturation rate at the edges (issue #5069). Its labels are
+    // the AscentRateAxisLabels overlay; fl_chart only reserves the gutter.
     final rightAxisIsAscentRate =
         effectiveRightAxisMetric == ProfileRightAxisMetric.ascentRate;
     final ascentRateMaxAbs = rightAxisIsAscentRate
