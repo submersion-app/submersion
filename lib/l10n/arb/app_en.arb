@@ -4765,6 +4765,40 @@
   "diveLog_detail_profileRevision_editType_trimEndZeros": "Trim end zeros",
   "diveLog_detail_section_equipment": "Equipment",
   "diveLog_detail_section_marineLife": "Species",
+  "diveLog_detail_sightingDepthRange": "{from} to {to}",
+  "@diveLog_detail_sightingDepthRange": {
+    "placeholders": {
+      "from": {
+        "type": "String",
+        "example": "16"
+      },
+      "to": {
+        "type": "String",
+        "example": "18 m"
+      }
+    }
+  },
+  "diveLog_detail_sightingSeenAt": "at {time}",
+  "@diveLog_detail_sightingSeenAt": {
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "12:30"
+      }
+    }
+  },
+  "diveLog_detail_semantics_showOnProfile": "Show {name} on the profile, {depth}",
+  "@diveLog_detail_semantics_showOnProfile": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String",
+        "example": "27 m"
+      }
+    }
+  },
   "diveLog_detail_sightingPhotos": "{count, plural, =1{1 photo} other{{count} photos}}",
   "@diveLog_detail_sightingPhotos": {
     "placeholders": {

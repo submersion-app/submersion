@@ -7915,6 +7915,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_detail_section_marineLife => 'Soorten';
 
   @override
+  String diveLog_detail_sightingDepthRange(String from, String to) {
+    return '$from tot $to';
+  }
+
+  @override
+  String diveLog_detail_sightingSeenAt(String time) {
+    return 'om $time';
+  }
+
+  @override
+  String diveLog_detail_semantics_showOnProfile(String name, String depth) {
+    return '$name op het profiel tonen, $depth';
+  }
+
+  @override
   String diveLog_detail_sightingPhotos(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -12458,6 +12458,24 @@ abstract class AppLocalizations {
   /// **'Species'**
   String get diveLog_detail_section_marineLife;
 
+  /// No description provided for @diveLog_detail_sightingDepthRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String diveLog_detail_sightingDepthRange(String from, String to);
+
+  /// No description provided for @diveLog_detail_sightingSeenAt.
+  ///
+  /// In en, this message translates to:
+  /// **'at {time}'**
+  String diveLog_detail_sightingSeenAt(String time);
+
+  /// No description provided for @diveLog_detail_semantics_showOnProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Show {name} on the profile, {depth}'**
+  String diveLog_detail_semantics_showOnProfile(String name, String depth);
+
   /// No description provided for @diveLog_detail_sightingPhotos.
   ///
   /// In en, this message translates to:

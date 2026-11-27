@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/species_profile_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/sighting_depth_label.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_sightings_sitting.dart';
@@ -46,6 +54,22 @@ class DiveSightingsSection extends ConsumerWidget {
     final photoCounts =
         ref.watch(diveSpeciesPhotoCountsProvider(dive.id)).value ??
         const <String, int>{};
+    // Where on the dive each species was seen (issue #5092).
+    final positions = watchSpeciesPositions(ref, dive);
+    final profile = watchChartProfile(ref, dive);
+    final profileShown =
+        profile.isNotEmpty &&
+        ref.watch(
+          settingsProvider.select(
+            (s) => s.diveDetailSections.shows(
+              DiveDetailSectionId.profile,
+              gauge: dive.isGauge,
+            ),
+          ),
+        );
+    final selected = ref.watch(selectedProfileSpeciesProvider(dive.id));
+    final units = ref.watch(unitFormatterProvider);
+    _dropStaleSelection(ref, stored.value, selected);
 
     return sightingsAsync.when(
       data: (sightings) {
@@ -85,6 +109,28 @@ class DiveSightingsSection extends ConsumerWidget {
                       DiveSightingRow(
                         sighting: sighting,
                         photoCount: photoCounts[sighting.speciesId] ?? 0,
+                        depthLabel: switch (positions[sighting.speciesId]) {
+                          final p? when !p.isEmpty => sightingDepthLabel(
+                            p,
+                            units,
+                            context.l10n,
+                          ),
+                          _ => null,
+                        },
+                        depthSelected: selected == sighting.speciesId,
+                        onToggleDepth: profileShown
+                            ? () => toggleProfileSpecies(
+                                ref,
+                                dive.id,
+                                sighting.speciesId,
+                              )
+                            : null,
+                        seenAtLabel:
+                            profile.isEmpty && sighting.seenAtSeconds != null
+                            ? context.l10n.diveLog_detail_sightingSeenAt(
+                                formatElapsedMmSs(sighting.seenAtSeconds!),
+                              )
+                            : null,
                         onOpen: () =>
                             context.push('/species/${sighting.speciesId}'),
                         onOpenPhotos: () => Navigator.of(context).push(
@@ -109,5 +155,23 @@ class DiveSightingsSection extends ConsumerWidget {
       loading: () => const SizedBox.shrink(),
       error: (_, _) => const SizedBox.shrink(),
     );
+  }
+
+  /// Clears the dive's highlighted species once its sighting is gone, so a
+  /// species added back later does not come back highlighted. After the
+  /// frame: a provider is never written during build.
+  void _dropStaleSelection(
+    WidgetRef ref,
+    List<Sighting>? stored,
+    String? selected,
+  ) {
+    if (selected == null || stored == null) return;
+    if (stored.any((s) => s.speciesId == selected)) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notifier = ref.read(
+        selectedProfileSpeciesProvider(dive.id).notifier,
+      );
+      if (notifier.state == selected) notifier.state = null;
+    });
   }
 }

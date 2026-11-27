@@ -7673,6 +7673,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_detail_section_marineLife => '生物';
 
   @override
+  String diveLog_detail_sightingDepthRange(String from, String to) {
+    return '$from〜$to';
+  }
+
+  @override
+  String diveLog_detail_sightingSeenAt(String time) {
+    return '$time 時点';
+  }
+
+  @override
+  String diveLog_detail_semantics_showOnProfile(String name, String depth) {
+    return '$nameをプロファイルに表示、$depth';
+  }
+
+  @override
   String diveLog_detail_sightingPhotos(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

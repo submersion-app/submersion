@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/species_profile_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_sightings_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
@@ -159,5 +161,77 @@ void main() {
     await tester.pump();
     expect(find.text('This card could not be loaded.'), findsNothing);
     expect(find.text('Green turtle'), findsOneWidget);
+  });
+
+  group('where on the dive each species was seen (issue #5092)', () {
+    final profiled = Dive(
+      id: 'd1',
+      dateTime: DateTime.utc(2026, 3, 9),
+      profile: [
+        for (var t = 0; t <= 600; t += 10)
+          DiveProfilePoint(timestamp: t, depth: t / 20),
+      ],
+    );
+
+    ProviderContainer containerOf(WidgetTester tester) =>
+        ProviderScope.containerOf(
+          tester.element(find.byType(DiveSightingsSection)),
+        );
+
+    testWidgets('a timed sighting shows its depth, and its chip selects it '
+        'on the profile', (tester) async {
+      await SpeciesRepository().addSighting(
+        diveId: 'd1',
+        speciesId: 'manta',
+        seenAtSeconds: 300,
+      );
+      await pump(tester, profiled, open: false);
+
+      expect(find.text('15 m'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('sighting_depth')));
+      await tester.pumpAndSettle();
+      expect(
+        containerOf(tester).read(selectedProfileSpeciesProvider('d1')),
+        'manta',
+      );
+    });
+
+    testWidgets('a timed sighting on a dive with no profile reads its time', (
+      tester,
+    ) async {
+      await SpeciesRepository().addSighting(
+        diveId: 'd1',
+        speciesId: 'manta',
+        seenAtSeconds: 750,
+      );
+      await pump(tester, dive, open: false);
+
+      expect(find.text('at 12:30'), findsOneWidget);
+      expect(find.byKey(const ValueKey('sighting_depth')), findsNothing);
+    });
+
+    testWidgets('deleting the selected sighting clears the selection', (
+      tester,
+    ) async {
+      final manta = await SpeciesRepository().addSighting(
+        diveId: 'd1',
+        speciesId: 'manta',
+        seenAtSeconds: 300,
+      );
+      await pump(tester, profiled, open: false);
+      await tester.tap(find.byKey(const ValueKey('sighting_depth')));
+      await tester.pumpAndSettle();
+
+      // The base overrides stub the dive repository whose change stream
+      // refreshes the sightings, so the test refreshes them itself.
+      await tester.runAsync(() => SpeciesRepository().deleteSighting(manta.id));
+      containerOf(tester).invalidate(diveSightingsProvider('d1'));
+      await tester.pumpAndSettle();
+      expect(find.text('Manta'), findsNothing);
+      expect(
+        containerOf(tester).read(selectedProfileSpeciesProvider('d1')),
+        isNull,
+      );
+    });
   });
 }

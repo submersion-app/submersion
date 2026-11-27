@@ -25,6 +25,11 @@ Future<void> _pump(
   int photoCount = 0,
   VoidCallback? onOpen,
   VoidCallback? onOpenPhotos,
+  String? depthLabel,
+  bool depthSelected = false,
+  VoidCallback? onToggleDepth,
+  String? seenAtLabel,
+  double width = 800,
 }) async {
   final overrides = await getBaseOverrides();
   await tester.pumpWidget(
@@ -32,11 +37,20 @@ Future<void> _pump(
       locale: const Locale('en'),
       overrides: overrides,
       child: Scaffold(
-        body: DiveSightingRow(
-          sighting: sighting,
-          photoCount: photoCount,
-          onOpen: onOpen ?? () {},
-          onOpenPhotos: onOpenPhotos,
+        body: Center(
+          child: SizedBox(
+            width: width,
+            child: DiveSightingRow(
+              sighting: sighting,
+              photoCount: photoCount,
+              onOpen: onOpen ?? () {},
+              onOpenPhotos: onOpenPhotos,
+              depthLabel: depthLabel,
+              depthSelected: depthSelected,
+              onToggleDepth: onToggleDepth,
+              seenAtLabel: seenAtLabel,
+            ),
+          ),
         ),
       ),
     ),
@@ -45,6 +59,90 @@ Future<void> _pump(
 }
 
 void main() {
+  group('where on the dive it was seen (issue #5092)', () {
+    const depthChip = ValueKey('sighting_depth');
+
+    testWidgets('tapping the depth chip toggles; the row opens the species', (
+      tester,
+    ) async {
+      var toggled = 0;
+      var opened = 0;
+      await _pump(
+        tester,
+        depthLabel: '16 to 18 m',
+        onToggleDepth: () => toggled++,
+        onOpen: () => opened++,
+      );
+      expect(find.text('16 to 18 m'), findsOneWidget);
+
+      await tester.tap(find.byKey(depthChip));
+      await tester.pump();
+      expect((toggled, opened), (1, 0));
+
+      await tester.tap(find.text('Grouper'));
+      await tester.pump();
+      expect((toggled, opened), (1, 1));
+    });
+
+    testWidgets('a selected chip shows selected', (tester) async {
+      await _pump(
+        tester,
+        depthLabel: '27 m',
+        depthSelected: true,
+        onToggleDepth: () {},
+      );
+      expect(tester.widget<FilterChip>(find.byKey(depthChip)).selected, isTrue);
+    });
+
+    testWidgets('no depth, no chip', (tester) async {
+      await _pump(tester);
+      expect(find.byKey(depthChip), findsNothing);
+    });
+
+    testWidgets('with nothing to highlight the depth is a plain label', (
+      tester,
+    ) async {
+      await _pump(tester, depthLabel: '27 m');
+      expect(find.byKey(depthChip), findsNothing);
+      expect(find.text('27 m'), findsOneWidget);
+    });
+
+    testWidgets('a time on a profileless dive reads as text', (tester) async {
+      await _pump(tester, seenAtLabel: 'at 12:30');
+      expect(find.text('at 12:30'), findsOneWidget);
+      expect(find.byKey(depthChip), findsNothing);
+    });
+
+    testWidgets('the chip says what it does to a screen reader', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      await _pump(tester, depthLabel: '27 m', onToggleDepth: () {});
+      expect(
+        find.bySemanticsLabel(RegExp('Show Grouper on the profile, 27 m')),
+        findsOneWidget,
+      );
+      handle.dispose();
+    });
+
+    testWidgets('on a phone both chips fit beside a long name', (tester) async {
+      await _pump(
+        tester,
+        sighting: _sighting.copyWith(
+          speciesName: 'Yellowtail scad with a very long name',
+        ),
+        photoCount: 12,
+        onOpenPhotos: () {},
+        depthLabel: '106 to 134 ft',
+        onToggleDepth: () {},
+        width: 328,
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.byKey(depthChip), findsOneWidget);
+      expect(find.byKey(const ValueKey('sighting_photos')), findsOneWidget);
+    });
+  });
+
   testWidgets('shows the name, notes and count badge', (tester) async {
     await _pump(tester);
 
