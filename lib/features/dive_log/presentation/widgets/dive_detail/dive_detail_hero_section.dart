@@ -69,7 +69,7 @@ class DiveDetailHeroSection extends ConsumerWidget {
       trailing: RecordCardPencil(
         cardTitle: context.l10n.diveLog_detail_section_header,
       ),
-      trailingWidth: RecordCardPencil.widthOf(context),
+      trailingSize: RecordCardPencil.sizeOf(context),
       belowTitle: Consumer(
         builder: (context, ref, _) {
           final count =

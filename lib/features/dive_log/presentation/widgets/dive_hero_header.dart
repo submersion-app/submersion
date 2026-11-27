@@ -54,9 +54,11 @@ class DiveHeroHeader extends ConsumerWidget {
   /// does too rather than following the name (issue #4888).
   final Widget? trailing;
 
-  /// The width [trailing] takes. It is laid over the card's corner, so the
-  /// rating/mode row keeps this much room at its end for it to sit in.
-  final double trailingWidth;
+  /// The size [trailing] takes; [Size.zero] while it draws nothing. It is
+  /// laid over the card's corner, so the rating/mode row keeps this much
+  /// room at its end for it, wide enough to clear the rating and mode badge
+  /// and tall enough to clear the type badges under them.
+  final Size trailingSize;
 
   const DiveHeroHeader({
     required this.dive,
@@ -68,7 +70,7 @@ class DiveHeroHeader extends ConsumerWidget {
     this.belowTitle,
     this.onSiteTap,
     this.trailing,
-    this.trailingWidth = 0,
+    this.trailingSize = Size.zero,
     super.key,
   });
 
@@ -242,8 +244,8 @@ class DiveHeroHeader extends ConsumerWidget {
                           // this row, where it is laid over the card's top
                           // right corner (see below), so the two never
                           // collide and only this row gives up width.
-                          if (trailing != null && trailingWidth > 0)
-                            SizedBox(width: trailingWidth),
+                          if (trailing != null && !trailingSize.isEmpty)
+                            SizedBox.fromSize(size: trailingSize),
                         ],
                       ),
                       if (visibleHeaderTypeIds.isNotEmpty) ...[
@@ -280,7 +282,9 @@ class DiveHeroHeader extends ConsumerWidget {
               return Stack(
                 children: [
                   header,
-                  Positioned(top: 0, right: 0, child: trailing),
+                  // At the end, where the row keeps its room: the left in
+                  // a right-to-left language.
+                  PositionedDirectional(top: 0, end: 0, child: trailing),
                 ],
               );
             },

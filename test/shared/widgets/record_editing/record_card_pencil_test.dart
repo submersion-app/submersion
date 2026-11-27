@@ -180,20 +180,20 @@ void main() {
 
   // The dive page's header card lays the pencil over its corner and keeps
   // this much room for it (issue #4888), so it must match what is drawn.
-  group('widthOf', () {
-    double widthOf(WidgetTester tester) =>
-        RecordCardPencil.widthOf(tester.element(find.byType(RecordCardPencil)));
+  group('sizeOf', () {
+    Size sizeOf(WidgetTester tester) =>
+        RecordCardPencil.sizeOf(tester.element(find.byType(RecordCardPencil)));
 
     testWidgets('none with no frame or while locked', (tester) async {
       await tester.pumpWidget(_host(null));
-      expect(widthOf(tester), 0);
+      expect(sizeOf(tester), Size.zero);
 
       await tester.pumpWidget(_host(_controller()));
-      expect(widthOf(tester), 0);
+      expect(sizeOf(tester), Size.zero);
     });
 
     for (final scale in const [0.85, 1.0, 2.0]) {
-      testWidgets('unlocked, the drawn width at text scale $scale', (
+      testWidgets('unlocked, the drawn size at text scale $scale', (
         tester,
       ) async {
         final controller = _controller()..unlock('Blue Corner');
@@ -204,11 +204,8 @@ void main() {
           ),
         );
 
-        expect(widthOf(tester), greaterThan(0));
-        expect(
-          widthOf(tester),
-          tester.getSize(find.byType(RecordCardPencil)).width,
-        );
+        expect(sizeOf(tester).isEmpty, isFalse);
+        expect(sizeOf(tester), tester.getSize(find.byType(RecordCardPencil)));
       });
     }
   });

@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_hero_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
@@ -30,6 +31,7 @@ void main() {
     WidgetTester tester,
     DiveHeroHeader header, {
     bool flags = true,
+    TextDirection textDirection = TextDirection.ltr,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -41,7 +43,10 @@ void main() {
         ],
         child: localizedMaterialApp(
           locale: const Locale('en'),
-          home: Scaffold(body: header),
+          home: Directionality(
+            textDirection: textDirection,
+            child: Scaffold(body: header),
+          ),
         ),
       ),
     );
@@ -205,7 +210,7 @@ void main() {
           dive: rated('Shark Point'),
           units: units,
           trailing: trailingIcon,
-          trailingWidth: 24,
+          trailingSize: const Size.square(24),
         ),
       );
 
@@ -231,7 +236,7 @@ void main() {
           dive: rated('Bay'),
           units: units,
           trailing: trailingIcon,
-          trailingWidth: 24,
+          trailingSize: const Size.square(24),
         ),
       );
       final short = trailingRect(tester);
@@ -242,7 +247,7 @@ void main() {
           dive: rated('The long drift along the outer reef wall'),
           units: units,
           trailing: trailingIcon,
-          trailingWidth: 24,
+          trailingSize: const Size.square(24),
         ),
       );
       final long = trailingRect(tester);
@@ -264,15 +269,48 @@ void main() {
           ),
           units: units,
           trailing: trailingIcon,
-          trailingWidth: 24,
+          trailingSize: const Size.square(24),
         ),
       );
 
       final trailing = trailingRect(tester);
       final badge = tester.getRect(find.byType(DiveModeBadge));
       expect(trailing.top - cardRect(tester).top, closeTo(16, 0.5));
-      // Clear of the rating/mode row it shares the corner with.
+      // Clear of the rating/mode row it shares the corner with, and of the
+      // type badges under that row.
       expect(trailing.left, greaterThanOrEqualTo(badge.right));
+      expect(
+        tester.getRect(find.byType(DiveTypeBadgeRow)).top,
+        greaterThanOrEqualTo(trailing.bottom),
+      );
+    });
+
+    testWidgets('right to left, at the top left, clear of the badges', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        DiveHeroHeader(
+          dive: rated('Shark Point'),
+          units: units,
+          trailing: trailingIcon,
+          trailingSize: const Size.square(24),
+        ),
+        textDirection: TextDirection.rtl,
+      );
+
+      final trailing = trailingRect(tester);
+      final card = cardRect(tester);
+      expect(trailing.left - card.left, closeTo(16, 0.5));
+      expect(trailing.top - card.top, closeTo(16, 0.5));
+      expect(
+        trailing.right,
+        lessThanOrEqualTo(tester.getRect(find.byType(DiveModeBadge)).left),
+      );
+      expect(
+        trailing.right,
+        lessThan(tester.getRect(find.text('Shark Point')).left),
+      );
     });
 
     testWidgets('fits a phone width with a long name and every badge', (
@@ -285,7 +323,7 @@ void main() {
           dive: rated('The long drift along the outer reef wall'),
           units: units,
           trailing: trailingIcon,
-          trailingWidth: 24,
+          trailingSize: const Size.square(24),
         ),
       );
 
@@ -329,7 +367,7 @@ void main() {
           dive: atSite,
           units: units,
           trailing: trailingIcon,
-          trailingWidth: 24,
+          trailingSize: const Size.square(24),
         ),
       );
 

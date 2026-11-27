@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_hero_header.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_banner.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
@@ -56,9 +57,25 @@ void main() {
     expect(unlocked.left, locked.left);
 
     // At the card's far right like every other card's pencil, not after
-    // the name (issue #4888): the hero's Card margin plus its 16 px padding.
+    // the name (issue #4888): inside the hero card's 16 px padding, clear of
+    // the mode badge.
     final disc = tester.getRect(pencil());
-    expect(unlocked.right - disc.right, closeTo(20, 4.5));
+    final surface = tester.getRect(
+      find
+          .descendant(
+            of: find.descendant(
+              of: find.byType(DiveHeroHeader),
+              matching: find.byType(Card),
+            ),
+            matching: find.byType(Material),
+          )
+          .first,
+    );
+    expect(surface.right - disc.right, closeTo(16, 0.5));
+    expect(
+      disc.left,
+      greaterThanOrEqualTo(tester.getRect(find.byType(DiveModeBadge)).right),
+    );
     expect(
       disc.left,
       greaterThan(tester.getRect(find.text('Morning drift')).right),

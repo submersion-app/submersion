@@ -97,19 +97,26 @@ class RecordCardPencil extends StatelessWidget {
   static const double _dotSlot = 8;
   static const double _gap = 4;
 
-  /// The width a [RecordCardPencil] takes under [context]: none while it
-  /// draws nothing, so a row laying it over its corner can keep exactly its
-  /// room (the dive page's header card, issue #4888).
-  static double widthOf(BuildContext context) {
+  /// The frame the pencil draws for, null while it draws nothing.
+  static RecordCardFrameData? _shownFrame(BuildContext context) {
     final frame = RecordCardFrameScope.maybeOf(context);
-    if (frame == null || frame.isOpen) return 0;
-    return _dotSlot + _gap + RecordPencilDisc.diameterOf(context);
+    return frame == null || frame.isOpen ? null : frame;
+  }
+
+  /// The size a [RecordCardPencil] takes under [context]: none while it
+  /// draws nothing, so a header laying it over its corner can keep exactly
+  /// its room (the dive page's header card, issue #4888). Built from the
+  /// same parts as [build]: the dot's slot, the gap and the disc.
+  static Size sizeOf(BuildContext context) {
+    if (_shownFrame(context) == null) return Size.zero;
+    final disc = RecordPencilDisc.diameterOf(context);
+    return Size(_dotSlot + _gap + disc, disc);
   }
 
   @override
   Widget build(BuildContext context) {
-    final frame = RecordCardFrameScope.maybeOf(context);
-    if (frame == null || frame.isOpen) return const SizedBox.shrink();
+    final frame = _shownFrame(context);
+    if (frame == null) return const SizedBox.shrink();
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

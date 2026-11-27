@@ -10,24 +10,32 @@ else than on the cards below it.
 
 ## Design
 
-- `DiveHeroHeader.titleTrailing` becomes `trailing` plus `trailingWidth`.
-  `trailing` is laid over the header's top right corner (a `Stack` with a
-  `Positioned(top: 0, right: 0)`), not drawn inside the title row.
-- The rating/mode row, the top row of the badge column at the header's
-  right edge, ends with a `SizedBox(width: trailingWidth)`. That keeps the
-  pencil's room exactly where it is laid, so it cannot collide with the
-  rating, the mode badge or the type badges below them, at any width.
+- `DiveHeroHeader.titleTrailing` becomes `trailing` plus `trailingSize`.
+  `trailing` is laid over the header's top end corner (a `Stack` with a
+  `PositionedDirectional(top: 0, end: 0)`, so the top left in a
+  right-to-left language), not drawn inside the title row.
+- The rating/mode row, the top row of the badge column at the header's end
+  edge, ends with a `SizedBox.fromSize(size: trailingSize)`. That keeps the
+  pencil's room, its width and its height, exactly where it is laid, so it
+  cannot collide with the rating, the mode badge or the type badges below
+  them, at any width.
 - Only that row gives up width. The text column (name, site, location,
-  entry and exit) keeps its width, so unlocking does not wrap a line or make
-  the card taller, except when the rating/mode row plus the pencil becomes
-  wider than the type badges.
+  entry and exit) keeps its width while the type badges are the widest part
+  of the badge column. When they are not (no type badges, or a rating and a
+  long mode label), the column widens by the pencil's width and the text
+  column loses it, as the title row alone did before. Avoiding that would
+  need a custom layout that measures the badge column's slack; not worth it
+  for this issue.
 - The pencil stays at the top of the card whichever column is the taller,
   so it does not float to the middle of a tall header.
-- `RecordCardPencil.widthOf(context)` returns the width the pencil takes
-  under the current frame: 0 with no frame, while locked or while the card
-  is open, otherwise the changed-dot slot, the gap and the disc's diameter
-  (`RecordPencilDisc.diameterOf`, the same value the disc is drawn at). The
-  dive page passes it as `trailingWidth`.
+- `RecordCardPencil.sizeOf(context)` returns the size the pencil takes
+  under the current frame: `Size.zero` with no frame, while locked or while
+  the card is open, otherwise the changed-dot slot, the gap and the disc's
+  diameter (`RecordPencilDisc.diameterOf`, the same value the disc is drawn
+  at), built from the same constants and frame check as `build`. The dive
+  page passes it as `trailingSize`.
+- Reading order: the pencil is the header's last node, after the badges,
+  where `RecordCardHeader` cards also read their pencil after the title.
 
 ## Alternatives rejected
 
@@ -47,10 +55,11 @@ else than on the cards below it.
 - `dive_hero_header_test`: trailing at the card's top right inside its
   padding, right of the rating and mode badge, independent of the name's
   length, at the top when the badge column is the taller, no overflow at
-  phone width, and the card's height and location line unchanged at phone
-  width when a trailing widget is added.
-- `record_card_pencil_test`: `widthOf` is 0 with no frame and while locked,
-  and equals the drawn width when unlocked at text scales 0.85, 1 and 2.
+  phone width, the card's height and location line unchanged at phone width
+  when a trailing widget is added, clear of the type badges below it, and
+  at the top left clear of the badges right to left.
+- `record_card_pencil_test`: `sizeOf` is zero with no frame and while locked,
+  and equals the drawn size when unlocked at text scales 0.85, 1 and 2.
 - `dive_detail_page_unlock_header_block_test`: on the page, the unlocked
   pencil sits at the card's far right, right of the name, and the hero keeps
   its size.
