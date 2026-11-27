@@ -147,4 +147,17 @@ void main() {
       expect(snapshot(prefs), prefsBefore);
     },
   );
+
+  test('reload keeps the settings until the fresh load lands', () async {
+    final notifier = container.read(settingsProvider.notifier);
+    await notifier.initialLoad;
+    expect(container.read(settingsProvider).depthUnit, DepthUnit.feet);
+
+    final reloading = notifier.reload();
+    // Not the defaults in between: a pop-out would flash them.
+    expect(container.read(settingsProvider).depthUnit, DepthUnit.feet);
+    await reloading;
+    expect(container.read(settingsProvider).depthUnit, DepthUnit.feet);
+    expect(snapshot(prefs), prefsBefore);
+  });
 }

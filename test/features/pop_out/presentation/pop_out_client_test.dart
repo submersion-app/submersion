@@ -11,6 +11,19 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 import '../../../helpers/fake_pop_out_windows.dart';
 
+class _CountingSettings extends StateNotifier<AppSettings>
+    implements SettingsNotifier {
+  _CountingSettings() : super(const AppSettings());
+
+  int reloads = 0;
+
+  @override
+  Future<void> reload() async => reloads++;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class FakeWindowControl implements PopOutWindowControl {
   final calls = <String>[];
 
@@ -41,7 +54,10 @@ void main() {
   late FakeWindowControl control;
   late SharedPreferences prefs;
 
-  Future<ProviderContainer> build(PopOutLaunch launch) async {
+  Future<ProviderContainer> build(
+    PopOutLaunch launch, {
+    SettingsNotifier? settings,
+  }) async {
     SharedPreferences.setMockInitialValues({currentDiverIdKey: 'diver-1'});
     prefs = await SharedPreferences.getInstance();
     channel = FakePopOutChannel();
@@ -52,6 +68,7 @@ void main() {
         popOutLaunchProvider.overrideWithValue(launch),
         popOutChannelProvider.overrideWithValue(channel),
         popOutWindowControlProvider.overrideWithValue(control),
+        if (settings != null) settingsProvider.overrideWith((ref) => settings),
         currentDiverIdProvider.overrideWith(
           (ref) => CurrentDiverIdNotifier.readOnly(
             ref.watch(sharedPreferencesProvider),
@@ -137,8 +154,24 @@ void main() {
     });
   });
 
+  test('says it is ready once it listens', () async {
+    await build(launchOn('a'));
+    await pumpEventQueue();
+    expect(channel.sentOf<ReadyMessage>(), hasLength(1));
+  });
+
+  test('prefs message reloads settings in place', () async {
+    final settings = _CountingSettings();
+    final c = await build(launchOn('a'), settings: settings);
+    c.read(settingsProvider);
+    channel.deliver(const PrefsMessage({currentDiverIdKey: 'diver-1'}));
+    await pumpEventQueue();
+    expect(settings.reloads, 1);
+    expect(c.read(settingsProvider.notifier), same(settings));
+  });
+
   test('prefs message reloads diver and settings', () async {
-    final c = await build(launchOn('a'));
+    final c = await build(launchOn('a'), settings: _CountingSettings());
     expect(c.read(currentDiverIdProvider), 'diver-1');
 
     channel.deliver(
@@ -151,7 +184,7 @@ void main() {
   });
 
   test('prefs message drops values the main window no longer has', () async {
-    final c = await build(launchOn('a'));
+    final c = await build(launchOn('a'), settings: _CountingSettings());
     await prefs.setString('gone_key', 'x');
     channel.deliver(const PrefsMessage({currentDiverIdKey: 'diver-1'}));
     await pumpEventQueue();

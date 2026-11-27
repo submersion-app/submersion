@@ -1825,6 +1825,15 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   final bool _readOnly;
 
+  /// Reads the diver's row and this device's prefs again, keeping [state]
+  /// until the fresh load lands. For a desktop pop-out window (issue #5078)
+  /// whose in-memory prefs the main window just replaced: a new notifier
+  /// would start from the defaults and flash them.
+  Future<void> reload() {
+    assert(_readOnly, 'Only a read-only notifier reloads on request');
+    return _startLoad();
+  }
+
   void _start() {
     logFailure(_startLoad(), SettingsNotifier, 'load diver settings');
     // Not the first load itself: a diver-id change while it is out (the

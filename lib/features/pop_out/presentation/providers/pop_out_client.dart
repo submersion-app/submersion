@@ -97,6 +97,9 @@ class PopOutClient extends Notifier<PopOutClientState> {
       (diveId, seconds) => _channel.send(CursorMessage(diveId, seconds)),
     );
     _channel.setHandler(_onMessage);
+    // Anything the main window sent while this window was starting was
+    // lost; this asks for it again.
+    Future.microtask(() => _channel.send(const ReadyMessage()));
     ref.onDispose(() {
       _channel.setHandler(null);
       _coalescer.dispose();
@@ -171,7 +174,9 @@ class PopOutClient extends Notifier<PopOutClientState> {
     }
     ref
       ..invalidate(currentDiverIdProvider)
-      ..invalidate(displayZoomNotifierProvider)
-      ..invalidate(settingsProvider);
+      ..invalidate(displayZoomNotifierProvider);
+    // In place: a fresh notifier would start from the defaults and flash
+    // them. A diver switch also reloads it through its own listener.
+    await ref.read(settingsProvider.notifier).reload();
   }
 }
