@@ -364,9 +364,13 @@ void main() {
         'every_setter_waits_for_load_test.dart',
       ),
     ).readAsStringSync();
+    // Public futures that change no setting. reload() reads the stored
+    // settings again for a desktop pop-out's read-only notifier (#5078) and
+    // asserts it is one, so it has no place among the setters above.
+    const notSetters = {'reload'};
     final missing = [
       for (final name in setters)
-        if (!self.contains('n.$name(')) name,
+        if (!notSetters.contains(name) && !self.contains('n.$name(')) name,
     ];
     expect(
       missing,
