@@ -1,8 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ndef_record/ndef_record.dart';
 
 import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/features/cylinder_passports/data/services/nfc_tag_service.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/emergency_tag/data/services/emergency_card_pdf_service.dart';
@@ -12,6 +16,7 @@ import 'package:submersion/features/emergency_tag/presentation/providers/emergen
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../helpers/fake_nfc.dart';
 import '../../../helpers/mock_providers.dart';
 
 void main() {
@@ -33,7 +38,11 @@ void main() {
   late List<EmergencyCardContent> printed;
   late List<EmergencyTagChoices> saved;
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    Future<Diver?> Function()? currentDiver,
+    NfcTagService? nfc,
+  }) async {
     printed = [];
     saved = [];
     await tester.binding.setSurfaceSize(const Size(500, 2400));
@@ -42,9 +51,17 @@ void main() {
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-          // A desktop-like device: no NFC, so only printing is offered.
-          deviceCapabilitiesProvider.overrideWithValue(DeviceCapabilities.web),
-          currentDiverProvider.overrideWith((ref) async => diver),
+          // Without [nfc], a desktop-like device: only printing is offered.
+          deviceCapabilitiesProvider.overrideWithValue(
+            nfc == null
+                ? DeviceCapabilities.web
+                : currentDeviceCapabilities().copyWith(nfc: true),
+          ),
+          if (nfc != null) nfcTagServiceProvider.overrideWithValue(nfc),
+          currentDiverProvider.overrideWith(
+            (ref) =>
+                currentDiver == null ? Future.value(diver) : currentDiver(),
+          ),
           myEmergencyTagChoicesProvider.overrideWith(
             (ref) async => EmergencyTagChoices.defaults,
           ),
@@ -135,5 +152,94 @@ void main() {
     await tester.tap(find.byKey(const Key('emergencyTag_print')));
     await tester.pumpAndSettle();
     expect(printed.single.qrData, 'tel:+15551234567');
+  });
+
+  testWidgets('a call tag can dial the insurer instead', (tester) async {
+    await pump(tester);
+    await tester.tap(find.byKey(const Key('emergencyTag_tapCall')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('emergencyTag_callTarget')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text("Insurer's 24-hour line").last);
+    await tester.pumpAndSettle();
+    expect(saved.last.callTarget, EmergencyCallTarget.insurer);
+    await tester.tap(find.byKey(const Key('emergencyTag_print')));
+    await tester.pumpAndSettle();
+    expect(printed.single.qrData, 'tel:+1919');
+    expect(printed.single.qrCaption, 'Scan to call.');
+  });
+
+  testWidgets('with no diver profile it says what to add', (tester) async {
+    await pump(tester, currentDiver: () async => null);
+    expect(find.textContaining('No diver profile data'), findsOneWidget);
+    expect(find.byKey(const Key('emergencyTag_print')), findsNothing);
+  });
+
+  testWidgets('a diver that fails to load shows an error', (tester) async {
+    await pump(tester, currentDiver: () => Future.error(StateError('boom')));
+    expect(find.byKey(const Key('emergencyTag_print')), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  group('on a phone with NFC', () {
+    Future<void> onAndroid(Future<void> Function() body) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      try {
+        await body();
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+    }
+
+    testWidgets('Write NFC tag writes the link and the text', (tester) async {
+      await onAndroid(() async {
+        final tag = FakeTagHandle();
+        await pump(tester, nfc: FakeNfcTagService(tag: tag));
+        final write = find.byKey(const Key('emergencyTag_write'));
+        expect(tester.widget<FilledButton>(write).onPressed, isNotNull);
+        await tester.tap(write);
+        await tester.pumpAndSettle();
+        final records = tag.stored!.records;
+        expect(records, hasLength(2));
+        expect(records.first.typeNameFormat, TypeNameFormat.wellKnown);
+        expect(records.last.type, [0x54]);
+      });
+    });
+
+    testWidgets('NFC turned off disables writing and says why', (tester) async {
+      await onAndroid(() async {
+        await pump(
+          tester,
+          nfc: FakeNfcTagService(supportValue: NfcSupport.disabled),
+        );
+        final write = find.byKey(const Key('emergencyTag_write'));
+        expect(tester.widget<FilledButton>(write).onPressed, isNull);
+        expect(find.textContaining('NFC'), findsWidgets);
+      });
+    });
+  });
+
+  testWidgets('with no numbers recorded, calling is off and says why', (
+    tester,
+  ) async {
+    final noNumbers = Diver(
+      id: 'd2',
+      name: 'Sam Diver',
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+    );
+    await pump(tester, currentDiver: () async => noNumbers);
+    expect(
+      find.textContaining('Add a phone number to an emergency contact'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('details too big for common tags are flagged', (tester) async {
+    final wordy = diver.copyWith(medicalNotes: 'Asthma. ' * 150);
+    await pump(tester, currentDiver: () async => wordy);
+    await tester.tap(find.byKey(const Key('emergencyTag_field_medicalNotes')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Too big for common tags'), findsOneWidget);
   });
 }

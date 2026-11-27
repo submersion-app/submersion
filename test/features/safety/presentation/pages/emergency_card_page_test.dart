@@ -3,13 +3,16 @@ import 'package:flutter/material.dart'
         FilledButton,
         IconButton,
         Icons,
+        Key,
         Locale,
         MaterialApp,
         PopupMenuButton,
         Size,
+        Text,
         TextField;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/safety/data/repositories/emergency_chamber_repository.dart';
@@ -84,6 +87,7 @@ void main() {
     String? countryCode = 'AU',
     bool regionIsManual = false,
     List<String> regionChoices = const ['AU', 'DE', 'JP'],
+    GoRouter? router,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -113,13 +117,20 @@ void main() {
             ),
           ),
         ],
-        child: const MaterialApp(
-          // Pinned: the assertions match English strings.
-          locale: Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: EmergencyCardPage(),
-        ),
+        child: router == null
+            ? const MaterialApp(
+                // Pinned: the assertions match English strings.
+                locale: Locale('en'),
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                home: EmergencyCardPage(),
+              )
+            : MaterialApp.router(
+                locale: const Locale('en'),
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                routerConfig: router,
+              ),
       ),
     );
     await tester.pump();
@@ -156,6 +167,33 @@ void main() {
       find.widgetWithIcon(IconButton, Icons.add_location_alt_outlined),
     );
     expect(button.onPressed, isNotNull);
+  });
+
+  testWidgets('the NFC action opens the emergency tag page', (tester) async {
+    final router = GoRouter(
+      routes: [
+        GoRoute(path: '/', builder: (_, _) => const EmergencyCardPage()),
+        GoRoute(
+          path: '/settings/diver-profile/emergency-card/tag',
+          builder: (_, _) => const Text('tag page'),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await pump(tester, router: router);
+    await tester.tap(find.byKey(const Key('emergencyCard_tag')));
+    await tester.pumpAndSettle();
+    expect(find.text('tag page'), findsOneWidget);
+  });
+
+  testWidgets('the NFC action is disabled with no diver profile', (
+    tester,
+  ) async {
+    await pump(tester, includeDiver: false);
+    final button = tester.widget<IconButton>(
+      find.byKey(const Key('emergencyCard_tag')),
+    );
+    expect(button.onPressed, isNull);
   });
 
   testWidgets('add-chamber action is disabled with no diver profile', (

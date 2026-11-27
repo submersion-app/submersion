@@ -105,6 +105,24 @@ void main() {
     });
   });
 
+  test('a second emergency contact gets its own line and keys', () {
+    final info = EmergencyTagInfo(
+      name: full.name,
+      contact1: full.contact1,
+      contact2: const EmergencyTagContact(name: 'Jo', phone: '+4412'),
+      insurer: 'DAN',
+      written: full.written,
+    );
+    expect(
+      EmergencyTagCodec.text(info, labels),
+      contains(
+        'Emergency contact: Alex Diver (Partner) +15551234567\n'
+        'Emergency contact: Jo +4412\n',
+      ),
+    );
+    expect(EmergencyTagCodec.link(info), contains('&c2=Jo&p2=%2B4412&'));
+  });
+
   group('text record', () {
     test('is a well-known T record with the language code', () {
       final record = textRecord('Hi', languageCode: 'en');
