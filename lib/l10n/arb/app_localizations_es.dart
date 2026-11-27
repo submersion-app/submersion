@@ -17405,6 +17405,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Contraer todo';
 
   @override
+  String get equipment_list_showParts => 'Mostrar piezas';
+
+  @override
+  String get equipment_list_hideParts => 'Ocultar piezas';
+
+  @override
   String get equipment_location_activeFilter => 'Ubicación';
 
   @override
@@ -17421,6 +17427,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'Un encabezado por lugar, solo en esta página';
+
+  @override
+  String get equipment_arrange_nestParts =>
+      'Mostrar las piezas bajo su conjunto';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Pliega las piezas de cada conjunto bajo él';
 
   @override
   String get equipment_locations_title => 'Ubicaciones';

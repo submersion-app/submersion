@@ -17302,6 +17302,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Alles inklappen';
 
   @override
+  String get equipment_list_showParts => 'Onderdelen tonen';
+
+  @override
+  String get equipment_list_hideParts => 'Onderdelen verbergen';
+
+  @override
   String get equipment_location_activeFilter => 'Locatie';
 
   @override
@@ -17318,6 +17324,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'Eén kop per plek, alleen op deze pagina';
+
+  @override
+  String get equipment_arrange_nestParts =>
+      'Onderdelen onder hun samenstel tonen';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Vouwt de onderdelen van elk samenstel eronder in';
 
   @override
   String get equipment_locations_title => 'Locaties';

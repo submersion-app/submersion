@@ -17695,6 +17695,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'طي الكل';
 
   @override
+  String get equipment_list_showParts => 'إظهار الأجزاء';
+
+  @override
+  String get equipment_list_hideParts => 'إخفاء الأجزاء';
+
+  @override
   String get equipment_location_activeFilter => 'الموقع';
 
   @override
@@ -17711,6 +17717,12 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'عنوان لكل مكان، في هذه الصفحة فقط';
+
+  @override
+  String get equipment_arrange_nestParts => 'إظهار الأجزاء تحت تجميعتها';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle => 'طيّ أجزاء كل تجميعة تحتها';
 
   @override
   String get equipment_locations_title => 'المواقع';

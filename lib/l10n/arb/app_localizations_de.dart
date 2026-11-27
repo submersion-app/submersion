@@ -17390,6 +17390,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Alle einklappen';
 
   @override
+  String get equipment_list_showParts => 'Teile anzeigen';
+
+  @override
+  String get equipment_list_hideParts => 'Teile ausblenden';
+
+  @override
   String get equipment_location_activeFilter => 'Standort';
 
   @override
@@ -17406,6 +17412,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'Eine Überschrift pro Ort, nur auf dieser Seite';
+
+  @override
+  String get equipment_arrange_nestParts =>
+      'Teile unter ihrer Baugruppe zeigen';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Die Teile jeder Baugruppe darunter einklappen';
 
   @override
   String get equipment_locations_title => 'Standorte';

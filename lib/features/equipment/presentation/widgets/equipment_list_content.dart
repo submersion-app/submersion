@@ -1612,6 +1612,18 @@ class EquipmentListTile extends ConsumerWidget {
   /// names the place in its heading).
   final EquipmentLocation? location;
 
+  /// In the Equipment list's assembly view (issue #5071): the parts listed
+  /// under the row by either link, shown in place of the component count.
+  final int? partCount;
+
+  /// In the assembly view, the assembly the row sits under: its "Part of"
+  /// chip would repeat the row above, so it is left out.
+  final String? hideParentId;
+
+  /// In the assembly view, the badge also rolls up the parts installed in
+  /// the item, which fold under its row there.
+  final bool rollupInstalledParts;
+
   const EquipmentListTile({
     super.key,
     required this.item,
@@ -1623,6 +1635,9 @@ class EquipmentListTile extends ConsumerWidget {
     this.tags = const [],
     this.label,
     this.location,
+    this.partCount,
+    this.hideParentId,
+    this.rollupInstalledParts = false,
   });
 
   @override
@@ -1630,7 +1645,13 @@ class EquipmentListTile extends ConsumerWidget {
     final theme = Theme.of(context);
     // The rollup (issue #1487): a due part lights its assembly, and the
     // badge names the part. An ok rollup is no badge, as before.
-    final rollup = ref.watch(equipmentRollupClockProvider).value?[item.id];
+    final rollup = ref
+        .watch(
+          rollupInstalledParts
+              ? equipmentAssemblyRollupClockProvider
+              : equipmentRollupClockProvider,
+        )
+        .value?[item.id];
     final worstClock =
         rollup == null || rollup.status.severity == ServiceClockSeverity.ok
         ? null
@@ -1650,7 +1671,12 @@ class EquipmentListTile extends ConsumerWidget {
     final index = ref.watch(equipmentComponentsIndexProvider).value;
     final hasChips =
         index != null &&
-        (index.isAssembly(item.id) || index.parentIdsOf(item.id).isNotEmpty);
+        AssemblyChips.showsAny(
+          index,
+          item.id,
+          partCount: partCount,
+          hideParentId: hideParentId,
+        );
     final detail =
         label?.subtitle ?? (item.fullName != item.name ? item.fullName : null);
     final hasTags = tags.isNotEmpty;
@@ -1703,7 +1729,12 @@ class EquipmentListTile extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (detail != null) Text(detail),
-                    if (hasChips) AssemblyChips(itemId: item.id),
+                    if (hasChips)
+                      AssemblyChips(
+                        itemId: item.id,
+                        partCount: partCount,
+                        hideParentId: hideParentId,
+                      ),
                     if (hasTags)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),

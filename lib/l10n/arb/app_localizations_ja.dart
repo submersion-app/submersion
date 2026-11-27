@@ -16809,6 +16809,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'すべて折りたたむ';
 
   @override
+  String get equipment_list_showParts => 'パーツを表示';
+
+  @override
+  String get equipment_list_hideParts => 'パーツを隠す';
+
+  @override
   String get equipment_location_activeFilter => '場所';
 
   @override
@@ -16825,6 +16831,12 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       '場所ごとに見出しを表示（このページのみ）';
+
+  @override
+  String get equipment_arrange_nestParts => 'パーツを組み合わせの下に表示';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle => '各組み合わせのパーツをその下に折りたたむ';
 
   @override
   String get equipment_locations_title => '場所';

@@ -16581,6 +16581,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_list_collapseAllGroups => '全部折叠';
 
   @override
+  String get equipment_list_showParts => '显示部件';
+
+  @override
+  String get equipment_list_hideParts => '隐藏部件';
+
+  @override
   String get equipment_location_activeFilter => '位置';
 
   @override
@@ -16596,6 +16602,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_arrange_groupByLocationSubtitle => '每个地点一个标题，仅限此页';
+
+  @override
+  String get equipment_arrange_nestParts => '在所属组合下显示部件';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle => '将每个组合的部件折叠在其下';
 
   @override
   String get equipment_locations_title => '位置';

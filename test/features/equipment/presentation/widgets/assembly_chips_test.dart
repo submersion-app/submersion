@@ -35,7 +35,12 @@ void main() {
     type: EquipmentType.hose,
   );
 
-  Widget build(String itemId, List<EquipmentComponent> edges) => ProviderScope(
+  Widget build(
+    String itemId,
+    List<EquipmentComponent> edges, {
+    int? partCount,
+    String? hideParentId,
+  }) => ProviderScope(
     overrides: [
       equipmentComponentsIndexProvider.overrideWith(
         (ref) async => ComponentsIndex.fromRows(edges),
@@ -46,7 +51,13 @@ void main() {
       locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(body: AssemblyChips(itemId: itemId)),
+      home: Scaffold(
+        body: AssemblyChips(
+          itemId: itemId,
+          partCount: partCount,
+          hideParentId: hideParentId,
+        ),
+      ),
     ),
   );
 
@@ -76,5 +87,41 @@ void main() {
     await tester.pumpWidget(build('yoke', [edge('reg', 'hose')]));
     await tester.pumpAndSettle();
     expect(find.byType(Text), findsNothing);
+  });
+
+  group('assembly view (#5071)', () {
+    testWidgets('a part count replaces the component count', (tester) async {
+      await tester.pumpWidget(
+        build('reg', [edge('reg', 'hose'), edge('reg', 'yoke')], partCount: 5),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('5 components'), findsOneWidget);
+    });
+
+    testWidgets('the chip naming the row above is left out', (tester) async {
+      final edges = [edge('reg', 'hose')];
+      await tester.pumpWidget(build('hose', edges, hideParentId: 'reg'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Part of'), findsNothing);
+      expect(
+        AssemblyChips.showsAny(
+          ComponentsIndex.fromRows(edges),
+          'hose',
+          hideParentId: 'reg',
+        ),
+        isFalse,
+      );
+    });
+
+    testWidgets('a part keeps the chip for its other assembly', (tester) async {
+      await tester.pumpWidget(
+        build('hose', [
+          edge('reg', 'hose'),
+          edge('yoke', 'hose'),
+        ], hideParentId: 'reg'),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Part of Travel reg'), findsOneWidget);
+    });
   });
 }

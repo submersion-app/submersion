@@ -27625,6 +27625,18 @@ abstract class AppLocalizations {
   /// **'Collapse all'**
   String get equipment_list_collapseAllGroups;
 
+  /// Equipment list: tooltip and screen reader label of the chevron that opens a folded assembly to show its parts
+  ///
+  /// In en, this message translates to:
+  /// **'Show parts'**
+  String get equipment_list_showParts;
+
+  /// Equipment list: tooltip and screen reader label of the chevron that folds an open assembly's parts away
+  ///
+  /// In en, this message translates to:
+  /// **'Hide parts'**
+  String get equipment_list_hideParts;
+
   /// Chip in the active filters bar when the list is filtered by location
   ///
   /// In en, this message translates to:
@@ -27654,6 +27666,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'One heading per place, on this page only'**
   String get equipment_arrange_groupByLocationSubtitle;
+
+  /// Equipment page sort sheet: switch that lists each assembly's parts under the assembly instead of in their own type groups
+  ///
+  /// In en, this message translates to:
+  /// **'Show parts under their assembly'**
+  String get equipment_arrange_nestParts;
+
+  /// Subtitle of the switch that lists each assembly's parts under it
+  ///
+  /// In en, this message translates to:
+  /// **'Fold each assembly\'s parts under it'**
+  String get equipment_arrange_nestPartsSubtitle;
 
   /// Title of the page listing places where gear is kept
   ///
