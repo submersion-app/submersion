@@ -22051,6 +22051,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => 'Setpoint-Wechseltiefe';
 
   @override
+  String get plannerCanvas_ccr_switchDepthOffNote =>
+      'Kein Wechsel nach Tiefe: durchgehend niedriger Setpoint';
+
+  @override
   String get plannerCanvas_pscr_ratio => 'pSCR-Verhältnis';
 
   @override
@@ -25798,6 +25802,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_ccrSetpointLow => 'Niedriger CCR-Setpoint';
 
   @override
+  String get settings_conflict_field_ccrSetpointSwitchDepth =>
+      'Setpoint-Wechseltiefe';
+
+  @override
   String get settings_conflict_field_channelIndex => 'Kanal';
 
   @override
@@ -27436,6 +27444,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_setpointSwitchDepth =>
       'Tiefe des Setpoint-Wechsels';
+
+  @override
+  String get settings_conflict_field_setpointSwitchOff =>
+      'Setpoint-Wechsel aus';
 
   @override
   String get settings_conflict_field_settings_key => 'Einstellung';
@@ -29808,12 +29820,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_decompression_ccrPpO2LimitsTitle => 'ppO2-Grenzwerte CCR';
 
   @override
-  String settings_decompression_ccrPpO2LimitsSubtitle(
+  String settings_decompression_ccrPpO2LimitsSubtitleWithSwitch(
     String low,
     String high,
     String dil,
+    String depth,
   ) {
-    return 'Setpoint Low $low · High $high · Dil-MOD $dil bar';
+    return 'Setpoint Low $low · High $high · Dil-MOD $dil bar · Wechsel $depth';
   }
 
   @override
@@ -29840,6 +29853,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_decompression_ccrDialog_diluentModHint =>
       'ppO2, den das Diluentgas beim Spülen erreichen darf; bestimmt seine MOD';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepth =>
+      'Setpoint-Wechseltiefe';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepthHint =>
+      'Darunter hoher, darüber niedriger Sollwert';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

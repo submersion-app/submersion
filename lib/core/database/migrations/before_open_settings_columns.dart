@@ -68,10 +68,14 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // on diver_settings (issue #4664).
     await _assertAveloLineColumns();
 
+    // v387 backstop: diver_settings.ccr_setpoint_switch_depth and
+    // dive_plans.setpoint_switch_off (issue #3793).
+    await _assertCcrSetpointSwitchColumns();
+
     // v371 backstop: diver_settings.favourite_dive_type_ids (issue #4413).
     await _assertFavouriteDiveTypeIdsColumn();
 
-    // v387 backstop: diver_settings.preferred_currency_codes (issue #4997).
+    // v388 backstop: diver_settings.preferred_currency_codes (issue #4997).
     await _assertPreferredCurrencyCodesColumn();
 
     // v374 backstop: the planner's SCR injection rate and VO2 columns on

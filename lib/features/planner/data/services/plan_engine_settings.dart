@@ -25,6 +25,7 @@ PlanEngineConfig planEngineConfigFromSettings(AppSettings settings) {
     ccrDiluentModPpO2: settings.ccrDiluentModPpO2,
     ccrSetpointLow: settings.ccrSetpointLow,
     ccrSetpointHigh: settings.ccrSetpointHigh,
+    ccrSetpointSwitchDepth: settings.ccrSetpointSwitchDepth,
     cnsWarningThreshold: settings.cnsWarningThreshold,
     o2Narcotic: settings.o2Narcotic,
     endLimitMeters: settings.endLimit,

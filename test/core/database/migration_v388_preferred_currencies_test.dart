@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v387: diver_settings.preferred_currency_codes, the currencies each
+/// Schema v388: diver_settings.preferred_currency_codes, the currencies each
 /// diver lists first in the currency pickers (issue #4997). Nullable, no
 /// backfill, so the sync floor holds.
 void main() {
@@ -29,18 +29,18 @@ void main() {
         },
       );
 
-  test('v387 is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(387));
-    expect(AppDatabase.migrationVersions, contains(387));
+  test('v388 is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(388));
+    expect(AppDatabase.migrationVersions, contains(388));
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(387));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(388));
   });
 
-  test('upgrading from v386 adds a null preferred_currency_codes and keeps '
+  test('upgrading from v387 adds a null preferred_currency_codes and keeps '
       'the row', () async {
-    final db = AppDatabase(setupDb(386));
+    final db = AppDatabase(setupDb(387));
     addTearDown(db.close);
     final row = await db
         .customSelect(
@@ -53,7 +53,7 @@ void main() {
 
   // The rung re-runs on a database that already gained the column, and the
   // beforeOpen backstop runs on every open: neither may touch the choice.
-  for (final version in [386, 387]) {
+  for (final version in [387, 388]) {
     test('a database at v$version already carrying the column keeps its '
         'preferred currencies', () async {
       final db = AppDatabase(setupDb(version, withColumn: true));

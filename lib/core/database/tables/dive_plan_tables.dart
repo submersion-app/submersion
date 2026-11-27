@@ -122,6 +122,12 @@ class DivePlans extends Table {
   RealColumn get setpointHigh => real().nullable()();
   RealColumn get setpointSwitchDepth => real().nullable()();
 
+  /// No switch by depth on this plan (v387, issue #3793): the low setpoint
+  /// holds throughout. Wins over [setpointSwitchDepth], which is kept so
+  /// switching back restores it.
+  BoolColumn get setpointSwitchOff =>
+      boolean().withDefault(const Constant(false))();
+
   /// CMF semi-closed loop supply injection rate, surface L/min (issue
   /// #4660). Null = use the diver's Settings default.
   RealColumn get scrInjectionRate => real().nullable()();

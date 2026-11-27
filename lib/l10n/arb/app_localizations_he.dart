@@ -21599,6 +21599,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => 'עומק החלפת נקודת הכיוון';
 
   @override
+  String get plannerCanvas_ccr_switchDepthOffNote =>
+      'ללא החלפה לפי עומק: נקודת כיוון נמוכה לאורך כל הצלילה';
+
+  @override
   String get plannerCanvas_pscr_ratio => 'יחס pSCR';
 
   @override
@@ -25253,6 +25257,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'נקודת כיוון נמוכה ב-CCR';
 
   @override
+  String get settings_conflict_field_ccrSetpointSwitchDepth =>
+      'עומק החלפת נקודת הכיוון';
+
+  @override
   String get settings_conflict_field_channelIndex => 'ערוץ';
 
   @override
@@ -26816,6 +26824,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_setpointSwitchDepth =>
       'עומק החלפת נקודת הכיוון';
+
+  @override
+  String get settings_conflict_field_setpointSwitchOff =>
+      'החלפת נקודת הכיוון כבויה';
 
   @override
   String get settings_conflict_field_settings_key => 'הגדרה';
@@ -29132,12 +29144,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_decompression_ccrPpO2LimitsTitle => 'מגבלות ppO2 CCR';
 
   @override
-  String settings_decompression_ccrPpO2LimitsSubtitle(
+  String settings_decompression_ccrPpO2LimitsSubtitleWithSwitch(
     String low,
     String high,
     String dil,
+    String depth,
   ) {
-    return 'Setpoint נמוך $low · גבוה $high · MOD מדלל $dil בר';
+    return 'Setpoint נמוך $low · גבוה $high · MOD מדלל $dil בר · החלפה $depth';
   }
 
   @override
@@ -29163,6 +29176,14 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_decompression_ccrDialog_diluentModHint =>
       'ה-ppO2 שהמדלל רשאי להגיע אליו בשטיפה; קובע את ה-MOD שלו';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepth =>
+      'עומק החלפת נקודת הכיוון';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepthHint =>
+      'נקודת כיוון גבוהה מתחת, נמוכה מעל';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

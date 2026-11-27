@@ -305,9 +305,11 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
     required double setpointLow,
     required double setpointHigh,
     required double diluentModPpO2,
+    double? setpointSwitchDepth,
   }) async => state = state.copyWith(
     ccrSetpointLow: setpointLow,
     ccrSetpointHigh: setpointHigh,
+    ccrSetpointSwitchDepth: setpointSwitchDepth,
     ccrDiluentModPpO2: diluentModPpO2,
   );
   @override

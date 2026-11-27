@@ -86,6 +86,7 @@ class PlanEngineConfig extends Equatable {
   /// resort for a caller with no Settings to hand.
   final double ccrSetpointLow;
   final double ccrSetpointHigh;
+  final double ccrSetpointSwitchDepth;
 
   final int cnsWarningThreshold;
   final bool o2Narcotic;
@@ -206,6 +207,7 @@ class PlanEngineConfig extends Equatable {
     this.ccrDiluentModPpO2 = 1.6,
     this.ccrSetpointLow = domain.DivePlan.specSetpointLow,
     this.ccrSetpointHigh = domain.DivePlan.specSetpointHigh,
+    this.ccrSetpointSwitchDepth = domain.DivePlan.specSetpointSwitchDepth,
     this.cnsWarningThreshold = 80,
     this.o2Narcotic = true,
     this.endLimitMeters = 30.0,
@@ -259,6 +261,7 @@ class PlanEngineConfig extends Equatable {
     ccrDiluentModPpO2,
     ccrSetpointLow,
     ccrSetpointHigh,
+    ccrSetpointSwitchDepth,
     cnsWarningThreshold,
     o2Narcotic,
     endLimitMeters,
@@ -311,6 +314,7 @@ class PlanEngineConfig extends Equatable {
     double? ccrDiluentModPpO2,
     double? ccrSetpointLow,
     double? ccrSetpointHigh,
+    double? ccrSetpointSwitchDepth,
     int? cnsWarningThreshold,
     bool? o2Narcotic,
     double? endLimitMeters,
@@ -365,6 +369,8 @@ class PlanEngineConfig extends Equatable {
       ccrDiluentModPpO2: ccrDiluentModPpO2 ?? this.ccrDiluentModPpO2,
       ccrSetpointLow: ccrSetpointLow ?? this.ccrSetpointLow,
       ccrSetpointHigh: ccrSetpointHigh ?? this.ccrSetpointHigh,
+      ccrSetpointSwitchDepth:
+          ccrSetpointSwitchDepth ?? this.ccrSetpointSwitchDepth,
       cnsWarningThreshold: cnsWarningThreshold ?? this.cnsWarningThreshold,
       o2Narcotic: o2Narcotic ?? this.o2Narcotic,
       endLimitMeters: endLimitMeters ?? this.endLimitMeters,
@@ -594,9 +600,25 @@ class PlanEngineConfig extends Equatable {
   }
 
   /// [plan]'s high (deep) setpoint: its own value when set, else the
-  /// diver's [ccrSetpointHigh] (issue #2801).
-  double setpointHighFor(domain.DivePlan plan) =>
-      plan.setpointHigh ?? ccrSetpointHigh;
+  /// diver's [ccrSetpointHigh] (issue #2801). Never below
+  /// [setpointLowFor], the same "never inverted" rule the Settings keep:
+  /// each half follows Settings or the plan on its own (issue #3793), so a
+  /// custom low can otherwise land above a Settings high.
+  double setpointHighFor(domain.DivePlan plan) {
+    final high = plan.setpointHigh ?? ccrSetpointHigh;
+    final low = setpointLowFor(plan);
+    return high < low ? low : high;
+  }
+
+  /// Depth where the loop changes from the high to the low setpoint for
+  /// [plan]: the plan's own value, else the diver's [ccrSetpointSwitchDepth]
+  /// (issue #3793). [double.infinity] when the plan turns the switch off:
+  /// no depth is deeper, so the low setpoint holds throughout and no leg
+  /// crosses it, with no special case in the readers. A per-segment
+  /// setpoint still wins over it.
+  double setpointSwitchDepthFor(domain.DivePlan plan) => plan.setpointSwitchOff
+      ? double.infinity
+      : plan.setpointSwitchDepth ?? ccrSetpointSwitchDepth;
 
   /// [plan]'s turn-pressure rule: its own value when set, else the diver's
   /// Settings default (issue #3552), which may itself be null (no rule).
@@ -638,7 +660,7 @@ double setpointAt(
 }) {
   final override = segment?.setpointBar;
   if (override != null) return override;
-  return depth > plan.effectiveSetpointSwitchDepth
+  return depth > config.setpointSwitchDepthFor(plan)
       ? config.setpointHighFor(plan)
       : config.setpointLowFor(plan);
 }
@@ -848,7 +870,7 @@ class PlanEngine {
             environment: environment,
             setpointLow: config.setpointLowFor(plan),
             setpointHigh: config.setpointHighFor(plan),
-            switchDepth: plan.effectiveSetpointSwitchDepth,
+            switchDepth: config.setpointSwitchDepthFor(plan),
             diluentFO2: lastLoopSegment == null
                 ? 0.21
                 : lastLoopSegment.gasMix.o2 / 100.0,
@@ -905,7 +927,7 @@ class PlanEngine {
 
       // A ramp over the setpoint switch changes setpoint at the switch, not
       // at its mean depth, so each side is loaded and charged on its own.
-      for (final piece in _breathedPieces(plan, leg)) {
+      for (final piece in _breathedPieces(plan, leg, config)) {
         final breathing = _breathingFor(
           plan,
           segment.gasMix,
@@ -1289,7 +1311,7 @@ class PlanEngine {
           : _authoredSegmentId(segment.id);
       BreathingConfig breathingAt(double depth) =>
           _breathingFor(plan, segment.gasMix, depth, segment: segment);
-      for (final piece in _breathedPieces(plan, leg)) {
+      for (final piece in _breathedPieces(plan, leg, config)) {
         sampleLeg(
           piece.startDepth,
           piece.endDepth,
@@ -1355,6 +1377,7 @@ class PlanEngine {
   static List<DecoSegment> _breathedPieces(
     domain.DivePlan plan,
     ResolvedLeg leg,
+    PlanEngineConfig config,
   ) => splitAtSetpointSwitch(
     plan,
     leg.segment,
@@ -1363,6 +1386,7 @@ class PlanEngine {
       endDepth: leg.endDepth,
       durationSeconds: leg.durationSeconds,
     ),
+    switchDepth: config.setpointSwitchDepthFor(plan),
   );
 
   /// The diver-authored segment a resolved leg came from, or null for a leg

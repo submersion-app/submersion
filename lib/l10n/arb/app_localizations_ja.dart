@@ -21276,6 +21276,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => 'セットポイント切り替え水深';
 
   @override
+  String get plannerCanvas_ccr_switchDepthOffNote => '水深による切り替えなし: 常に低セットポイント';
+
+  @override
   String get plannerCanvas_pscr_ratio => 'pSCR比';
 
   @override
@@ -24843,6 +24846,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_conflict_field_ccrSetpointLow => 'CCRの低セットポイント';
 
   @override
+  String get settings_conflict_field_ccrSetpointSwitchDepth => 'セットポイント切り替え水深';
+
+  @override
   String get settings_conflict_field_channelIndex => 'チャンネル';
 
   @override
@@ -26326,6 +26332,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settings_conflict_field_setpointSwitchDepth => 'セットポイント切り替え水深';
+
+  @override
+  String get settings_conflict_field_setpointSwitchOff => 'セットポイント切り替えなし';
 
   @override
   String get settings_conflict_field_settings_key => '設定';
@@ -28583,12 +28592,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_decompression_ccrPpO2LimitsTitle => 'CCRのppO2上限';
 
   @override
-  String settings_decompression_ccrPpO2LimitsSubtitle(
+  String settings_decompression_ccrPpO2LimitsSubtitleWithSwitch(
     String low,
     String high,
     String dil,
+    String depth,
   ) {
-    return 'セットポイント 低$low・高$high・Dil MOD $dil bar';
+    return 'セットポイント 低$low・高$high・Dil MOD $dil bar・切り替え$depth';
   }
 
   @override
@@ -28614,6 +28624,13 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get settings_decompression_ccrDialog_diluentModHint =>
       'フラッシュ時にディリュエントが到達しうるppO2。ディリュエントのMODを決めます';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepth => 'セットポイント切り替え水深';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepthHint =>
+      'これより深い所は高セットポイント、浅い所は低セットポイント';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>
