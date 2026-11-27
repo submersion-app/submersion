@@ -54,6 +54,9 @@ class _VideoItem extends ConsumerStatefulWidget {
   /// outside fullscreen; the fish labels keep above it (issue #4762).
   final double controlsInset;
 
+  /// The species the viewer follows (issue #5084), marked on the bar.
+  final String? focusSpeciesId;
+
   const _VideoItem({
     required this.item,
     required this.isCurrent,
@@ -67,6 +70,7 @@ class _VideoItem extends ConsumerStatefulWidget {
     this.identificationsEditable = true,
     this.hideIdentifications = false,
     this.controlsInset = 0,
+    this.focusSpeciesId,
   });
 
   @override
@@ -538,6 +542,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
                 controller: controller,
                 mediaId: widget.item.id,
                 audio: widget.audio,
+                speciesId: widget.focusSpeciesId,
                 // The controls hide 3 s after a reveal: hold them up while
                 // scrubbing or under the mouse, so the bar is not pulled from
                 // under the pointer, then restart the clock only if the video

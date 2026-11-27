@@ -85,6 +85,7 @@ import 'package:submersion/features/species_id/presentation/widgets/labels_menu.
 import 'package:submersion/features/species_id/presentation/widgets/photo_identification_layer.dart';
 import 'package:submersion/features/species_id/presentation/widgets/video_identification_layer.dart';
 import 'package:submersion/features/species_id/presentation/widgets/video_playhead_reporter.dart';
+import 'package:submersion/features/species_id/presentation/providers/video_sighting_providers.dart';
 
 part 'media_viewer_actions.dart';
 part 'media_viewer_bottom_metadata.dart';
@@ -92,6 +93,7 @@ part 'media_viewer_chrome.dart';
 part 'media_viewer_gallery.dart';
 part 'media_viewer_keyboard.dart';
 part 'media_viewer_perdix.dart';
+part 'media_viewer_sightings.dart';
 part 'media_viewer_video_item.dart';
 part 'media_viewer_write_metadata.dart';
 
@@ -124,6 +126,10 @@ class MediaViewerPage extends ConsumerStatefulWidget {
   /// moment (issue #5027). Applied once, to that item only.
   final Duration? initialVideoPosition;
 
+  /// The species a sighting row opened the viewer on (issue #5084): each
+  /// video starts at its first sighting, and its bar marks them all.
+  final String? focusSpeciesId;
+
   const MediaViewerPage({
     super.key,
     required this.mediaList,
@@ -131,6 +137,7 @@ class MediaViewerPage extends ConsumerStatefulWidget {
     this.showGoToDive = false,
     this.captionFor,
     this.initialVideoPosition,
+    this.focusSpeciesId,
   });
 
   @override
@@ -239,6 +246,8 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       if (start != null && !_startApplied && mediaId == widget.initialMediaId) {
         _startApplied = true;
         unawaited(controller.seekTo(start));
+      } else {
+        unawaited(_seekToFirstSighting(mediaId, controller));
       }
     }
   }
@@ -480,6 +489,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                     RepaintBoundary(
                       key: galleryBoundaryKey,
                       child: _PhotoGallery(
+                        focusSpeciesId: widget.focusSpeciesId,
                         mediaList: shownMediaList(mediaList, heldProfile),
                         pagingLocked: photoUnlocked,
                         pageController: _pageController,
