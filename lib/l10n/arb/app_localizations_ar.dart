@@ -40860,8 +40860,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'أعلام الدول';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'عرض علم صغير بجانب مواقع الغوص والرحلات';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'عرض علم صغير بجانب موقع كل موقع غوص';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'عرض علم صغير بجانب موقع غوص كل غوصة';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'عرض علم صغير على صورة كل رفيق';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'عرض أعلام دول كل رحلة';
 
   @override
   String get settings_appearance_mapStyle => 'نمط الخريطة';

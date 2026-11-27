@@ -40048,8 +40048,20 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'Landvlaggen';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'Toon een kleine vlag naast de locatie van duikstekken en reizen';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'Toon een kleine vlag naast de locatie van elke duikstek';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'Toon een kleine vlag naast de duikstek van elke duik';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'Toon een kleine vlag op de foto van elke buddy';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'Toon de vlaggen van de landen van elke reis';
 
   @override
   String get settings_appearance_mapStyle => 'Kaartstijl';

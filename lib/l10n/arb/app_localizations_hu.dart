@@ -40087,8 +40087,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'Országzászlók';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'Kis zászló a merülőhelyek helye és az utak mellett';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'Kis zászló minden merülőhely helye mellett';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'Kis zászló minden merülés merülőhelyének helye mellett';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'Kis zászló minden búvártárs fényképén';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'Minden utazás országainak zászlói';
 
   @override
   String get settings_appearance_mapStyle => 'Térképstílus';

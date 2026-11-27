@@ -40232,8 +40232,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'Länderflaggen';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'Zeigt eine kleine Flagge neben dem Ort von Tauchplätzen und Reisen';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'Zeigt eine kleine Flagge neben dem Ort jedes Tauchplatzes';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'Zeigt eine kleine Flagge neben dem Tauchplatz jedes Tauchgangs';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'Zeigt eine kleine Flagge auf dem Foto jedes Tauchpartners';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'Zeigt die Flaggen der Länder jeder Reise';
 
   @override
   String get settings_appearance_mapStyle => 'Kartenstil';

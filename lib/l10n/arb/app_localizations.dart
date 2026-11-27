@@ -63040,11 +63040,29 @@ abstract class AppLocalizations {
   /// **'Country flags'**
   String get settings_appearance_countryFlags_title;
 
-  /// No description provided for @settings_appearance_countryFlags_subtitle.
+  /// No description provided for @settings_appearance_countryFlags_subtitle_sites.
   ///
   /// In en, this message translates to:
-  /// **'Show a small flag beside site locations and trips'**
-  String get settings_appearance_countryFlags_subtitle;
+  /// **'Show a small flag beside each site\'s location'**
+  String get settings_appearance_countryFlags_subtitle_sites;
+
+  /// No description provided for @settings_appearance_countryFlags_subtitle_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a small flag beside each dive\'s site location'**
+  String get settings_appearance_countryFlags_subtitle_dives;
+
+  /// No description provided for @settings_appearance_countryFlags_subtitle_buddies.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a small flag on each buddy\'s photo'**
+  String get settings_appearance_countryFlags_subtitle_buddies;
+
+  /// No description provided for @settings_appearance_countryFlags_subtitle_trips.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the flags of each trip\'s countries'**
+  String get settings_appearance_countryFlags_subtitle_trips;
 
   /// No description provided for @settings_appearance_mapStyle.
   ///

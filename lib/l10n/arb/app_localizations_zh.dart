@@ -37890,7 +37890,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_countryFlags_title => '国家/地区旗帜';
 
   @override
-  String get settings_appearance_countryFlags_subtitle => '在潜点位置和旅行旁显示小旗帜';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      '在每个潜水点的位置旁显示小旗帜';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      '在每次潜水的潜水点位置旁显示小旗帜';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      '在每位潜伴的照片上显示小旗帜';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      '显示每次旅行所到国家/地区的旗帜';
 
   @override
   String get settings_appearance_mapStyle => '地图样式';

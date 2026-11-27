@@ -40329,8 +40329,20 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'Bandiere dei paesi';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'Mostra una piccola bandiera accanto alla posizione dei siti e ai viaggi';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'Mostra una piccola bandiera accanto alla posizione di ogni sito';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'Mostra una piccola bandiera accanto alla posizione del sito di ogni immersione';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'Mostra una piccola bandiera sulla foto di ogni compagno';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'Mostra le bandiere dei paesi di ogni viaggio';
 
   @override
   String get settings_appearance_mapStyle => 'Stile della mappa';

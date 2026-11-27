@@ -39344,8 +39344,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'דגלי מדינות';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'הצגת דגל קטן ליד מיקום האתרים והטיולים';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'הצגת דגל קטן ליד מיקום כל אתר';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'הצגת דגל קטן ליד מיקום האתר של כל צלילה';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'הצגת דגל קטן על התמונה של כל חבר צלילה';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'הצגת הדגלים של מדינות כל טיול';
 
   @override
   String get settings_appearance_mapStyle => 'סגנון מפה';

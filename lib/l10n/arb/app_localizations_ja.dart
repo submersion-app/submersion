@@ -38581,8 +38581,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_appearance_countryFlags_title => '国旗';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'サイトの場所とトリップの横に小さな国旗を表示';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      '各サイトの場所の横に小さな国旗を表示';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      '各ダイブのサイトの場所の横に小さな国旗を表示';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      '各バディの写真に小さな国旗を表示';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips => '各トリップの国の国旗を表示';
 
   @override
   String get settings_appearance_mapStyle => '地図のスタイル';

@@ -40422,8 +40422,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'Drapeaux des pays';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'Affiche un petit drapeau à côté de l\'emplacement des sites et des voyages';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'Affiche un petit drapeau à côté de l\'emplacement de chaque site';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'Affiche un petit drapeau à côté de l\'emplacement du site de chaque plongée';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'Affiche un petit drapeau sur la photo de chaque binôme';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'Affiche les drapeaux des pays de chaque voyage';
 
   @override
   String get settings_appearance_mapStyle => 'Style de carte';

@@ -40291,8 +40291,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'Bandeiras dos países';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'Mostra uma pequena bandeira ao lado da localização dos locais e das viagens';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'Mostra uma pequena bandeira ao lado da localização de cada ponto de mergulho';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'Mostra uma pequena bandeira ao lado da localização do ponto de cada mergulho';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'Mostra uma pequena bandeira na foto de cada companheiro';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'Mostra as bandeiras dos países de cada viagem';
 
   @override
   String get settings_appearance_mapStyle => 'Estilo do Mapa';
