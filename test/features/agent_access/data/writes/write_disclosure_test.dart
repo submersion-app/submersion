@@ -130,7 +130,9 @@ void main() {
   tearDown(() => tearDownTestDatabase());
 
   group('a site link', () {
-    test('lists the water type it snaps on', () async {
+    // Issue #5040: the site's water type is read through, so a link to a
+    // site that has one clears the dive's own, and lists that.
+    test("lists the water type it gives way to the site's", () async {
       await dive('d1', water: 'fresh');
       await site('s1', water: 'salt');
 
@@ -138,7 +140,7 @@ void main() {
 
       final change = plan.items.single.fields['water_type']!;
       expect(change.oldValue, 'fresh');
-      expect(change.newValue, 'salt');
+      expect(change.newValue, isNull);
     });
 
     test('keeps a value the change set names, even an unchanged one', () async {
@@ -219,7 +221,9 @@ void main() {
 
       await apply(await preview([linkSite('d1', 's1')]));
 
-      expect((await h.one('dives', 'd1'))!['water_type'], 'salt');
+      final doc = (await h.one('dives', 'd1'))!;
+      expect(doc['water_type'], isNull);
+      expect((doc['site'] as Map)['water_type'], 'salt');
     });
   });
 

@@ -54,6 +54,31 @@ void main() {
         );
       });
 
+      // Issue #5040: a reader of the file has no site fallback, so the
+      // altitude the dive reads from its site is written on the dive.
+      test("writes the site's altitude for a dive with none", () {
+        final dive = Dive(
+          id: 'dive-site-altitude',
+          dateTime: DateTime(2026, 3, 28, 10, 0),
+          site: const DiveSite(id: 'site-1', name: 'Lake', altitude: 450),
+        );
+
+        expect(
+          render(dive).findAllElements('altitude').single.innerText,
+          '450.0',
+        );
+        expect(
+          render(
+            dive.copyWith(altitude: 1200),
+          ).findAllElements('altitude').single.innerText,
+          '1200.0',
+        );
+        expect(
+          render(dive.copyWith(clearSite: true)).findAllElements('altitude'),
+          isEmpty,
+        );
+      });
+
       test('a dive\'s own values are authoritative over the site\'s', () {
         final dive = Dive(
           id: 'dive-own-values',

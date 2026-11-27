@@ -423,7 +423,9 @@ void main() {
       const DiveSite(id: 'salt', name: 'Reef', waterType: WaterType.salt),
     );
     await tester.pumpAndSettle();
-    expect(session.valueOf(diveWaterTypeField), WaterType.salt);
+    // Read through from the site, not set on the dive (issue #5040).
+    expect(session.valueOf(diveWaterTypeField), isNull);
+    expect(working(controller).effectiveWaterType, WaterType.salt);
 
     await tester.tap(
       find.descendant(
@@ -435,6 +437,7 @@ void main() {
 
     expect(working(controller).site, isNull);
     expect(session.valueOf(diveWaterTypeField), isNull);
+    expect(working(controller).effectiveWaterType, isNull);
   });
 
   // PR review: the area lookup runs before the picker opens, so a sitting
