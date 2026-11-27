@@ -2,6 +2,7 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/agent_access/data/documents/trip_documents.dart';
+import 'package:submersion/features/agent_access/data/records/families/trip_bag_contents.dart';
 import 'package:submersion/features/agent_access/data/records/record_entity.dart';
 import 'package:submersion/features/agent_access/data/records/record_reader.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
@@ -76,6 +77,8 @@ List<RecordEntry> tripEntries(RecordRepositories r) => [
         await r.tripEquipment.equipmentIdsForTrip(trip.id),
         load.diverId,
       ),
+      // Each packed bag to the packed gear riding in it (issue #4945).
+      'bag_contents': (trip, load) => bagContentsOf(r, trip.id, load.diverId),
       'side_trips': (trip, load) async => [
         for (final side in await r.sideTrips.getSideTrips(
           trip.id,

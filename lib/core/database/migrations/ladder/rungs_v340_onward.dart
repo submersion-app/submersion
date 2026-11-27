@@ -339,5 +339,11 @@ extension RungsFromV340 on AppDatabase {
     // backfill. The floor rises to 384 (see minimumCompatibleSchemaVersion).
     if (from < 384) await _assertTripChecklistEquipmentColumn();
     if (from < 384) await reportProgress();
+
+    // v385 (issue #4945): trip_equipment.bag_equipment_id, the bag a packed
+    // item rides in, and bag_hlc, that assignment's own clock. Nullable, no
+    // backfill, re-asserted in beforeOpen; the floor does not move.
+    if (from < 385) await _assertTripEquipmentBagColumn();
+    if (from < 385) await reportProgress();
   }
 }

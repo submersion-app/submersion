@@ -123,6 +123,50 @@ void main() {
     expect(find.text('Faber 12'), findsOneWidget);
   });
 
+  testWidgets('Put on board leaves a tank in a bag packed in it', (
+    tester,
+  ) async {
+    const bag = EquipmentItem(
+      id: 'bag',
+      name: 'Roller bag',
+      type: EquipmentType.bag,
+    );
+    final h = await pumpTab(
+      tester,
+      gear: const [bag, tank],
+      bags: const {'tk': 'bag'},
+      editing: true,
+    );
+    await tester.tap(find.byKey(const Key('trip-gear-putOnBoard-tk')));
+    await tester.pumpAndSettle();
+    expect([for (final s in h.heldSlots) s.equipmentId], ['tk']);
+    expect(h.heldPacked, containsAll(['bag', 'tk']));
+    await h.save();
+    expect(h.packs.unpacked, isEmpty);
+  });
+
+  testWidgets('a bag names the first few unweighed items and counts the '
+      'rest', (tester) async {
+    const bag = EquipmentItem(
+      id: 'bag',
+      name: 'Roller bag',
+      type: EquipmentType.bag,
+    );
+    final items = [
+      for (var i = 1; i <= 5; i++)
+        EquipmentItem(id: 'i$i', name: 'Item $i', type: EquipmentType.other),
+    ];
+    await pumpTab(
+      tester,
+      gear: [bag, ...items],
+      bags: {for (final item in items) item.id: 'bag'},
+    );
+    expect(
+      find.text('Missing weight: Roller bag, Item 1, Item 2 +3'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('Put on board appends the tank to the board and unpacks it, '
       'writing both at Save', (tester) async {
     final h = await pumpTab(
@@ -436,6 +480,23 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('database is locked'), findsNothing);
+  });
+
+  testWidgets('a failed read of the bags still shows the gear, loose', (
+    tester,
+  ) async {
+    await pumpTab(
+      tester,
+      gear: const [
+        EquipmentItem(id: 'bag', name: 'Roller bag', type: EquipmentType.bag),
+        bcd,
+      ],
+      bagError: StateError('database is locked'),
+    );
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text('Roller bag'), findsOneWidget);
+    expect(find.text('Hollis wing'), findsOneWidget);
+    expect(find.text('Something went wrong. Please try again.'), findsNothing);
   });
 
   testWidgets('an owned cylinder\'s service clock reads on its slot and '

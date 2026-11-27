@@ -56,6 +56,11 @@ final Map<String, ConflictField> siteTripFields = {
     (l) => l.settings_conflict_field_avgSpeed,
     FieldKind.speed,
   ),
+  // The clock of a packed item's bag assignment (trip_equipment, #4945).
+  'bagHlc': ConflictField(
+    (l) => l.settings_conflict_field_bagHlc,
+    FieldKind.opaque,
+  ),
   'bearingDeg': ConflictField(
     (l) => l.settings_conflict_field_bearingDeg,
     FieldKind.number,

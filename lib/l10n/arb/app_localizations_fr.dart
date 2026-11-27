@@ -27981,6 +27981,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'Journal d\'envoi';
 
   @override
+  String get settings_conflict_field_bagHlc => 'Journal du sac';
+
+  @override
   String get settings_conflict_field_url => 'Adresse';
 
   @override
@@ -28799,6 +28802,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_transmitter => 'Émetteur';
+
+  @override
+  String get settings_conflict_ref_packedIn => 'Rangé dans';
 
   @override
   String get settings_conflict_ref_trip => 'Voyage';
@@ -36609,6 +36615,41 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get trips_bags_choose => 'Choisir un sac';
+
+  @override
+  String get trips_bags_none => 'Sans sac';
+
+  @override
+  String get trips_bags_move => 'Déplacer dans un sac';
+
+  @override
+  String get trips_bags_section => 'Sacs';
+
+  @override
+  String trips_bags_total(String weight) {
+    return 'Poids total : $weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return 'Sous-total connu : $weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return 'Poids manquant : $items';
+  }
+
+  @override
+  String trips_bags_missingMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String get trips_bags_missingSeparator => ', ';
 
   @override
   String get trips_gear_add_action => 'Ajouter';

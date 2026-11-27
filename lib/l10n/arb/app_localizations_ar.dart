@@ -28229,6 +28229,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'سجل الرفع';
 
   @override
+  String get settings_conflict_field_bagHlc => 'سجل الحقيبة';
+
+  @override
   String get settings_conflict_field_url => 'العنوان';
 
   @override
@@ -29058,6 +29061,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_transmitter => 'المرسل';
+
+  @override
+  String get settings_conflict_ref_packedIn => 'معبأ في';
 
   @override
   String get settings_conflict_ref_trip => 'الرحلة';
@@ -36965,6 +36971,41 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get trips_bags_choose => 'اختر حقيبة';
+
+  @override
+  String get trips_bags_none => 'بلا حقيبة';
+
+  @override
+  String get trips_bags_move => 'نقل إلى حقيبة';
+
+  @override
+  String get trips_bags_section => 'الحقائب';
+
+  @override
+  String trips_bags_total(String weight) {
+    return 'الوزن الإجمالي: $weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return 'مجموع الأوزان المعروفة: $weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return 'أوزان غير مسجلة: $items';
+  }
+
+  @override
+  String trips_bags_missingMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String get trips_bags_missingSeparator => '، ';
 
   @override
   String get trips_gear_add_action => 'إضافة';

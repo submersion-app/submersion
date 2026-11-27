@@ -150,6 +150,8 @@ class ConflictReferenceResolver {
     'cylinderBId': 'equipment',
     'componentEquipmentId': 'equipment',
     'transmitterEquipmentId': 'equipment',
+    // The bag a trip's packed item rides in (issue #4945).
+    'bagEquipmentId': 'equipment',
     'diveComputerId': 'diveComputers',
     'linkedDiverId': 'divers',
     'sessionId': 'preDiveSessions',

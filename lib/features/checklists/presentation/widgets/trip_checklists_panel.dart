@@ -122,7 +122,7 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
                   );
           }
           final gear = packed.current(editing);
-          final packedIds = gear?.map((item) => item.id).toSet();
+          final packedIds = gear?.map((entry) => entry.item.id).toSet();
           return Consumer(
             builder: (context, ref, _) {
               final inventory =
