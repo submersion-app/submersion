@@ -150,6 +150,21 @@ Widget build() {
       );
     });
 
+    test("an enum constant's arguments", () {
+      expect(
+        scanSource('''
+enum Gap {
+  tight(EdgeInsets.all(4)),
+  loose(EdgeInsets.all(12));
+
+  const Gap(this.padding);
+  final EdgeInsets padding;
+}
+'''),
+        isEmpty,
+      );
+    });
+
     test('a static final field named constant', () {
       expect(
         scanSource('''

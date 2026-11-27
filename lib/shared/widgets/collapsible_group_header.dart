@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:submersion/core/theme/spacing.dart';
 
 /// A tappable header that opens or closes one group of a list: a chevron, an

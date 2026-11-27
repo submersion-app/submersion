@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:submersion/core/theme/spacing.dart';
 
 /// The fill a list card takes while its record is open in the detail pane,

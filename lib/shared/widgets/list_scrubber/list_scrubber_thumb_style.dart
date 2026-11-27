@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:submersion/core/theme/spacing.dart';
 
 /// How a scrollbar thumb looks for one set of widget states, resolved from

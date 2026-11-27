@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+
 import 'package:submersion/core/theme/spacing.dart';
 
 /// Dropdown list for a [RawAutocomplete] options overlay that honours the

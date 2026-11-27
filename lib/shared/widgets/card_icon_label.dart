@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:submersion/core/theme/spacing.dart';
 
 /// A small icon followed by a one-line secondary label, for a card's stat line.

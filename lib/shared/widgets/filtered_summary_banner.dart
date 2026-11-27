@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:submersion/core/theme/spacing.dart';
 
 /// The line a section summary shows under its title while the list beside

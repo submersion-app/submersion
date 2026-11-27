@@ -81,8 +81,8 @@ writes a spacing or radius value as a bare number. It checks:
 It looks through parentheses, both branches of a conditional, each arm of a
 switch expression and the fallback of `??`. It does not look at zero, at any
 arithmetic (`Spacing.s8 * 2`, `16 + inset`), at a `SizedBox` that sizes a
-child, or inside a top-level or `static` declaration, which is how a named
-constant is exempt. An instance field and a closure's body are checked like
+child, or inside a top-level, `static` or enum constant declaration, which is
+how a named constant is exempt. An instance field and a closure's body are checked like
 any other code.
 
 A childless one-axis `SizedBox` that holds a place of a fixed size rather than

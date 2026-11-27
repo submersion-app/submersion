@@ -11,7 +11,7 @@ import 'spacing_literal_scanner.dart';
 /// Features migrate one folder at a time, each in its own small PR, so the
 /// work does not collide with open feature branches. A migration PR adds its
 /// folder here.
-const guardedRoots = ['lib/shared/widgets'];
+final guardedRoots = [p.join('lib', 'shared', 'widgets')];
 
 /// Guards the spacing scale and named radii (issue #4971).
 ///

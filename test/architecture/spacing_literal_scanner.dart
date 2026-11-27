@@ -128,9 +128,9 @@ class _SpacingVisitor extends RecursiveAstVisitor<void> {
   final LineInfo lineInfo;
   final found = <SpacingLiteral>[];
 
-  /// Depth of top-level variable and static field declarations around the
-  /// node. A literal there is the value of a named constant, which is the
-  /// exemption. An instance field is widget state, not a named constant, and
+  /// Depth of top-level variable, static field and enum constant declarations
+  /// around the node. A literal there is the value of a named constant, which
+  /// is the exemption. An instance field is widget state, not a named constant, and
   /// a closure's body is code, so neither is exempt.
   int _namedConstantDepth = 0;
 
@@ -146,6 +146,13 @@ class _SpacingVisitor extends RecursiveAstVisitor<void> {
     if (!node.isStatic) return super.visitFieldDeclaration(node);
     _namedConstantDepth++;
     super.visitFieldDeclaration(node);
+    _namedConstantDepth--;
+  }
+
+  @override
+  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    _namedConstantDepth++;
+    super.visitEnumConstantDeclaration(node);
     _namedConstantDepth--;
   }
 
