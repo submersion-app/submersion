@@ -199,6 +199,11 @@ Map<String, Object> _prefValues(Map<Object?, Object?> raw) {
 class PopOutLaunch extends Equatable {
   static const _kind = 'profile';
 
+  /// The window channel this pop-out and the main window talk on. A new
+  /// name for each opening: the window plugin pairs two engines per name and
+  /// may still hold a closed pop-out's half.
+  final String channel;
+
   final String? diveId;
   final Map<String, Object> prefs;
   final bool locked;
@@ -206,6 +211,7 @@ class PopOutLaunch extends Equatable {
   final PopOutFrame mainFrame;
 
   const PopOutLaunch({
+    required this.channel,
     required this.diveId,
     required this.prefs,
     required this.locked,
@@ -215,6 +221,7 @@ class PopOutLaunch extends Equatable {
 
   String encode() => jsonEncode({
     'kind': _kind,
+    'channel': channel,
     'diveId': diveId,
     'prefs': prefs,
     'locked': locked,
@@ -233,17 +240,21 @@ class PopOutLaunch extends Equatable {
       return null;
     }
     if (json is! Map || json['kind'] != _kind) return null;
+    final channel = json['channel'];
     final diveId = json['diveId'];
     final prefs = json['prefs'];
     final locked = json['locked'];
     final mainFrame = PopOutFrame.fromMap(json['mainFrame']);
-    if ((diveId != null && diveId is! String) ||
+    if (channel is! String ||
+        channel.isEmpty ||
+        (diveId != null && diveId is! String) ||
         prefs is! Map ||
         locked is! bool ||
         mainFrame == null) {
       return null;
     }
     return PopOutLaunch(
+      channel: channel,
       diveId: diveId as String?,
       prefs: _prefValues(prefs),
       locked: locked,
@@ -253,5 +264,12 @@ class PopOutLaunch extends Equatable {
   }
 
   @override
-  List<Object?> get props => [diveId, prefs, locked, savedFrame, mainFrame];
+  List<Object?> get props => [
+    channel,
+    diveId,
+    prefs,
+    locked,
+    savedFrame,
+    mainFrame,
+  ];
 }

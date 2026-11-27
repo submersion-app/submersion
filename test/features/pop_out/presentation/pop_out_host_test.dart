@@ -171,6 +171,21 @@ void main() {
     expect(windows.opened, hasLength(2));
   });
 
+  test('each opening talks on a channel of its own', () async {
+    // The window plugin pairs two engines per channel name and may still
+    // hold a closed pop-out's half, so a reused name would leave a reopened
+    // pop-out deaf (#5078).
+    await open();
+    windows.channel.deliver(const ClosedMessage());
+    await host().openOrFocus();
+
+    expect(windows.opened, hasLength(2));
+    final names = windows.opened.map((l) => l.channel).toList();
+    expect(names[0], isNotEmpty);
+    expect(names[0], isNot(names[1]));
+    expect(windows.channelNames, names);
+  });
+
   test('database close closes the pop-out', () async {
     final db = await setUpTestDatabase();
     addTearDown(DatabaseService.instance.resetForTesting);

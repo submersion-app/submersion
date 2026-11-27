@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/pop_out/data/pop_out_channel.dart';
 import 'package:submersion/features/pop_out/data/pop_out_windows.dart';
 import 'package:submersion/features/pop_out/domain/cursor_sync.dart';
 import 'package:submersion/features/pop_out/domain/pop_out_frame.dart';
@@ -23,6 +24,7 @@ final popOutHostProvider = NotifierProvider<PopOutHost, bool>(PopOutHost.new);
 /// soft restart rebuilds the whole scope).
 class PopOutHost extends Notifier<bool> {
   late PopOutWindows _windows;
+  PopOutChannel? _channel;
   final _gate = CursorEchoGate();
   CursorCoalescer? _coalescer;
   void Function()? _removeCloseHook;
@@ -62,14 +64,19 @@ class PopOutHost extends Notifier<bool> {
       return;
     }
     final prefs = ref.read(sharedPreferencesProvider);
+    final channelName =
+        'submersion/pop_out/${DateTime.now().microsecondsSinceEpoch}';
     final launch = PopOutLaunch(
+      channel: channelName,
       diveId: ref.read(mainWindowDiveIdProvider),
       prefs: _prefsSnapshot(),
       locked: ref.read(popOutAppLockedProvider),
       savedFrame: _savedFrame(prefs),
       mainFrame: await ref.read(mainWindowFrameProvider)(),
     );
-    _windows.channel.setHandler(_onMessage);
+    final channel = _windows.channelNamed(channelName);
+    _channel = channel;
+    channel.setHandler(_onMessage);
     _coalescer = CursorCoalescer(
       (diveId, seconds) => _send(CursorMessage(diveId, seconds)),
     );
@@ -114,7 +121,8 @@ class PopOutHost extends Notifier<bool> {
 
   void _closed() {
     _setOpen(false);
-    _windows.channel.setHandler(null);
+    _channel?.setHandler(null);
+    _channel = null;
     _coalescer?.dispose();
     _coalescer = null;
     _removeCloseHook?.call();
@@ -125,13 +133,16 @@ class PopOutHost extends Notifier<bool> {
   void _dispose() {
     if (!_open) return;
     _open = false;
-    unawaited(_windows.channel.send(const CloseMessage()));
-    _windows.channel.setHandler(null);
+    final channel = _channel;
+    if (channel != null) {
+      unawaited(channel.send(const CloseMessage()));
+      channel.setHandler(null);
+    }
     _coalescer?.dispose();
     _removeCloseHook?.call();
   }
 
-  Future<void> _send(PopOutMessage message) => _windows.channel.send(message);
+  Future<void> _send(PopOutMessage message) async => _channel?.send(message);
 
   Map<String, Object> _prefsSnapshot() {
     final prefs = ref.read(sharedPreferencesProvider);

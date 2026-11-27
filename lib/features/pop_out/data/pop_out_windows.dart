@@ -9,8 +9,9 @@ export 'package:submersion/features/pop_out/data/pop_out_windows_io.dart'
 /// window is made, so a later move to Flutter's own windowing replaces only
 /// this layer.
 abstract interface class PopOutWindows {
-  /// This engine's end of the channel to the other window.
-  PopOutChannel get channel;
+  /// This engine's end of the channel named [name] (see
+  /// [PopOutLaunch.channel]).
+  PopOutChannel channelNamed(String name);
 
   /// Opens the profile pop-out with [launch], hidden until it has placed
   /// itself.

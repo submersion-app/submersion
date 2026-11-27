@@ -59,6 +59,7 @@ void main() {
 
   group('PopOutLaunch', () {
     const launch = PopOutLaunch(
+      channel: 'submersion/pop_out/1',
       diveId: 'dive-9',
       prefs: {'display_zoom': 1.1, 'current_diver_id': 'd'},
       locked: false,
@@ -75,6 +76,7 @@ void main() {
 
     test('a launch with no dive or saved frame round-trips', () {
       const bare = PopOutLaunch(
+        channel: 'submersion/pop_out/2',
         diveId: null,
         prefs: {},
         locked: true,

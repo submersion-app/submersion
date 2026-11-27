@@ -10,7 +10,7 @@ void main() {
     expect(await windows.isOpen(), isFalse);
     expect(await windows.currentLaunch(), isNull);
     // Sending with no pop-out is a no-op, never an error.
-    await windows.channel.send(const LockMessage(true));
+    await windows.channelNamed('x').send(const LockMessage(true));
   });
 
   test('fake channel delivers to the handler', () {

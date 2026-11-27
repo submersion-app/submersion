@@ -53,13 +53,13 @@ Future<void> runPopOutApp(PopOutLaunch launch) async {
           'flutter.$key': value,
       });
   final prefs = await SharedPreferences.getInstance();
-  final windows = createPopOutWindows();
+  final channel = createPopOutWindows().channelNamed(launch.channel);
   await windowManager.ensureInitialized();
 
   final connected = await _joinDatabases();
   await _placeWindow(launch);
   await windowManager.setPreventClose(true);
-  windowManager.addListener(_PopOutWindowEvents(windows.channel));
+  windowManager.addListener(_PopOutWindowEvents(channel));
 
   runApp(
     connected
@@ -70,7 +70,7 @@ Future<void> runPopOutApp(PopOutLaunch launch) async {
               logFileService: LogFileService(
                 logDirectory: p.join(Directory.systemTemp.path, 'pop_out'),
               ),
-              channel: windows.channel,
+              channel: channel,
               launch: launch,
             ).cast(),
             child: const PopOutApp(),

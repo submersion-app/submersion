@@ -7,7 +7,7 @@ PopOutWindows createPopOutWindows() => _NoPopOutWindows();
 
 class _NoPopOutWindows implements PopOutWindows {
   @override
-  final PopOutChannel channel = _NoChannel();
+  PopOutChannel channelNamed(String name) => _NoChannel();
 
   @override
   Future<void> openProfile(PopOutLaunch launch) async {}

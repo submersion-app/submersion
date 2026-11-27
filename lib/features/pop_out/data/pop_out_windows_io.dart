@@ -19,7 +19,7 @@ PopOutWindows createPopOutWindows() => HostPlatform.isDesktop
 
 class _DesktopPopOutWindows implements PopOutWindows {
   @override
-  final PopOutChannel channel = _WindowPopOutChannel();
+  PopOutChannel channelNamed(String name) => _WindowPopOutChannel(name);
 
   @override
   Future<void> openProfile(PopOutLaunch launch) async {
@@ -55,7 +55,9 @@ class _DesktopPopOutWindows implements PopOutWindows {
 }
 
 class _WindowPopOutChannel implements PopOutChannel {
-  static const _channel = WindowMethodChannel('submersion/pop_out');
+  _WindowPopOutChannel(String name) : _channel = WindowMethodChannel(name);
+
+  final WindowMethodChannel _channel;
 
   @override
   Future<void> send(PopOutMessage message) async {

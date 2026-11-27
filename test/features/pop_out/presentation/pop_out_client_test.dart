@@ -28,6 +28,7 @@ class FakeWindowControl implements PopOutWindowControl {
 }
 
 PopOutLaunch launchOn(String? diveId, {bool locked = false}) => PopOutLaunch(
+  channel: 'submersion/pop_out/test',
   diveId: diveId,
   prefs: const {},
   locked: locked,

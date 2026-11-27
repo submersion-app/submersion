@@ -31,8 +31,17 @@ class FakePopOutWindows implements PopOutWindows {
   /// What [currentLaunch] answers: the launch this engine was started with.
   final PopOutLaunch? launch;
 
-  @override
+  /// The one fake channel, whatever name is asked for.
   final FakePopOutChannel channel = FakePopOutChannel();
+
+  /// Every channel name asked for, in order.
+  final channelNames = <String>[];
+
+  @override
+  PopOutChannel channelNamed(String name) {
+    channelNames.add(name);
+    return channel;
+  }
 
   /// Every launch [openProfile] was given.
   final opened = <PopOutLaunch>[];
