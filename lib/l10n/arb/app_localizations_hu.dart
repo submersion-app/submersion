@@ -30551,6 +30551,22 @@ class AppLocalizationsHu extends AppLocalizations {
       'Három nappal azután, hogy egy vázlat kiszállt a vízből, ha még mindig letöltésre vár';
 
   @override
+  String get settings_notifications_firmwareChecks =>
+      'Firmware-frissítések keresése';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      'Naponta egyszer beolvassa a nyilvános firmware-listát. Rólad semmit nem küld el.';
+
+  @override
+  String get settings_notifications_firmwareNotices =>
+      'Firmware-frissítési értesítések';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      'Minden felszereléshez új kiadásonként egyszer';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'Szerviz emlékeztetők engedélyezése';
 

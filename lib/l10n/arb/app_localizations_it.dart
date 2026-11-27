@@ -30727,6 +30727,22 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tre giorni dopo l\'uscita dall\'acqua di una bozza, se attende ancora un download';
 
   @override
+  String get settings_notifications_firmwareChecks =>
+      'Controlla aggiornamenti firmware';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      'Legge l\'elenco pubblico dei firmware una volta al giorno. Non viene inviato nulla su di te.';
+
+  @override
+  String get settings_notifications_firmwareNotices =>
+      'Notifiche aggiornamenti firmware';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      'Una volta per ogni nuova versione di ciascuna attrezzatura';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'Abilita promemoria manutenzione';
 

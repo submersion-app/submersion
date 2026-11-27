@@ -48621,6 +48621,30 @@ abstract class AppLocalizations {
   /// **'Three days after a draft dive\'s exit, if it is still waiting for a download'**
   String get settings_notifications_draftReminder_subtitle;
 
+  /// No description provided for @settings_notifications_firmwareChecks.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for firmware updates'**
+  String get settings_notifications_firmwareChecks;
+
+  /// No description provided for @settings_notifications_firmwareChecks_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reads the public firmware list once a day. Nothing about you is sent.'**
+  String get settings_notifications_firmwareChecks_subtitle;
+
+  /// No description provided for @settings_notifications_firmwareNotices.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware update notifications'**
+  String get settings_notifications_firmwareNotices;
+
+  /// No description provided for @settings_notifications_firmwareNotices_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Once per new release for each piece of gear'**
+  String get settings_notifications_firmwareNotices_subtitle;
+
   /// No description provided for @settings_notifications_enableServiceReminders.
   ///
   /// In en, this message translates to:

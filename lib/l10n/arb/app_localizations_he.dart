@@ -29953,6 +29953,20 @@ class AppLocalizationsHe extends AppLocalizations {
       'שלושה ימים אחרי היציאה מהמים של טיוטה, אם היא עדיין ממתינה להורדה';
 
   @override
+  String get settings_notifications_firmwareChecks => 'בדיקת עדכוני קושחה';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      'קורא את רשימת הקושחה הציבורית פעם ביום. שום דבר עליך לא נשלח.';
+
+  @override
+  String get settings_notifications_firmwareNotices => 'התראות על עדכוני קושחה';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      'פעם אחת לכל גרסה חדשה של כל פריט ציוד';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'אפשר תזכורות תחזוקה';
 

@@ -29380,6 +29380,20 @@ class AppLocalizationsJa extends AppLocalizations {
       '下書きのダイブのエキジットから3日後、まだダウンロード待ちの場合';
 
   @override
+  String get settings_notifications_firmwareChecks => 'ファームウェア更新を確認';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      '公開ファームウェア一覧を1日1回読み込みます。あなたに関する情報は送信されません。';
+
+  @override
+  String get settings_notifications_firmwareNotices => 'ファームウェア更新の通知';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      '器材ごとに新しいリリースにつき1回';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'メンテナンスのリマインダーを有効にする';
 

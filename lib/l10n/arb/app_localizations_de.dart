@@ -30653,6 +30653,22 @@ class AppLocalizationsDe extends AppLocalizations {
       'Drei Tage nach dem Auftauchen, wenn der Entwurf noch auf einen Download wartet';
 
   @override
+  String get settings_notifications_firmwareChecks =>
+      'Nach Firmware-Updates suchen';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      'Liest die öffentliche Firmware-Liste einmal am Tag. Nichts über dich wird gesendet.';
+
+  @override
+  String get settings_notifications_firmwareNotices =>
+      'Benachrichtigungen zu Firmware-Updates';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      'Einmal pro neuer Version und Ausrüstungsteil';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'Serviceerinnerungen aktivieren';
 

@@ -31055,6 +31055,22 @@ class AppLocalizationsAr extends AppLocalizations {
       'بعد ثلاثة أيام من خروج مسودة الغوصة من الماء، إذا كانت لا تزال تنتظر التنزيل';
 
   @override
+  String get settings_notifications_firmwareChecks =>
+      'التحقق من تحديثات البرامج الثابتة';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      'يقرأ قائمة البرامج الثابتة العامة مرة يوميًا. لا يُرسل أي شيء عنك.';
+
+  @override
+  String get settings_notifications_firmwareNotices =>
+      'إشعارات تحديثات البرامج الثابتة';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      'مرة واحدة لكل إصدار جديد لكل قطعة معدات';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'تمكين تذكيرات الصيانة';
 

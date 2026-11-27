@@ -30733,6 +30733,22 @@ class AppLocalizationsEs extends AppLocalizations {
       'Tres días después de la salida de un borrador, si aún espera una descarga';
 
   @override
+  String get settings_notifications_firmwareChecks =>
+      'Buscar actualizaciones de firmware';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      'Lee la lista pública de firmware una vez al día. No se envía nada sobre ti.';
+
+  @override
+  String get settings_notifications_firmwareNotices =>
+      'Notificaciones de actualizaciones de firmware';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      'Una vez por cada versión nueva de cada equipo';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'Activar recordatorios de servicio';
 

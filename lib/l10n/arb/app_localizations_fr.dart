@@ -30790,6 +30790,22 @@ class AppLocalizationsFr extends AppLocalizations {
       'Trois jours après la sortie de l\'eau d\'un brouillon, s\'il attend toujours un téléchargement';
 
   @override
+  String get settings_notifications_firmwareChecks =>
+      'Rechercher les mises à jour du firmware';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      'Lit la liste publique des firmwares une fois par jour. Rien vous concernant n\'est envoyé.';
+
+  @override
+  String get settings_notifications_firmwareNotices =>
+      'Notifications de mises à jour du firmware';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      'Une fois par nouvelle version pour chaque équipement';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'Activer les rappels d\'entretien';
 

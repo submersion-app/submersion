@@ -30205,6 +30205,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Three days after a draft dive\'s exit, if it is still waiting for a download';
 
   @override
+  String get settings_notifications_firmwareChecks =>
+      'Check for firmware updates';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      'Reads the public firmware list once a day. Nothing about you is sent.';
+
+  @override
+  String get settings_notifications_firmwareNotices =>
+      'Firmware update notifications';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      'Once per new release for each piece of gear';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'Enable Service Reminders';
 

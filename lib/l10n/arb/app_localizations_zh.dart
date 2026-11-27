@@ -28927,6 +28927,20 @@ class AppLocalizationsZh extends AppLocalizations {
       '潜水草稿出水三天后，如果仍在等待下载';
 
   @override
+  String get settings_notifications_firmwareChecks => '检查固件更新';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      '每天读取一次公开的固件列表。不会发送任何关于您的信息。';
+
+  @override
+  String get settings_notifications_firmwareNotices => '固件更新通知';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      '每件装备的每个新版本通知一次';
+
+  @override
   String get settings_notifications_enableServiceReminders => '启用维护提醒';
 
   @override

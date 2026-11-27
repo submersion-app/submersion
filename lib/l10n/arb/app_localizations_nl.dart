@@ -30518,6 +30518,22 @@ class AppLocalizationsNl extends AppLocalizations {
       'Drie dagen nadat een conceptduik boven is, als die nog op een download wacht';
 
   @override
+  String get settings_notifications_firmwareChecks =>
+      'Controleren op firmware-updates';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      'Leest de openbare firmwarelijst eenmaal per dag. Er wordt niets over jou verstuurd.';
+
+  @override
+  String get settings_notifications_firmwareNotices =>
+      'Meldingen over firmware-updates';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      'Eén keer per nieuwe versie per uitrustingsstuk';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'Onderhoudsherinneringen inschakelen';
 

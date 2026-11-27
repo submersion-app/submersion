@@ -30696,6 +30696,22 @@ class AppLocalizationsPt extends AppLocalizations {
       'Três dias após a saída de um rascunho, se ele ainda estiver aguardando um download';
 
   @override
+  String get settings_notifications_firmwareChecks =>
+      'Verificar atualizações de firmware';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      'Lê a lista pública de firmware uma vez por dia. Nada sobre você é enviado.';
+
+  @override
+  String get settings_notifications_firmwareNotices =>
+      'Notificações de atualizações de firmware';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      'Uma vez por nova versão de cada equipamento';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'Ativar Lembretes de Manutenção';
 
