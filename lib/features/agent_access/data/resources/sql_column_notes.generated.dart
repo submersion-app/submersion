@@ -495,9 +495,12 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'wind_speed': 'Weather conditions',
   },
   'document_pages': {
+    'library_file_id': 'The `pages/<id>.bin` file of a shared library that holds these bytes',
     'side': '\'front\' or \'back\' for card types',
   },
   'documents': {
+    'diver_id': 'Null exactly when sharedLibraryId is set',
+    'shared_library_id': 'The shared site library this document belongs to',
     'type': 'DocumentType storage name',
   },
   'equipment': {
