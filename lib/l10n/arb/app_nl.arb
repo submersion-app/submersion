@@ -9898,6 +9898,8 @@
   "tankPresets_deletePreset": "Instelling verwijderen",
   "tankPresets_deleteTitle": "Flesinstelling verwijderen?",
   "tankPresets_deleted": "\"{name}\" verwijderd",
+  "tankPresets_duplicatePreset": "Dupliceren",
+  "tankPresets_duplicateName": "{name} (kopie)",
   "tankPresets_editPreset": "Instelling bewerken",
   "tankPresets_edit_created": "\"{name}\" aangemaakt",
   "tankPresets_edit_descriptionHint": "bijv. Mijn huurcilinder van de duikshop",

@@ -39082,6 +39082,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_duplicatePreset => 'Duplicate';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (copy)';
+  }
+
+  @override
   String get tankPresets_editPreset => 'Edit preset';
 
   @override

@@ -39657,6 +39657,14 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_duplicatePreset => 'Duplizieren';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (Kopie)';
+  }
+
+  @override
   String get tankPresets_editPreset => 'Vorlage bearbeiten';
 
   @override

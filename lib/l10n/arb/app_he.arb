@@ -9898,6 +9898,8 @@
   "tankPresets_deletePreset": "מחק תבנית",
   "tankPresets_deleteTitle": "למחוק תבנית מיכל?",
   "tankPresets_deleted": "נמחק \"{name}\"",
+  "tankPresets_duplicatePreset": "שכפול",
+  "tankPresets_duplicateName": "{name} (עותק)",
   "tankPresets_editPreset": "ערוך תבנית",
   "tankPresets_edit_created": "נוצר \"{name}\"",
   "tankPresets_edit_descriptionHint": "לדוגמה, מיכל שכור מחנות הצלילה",

@@ -38032,6 +38032,14 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_duplicatePreset => '複製';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name（コピー）';
+  }
+
+  @override
   String get tankPresets_editPreset => 'プリセットを編集';
 
   @override

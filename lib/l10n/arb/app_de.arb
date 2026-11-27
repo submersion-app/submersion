@@ -10030,6 +10030,8 @@
   "tankPresets_deletePreset": "Vorlage löschen",
   "tankPresets_deleteTitle": "Flaschenvorlage löschen?",
   "tankPresets_deleted": "\"{name}\" gelöscht",
+  "tankPresets_duplicatePreset": "Duplizieren",
+  "tankPresets_duplicateName": "{name} (Kopie)",
   "tankPresets_editPreset": "Vorlage bearbeiten",
   "tankPresets_edit_created": "\"{name}\" erstellt",
   "tankPresets_edit_descriptionHint": "z.B. Meine Leihflasche vom Tauchshop",

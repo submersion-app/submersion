@@ -39514,6 +39514,14 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_duplicatePreset => 'Másolás';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (másolat)';
+  }
+
+  @override
   String get tankPresets_editPreset => 'Sablon szerkesztése';
 
   @override

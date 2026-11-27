@@ -38780,6 +38780,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_duplicatePreset => 'שכפול';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (עותק)';
+  }
+
+  @override
   String get tankPresets_editPreset => 'ערוך תבנית';
 
   @override

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -329,6 +330,8 @@ void main() {
       bool settle = true,
       bool metric = false,
       bool onlyPage = false,
+      String? duplicateFromId,
+      TankPresetEntity? repoPreset,
     }) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
@@ -337,7 +340,8 @@ void main() {
         await settings.setPressureUnit(PressureUnit.psi);
         await settings.setVolumeUnit(VolumeUnit.cubicFeet);
       }
-      repo = _MockTankPresetRepository(preset: stored)..failLoad = failLoad;
+      repo = _MockTankPresetRepository(preset: repoPreset ?? stored)
+        ..failLoad = failLoad;
       list = _MockTankPresetListNotifier([stored]);
       // [onlyPage]: the editor with no page under it, the preset list
       // reachable only by its address.
@@ -349,7 +353,10 @@ void main() {
             routes: [
               GoRoute(
                 path: 'edit',
-                builder: (_, _) => TankPresetEditPage(presetId: presetId),
+                builder: (_, _) => TankPresetEditPage(
+                  presetId: presetId,
+                  duplicateFromId: duplicateFromId,
+                ),
               ),
             ],
           ),
@@ -577,6 +584,32 @@ void main() {
       expect(find.textContaining('Error loading preset'), findsOneWidget);
       expect(find.byType(TankPresetEditPage), findsNothing);
       expect(find.text('list'), findsOneWidget);
+    });
+
+    testWidgets('a duplicated built-in opens filled, named as a copy, and '
+        'saves as a new preset (#800)', (tester) async {
+      final al80 = TankPresetEntity.fromBuiltIn(TankPresets.byName('al80')!);
+      await pumpEditor(
+        tester,
+        duplicateFromId: 'al80',
+        repoPreset: al80,
+        metric: true,
+      );
+      expect(find.widgetWithText(TextFormField, 'AL80 (copy)'), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, '11.1'), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, '207'), findsOneWidget);
+      // The copy is the change: Save works without touching a field.
+      expect(saveOnPressed(tester), isNotNull);
+
+      await tester.tap(saveAction());
+      await tester.pumpAndSettle();
+      expect(repo.updated, isEmpty);
+      final created = repo.created.single;
+      expect(created.isBuiltIn, isFalse);
+      expect(created.displayName, 'AL80 (copy)');
+      expect(created.volumeLiters, closeTo(11.1, 0.01));
+      expect(created.workingPressureBar, closeTo(207, 0.5));
+      expect(created.material, al80.material);
     });
 
     testWidgets('a new preset opens on the tinted bar from its first frame', (

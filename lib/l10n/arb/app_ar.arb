@@ -9898,6 +9898,8 @@
   "tankPresets_deletePreset": "حذف الإعداد",
   "tankPresets_deleteTitle": "حذف إعداد الأسطوانة؟",
   "tankPresets_deleted": "تم حذف \"{name}\"",
+  "tankPresets_duplicatePreset": "تكرار",
+  "tankPresets_duplicateName": "{name} (نسخة)",
   "tankPresets_editPreset": "تعديل الإعداد",
   "tankPresets_edit_created": "تم إنشاء \"{name}\"",
   "tankPresets_edit_descriptionHint": "مثال: أسطوانة الإيجار من متجر الغوص",

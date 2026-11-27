@@ -62056,6 +62056,18 @@ abstract class AppLocalizations {
   /// **'Deleted \"{name}\"'**
   String tankPresets_deleted(Object name);
 
+  /// Tooltip of the button on a built-in cylinder preset (issue #800) that opens the new-preset form filled from it.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get tankPresets_duplicatePreset;
+
+  /// Name a duplicated built-in preset starts with (issue #800).
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (copy)'**
+  String tankPresets_duplicateName(String name);
+
   /// No description provided for @tankPresets_editPreset.
   ///
   /// In en, this message translates to:

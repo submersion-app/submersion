@@ -11671,6 +11671,8 @@
   "tankPresets_deletePreset": "プリセットを削除",
   "tankPresets_deleteTitle": "タンクのプリセットを削除しますか？",
   "tankPresets_deleted": "「{name}」を削除しました",
+  "tankPresets_duplicatePreset": "複製",
+  "tankPresets_duplicateName": "{name}（コピー）",
   "tankPresets_editPreset": "プリセットを編集",
   "tankPresets_edit_created": "「{name}」を作成しました",
   "tankPresets_edit_descriptionHint": "例：ダイブショップのレンタルタンク",

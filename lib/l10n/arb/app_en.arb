@@ -24084,6 +24084,20 @@
       }
     }
   },
+  "tankPresets_duplicatePreset": "Duplicate",
+  "@tankPresets_duplicatePreset": {
+    "description": "Tooltip of the button on a built-in cylinder preset (issue #800) that opens the new-preset form filled from it."
+  },
+  "tankPresets_duplicateName": "{name} (copy)",
+  "@tankPresets_duplicateName": {
+    "description": "Name a duplicated built-in preset starts with (issue #800).",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "AL80"
+      }
+    }
+  },
   "tankPresets_editPreset": "Edit preset",
   "tankPresets_edit_created": "Created \"{name}\"",
   "@tankPresets_edit_created": {

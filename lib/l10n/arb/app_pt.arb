@@ -9898,6 +9898,8 @@
   "tankPresets_deletePreset": "Excluir preset",
   "tankPresets_deleteTitle": "Excluir Preset de Cilindro?",
   "tankPresets_deleted": "\"{name}\" excluído",
+  "tankPresets_duplicatePreset": "Duplicar",
+  "tankPresets_duplicateName": "{name} (cópia)",
   "tankPresets_editPreset": "Editar preset",
   "tankPresets_edit_created": "\"{name}\" criado",
   "tankPresets_edit_descriptionHint": "ex., Meu cilindro alugado da loja de mergulho",

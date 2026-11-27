@@ -40291,6 +40291,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_duplicatePreset => 'تكرار';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (نسخة)';
+  }
+
+  @override
   String get tankPresets_editPreset => 'تعديل الإعداد';
 
   @override

@@ -9773,6 +9773,8 @@
   "tankPresets_deletePreset": "Sablon törlése",
   "tankPresets_deleteTitle": "Palacksablon törlése?",
   "tankPresets_deleted": "\"{name}\" törölve",
+  "tankPresets_duplicatePreset": "Másolás",
+  "tankPresets_duplicateName": "{name} (másolat)",
   "tankPresets_editPreset": "Sablon szerkesztése",
   "tankPresets_edit_created": "\"{name}\" létrehozva",
   "tankPresets_edit_descriptionHint": "pl. Bérelt palack a búvárüzletből",

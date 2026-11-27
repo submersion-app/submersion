@@ -9898,6 +9898,8 @@
   "tankPresets_deletePreset": "Eliminar preset",
   "tankPresets_deleteTitle": "Eliminar preset de tanque?",
   "tankPresets_deleted": "Se eliminó \"{name}\"",
+  "tankPresets_duplicatePreset": "Duplicar",
+  "tankPresets_duplicateName": "{name} (copia)",
   "tankPresets_editPreset": "Editar preset",
   "tankPresets_edit_created": "Se creó \"{name}\"",
   "tankPresets_edit_descriptionHint": "p. ej., Mi tanque de alquiler de la tienda de buceo",
