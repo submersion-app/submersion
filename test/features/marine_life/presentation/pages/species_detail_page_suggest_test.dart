@@ -29,7 +29,11 @@ const _builtIn = Species(
   isBuiltIn: true,
 );
 
-Future<List<dynamic>> _overrides(Species species, List<Uri> launched) async {
+Future<List<dynamic>> _overrides(
+  Species species,
+  List<Uri> launched, {
+  bool opens = true,
+}) async {
   final overrides = await getBaseOverrides();
   return [
     ...overrides,
@@ -49,17 +53,21 @@ Future<List<dynamic>> _overrides(Species species, List<Uri> launched) async {
     localeProvider.overrideWithValue('en'),
     speciesSuggestionLaunchProvider.overrideWithValue((uri) async {
       launched.add(uri);
-      return true;
+      return opens;
     }),
   ];
 }
 
-Future<List<Uri>> _pump(WidgetTester tester, Species species) async {
+Future<List<Uri>> _pump(
+  WidgetTester tester,
+  Species species, {
+  bool opens = true,
+}) async {
   final launched = <Uri>[];
   await tester.pumpWidget(
     testApp(
       locale: const Locale('en'),
-      overrides: await _overrides(species, launched),
+      overrides: await _overrides(species, launched, opens: opens),
       child: SpeciesDetailPage(speciesId: species.id),
     ),
   );
@@ -84,6 +92,25 @@ void main() {
       launched.single.queryParameters['title'],
       'Species suggestion: Stove-pipe Sponge',
     );
+    expect(
+      launched.single.queryParameters['template'],
+      'species-suggestion.yml',
+    );
+  });
+
+  testWidgets('a browser that will not open offers to copy the link', (
+    tester,
+  ) async {
+    final launched = await _pump(tester, _custom, opens: false);
+
+    await tester.tap(find.byKey(const ValueKey('species_detail_menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Suggest for the catalog'));
+    await tester.pumpAndSettle();
+
+    expect(launched, hasLength(1));
+    expect(find.text('Could not open the browser'), findsOneWidget);
+    expect(find.text('Copy link'), findsOneWidget);
   });
 
   testWidgets('a built-in species cannot be suggested', (tester) async {

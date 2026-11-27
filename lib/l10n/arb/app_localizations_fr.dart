@@ -19709,9 +19709,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible d\'ouvrir le navigateur';
 
   @override
-  String get marineLife_suggest_copyLink => 'Copier le lien';
-
-  @override
   String get marineLife_editCard_photos => 'Photos';
 
   @override

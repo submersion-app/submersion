@@ -19376,9 +19376,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get marineLife_suggest_couldNotOpen => 'Could not open the browser';
 
   @override
-  String get marineLife_suggest_copyLink => 'Copy link';
-
-  @override
   String get marineLife_editCard_photos => 'Photos';
 
   @override

@@ -31268,12 +31268,6 @@ abstract class AppLocalizations {
   /// **'Could not open the browser'**
   String get marineLife_suggest_couldNotOpen;
 
-  /// No description provided for @marineLife_suggest_copyLink.
-  ///
-  /// In en, this message translates to:
-  /// **'Copy link'**
-  String get marineLife_suggest_copyLink;
-
   /// A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed.
   ///
   /// In en, this message translates to:

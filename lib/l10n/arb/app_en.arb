@@ -11859,7 +11859,6 @@
   },
   "marineLife_speciesDetail_suggestForCatalog": "Suggest for the catalog",
   "marineLife_suggest_couldNotOpen": "Could not open the browser",
-  "marineLife_suggest_copyLink": "Copy link",
   "marineLife_editCard_photos": "Photos",
   "@marineLife_editCard_photos": {
     "description": "A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed."

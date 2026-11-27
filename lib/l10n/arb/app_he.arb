@@ -5657,7 +5657,6 @@
   "marineLife_lookup_unresolvableRank": "{rank}: בחרו מין",
   "marineLife_speciesDetail_suggestForCatalog": "הצעה לקטלוג",
   "marineLife_suggest_couldNotOpen": "לא ניתן לפתוח את הדפדפן",
-  "marineLife_suggest_copyLink": "העתקת קישור",
   "marineLife_editCard_photos": "תמונות",
   "marineLife_speciesPhotos_title": "תמונות ({count})",
   "marineLife_speciesPhotos_empty": "תמונות שתויגו במין זה יופיעו כאן.",

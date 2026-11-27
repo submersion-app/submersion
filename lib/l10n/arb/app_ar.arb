@@ -5782,7 +5782,6 @@
   "marineLife_lookup_unresolvableRank": "{rank}: اختر نوعًا",
   "marineLife_speciesDetail_suggestForCatalog": "اقتراح للفهرس",
   "marineLife_suggest_couldNotOpen": "تعذر فتح المتصفح",
-  "marineLife_suggest_copyLink": "نسخ الرابط",
   "marineLife_editCard_photos": "الصور",
   "marineLife_speciesPhotos_title": "الصور ({count})",
   "marineLife_speciesPhotos_empty": "الصور الموسومة بهذا النوع تظهر هنا.",

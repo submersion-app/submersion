@@ -5657,7 +5657,6 @@
   "marineLife_lookup_unresolvableRank": "{rank}: válassz egy fajt",
   "marineLife_speciesDetail_suggestForCatalog": "Javaslat a katalógusba",
   "marineLife_suggest_couldNotOpen": "Nem sikerült megnyitni a böngészőt",
-  "marineLife_suggest_copyLink": "Link másolása",
   "marineLife_editCard_photos": "Fotók",
   "marineLife_speciesPhotos_title": "Fotók ({count})",
   "marineLife_speciesPhotos_empty": "Az ezzel a fajjal címkézett fotók itt jelennek meg.",

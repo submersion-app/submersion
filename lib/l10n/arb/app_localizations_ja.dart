@@ -18959,9 +18959,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get marineLife_suggest_couldNotOpen => 'ブラウザを開けませんでした';
 
   @override
-  String get marineLife_suggest_copyLink => 'リンクをコピー';
-
-  @override
   String get marineLife_editCard_photos => '写真';
 
   @override

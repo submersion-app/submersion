@@ -5782,7 +5782,6 @@
   "marineLife_lookup_unresolvableRank": "{rank}: elige una especie",
   "marineLife_speciesDetail_suggestForCatalog": "Sugerir para el catálogo",
   "marineLife_suggest_couldNotOpen": "No se pudo abrir el navegador",
-  "marineLife_suggest_copyLink": "Copiar enlace",
   "marineLife_editCard_photos": "Fotos",
   "marineLife_speciesPhotos_title": "Fotos ({count})",
   "marineLife_speciesPhotos_empty": "Las fotos etiquetadas con esta especie aparecen aquí.",

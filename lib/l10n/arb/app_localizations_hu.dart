@@ -19601,9 +19601,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nem sikerült megnyitni a böngészőt';
 
   @override
-  String get marineLife_suggest_copyLink => 'Link másolása';
-
-  @override
   String get marineLife_editCard_photos => 'Fotók';
 
   @override

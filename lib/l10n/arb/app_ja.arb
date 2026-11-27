@@ -5740,7 +5740,6 @@
   "marineLife_lookup_unresolvableRank": "{rank}：種を選択してください",
   "marineLife_speciesDetail_suggestForCatalog": "カタログへの追加を提案",
   "marineLife_suggest_couldNotOpen": "ブラウザを開けませんでした",
-  "marineLife_suggest_copyLink": "リンクをコピー",
   "marineLife_editCard_photos": "写真",
   "marineLife_speciesPhotos_title": "写真（{count}）",
   "marineLife_speciesPhotos_empty": "この種のタグが付いた写真がここに表示されます。",

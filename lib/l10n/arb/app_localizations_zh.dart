@@ -18694,9 +18694,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_suggest_couldNotOpen => '无法打开浏览器';
 
   @override
-  String get marineLife_suggest_copyLink => '复制链接';
-
-  @override
   String get marineLife_editCard_photos => '照片';
 
   @override

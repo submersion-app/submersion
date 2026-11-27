@@ -5916,7 +5916,6 @@
   "marineLife_lookup_unresolvableRank": "{rank}：请选择一个物种",
   "marineLife_speciesDetail_suggestForCatalog": "推荐加入目录",
   "marineLife_suggest_couldNotOpen": "无法打开浏览器",
-  "marineLife_suggest_copyLink": "复制链接",
   "marineLife_editCard_photos": "照片",
   "marineLife_speciesPhotos_title": "照片 ({count})",
   "marineLife_speciesPhotos_empty": "标记为该物种的照片会显示在这里。",

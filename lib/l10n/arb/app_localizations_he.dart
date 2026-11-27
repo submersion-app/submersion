@@ -19240,9 +19240,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_suggest_couldNotOpen => 'לא ניתן לפתוח את הדפדפן';
 
   @override
-  String get marineLife_suggest_copyLink => 'העתקת קישור';
-
-  @override
   String get marineLife_editCard_photos => 'תמונות';
 
   @override

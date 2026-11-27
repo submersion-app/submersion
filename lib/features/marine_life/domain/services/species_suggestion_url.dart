@@ -1,19 +1,22 @@
-import 'dart:convert';
-
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 
-/// Where suggestions land: a prefilled new-issue page in the project's
-/// GitHub repository. The app sends nothing itself; the diver posts the
-/// issue from their own account in the browser.
+/// Where suggestions land: a prefilled issue form in the project's GitHub
+/// repository. The app sends nothing itself; the diver posts the issue from
+/// their own account in the browser.
 const String speciesSuggestionRepository = 'submersion-app/submersion';
-const String speciesSuggestionLabel = 'species-suggestion';
+
+/// The issue form a suggestion fills, under `.github/ISSUE_TEMPLATE/`. Its
+/// field ids are the query keys below. The form applies the
+/// `species-suggestion` label for every reporter; a `labels=` URL parameter
+/// is dropped for anyone who cannot triage the repository, which is how the
+/// first suggestions from divers arrived unlabelled (issue #5103).
+const String speciesSuggestionTemplate = 'species-suggestion.yml';
 
 /// Browsers and GitHub both accept URLs comfortably below this.
 const int speciesSuggestionMaxUrlLength = 8000;
 
-/// Builds the prefilled issue URL for [species]. The body carries a JSON
-/// block a maintainer (or a script) can lift straight into the catalog.
+/// Builds the prefilled issue-form URL for [species]. A species with no
+/// scientific name or taxonomy class leaves those fields out.
 ///
 /// Every field a diver types is free text with no length limit, so any of
 /// them can carry the URL past [speciesSuggestionMaxUrlLength]. They give
@@ -32,21 +35,15 @@ Uri buildSpeciesSuggestionUrl({
 
   Uri build() =>
       Uri.https('github.com', '/$speciesSuggestionRepository/issues/new', {
+        'template': speciesSuggestionTemplate,
         'title': 'Species suggestion: $commonName',
-        'labels': speciesSuggestionLabel,
-        'body': _body(
-          commonName: commonName,
-          // A species with no scientific name or class stays null in the
-          // JSON, as it was before any truncation.
-          scientificName: species.scientificName == null
-              ? null
-              : scientificName,
-          taxonomyClass: species.taxonomyClass == null ? null : taxonomyClass,
-          description: description,
-          category: species.category,
-          locale: locale,
-          appVersion: appVersion,
-        ),
+        'common_name': commonName,
+        if (species.scientificName != null) 'scientific_name': scientificName,
+        'category': species.category.name,
+        if (species.taxonomyClass != null) 'taxonomy_class': taxonomyClass,
+        'description': description,
+        'locale': locale,
+        'app_version': appVersion,
       });
 
   var uri = build();
@@ -68,26 +65,4 @@ Uri buildSpeciesSuggestionUrl({
   shrink(() => commonName, (v) => commonName = v, 1);
   shrink(() => scientificName, (v) => scientificName = v, 1);
   return uri;
-}
-
-String _body({
-  required String commonName,
-  required String? scientificName,
-  required String? taxonomyClass,
-  required String description,
-  required SpeciesCategory category,
-  required String locale,
-  required String appVersion,
-}) {
-  final json = const JsonEncoder.withIndent('  ').convert({
-    'commonName': commonName,
-    'scientificName': scientificName,
-    'category': category.name,
-    'taxonomyClass': taxonomyClass,
-    'description': description,
-    'locale': locale,
-    'appVersion': appVersion,
-  });
-  return 'Please consider adding this species to the bundled catalog.\n\n'
-      '```json\n$json\n```\n';
 }

@@ -19640,9 +19640,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Browser konnte nicht geöffnet werden';
 
   @override
-  String get marineLife_suggest_copyLink => 'Link kopieren';
-
-  @override
   String get marineLife_editCard_photos => 'Fotos';
 
   @override

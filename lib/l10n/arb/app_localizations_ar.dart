@@ -19942,9 +19942,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_suggest_couldNotOpen => 'تعذر فتح المتصفح';
 
   @override
-  String get marineLife_suggest_copyLink => 'نسخ الرابط';
-
-  @override
   String get marineLife_editCard_photos => 'الصور';
 
   @override
