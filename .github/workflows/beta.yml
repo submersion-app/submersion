@@ -119,7 +119,7 @@ jobs:
             case "$f" in
               .github/flutter-version.txt) code=true ;;
               .github/*) ;;
-              *.md|docs/*|LICENSE*|.gitignore|.gitattributes|.editorconfig|codecov.yml|hooks/*) ;;
+              *.md|docs/*|LICENSE*|.gitignore|.gitattributes|.editorconfig|hooks/*) ;;
               *.png|*.jpg|*.jpeg|*.gif|*.svg|*.webp|*.ico) ;;
               *) code=true ;;
             esac

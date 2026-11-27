@@ -30,7 +30,7 @@ import traceback
 
 LIB_ROOT = "lib"
 
-# Mirrors the ignore list in codecov.yml: these files never count toward a
+# Mirrors the ignore list in .github/codecov.yml: these files never count toward a
 # target, so there is nothing to filter in them.
 _GENERATED = (".g.dart", ".freezed.dart")
 _GENERATED_DIRS = ("lib/l10n/",)

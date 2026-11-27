@@ -126,7 +126,7 @@ jobs:
               .github/flutter-version.txt) code=true ;;   # SDK bump affects all
               .github/actions/setup-flutter/*) code=true ;; # SDK setup for every job
               .github/*) ;;                                # other CI/meta: inert
-              *.md|docs/*|LICENSE*|.gitignore|.gitattributes|.editorconfig|codecov.yml|hooks/*) ;;
+              *.md|docs/*|LICENSE*|.gitignore|.gitattributes|.editorconfig|hooks/*) ;;
               *.png|*.jpg|*.jpeg|*.gif|*.svg|*.webp|*.ico) ;;
               *) code=true ;;
             esac
@@ -374,9 +374,9 @@ jobs:
       fail-fast: false
       matrix:
         # 0-based shard indices; keep TOTAL_SHARDS below in sync with the count.
-        # NOTE: the shard count is coupled to codecov.yml `after_n_builds`, which
+        # NOTE: the shard count is coupled to .github/codecov.yml `after_n_builds`, which
         # must equal (shard count + 1) for the scripts job -- Codecov holds the
-        # patch/project status until every partial lcov arrives (see codecov.yml).
+        # patch/project status until every partial lcov arrives (see .github/codecov.yml).
         #
         # Test files run in bundles that share an isolate
         # (scripts/bundle_tests.py, issue #2500), so a shard's time follows the
