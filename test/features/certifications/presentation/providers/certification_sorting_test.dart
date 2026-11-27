@@ -215,6 +215,29 @@ void main() {
       );
     });
 
+    // A slug-like agency id the catalog does not know falls back to its
+    // slug as the name, and ties between such agencies order by that name.
+    test('unknown agencies on one day order by their fallback names', () {
+      Certification unknown(String id, String agency) => Certification(
+        id: id,
+        name: 'Nitrox',
+        agency: agency,
+        issueDate: day,
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+      expect(
+        order(
+          // Ids run against the agency names, so only the agency key can
+          // put acmeDiving first.
+          [unknown('a', 'blueReef'), unknown('b', 'acmeDiving')],
+          CertificationSortField.dateIssued,
+          SortDirection.descending,
+        ),
+        ['b', 'a'],
+      );
+    });
+
     test('identical rows order by id whatever the input order', () {
       for (final field in CertificationSortField.values) {
         expect(order([twinY, twinX], field, SortDirection.descending), [

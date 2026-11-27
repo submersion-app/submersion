@@ -150,14 +150,15 @@ List<Certification> applyCertificationSorting(
   final cat = catalog ?? CertificationCatalog.builtInOnly;
   // The title key is what the list shows (the localized title), not the raw
   // stored name, which is blank for a certification saved without a custom
-  // title and "PADI : ..." for legacy rows. Every sort uses it as a
-  // tiebreaker, so it is computed once per certification rather than on
-  // every comparison, in an identity map: Certification's value hashCode
-  // walks its photo bytes.
+  // title and "PADI : ..." for legacy rows. Computed at most once per
+  // certification, and only for those a comparison reaches (under the date
+  // and agency sorts only ties do), in an identity map: Certification's
+  // value hashCode walks its photo bytes.
   final titles = Map<Certification, String>.identity();
-  for (final c in certifications) {
-    titles[c] = certificationTitleL10n(c, l10n, catalog: cat).toLowerCase();
-  }
+  String titleOf(Certification c) => titles.putIfAbsent(
+    c,
+    () => certificationTitleL10n(c, l10n, catalog: cat).toLowerCase(),
+  );
 
   // Each key compares in reading order.
   int byDate(Certification a, Certification b) =>
@@ -167,7 +168,7 @@ List<Certification> applyCertificationSorting(
       .interchangeName
       .compareTo(cat.agency(b.agency).interchangeName);
   int byTitle(Certification a, Certification b) =>
-      titles[a]!.compareTo(titles[b]!);
+      titleOf(a).compareTo(titleOf(b));
 
   final keys = switch (sort.field) {
     CertificationSortField.dateIssued => [byDate, byAgency, byTitle],
