@@ -194,22 +194,24 @@ class _SystemBackClosesKeyboardState extends State<_SystemBackClosesKeyboard>
     _keyboardMoving = Timer(_keyboardSettles, () => _keyboardMoving = null);
   }
 
+  /// Whether focus is on this page's route: in the focus scope around the
+  /// page, which a page or dialog above takes it from.
+  bool get _routeHasFocus =>
+      (ModalRoute.of(context)?.isCurrent ?? true) &&
+      FocusScope.of(context).hasFocus;
+
   static bool _isField(FocusNode? node) =>
       node?.context?.findAncestorStateOfType<EditableTextState>() != null;
 
   Future<bool> _onSystemBack() async {
-    final field = FocusManager.instance.primaryFocus;
     // The keyboard is opening or closing: the Back came with it, not from
     // the diver, and the page and the keyboard stay as they are. Only while
-    // the keyboard can be this page's: a page above it in its navigator, or
-    // a field outside it (a dialog, which sits in the root navigator above
-    // the shell's), answers its own Back.
-    final fieldElsewhere = !_page.hasFocus && _isField(field);
-    if (_keyboardMoving != null &&
-        !fieldElsewhere &&
-        (ModalRoute.of(context)?.isCurrent ?? true)) {
-      return true;
-    }
+    // this page's route holds focus, even if no field on it does for a
+    // moment: a page above it, or a dialog (in the root navigator, above
+    // the shell's, where this route still counts as current), answers its
+    // own Back.
+    if (_keyboardMoving != null && _routeHasFocus) return true;
+    final field = FocusManager.instance.primaryFocus;
     // A field on another page (one pushed above this) answers its own Back.
     if (field == null || !_page.hasFocus || !_isField(field)) return false;
     // The window, not MediaQuery: a Scaffold body above this page (the

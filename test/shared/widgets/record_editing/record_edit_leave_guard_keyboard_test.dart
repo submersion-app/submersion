@@ -428,4 +428,23 @@ void main() {
     expect(find.text('Dialog'), findsNothing);
     expect(find.text('Record'), findsOneWidget);
   });
+
+  testWidgets('the question the app bar arrow opens, as the keyboard '
+      'closes under it, answers its own Back', (tester) async {
+    final controller = await _open(tester, inNestedNavigator: true);
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'changed');
+    await _typeIn(tester, _field);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.text('Discard changes?'), findsOneWidget);
+    await _keyboardGoes(tester, settle: false);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Discard changes?'), findsNothing);
+    expect(find.text('Record'), findsOneWidget);
+    expect(controller.isDirty, isTrue);
+  });
 }
