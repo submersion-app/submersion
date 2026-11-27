@@ -900,7 +900,6 @@ class DiveImportService {
     // Import using repository
     final diveId = await _repository.importProfile(
       computerId: computerId,
-      trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
       profileStartTime: dive.startTime,
       points: profilePoints,
       durationSeconds: dive.durationSeconds,
@@ -953,6 +952,7 @@ class DiveImportService {
       tripId: dive.startTimeReported
           ? await _resolveTrip(dive.startTime, diverId)
           : null,
+      trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
     );
 
     return diveId;
@@ -1078,7 +1078,6 @@ class DiveImportService {
     // matches it back to the same dive row.
     await _repository.importProfile(
       computerId: computerId,
-      trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
       profileStartTime: dive.startTime,
       points: profilePoints,
       durationSeconds: dive.durationSeconds,
@@ -1121,6 +1120,7 @@ class DiveImportService {
       cnsEnd: dive.cnsEnd,
       otu: dive.otu,
       addMissingTanks: true,
+      trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
     );
   }
 
@@ -1157,7 +1157,6 @@ class DiveImportService {
     final tanks = _parser.parseTanks(dive);
     final attachedTo = await _repository.importProfile(
       computerId: computerId,
-      trimTankPressureAtSurfacing: await _loadTrimTankPressureAtSurfacing(null),
       profileStartTime: dive.startTime,
       points: profilePoints,
       durationSeconds: dive.durationSeconds,
@@ -1192,6 +1191,7 @@ class DiveImportService {
       cnsEnd: dive.cnsEnd,
       otu: dive.otu,
       targetDiveId: targetDiveId,
+      trimTankPressureAtSurfacing: await _loadTrimTankPressureAtSurfacing(null),
     );
     if (attachedTo != targetDiveId) {
       throw StateError(

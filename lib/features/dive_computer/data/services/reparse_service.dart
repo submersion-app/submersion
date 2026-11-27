@@ -1470,6 +1470,9 @@ class ReparseService {
 
     // Backfill start/end pressure from the profile when the parsed tank summary
     // didn't provide explicit values.
+    final depths = [
+      for (final s in parsed.samples) (t: s.timeSeconds, depth: s.depthMeters),
+    ];
     for (final entry in pressuresByTank.entries) {
       final tankId = tankIdsByIndex[entry.key];
       if (tankId == null) continue;
@@ -1492,13 +1495,7 @@ class ReparseService {
         for (final p in entry.value) (t: p.timestamp, bar: p.pressure),
       ];
       final endpoints = trimTankPressureAtSurfacing
-          ? seriesEndpointsAtSurfacing(
-              readings,
-              depths: [
-                for (final s in parsed.samples)
-                  (t: s.timeSeconds, depth: s.depthMeters),
-              ],
-            )
+          ? seriesEndpointsAtSurfacing(readings, depths: depths)
           : cleanSeriesEndpoints(readings);
       if (endpoints == null) continue;
       await (db.update(db.diveTanks)..where((t) => t.id.equals(tankId))).write(

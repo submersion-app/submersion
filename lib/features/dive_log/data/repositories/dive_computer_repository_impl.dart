@@ -2267,6 +2267,10 @@ class DiveComputerRepository {
         // tanks this import inserted: a stored tank's pressures are the
         // diver's to keep.
         if (tanks != null) {
+          // Where the dive ended, read once for every tank's surfacing rule.
+          final depths = [
+            for (final p in points) (t: p.timestamp, depth: p.depth),
+          ];
           for (final entry in insertEntries) {
             final tankIndex = entry.key;
             final pressurePoints = entry.value;
@@ -2283,13 +2287,7 @@ class DiveComputerRepository {
                   (t: p.timestamp, bar: p.pressure),
               ];
               final endpoints = trimTankPressureAtSurfacing
-                  ? seriesEndpointsAtSurfacing(
-                      readings,
-                      depths: [
-                        for (final p in points)
-                          (t: p.timestamp, depth: p.depth),
-                      ],
-                    )
+                  ? seriesEndpointsAtSurfacing(readings, depths: depths)
                   : cleanSeriesEndpoints(readings);
               if (endpoints == null) continue;
               final tankId = tankIdsByIndex[tankIndex]!;
