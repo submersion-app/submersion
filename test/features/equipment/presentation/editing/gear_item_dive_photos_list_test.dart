@@ -5,6 +5,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/editing/gear_item_dive_photos_list.dart';
 import 'package:submersion/features/media/data/repositories/media_gear_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -83,4 +85,43 @@ void main() {
 
     expect(await gear.mediaIdsFor('e1'), ['wife-photo']);
   });
+
+  test(
+    'a link made elsewhere while the sitting is open survives Save',
+    () async {
+      await gear.addGear(['m1'], ['e1']);
+      final session = EditSession<EquipmentItem>(item);
+      addTearDown(session.dispose);
+      final loaded = (await gearItemDivePhotosList.currentOrRead(session))!;
+      final m3 = (await MediaRepository().getMediaById('m3'))!;
+      gearItemDivePhotosList.set(session, [...loaded, m3]);
+      // Another device links m2 meanwhile.
+      await gear.addGear(['m2'], ['e1']);
+
+      await db.transaction(session.runHeldWrites);
+
+      expect(await gear.mediaIdsFor('e1'), unorderedEquals(['m1', 'm2', 'm3']));
+    },
+  );
+
+  test('replaceShownLinks never lists a photo twice', () {
+    final current = [
+      for (final id in ['hidden', 'a']) _item(id),
+    ];
+    final next = replaceShownLinks(
+      current: current,
+      shownNow: const [],
+      keep: [_item('a'), _item('b')],
+    );
+    expect([for (final m in next) m.id], ['hidden', 'a', 'b']);
+  });
 }
+
+MediaItem _item(String id) => MediaItem(
+  id: id,
+  mediaType: MediaType.photo,
+  sourceType: MediaSourceType.localFile,
+  takenAt: DateTime(2026),
+  createdAt: DateTime(2026),
+  updatedAt: DateTime(2026),
+);

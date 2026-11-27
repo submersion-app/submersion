@@ -110,7 +110,10 @@ class EquipmentDivePhotosSection extends ConsumerWidget {
                     key: const ValueKey('equipment_divePhotos_link'),
                     icon: Icon(Icons.add_link, color: colorScheme.primary),
                     tooltip: l10n.equipment_divePhotos_link,
-                    onPressed: () => _link(context, photos),
+                    // Offered once the card knows which links it shows.
+                    onPressed: stored.hasValue
+                        ? () => _link(context, photos)
+                        : null,
                   ),
               ],
             ),
@@ -174,12 +177,10 @@ class EquipmentDivePhotosSection extends ConsumerWidget {
     if (session == null || session.isDisposed || session.isFrozen) return;
     final current = gearItemDivePhotosList.current(session);
     if (current == null) return;
-    final shownIds = {for (final m in shownNow) m.id};
-    gearItemDivePhotosList.set(session, [
-      for (final m in current)
-        if (!shownIds.contains(m.id)) m,
-      ...keep,
-    ]);
+    gearItemDivePhotosList.set(
+      session,
+      replaceShownLinks(current: current, shownNow: shownNow, keep: keep),
+    );
   }
 
   void _unlink(MediaItem item) {

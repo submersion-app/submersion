@@ -6,6 +6,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/widgets/gear_photo_link_sheet.dart';
+import 'package:submersion/features/media/data/repositories/media_gear_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_library_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
@@ -16,11 +17,11 @@ import 'package:submersion/features/media/presentation/providers/media_library_p
 
 import '../../../media/presentation/support/media_widget_harness.dart';
 
-/// Serves one page of the Library: [items].
-class _OnePage extends MediaLibraryRepository {
-  _OnePage(this.items);
+/// Serves the Library as [pages], one per call.
+class _Pages extends MediaLibraryRepository {
+  _Pages(this.pages);
 
-  final List<MediaItem> items;
+  final List<List<MediaItem>> pages;
 
   @override
   Future<MediaLibraryPageResult> getPage({
@@ -30,10 +31,39 @@ class _OnePage extends MediaLibraryRepository {
     MediaLibraryGrouping grouping = MediaLibraryGrouping.none,
     MediaLibraryCursor? after,
     int limit = MediaLibraryRepository.pageSize,
-  }) async => MediaLibraryPageResult(
-    entries: [for (final i in items) MediaLibraryEntry(item: i)],
-    nextCursor: null,
-  );
+  }) async {
+    final index = after == null ? 0 : int.parse(after.id);
+    return MediaLibraryPageResult(
+      entries: [for (final i in pages[index]) MediaLibraryEntry(item: i)],
+      nextCursor: index + 1 < pages.length
+          ? MediaLibraryCursor(
+              sortKey: 0,
+              id: '${index + 1}',
+              groupKeys: const [],
+            )
+          : null,
+    );
+  }
+}
+
+/// Serves the photos of each dive from [byDive], recording the dives asked.
+class _DivePhotos extends MediaGearRepository {
+  _DivePhotos(this.byDive);
+
+  final Map<String, List<MediaItem>> byDive;
+  final asked = <List<String>>[];
+
+  @override
+  Future<List<MediaLibraryEntry>> linkableEntriesOnDives(
+    List<String> diveIds,
+  ) async {
+    asked.add(diveIds);
+    return [
+      for (final d in diveIds)
+        for (final m in byDive[d] ?? const <MediaItem>[])
+          MediaLibraryEntry(item: m, diveNumber: int.parse(d.substring(1))),
+    ];
+  }
 }
 
 /// Link photos on the gear page (issue #5046): a sheet of the item's dives'
@@ -47,8 +77,10 @@ void main() {
 
   Future<List<MediaItem>?> open(
     WidgetTester tester, {
-    List<String> diveIds = const ['d1', 'd2'],
+    List<String> diveIds = const ['d2', 'd1'],
     List<MediaItem> onDives = const [],
+    _DivePhotos? divePhotos,
+    List<List<MediaItem>>? libraryPages,
     List<MediaItem> library = const [],
     List<MediaItem> linked = const [],
     Future<void> Function()? act,
@@ -62,10 +94,19 @@ void main() {
         overrides: [
           validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
           equipmentDiveIdsProvider('e1').overrideWith((ref) async => diveIds),
-          linkableMediaOnEquipmentDivesProvider(
-            'e1',
-          ).overrideWith((ref) async => onDives),
-          mediaLibraryRepositoryProvider.overrideWithValue(_OnePage(library)),
+          mediaGearRepositoryProvider.overrideWithValue(
+            divePhotos ??
+                _DivePhotos({
+                  for (final m in onDives)
+                    m.diveId!: [
+                      for (final o in onDives)
+                        if (o.diveId == m.diveId) o,
+                    ],
+                }),
+          ),
+          mediaLibraryRepositoryProvider.overrideWithValue(
+            _Pages(libraryPages ?? [library]),
+          ),
         ],
         home: Builder(
           builder: (context) => Scaffold(
@@ -157,5 +198,43 @@ void main() {
       },
     );
     expect([for (final m in result!) m.id], ['b']);
+  });
+
+  testWidgets('All photos loads on when a page leaves the sheet unfilled', (
+    tester,
+  ) async {
+    await open(
+      tester,
+      diveIds: const [],
+      libraryPages: [
+        [testMediaItem(id: 'doc', mediaType: MediaType.document)],
+        [testMediaItem(id: 'x')],
+      ],
+    );
+    expect(
+      find.byKey(const ValueKey('gear_photo_link_tile_x')),
+      findsOneWidget,
+    );
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  testWidgets('Dives with this gear reads dives a page at a time', (
+    tester,
+  ) async {
+    final ids = [for (var i = 0; i < 120; i++) 'd$i'];
+    final divePhotos = _DivePhotos({
+      'd0': [testMediaItem(id: 'p0', diveId: 'd0')],
+      'd119': [testMediaItem(id: 'p119', diveId: 'd119')],
+    });
+    await open(tester, diveIds: ids, divePhotos: divePhotos);
+
+    expect(divePhotos.asked.first, hasLength(50));
+    // Few photos leave the sheet unfilled, so it reads on to the last dive.
+    expect([for (final a in divePhotos.asked) a.length], [50, 50, 20]);
+    expect(
+      find.byKey(const ValueKey('gear_photo_link_tile_p119')),
+      findsOneWidget,
+    );
+    expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 }

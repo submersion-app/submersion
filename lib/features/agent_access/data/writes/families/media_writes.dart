@@ -184,6 +184,17 @@ class MediaWrites extends WritableEntry {
         );
       }
     }
+    // Gear shows in photos and videos only (issue #5046): a document, a
+    // signature or a gear photo takes none.
+    if ((check.relations['equipment_ids']?.add ?? const <String>{})
+            .isNotEmpty &&
+        !await _gearLinkable(check.id!)) {
+      return const PlanBlock(
+        BlockReason.invalidValue,
+        'equipment_ids: gear is linked to photos and videos only, not to a '
+        'document, a signature or a gear photo.',
+      );
+    }
     if ((v.containsKey('attachment_category') ||
             v.containsKey('attachment_display_size')) &&
         check.document?['site_id'] == null) {
@@ -202,6 +213,9 @@ class MediaWrites extends WritableEntry {
     }
     return null;
   }
+
+  /// Whether media [id] is a photo or video gear can be linked to.
+  Future<bool> _gearLinkable(String id) => _gear.isLinkable(id);
 
   @override
   Future<SideEffects> sideEffects(

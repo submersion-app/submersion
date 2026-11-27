@@ -3,12 +3,14 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/existing_row_ids.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_sql.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 
 /// Gear items linked to photos and videos (issue #5046): "this photo shows
 /// my drysuit". Reads and writes the `media_equipment` junction only.
@@ -44,6 +46,18 @@ class MediaGearRepository {
   /// Emits when a link is made or removed.
   Stream<void> watchChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.mediaEquipment));
+
+  /// Whether [mediaId] is a photo or video gear can be linked to.
+  Future<bool> isLinkable(String mediaId) async {
+    final row = await _db
+        .customSelect(
+          'SELECT COUNT(*) AS n FROM media m WHERE m.id = ? AND $linkableSql',
+          variables: [Variable.withString(mediaId)],
+          readsFrom: {_db.media},
+        )
+        .getSingle();
+    return row.read<int>('n') > 0;
+  }
 
   /// Every gear id linked to [mediaId], oldest link first. Unscoped: the
   /// caller hides gear the diver cannot see.
@@ -198,27 +212,50 @@ class MediaGearRepository {
     if (notify) SyncEventBus.notifyLocalChange();
   }
 
-  /// The linkable photos on [diveIds], newest first.
-  Future<List<MediaItem>> linkableMediaOnDives(List<String> diveIds) async {
-    final out = <MediaItem>[];
+  /// The linkable photos on [diveIds] as Library entries, with each dive's
+  /// number, time and site: grouped by dive, newest dive first, newest
+  /// photo first within a dive, so a photo taken during another dive never
+  /// splits its own dive's group. Callers page by slices of dive ids.
+  Future<List<MediaLibraryEntry>> linkableEntriesOnDives(
+    List<String> diveIds,
+  ) async {
+    final out = <({int at, String dive, MediaLibraryEntry entry})>[];
     for (final chunk in seriesIdChunks(diveIds.toSet().toList())) {
       final rows = await _db
           .customSelect(
-            'SELECT m.* FROM media m '
+            'SELECT m.*, d.dive_number AS g_dive_number, '
+            'd.dive_date_time AS g_dive_at, s.name AS g_site_name '
+            'FROM media m JOIN dives d ON d.id = m.dive_id '
+            'LEFT JOIN dive_sites s ON s.id = d.site_id '
             'WHERE m.dive_id IN (${_marks(chunk)}) AND $linkableSql',
             variables: _vars(chunk),
-            readsFrom: {_db.media},
+            readsFrom: {_db.media, _db.dives, _db.diveSites},
           )
           .get();
-      out.addAll([
-        for (final r in rows) mediaItemFromRow(_db.media.map(r.data)),
-      ]);
+      for (final r in rows) {
+        final at = r.read<int>('g_dive_at');
+        out.add((
+          at: at,
+          dive: r.read<String>('dive_id'),
+          entry: MediaLibraryEntry(
+            item: mediaItemFromRow(_db.media.map(r.data)),
+            diveNumber: r.readNullable<int>('g_dive_number'),
+            // dive_date_time is wall-clock-as-UTC, as the Library reads it.
+            diveDateTime: DateTime.fromMillisecondsSinceEpoch(at, isUtc: true),
+            siteName: r.readNullable<String>('g_site_name'),
+          ),
+        ));
+      }
     }
     out.sort((a, b) {
-      final byTime = b.takenAt.compareTo(a.takenAt);
-      return byTime != 0 ? byTime : a.id.compareTo(b.id);
+      final byDive = b.at.compareTo(a.at);
+      if (byDive != 0) return byDive;
+      final sameDive = a.dive.compareTo(b.dive);
+      if (sameDive != 0) return sameDive;
+      final byTime = b.entry.item.takenAt.compareTo(a.entry.item.takenAt);
+      return byTime != 0 ? byTime : a.entry.item.id.compareTo(b.entry.item.id);
     });
-    return out;
+    return [for (final o in out) o.entry];
   }
 
   /// The gear used on [diveId], every way gear reaches a dive.
@@ -287,16 +324,30 @@ class MediaGearRepository {
   Future<void> _insertPairs(
     List<({String mediaId, String equipmentId})> pairs,
   ) async {
+    if (pairs.isEmpty) return;
+    // A photo or gear item deleted since the caller read it (by sync, or
+    // in another window) is skipped: its foreign key would fail the whole
+    // save the link is written in.
+    final media = await existingRowIds(_db, _db.media, {
+      for (final p in pairs) p.mediaId,
+    });
+    final gear = await existingRowIds(_db, _db.equipment, {
+      for (final p in pairs) p.equipmentId,
+    });
+    final live = [
+      for (final p in pairs)
+        if (media.contains(p.mediaId) && gear.contains(p.equipmentId)) p,
+    ];
     final now = DateTime.now().millisecondsSinceEpoch;
-    for (var i = 0; i < pairs.length; i++) {
+    for (var i = 0; i < live.length; i++) {
       final id = _uuid.v4();
       final inserted = await _db.customUpdate(
         'INSERT INTO media_equipment (id, media_id, equipment_id, created_at) '
         'VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING',
         variables: [
           Variable.withString(id),
-          Variable.withString(pairs[i].mediaId),
-          Variable.withString(pairs[i].equipmentId),
+          Variable.withString(live[i].mediaId),
+          Variable.withString(live[i].equipmentId),
           Variable.withInt(now + i),
         ],
         updates: {_db.mediaEquipment},

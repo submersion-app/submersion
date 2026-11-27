@@ -34,6 +34,27 @@ final gearItemDivePhotosList = SittingList<EquipmentItem, MediaItem>(
   same: (a, b) => sameIdSets(a, b, (m) => m.id),
 );
 
+/// [current] with [keep] in place of the photos the card showed
+/// ([shownNow]): links the diver cannot see stay, and no photo is listed
+/// twice, even when the picker opened before the card knew what it showed.
+List<MediaItem> replaceShownLinks({
+  required List<MediaItem> current,
+  required List<MediaItem> shownNow,
+  required List<MediaItem> keep,
+}) {
+  final shownIds = {for (final m in shownNow) m.id};
+  final keepIds = {for (final m in keep) m.id};
+  final seen = <String>{};
+  return [
+    for (final m in [
+      for (final m in current)
+        if (!shownIds.contains(m.id) && !keepIds.contains(m.id)) m,
+      ...keep,
+    ])
+      if (seen.add(m.id)) m,
+  ];
+}
+
 /// The photos the card shows from [session]'s list: those the diver can
 /// see ([visibleIds], the stored links the Library scope lets through),
 /// and every photo linked in this sitting, which the picker only offers

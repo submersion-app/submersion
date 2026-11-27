@@ -222,6 +222,27 @@ void main() {
     expect(await db.select(db.mediaEquipment).get(), isEmpty);
   });
 
+  test('gear is not linked to a document (issue #5046)', () async {
+    await db.customStatement(
+      'INSERT INTO equipment (id, name, type, created_at, updated_at, '
+      "diver_id) VALUES ('e1', 'Drysuit', 'drysuit', 0, 0, '$kDiverA')",
+    );
+    await db.customStatement(
+      "UPDATE media SET file_type = 'document' WHERE id = 'm1'",
+    );
+    final plan = await h.preview([
+      {
+        ...updateOp('media', 'm1', {}),
+        'relations': {
+          'equipment_ids': {
+            'add': ['e1'],
+          },
+        },
+      },
+    ]);
+    expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+  });
+
   test('a colour slider of 2 is refused', () async {
     final plan = await h.preview([
       updateOp('media', 'm1', {

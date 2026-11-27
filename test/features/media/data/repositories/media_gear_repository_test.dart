@@ -131,14 +131,30 @@ void main() {
     expect(await repo.mediaIdsFor('e1'), unorderedEquals(['m1', 'm3']));
   });
 
-  test('linkableMediaOnDives lists the photos of those dives', () async {
+  test('linkableEntriesOnDives groups by dive, newest dive first', () async {
+    await db.customStatement(
+      "UPDATE dives SET dive_number = 7, dive_date_time = 5000 WHERE id = 'd1'",
+    );
+    await db.customStatement(
+      "UPDATE dives SET dive_number = 8, dive_date_time = 9000 WHERE id = 'd2'",
+    );
     await media('doc', diveId: 'd1', fileType: 'document');
     await media('m4', diveId: 'd1', takenAt: 40);
-    final ids = [
-      for (final m in await repo.linkableMediaOnDives(['d1'])) m.id,
-    ];
-    expect(ids, ['m4', 'm1']);
+    final entries = await repo.linkableEntriesOnDives(['d1', 'd2']);
+    expect([for (final e in entries) e.item.id], ['m2', 'm4', 'm1']);
+    expect(entries.first.diveNumber, 8);
+    expect(entries.last.diveDateTime, DateTime.utc(1970, 1, 1, 0, 0, 5));
   });
+
+  test(
+    'a link to a photo or gear deleted meanwhile is skipped, not thrown',
+    () async {
+      await repo.replaceMedia('e1', ['m1', 'gone']);
+      expect(await repo.mediaIdsFor('e1'), ['m1']);
+      await repo.replaceGear('m3', ['e2', 'gone']);
+      expect(await repo.gearIdsFor('m3'), ['e2']);
+    },
+  );
 
   test('gearOnDive includes a cylinder linked through dive_tanks', () async {
     await db.customStatement(
