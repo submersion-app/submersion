@@ -238,6 +238,7 @@ class SyncRepository {
     'siteTags': (table: 'site_tags', pk: 'id'),
     'equipmentTags': (table: 'equipment_tags', pk: 'id'),
     'mediaTags': (table: 'media_tags', pk: 'id'),
+    'mediaEquipment': (table: 'media_equipment', pk: 'id'),
     'documentTags': (table: 'document_tags', pk: 'id'),
     'equipmentShares': (table: 'equipment_shares', pk: 'id'),
     'tripEquipment': (table: 'trip_equipment', pk: 'id'),

@@ -399,6 +399,9 @@ class SyncData {
   final List<Map<String, dynamic>> siteTags;
   final List<Map<String, dynamic>> equipmentTags;
   final List<Map<String, dynamic>> mediaTags;
+
+  /// Gear linked to photos and videos (v388, issue #5046).
+  final List<Map<String, dynamic>> mediaEquipment;
   final List<Map<String, dynamic>> documentTags;
   final List<Map<String, dynamic>> equipmentShares;
   final List<Map<String, dynamic>> tripEquipment;
@@ -556,6 +559,7 @@ class SyncData {
     this.siteTags = const [],
     this.equipmentTags = const [],
     this.mediaTags = const [],
+    this.mediaEquipment = const [],
     this.documentTags = const [],
     this.equipmentShares = const [],
     this.tripEquipment = const [],
@@ -701,6 +705,7 @@ class SyncData {
     'siteTags': siteTags,
     'equipmentTags': equipmentTags,
     'mediaTags': mediaTags,
+    'mediaEquipment': mediaEquipment,
     'documentTags': documentTags,
     'equipmentShares': equipmentShares,
     'tripEquipment': tripEquipment,
@@ -865,6 +870,7 @@ class SyncData {
       siteTags: _parseList(json['siteTags']),
       equipmentTags: _parseList(json['equipmentTags']),
       mediaTags: _parseList(json['mediaTags']),
+      mediaEquipment: _parseList(json['mediaEquipment']),
       documentTags: _parseList(json['documentTags']),
       equipmentShares: _parseList(json['equipmentShares']),
       tripEquipment: _parseList(json['tripEquipment']),
@@ -1594,6 +1600,7 @@ class SyncDataSerializer {
     (key: 'siteTags', table: _db.siteTags, blob: false, full: null),
     (key: 'equipmentTags', table: _db.equipmentTags, blob: false, full: null),
     (key: 'mediaTags', table: _db.mediaTags, blob: false, full: null),
+    (key: 'mediaEquipment', table: _db.mediaEquipment, blob: false, full: null),
     (key: 'documentTags', table: _db.documentTags, blob: false, full: null),
     (
       key: 'equipmentShares',
@@ -2129,6 +2136,7 @@ class SyncDataSerializer {
     'siteTags',
     'equipmentTags',
     'mediaTags',
+    'mediaEquipment',
     'documentTags',
     'equipmentShares',
     'tripEquipment',
@@ -2408,6 +2416,7 @@ class SyncDataSerializer {
     'siteTags': 'site_tags',
     'equipmentTags': 'equipment_tags',
     'mediaTags': 'media_tags',
+    'mediaEquipment': 'media_equipment',
     'documentTags': 'document_tags',
     'equipmentShares': 'equipment_shares',
     'tripEquipment': 'trip_equipment',
@@ -3267,6 +3276,14 @@ class SyncDataSerializer {
         () async => _withPendingChildren(
           'mediaTags',
           await _exportMediaTags(hlcSince),
+          pendingChildren,
+        ),
+      ),
+      mediaEquipment: await _safeExport(
+        'mediaEquipment',
+        () async => _withPendingChildren(
+          'mediaEquipment',
+          await _exportMediaEquipment(hlcSince),
           pendingChildren,
         ),
       ),
@@ -4212,6 +4229,11 @@ class SyncDataSerializer {
       case 'equipmentShares':
         final row = await (_db.select(
           _db.equipmentShares,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'mediaEquipment':
+        final row = await (_db.select(
+          _db.mediaEquipment,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'tripEquipment':
@@ -5842,6 +5864,29 @@ class SyncDataSerializer {
     return kept;
   }
 
+  /// Applies one incoming `media_equipment` row (v388, issue #5046). The
+  /// (photo, gear) pair is unique, so a peer's copy of a pair this device
+  /// holds under another id is reconciled to the lower id and then skipped
+  /// with DO NOTHING, as [_applyEquipmentShareRecord] does.
+  Future<void> _applyMediaEquipmentRecord(MediaEquipmentData record) async {
+    await _reconcileJunctionIds(
+      'media_equipment',
+      parentColumn: 'media_id',
+      childColumn: 'equipment_id',
+      pairs: [
+        (parent: record.mediaId, child: record.equipmentId, id: record.id),
+      ],
+    );
+    await _db
+        .into(_db.mediaEquipment)
+        .insert(
+          record,
+          onConflict: DoNothing<$MediaEquipmentTable, MediaEquipmentData>(
+            target: const [],
+          ),
+        );
+  }
+
   /// Applies one incoming `equipment_shares` row (v234, issue #2046). The
   /// (item, diver) pair is unique, so a peer's copy of a pair this device
   /// holds under another id is reconciled to the lower id and then skipped
@@ -6602,6 +6647,9 @@ class SyncDataSerializer {
         return;
       case 'equipmentShares':
         await _applyEquipmentShareRecord(EquipmentShareRow.fromJson(data));
+        return;
+      case 'mediaEquipment':
+        await _applyMediaEquipmentRecord(MediaEquipmentData.fromJson(data));
         return;
       case 'tripEquipment':
         await _applyTripEquipmentRecords([data]);
@@ -8190,6 +8238,31 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'mediaEquipment':
+        // DoNothing: see [_applyMediaEquipmentRecord].
+        final gearRows = _lowestIdPerPair(
+          records.map((r) => MediaEquipmentData.fromJson(r)).toList(),
+          (row) => (parent: row.mediaId, child: row.equipmentId, id: row.id),
+        );
+        await _reconcileJunctionIds(
+          'media_equipment',
+          parentColumn: 'media_id',
+          childColumn: 'equipment_id',
+          pairs: [
+            for (final row in gearRows)
+              (parent: row.mediaId, child: row.equipmentId, id: row.id),
+          ],
+        );
+        await _db.batch(
+          (b) => b.insertAll(
+            _db.mediaEquipment,
+            gearRows,
+            onConflict: DoNothing<$MediaEquipmentTable, MediaEquipmentData>(
+              target: const [],
+            ),
+          ),
+        );
+        return;
       case 'tripEquipment':
         await _applyTripEquipmentRecords(records);
         return;
@@ -9064,6 +9137,8 @@ class SyncDataSerializer {
         return plain(_db.documentTags, _db.documentTags.id);
       case 'equipmentShares':
         return plain(_db.equipmentShares, _db.equipmentShares.id);
+      case 'mediaEquipment':
+        return plain(_db.mediaEquipment, _db.mediaEquipment.id);
       case 'tripEquipment':
         return plain(_db.tripEquipment, _db.tripEquipment.id);
       case 'tripHides':
@@ -9643,6 +9718,8 @@ class SyncDataSerializer {
         return _db.equipmentTags;
       case 'mediaTags':
         return _db.mediaTags;
+      case 'mediaEquipment':
+        return _db.mediaEquipment;
       case 'documentTags':
         return _db.documentTags;
       case 'equipmentShares':
@@ -10272,6 +10349,11 @@ class SyncDataSerializer {
       case 'equipmentShares':
         await (_db.delete(
           _db.equipmentShares,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'mediaEquipment':
+        await (_db.delete(
+          _db.mediaEquipment,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'tripEquipment':
@@ -12302,6 +12384,34 @@ class SyncDataSerializer {
       );
     }
     final rows = await _db.select(_db.mediaTags).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Gear linked to photos (v388, issue #5046), gated on the photo's clock
+  /// like [_exportMediaTags]. A changed link travels on its own pending
+  /// mark, never by re-stamping the photo.
+  Future<List<Map<String, dynamic>>> _exportMediaEquipment(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      // Ids only: a media row can carry a signature's image bytes.
+      final ids =
+          await (_db.selectOnly(_db.media)
+                ..addColumns([_db.media.id])
+                ..where(_db.media.hlc.isBiggerThanValue(hlcSince)))
+              .map((r) => r.read(_db.media.id)!)
+              .get()
+              .then((ids) => ids.toSet());
+      if (ids.isEmpty) return [];
+
+      return _childRowsOf(
+        ids,
+        (chunk) => (_db.select(
+          _db.mediaEquipment,
+        )..where((t) => t.mediaId.isIn(chunk))).get(),
+      );
+    }
+    final rows = await _db.select(_db.mediaEquipment).get();
     return rows.map((r) => r.toJson()).toList();
   }
 
