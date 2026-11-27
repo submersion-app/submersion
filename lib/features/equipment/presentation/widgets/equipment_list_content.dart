@@ -1309,21 +1309,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
     final anyTypeFolded = rows.any(
       (row) => row is EquipmentTypeHeadingRow && !row.isExpanded,
     );
-    // In the assembly view a heading's items hold their parts, so a folded
-    // heading reads each item's rollup over both links (issue #5071): a due
-    // cell inside a folded rig still counts.
-    final urgency = !anyTypeFolded
-        ? const <String, ServiceClockStatus>{}
-        : !framed
+    final urgency = anyTypeFolded
         ? (ref.watch(equipmentServiceUrgencyProvider).value ??
               const <String, ServiceClockStatus>{})
-        : {
-            for (final entry
-                in (ref.watch(equipmentAssemblyRollupClockProvider).value ??
-                        const <String, RollupClock>{})
-                    .entries)
-              entry.key: entry.value.status,
-          };
+        : const <String, ServiceClockStatus>{};
 
     // Scroll to selected item when data is available but we haven't
     // scrolled yet (e.g., navigated from dive detail or set detail), or when

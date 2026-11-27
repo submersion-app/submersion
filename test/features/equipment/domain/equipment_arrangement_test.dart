@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
@@ -143,6 +145,13 @@ void main() {
       final off = EquipmentArrangement.defaults.copyWith(nestParts: false);
       expect(off, isNot(EquipmentArrangement.defaults));
       expect(off.hashCode, isNot(EquipmentArrangement.defaults.hashCode));
+    });
+
+    test('unknown keys with nested values compare by value', () {
+      EquipmentArrangement read() => EquipmentArrangement.fromJson(
+        jsonDecode('{"futureAxis": [1, 2]}') as Map<String, dynamic>,
+      );
+      expect(read(), read());
     });
 
     test('keys this build does not know survive a round trip', () {

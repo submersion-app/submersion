@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/sort_options.dart';
@@ -175,7 +176,7 @@ class EquipmentArrangement {
           other.itemSortField == itemSortField &&
           other.itemSortDirection == itemSortDirection &&
           other.nestParts == nestParts &&
-          mapEquals(other._extras, _extras);
+          const DeepCollectionEquality().equals(other._extras, _extras);
 
   @override
   int get hashCode => Object.hash(

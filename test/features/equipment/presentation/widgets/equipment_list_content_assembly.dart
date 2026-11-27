@@ -285,7 +285,7 @@ void _assemblyViewTests() {
     });
 
     group('review fixes', () {
-      testWidgets('a folded heading counts a due part under an assembly', (
+      testWidgets('a folded heading counts each due part under it', (
         tester,
       ) async {
         final t0 = DateTime(2026);
@@ -308,19 +308,19 @@ void _assemblyViewTests() {
           severity: ServiceClockSeverity.overdue,
           now: DateTime.now(),
         );
+        // Each due part counts, as in the flat view: two overdue cells are
+        // two services, not one rig.
         await pumpList(
           tester,
           saved: '["type:rebreather"]',
           extra: [
-            equipmentAssemblyRollupClockProvider.overrideWith(
-              (ref) async => {
-                'sf2': (ownerId: 'c1', ownerName: 'Cell 1', status: due),
-              },
+            equipmentServiceUrgencyProvider.overrideWith(
+              (ref) async => {'c1': due, 'c2': due},
             ),
           ],
         );
         expect(rowNames(tester), ['Fins']);
-        expect(find.text('1 service due'), findsOneWidget);
+        expect(find.text('2 service due'), findsOneWidget);
       });
 
       testWidgets('turning the view on keeps the open part in sight', (
@@ -409,6 +409,38 @@ void _assemblyViewTests() {
         );
         await tester.pumpAndSettle();
         expect(find.text('1 of 4 selected'), findsOneWidget);
+      });
+
+      testWidgets('an assembly opened for a deep link can be folded again', (
+        tester,
+      ) async {
+        await pumpList(tester, selectedId: 'c2');
+        expect(rowNames(tester), contains('Cell 2'));
+
+        await tester.tap(find.byTooltip('Hide parts'));
+        await tester.pumpAndSettle();
+        expect(rowNames(tester), ['Fins', 'SF2']);
+        expect(stored(), isNull);
+      });
+
+      testWidgets('a Shift range skips the parts of a folded assembly', (
+        tester,
+      ) async {
+        final selection = SelectionController();
+        addTearDown(selection.dispose);
+        final mask = item('mask', 'Mask', EquipmentType.mask);
+        await pumpList(tester, items: [...rig, mask], selection: selection);
+        expect(rowNames(tester), ['Fins', 'Mask', 'SF2']);
+        selection.enterExplicit();
+        selection.toggle('fins');
+        await tester.pumpAndSettle();
+
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+        await tester.tap(find.text('SF2'));
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+        await tester.pumpAndSettle();
+
+        expect(selection.value.checkedIds, {'fins', 'mask', 'sf2'});
       });
 
       testWidgets('an assembly with no parts on the list keeps its count', (

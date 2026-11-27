@@ -70,15 +70,27 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
   }
 
   /// The fold keys over each item this build, from the layout: what a
-  /// folded heading's tick summary counts, nested parts included.
+  /// folded heading's summaries count, nested parts included.
   Map<String, List<String>> _foldKeysByItem = const {};
+
+  /// [_foldKeysByItem] inverted, built the first time a folded heading asks
+  /// this build, so a long list pays one pass rather than one per heading.
+  Map<String, List<String>>? _idsByFoldKey;
 
   /// Every item [foldKey] hides when folded, parts under its assemblies
   /// included (issue #5071).
-  List<String> _idsUnder(String foldKey) => [
-    for (final entry in _foldKeysByItem.entries)
-      if (entry.value.contains(foldKey)) entry.key,
-  ];
+  List<String> _idsUnder(String foldKey) {
+    final index = _idsByFoldKey ??= () {
+      final byKey = <String, List<String>>{};
+      for (final entry in _foldKeysByItem.entries) {
+        for (final key in entry.value) {
+          byKey.putIfAbsent(key, () => []).add(entry.key);
+        }
+      }
+      return byKey;
+    }();
+    return index[foldKey] ?? const [];
+  }
 
   /// Clears what the fold menu acts on, for a body with no rows.
   void _clearFoldTargets() {
@@ -152,6 +164,7 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
     }.toList();
     _assemblyIds = layout.assemblyIds;
     _foldKeysByItem = layout.foldKeysByItem;
+    _idsByFoldKey = null;
     return layout;
   }
 
@@ -192,7 +205,9 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
   );
 
   /// A type's heading (issue #4184), indented under its place. Folded, it
-  /// says how many items inside need service, from [urgency].
+  /// says how many items inside need service, from [urgency]: every item it
+  /// hides, parts nested under its assemblies included (issue #5071), each
+  /// by its own clocks, as the flat view counts them.
   Widget _typeHeading(
     BuildContext context,
     EquipmentTypeHeadingRow row,
@@ -212,10 +227,10 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
           : (_selectionSummary(context, row.foldKey) ??
                 foldedTypeSummary(
                   context.l10n,
-                  serviceDueCount: row.items
+                  serviceDueCount: _idsUnder(row.foldKey)
                       .where(
-                        (e) =>
-                            (urgency[e.id]?.severity ??
+                        (id) =>
+                            (urgency[id]?.severity ??
                                 ServiceClockSeverity.ok) !=
                             ServiceClockSeverity.ok,
                       )
