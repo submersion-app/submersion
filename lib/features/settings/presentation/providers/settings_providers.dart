@@ -108,6 +108,11 @@ class SettingsKeys {
   /// no tap, marked unconfirmed (issue #4727). Off by default.
   static const String speciesIdAutoApply = 'species_id_auto_apply';
 
+  /// Device-local: whether the diver dismissed the offer to download the
+  /// identification model (issue #4773). Off by default.
+  static const String speciesIdDownloadPromptDismissed =
+      'species_id_download_prompt_dismissed';
+
   /// Device-local: when such a tag logs its dive's sighting, by
   /// `SightingTiming` name (issue #4727).
   static const String speciesIdSightingTiming = 'species_id_sighting_timing';
@@ -115,6 +120,10 @@ class SettingsKeys {
   /// Device-local: how sure the app must be before it names a fish, a
   /// naming level's id (issue #4721).
   static const String marineLifeNamingLevel = 'species_id_naming_level';
+
+  /// What the viewer draws over photos and videos for the animals found
+  /// (issue #4825): names, allLife or off. Unset reads as names.
+  static const String marineLifeLabelMode = 'species_id_label_mode';
 
   /// Device-local: whether the fullscreen viewers fill the window or take
   /// the desktop window into OS fullscreen.
@@ -166,10 +175,18 @@ class SettingsKeys {
 
   static const String hiddenHomeChips = 'hidden_home_chips';
 
-  // Home card layout is device-local like the chip toggles above (stored
-  // directly in SharedPreferences rather than per-diver in the DB).
-  static const String homeCardOrder = 'home_card_order';
+  // The retired Home card layout's hidden set, read once as the starting
+  // point of the panel layout below and never written.
   static const String hiddenHomeCards = 'hidden_home_cards';
+
+  // The Home panel layout (issue #4824), device-local like the keys above.
+  // New keys rather than reuse of the card keys: the cards' values are left
+  // as they were, read once as the upgrade's starting point.
+  static const String homePanelOrder = 'home_panel_order';
+  static const String hiddenHomePanels = 'hidden_home_panels';
+  static const String hiddenHomeKeyNumbers = 'hidden_home_key_numbers';
+  static const String homeHeaderStylePhone = 'home_header_style_phone';
+  static const String homeHeaderStyleWide = 'home_header_style_wide';
 
   // Whether profile-chart metric overlays follow the visible depth window
   // when zoomed. Per-diver since v262; see [pscrRatio].
@@ -361,6 +378,11 @@ class AppSettings implements UnitFormatterSettings {
 
   /// CCR default high setpoint in bar, the one held at depth.
   final double ccrSetpointHigh;
+
+  /// Depth in meters at which a CCR plan switches from the low to the high
+  /// setpoint, unless the plan sets its own or turns the switch off (issue
+  /// #3793).
+  final double ccrSetpointSwitchDepth;
 
   /// ppO2 a CCR diluent may reach on a flush, which sets its MOD.
   @override
@@ -789,13 +811,29 @@ class AppSettings implements UnitFormatterSettings {
   /// Device-local, not per-diver.
   final Set<String> hiddenHomeChips;
 
-  /// Display order of home screen cards ([HomeCardType.name] values).
-  /// Empty means the default order. Device-local, not per-diver.
-  final List<String> homeCardOrder;
-
-  /// Home screen cards the user has toggled off ([HomeCardType.name]
-  /// values). Device-local, not per-diver.
+  /// Cards switched off on the retired card Home. Read-only: the first run
+  /// of the panel Home keeps hidden any panel that shares a card's name.
   final Set<String> hiddenHomeCards;
+
+  /// Home panel display order (HomePanelType.name values), or null when the
+  /// diver has never set a layout. Device-local, not per-diver.
+  final List<String>? homePanelOrder;
+
+  /// Home panels switched off (HomePanelType.name values), or null when
+  /// never set. Device-local, not per-diver.
+  final Set<String>? hiddenHomePanels;
+
+  /// Key number tiles switched off (HomeKeyNumber.name values), or null for
+  /// the default set. Device-local, not per-diver.
+  final Set<String>? hiddenHomeKeyNumbers;
+
+  /// Home's header at phone width (HomeHeaderStyle.name), or null when never
+  /// set, which reads as compact. Device-local, not per-diver.
+  final String? homeHeaderStylePhone;
+
+  /// Home's header on tablet and desktop widths (HomeHeaderStyle.name), or
+  /// null when never set, which reads as compact. Device-local, not per-diver.
+  final String? homeHeaderStyleWide;
 
   /// Whether the dive profile chart's secondary-axis metric overlays (NDL,
   /// ppO2, GF, ...) follow the visible depth window when zoomed instead of
@@ -884,6 +922,7 @@ class AppSettings implements UnitFormatterSettings {
     this.maxO2DepthMeters = 6.0,
     this.ccrSetpointLow = 0.7,
     this.ccrSetpointHigh = 1.3,
+    this.ccrSetpointSwitchDepth = 10.0,
     this.ccrDiluentModPpO2 = 1.6,
     this.cnsWarningThreshold = 80,
     this.ascentRateWarning = 9.0,
@@ -1034,8 +1073,12 @@ class AppSettings implements UnitFormatterSettings {
     this.siteDetailSections = SiteDetailSectionConfig.defaultSections,
     this.siteDetailLayout = DiveDetailLayout.detailed,
     this.hiddenHomeChips = const <String>{},
-    this.homeCardOrder = const <String>[],
     this.hiddenHomeCards = const <String>{},
+    this.homePanelOrder,
+    this.hiddenHomePanels,
+    this.hiddenHomeKeyNumbers,
+    this.homeHeaderStylePhone,
+    this.homeHeaderStyleWide,
     this.profileMetricsFollowViewport = false,
     this.o2CellUnit = O2CellUnit.ppO2,
     this.counterdiffusionShowAll = false,
@@ -1129,6 +1172,7 @@ class AppSettings implements UnitFormatterSettings {
     double? maxO2DepthMeters,
     double? ccrSetpointLow,
     double? ccrSetpointHigh,
+    double? ccrSetpointSwitchDepth,
     double? ccrDiluentModPpO2,
     int? cnsWarningThreshold,
     double? ascentRateWarning,
@@ -1283,8 +1327,12 @@ class AppSettings implements UnitFormatterSettings {
     bool clearSiteDetailSections = false,
     DiveDetailLayout? siteDetailLayout,
     Set<String>? hiddenHomeChips,
-    List<String>? homeCardOrder,
     Set<String>? hiddenHomeCards,
+    List<String>? homePanelOrder,
+    Set<String>? hiddenHomePanels,
+    Set<String>? hiddenHomeKeyNumbers,
+    String? homeHeaderStylePhone,
+    String? homeHeaderStyleWide,
     bool? profileMetricsFollowViewport,
     O2CellUnit? o2CellUnit,
     bool? counterdiffusionShowAll,
@@ -1349,6 +1397,8 @@ class AppSettings implements UnitFormatterSettings {
       maxO2DepthMeters: maxO2DepthMeters ?? this.maxO2DepthMeters,
       ccrSetpointLow: ccrSetpointLow ?? this.ccrSetpointLow,
       ccrSetpointHigh: ccrSetpointHigh ?? this.ccrSetpointHigh,
+      ccrSetpointSwitchDepth:
+          ccrSetpointSwitchDepth ?? this.ccrSetpointSwitchDepth,
       ccrDiluentModPpO2: ccrDiluentModPpO2 ?? this.ccrDiluentModPpO2,
       cnsWarningThreshold: cnsWarningThreshold ?? this.cnsWarningThreshold,
       ascentRateWarning: ascentRateWarning ?? this.ascentRateWarning,
@@ -1566,8 +1616,12 @@ class AppSettings implements UnitFormatterSettings {
           : (siteDetailSections ?? this.siteDetailSections),
       siteDetailLayout: siteDetailLayout ?? this.siteDetailLayout,
       hiddenHomeChips: hiddenHomeChips ?? this.hiddenHomeChips,
-      homeCardOrder: homeCardOrder ?? this.homeCardOrder,
       hiddenHomeCards: hiddenHomeCards ?? this.hiddenHomeCards,
+      homePanelOrder: homePanelOrder ?? this.homePanelOrder,
+      hiddenHomePanels: hiddenHomePanels ?? this.hiddenHomePanels,
+      hiddenHomeKeyNumbers: hiddenHomeKeyNumbers ?? this.hiddenHomeKeyNumbers,
+      homeHeaderStylePhone: homeHeaderStylePhone ?? this.homeHeaderStylePhone,
+      homeHeaderStyleWide: homeHeaderStyleWide ?? this.homeHeaderStyleWide,
       profileMetricsFollowViewport:
           profileMetricsFollowViewport ?? this.profileMetricsFollowViewport,
       o2CellUnit: o2CellUnit ?? this.o2CellUnit,
@@ -1833,8 +1887,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// in [state]: the ones [_loadSettings] reads from SharedPreferences.
   AppSettings _withDeviceLocalPrefs(AppSettings settings) => settings.copyWith(
     hiddenHomeChips: state.hiddenHomeChips,
-    homeCardOrder: state.homeCardOrder,
     hiddenHomeCards: state.hiddenHomeCards,
+    homePanelOrder: state.homePanelOrder,
+    hiddenHomePanels: state.hiddenHomePanels,
+    hiddenHomeKeyNumbers: state.hiddenHomeKeyNumbers,
+    homeHeaderStylePhone: state.homeHeaderStylePhone,
+    homeHeaderStyleWide: state.homeHeaderStyleWide,
     o2CellUnit: state.o2CellUnit,
     counterdiffusionShowAll: state.counterdiffusionShowAll,
     perdixOverlayEnabled: state.perdixOverlayEnabled,
@@ -1879,20 +1937,41 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final hiddenHomeChips =
         prefs.getStringList(SettingsKeys.hiddenHomeChips)?.toSet() ??
         const <String>{};
-    List<String> homeCardOrder;
     Set<String> hiddenHomeCards;
     try {
-      homeCardOrder =
-          prefs.getStringList(SettingsKeys.homeCardOrder) ?? const [];
       hiddenHomeCards =
           prefs.getStringList(SettingsKeys.hiddenHomeCards)?.toSet() ??
           const <String>{};
     } catch (_) {
       // Corrupt pref types must never block the dashboard; fall back to
       // the default layout.
-      homeCardOrder = const [];
       hiddenHomeCards = const <String>{};
     }
+    // Read one by one: a corrupt value in one key must not discard the
+    // others, and must never block Home (it then starts from Balanced).
+    List<String>? readList(String key) {
+      try {
+        return prefs.getStringList(key);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    final homePanelOrder = readList(SettingsKeys.homePanelOrder);
+    final hiddenHomePanels = readList(SettingsKeys.hiddenHomePanels)?.toSet();
+    final hiddenHomeKeyNumbers = readList(
+      SettingsKeys.hiddenHomeKeyNumbers,
+    )?.toSet();
+    String? readString(String key) {
+      try {
+        return prefs.getString(key);
+      } catch (_) {
+        return null;
+      }
+    }
+
+    final homeHeaderStylePhone = readString(SettingsKeys.homeHeaderStylePhone);
+    final homeHeaderStyleWide = readString(SettingsKeys.homeHeaderStyleWide);
     // Since v262 the pSCR ratio and "metrics follow viewport" are per-diver
     // (synced, issue #2948). These prefs are the store while no diver
     // exists, and the value a diver row that has never held one adopts.
@@ -1923,8 +2002,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       _replaceBase(null);
       state = AppSettings(
         hiddenHomeChips: hiddenHomeChips,
-        homeCardOrder: homeCardOrder,
         hiddenHomeCards: hiddenHomeCards,
+        homePanelOrder: homePanelOrder,
+        hiddenHomePanels: hiddenHomePanels,
+        hiddenHomeKeyNumbers: hiddenHomeKeyNumbers,
+        homeHeaderStylePhone: homeHeaderStylePhone,
+        homeHeaderStyleWide: homeHeaderStyleWide,
         pscrRatio: pscrRatioPref ?? 100.0,
         profileMetricsFollowViewport: followViewportPref ?? false,
         o2CellUnit: o2CellUnit,
@@ -1994,8 +2077,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     _replaceBase(settings);
     state = settings.copyWith(
       hiddenHomeChips: hiddenHomeChips,
-      homeCardOrder: homeCardOrder,
       hiddenHomeCards: hiddenHomeCards,
+      homePanelOrder: homePanelOrder,
+      hiddenHomePanels: hiddenHomePanels,
+      hiddenHomeKeyNumbers: hiddenHomeKeyNumbers,
+      homeHeaderStylePhone: homeHeaderStylePhone,
+      homeHeaderStyleWide: homeHeaderStyleWide,
       o2CellUnit: o2CellUnit,
       counterdiffusionShowAll: counterdiffusionShowAll,
       perdixOverlayEnabled: perdixOverlayEnabled,
@@ -2072,14 +2159,34 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
           SettingsKeys.hiddenHomeChips,
           state.hiddenHomeChips.toList()..sort(),
         );
-        await prefs.setStringList(
-          SettingsKeys.homeCardOrder,
-          state.homeCardOrder,
-        );
-        await prefs.setStringList(
-          SettingsKeys.hiddenHomeCards,
-          state.hiddenHomeCards.toList()..sort(),
-        );
+        // Written only once set: absent keys are how the first run of the
+        // new Home tells a fresh layout from a chosen one.
+        final panelOrder = state.homePanelOrder;
+        if (panelOrder != null) {
+          await prefs.setStringList(SettingsKeys.homePanelOrder, panelOrder);
+        }
+        final hiddenPanels = state.hiddenHomePanels;
+        if (hiddenPanels != null) {
+          await prefs.setStringList(
+            SettingsKeys.hiddenHomePanels,
+            hiddenPanels.toList()..sort(),
+          );
+        }
+        final hiddenTiles = state.hiddenHomeKeyNumbers;
+        if (hiddenTiles != null) {
+          await prefs.setStringList(
+            SettingsKeys.hiddenHomeKeyNumbers,
+            hiddenTiles.toList()..sort(),
+          );
+        }
+        final headerPhone = state.homeHeaderStylePhone;
+        if (headerPhone != null) {
+          await prefs.setString(SettingsKeys.homeHeaderStylePhone, headerPhone);
+        }
+        final headerWide = state.homeHeaderStyleWide;
+        if (headerWide != null) {
+          await prefs.setString(SettingsKeys.homeHeaderStyleWide, headerWide);
+        }
         await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
         await prefs.setBool(
           SettingsKeys.counterdiffusionShowAll,
@@ -2605,14 +2712,33 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   static double ccrPpO2OnGrid(double value) =>
       (value.clamp(ccrPpO2Min, ccrPpO2Max) * 10).round() / 10;
 
+  /// Range of the setpoint switch depth slider (issue #3793), in meters. A
+  /// value outside it is typed into the number field.
+  static const double ccrSwitchDepthSliderMin = 3.0;
+  static const double ccrSwitchDepthSliderMax = 30.0;
+
+  /// Range of the setpoint switch depth the number field accepts, in meters.
+  static const double ccrSwitchDepthInputMin = 0.0;
+  static const double ccrSwitchDepthInputMax = 100.0;
+
+  /// [value] clamped to the input range and rounded to the millimeter. Not
+  /// to 0.1 m: a depth typed in feet must survive the round trip (30 ft is
+  /// 9.144 m, which a 0.1 m grid turns into 29.9 ft).
+  static double ccrSwitchDepthOnGrid(double value) =>
+      (value.clamp(ccrSwitchDepthInputMin, ccrSwitchDepthInputMax) * 1000)
+          .round() /
+      1000;
+
   /// Set the CCR ppO2 limits in one persisted write. Each is put on the
   /// [ccrPpO2Min]..[ccrPpO2Max] 0.1 bar grid, and the high setpoint is held
   /// at or above the low one, the same "never inverted" rule
-  /// [setPpO2Limits] keeps.
+  /// [setPpO2Limits] keeps. A [setpointSwitchDepth] of null keeps the stored
+  /// switch depth; otherwise it goes through [ccrSwitchDepthOnGrid].
   Future<void> setCcrPpO2Limits({
     required double setpointLow,
     required double setpointHigh,
     required double diluentModPpO2,
+    double? setpointSwitchDepth,
   }) async {
     final low = ccrPpO2OnGrid(setpointLow);
     final high = ccrPpO2OnGrid(setpointHigh);
@@ -2620,6 +2746,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       (s) => s.copyWith(
         ccrSetpointLow: low,
         ccrSetpointHigh: high < low ? low : high,
+        ccrSetpointSwitchDepth: setpointSwitchDepth == null
+            ? null
+            : ccrSwitchDepthOnGrid(setpointSwitchDepth),
         ccrDiluentModPpO2: ccrPpO2OnGrid(diluentModPpO2),
       ),
     );
@@ -2718,28 +2847,37 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     ),
   );
 
-  /// Show or hide one home card (id = HomeCardType.name).
-  Future<void> setHomeCardEnabled(String cardId, bool enabled) => _update(
-    (s) => s.copyWith(
-      hiddenHomeCards: _withMember(s.hiddenHomeCards, cardId, !enabled),
-    ),
-  );
-
-  /// Persist the home card display order (HomeCardType.name values).
-  Future<void> setHomeCardOrder(List<String> order) {
-    // Copied now: the change may wait for the load, and the caller's list
-    // may change by then.
-    final copy = List<String>.unmodifiable(order);
-    return _update((s) => s.copyWith(homeCardOrder: copy));
+  /// Persist the whole Home panel layout (HomePanelType.name values).
+  /// [order] holds every panel; [hidden] the ones switched off.
+  Future<void> setHomePanelLayout({
+    required List<String> order,
+    required Set<String> hidden,
+  }) {
+    // Copied now: the change may wait for the load.
+    final orderCopy = List<String>.unmodifiable(order);
+    final hiddenCopy = Set<String>.unmodifiable(hidden);
+    return _update(
+      (s) =>
+          s.copyWith(homePanelOrder: orderCopy, hiddenHomePanels: hiddenCopy),
+    );
   }
 
-  /// Restore the default home card order and visibility.
-  Future<void> resetHomeCards() => _update(
-    (s) => s.copyWith(
-      homeCardOrder: const <String>[],
-      hiddenHomeCards: const <String>{},
-    ),
+  /// Persist Home's header style (HomeHeaderStyle.name) for phone width
+  /// when [phone], otherwise for tablet and desktop widths.
+  Future<void> setHomeHeaderStyle({
+    required bool phone,
+    required String style,
+  }) => _update(
+    (s) => phone
+        ? s.copyWith(homeHeaderStylePhone: style)
+        : s.copyWith(homeHeaderStyleWide: style),
   );
+
+  /// Persist the key number tiles switched off (HomeKeyNumber.name values).
+  Future<void> setHiddenHomeKeyNumbers(Set<String> hidden) {
+    final copy = Set<String>.unmodifiable(hidden);
+    return _update((s) => s.copyWith(hiddenHomeKeyNumbers: copy));
+  }
 
   Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) => _update(
     (s) => s.copyWith(
@@ -3612,6 +3750,10 @@ final ccrSetpointLowProvider = Provider<double>((ref) {
 
 final ccrSetpointHighProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.ccrSetpointHigh));
+});
+
+final ccrSetpointSwitchDepthProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.ccrSetpointSwitchDepth));
 });
 
 final ccrDiluentModPpO2Provider = Provider<double>((ref) {

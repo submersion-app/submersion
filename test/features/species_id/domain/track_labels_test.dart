@@ -151,7 +151,7 @@ void main() {
       expect(labels.first.box.x, closeTo(0.12, 1e-9));
     });
 
-    test('keeps at most six, largest first', () {
+    test('labels every fish, however many, largest first', () {
       final tracks = [
         for (var k = 0; k < 8; k++)
           track('t$k').copyWith(
@@ -171,9 +171,9 @@ void main() {
           ),
       ];
       final labels = labelsAt(tracks, 1500, playing: true);
-      expect(labels, hasLength(6));
+      expect(labels, hasLength(8));
       expect(labels.first.identificationId, 't7');
-      expect(labels.last.identificationId, 't2');
+      expect(labels.last.identificationId, 't0');
     });
 
     test('two tracks on the same fish draw one label, the diver\'s first', () {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_pane_header.dart';
 
 Widget _host({
@@ -32,9 +32,9 @@ Widget _host({
   );
 }
 
-AppBarTextAction _action(WidgetTester tester, String label) =>
-    tester.widget<AppBarTextAction>(
-      find.byWidgetPredicate((w) => w is AppBarTextAction && w.label == label),
+RecordEditAction _action(WidgetTester tester, String label) =>
+    tester.widget<RecordEditAction>(
+      find.byWidgetPredicate((w) => w is RecordEditAction && w.label == label),
     );
 
 /// The list pane's header row while its record is unlocked (issue #4527).
@@ -77,6 +77,18 @@ void main() {
     await tester.pumpWidget(_host(isSaving: true));
 
     expect(_action(tester, 'Cancel').onPressed, isNull);
+  });
+
+  // The same amber as the full page's bar (issue #5034).
+  testWidgets('Cancel is a ring and Save is filled', (tester) async {
+    await tester.pumpWidget(_host());
+
+    expect(_action(tester, 'Cancel').style, RecordEditActionStyle.ring);
+    expect(_action(tester, 'Save').style, RecordEditActionStyle.filled);
+
+    await tester.pumpWidget(_host(saveLabel: 'Send'));
+
+    expect(_action(tester, 'Send').style, RecordEditActionStyle.filled);
   });
 
   testWidgets('a save label replaces Save', (tester) async {

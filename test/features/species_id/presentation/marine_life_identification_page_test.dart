@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,6 +17,7 @@ import 'package:submersion/features/species_id/domain/entities/naming_level.dart
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/presentation/pages/marine_life_identification_page.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_pack_controller.dart';
 
@@ -33,8 +35,14 @@ class _Controller extends SpeciesPackController {
   var cancels = 0;
   var removals = 0;
 
+  /// Whether the download would also fetch a hardware engine.
+  var fetchesEngine = false;
+
   @override
   SpeciesPackState build() => initial;
+
+  @override
+  Future<bool> downloadFetchesHardwareEngine() async => fetchesEngine;
 
   @override
   Future<void> refresh() async => refreshes++;
@@ -120,6 +128,25 @@ void main() {
     return controller;
   }
 
+  testWidgets('on Linux the page speaks of photos only', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    await pump(
+      tester,
+      const PackNotInstalled(bytes: 660000000, resumable: false),
+    );
+    expect(
+      find.text(
+        'Suggests the species in your photos. Runs on this device. Your '
+        'photos never leave it.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Identify species when I open a photo'), findsOneWidget);
+    expect(find.textContaining('photos and videos'), findsNothing);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   testWidgets('opening the page checks the model', (tester) async {
     final controller = await pump(tester, const PackChecking());
     expect(controller.refreshes, 1);
@@ -159,6 +186,40 @@ void main() {
     expect(controller.downloads, 1);
   });
 
+  testWidgets('where the download also fetches a hardware engine, the '
+      'confirmation says Windows may download one', (tester) async {
+    final controller = await pump(
+      tester,
+      const PackNotInstalled(bytes: 660000000, resumable: false),
+    );
+    controller.fetchesEngine = true;
+    await tester.tap(find.byKey(const ValueKey('species_id_download')));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining(
+        'Windows may also download an engine for your graphics card or NPU '
+        'from Microsoft.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('elsewhere the confirmation does not mention an engine', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      const PackNotInstalled(bytes: 660000000, resumable: false),
+    );
+    await tester.tap(find.byKey(const ValueKey('species_id_download')));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('You can remove it at any time.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Windows may'), findsNothing);
+  });
+
   testWidgets('downloading shows progress and can be cancelled', (
     tester,
   ) async {
@@ -192,6 +253,83 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('species_id_remove_confirm')));
     await tester.pumpAndSettle();
     expect(controller.removals, 1);
+  });
+
+  // A diver who removed the model chose to: no offer to download it again
+  // across the app (#4773).
+  testWidgets('removing the model also ends the offer to download it', (
+    tester,
+  ) async {
+    await pump(tester, const PackInstalled(version: '2026.11.1', bytes: 660));
+    bool dismissed() => ProviderScope.containerOf(
+      tester.element(find.byType(MarineLifeIdentificationPage)),
+    ).read(speciesDownloadPromptDismissedNotifierProvider);
+    expect(dismissed(), isFalse);
+
+    await tester.tap(find.byKey(const ValueKey('species_id_remove')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(dismissed(), isFalse);
+
+    await tester.tap(find.byKey(const ValueKey('species_id_remove')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('species_id_remove_confirm')));
+    await tester.pumpAndSettle();
+    expect(dismissed(), isTrue);
+  });
+
+  // The page can go while its dialog stays up (the pane rebuilt under it):
+  // a confirmed removal must still run, and still end the offer.
+  testWidgets('a removal confirmed after the page went still runs', (
+    tester,
+  ) async {
+    final controller = _Controller(
+      const PackInstalled(version: '2026.11.1', bytes: 660),
+    );
+    final shown = ValueNotifier(true);
+    addTearDown(shown.dispose);
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          ...overrides,
+          speciesPackControllerProvider.overrideWith(() => controller),
+          identificationCleanupProvider.overrideWithValue(cleanup),
+          mediaIdentificationServiceProvider.overrideWithValue(
+            _SettlingService(),
+          ),
+          identificationCountProvider.overrideWith((ref) async => 0),
+          identificationCropBytesProvider.overrideWith((ref) async => 0),
+        ],
+        child: ValueListenableBuilder<bool>(
+          key: const ValueKey('page_host'),
+          valueListenable: shown,
+          builder: (_, on, _) =>
+              on ? const MarineLifeIdentificationPage() : const SizedBox(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byKey(const ValueKey('page_host'))),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('species_id_remove')));
+    await tester.pumpAndSettle();
+    shown.value = false;
+    await tester.pumpAndSettle();
+    expect(find.byType(MarineLifeIdentificationPage), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('species_id_remove_confirm')));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(controller.removals, 1);
+    expect(
+      container.read(speciesDownloadPromptDismissedNotifierProvider),
+      true,
+    );
   });
 
   testWidgets('installing says so and offers nothing to tap', (tester) async {
@@ -332,13 +470,14 @@ void main() {
       WidgetTester tester,
       InstalledPack? pack, {
       NamingLevel chosen = NamingLevel.surer,
+      bool picked = true,
     }) => pump(
       tester,
       installed,
       extra: [
         installedSpeciesPackProvider.overrideWith((ref) async => pack),
         namingLevelNotifierProvider.overrideWith(
-          (ref) => NamingLevelNotifier.unstored(chosen),
+          (ref) => NamingLevelNotifier.unstored(chosen, picked: picked),
         ),
       ],
     );
@@ -359,7 +498,7 @@ void main() {
 
     testWidgets('show each level with its measured accuracy', (tester) async {
       await pumpLevels(tester, withLevels(const [balanced, eager]));
-      expect(find.text('Name a fish when the app is'), findsOneWidget);
+      expect(find.text('How readily to suggest a species'), findsOneWidget);
       expect(find.text('Surer'), findsOneWidget);
       expect(find.text('Fewest names. About 85% right'), findsOneWidget);
       expect(find.text('Balanced'), findsOneWidget);
@@ -412,6 +551,49 @@ void main() {
         chosen: NamingLevel.eager,
       );
       expect(find.text(fallbackNote), findsOneWidget);
+    });
+
+    testWidgets('with no level picked, a pack without Eager uses its most '
+        'eager level and says nothing (issue #4789)', (tester) async {
+      await pumpLevels(
+        tester,
+        withLevels(const [balanced]),
+        chosen: NamingLevel.eager,
+        picked: false,
+      );
+      final group = tester.widget<RadioGroup<NamingLevel>>(
+        find.byType(RadioGroup<NamingLevel>),
+      );
+      expect(group.groupValue, NamingLevel.balanced);
+      expect(find.text(fallbackNote), findsNothing);
+      final tile = tester.widget<RadioListTile<NamingLevel>>(
+        find.byKey(balancedKey),
+      );
+      expect(tile.toggleable, isFalse);
+    });
+
+    testWidgets('picking a level the pack lacks after the default shows the '
+        'note (issue #4789)', (tester) async {
+      await pumpLevels(
+        tester,
+        withLevels(const [balanced]),
+        chosen: NamingLevel.eager,
+        picked: false,
+      );
+      expect(find.text(fallbackNote), findsNothing);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(MarineLifeIdentificationPage)),
+      );
+      final notifier = container.read(namingLevelNotifierProvider.notifier);
+      await notifier.setLevel(NamingLevel.surer);
+      await notifier.setLevel(NamingLevel.eager);
+      await tester.pumpAndSettle();
+      expect(notifier.picked, isTrue);
+      expect(find.text(fallbackNote), findsOneWidget);
+      final tile = tester.widget<RadioListTile<NamingLevel>>(
+        find.byKey(balancedKey),
+      );
+      expect(tile.toggleable, isTrue);
     });
 
     testWidgets('a level the pack carries has no note', (tester) async {
@@ -508,17 +690,35 @@ void main() {
 
     testWidgets('is there while the feature is on', (tester) async {
       await pumpPhotos(tester);
-      await tester.scrollUntilVisible(
-        find.text('Marine life identification'),
-        200,
-      );
-      expect(find.text('Marine life identification'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('Species identification'), 200);
+      expect(find.text('Species identification'), findsOneWidget);
     });
 
-    testWidgets('is absent while it is off', (tester) async {
+    // Not a photo source, so not under Where photos come from (#4773).
+    testWidgets('sits under its own Species header, after the photo sources', (
+      tester,
+    ) async {
+      await pumpPhotos(tester);
+      final row = find.text('Species identification');
+      await tester.scrollUntilVisible(row, 200);
+      final header = find.text('Species');
+      final sources = find.text('Where photos come from');
+      expect(header, findsOneWidget);
+      expect(
+        tester.getTopLeft(header).dy,
+        greaterThan(tester.getTopLeft(sources).dy),
+      );
+      expect(
+        tester.getTopLeft(row).dy,
+        greaterThan(tester.getTopLeft(header).dy),
+      );
+    });
+
+    testWidgets('is absent while it is off, header and all', (tester) async {
       marineLifeIdEnabled = false;
       await pumpPhotos(tester);
-      expect(find.text('Marine life identification'), findsNothing);
+      expect(find.text('Species identification'), findsNothing);
+      expect(find.text('Species'), findsNothing);
     });
   });
 }

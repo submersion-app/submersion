@@ -39,7 +39,8 @@ wrote. It exists because the same class of failure reached Windows in #1129,
 where a CMake install rule silently dropped every native asset from the package
 while every build job stayed green.
 
-Libraries whose silent absence is fatal at startup belong in ``REQUIRED_LIBS``.
+Libraries whose silent absence is fatal at startup belong in ``REQUIRED_LIBS``;
+those that ship for the 64-bit ABIs only, in ``REQUIRED_LIBS_64_BIT``.
 Libraries whose absence only disables a feature (e.g. ``liblibdc_jni.so``, the
 dive-computer bridge) or that would fail the build far earlier (the Flutter
 engine libs) are intentionally not listed here.
@@ -64,6 +65,23 @@ import zipfile
 # had resolved to its default ``sqlite3`` source, which cannot open an encrypted
 # database at all.
 REQUIRED_LIBS = ("libsqlcipher.so",)
+
+# Native libraries that MUST be bundled for the 64-bit ABIs only.
+# ``libonnxruntime.so`` is ONNX Runtime, the marine life identification engine
+# on Android (piece 3, docs/design/specs/
+# 2026-11-19-marine-life-identification-3-other-platforms-design.md). It is
+# supplied by ``packages/submersion_vision``'s build hook, which downloads a
+# sha256-verified ONNX Runtime for arm64-v8a and x86_64; 32-bit devices cannot
+# run the feature, so armeabi-v7a carries none.
+SIXTY_FOUR_BIT_ABIS = ("arm64-v8a", "x86_64")
+REQUIRED_LIBS_64_BIT = ("libonnxruntime.so",)
+
+
+def required_for(abi):
+    """The libraries ``abi`` must carry."""
+    if abi in SIXTY_FOUR_BIT_ABIS:
+        return REQUIRED_LIBS + REQUIRED_LIBS_64_BIT
+    return REQUIRED_LIBS
 
 
 def abi_to_libs(zf):
@@ -102,7 +120,8 @@ def check_archive(path):
             return False, ["  FAIL  no native libraries (.so under lib/<abi>/) found"]
         for abi in sorted(abis):
             present = abis[abi]
-            missing = [lib for lib in REQUIRED_LIBS if lib not in present]
+            required = required_for(abi)
+            missing = [lib for lib in required if lib not in present]
             if missing:
                 ok = False
                 lines.append(
@@ -111,7 +130,7 @@ def check_archive(path):
                 )
             else:
                 lines.append(
-                    f"  ok    {abi}: {', '.join(REQUIRED_LIBS)} present"
+                    f"  ok    {abi}: {', '.join(required)} present"
                 )
     return ok, lines
 

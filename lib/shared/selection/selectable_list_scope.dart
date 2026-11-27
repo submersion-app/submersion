@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/shared/widgets/tab_visibility.dart';
 
 import 'package:submersion/shared/selection/selection_controller.dart';
@@ -18,6 +19,11 @@ class SelectableListScope extends StatelessWidget {
   /// Ids Ctrl/Cmd-A should check, already filtered to selectable rows.
   final List<String> selectableIds;
 
+  /// For a paged surface: loads the rows not loaded yet and returns every id,
+  /// which Ctrl/Cmd-A checks instead of [selectableIds] (issue #5022); see
+  /// [SelectionController.selectAllAfterLoading].
+  final Future<List<String>?> Function()? loadAllIds;
+
   final Widget child;
 
   const SelectableListScope({
@@ -25,7 +31,21 @@ class SelectableListScope extends StatelessWidget {
     required this.controller,
     required this.selectableIds,
     required this.child,
+    this.loadAllIds,
   });
+
+  void _selectAll() {
+    final load = loadAllIds;
+    if (load == null) {
+      controller.selectAll(selectableIds);
+      return;
+    }
+    logFailure(
+      controller.selectAllAfterLoading(load),
+      SelectableListScope,
+      'select all',
+    );
+  }
 
   /// True when the platform's multi-select modifier is held: Cmd on macOS,
   /// Control elsewhere.
@@ -60,13 +80,10 @@ class SelectableListScope extends StatelessWidget {
           },
           child: CallbackShortcuts(
             bindings: {
-              const SingleActivator(
-                LogicalKeyboardKey.keyA,
-                control: true,
-              ): () =>
-                  controller.selectAll(selectableIds),
-              const SingleActivator(LogicalKeyboardKey.keyA, meta: true): () =>
-                  controller.selectAll(selectableIds),
+              const SingleActivator(LogicalKeyboardKey.keyA, control: true):
+                  _selectAll,
+              const SingleActivator(LogicalKeyboardKey.keyA, meta: true):
+                  _selectAll,
             },
             // Escape answers only while selection mode is on. A binding
             // above would claim every Escape, and outside the mode it must
@@ -77,8 +94,14 @@ class SelectableListScope extends StatelessWidget {
             // changes. A held Escape's repeats are kept here: they are the
             // press that left selection mode, not a new one asking to
             // cancel.
+            //
+            // Never a Tab stop: the node is here only to hear the keys, and
+            // as a stop it was a blank one spanning the whole list, which
+            // reads as focus lost (#4777). Autofocus and the keys still
+            // reach it.
             child: Focus(
               autofocus: true,
+              skipTraversal: true,
               onKeyEvent: (_, event) {
                 if (event.logicalKey != LogicalKeyboardKey.escape) {
                   return KeyEventResult.ignored;

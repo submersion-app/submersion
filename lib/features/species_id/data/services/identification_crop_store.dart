@@ -2,7 +2,11 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:path/path.dart' as p;
+
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
 
 /// The cropped image of each animal the marine life model found, kept on
 /// this device so the diver can check the app's call (issue #4668).
@@ -10,15 +14,35 @@ import 'package:path/path.dart' as p;
 /// Durable application support storage, not a cache the operating system
 /// may empty. A deliberate, narrow exception to "media is links only":
 /// small crops of detected animals, never the originals. Crops are deleted
-/// only with their identification, by the app's own code; there is no
-/// sweep of files without a row, because this folder is shared by every
-/// logbook opened on the device.
+/// only with their identification, by the app's own code: when this device
+/// deletes it, when sync applies a peer's delete of it, or by the launch
+/// sweep for a photo of the open logbook whose identification it holds a
+/// tombstone for (issue #4890). There is no sweep of files without a row,
+/// because this folder is shared by every logbook opened on the device.
+///
+/// Since issue #4876 the crops of named identifications live in the
+/// logbook instead ([IdentificationCropRepository]), so they sync; this
+/// store fronts both, a file first.
 class IdentificationCropStore {
-  IdentificationCropStore({required Future<String> Function() supportPath})
-    : _supportPath = supportPath;
+  IdentificationCropStore({
+    required Future<String> Function() supportPath,
+    IdentificationCropRepository? table,
+    bool files = !kIsWeb,
+  }) : _supportPath = supportPath,
+       _table = table,
+       _files = files;
 
   final Future<String> Function() _supportPath;
+
+  /// Whether crops are kept as files here. Not in a browser, which has no
+  /// files and never analyses: there only the synced crops show (issue
+  /// #4876).
+  final bool _files;
+
+  /// The synced crops, or null where only files are kept (a test).
+  final IdentificationCropRepository? _table;
   final _changes = StreamController<String>.broadcast();
+  static final _log = LoggerService.forClass(IdentificationCropStore);
 
   /// Marks a photo's folder once the photo has been analysed on this
   /// device. A dot name, so it can never be an identification's crop.
@@ -38,11 +62,39 @@ class IdentificationCropStore {
     return File(p.join((await root()).path, mediaId, '$identificationId.jpg'));
   }
 
+  /// The crop of [identificationId] on [mediaId] here: its file, else the
+  /// synced one, else null.
+  Future<IdentificationCropImage?> read(
+    String mediaId,
+    String identificationId,
+  ) async {
+    if (_files) {
+      final file = await fileFor(mediaId, identificationId);
+      if (await file.exists()) return CropFile(file);
+    }
+    final bytes = await _table?.bytesFor(identificationId);
+    return bytes == null ? null : CropBytes(bytes);
+  }
+
+  /// Stores [jpeg] as the crop of [identificationId]: in the logbook, so it
+  /// syncs, when the identification is [named]; else a file here.
   Future<void> write(
     String mediaId,
     String identificationId,
-    Uint8List jpeg,
-  ) async {
+    Uint8List jpeg, {
+    bool named = false,
+  }) async {
+    final table = _table;
+    if (named && table != null) {
+      await table.put(identificationId, mediaId, jpeg);
+      if (_files) {
+        final file = await fileFor(mediaId, identificationId);
+        if (await file.exists()) await file.delete();
+      }
+      _changed(mediaId);
+      return;
+    }
+    if (!_files) return;
     final file = await fileFor(mediaId, identificationId);
     await file.parent.create(recursive: true);
     final temporary = File('${file.path}.tmp');
@@ -56,30 +108,141 @@ class IdentificationCropStore {
   /// stays without one, instead of the photo being analysed at every
   /// opening.
   Future<void> markAnalysed(String mediaId) async {
+    if (!_files) return;
     final marker = await _markerFor(mediaId);
     await marker.parent.create(recursive: true);
     await marker.writeAsBytes(const [], flush: true);
   }
 
   Future<bool> wasAnalysedHere(String mediaId) async =>
-      (await _markerFor(mediaId)).exists();
+      _files && await (await _markerFor(mediaId)).exists();
 
   Future<File> _markerFor(String mediaId) async {
     _checkId(mediaId);
     return File(p.join((await root()).path, mediaId, _analysedMarker));
   }
 
+  /// Moves the file crops of [identificationIds], identifications that are
+  /// named now, into the logbook so they sync (issue #4876). A crop already
+  /// there, or with no file, is left as it is. Never throws. Returns how
+  /// many it moved.
+  Future<int> promote(String mediaId, List<String> identificationIds) async {
+    final table = _table;
+    if (!_files || table == null || identificationIds.isEmpty) return 0;
+    var moved = 0;
+    try {
+      final synced = await table.presentAmong(identificationIds);
+      for (final id in identificationIds) {
+        if (synced.contains(id)) continue;
+        final file = await fileFor(mediaId, id);
+        if (!await file.exists()) continue;
+        // Not for an identification a sync deleted since it was read.
+        if (!await table.putIfIdentified(
+          id,
+          mediaId,
+          await file.readAsBytes(),
+        )) {
+          continue;
+        }
+        await file.delete();
+        moved++;
+      }
+    } on Object catch (e) {
+      // Left as files: the backfill at the next launch tries again.
+      _log.debug('Could not move named crops of $mediaId to sync', error: e);
+    }
+    if (moved > 0) _changed(mediaId);
+    return moved;
+  }
+
+  /// Publishes the synced crops whose mark was lost (issue #4876). Returns
+  /// how many.
+  Future<int> republishUnstamped() async =>
+      await _table?.republishUnstamped() ?? 0;
+
+  /// Whether every one of [identificationIds] has a crop here, a file or a
+  /// synced one.
   Future<bool> allPresent(
     String mediaId,
     List<String> identificationIds,
   ) async {
+    final missing = <String>[];
     for (final id in identificationIds) {
-      if (!await (await fileFor(mediaId, id)).exists()) return false;
+      if (!_files || !await (await fileFor(mediaId, id)).exists()) {
+        missing.add(id);
+      }
     }
-    return true;
+    if (missing.isEmpty) return true;
+    final synced = await _table?.presentAmong(missing) ?? const <String>{};
+    return synced.length == missing.length;
   }
 
-  Future<void> deleteMedia(List<String> mediaIds) async {
+  /// Which of [identificationIds] on [mediaId] have a crop here, a file or
+  /// a synced one (issue #5032).
+  Future<Set<String>> presentAmong(
+    String mediaId,
+    List<String> identificationIds,
+  ) async {
+    if (identificationIds.isEmpty) return const {};
+    _checkId(mediaId);
+    // One listing of the media's folder, not one look per id: a video can
+    // hold hundreds of identifications.
+    final files = _files
+        ? (await cropIdsIn(
+            Directory(p.join((await root()).path, mediaId)),
+          )).toSet()
+        : const <String>{};
+    final present = <String>{};
+    final rest = <String>[];
+    for (final id in identificationIds) {
+      if (files.contains(id)) {
+        present.add(id);
+      } else {
+        rest.add(id);
+      }
+    }
+    if (rest.isNotEmpty) {
+      present.addAll(await _table?.presentAmong(rest) ?? const <String>{});
+    }
+    return present;
+  }
+
+  /// The media holding more than [count] crops here, synced or as files:
+  /// the only ones a cap of [count] per species can trim (issue #5032).
+  Future<List<String>> mediaWithMoreThan(int count) async {
+    final found = <String>{
+      ...await _table?.mediaWithMoreThan(count) ?? const <String>[],
+      for (final MapEntry(key: mediaId, value: ids)
+          in (await fileIds()).entries)
+        if (ids.length > count) mediaId,
+    };
+    return found.toList();
+  }
+
+  /// The media that have a crops folder here: the only ones whose crops
+  /// can still be files to move into the logbook.
+  Future<List<String>> mediaWithFiles() => _mediaFolders();
+
+  /// The media with a crops folder here, for the backfill and the sweep
+  /// alike.
+  Future<List<String>> _mediaFolders() async {
+    if (!_files) return const [];
+    final base = await root();
+    if (!await base.exists()) return const [];
+    return [
+      await for (final entity in base.list(followLinks: false))
+        if (entity is Directory) p.basename(entity.path),
+    ];
+  }
+
+  /// Removes every crop of [mediaIds]: the files, and the synced ones,
+  /// tombstoned unless not [publish] (issue #4876).
+  Future<void> deleteMedia(List<String> mediaIds, {bool publish = true}) async {
+    await _table?.deleteForMedia(mediaIds, publish: publish);
+    if (!_files) {
+      mediaIds.forEach(_changed);
+      return;
+    }
     final base = await root();
     for (final mediaId in mediaIds) {
       _checkId(mediaId);
@@ -90,11 +253,69 @@ class IdentificationCropStore {
   }
 
   Future<void> delete(String mediaId, List<String> identificationIds) async {
+    await _table?.deleteIds(identificationIds);
+    await _deleteFiles(mediaId, identificationIds);
+    if (identificationIds.isNotEmpty) _changed(mediaId);
+  }
+
+  /// Removes the crop files of [identificationIds] only, never the synced
+  /// crops: for identifications a peer deleted, whose synced crops its own
+  /// tombstones remove (issue #4890).
+  Future<void> deleteFiles(
+    String mediaId,
+    List<String> identificationIds,
+  ) async {
+    if (await _deleteFiles(mediaId, identificationIds)) _changed(mediaId);
+  }
+
+  /// Whether any file was there to remove.
+  Future<bool> _deleteFiles(
+    String mediaId,
+    List<String> identificationIds,
+  ) async {
+    if (!_files) return false;
+    var removed = false;
     for (final id in identificationIds) {
       final file = await fileFor(mediaId, id);
-      if (await file.exists()) await file.delete();
+      if (!await file.exists()) continue;
+      try {
+        await file.delete();
+        removed = true;
+      } on PathNotFoundException {
+        // Removed in between by another cleanup (the sync hook and the
+        // launch sweep can run together): the rest still go.
+      }
     }
-    if (identificationIds.isNotEmpty) _changed(mediaId);
+    return removed;
+  }
+
+  /// The identifications with a crop file here, by media (issue #4890).
+  /// A folder removed while it is read (a final delete) is left out.
+  Future<Map<String, List<String>>> fileIds() async {
+    final mediaIds = await _mediaFolders();
+    if (mediaIds.isEmpty) return const {};
+    final base = (await root()).path;
+    final found = <String, List<String>>{};
+    for (final mediaId in mediaIds) {
+      final ids = await cropIdsIn(Directory(p.join(base, mediaId)));
+      if (ids.isNotEmpty) found[mediaId] = ids;
+    }
+    return found;
+  }
+
+  /// The identifications with a crop file in [dir]; none when it cannot
+  /// be read.
+  @visibleForTesting
+  static Future<List<String>> cropIdsIn(Directory dir) async {
+    try {
+      return [
+        await for (final entity in dir.list(followLinks: false))
+          if (entity is File && p.extension(entity.path) == '.jpg')
+            p.basenameWithoutExtension(entity.path),
+      ];
+    } on FileSystemException {
+      return const [];
+    }
   }
 
   void _changed(String mediaId) {
@@ -102,6 +323,7 @@ class IdentificationCropStore {
   }
 
   Future<int> sizeBytes() async {
+    if (!_files) return 0;
     final base = await root();
     if (!await base.exists()) return 0;
     var total = 0;
@@ -123,4 +345,23 @@ class IdentificationCropStore {
       throw ArgumentError.value(id, 'id', 'not a safe file name');
     }
   }
+}
+
+/// An identification's crop as this device holds it (issue #4876).
+sealed class IdentificationCropImage {
+  const IdentificationCropImage();
+}
+
+/// A crop kept as a file: an unnamed identification's, analysed here.
+class CropFile extends IdentificationCropImage {
+  const CropFile(this.file);
+
+  final File file;
+}
+
+/// A crop kept in the logbook: a named identification's, from any device.
+class CropBytes extends IdentificationCropImage {
+  const CropBytes(this.bytes);
+
+  final Uint8List bytes;
 }

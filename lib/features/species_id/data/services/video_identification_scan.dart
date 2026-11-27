@@ -8,6 +8,7 @@ import 'package:submersion/features/species_id/data/repositories/media_identific
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/domain/entities/scanned_ranges.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
@@ -114,7 +115,16 @@ class VideoIdentificationScan {
        _width = resumeFrom?.imageWidth ?? 0,
        _height = resumeFrom?.imageHeight ?? 0,
        _detectionCount = resumeFrom?.detectionCount ?? 0,
+       _runId = resumeFrom?.runId,
+       _analysedBy = resumeFrom?.analysedBy,
        _carry = [...carry];
+
+  /// The run this scan continues and the device that made it (issue
+  /// #4876), written on every chunk: a run another device stored meanwhile
+  /// must not take over this scan's rows, so the last device to write wins
+  /// the video, as it does a photo.
+  final String? _runId;
+  final String? _analysedBy;
 
   /// Video per chunk once the scan is under way.
   final int chunkMs;
@@ -589,6 +599,22 @@ class VideoIdentificationScan {
           for (final c in carry)
             if (!found.deleteIds.contains(c.id)) c,
         ];
+        // A dismissal brought back that the whole scan has not found again
+        // is only an old guess (issue #4825): it goes. A name the diver gave
+        // it stays theirs.
+        final stale = ranges.isComplete(duration)
+            ? [
+                for (final c in carryLeft)
+                  if (c.reopened && c.claimedSpeciesId == null) c.id,
+              ]
+            : const <String>[];
+        if (stale.isNotEmpty) {
+          deleted = [...deleted, ...stale];
+          carryLeft = [
+            for (final c in carryLeft)
+              if (!stale.contains(c.id)) c,
+          ];
+        }
         // The rows were read above: another logbook may have opened since.
         if (_databaseGeneration() != _generation) return null;
         run = MediaIdentificationRun(
@@ -607,11 +633,15 @@ class VideoIdentificationScan {
                 found.insert.length -
                 unsaid.length -
                 found.deleteIds.length -
-                away.length,
+                away.length -
+                stale.length,
           ),
           scannedMs: ranges.prefixEndMs,
           videoDurationMs: duration,
           scannedRanges: ranges,
+          analysedBy: _analysedBy,
+          runId: _runId,
+          namingBars: NamingBars.fromNaming(manifest.naming),
         );
         return (run: run, insert: inserted, deleteIds: deleted);
       },
@@ -636,7 +666,7 @@ class VideoIdentificationScan {
     }, classifierId: manifest.classifier.embeddingId);
     for (final i in inserted) {
       if (byId[i.id]?.cropJpeg case final jpeg?) {
-        await _crops.write(_item.id, i.id, jpeg);
+        await _crops.write(_item.id, i.id, jpeg, named: isNamed(i));
       }
     }
     await _crops.markAnalysed(_item.id);

@@ -82,6 +82,9 @@ String changeLogStoredLabel(AppLocalizations l, String label) =>
         l.changeLog_label_removeDuplicateCylinders,
       ChangeLogLabels.updatePlannedDives =>
         l.changeLog_label_updatePlannedDives,
+      ChangeLogLabels.moveMedia => l.changeLog_label_moveMedia,
+      ChangeLogLabels.unlinkMedia => l.changeLog_label_unlinkMedia,
+      ChangeLogLabels.removeGearPhotos => l.changeLog_label_removeGearPhotos,
       _ => label,
     };
 
@@ -187,6 +190,7 @@ String changeLogTableLabel(AppLocalizations l, String table) => switch (table) {
   // Listed under a dive by its editing sitting (issue #4527), and with no
   // name of their own among the sync references.
   'dive_safety_findings' => l.changeLog_table_safetyFinding,
+  'equipment_findings' => l.changeLog_table_conditionFinding,
   'tank_pressure_series' => l.changeLog_table_pressureSeries,
   'nav_tracks' => l.changeLog_table_navTrack,
   // Named as the GPS track page names itself; a track rarely has a name.

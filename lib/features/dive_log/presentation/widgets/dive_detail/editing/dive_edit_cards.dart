@@ -118,8 +118,7 @@ RecordCardFadeReason? diveCardFadeReason(DiveDetailSectionId id) =>
       DiveDetailSectionId.decoStatus ||
       DiveDetailSectionId.tissueLoading ||
       DiveDetailSectionId.sacSegments ||
-      DiveDetailSectionId.tide ||
-      DiveDetailSectionId.buoyancy => RecordCardFadeReason.calculated,
+      DiveDetailSectionId.tide => RecordCardFadeReason.calculated,
       DiveDetailSectionId.health ||
       DiveDetailSectionId.surfaceGps => RecordCardFadeReason.imported,
       _ => null,
@@ -155,6 +154,9 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
     title: (context) => context.l10n.diveLog_detail_section_notes,
     // The Notes card is always on the page: empty, it says there are none.
     isEmpty: (_) => false,
+    // An annotation link broken by hand would be saved as the annotation
+    // removed (#4815).
+    isValid: annotationLinksIntact,
     editorBuilder: (context, session) => DiveNotesCardEditor(session: session),
   ),
   DiveDetailSectionId.tags: EditCard<Dive>(

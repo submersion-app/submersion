@@ -215,26 +215,25 @@ class EquipmentSetListNotifier
     return newSet;
   }
 
-  /// Saves [set] and returns the members the save added and removed.
-  ///
-  /// A reload that fails after the save is logged, not thrown: the set is
-  /// already written, so the caller still needs the diff to replay it on the
-  /// dives that carry the set (issue #4283), and a retry would find nothing
-  /// left to change.
-  Future<({List<String> added, List<String> removed})> updateSet(
-    EquipmentSet set,
-  ) async {
-    final diff = await _repository.updateSet(set);
+  /// Refreshes what a set page's editing sitting on [id] can have changed
+  /// (issue #4527): the list, every set's page (a default moved demotes
+  /// another set), its geofences and the default the dive editor applies.
+  /// The sitting is already written, so a reload that fails is logged, not
+  /// thrown: a retry would find nothing left to save.
+  Future<void> afterSittingSaved(String id) async {
+    // The pages first; the list's own reload is the slower part.
+    _ref.invalidate(equipmentSetsProvider);
+    _ref.invalidate(equipmentSetProvider);
+    _ref.invalidate(equipmentSetGeofencesProvider(id));
+    _ref.invalidate(defaultEquipmentSetProvider);
+    _ref.invalidate(equipmentSetSelectionInputsProvider);
     try {
       await refresh();
     } catch (e, st) {
       LoggerService.forClass(
         EquipmentSetListNotifier,
-      ).error('Reload after a set save failed', error: e, stackTrace: st);
+      ).error('Reload after a set sitting failed', error: e, stackTrace: st);
     }
-    _ref.invalidate(equipmentSetsProvider);
-    _ref.invalidate(equipmentSetProvider(set.id));
-    return diff;
   }
 
   Future<void> deleteSet(String id) async {
@@ -252,55 +251,6 @@ class EquipmentSetListNotifier
   Future<void> removeItemFromSet(String setId, String equipmentId) async {
     await _repository.removeItemFromSet(setId, equipmentId);
     await refresh();
-    _ref.invalidate(equipmentSetProvider(setId));
-  }
-
-  Future<void> setAsDefault(String id) async {
-    final diverId = await _ref.read(validatedCurrentDiverIdProvider.future);
-    await _repository.setAsDefault(id, diverId: diverId);
-    await refresh();
-    _ref.invalidate(defaultEquipmentSetProvider);
-    _ref.invalidate(equipmentSetSelectionInputsProvider);
-    // Promoting one set demotes the previous default, so the hydrated
-    // isDefault flag on more than one family instance is now stale. Invalidate
-    // the whole family so open detail/edit pages re-read the correct badge.
-    _ref.invalidate(equipmentSetProvider);
-  }
-
-  Future<void> setShowFigure(String id, bool showFigure) async {
-    await _repository.setShowFigure(id, showFigure);
-    await refresh();
-    _ref.invalidate(equipmentSetsProvider);
-    _ref.invalidate(equipmentSetProvider(id));
-  }
-
-  Future<void> clearDefault(String id) async {
-    await _repository.clearDefault(id);
-    await refresh();
-    _ref.invalidate(defaultEquipmentSetProvider);
-    _ref.invalidate(equipmentSetSelectionInputsProvider);
-    _ref.invalidate(equipmentSetProvider(id));
-  }
-
-  Future<void> addGeofence(EquipmentSetGeofence fence) async {
-    await _repository.addGeofence(fence);
-    _ref.invalidate(equipmentSetGeofencesProvider(fence.setId));
-    _ref.invalidate(equipmentSetSelectionInputsProvider);
-    // equipmentSetProvider hydrates geofences, so its cache is now stale.
-    _ref.invalidate(equipmentSetProvider(fence.setId));
-  }
-
-  Future<void> updateGeofence(EquipmentSetGeofence fence) async {
-    await _repository.updateGeofence(fence);
-    _ref.invalidate(equipmentSetGeofencesProvider(fence.setId));
-    _ref.invalidate(equipmentSetSelectionInputsProvider);
-    _ref.invalidate(equipmentSetProvider(fence.setId));
-  }
-
-  Future<void> removeGeofence(String setId, String geofenceId) async {
-    await _repository.removeGeofence(geofenceId);
-    _ref.invalidate(equipmentSetGeofencesProvider(setId));
-    _ref.invalidate(equipmentSetSelectionInputsProvider);
     _ref.invalidate(equipmentSetProvider(setId));
   }
 }

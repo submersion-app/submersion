@@ -162,6 +162,19 @@ final documentTagsField = EditField<DocumentRecord, List<String>?>(
 void setDocumentType(EditSession<DocumentRecord> session, DocumentType type) =>
     session.set(documentTypeField, type);
 
+const _ownerFixedKey = 'document.ownerFixed';
+
+/// Notes that [session]'s document is created for another record's open
+/// Documents card (issue #4527, phase 3, plan 11): its owner is not
+/// offered, as the form's `ownerFixed` hides it, and it is filed as
+/// Personal while that record holds the link.
+void markDocumentOwnerFixed(EditSession<DocumentRecord> session) =>
+    session.remember(_ownerFixedKey, true);
+
+/// Whether [session]'s owner is fixed ([markDocumentOwnerFixed]).
+bool documentOwnerFixed(EditSession<DocumentRecord> session) =>
+    !session.isDisposed && session.recall<bool>(_ownerFixedKey) == true;
+
 /// [d] as it is saved: a document other than insurance keeps no phones and
 /// is not primary, as the form saves it.
 Document documentAsSaved(Document d) => documentKeepsPhonesAndPrimary(d)

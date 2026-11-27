@@ -10,6 +10,7 @@ import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_dis
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_adjust_sheet.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_fill_sheet.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_cylinder_events_sitting.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Every fill and adjustment on the trip, newest first. Tapping one opens
@@ -19,11 +20,24 @@ class TripCylinderLedgerView extends ConsumerWidget {
   final List<TripCylinderState> states;
   final Map<String, String> centerNames;
 
+  /// The trip's sitting the board's changes are held in (issue #4527): the
+  /// ledger it holds is shown, and a delete or an edit is handed to it.
+  final TripBoardHold? hold;
+
+  /// The ledger as [hold]'s sitting has it, newest first.
+  final List<TripCylinderEvent>? heldEvents;
+
+  /// A board that edits in place and is locked: no edit or delete.
+  final bool readOnly;
+
   const TripCylinderLedgerView({
     super.key,
     required this.tripId,
     required this.states,
     required this.centerNames,
+    this.hold,
+    this.heldEvents,
+    this.readOnly = false,
   });
 
   Future<void> _confirmDelete(
@@ -49,6 +63,11 @@ class TripCylinderLedgerView extends ConsumerWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
+    final hold = this.hold;
+    if (hold != null) {
+      await hold.deleteEvent(event.id);
+      return;
+    }
     try {
       // A deleted fill takes its passport copy with it (Task 6), in the same
       // transaction: either both go or both stay for a retry.
@@ -71,7 +90,10 @@ class TripCylinderLedgerView extends ConsumerWidget {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
     final fallbackCurrency = ref.watch(defaultCurrencyProvider);
-    final async = ref.watch(tripCylinderLedgerProvider(tripId));
+    final held = heldEvents;
+    final async = held != null
+        ? AsyncValue.data(held)
+        : ref.watch(tripCylinderLedgerProvider(tripId));
     final events = async.value;
     // Not loaded yet, or failed: neither is an empty ledger.
     if (events == null) {
@@ -114,25 +136,29 @@ class TripCylinderLedgerView extends ConsumerWidget {
             details.isEmpty ? '$kind · $when' : '$kind · $when\n$details',
           ),
           isThreeLine: details.isNotEmpty,
-          onTap: slot == null
+          onTap: slot == null || readOnly
               ? null
               : () => isFill
                     ? showTripCylinderFillSheet(
                         context,
                         slots: states,
                         editing: e,
+                        hold: hold?.fills,
                       )
                     : showTripCylinderAdjustSheet(
                         context,
                         cylinder: slot.cylinder,
                         editing: e,
+                        hold: hold?.adjustment,
                       ),
-          trailing: IconButton(
-            key: Key('ledger-delete-${e.id}'),
-            icon: const Icon(Icons.delete_outline),
-            tooltip: l10n.common_action_delete,
-            onPressed: () => _confirmDelete(context, ref, e),
-          ),
+          trailing: readOnly
+              ? null
+              : IconButton(
+                  key: Key('ledger-delete-${e.id}'),
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: l10n.common_action_delete,
+                  onPressed: () => _confirmDelete(context, ref, e),
+                ),
         );
       },
     );

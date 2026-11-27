@@ -48,11 +48,23 @@ void main() {
 
   final header = DiveCenterCardId.header.localizedDisplayName(l);
 
-  testWidgets('with the switch off there is no lock', (tester) async {
-    await pumpDiveCenterPage(tester, unlockEditing: false);
+  // The lock is the one way in (issue #4527, plan 12): no Edit pencil.
+  testWidgets('the locked bar has the lock and no Edit pencil', (tester) async {
+    await pumpDiveCenterPage(tester);
 
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
+  });
+
+  testWidgets('the pane header has the lock and no Edit pencil', (
+    tester,
+  ) async {
+    await pumpDiveCenterPage(tester, embedded: true);
+
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
   });
 
   testWidgets('locked, no tap writes', (tester) async {
@@ -227,6 +239,45 @@ void main() {
     expect(find.text(l.recordEdit_fixInvalid), findsOneWidget);
   });
 
+  testWidgets('Clear removes the fill hours with the Save', (tester) async {
+    final harness = await pumpDiveCenterPage(
+      tester,
+      center: reefDivers.copyWith(fillOpensAt: 480, fillClosesAt: 1020),
+    );
+    await unlock(tester);
+    await openCard(tester, l.diveCenters_section_contact);
+    final clear = find.byKey(const Key('fill-hours-clear'));
+    await tester.ensureVisible(clear);
+    await tester.tap(clear);
+    await tester.pumpAndSettle();
+
+    await save(tester);
+
+    final call = harness.save.calls.single;
+    expect(call.after.fillOpensAt, isNull);
+    expect(call.after.fillClosesAt, isNull);
+    expect(call.cards, {'contact'});
+  });
+
+  testWidgets('stored fill hours that close before they open stop a Save of '
+      'another card', (tester) async {
+    // A reversed pair from an older build or a sync peer: the closed
+    // Contact card is still checked at Save.
+    final harness = await pumpDiveCenterPage(
+      tester,
+      center: reefDivers.copyWith(fillOpensAt: 17 * 60, fillClosesAt: 8 * 60),
+    );
+    await unlock(tester);
+    sessionOf(tester).set(diveCenterNotesField, 'Busy on Sundays');
+    await tester.pumpAndSettle();
+
+    await save(tester);
+
+    expect(harness.save.calls, isEmpty);
+    expect(find.text(l.recordEdit_fixInvalid), findsOneWidget);
+    expect(find.text(l.diveCenters_fillHours_errorOrder), findsOneWidget);
+  });
+
   testWidgets('Cancel with changes asks first', (tester) async {
     await pumpDiveCenterPage(tester);
     await unlock(tester);
@@ -305,20 +356,6 @@ void main() {
         find.widgetWithText(PopupMenuItem<String>, l.common_action_delete),
       );
       expect(delete.enabled, isFalse);
-    });
-
-    testWidgets('with the switch off, Delete is offered as before', (
-      tester,
-    ) async {
-      await pumpDiveCenterPage(tester, unlockEditing: false);
-      await tester.tap(find.byType(PopupMenuButton<String>).first);
-      await tester.pumpAndSettle();
-
-      expect(find.text(l.recordEdit_unlockToUseThese), findsNothing);
-      final delete = tester.widget<PopupMenuItem<String>>(
-        find.widgetWithText(PopupMenuItem<String>, l.common_action_delete),
-      );
-      expect(delete.enabled, isTrue);
     });
   });
 

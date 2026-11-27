@@ -4,9 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
-import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_components_sitting.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_list_pending.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_departed_status.dart';
@@ -20,6 +21,10 @@ import 'package:submersion/features/equipment/presentation/widgets/component_rol
 import 'package:submersion/features/equipment/presentation/widgets/part_of_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// The Components card on the equipment detail page (issue #1487): the parts
 /// this item is assembled from, each with its role, its own service dot,
@@ -27,13 +32,29 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// item is itself a part of other assemblies, a "Part of" section lists them
 /// above its own parts, which then sit under a "Contains" caption.
 ///
-/// Lives on the detail page, not the edit form, like every other cross-item
+/// Lives on the detail page, not in a card editor, like every other cross-item
 /// edge (service clocks, documents, unit configurations): a new item has no
 /// id until it is saved.
 class ComponentsCard extends ConsumerWidget {
   final String equipmentId;
 
-  const ComponentsCard({super.key, required this.equipmentId});
+  /// The open card's sitting (issue #4527, phase 3): every change to the parts
+  /// is held there until Save, its "Update past dives?" asked when it is made.
+  /// With no sitting given, the card reads only; during a sitting every view
+  /// shows its parts.
+  final EditSession<EquipmentItem>? editing;
+
+  const ComponentsCard({super.key, required this.equipmentId, this.editing});
+
+  /// [parts] once [change] has been applied in the open card's sitting.
+  void _setInSitting(
+    EditSession<EquipmentItem> session,
+    List<EquipmentComponent> Function(List<EquipmentComponent> parts) change,
+  ) {
+    final parts = gearItemComponentsList.current(session);
+    if (parts == null) return;
+    gearItemComponentsList.set(session, change(parts));
+  }
 
   Future<void> _editRole(
     BuildContext context,
@@ -48,8 +69,14 @@ class ComponentsCard extends ConsumerWidget {
       initial: part.role,
       suggestions: suggestions.where((r) => r != part.role).toList(),
     );
-    if (role == null || role == part.role) return;
-    await repository.updateRole(part.id, role);
+    final session = editing;
+    if (role == null || role == part.role || session == null) return;
+    _setInSitting(
+      session,
+      (parts) => [
+        for (final p in parts) p.id == part.id ? p.copyWith(role: role) : p,
+      ],
+    );
   }
 
   /// Removes the part from the template and from the planned dives that
@@ -60,10 +87,25 @@ class ComponentsCard extends ConsumerWidget {
     WidgetRef ref,
     EquipmentComponent part,
   ) async {
-    // Every step here can fail against the database, the dive count the
-    // question is built from included, and none of it may escape the icon
-    // callback as an unhandled exception with nothing shown to the diver.
+    final session = editing;
+    if (session == null) return;
+    // The dive count the question is built from is a database read, and its
+    // failure may not escape the icon callback with nothing shown to the
+    // diver.
     final messenger = ScaffoldMessenger.of(context);
+    // A part added in the sitting was never on a dive: it just goes.
+    if (!(gearItemComponentsList.loaded(session) ?? const []).any(
+      (c) => c.id == part.id,
+    )) {
+      _setInSitting(
+        session,
+        (parts) => [
+          for (final p in parts)
+            if (p.id != part.id) p,
+        ],
+      );
+      return;
+    }
     try {
       final choice = await askAssemblyHistory(
         context,
@@ -72,14 +114,13 @@ class ComponentsCard extends ConsumerWidget {
         change: AssemblyHistoryChange.removed,
       );
       if (choice == null) return;
-      await ref
-          .read(equipmentComponentRepositoryProvider)
-          .removeComponent(part.id);
-      // Planned dives follow on every answer (issue #4283).
-      await ref.read(diveRepositoryProvider).rewriteAssemblyOnDives(
-        equipmentId,
-        [GearPartRemoved(part.componentEquipmentId)],
-        alsoLogged: choice == AssemblyHistoryChoice.alsoPast,
+      rememberPartAnswer(session, part.componentEquipmentId, choice);
+      _setInSitting(
+        session,
+        (parts) => [
+          for (final p in parts)
+            if (p.id != part.id) p,
+        ],
       );
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('$e')));
@@ -88,8 +129,36 @@ class ComponentsCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scope = RecordEditScope.maybeOf<EquipmentItem>(context);
+    final session = editing ?? scope?.session;
+    // Only the open card's editor acts.
+    final readOnly = editing == null;
+    if (session == null) return _build(context, ref, null, readOnly);
+    return ListenableBuilder(
+      listenable: gearItemComponentsList.changes(session),
+      builder: (context, _) => _build(context, ref, session, readOnly),
+    );
+  }
+
+  Widget _build(
+    BuildContext context,
+    WidgetRef ref,
+    EditSession<EquipmentItem>? session,
+    bool readOnly,
+  ) {
     final l10n = context.l10n;
-    final partsAsync = ref.watch(equipmentComponentsProvider(equipmentId));
+    final storedParts = ref.watch(equipmentComponentsProvider(equipmentId));
+    final held = session == null
+        ? null
+        : gearItemComponentsList.current(session);
+    final AsyncValue<List<EquipmentComponent>> partsAsync = held == null
+        ? storedParts
+        : AsyncValue.data(held);
+    final loaded = session == null
+        ? null
+        : gearItemComponentsList.loaded(session);
+    // The open card acts once its sitting has read the parts.
+    final canAct = !readOnly && held != null;
     final partOfAsync = ref.watch(equipmentPartOfProvider(equipmentId));
     final partOf = partOfAsync.hasError
         ? const <PartOfEntry>[]
@@ -99,8 +168,6 @@ class ComponentsCard extends ConsumerWidget {
     // list, or the two disagree about the same part (#2260).
     final worstClocks =
         ref.watch(equipmentRollupClockProvider).value ?? const {};
-    final repository = ref.read(equipmentComponentRepositoryProvider);
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -119,15 +186,22 @@ class ComponentsCard extends ConsumerWidget {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const Spacer(),
-                TextButton.icon(
-                  onPressed: () =>
-                      showComponentPicker(context, parentId: equipmentId),
-                  icon: const Icon(Icons.add),
-                  label: Text(l10n.equipment_components_add),
-                ),
+                RecordCardPencil(cardTitle: l10n.equipment_components_title),
+                if (canAct && editing != null)
+                  TextButton.icon(
+                    onPressed: () => showComponentPicker(
+                      context,
+                      parentId: equipmentId,
+                      editing: editing!,
+                    ),
+                    icon: const Icon(Icons.add),
+                    label: Text(l10n.equipment_components_add),
+                  ),
               ],
             ),
             const Divider(),
+            if (editing case final session?)
+              ?gearItemListPending(gearItemComponentsList, session),
             if (partOfAsync.hasError)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
@@ -174,6 +248,8 @@ class ComponentsCard extends ConsumerWidget {
                 ], shownWith: (item) => roles[item.id] ?? '');
                 return _ComponentsList(
                   parts: parts,
+                  readOnly: !canAct,
+                  changed: (part) => loaded != null && !loaded.contains(part),
                   detailsFor: (part) =>
                       labels[part.componentEquipmentId]?.subtitleParts ??
                       const [],
@@ -186,9 +262,13 @@ class ComponentsCard extends ConsumerWidget {
                     context,
                     parentId: equipmentId,
                     replacing: part,
+                    editing: editing!,
                   ),
                   onRemove: (part) => _remove(context, ref, part),
-                  onReorder: (ids) => repository.reorder(equipmentId, ids),
+                  onReorder: (ids) => _setInSitting(editing!, (parts) {
+                    final byId = {for (final p in parts) p.id: p};
+                    return [for (final id in ids) ?byId[id]];
+                  }),
                 );
               },
             ),
@@ -214,6 +294,10 @@ String _roleText(EquipmentComponent part, AppLocalizations l10n) =>
 /// would otherwise snap it back for up to 300 ms before catching up.
 class _ComponentsList extends StatefulWidget {
   final List<EquipmentComponent> parts;
+  final bool readOnly;
+
+  /// Whether a part's row is the sitting's: added or changed in it.
+  final bool Function(EquipmentComponent part) changed;
   final List<String> Function(EquipmentComponent part) detailsFor;
   final Color Function(EquipmentComponent part) dotColorFor;
   final void Function(EquipmentComponent part) onEditRole;
@@ -223,6 +307,8 @@ class _ComponentsList extends StatefulWidget {
 
   const _ComponentsList({
     required this.parts,
+    required this.readOnly,
+    required this.changed,
     required this.detailsFor,
     required this.dotColorFor,
     required this.onEditRole,
@@ -271,6 +357,8 @@ class _ComponentsListState extends State<_ComponentsList> {
             part: part,
             details: widget.detailsFor(part),
             dotColor: widget.dotColorFor(part),
+            readOnly: widget.readOnly,
+            changed: widget.changed(part),
             onEditRole: () => widget.onEditRole(part),
             onReplace: () => widget.onReplace(part),
             onRemove: () => widget.onRemove(part),
@@ -288,6 +376,8 @@ class _PartTile extends StatelessWidget {
   /// labels; they follow the role so the row still says what the part does.
   final List<String> details;
   final Color dotColor;
+  final bool readOnly;
+  final bool changed;
   final VoidCallback onEditRole;
   final VoidCallback onReplace;
   final VoidCallback onRemove;
@@ -298,6 +388,8 @@ class _PartTile extends StatelessWidget {
     required this.part,
     required this.details,
     required this.dotColor,
+    required this.readOnly,
+    this.changed = false,
     required this.onEditRole,
     required this.onReplace,
     required this.onRemove,
@@ -323,7 +415,15 @@ class _PartTile extends StatelessWidget {
           Icon(Icons.circle, size: 10, color: dotColor),
         ],
       ),
-      title: Text(name),
+      title: changed
+          ? Row(
+              children: [
+                Flexible(child: Text(name)),
+                const SizedBox(width: 6),
+                const RecordChangedDot(),
+              ],
+            )
+          : Text(name),
       subtitle: Row(
         children: [
           // Wraps rather than truncating: beside four action icons a phone
@@ -344,33 +444,35 @@ class _PartTile extends StatelessWidget {
         ],
       ),
       onTap: () => context.push('/equipment/${part.componentEquipmentId}'),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            tooltip: l10n.equipment_components_editRole,
-            onPressed: onEditRole,
-          ),
-          IconButton(
-            icon: const Icon(Icons.swap_horiz),
-            tooltip: l10n.equipment_components_replace,
-            onPressed: onReplace,
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            tooltip: l10n.equipment_components_remove,
-            onPressed: onRemove,
-          ),
-          ReorderableDragStartListener(
-            index: index,
-            child: Tooltip(
-              message: l10n.equipment_components_reorder,
-              child: const Icon(Icons.drag_handle),
+      trailing: readOnly
+          ? null
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  tooltip: l10n.equipment_components_editRole,
+                  onPressed: onEditRole,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.swap_horiz),
+                  tooltip: l10n.equipment_components_replace,
+                  onPressed: onReplace,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: l10n.equipment_components_remove,
+                  onPressed: onRemove,
+                ),
+                ReorderableDragStartListener(
+                  index: index,
+                  child: Tooltip(
+                    message: l10n.equipment_components_reorder,
+                    child: const Icon(Icons.drag_handle),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 }

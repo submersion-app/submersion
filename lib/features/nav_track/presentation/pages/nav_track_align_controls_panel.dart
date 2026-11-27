@@ -203,61 +203,77 @@ class _ControlsPanel extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                NavTrackPositionRowControls(
-                  label: l10n.navTrack_align_startLabel,
-                  placeKey: 'nav-track-align-place-start',
-                  placeLabel: l10n.navTrack_align_setStartOnMap,
-                  placeSelected: startRow.isManual,
-                  onPlace: () => state._startPlacing(_Placing.start),
-                  options: startRow.options,
-                ),
-                const SizedBox(height: 8),
-                NavTrackPositionRowControls(
-                  label: l10n.navTrack_align_endLabel,
-                  placeKey: 'nav-track-align-place-end',
-                  placeLabel: l10n.navTrack_align_endMode_point,
-                  placeSelected: correction.endMode == NavTrackEndMode.point,
-                  onPlace: () => state._startPlacingEndPoint(route),
-                  options: _endOptions(l10n),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  l10n.navTrack_align_trustSummary(
-                    ref
-                        .watch(unitFormatterProvider)
-                        .formatDistance(trustedDistance),
-                    trustedMinutes,
-                  ),
-                ),
-                Slider(
-                  key: const ValueKey('nav-track-align-trust-slider'),
-                  value: correction.trustFraction.clamp(0.0, 1.0),
-                  onChanged: totalDistance <= 0
-                      ? null
-                      : (value) => state._updateCorrection(
-                          (c) => c.copyWith(trustFraction: value),
-                          route,
+                // Read only where no sitting of the track is open: the
+                // controls show the alignment and change nothing.
+                IgnorePointer(
+                  ignoring: state._readOnly,
+                  child: Opacity(
+                    opacity: state._readOnly ? 0.6 : 1,
+                    child: Column(
+                      key: const ValueKey('nav-track-align-controls'),
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        NavTrackPositionRowControls(
+                          label: l10n.navTrack_align_startLabel,
+                          placeKey: 'nav-track-align-place-start',
+                          placeLabel: l10n.navTrack_align_setStartOnMap,
+                          placeSelected: startRow.isManual,
+                          onPlace: () => state._startPlacing(_Placing.start),
+                          options: startRow.options,
                         ),
-                ),
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 4,
-                  children: [
-                    NavTrackRotationControl(
-                      headingOffsetDeg: correction.headingOffsetDeg,
-                      onChanged: (value) => state._updateCorrection(
-                        (c) => c.copyWith(headingOffsetDeg: value),
-                        route,
-                      ),
+                        const SizedBox(height: 8),
+                        NavTrackPositionRowControls(
+                          label: l10n.navTrack_align_endLabel,
+                          placeKey: 'nav-track-align-place-end',
+                          placeLabel: l10n.navTrack_align_endMode_point,
+                          placeSelected:
+                              correction.endMode == NavTrackEndMode.point,
+                          onPlace: () => state._startPlacingEndPoint(route),
+                          options: _endOptions(l10n),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.navTrack_align_trustSummary(
+                            ref
+                                .watch(unitFormatterProvider)
+                                .formatDistance(trustedDistance),
+                            trustedMinutes,
+                          ),
+                        ),
+                        Slider(
+                          key: const ValueKey('nav-track-align-trust-slider'),
+                          value: correction.trustFraction.clamp(0.0, 1.0),
+                          onChanged: totalDistance <= 0
+                              ? null
+                              : (value) => state._updateCorrection(
+                                  (c) => c.copyWith(trustFraction: value),
+                                  route,
+                                ),
+                        ),
+                        Wrap(
+                          spacing: 16,
+                          runSpacing: 4,
+                          children: [
+                            NavTrackRotationControl(
+                              headingOffsetDeg: correction.headingOffsetDeg,
+                              onChanged: (value) => state._updateCorrection(
+                                (c) => c.copyWith(headingOffsetDeg: value),
+                                route,
+                              ),
+                            ),
+                            NavTrackScaleControl(
+                              scaleFactor: correction.scaleFactor,
+                              onChanged: (value) => state._updateCorrection(
+                                (c) => c.copyWith(scaleFactor: value),
+                                route,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    NavTrackScaleControl(
-                      scaleFactor: correction.scaleFactor,
-                      onChanged: (value) => state._updateCorrection(
-                        (c) => c.copyWith(scaleFactor: value),
-                        route,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
                 if (endPinned)
                   Text(
@@ -279,22 +295,25 @@ class _ControlsPanel extends ConsumerWidget {
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    TextButton(
-                      key: const ValueKey('nav-track-align-cancel'),
-                      onPressed: () => context.pop(),
-                      child: Text(l10n.navTrack_common_cancel),
-                    ),
-                    const Spacer(),
-                    FilledButton(
-                      key: const ValueKey('nav-track-align-save'),
-                      onPressed: () => state._save(route),
-                      child: Text(l10n.navTrack_common_save),
-                    ),
-                  ],
-                ),
+                if (!state._readOnly) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      TextButton(
+                        key: const ValueKey('nav-track-align-cancel'),
+                        onPressed: () => Navigator.of(context).maybePop(),
+                        child: Text(l10n.navTrack_common_cancel),
+                      ),
+                      const Spacer(),
+                      // Done hands the correction to the track's sitting.
+                      FilledButton(
+                        key: const ValueKey('nav-track-align-done'),
+                        onPressed: state._done,
+                        child: Text(l10n.common_action_done),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),

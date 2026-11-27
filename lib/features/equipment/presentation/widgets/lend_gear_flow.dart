@@ -12,19 +12,6 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_loc
 import 'package:submersion/features/equipment/presentation/widgets/move_equipment_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Lends gear from [buddy]'s page (issue #3790): the diver ticks what goes,
-/// then the move flow runs with the buddy already chosen. Gear they already
-/// have is not offered.
-Future<void> showLendGearFlow(
-  BuildContext context,
-  WidgetRef ref,
-  Buddy buddy,
-) async {
-  final items = await _pickGearToLend(context, ref, buddy);
-  if (items == null || items.isEmpty || !context.mounted) return;
-  await showMoveEquipmentFlow(context, ref, items: items, lendTo: buddy);
-}
-
 /// A lend asked about on a buddy's page in its sitting (issue #4527, phase
 /// 3), held until Save: the gear picked, where it goes ([pick], the buddy
 /// unless the diver chose elsewhere in the sheet), the answers to the parts

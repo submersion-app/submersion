@@ -12,8 +12,11 @@ import '../../../../helpers/test_app.dart';
 void main() {
   Future<void> openDialog(
     WidgetTester tester,
-    EquipmentLocationMove move,
-  ) async {
+    EquipmentLocationMove move, {
+    void Function(EquipmentLocationMove? edited)? onHold,
+  }) async {
+    // The dialog edits in an item page's sitting (issue #4527, phase 3).
+    final hold = onHold ?? (_) {};
     await tester.pumpWidget(
       testApp(
         locale: const Locale('en'),
@@ -23,7 +26,8 @@ void main() {
         ],
         child: Consumer(
           builder: (context, ref, _) => TextButton(
-            onPressed: () => showLocationMoveEditDialog(context, ref, move),
+            onPressed: () =>
+                showLocationMoveEditDialog(context, ref, move, onHold: hold),
             child: const Text('open'),
           ),
         ),
@@ -96,18 +100,34 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('a save that fails says so and keeps the dialog open', (
+  // An item page's sitting (issue #4527, phase 3): no database here, so a
+  // write would fail and say so.
+  testWidgets('in a sitting Save hands back the edit and writes nothing', (
     tester,
   ) async {
-    // No database behind this test: the repository write throws.
-    await openDialog(tester, pastMove());
+    final held = <EquipmentLocationMove?>[];
+    await openDialog(tester, pastMove(), onHold: held.add);
+    await tester.enterText(find.byType(TextField).last, 'Back home');
     await tester.tap(find.byKey(const ValueKey('location_move_save')));
     await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull);
-    expect(
-      find.text('Something went wrong. Please try again.'),
-      findsOneWidget,
-    );
-    expect(find.text('Edit move'), findsOneWidget);
+
+    expect(held.single?.note, 'Back home');
+    expect(find.text('Edit move'), findsNothing);
+    expect(find.text('Something went wrong. Please try again.'), findsNothing);
+  });
+
+  testWidgets('in a sitting Delete still asks, then hands back null', (
+    tester,
+  ) async {
+    final held = <EquipmentLocationMove?>[];
+    await openDialog(tester, pastMove(), onHold: held.add);
+    await tester.tap(find.byKey(const ValueKey('location_move_delete')));
+    await tester.pumpAndSettle();
+    expect(find.text('Cancel'), findsWidgets);
+    await tester.tap(find.text('Delete').last);
+    await tester.pumpAndSettle();
+
+    expect(held, [null]);
+    expect(find.text('Edit move'), findsNothing);
   });
 }

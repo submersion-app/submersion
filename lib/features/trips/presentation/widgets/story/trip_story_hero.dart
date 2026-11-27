@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_empty_state.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_country_flags.dart';
@@ -25,14 +26,20 @@ class TripStoryHero extends ConsumerWidget {
   const TripStoryHero({
     super.key,
     required this.story,
+    this.trip,
     this.onScanForDives,
     this.showEmptyState = true,
     this.showChecklist = true,
   });
 
+  /// The trip whose name, type and dates the hero shows, where it is not
+  /// the story's: the sitting's, on the trip page (issue #4527). Null
+  /// shows the story's trip.
+  final Trip? trip;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final trip = story.trip;
+    final trip = this.trip ?? story.trip;
     final theme = Theme.of(context);
     final units = ref.watch(unitFormatterProvider);
     final name = Text(

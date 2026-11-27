@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart'
@@ -61,7 +62,8 @@ void main() {
   Iterable<ScheduledNotification> usageRows(List<ScheduledNotification> rows) =>
       rows.where((r) => r.reminderDaysBefore == kUsageReminderDaysBefore);
 
-  test('addRecord clears the armed usage reminder', () async {
+  test('the refresh after a service record is saved clears the armed usage '
+      'reminder', () async {
     final reg = await EquipmentRepository().createEquipment(
       EquipmentItem(
         id: '',
@@ -85,11 +87,10 @@ void main() {
       hasLength(1),
     );
 
-    final notifier = container.read(
-      serviceRecordNotifierProvider(reg.id).notifier,
-    );
+    // As an item page's Save does: the record is written, then the
+    // records refresh, which reschedules the item's reminders.
     final now = DateTime.now();
-    await notifier.addRecord(
+    await ServiceRecordRepository().createRecord(
       domain.ServiceRecord(
         id: '',
         equipmentId: reg.id,
@@ -100,6 +101,9 @@ void main() {
         updatedAt: now,
       ),
     );
+    await container
+        .read(serviceRecordNotifierProvider(reg.id).notifier)
+        .refresh();
 
     expect(
       usageRows(await db.select(db.scheduledNotifications).get()),

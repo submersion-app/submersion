@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -18,7 +19,8 @@ import 'package:submersion/features/settings/domain/data_health/media_health.dar
 import 'package:submersion/features/settings/presentation/widgets/data_health/health_marked_title.dart';
 
 /// Photos & videos (spec section 8.3): where copies are kept and what is
-/// true of them, how uploads run, where photos come from, then Advanced.
+/// true of them, how uploads run, where photos come from, species
+/// identification, then Advanced.
 /// It replaces the Photos & Media hub and the Media Storage page.
 class PhotosVideosPage extends ConsumerWidget {
   const PhotosVideosPage({super.key});
@@ -55,18 +57,25 @@ class PhotosVideosPage extends ConsumerWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.pushSettingsPage('/settings/media-sources'),
           ),
-          // Only where marine life identification runs (issue #4668).
-          if (marineLifeIdEnabled)
+          // Only where species identification runs (issue #4668), under its
+          // own header: it is not a source of photos (issue #4773).
+          if (marineLifeIdEnabled) ...[
+            _header(context, l10n.settings_photos_speciesHeader),
             ListTile(
               key: const ValueKey('photos-marine-life-identification'),
               leading: Icon(iconForSpeciesCategory(SpeciesCategory.fish)),
               title: Text(l10n.settings_speciesId_title),
-              subtitle: Text(l10n.settings_speciesId_entrySubtitle),
+              subtitle: Text(
+                visionVideoRuns(defaultTargetPlatform)
+                    ? l10n.settings_speciesId_entrySubtitle
+                    : l10n.settings_speciesId_entrySubtitlePhotos,
+              ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.pushSettingsPage(
                 '/settings/marine-life-identification',
               ),
             ),
+          ],
           // Its State holds any export, verify or backfill in flight, which
           // must survive the upload settings above appearing or going.
           PhotosAdvancedSection(

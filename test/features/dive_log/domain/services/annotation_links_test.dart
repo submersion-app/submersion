@@ -185,4 +185,243 @@ void main() {
       expect(mayLinkAnnotations('plain words'), isFalse);
     });
   });
+
+  // An address left behind by link markup the diver broke (#4815): Save
+  // reads the annotation as removed, so the sitting counts these.
+  group('strayAnnotationAddresses', () {
+    const id = '1170e3dc-5a6d-43d6-9d68-410d4280845e';
+
+    test('is zero for intact links and plain words', () {
+      expect(strayAnnotationAddresses(''), isEmpty);
+      expect(strayAnnotationAddresses('Calm. My annotation: none.'), isEmpty);
+      expect(
+        strayAnnotationAddresses(
+          '[Vomit](annotation:$id) and [b](annotation:x)',
+        ),
+        isEmpty,
+      );
+    });
+
+    test('counts an address whose link lost a bracket or parenthesis', () {
+      expect(strayAnnotationAddresses('[Vomit](annotation:$id'), hasLength(1));
+      expect(strayAnnotationAddresses('Vomit](annotation:$id)'), hasLength(1));
+      expect(strayAnnotationAddresses('[Vomit]annotation:$id)'), hasLength(1));
+      expect(
+        strayAnnotationAddresses('[Vomit] (annotation:$id)'),
+        hasLength(1),
+      );
+    });
+
+    test('counts an address whose id was cut short', () {
+      expect(
+        strayAnnotationAddresses('Vomit annotation:1170e3dc'),
+        hasLength(1),
+      );
+    });
+
+    test('the nested shape a pin left on a phone: one stray, one link', () {
+      const notes =
+          '[Vomit buggy](annotation:$id\n'
+          '[Fff](annotation:84baa0c1-f949-41b1-a117-994304f15de2))';
+      expect(strayAnnotationAddresses(notes), hasLength(1));
+      expect(annotationIdsInNotes(notes), {
+        '84baa0c1-f949-41b1-a117-994304f15de2',
+      });
+    });
+
+    test('ignores the case of the scheme, as links do', () {
+      expect(strayAnnotationAddresses('[a](Annotation:$id)'), isEmpty);
+      expect(strayAnnotationAddresses('[a](Annotation:$id'), hasLength(1));
+    });
+
+    test('ends the id where an id can end, not at punctuation after it', () {
+      expect(strayAnnotationAddresses('[a](annotation:abc-12.'), [
+        'annotation:abc-12',
+      ]);
+    });
+
+    test('keeps the id as written: ids are compared case and all', () {
+      expect(strayAnnotationAddresses('[a](Annotation:ABC'), [
+        'annotation:ABC',
+      ]);
+    });
+
+    test('counts a link whose id was deleted whole, but not prose', () {
+      expect(strayAnnotationAddresses('[Vomit](annotation:)'), ['annotation:']);
+      expect(strayAnnotationAddresses('Calm (annotation: see below)'), isEmpty);
+    });
+  });
+
+  // Where a pin from the Notes toolbar may not land (#4815): the markup of
+  // a link the diver broke, from its opening bracket to its address.
+  group('brokenAnnotationLinkSpans', () {
+    String marked(String notes) {
+      final spans = brokenAnnotationLinkSpans(notes);
+      final out = StringBuffer();
+      var at = 0;
+      for (final span in spans) {
+        out
+          ..write(notes.substring(at, span.start))
+          ..write('<')
+          ..write(notes.substring(span.start, span.end))
+          ..write('>');
+        at = span.end;
+      }
+      out.write(notes.substring(at));
+      return out.toString();
+    }
+
+    test('is empty for intact links and plain words', () {
+      expect(brokenAnnotationLinkSpans(''), isEmpty);
+      expect(brokenAnnotationLinkSpans('Calm. annotation: none.'), isEmpty);
+      expect(brokenAnnotationLinkSpans('[Vomit](annotation:a1) ok'), isEmpty);
+    });
+
+    test('a link that lost its closing parenthesis, from its bracket', () {
+      expect(
+        marked('Calm\n\n[Vomit buggy](annotation:a1'),
+        'Calm\n\n<[Vomit buggy](annotation:a1>',
+      );
+    });
+
+    test('takes in a parenthesis still after the address', () {
+      expect(
+        marked('Calm [Vomit]annotation:a1) end'),
+        'Calm <[Vomit]annotation:a1)> end',
+      );
+      expect(marked('[Vomit](annotation:)'), '<[Vomit](annotation:)>');
+    });
+
+    test('with its opening bracket gone, from what is left of the markup', () {
+      expect(
+        marked('Calm Vomit](annotation:a1) end'),
+        'Calm Vomit<](annotation:a1)> end',
+      );
+      expect(
+        marked('[Vomit] (annotation:a1) end'),
+        '[Vomit] <(annotation:a1)> end',
+      );
+    });
+
+    test('a bare address is the address alone', () {
+      expect(marked('Vomit annotation:a1 end'), 'Vomit <annotation:a1> end');
+    });
+
+    test('a bracket earlier in the paragraph with no markup after it is '
+        'not the link', () {
+      expect(
+        marked('Saw [reef shark today. Vomit annotation:a1'),
+        'Saw [reef shark today. Vomit <annotation:a1>',
+      );
+    });
+
+    test('a link that lost its closing bracket, from its opening one', () {
+      expect(
+        marked('Calm [Vomit(annotation:a1) end'),
+        'Calm <[Vomit(annotation:a1)> end',
+      );
+    });
+
+    test('looks for the bracket in its own paragraph only', () {
+      expect(
+        marked('[Calm\n\nVomit](annotation:a1'),
+        '[Calm\n\nVomit<](annotation:a1>',
+      );
+      expect(
+        marked('[Calm\r\n\r\nVomit](annotation:a1'),
+        '[Calm\r\n\r\nVomit<](annotation:a1>',
+      );
+    });
+
+    test('the shape the report left: the broken link, not the pin', () {
+      expect(
+        marked('[Vomit buggy](annotation:a1\n[Fff](annotation:b2))'),
+        '<[Vomit buggy](annotation:a1>\n[Fff](annotation:b2))',
+      );
+    });
+  });
+
+  // The rule the dive page and agent writes share (#4815).
+  group('AnnotationLinkBaseline.damagedBy', () {
+    const stored = '[Turtle](annotation:t1)\n\n[Ray](annotation:r1)';
+    final baseline = AnnotationLinkBaseline.of(stored);
+    const holding = {'t1', 'r1'};
+
+    test('names the annotation whose link lost its parenthesis', () {
+      expect(
+        baseline.damagedBy(
+          '[Turtle](annotation:t1\n\n[Ray](annotation:r1)',
+          holding,
+        ),
+        {'t1'},
+      );
+    });
+
+    test('a link deleted whole is a removal, not damage', () {
+      expect(baseline.damagedBy('[Ray](annotation:r1)', holding), isEmpty);
+    });
+
+    test('an id edited inside a whole link names the annotation lost', () {
+      expect(
+        baseline.damagedBy(
+          '[Turtle](annotation:t2)\n\n[Ray](annotation:r1)',
+          holding,
+        ),
+        {'t1'},
+      );
+    });
+
+    test('an id edited into another annotation\'s id names the one lost', () {
+      expect(
+        baseline.damagedBy(
+          '[Turtle](annotation:r1)\n\n[Ray](annotation:r1)',
+          holding,
+        ),
+        {'t1'},
+      );
+    });
+
+    test('a link deleted whole beside another left as it was is a removal', () {
+      expect(
+        baseline.damagedBy('[Ray](annotation:r1) and again', holding),
+        isEmpty,
+      );
+    });
+
+    test('an id edited into a held annotation the stored Notes never linked '
+        'names the one lost', () {
+      expect(
+        baseline.damagedBy('[Turtle](annotation:o1)\n\n[Ray](annotation:r1)', {
+          ...holding,
+          'o1',
+        }),
+        {'t1'},
+      );
+    });
+
+    test('a pin placed in the sitting links its id once, as written', () {
+      expect(
+        baseline.damagedBy(
+          '[Ray](annotation:r1)\n\n[Manta](annotation:p1)',
+          {...holding, 'p1'},
+          placed: {'p1'},
+        ),
+        isEmpty,
+      );
+    });
+
+    test('an id differing only in case is another id', () {
+      final mixed = AnnotationLinkBaseline.of(
+        '[A](annotation:ABC)\n\n[a](annotation:abc)',
+      );
+      expect(mixed.damagedBy('[a](annotation:abc)', {'ABC', 'abc'}), isEmpty);
+    });
+
+    test('a link to an annotation not held loses nothing', () {
+      expect(
+        baseline.damagedBy('$stored\n\n[Shark](annotation:s9)', holding),
+        isEmpty,
+      );
+    });
+  });
 }

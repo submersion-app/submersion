@@ -14,6 +14,7 @@ import 'package:submersion/features/courses/domain/entities/course_progress.dart
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -65,6 +66,21 @@ class FakeCourseSave implements CourseEditSaveService {
     stored.state = after;
     return (before: before, after: after);
   }
+
+  /// Each new course the page asked to create, failed ones included.
+  final creates = <({Course course, Set<String> cards})>[];
+
+  @override
+  Future<Course> create({
+    required Course course,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+  }) async {
+    creates.add((course: course, cards: changedCardIds.toSet()));
+    if (fail) throw StateError('the create failed');
+    if (runHeld) await alsoWrite?.call();
+    return course;
+  }
 }
 
 class CoursePageHarness {
@@ -76,15 +92,13 @@ class CoursePageHarness {
 
 final _storedProvider = StateProvider<Course?>((ref) => rescue);
 
-/// Pumps the course page with the phase 3 switch on (unless
-/// [unlockEditing] is false), at phone width, or as the list's pane when
+/// Pumps the course page, at phone width, or as the list's pane when
 /// [embedded]. [progress], [certifications] and [buddies] stand in for what
 /// the page reads besides the course.
 Future<CoursePageHarness> pumpCoursePage(
   WidgetTester tester, {
   Brightness brightness = Brightness.light,
   Course? course,
-  bool unlockEditing = true,
   bool openUnlocked = false,
   bool embedded = false,
   Size size = const Size(600, 1600),
@@ -104,7 +118,6 @@ Future<CoursePageHarness> pumpCoursePage(
   late CoursePageHarness harness;
   final page = CourseDetailPage(
     courseId: shown.id,
-    unlockEditing: unlockEditing,
     openUnlocked: openUnlocked,
     embedded: embedded,
     onSittingEnded: onSittingEnded,
@@ -156,5 +169,76 @@ Future<CoursePageHarness> pumpCoursePage(
     tester.element(find.byType(CourseDetailPage)),
   );
   container.read(courseEditSaveServiceProvider);
+  return harness;
+}
+
+/// What a test of a new course's page pumped: the fake save, and how the
+/// page ended.
+class NewCourseHarness {
+  late FakeCourseSave save;
+  Object? popped;
+  bool poppedAtAll = false;
+  final createdIds = <String>[];
+}
+
+/// Pumps a new course's page (issue #4527, phase 3, plan 11): a full page
+/// pushed over a launcher, or the pane's ([embedded]). Needs the test
+/// database: the cards read nothing for an id not stored.
+Future<NewCourseHarness> pumpNewCoursePage(
+  WidgetTester tester, {
+  bool embedded = false,
+  Brightness brightness = Brightness.light,
+  Size size = const Size(600, 1400),
+}) async {
+  tester.view.physicalSize = size;
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  final overrides = await getBaseOverrides();
+  final harness = NewCourseHarness();
+  final page = CourseDetailPage.newCourse(
+    embedded: embedded,
+    onCreated: harness.createdIds.add,
+  );
+  await tester.pumpWidget(
+    testApp(
+      overrides: [
+        ...overrides,
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+        courseEditSaveServiceProvider.overrideWith(
+          (ref) => harness.save = FakeCourseSave(
+            ref.watch(_storedProvider.notifier),
+          ),
+        ),
+      ],
+      child: Theme(
+        data: AppThemeRegistry.resolveTheme(
+          AppThemeRegistry.presets.first,
+          brightness,
+        ),
+        child: embedded
+            ? Scaffold(body: page)
+            : Builder(
+                builder: (context) => Scaffold(
+                  body: TextButton(
+                    onPressed: () async {
+                      final result = await Navigator.of(
+                        context,
+                      ).push(MaterialPageRoute<Object?>(builder: (_) => page));
+                      harness
+                        ..poppedAtAll = true
+                        ..popped = result;
+                    },
+                    child: const Text('open'),
+                  ),
+                ),
+              ),
+      ),
+    ),
+  );
+  if (!embedded) await tester.tap(find.text('open'));
+  await tester.pumpAndSettle();
+  ProviderScope.containerOf(
+    tester.element(find.byType(CourseDetailPage)),
+  ).read(courseEditSaveServiceProvider);
   return harness;
 }

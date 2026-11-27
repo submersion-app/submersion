@@ -77,6 +77,21 @@ class FakeSpeciesSave implements SpeciesEditSaveService {
     stored.state = after;
     return (before: before, after: after);
   }
+
+  /// Each new species the page asked to create, failed ones included.
+  final creates = <({Species species, Set<String> cards})>[];
+
+  @override
+  Future<Species> create({
+    required Species species,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+  }) async {
+    creates.add((species: species, cards: changedCardIds.toSet()));
+    if (fail) throw StateError('the create failed');
+    await alsoWrite?.call();
+    return species;
+  }
 }
 
 /// Records each photo tagged instead of touching a database.
@@ -152,16 +167,15 @@ class SpeciesPageHarness {
 
 final _storedProvider = StateProvider<Species?>((ref) => manta);
 
-/// Pumps the species page with the phase 3 switch on (unless
-/// [unlockEditing] is false), its calculated sections empty, at phone width.
+/// Pumps the species page, its calculated sections empty, at phone width.
 Future<SpeciesPageHarness> pumpSpeciesPage(
   WidgetTester tester, {
   Brightness brightness = Brightness.light,
   Species species = manta,
-  bool unlockEditing = true,
   bool openUnlocked = false,
   Locale locale = const Locale('en'),
   SpeciesLookupOutcome? lookupAnswer,
+  List<Override> extra = const [],
 }) async {
   tester.view.physicalSize = const Size(600, 1200);
   tester.view.devicePixelRatio = 1;
@@ -188,6 +202,9 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
           species.id,
         ).overrideWith((ref) async => const []),
         mediaForSpeciesProvider(species.id).overrideWith((ref) async => []),
+        mediaEntriesForSpeciesProvider(
+          species.id,
+        ).overrideWith((ref) async => []),
         speciesMapSpeciesPinsProvider(
           species.id,
         ).overrideWith((ref) async => []),
@@ -233,6 +250,7 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
         speciesLookupLauncherProvider.overrideWithValue(
           (context, query) async => lookupAnswer,
         ),
+        ...extra,
       ],
       child: ValueListenableBuilder<bool>(
         valueListenable: pageShown,
@@ -245,7 +263,6 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
                 ),
                 child: SpeciesDetailPage(
                   speciesId: species.id,
-                  unlockEditing: unlockEditing,
                   openUnlocked: openUnlocked,
                 ),
               )
@@ -259,5 +276,66 @@ Future<SpeciesPageHarness> pumpSpeciesPage(
     tester.element(find.byType(SpeciesDetailPage)),
   );
   container.read(speciesEditSaveServiceProvider);
+  return harness;
+}
+
+/// What a test of a new species' page pumped: the fake save, and how the
+/// page ended.
+class NewSpeciesHarness {
+  late FakeSpeciesSave save;
+  Object? popped;
+  bool poppedAtAll = false;
+}
+
+/// Pumps a new species' page (issue #4527, phase 3, plan 11), pushed over
+/// a launcher, with the online lookup answering [lookupAnswer].
+Future<NewSpeciesHarness> pumpNewSpeciesPage(
+  WidgetTester tester, {
+  SpeciesLookupOutcome? lookupAnswer,
+}) async {
+  tester.view.physicalSize = const Size(600, 1200);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  final overrides = await getBaseOverrides();
+  final harness = NewSpeciesHarness();
+  await tester.pumpWidget(
+    testApp(
+      locale: const Locale('en'),
+      overrides: [
+        ...overrides,
+        speciesEditSaveServiceProvider.overrideWith(
+          (ref) => harness.save = FakeSpeciesSave(
+            ref.watch(_storedProvider.notifier),
+          ),
+        ),
+        speciesRepositoryProvider.overrideWithValue(FakeSpeciesRepository()),
+        speciesLookupLauncherProvider.overrideWithValue(
+          (context, query) async => lookupAnswer,
+        ),
+      ],
+      child: Builder(
+        builder: (context) => Scaffold(
+          body: TextButton(
+            onPressed: () async {
+              final result = await Navigator.of(context).push(
+                MaterialPageRoute<Object?>(
+                  builder: (_) => const SpeciesDetailPage.newSpecies(),
+                ),
+              );
+              harness
+                ..poppedAtAll = true
+                ..popped = result;
+            },
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.tap(find.text('open'));
+  await tester.pumpAndSettle();
+  ProviderScope.containerOf(
+    tester.element(find.byType(SpeciesDetailPage)),
+  ).read(speciesEditSaveServiceProvider);
   return harness;
 }

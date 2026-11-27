@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/cylinder_passports/presentation/pages/passport_page.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -177,7 +178,9 @@ void main() {
 
     await tester.tap(find.text(l10n.passport_open));
     await tester.pumpAndSettle();
-    expect(find.text('passport route'), findsOneWidget);
+    // The item's page hosts editing, so its passport opens as a satellite
+    // of the item, with a lock of its own (issue #4527).
+    expect(find.byType(PassportPage), findsOneWidget);
   });
 
   testWidgets('a fill logged without a pressure leaves it out', (tester) async {

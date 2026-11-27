@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/number_display.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -821,7 +822,7 @@ class _DiveCenterListContentState extends ConsumerState<DiveCenterListContent> {
                       final routerState = GoRouterState.of(context);
                       context.go('${routerState.uri.path}?mode=new');
                     } else {
-                      context.push('/dive-centers/new');
+                      openNewDiveCenter(context);
                     }
                   },
                   icon: const Icon(Icons.add),

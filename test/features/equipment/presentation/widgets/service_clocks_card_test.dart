@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/service_clock_snapshot_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -94,20 +95,22 @@ void main() {
                 for (final k in [hydro, vip, o2]) k.id: k,
               },
         ),
-        serviceClockStatusesProvider('e1').overrideWith(
-          (ref) async =>
-              statuses ??
-              [
-                status(
-                  hydro,
-                  ServiceClockSeverity.overdue,
-                  DateTime(2026, 1, 1),
-                ),
-                status(vip, ServiceClockSeverity.ok, DateTime(2027, 5, 1)),
-              ],
-        ),
-        serviceSchedulesForEquipmentProvider('e1').overrideWith(
-          (ref) async => schedules ?? [sched('hydro'), sched('vip')],
+        // The rows and their verdicts come from one read (issue #5042).
+        serviceClockSnapshotProvider('e1').overrideWith(
+          (ref) async => ServiceClockSnapshot(
+            schedules: schedules ?? [sched('hydro'), sched('vip')],
+            records: const [],
+            evaluate: (_, _) =>
+                statuses ??
+                [
+                  status(
+                    hydro,
+                    ServiceClockSeverity.overdue,
+                    DateTime(2026, 1, 1),
+                  ),
+                  status(vip, ServiceClockSeverity.ok, DateTime(2027, 5, 1)),
+                ],
+          ),
         ),
         serviceKindsProvider.overrideWith(
           (ref) async => scopedKinds ?? [hydro, vip, o2],
@@ -119,10 +122,7 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
-            child: ServiceClocksCard(
-              equipmentId: 'e1',
-              equipmentType: EquipmentType.tank,
-            ),
+            child: ServiceClocksCard(equipmentId: 'e1'),
           ),
         ),
       ),
@@ -232,18 +232,5 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Counting since Jan 1, 2025'), findsNWidgets(2));
-  });
-
-  testWidgets('Add clock sheet lists only unattached kinds', (tester) async {
-    await tester.pumpWidget(buildCard());
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Add clock'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('O2 clean'), findsOneWidget);
-    // hydro is already attached: only the card row shows it, not the sheet.
-    expect(find.text('Hydrostatic test'), findsOneWidget);
-    expect(find.text('Manage service types'), findsOneWidget);
   });
 }

@@ -62,6 +62,15 @@ enum HealthReason {
   /// A store attached here could not be opened with this device's keys
   /// (#4561).
   mediaStoreUnreachable,
+
+  /// A photo subscription (a shared album) cannot be read on this device
+  /// until its password is entered: none saved here, or the saved one was
+  /// refused. Passwords never sync.
+  mediaSubscriptionNeedsPassword,
+
+  /// A photo subscription's last poll on this device failed for another
+  /// reason (a changed feed format, an unreachable server).
+  mediaSubscriptionFailing,
 }
 
 /// One feature's health: its level, the reason behind it, and any values the

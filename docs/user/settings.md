@@ -153,12 +153,17 @@ fixed limits, so changing them never alters dives you have already reviewed.
 destinations to reorder them: the ones at the top appear in the bottom bar, as
 many as your screen width allows. On a desktop, drag to reorder the
 sidebar; Home always stays at the top. **Always hide labels** shows icons only.
+The layout is saved on each device and does not sync, so arrange it on every
+phone and computer you use (see [Multi-Device Sync](multi-device-sync.md)).
 
 ### Home
 
-**Home** under **Sections** sets up the Dashboard: which **Status chips** show at
-the top, and which **Home cards** appear and in what order (drag to reorder).
-**Reset to default** restores the original layout. See
+**Home** under **Sections** sets up the Dashboard: the **Header** for phone
+width and for wider screens (the slim **Compact** bar or the welcome
+**Banner**), a **Layout** to start from
+(Balanced, Ready, Trends or Logbook), which **Panels** appear and in what order
+(drag to reorder), the numbers in **Key numbers**, and which **Status chips**
+show in the header. **Reset to default** returns to the Balanced layout. See
 [The Dashboard](dashboard.md).
 
 ### Sections

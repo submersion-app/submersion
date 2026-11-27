@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
+import 'package:submersion/core/icons/mdi_icons.dart';
 
 /// Height of [MediaViewerToolbar]'s content below the status bar: its 8 px
 /// vertical padding either side of a default 48 px [IconButton]. The Perdix
@@ -22,6 +24,46 @@ const double kToolbarButtonExtent = 48;
 /// 1x text; scaled with the diver's text size so large text is not clipped.
 const double _indicatorMinWidth = 72;
 
+/// A progress ring round a toolbar icon (issue #4825): filled to [value],
+/// or spinning when it is null.
+@immutable
+class ToolbarRing {
+  const ToolbarRing([this.value]);
+
+  final double? value;
+}
+
+/// A state colour for a toolbar icon (issue #4926), named for what it means
+/// rather than given as a colour, so it is drawn in one that reads on the
+/// surface under it: the viewer's dark bar, the pale editing bar, or the
+/// overflow menu.
+enum ToolbarTone {
+  /// Work under way: the theme's primary colour.
+  active,
+
+  /// Started but not finished: amber.
+  warn,
+
+  /// Done: green.
+  ok,
+}
+
+/// The colour [tone] is drawn in, [onDarkBar] when on the viewer's own bar,
+/// which is dark over any photo in either theme; null for no tone.
+Color? toolbarToneColor(
+  BuildContext context,
+  ToolbarTone? tone, {
+  required bool onDarkBar,
+}) {
+  if (tone == null) return null;
+  final palette = onDarkBar ? StatusColors.dark : StatusColors.of(context);
+  return switch (tone) {
+    ToolbarTone.active => Theme.of(context).colorScheme.primary,
+    ToolbarTone.warn => palette.warn.accent,
+    ToolbarTone.ok => palette.ok.accent,
+  };
+}
+
 /// One toolbar action, described as data so the toolbar can show it as an
 /// icon or move it into the overflow menu without knowing what it does.
 @immutable
@@ -33,7 +75,9 @@ class MediaViewerAction {
     required this.priority,
     required this.onPressed,
     this.iconColor,
+    this.tone,
     this.disabledReason,
+    this.ring,
   });
 
   /// Stable id; also names the widget key (`viewer_<id>`).
@@ -53,9 +97,16 @@ class MediaViewerAction {
   /// Tint for state (the Perdix toggle when on); null uses the default.
   final Color? iconColor;
 
+  /// A state the icon is tinted for, in colours that suit where it is
+  /// drawn; [iconColor], when set, wins.
+  final ToolbarTone? tone;
+
   /// Why the action cannot be used now; non-null draws it disabled, with
   /// this as its tooltip and as a line under it in the overflow menu.
   final String? disabledReason;
+
+  /// Work under way, drawn round the icon when it is on the bar.
+  final ToolbarRing? ring;
 }
 
 /// The result of [splitToolbarActions]: both lists in toolbar order.
@@ -145,6 +196,11 @@ class MediaViewerToolbar extends ConsumerWidget {
     this.writeControls = true,
     this.writeMetadataDisabledReason,
     this.editBar,
+    this.onMarineLifeLabels,
+    this.marineLifeLabelsOn = true,
+    this.marineLifeRing,
+    this.marineLifeTone,
+    this.marineLifeLabel,
   });
 
   final MediaItem item;
@@ -204,6 +260,25 @@ class MediaViewerToolbar extends ConsumerWidget {
   /// shared editing bar, with the actions inside it.
   final MediaViewerEditBar? editBar;
 
+  /// Opens the marine life labels menu (issue #4825), anchored to what was
+  /// tapped; null hides the action.
+  final void Function(BuildContext anchor)? onMarineLifeLabels;
+
+  /// Whether labels are drawn: a fish when they are, a struck fish when
+  /// they are off (issue #4926).
+  final bool marineLifeLabelsOn;
+
+  /// How far analysis of the item on screen has got, as the labels icon's
+  /// colour (issue #4926); null leaves it plain.
+  final ToolbarTone? marineLifeTone;
+
+  /// The item on screen is being analysed: a ring round the labels icon.
+  final ToolbarRing? marineLifeRing;
+
+  /// The labels action's tooltip and overflow-menu text, naming how far
+  /// analysis has got (issue #4958); null uses the action's plain name.
+  final String? marineLifeLabel;
+
   /// [readOnly] drops every action that changes the media or its links:
   /// a browser views and shares, and nothing more (issue #4121).
   List<MediaViewerAction> _actions(
@@ -235,7 +310,7 @@ class MediaViewerToolbar extends ConsumerWidget {
           id: 'write_metadata',
           icon: Icons.edit_note,
           label: l10n.media_photoViewer_writeDiveDataTooltip,
-          priority: 6,
+          priority: 7,
           disabledReason: writeMetadataDisabledReason,
           onPressed: (_) => onWriteMetadata(),
         ),
@@ -244,7 +319,7 @@ class MediaViewerToolbar extends ConsumerWidget {
           id: 'perdix',
           icon: Icons.watch,
           label: l10n.media_perdixOverlay_toggleTooltip,
-          priority: 3,
+          priority: 4,
           iconColor: perdixEnabled
               ? Theme.of(context).colorScheme.primary
               : null,
@@ -255,7 +330,7 @@ class MediaViewerToolbar extends ConsumerWidget {
           id: 'lightroom',
           icon: Icons.open_in_new,
           label: l10n.media_lightroom_openInLightroom,
-          priority: 7,
+          priority: 8,
           onPressed: (_) => onOpenInLightroom!(),
         ),
       if (writes)
@@ -263,7 +338,7 @@ class MediaViewerToolbar extends ConsumerWidget {
           id: 'species',
           icon: Icons.sell_outlined,
           label: l10n.media_species_actionTooltip,
-          priority: 4,
+          priority: 5,
           onPressed: (_) => onTagSpecies(),
         ),
       if (onTagPeople != null && writes)
@@ -273,17 +348,29 @@ class MediaViewerToolbar extends ConsumerWidget {
           label: l10n.media_people_actionTooltip,
           // After Adjust color: on a narrow phone it moves to the overflow
           // menu rather than displacing an existing action.
-          priority: 6,
+          priority: 7,
           iconColor: peopleTaggingActive
               ? Theme.of(context).colorScheme.primary
               : null,
           onPressed: (_) => onTagPeople!(),
         ),
+      // Just before Info, with the rank Info had: on a phone it takes
+      // Info's place on the bar (issue #4825).
+      if (onMarineLifeLabels != null)
+        MediaViewerAction(
+          id: 'marine_life_labels',
+          icon: marineLifeLabelsOn ? MdiIcons.fish : MdiIcons.fishOff,
+          label: marineLifeLabel ?? l10n.media_labels_action,
+          priority: 2,
+          tone: marineLifeTone,
+          ring: marineLifeRing,
+          onPressed: (anchor) => onMarineLifeLabels!(anchor),
+        ),
       MediaViewerAction(
         id: 'info',
         icon: Icons.info_outline,
         label: l10n.media_info_title,
-        priority: 2,
+        priority: 3,
         onPressed: (_) => onShowInfo(),
       ),
       if (onAdjustColor != null && writes)
@@ -293,7 +380,7 @@ class MediaViewerToolbar extends ConsumerWidget {
           label: l10n.media_color_adjustAction,
           // After the existing actions, so a phone keeps showing the ones
           // it showed before this was added (issue #3520).
-          priority: 5,
+          priority: 6,
           onPressed: (_) => onAdjustColor!(),
         ),
       MediaViewerAction(
@@ -310,7 +397,7 @@ class MediaViewerToolbar extends ConsumerWidget {
           id: 'reupload',
           icon: Icons.tune,
           label: l10n.settings_mediaStorage_quality_section,
-          priority: 8,
+          priority: 9,
           onPressed: (anchor) => onReupload!(anchor),
         ),
     ];
@@ -380,7 +467,12 @@ class MediaViewerToolbar extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    ...toolbarActionButtons(context, split, Colors.white),
+                    ...toolbarActionButtons(
+                      context,
+                      split,
+                      Colors.white,
+                      onDarkBar: true,
+                    ),
                   ],
                 );
               },
@@ -435,21 +527,31 @@ class MediaViewerToolbar extends ConsumerWidget {
 /// The icons in [split] that fit, then the overflow menu holding the rest,
 /// for the viewer's toolbar and for the editing bars (issue #4527). [color]
 /// tints icons with no state colour of their own; null takes the bar's.
+/// [onDarkBar] says the icons sit on the viewer's dark bar, so a
+/// [MediaViewerAction.tone] takes the colours that read there; the menu
+/// is the theme's own surface either way.
 List<Widget> toolbarActionButtons(
   BuildContext context,
   ToolbarActionSplit split,
-  Color? color,
-) => [
+  Color? color, {
+  bool onDarkBar = false,
+}) => [
   for (final action in split.visible)
     // Builder so the anchor context is the button itself: findRenderObject
     // from it descends to the IconButton.
     Builder(
       key: ValueKey('viewer_${action.id}'),
       builder: (anchor) => IconButton(
-        icon: Icon(
-          action.icon,
-          color: action.iconColor ?? color,
-          semanticLabel: action.disabledReason == null ? null : action.label,
+        icon: _withRing(
+          Icon(
+            action.icon,
+            color:
+                action.iconColor ??
+                toolbarToneColor(context, action.tone, onDarkBar: onDarkBar) ??
+                color,
+            semanticLabel: action.disabledReason == null ? null : action.label,
+          ),
+          action.ring,
         ),
         tooltip: action.disabledReason ?? action.label,
         onPressed: action.disabledReason == null
@@ -472,7 +574,16 @@ List<Widget> toolbarActionButtons(
               enabled: action.disabledReason == null,
               child: Row(
                 children: [
-                  Icon(action.icon, color: action.iconColor),
+                  Icon(
+                    action.icon,
+                    color:
+                        action.iconColor ??
+                        toolbarToneColor(
+                          context,
+                          action.tone,
+                          onDarkBar: false,
+                        ),
+                  ),
                   const SizedBox(width: 12),
                   Flexible(
                     child: Column(
@@ -495,3 +606,30 @@ List<Widget> toolbarActionButtons(
       ),
     ),
 ];
+
+/// How far [_withRing]'s ring reaches past each side of the icon, into the
+/// button's padding.
+const double _ringOverhang = 4;
+
+/// [icon] inside [ring], when there is one. The icon alone sizes the
+/// button: the ring is painted out into the padding round it, so the
+/// button, and the bar it sits in, keep their size while work runs
+/// (issue #4870).
+Widget _withRing(Widget icon, ToolbarRing? ring) {
+  if (ring == null) return icon;
+  return Stack(
+    alignment: Alignment.center,
+    clipBehavior: Clip.none,
+    children: [
+      // Under the icon, as before; the icon still sizes the stack.
+      Positioned(
+        left: -_ringOverhang,
+        top: -_ringOverhang,
+        right: -_ringOverhang,
+        bottom: -_ringOverhang,
+        child: CircularProgressIndicator(strokeWidth: 2, value: ring.value),
+      ),
+      icon,
+    ],
+  );
+}

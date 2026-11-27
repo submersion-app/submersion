@@ -8,6 +8,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_empty_parse.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
@@ -43,6 +44,7 @@ class ReparseBatchResult {
     required this.notProcessed,
     required this.profilesPreserved,
     required this.failures,
+    this.handSetKept = 0,
   });
 
   /// Every dive the run was asked to re-parse.
@@ -58,6 +60,10 @@ class ReparseBatchResult {
   /// Succeeded dives whose combined profile was deliberately left alone.
   final int profilesPreserved;
   final List<ReparseDiveFailure> failures;
+
+  /// Succeeded dives that kept a value the diver set by hand, which the
+  /// parse would have changed (issue #4909).
+  final int handSetKept;
 
   int get failed => failures.length;
   bool get cancelled => notProcessed > 0;
@@ -247,6 +253,7 @@ class ReparseBatchService {
     var skipped = 0;
     var notProcessed = 0;
     var profilesPreserved = 0;
+    var handSetKept = 0;
 
     for (var i = 0; i < total; i++) {
       if (isCancelled?.call() ?? false) {
@@ -261,10 +268,11 @@ class ReparseBatchService {
         case _Failed(:final error, :final partlyApplied):
           failures.add(ReparseDiveFailure(diveId: diveId, error: error));
           if (partlyApplied) rewritten.add(diveId);
-        case _Succeeded(:final sourcesPreserved):
+        case _Succeeded(:final sourcesPreserved, :final keptHandSet):
           changed.add(diveId);
           rewritten.add(diveId);
           if (sourcesPreserved > 0) profilesPreserved++;
+          if (keptHandSet) handSetKept++;
       }
       onProgress?.call(i + 1, total);
     }
@@ -280,18 +288,63 @@ class ReparseBatchService {
       notProcessed: notProcessed,
       profilesPreserved: profilesPreserved,
       failures: List.unmodifiable(failures),
+      handSetKept: handSetKept,
     );
   }
 
   /// One dive's re-parse, as the dive page's "Re-parse raw data" runs it:
-  /// the same step [run] takes for each dive, without a batch's change-log
-  /// scope. Returns the error (none on success, or when the dive has no raw
+  /// the same step [run] takes for each dive, filed under a re-parse entry
+  /// of its own, so its revert puts the replaced series back too (issue
+  /// #4848). Returns the error (none on success, or when the dive has no raw
   /// data) and how many sources kept a combined dive's profile.
+  ///
+  /// Values the diver set by hand stay, unless named in [replaceHandSet]
+  /// (issue #4909): the fields the diver chose the parse for after
+  /// [previewSingleDive].
   Future<({List<String> errors, int profilesPreserved})> reparseSingleDive(
     String diveId, {
     required RawDiveParseFn parseFn,
+    Iterable<HandSetChange> replaceHandSet = const [],
+  }) => ChangeLogScope.bulk(
+    _db,
+    label: ChangeLogLabels.reparse,
+    body: () => _reparseSingle(diveId, parseFn, replaceHandSet),
+  );
+
+  /// The values the diver set by hand that re-parsing [diveId] would
+  /// replace, each with the parse's value (issue #4909). Parses as
+  /// [reparseSingleDive] does and writes nothing. None when the dive has no
+  /// raw data or a source fails to parse: the re-parse itself then reports
+  /// it.
+  Future<List<HandSetChange>> previewSingleDive(
+    String diveId, {
+    required RawDiveParseFn parseFn,
   }) async {
-    final outcome = await _reparseOne(diveId, parseFn, null);
+    if (!await hasHandSetMarks(_db, diveId)) return const [];
+    final parsed = await _parseSources(diveId, parseFn, null);
+    if (parsed.stop != null) return const [];
+    return [
+      for (final (source, dive) in parsed.sources)
+        ...await _reparse.previewHandSetChanges(
+          diveId: diveId,
+          sourceRowId: source.id,
+          parsed: dive,
+          descriptorVendor: source.descriptorVendor,
+        ),
+    ];
+  }
+
+  Future<({List<String> errors, int profilesPreserved})> _reparseSingle(
+    String diveId,
+    RawDiveParseFn parseFn,
+    Iterable<HandSetChange> replaceHandSet,
+  ) async {
+    final outcome = await _reparseOne(
+      diveId,
+      parseFn,
+      null,
+      replaceHandSet: replaceHandSet,
+    );
     switch (outcome) {
       case _Skipped():
         return (errors: const <String>[], profilesPreserved: 0);
@@ -309,8 +362,70 @@ class ReparseBatchService {
   Future<_DiveOutcome> _reparseOne(
     String diveId,
     RawDiveParseFn parseFn,
+    String? computerId, {
+    Iterable<HandSetChange> replaceHandSet = const [],
+  }) async {
+    final (:stop, sources: parsed) = await _parseSources(
+      diveId,
+      parseFn,
+      computerId,
+    );
+    if (stop != null) return stop;
+
+    var sourcesPreserved = 0;
+    var keptHandSet = false;
+    var appliedAny = false;
+    for (final (source, dive) in parsed) {
+      try {
+        final outcome = await _reparse.applyParsedUpdate(
+          diveId: diveId,
+          sourceRowId: source.id,
+          parsed: dive,
+          descriptorVendor: source.descriptorVendor,
+          descriptorProduct: source.descriptorProduct,
+          descriptorModel: source.descriptorModel,
+          libdivecomputerVersion: source.libdivecomputerVersion,
+          replaceHandSet: replaceHandSet,
+        );
+        if (outcome.profilePreserved) sourcesPreserved++;
+        if (outcome.handSetKept.isNotEmpty) keptHandSet = true;
+        appliedAny = true;
+      } catch (e, stackTrace) {
+        // A database fault: sources already applied stay applied.
+        _log.error(
+          'Re-parse of dive $diveId failed while writing',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return _Failed(reparseErrorText(e), partlyApplied: appliedAny);
+      }
+    }
+    return _Succeeded(
+      sourcesPreserved: sourcesPreserved,
+      keptHandSet: keptHandSet,
+    );
+  }
+
+  /// Every source of [diveId] (only [computerId]'s, when given) with its
+  /// parse, or the outcome that stops the dive before anything is written:
+  /// skipped when none has raw data, failed when any cannot be parsed.
+  Future<
+    ({
+      _DiveOutcome? stop,
+      List<(DiveDataSourcesData, pigeon.ParsedDive)> sources,
+    })
+  >
+  _parseSources(
+    String diveId,
+    RawDiveParseFn parseFn,
     String? computerId,
   ) async {
+    ({
+      _DiveOutcome? stop,
+      List<(DiveDataSourcesData, pigeon.ParsedDive)> sources,
+    })
+    stopWith(_DiveOutcome outcome) => (stop: outcome, sources: const []);
+
     final List<DiveDataSourcesData> sources;
     try {
       sources = [
@@ -325,9 +440,9 @@ class ReparseBatchService {
         error: e,
         stackTrace: stackTrace,
       );
-      return _Failed(reparseErrorText(e));
+      return stopWith(_Failed(reparseErrorText(e)));
     }
-    if (sources.isEmpty) return const _Skipped();
+    if (sources.isEmpty) return stopWith(const _Skipped());
 
     final parsed = <(DiveDataSourcesData, pigeon.ParsedDive)>[];
     for (final source in sources) {
@@ -335,45 +450,19 @@ class ReparseBatchService {
       final product = source.descriptorProduct;
       final model = source.descriptorModel;
       if (vendor == null || product == null || model == null) {
-        return const _Failed(missingDescriptorsError);
+        return stopWith(const _Failed(missingDescriptorsError));
       }
       try {
         final dive = await parseFn(vendor, product, model, source.rawData!);
         if (isEmptyParse(dive)) {
-          return _Failed(const EmptyParseException().toString());
+          return stopWith(_Failed(const EmptyParseException().toString()));
         }
         parsed.add((source, dive));
       } catch (e) {
-        return _Failed(reparseErrorText(e));
+        return stopWith(_Failed(reparseErrorText(e)));
       }
     }
-
-    var sourcesPreserved = 0;
-    var appliedAny = false;
-    for (final (source, dive) in parsed) {
-      try {
-        final outcome = await _reparse.applyParsedUpdate(
-          diveId: diveId,
-          sourceRowId: source.id,
-          parsed: dive,
-          descriptorVendor: source.descriptorVendor,
-          descriptorProduct: source.descriptorProduct,
-          descriptorModel: source.descriptorModel,
-          libdivecomputerVersion: source.libdivecomputerVersion,
-        );
-        if (outcome.profilePreserved) sourcesPreserved++;
-        appliedAny = true;
-      } catch (e, stackTrace) {
-        // A database fault: sources already applied stay applied.
-        _log.error(
-          'Re-parse of dive $diveId failed while writing',
-          error: e,
-          stackTrace: stackTrace,
-        );
-        return _Failed(reparseErrorText(e), partlyApplied: appliedAny);
-      }
-    }
-    return _Succeeded(sourcesPreserved: sourcesPreserved);
+    return (stop: null, sources: parsed);
   }
 }
 
@@ -394,7 +483,10 @@ class _Failed extends _DiveOutcome {
 }
 
 class _Succeeded extends _DiveOutcome {
-  const _Succeeded({required this.sourcesPreserved});
+  const _Succeeded({required this.sourcesPreserved, this.keptHandSet = false});
+
+  /// A value the diver set by hand stayed where the parse differed.
+  final bool keptHandSet;
 
   /// Sources whose profile strand was left alone because the dive is
   /// combined (see `sourceOwnsProfileStrand`).

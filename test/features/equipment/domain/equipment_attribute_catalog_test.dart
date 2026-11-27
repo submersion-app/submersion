@@ -324,8 +324,8 @@ void main() {
     // and one dropdown offering two names for it would serve nobody.
     //
     // Each is asserted as an exact ordered key list rather than a
-    // `containsAll`, because the order is what the edit form renders and a
-    // silently dropped field would otherwise pass.
+    // `containsAll`, because the order is what the Details editor renders
+    // and a silently dropped field would otherwise pass.
     List<String> keysFor(EquipmentType t) =>
         EquipmentAttributeCatalog.attributesFor(t).map((d) => d.key).toList();
 

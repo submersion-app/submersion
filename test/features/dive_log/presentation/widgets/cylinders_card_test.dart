@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dot_joined_wrap.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_figure.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -676,7 +677,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // The dots are drawn between the items...
-      expect(find.text(' · '), findsWidgets);
+      expect(
+        tester
+            .renderObjectList<RenderDotJoinedWrap>(find.byType(DotJoinedWrap))
+            .expand((wrap) => wrap.separatorRects),
+        isNotEmpty,
+      );
       // ...but no semantics node carries one.
       expect(find.bySemanticsLabel(RegExp('·')), findsNothing);
       // The items themselves are still read.
@@ -903,6 +909,34 @@ void main() {
         expect(find.text('Used 150 bar'), findsOneWidget);
         expect(find.text('SAC 2.0 bar/min'), findsOneWidget);
         expect(find.text('RMV 22.2 L/min'), findsOneWidget);
+      });
+
+      testWidgets('the details run under the figure, the menu beside it', (
+        tester,
+      ) async {
+        // Issue #5041: beside the figure, and beside the menu, the details
+        // had a column too narrow to read on a phone.
+        await pumpNarrow(tester);
+
+        final figure = tester.getRect(find.byType(TankFigure));
+        final details = tester.getRect(
+          find.ancestor(
+            of: find.text('MOD 33m'),
+            matching: find.byType(DotJoinedWrap),
+          ),
+        );
+        expect(details.top, greaterThanOrEqualTo(figure.bottom));
+        expect(details.left, figure.left);
+
+        // The menu sits under the title, in the room beside the figure.
+        final menu = tester.getRect(
+          find.byKey(const Key('tank-gear-menu-tank-1')),
+        );
+        expect(menu.left, greaterThan(figure.right));
+        expect(
+          menu.top,
+          greaterThanOrEqualTo(tester.getBottomLeft(find.text('11.1 L')).dy),
+        );
       });
 
       testWidgets('the longer German labels fit', (tester) async {

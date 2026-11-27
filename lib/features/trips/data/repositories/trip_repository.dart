@@ -194,8 +194,13 @@ class TripRepository {
     }
   }
 
-  /// Update an existing trip
-  Future<void> updateTrip(domain.Trip trip, {String? actingDiverId}) async {
+  /// Update an existing trip. [dropBarePlanDays] false leaves the plan-only
+  /// days to an editing sitting, which drops them after its own (#4527).
+  Future<void> updateTrip(
+    domain.Trip trip, {
+    String? actingDiverId,
+    bool dropBarePlanDays = true,
+  }) async {
     try {
       _log.info('Updating trip: ${trip.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -214,15 +219,17 @@ class TripRepository {
       await _db.transaction(() async {
         // Checked inside the write's transaction, which Drift runs one at a
         // time: two saves racing to link a pair of trips each see the
-        // other's link and cannot both write one (issue #3658).
+        // other's link and cannot both write one (issue #3658). A parent
+        // the save leaves as stored is kept unchecked (issue #4941).
+        final current = await (_db.select(
+          _db.trips,
+        )..where((t) => t.id.equals(trip.id))).getSingleOrNull();
         final parentTripId = await writableParentId(
           _db,
           tripId: trip.id,
           parentId: trip.parentTripId,
+          storedParentId: current?.parentTripId,
         );
-        final current = await (_db.select(
-          _db.trips,
-        )..where((t) => t.id.equals(trip.id))).getSingleOrNull();
         final parentChanged =
             current != null && current.parentTripId != parentTripId;
         await (_db.update(_db.trips)..where((t) => t.id.equals(trip.id))).write(
@@ -252,15 +259,12 @@ class TripRepository {
         // own, drops its dives' links to the old larger trip's cylinders
         // (issue #3658). After the write, so the rule reads the new parent.
         if (parentChanged) {
-          for (final diveId in await _diveIdsOnTrip(trip.id)) {
-            await clearForeignTripCylinderLinks(
-              _db,
-              _syncRepository,
-              diveId,
-              tripId: trip.id,
-              now: now,
-            );
-          }
+          await clearForeignLinksOnTripDives(
+            _db,
+            _syncRepository,
+            trip.id,
+            now: now,
+          );
         }
       });
       await _syncRepository.markRecordPending(
@@ -271,18 +275,20 @@ class TripRepository {
       // A shortened or moved trip drops the plan-only itinerary days it no
       // longer covers (#2325). Cleanup only: the trip is saved, so a
       // failure here is logged rather than reported as a failed save.
-      try {
-        await _itineraryDays.deleteBarePlanDaysOutside(
-          trip.id,
-          trip.startDate,
-          trip.endDate,
-        );
-      } catch (e, stackTrace) {
-        _log.error(
-          'Failed to drop plan-only itinerary days for trip: ${trip.id}',
-          error: e,
-          stackTrace: stackTrace,
-        );
+      if (dropBarePlanDays) {
+        try {
+          await _itineraryDays.deleteBarePlanDaysOutside(
+            trip.id,
+            trip.startDate,
+            trip.endDate,
+          );
+        } catch (e, stackTrace) {
+          _log.error(
+            'Failed to drop plan-only itinerary days for trip: ${trip.id}',
+            error: e,
+            stackTrace: stackTrace,
+          );
+        }
       }
       SyncEventBus.notifyLocalChange();
       _log.info('Updated trip: ${trip.id}');
@@ -294,18 +300,6 @@ class TripRepository {
       );
       rethrow;
     }
-  }
-
-  /// The ids of the dives whose own trip is [tripId], every profile's.
-  Future<List<String>> _diveIdsOnTrip(String tripId) async {
-    final rows = await _db
-        .customSelect(
-          // stats-scope-exempt: tank link cleanup, excluded dives included.
-          'SELECT id FROM dives WHERE trip_id = ?',
-          variables: [Variable.withString(tripId)],
-        )
-        .get();
-    return [for (final r in rows) r.read<String>('id')];
   }
 
   /// Delete a trip and all associated child records, when [actingDiverId]

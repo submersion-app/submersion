@@ -6,6 +6,7 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/service_clock_snapshot_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_clocks_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -71,14 +72,15 @@ void main() {
 
     return ProviderScope(
       overrides: [
-        serviceClockStatusesProvider(
-          'rb1',
-        ).overrideWith((ref) async => statuses),
-        serviceSchedulesForEquipmentProvider('rb1').overrideWith(
-          (ref) async => [
-            sched('rebreather-annual'),
-            if (includeHoursClock) sched('scrubber-repack', hours: 3.0),
-          ],
+        serviceClockSnapshotProvider('rb1').overrideWith(
+          (ref) async => ServiceClockSnapshot(
+            schedules: [
+              sched('rebreather-annual'),
+              if (includeHoursClock) sched('scrubber-repack', hours: 3.0),
+            ],
+            records: const [],
+            evaluate: (_, _) => statuses,
+          ),
         ),
         serviceKindsProvider.overrideWith((ref) async => [scrubber, annual]),
       ],
@@ -88,10 +90,7 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
-            child: ServiceClocksCard(
-              equipmentId: 'rb1',
-              equipmentType: EquipmentType.rebreather,
-            ),
+            child: ServiceClocksCard(equipmentId: 'rb1'),
           ),
         ),
       ),

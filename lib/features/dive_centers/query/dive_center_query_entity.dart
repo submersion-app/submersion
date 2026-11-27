@@ -7,7 +7,7 @@ import 'package:submersion/features/dive_log/query/dive_aggregate_fields.dart';
 
 /// Every field and relation a dive center query can name (#2365). The
 /// center list's query roots here; dives reach it through `center`.
-/// `affiliations` is the comma-separated text the edit page writes, so it
+/// `affiliations` is the comma-separated text the editor writes, so it
 /// is matched with contains (`affiliations ~ PADI`).
 final diveCenterQueryEntity = QueryEntity(
   subject: QuerySubject.centers,

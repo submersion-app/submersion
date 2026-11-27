@@ -20,6 +20,7 @@ void main() {
     'nl': 'uitrusting',
     'pt': 'equipament',
     'zh': '装备',
+    'ja': '器材',
   };
 
   List<String> equipmentStrings(AppLocalizations l) => [

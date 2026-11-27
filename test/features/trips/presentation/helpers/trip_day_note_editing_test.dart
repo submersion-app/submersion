@@ -184,4 +184,52 @@ void main() {
       expect(placed.toSave('Intro, edited\n\n## Day 3\n'), 'Intro, edited');
     });
   });
+
+  group('a day passage edited alone (issue #4527)', () {
+    String edit(String notes, String passage) {
+      final placed = place(notes);
+      return withDayPassage(
+        placed,
+        dayPassageOf(placed, day3, _english),
+        passage,
+      );
+    }
+
+    test('the passage under an existing heading is what the editor holds', () {
+      final placed = place('Intro\n\n## Day 3\n\nWreck\nReef\n\n## Day 4\nX');
+      expect(dayPassageOf(placed, day3, _english).passage, 'Wreck\nReef');
+    });
+
+    test('a passage written under an added heading keeps the heading', () {
+      expect(edit('Intro', 'Sharks'), 'Intro\n\n## Day 3\nSharks');
+    });
+
+    test('an empty passage leaves the notes as they were', () {
+      expect(edit('Intro', ''), 'Intro');
+      expect(edit('', ''), '');
+    });
+
+    test('a passage replaced under an existing heading changes only that '
+        'passage', () {
+      expect(
+        edit('## Day 2\nA\n\n## Day 3\nWreck\n\n## Day 4\nX', 'Drift'),
+        '## Day 2\nA\n\n## Day 3\nDrift\n\n## Day 4\nX',
+      );
+    });
+
+    test('the passage left as it was is the notes as they were', () {
+      const notes = '## Day 3\nWreck\n\n## Day 4\nX';
+      expect(edit(notes, 'Wreck'), notes);
+    });
+
+    test(
+      'a heading right above the next one gets the passage between them',
+      () {
+        expect(
+          edit('## Day 3\n## Day 4\nX', 'Wreck'),
+          '## Day 3\nWreck\n## Day 4\nX',
+        );
+      },
+    );
+  });
 }

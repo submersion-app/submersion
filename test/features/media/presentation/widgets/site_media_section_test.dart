@@ -13,6 +13,7 @@ import 'package:submersion/features/media/data/services/media_unlink_service.dar
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 import 'package:submersion/features/media/presentation/pages/site_media_viewer_page.dart';
+import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/site_media_section.dart';
@@ -107,6 +108,11 @@ void main() {
     );
     return mediaTestApp(
       overrides: [
+        // Tiles wait for the learned shapes (issue #4741); none, and no
+        // database behind them.
+        mediaAspectCacheRepositoryProvider.overrideWithValue(
+          FakeAspectCacheRepository(),
+        ),
         mediaForSiteProvider('site-1').overrideWith((ref) {
           if (loadAttachments != null) return loadAttachments(ref);
           if (pendingAttachments != null) return pendingAttachments;
@@ -547,7 +553,7 @@ void main() {
     });
   });
 
-  // Issue #1039: categories, large cards and the new bulk actions.
+  // Issue #1039: categories and the new bulk actions.
   group('categories', () {
     testWidgets('categorized attachments render under headings', (
       tester,
@@ -660,9 +666,10 @@ void main() {
 
   // An attachment's details are its own record's, edited under its own
   // lock where the site page edits in place (issue #4527, phase 2): the
-  // card's single Edit details goes; the bulk Set category stays.
-  testWidgets('on a page that edits in place Edit details is gone, Set '
-      'category stays', (tester) async {
+  // card's single Edit details goes. A locked page writes nothing, so the
+  // bulk Set category goes too, as Unlink does (media library, plan 2).
+  testWidgets('a locked site page offers neither Edit details nor Set '
+      'category', (tester) async {
     final controller = RecordEditController<DiveSite>(onSave: (_) async {});
     addTearDown(controller.dispose);
     await tester.pumpWidget(
@@ -676,7 +683,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // The large card offers no Edit details menu.
+    // A large attachment is a tile too, with no menu of its own.
+    expect(find.byType(MediaThumbnailTile), findsNWidgets(2));
     expect(find.byTooltip('More options'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('enter_selection')));
@@ -689,7 +697,7 @@ void main() {
     );
     expect(
       find.byKey(const ValueKey('selection_action_setCategory')),
-      findsOneWidget,
+      findsNothing,
     );
   });
 

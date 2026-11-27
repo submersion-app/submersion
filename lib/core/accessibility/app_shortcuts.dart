@@ -279,7 +279,7 @@ class AppShortcuts {
       // it. Pressed on the search page it puts the caret back in the field.
       platformShortcut(LogicalKeyboardKey.keyK): () {
         final container = ProviderScope.containerOf(context, listen: false);
-        container.read(globalSearchFocusTickProvider.notifier).state++;
+        container.read(globalSearchFocusPendingProvider.notifier).state = true;
         context.pushOrReturnTo(kGlobalSearchLocation);
       },
 

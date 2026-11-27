@@ -2,18 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/features/dashboard/presentation/home_panels.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/home_panel.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/quick_actions_card.dart';
 
 import '../../../helpers/test_app.dart';
 
-Widget app({List<dynamic>? overrides}) {
+Widget app({List<dynamic>? overrides, WidgetBuilder? body}) {
   final router = GoRouter(
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => const Scaffold(
-          body: SizedBox(height: 400, child: QuickActionsCard()),
+        builder: (context, state) => Scaffold(
+          body:
+              body?.call(context) ??
+              const SizedBox(height: 400, child: QuickActionsCard()),
         ),
+      ),
+      GoRoute(
+        path: '/planning/dive-planner',
+        builder: (context, state) => const Scaffold(body: Text('PLANNER-PAGE')),
+      ),
+      GoRoute(
+        path: '/insights',
+        builder: (context, state) =>
+            const Scaffold(body: Text('INSIGHTS-PAGE')),
+      ),
+      GoRoute(
+        path: '/settings/diver-profile/emergency-card',
+        builder: (context, state) =>
+            const Scaffold(body: Text('EMERGENCY-PAGE')),
       ),
       GoRoute(
         path: '/tracks',
@@ -91,5 +109,76 @@ void main() {
         8,
       );
     });
+  });
+
+  // Issue #5003: the card returns, as it was, as an optional Home panel.
+  testWidgets('shows all six original actions in order', (tester) async {
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    expect(find.text('Quick Actions'), findsOneWidget);
+    final labels = [
+      'Log Dive',
+      'Plan Dive',
+      'Swap with a buddy',
+      'Insights',
+      'Tracks',
+      'Emergency card',
+    ];
+    final tops = [for (final l in labels) tester.getTopLeft(find.text(l)).dy];
+    for (var i = 1; i < tops.length; i++) {
+      expect(tops[i - 1], lessThan(tops[i]), reason: labels[i]);
+    }
+  });
+
+  for (final (width, scale) in [(320.0, 2.0), (320.0, 1.0), (420.0, 1.0)]) {
+    testWidgets(
+      'quick actions card fits its row at $width wide, text scale $scale',
+      (tester) async {
+        await tester.pumpWidget(
+          app(
+            body: (context) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(scale)),
+              child: Builder(
+                builder: (context) => Align(
+                  alignment: Alignment.topLeft,
+                  child: SizedBox(
+                    width: width,
+                    height: homeRowHeight(HomePanelHeight.extraTall, context),
+                    child: const QuickActionsCard(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.text('Emergency card'), findsOneWidget);
+      },
+    );
+  }
+
+  for (final (label, page) in [
+    ('Plan Dive', 'PLANNER-PAGE'),
+    ('Insights', 'INSIGHTS-PAGE'),
+    ('Emergency card', 'EMERGENCY-PAGE'),
+  ]) {
+    testWidgets('$label opens its page', (tester) async {
+      await tester.pumpWidget(app());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(label));
+      await tester.pumpAndSettle();
+      expect(find.text(page), findsOneWidget);
+    });
+  }
+
+  testWidgets('Log Dive offers the ways to add a dive', (tester) async {
+    await tester.pumpWidget(app());
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Log Dive'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
   });
 }

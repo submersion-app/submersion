@@ -17,6 +17,8 @@ import 'package:submersion/features/trips/presentation/helpers/trip_day_notes_vo
 import 'package:submersion/features/trips/presentation/providers/trip_day_picker_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_day_picker.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_page.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_trip_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -193,7 +195,13 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
     // Fire and forget: the backfill's writes come back through the provider
     // above via the table tick, so a row landing re-renders its day's head.
     ref.watch(tripDayWeatherBackfillProvider(tripId));
-    final dayNotes = _dayNotes.resolve(_story, context.l10n);
+    // On the trip page, the notes as the sitting has them.
+    final slots = TripCardSlotsScope.maybeOf(context);
+    final dayNotes = _dayNotes.resolve(
+      _story,
+      context.l10n,
+      notes: slots?.shown.notes,
+    );
     final onEditDayNote = widget.onEditDayNote;
 
     return ValueListenableBuilder<TripStorySelection?>(
@@ -210,17 +218,30 @@ class _TripStoryViewState extends ConsumerState<TripStoryView> {
             : _story.days.indexWhere((day) => day.date == date);
         final day = dayIndex < 0 ? null : _story.days[dayIndex];
 
+        // An editor open on the Trip page takes the day picker's room, which
+        // a phone with its keyboard up has little of (issue #4927). It is
+        // back once the last one closes.
+        final editing =
+            day == null &&
+            slots != null &&
+            tripStoryTripPageCards.any(slots.isOpen);
         return LayoutBuilder(
           builder: (context, constraints) {
             final wide =
                 constraints.maxWidth >= TripStoryDayPage.twoColumnMinWidth;
             return Column(
               children: [
-                _Picker(
-                  story: _story,
-                  selectedDate: day?.date,
-                  chartHeight: wide ? 76 : 60,
-                  onSelect: _select,
+                // Kept while folded, with its scroll and its model, and
+                // taking no room.
+                Visibility(
+                  visible: !editing,
+                  maintainState: true,
+                  child: _Picker(
+                    story: _story,
+                    selectedDate: day?.date,
+                    chartHeight: wide ? 76 : 60,
+                    onSelect: _select,
+                  ),
                 ),
                 Expanded(
                   child: day == null
@@ -272,7 +293,12 @@ class _TripDayNotesMemo {
   TripDayNotesVocabulary? _vocabulary;
   TripDayNotes _result = TripDayNotes.empty;
 
-  TripDayNotes resolve(TripStory story, AppLocalizations l10n) {
+  TripDayNotes resolve(
+    TripStory story,
+    AppLocalizations l10n, {
+    String? notes,
+  }) {
+    final text = notes ?? story.trip.notes;
     final days = [
       for (final day in story.days)
         TripNoteDay(date: day.date, dayNumber: day.dayNumber),
@@ -282,13 +308,13 @@ class _TripDayNotesMemo {
       _vocabulary = tripDayNotesVocabularyFor(l10n);
       _notes = null;
     }
-    if (_notes == story.trip.notes &&
+    if (_notes == text &&
         const ListEquality<TripNoteDay>().equals(_days, days)) {
       return _result;
     }
-    _notes = story.trip.notes;
+    _notes = text;
     _days = days;
-    return _result = tripDayNotes(story.trip.notes, days, _vocabulary!);
+    return _result = tripDayNotes(text, days, _vocabulary!);
   }
 }
 

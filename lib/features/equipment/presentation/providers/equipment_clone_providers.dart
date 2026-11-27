@@ -28,7 +28,7 @@ final cloneSourceProvider = FutureProvider.family<EquipmentItem?, String>((
 ) async {
   final repository = ref.watch(equipmentRepositoryProvider);
   // Visibility reads the item's owner and its shares: a share granted or
-  // revoked while the form is open must re-decide it.
+  // revoked while the clone's page is open must re-decide it.
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
   ref.invalidateSelfWhen(
     ref.watch(equipmentShareRepositoryProvider).watchChanges(),

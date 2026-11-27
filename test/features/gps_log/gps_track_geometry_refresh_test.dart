@@ -11,6 +11,7 @@ import 'package:submersion/features/gps_log/data/repositories/gps_track_reposito
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
 import 'package:submersion/features/gps_log/domain/track_geometry.dart';
+import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_track_map_providers.dart';
 
 import '../../helpers/test_database.dart';
@@ -268,7 +269,7 @@ void main() {
       addTearDown(container.listen(key, (_, _) {}).close);
       await until(() => simplifier.waiting.length == 1);
 
-      await container.read(trimTrackProvider)(id, startMs: trimMs);
+      await saveTrim(container, id, startMs: trimMs);
       await until(() => simplifier.waiting.length == 2);
 
       // The job that read the old points finishes last, so without the guard
@@ -313,4 +314,20 @@ void main() {
       expect(cached!.first.timestamp * 1000, greaterThanOrEqualTo(trimMs));
     });
   });
+}
+
+/// A trim as the track page's Save writes it (issue #4527): the bounds
+/// through the repository, then the cached geometry dropped, then the track
+/// read back, as the page does.
+Future<void> saveTrim(
+  ProviderContainer container,
+  String id, {
+  int? startMs,
+  int? endMs,
+}) async {
+  await container
+      .read(gpsTrackRepositoryProvider)
+      .setTrimBounds(id, startMs: startMs, endMs: endMs);
+  await container.read(evictGpsTrackProvider)(id);
+  container.invalidate(gpsTrackDetailProvider(id));
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_edit_routes.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
@@ -31,8 +32,8 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_sec
 import 'package:submersion/features/equipment/presentation/widgets/equipment_set_list_content.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_summary_widget.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
-import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_routes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_list_count_provider.dart';
 import 'package:submersion/shared/widgets/section_title_toggle.dart';
@@ -109,7 +110,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
     final viewMode = ref.watch(equipmentListViewModeProvider);
     if (viewMode == ListViewMode.table) {
       final fab = FloatingActionButton.extended(
-        onPressed: () => context.push('/equipment/new'),
+        onPressed: () => openNewGearItem(context),
         icon: const Icon(Icons.add),
         label: Text(context.l10n.equipment_fab_addEquipment),
       );
@@ -132,17 +133,17 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             },
           ),
           summaryBuilder: (context) => const EquipmentSummaryWidget(),
-          editBuilder: (context, id, onSaved, onCancel) => EquipmentEditPage(
-            equipmentId: id,
-            embedded: true,
-            onSaved: onSaved,
-            onCancel: onCancel,
+          // The item's page opened unlocked.
+          editBuilder: (context, id, onSaved, onCancel) => gearItemEditPane(
+            context,
+            id,
+            onSaved,
+            onCancel,
+            onDeleted: () => context.go('/equipment'),
           ),
-          createBuilder: (context, onSaved, onCancel) => EquipmentEditPage(
-            embedded: true,
-            onSaved: onSaved,
-            onCancel: onCancel,
-          ),
+          // The page on a new item (plan 11).
+          createBuilder: (context, onSaved, onCancel) =>
+              newGearItemPane(context, onSaved, onCancel),
           selectedId: ref.watch(highlightedEquipmentIdProvider),
           onEntitySelected: (id) {
             ref.read(highlightedEquipmentIdProvider.notifier).state = id;
@@ -437,17 +438,17 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         },
       ),
       summaryBuilder: (context) => const EquipmentSummaryWidget(),
-      editBuilder: (context, id, onSaved, onCancel) => EquipmentEditPage(
-        equipmentId: id,
-        embedded: true,
-        onSaved: onSaved,
-        onCancel: onCancel,
+      // The item's page opened unlocked.
+      editBuilder: (context, id, onSaved, onCancel) => gearItemEditPane(
+        context,
+        id,
+        onSaved,
+        onCancel,
+        onDeleted: () => context.go('/equipment'),
       ),
-      createBuilder: (context, onSaved, onCancel) => EquipmentEditPage(
-        embedded: true,
-        onSaved: onSaved,
-        onCancel: onCancel,
-      ),
+      // The page on a new item (plan 11).
+      createBuilder: (context, onSaved, onCancel) =>
+          newGearItemPane(context, onSaved, onCancel),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {},
         icon: const Icon(Icons.add),
@@ -469,6 +470,8 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             toggleBuilder: _buildSectionToggle,
           ),
       detailBuilder: (context, id) => EquipmentSetDetailPage(setId: id),
+      // `&mode=edit` opens the set page unlocked (issue #4527).
+      editBuilder: equipmentSetsPaneEditBuilder(),
       summaryBuilder: (context) => _buildSetsSummary(context),
       mobileDetailRoute: (id) => '/equipment/sets/$id',
       mobileCreateRoute: '/equipment/sets/new',
@@ -521,13 +524,13 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
       // offered no type-specific attribute fields, so new gear had to be saved
       // and reopened before dry weight / buoyancy could be entered.
       return FloatingActionButton.extended(
-        onPressed: () => context.push('/equipment/new'),
+        onPressed: () => openNewGearItem(context),
         icon: const Icon(Icons.add),
         label: Text(context.l10n.equipment_fab_addEquipment),
       );
     }
     return FloatingActionButton.extended(
-      onPressed: () => context.push('/equipment/sets/new'),
+      onPressed: () => openNewEquipmentSet(context),
       icon: const Icon(Icons.add),
       label: Text(context.l10n.equipment_fab_addSet),
     );

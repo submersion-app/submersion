@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, DiveCentersCompanion;
@@ -25,6 +26,7 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.da
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_gear_sitting.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_fill_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -82,10 +84,42 @@ void main() {
     List<DiveCenter> centers = const [],
     Future<List<DiveCenter>>? centersLoad,
     TripFillSaver Function()? saverFactory,
+    Future<void> Function(List<TripCylinderEvent>, TripFillCopyNote)? hold,
+    // When set, the sheet sits under a router whose new-centre address
+    // shows this page, as the app's does.
+    Widget Function()? newCenterPage,
   }) async {
     tester.view.physicalSize = const Size(800, 2000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
+    final home = Scaffold(
+      body: Builder(
+        builder: (context) => TextButton(
+          onPressed: () => showTripCylinderFillSheet(
+            context,
+            slots: states,
+            preselected: preselected ?? {cylinders.first.id},
+            several: several,
+            editing: editing,
+            hold: hold,
+          ),
+          child: const Text('open'),
+        ),
+      ),
+    );
+    GoRouter? router;
+    if (newCenterPage != null) {
+      router = GoRouter(
+        routes: [
+          GoRoute(path: '/', builder: (context, state) => home),
+          GoRoute(
+            path: '/dive-centers/new',
+            builder: (context, state) => newCenterPage(),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+    }
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -105,25 +139,19 @@ void main() {
           if (saverFactory != null)
             tripFillSaverFactoryProvider.overrideWithValue(saverFactory),
         ],
-        child: MaterialApp(
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(
-            body: Builder(
-              builder: (context) => TextButton(
-                onPressed: () => showTripCylinderFillSheet(
-                  context,
-                  slots: states,
-                  preselected: preselected ?? {cylinders.first.id},
-                  several: several,
-                  editing: editing,
-                ),
-                child: const Text('open'),
+        child: router != null
+            ? MaterialApp.router(
+                routerConfig: router,
+                locale: const Locale('en'),
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+              )
+            : MaterialApp(
+                locale: const Locale('en'),
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                home: home,
               ),
-            ),
-          ),
-        ),
       ),
     );
     await tester.tap(find.text('open'));
@@ -155,6 +183,30 @@ void main() {
     expect(e.cost, 12.5);
     expect(e.currency, 'EUR');
     expect(e.occurredAt.isUtc, isTrue);
+  });
+
+  testWidgets('with hold, Save hands the fill and its copy note back and '
+      'writes nothing (a trip page sitting, issue #4527)', (tester) async {
+    final id = cylinders.first.id;
+    List<TripCylinderEvent>? held;
+    TripFillCopyNote? heldNote;
+    await pumpAndOpen(
+      tester,
+      hold: (fills, note) async {
+        held = fills;
+        heldNote = note;
+      },
+    );
+    await type(tester, 'fill-pressure', '200');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(held!.single.tripCylinderId, id);
+    expect(held!.single.pressure, 200);
+    expect(held!.single.id, isEmpty);
+    expect(heldNote!.stationResolved, isTrue);
+    expect(await repo.getEventsForCylinder(id), isEmpty);
+    expect(find.text('Save'), findsNothing);
   });
 
   testWidgets('a blank pressure and no cost store nulls', (tester) async {
@@ -635,6 +687,116 @@ void main() {
 
     final e = (await repo.getEventsForCylinder(first.id)).single;
     expect(e.diveCenterId, 'dc1');
+  });
+
+  group('a new centre from the station picker (issue #4810)', () {
+    Future<void> openStationPicker(WidgetTester tester) async {
+      await tester.tap(find.byKey(const Key('fill-where')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('New Dive Center'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('is chosen for the fill once created', (tester) async {
+      final centers = [station];
+      await pumpAndOpen(
+        tester,
+        centers: centers,
+        newCenterPage: () => Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () async {
+                // What the new-centre page does: write the centre, then
+                // pop its id.
+                await db
+                    .into(db.diveCenters)
+                    .insert(
+                      DiveCentersCompanion.insert(
+                        id: 'dc2',
+                        name: 'Reef Air',
+                        createdAt: 1,
+                        updatedAt: 1,
+                      ),
+                    );
+                centers.add(
+                  DiveCenter(
+                    id: 'dc2',
+                    name: 'Reef Air',
+                    createdAt: DateTime(2026),
+                    updatedAt: DateTime(2026),
+                  ),
+                );
+                if (!context.mounted) return;
+                ProviderScope.containerOf(
+                  context,
+                ).invalidate(allDiveCentersProvider);
+                context.pop('dc2');
+              },
+              child: const Text('create the centre'),
+            ),
+          ),
+        ),
+      );
+
+      await openStationPicker(tester);
+      // The picker has gone and the new-centre page is showing.
+      expect(find.text('Select Dive Center'), findsNothing);
+      await tester.tap(find.text('create the centre'));
+      await tester.pumpAndSettle();
+
+      // Back on the fill sheet, with the new centre chosen.
+      expect(find.text('Reef Air'), findsOneWidget);
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final e = (await repo.getEventsForCylinder(cylinders.first.id)).single;
+      expect(e.diveCenterId, 'dc2');
+    });
+
+    testWidgets('leaving the new-centre page keeps the chosen centre', (
+      tester,
+    ) async {
+      await pumpAndOpen(
+        tester,
+        centers: [station],
+        newCenterPage: () => Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () => context.pop(),
+              child: const Text('leave'),
+            ),
+          ),
+        ),
+      );
+
+      await db
+          .into(db.diveCenters)
+          .insert(
+            DiveCentersCompanion.insert(
+              id: 'dc1',
+              name: 'Budget Marine',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      // Choose the existing station first.
+      await tester.tap(find.byKey(const Key('fill-where')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Budget Marine'));
+      await tester.pumpAndSettle();
+      expect(find.text('Budget Marine'), findsOneWidget);
+
+      await openStationPicker(tester);
+      await tester.tap(find.text('leave'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Budget Marine'), findsOneWidget);
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final e = (await repo.getEventsForCylinder(cylinders.first.id)).single;
+      expect(e.diveCenterId, 'dc1');
+    });
   });
 
   testWidgets('the date and time pickers set when the fill happened', (

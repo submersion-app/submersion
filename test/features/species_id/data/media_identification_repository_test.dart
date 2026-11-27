@@ -8,6 +8,7 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/domain/entities/scanned_ranges.dart';
 
 import 'identification_fixtures.dart';
@@ -35,6 +36,38 @@ void main() {
     expect(await repo.forMedia('m1'), [identification('a')]);
     expect(await repo.runFor('other'), isNull);
     expect(await repo.forMedia('other'), isEmpty);
+  });
+
+  test('a run keeps where it came from, its run id and its naming bars, '
+      'and its rows their run id (issue #4876)', () async {
+    const bars = NamingBars(
+      minCropSide: 64,
+      minOpenScore: 0.15,
+      suggestScore: 0.5,
+      suggestScoreNoLocation: 0.7,
+    );
+    final made = run().copyWith(
+      analysedBy: () => 'laptop',
+      runId: () => 'r1',
+      namingBars: () => bars,
+    );
+    final row = identification('a').copyWith(runId: () => 'r1');
+    await repo.storeRun(made, insert: [row], deleteIds: []);
+
+    expect(await repo.runFor('m1'), made);
+    expect(await repo.forMedia('m1'), [row]);
+  });
+
+  test('a run written without an origin keeps the one stored', () async {
+    await repo.storeRun(
+      run().copyWith(analysedBy: () => 'laptop', runId: () => 'r1'),
+      insert: const [],
+      deleteIds: const [],
+    );
+    await repo.storeRun(run(count: 0), insert: const [], deleteIds: const []);
+    final stored = (await repo.runFor('m1'))!;
+    expect(stored.analysedBy, 'laptop');
+    expect(stored.runId, 'r1');
   });
 
   test(
@@ -255,8 +288,45 @@ void main() {
       packVersion: '2026.12.1',
       locationCell: () => null,
     );
-    await repo.updateNames([identification('a')], run: renamed);
+    expect(await repo.updateNames([identification('a')], run: renamed), ['a']);
     expect(await repo.runFor('m1'), renamed);
+  });
+
+  test('a rename read before another device\'s run synced in writes '
+      'nothing over it (issue #4876)', () async {
+    final mine = run().copyWith(runId: () => 'mine');
+    await repo.storeRun(mine, insert: [identification('a')], deleteIds: []);
+    final theirs = run().copyWith(
+      runId: () => 'theirs',
+      analysedBy: () => 'laptop',
+      packVersion: '2026.11.9',
+    );
+    await repo.storeRun(theirs, insert: const [], deleteIds: []);
+
+    final written = await repo.updateNames([
+      identification('a').copyWith(openScore: 0.9),
+    ], run: mine.copyWith(packVersion: '2026.12.1'));
+
+    expect(written, isEmpty, reason: 'its crops are not promoted either');
+    expect(await repo.runFor('m1'), theirs);
+    expect((await repo.forMedia('m1')).single.openScore, 0.42);
+  });
+
+  test('a rename moves only what naming sets: the pack, the place and the '
+      'bars; the scan as stored stays', () async {
+    await repo.storeRun(
+      videoRun().copyWith(scannedMs: () => 5000),
+      insert: const [],
+      deleteIds: [],
+    );
+    // Read when only a second had been scanned.
+    final stale = videoRun().copyWith(scannedMs: () => 1000);
+
+    await repo.updateNames(const [], run: stale.copyWith(packVersion: 'p2'));
+
+    final stored = (await repo.runFor('v1'))!;
+    expect(stored.packVersion, 'p2');
+    expect(stored.scannedMs, 5000);
   });
 
   test('an update that lands after the rows were cleared brings nothing '
@@ -288,8 +358,27 @@ void main() {
     expect(await repo.forMedia('m2'), hasLength(1));
   });
 
-  test('orphans are media ids with rows here but no media row', () async {
+  test('orphans are media ids with rows here whose media was deleted; rows '
+      'whose media has not arrived yet are not (issue #4876)', () async {
+    Future<void> tombstone(String mediaId) => db.customStatement(
+      'INSERT INTO deletion_log (id, entity_type, record_id, deleted_at) '
+      "VALUES ('t-$mediaId', 'media', '$mediaId', 1)",
+    );
     await addMedia('m-live');
+    // Synced from another device: its media may still be on its way.
+    await repo.storeRun(
+      run(mediaId: 'm-waiting').copyWith(analysedBy: () => 'laptop'),
+      insert: [identification('w', mediaId: 'm-waiting')],
+      deleteIds: [],
+    );
+    // Made here, its media gone with no tombstone left: an orphan.
+    await repo.storeRun(
+      run(mediaId: 'm-mine').copyWith(analysedBy: () => 'phone'),
+      insert: const [],
+      deleteIds: const [],
+    );
+    await tombstone('m-gone');
+    await tombstone('m-gone-2');
     await repo.storeRun(
       run(mediaId: 'm-live'),
       insert: [identification('a', mediaId: 'm-live')],
@@ -307,8 +396,8 @@ void main() {
     );
 
     expect(
-      await repo.orphanMediaIds(),
-      unorderedEquals(['m-gone', 'm-gone-2']),
+      await repo.orphanMediaIds(deviceId: 'phone'),
+      unorderedEquals(['m-gone', 'm-gone-2', 'm-mine']),
     );
   });
 

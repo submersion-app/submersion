@@ -29,6 +29,7 @@ import 'package:submersion/core/database/tables/media_tables.dart';
 import 'package:submersion/core/database/tables/pre_dive_tables.dart';
 import 'package:submersion/core/database/tables/quality_tables.dart';
 import 'package:submersion/core/database/tables/insight_tables.dart';
+import 'package:submersion/core/database/tables/species_revamp_tables.dart';
 import 'package:submersion/core/database/tables/nearby_tables.dart';
 import 'package:submersion/core/database/tables/query_tables.dart';
 import 'package:submersion/core/database/tables/rule_tables.dart';
@@ -70,6 +71,7 @@ export 'package:submersion/core/database/tables/media_tables.dart';
 export 'package:submersion/core/database/tables/pre_dive_tables.dart';
 export 'package:submersion/core/database/tables/quality_tables.dart';
 export 'package:submersion/core/database/tables/insight_tables.dart';
+export 'package:submersion/core/database/tables/species_revamp_tables.dart';
 export 'package:submersion/core/database/tables/nearby_tables.dart';
 export 'package:submersion/core/database/tables/query_tables.dart';
 export 'package:submersion/core/database/tables/rule_tables.dart';
@@ -140,6 +142,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     MediaRepairLog,
     MediaIdentificationRuns,
     MediaIdentifications,
+    MediaIdentificationCrops,
     MediaSmartAlbums,
     Settings,
     Buddies,
@@ -301,6 +304,9 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SiteShares,
     // Insight observation dismissals (v265)
     InsightObservationDismissals,
+    // Species covers and ID practice (v383, issue #5027)
+    SpeciesCovers,
+    SpeciesPractice,
     // Certification currency (v271, issue #2267)
     CertificationCurrencyRules,
     CertificationCurrencyPrefs,
@@ -332,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 380;
+  static const int currentSchemaVersion = 388;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -508,7 +514,29 @@ class AppDatabase extends _$AppDatabase {
   /// confirming the app's tags on every device. Peers below 378 are held
   /// until they update. Their own payloads still arrive here and decode
   /// cleanly: a missing column is null, the diver's own tag.
-  static const int minimumCompatibleSchemaVersion = 378;
+  ///
+  /// Raised 378 -> 381 by syncing marine life results (#4876): v381 gives
+  /// media_identification_runs and media_identifications their clocks and
+  /// adds media_identification_crops. A peer below 381 drops those keys and
+  /// moves its cursor past the changesets that carry them, so once it
+  /// upgraded it would never receive the results published before (nothing
+  /// triggers a full resync in normal use): the device that analysed
+  /// usually updates first. Held below the floor, it reads them all once it
+  /// updates. Its own payloads still arrive here and decode cleanly.
+  ///
+  /// Raised 381 -> 384 by gear on trip checklists (#4934): a v384 item with
+  /// an equipment link is done when that gear is packed for the trip, and
+  /// its own is_done column is ignored. A peer below 384 drops the link and
+  /// reads the stale is_done, so it shows packed gear as not packed, and a
+  /// tick there writes is_done without packing anything. Held below the
+  /// floor until it updates. Its own payloads still arrive here and decode
+  /// cleanly: a missing link is null, a plain item.
+  ///
+  /// Raised 384 -> 386 for derived course requirements: older readers treat
+  /// the new kinds as manually credited dives and discard the conditions.
+  /// Holding those readers also prevents them from publishing explicit nulls
+  /// for the discarded conditions after they upgrade.
+  static const int minimumCompatibleSchemaVersion = 386;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1752,16 +1780,16 @@ class AppDatabase extends _$AppDatabase {
     374,
     // v375: media_identification_runs and media_identifications, what the
     // on-device model found on each photo (issue #4668). Tables with no
-    // hlc, never synced, so the floor does not move. Renumbered from 374,
-    // which main took for #4660.
+    // hlc then, not synced until v381, so the floor did not move.
+    // Renumbered from 374, which main took for #4660.
     375,
     // v376: video columns on media_identification_runs and
-    // media_identifications (issue #4675). Columns on tables that never
-    // sync, no backfill; the floor does not move.
+    // media_identifications (issue #4675). Columns on tables not synced
+    // until v381, no backfill; the floor did not move.
     376,
     // v377: media_identification_runs.scanned_ranges, the stretches of a
-    // video scanned (issue #4709). A column on a table that never syncs, no
-    // backfill; the floor does not move.
+    // video scanned (issue #4709). A column on a table not synced until
+    // v381, no backfill; the floor did not move.
     377,
     // v378: media_species.unconfirmed, created_sighting and created_species,
     // the marks on a tag the app applied (issue #4727). Synced columns, no
@@ -1770,9 +1798,41 @@ class AppDatabase extends _$AppDatabase {
     // v379: diver_settings visibility and colour of the three Avelo profile
     // lines (issue #4664). Additive and defaulted; the floor does not move.
     379,
-    // v380: divers.emergency_tag_share, the diver's emergency tag choices
-    // as JSON (issue #5060). Nullable, no backfill; the floor does not move.
+    // v380: a lone download stamped as combined gets its source back as
+    // primary, and a live series duplicating its source's own under another
+    // computer's label is demoted (issue #4847). Data only; the floor does
+    // not move.
     380,
+    // v381: marine life results sync (issue #4876): clocks on both
+    // identification tables, a run's maker, run id and naming bars, the
+    // decision clock, and media_identification_crops. The floor rises to
+    // 381 (see minimumCompatibleSchemaVersion).
+    381,
+    // v382: dives.hand_set_fields, the computer-written values the diver set
+    // by hand, which a re-parse and a resync keep (issue #4909). Nullable,
+    // no backfill; the floor does not move.
+    382,
+    // v383: species_covers and species_practice, a diver's cover crop and
+    // ID practice boxes per species (issue #5027). Additive; the floor does
+    // not move.
+    383,
+    // v384: optional inventory link on trip checklist items (issue #4934).
+    // The floor rises to 384 (see minimumCompatibleSchemaVersion).
+    384,
+    // v385: optional bag assignment on packed trip gear, with its own clock
+    // (issue #4945). Nullable, no backfill; the floor does not move.
+    385,
+    // v386: the equipment and dive query for derived course requirements.
+    // New kinds require the sync floor to rise to 386.
+    386,
+    // v387: diver_settings.ccr_setpoint_switch_depth and
+    // dive_plans.setpoint_switch_off, the diver-wide CCR setpoint switch
+    // depth and a plan's no-switch flag (issue #3793). Additive and
+    // defaulted; the floor does not move.
+    387,
+    // v388: divers.emergency_tag_share, the diver's emergency tag choices
+    // as JSON (issue #5060). Nullable, no backfill; the floor does not move.
+    388,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

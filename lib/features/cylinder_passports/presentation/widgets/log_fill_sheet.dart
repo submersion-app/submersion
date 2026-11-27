@@ -40,10 +40,20 @@ class LoggedFill {
   final CylinderFill? partnerFill;
 }
 
+/// Takes a fill the sheet would save, for a gear item's sitting to hold
+/// (issue #4527): a new fill (with [twinPartnerId] for a twin set fill), or
+/// an edit (with [toTied] when it reaches its tied fill too).
+typedef HoldFill =
+    void Function(CylinderFill fill, {String? twinPartnerId, bool toTied});
+
 /// Opens the manual fill sheet. Resolves with what was saved, or null when
 /// the diver backed out. The initial values prefill a planned fill, such as
 /// a blend; with [mixFromPlan] the sheet asks for the analysed mix instead.
 /// With [editing] the sheet edits that fill rather than logging a new one.
+///
+/// With [onHold] the sheet writes nothing: it asks what it asks today and
+/// hands the fill over, and [pairingOn] (the sitting's pairings over the
+/// stored ones) names the twin set partner.
 Future<LoggedFill?> showLogFillSheet(
   BuildContext context, {
   required String passportId,
@@ -53,6 +63,8 @@ Future<LoggedFill?> showLogFillSheet(
   double? initialTemperatureC,
   bool mixFromPlan = false,
   CylinderFill? editing,
+  HoldFill? onHold,
+  SittingPairingOn? pairingOn,
 }) => showModalBottomSheet<LoggedFill>(
   context: context,
   isScrollControlled: true,
@@ -67,9 +79,16 @@ Future<LoggedFill?> showLogFillSheet(
       initialTemperatureC: initialTemperatureC,
       mixFromPlan: mixFromPlan,
       editing: editing,
+      onHold: onHold,
+      pairingOn: pairingOn,
     ),
   ),
 );
+
+/// The pairing a cylinder was in on [day], as a sitting has them laid over
+/// the [stored] pairings.
+typedef SittingPairingOn =
+    CylinderPairing? Function(List<CylinderPairing> stored, DateTime day);
 
 class LogFillSheet extends ConsumerStatefulWidget {
   const LogFillSheet({
@@ -81,6 +100,8 @@ class LogFillSheet extends ConsumerStatefulWidget {
     this.initialTemperatureC,
     this.mixFromPlan = false,
     this.editing,
+    this.onHold,
+    this.pairingOn,
   });
 
   final String passportId;
@@ -95,6 +116,15 @@ class LogFillSheet extends ConsumerStatefulWidget {
 
   /// The fill being edited, prefilled; null to log a new fill.
   final CylinderFill? editing;
+
+  /// Takes the fill instead of writing it: a gear item's sitting.
+  final HoldFill? onHold;
+
+  /// The pairing on a day, as the sitting has them over the [stored]
+  /// pairings the sheet reads (and waits for at Save, so a sheet opened
+  /// before they load still finds the partner); the stored pairings alone
+  /// when null.
+  final SittingPairingOn? pairingOn;
 
   @override
   ConsumerState<LogFillSheet> createState() => _LogFillSheetState();
@@ -174,17 +204,26 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
   }
 
   /// The twin set partner of this cylinder on the fill's day (issue #4242),
-  /// or null when it had none or the sheet edits a fill.
+  /// or null when it had none, the sheet edits a fill, or (in a sitting)
+  /// the stored pairings are still loading: Save waits for them, so null
+  /// here is not "no twin set".
   EquipmentItem? _watchPartner() {
     if (widget.editing != null) return null;
-    final pairing = ref
-        .watch(
-          pairingOnProvider((
-            equipmentId: widget.equipmentId,
-            day: calendarDay(_filledAt),
-          )),
-        )
-        .value;
+    final pairing = switch (widget.pairingOn) {
+      final on? => switch (ref.watch(allPairingsProvider).value) {
+        final stored? => on(stored, calendarDay(_filledAt)),
+        null => null,
+      },
+      null =>
+        ref
+            .watch(
+              pairingOnProvider((
+                equipmentId: widget.equipmentId,
+                day: calendarDay(_filledAt),
+              )),
+            )
+            .value,
+    };
     if (pairing == null) return null;
     return ref
         .watch(equipmentItemProvider(pairing.partnerOf(widget.equipmentId)))
@@ -356,9 +395,13 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
           if (mounted) setState(() => _saving = false);
           return;
         }
-        await ref
-            .read(twinFillServiceProvider)
-            .applyEdit(edited, toTied: tied.toTied);
+        if (widget.onHold case final hold?) {
+          hold(edited, toTied: tied.toTied);
+        } else {
+          await ref
+              .read(twinFillServiceProvider)
+              .applyEdit(edited, toTied: tied.toTied);
+        }
         logged = LoggedFill(fill: edited);
       } else {
         final now = DateTime.now();
@@ -380,7 +423,10 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
           createdAt: now,
           updatedAt: now,
         );
-        if (twin) {
+        if (widget.onHold case final hold?) {
+          hold(fill, twinPartnerId: twin ? partner.id : null);
+          logged = LoggedFill(fill: fill);
+        } else if (twin) {
           final saved = await ref
               .read(twinFillServiceProvider)
               .recordTwinFill(fill, partnerEquipmentId: partner.id);
@@ -406,12 +452,18 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
   /// The partner a new fill would also go on, read fresh at save time.
   Future<EquipmentItem?> _partnerForSave() async {
     try {
-      final pairing = await ref.read(
-        pairingOnProvider((
-          equipmentId: widget.equipmentId,
-          day: calendarDay(_filledAt),
-        )).future,
-      );
+      final pairing = switch (widget.pairingOn) {
+        final on? => on(
+          await ref.read(allPairingsProvider.future),
+          calendarDay(_filledAt),
+        ),
+        null => await ref.read(
+          pairingOnProvider((
+            equipmentId: widget.equipmentId,
+            day: calendarDay(_filledAt),
+          )).future,
+        ),
+      };
       if (pairing == null) return null;
       return await ref.read(
         equipmentItemProvider(pairing.partnerOf(widget.equipmentId)).future,

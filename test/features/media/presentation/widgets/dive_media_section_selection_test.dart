@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
@@ -10,11 +9,12 @@ import 'package:submersion/features/media/presentation/widgets/dive_media_sectio
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/drag_select_grid_view.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
-import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/selection_contract.dart';
 import '../../../../helpers/test_app.dart';
+import '../support/dive_media_sitting.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 MediaItem _item(String id) => MediaItem(
   id: id,
@@ -32,28 +32,7 @@ MediaItem _item(String id) => MediaItem(
 final _mediaProvider = StateProvider<List<MediaItem>>((ref) => const []);
 
 void main() {
-  /// The open card's sitting: selection and Unlink belong to it alone
-  /// (issue #4673). [unlinkWrites] collects what the held write would
-  /// unlink at Save, which nothing in these tests reaches.
-  EditSession<Dive> openSitting({List<List<String>>? unlinkWrites}) {
-    final controller = RecordEditController<Dive>(onSave: (_) async {})
-      ..unlock(Dive(id: 'dive-1', dateTime: DateTime.utc(2026)));
-    addTearDown(controller.dispose);
-    final session = controller.session!;
-    holdSittingMedia(
-      session,
-      SittingMediaWriters(
-        writeRows: (_) async => const [],
-        insertNetwork: (_) async => const [],
-        unlink: (ids) async => unlinkWrites?.add(ids),
-        replace: (_, _, _) async {},
-        drainDeletes: () async {},
-        enqueueUpload: (_) {},
-      ),
-      cardId: DiveDetailSectionId.media.name,
-    );
-    return session;
-  }
+  turnOffMarineLifeIdForEachTest();
 
   Widget host(List<MediaItem> media, {required EditSession<Dive> editing}) {
     return testApp(
@@ -76,7 +55,7 @@ void main() {
       final a = _item('a');
       final b = _item('b');
       final c = _item('c');
-      final session = openSitting();
+      final session = openDiveMediaSitting();
 
       await verifySelectionContract(
         tester,
@@ -106,7 +85,11 @@ void main() {
   group('DiveMediaSection selection', () {
     testWidgets('exposes a visible Select affordance', (tester) async {
       await tester.pumpWidget(
-        host([_item('a'), _item('b'), _item('c')], editing: openSitting()),
+        host([
+          _item('a'),
+          _item('b'),
+          _item('c'),
+        ], editing: openDiveMediaSitting()),
       );
       await tester.pumpAndSettle();
 
@@ -121,7 +104,9 @@ void main() {
       tester,
     ) async {
       final a = _item('a');
-      await tester.pumpWidget(host([a, _item('b')], editing: openSitting()));
+      await tester.pumpWidget(
+        host([a, _item('b')], editing: openDiveMediaSitting()),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('enter_selection')));
       await tester.pumpAndSettle();
@@ -140,7 +125,11 @@ void main() {
 
     testWidgets('the Select button enters selection mode', (tester) async {
       await tester.pumpWidget(
-        host([_item('a'), _item('b'), _item('c')], editing: openSitting()),
+        host([
+          _item('a'),
+          _item('b'),
+          _item('c'),
+        ], editing: openDiveMediaSitting()),
       );
       await tester.pumpAndSettle();
 
@@ -155,7 +144,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        host([_item('a'), _item('b')], editing: openSitting()),
+        host([_item('a'), _item('b')], editing: openDiveMediaSitting()),
       );
       await tester.pumpAndSettle();
 
@@ -171,7 +160,11 @@ void main() {
 
     testWidgets('select all checks every media id', (tester) async {
       await tester.pumpWidget(
-        host([_item('a'), _item('b'), _item('c')], editing: openSitting()),
+        host([
+          _item('a'),
+          _item('b'),
+          _item('c'),
+        ], editing: openDiveMediaSitting()),
       );
       await tester.pumpAndSettle();
 
@@ -190,7 +183,7 @@ void main() {
       final b = _item('b');
       final c = _item('c');
       final unlinkWrites = <List<String>>[];
-      final session = openSitting(unlinkWrites: unlinkWrites);
+      final session = openDiveMediaSitting(unlinkWrites: unlinkWrites);
 
       await tester.pumpWidget(host([a, b, c], editing: session));
       await tester.pumpAndSettle();
@@ -241,7 +234,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        host([_item('a'), _item('b')], editing: openSitting()),
+        host([_item('a'), _item('b')], editing: openDiveMediaSitting()),
       );
       await tester.pumpAndSettle();
 
@@ -274,7 +267,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        host([_item('a'), _item('b')], editing: openSitting()),
+        host([_item('a'), _item('b')], editing: openDiveMediaSitting()),
       );
       await tester.pumpAndSettle();
 
@@ -301,7 +294,7 @@ void main() {
       final a = _item('a');
       final b = _item('b');
       final c = _item('c');
-      await tester.pumpWidget(host([a, b, c], editing: openSitting()));
+      await tester.pumpWidget(host([a, b, c], editing: openDiveMediaSitting()));
       await tester.pumpAndSettle();
 
       await tester.tap(find.byKey(const ValueKey('enter_selection')));

@@ -35,6 +35,34 @@ class SpeciesEditSaveService {
     alsoWrite: alsoWrite,
     alsoWriteIsAChange: alsoWriteIsAChange,
   );
+
+  /// Creates [species], a new species' sitting (issue #4527, phase 3, plan
+  /// 11), keeping its id, as a custom species: the row, then [alsoWrite],
+  /// the sitting's held writes, in one transaction and one History entry
+  /// naming [changedCardIds]. If any of them throws nothing is left.
+  /// Throws [StateError] when [species] has no id, or one a stored species
+  /// has.
+  Future<Species> create({
+    required Species species,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+  }) => createRecordSitting<Species>(
+    table: 'species',
+    recordId: species.id,
+    changedCardIds: changedCardIds,
+    isStored: () async => await _species.getSpeciesById(species.id) != null,
+    insert: () => _species.createSpecies(
+      id: species.id,
+      commonName: species.commonName,
+      scientificName: species.scientificName,
+      category: species.category,
+      taxonomyClass: species.taxonomyClass,
+      description: species.description,
+    ),
+    alsoWrite: alsoWrite,
+    readBack: () => _species.getSpeciesById(species.id),
+    created: species,
+  );
 }
 
 final speciesEditSaveServiceProvider = Provider<SpeciesEditSaveService>(

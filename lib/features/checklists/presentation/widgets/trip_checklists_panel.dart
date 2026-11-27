@@ -1,15 +1,29 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart'
     as domain;
+import 'package:submersion/features/checklists/presentation/editing/trip_checklist_writes.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/apply_template_sheet.dart';
 import 'package:submersion/features/checklists/presentation/widgets/checklist_name_dialog.dart';
 import 'package:submersion/features/checklists/presentation/widgets/checklist_snack_bar.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklist_block.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_gear_sitting.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+
+const _log = LoggerService('tripChecklistsPanel');
 
 /// A trip's checklists (issue #3356): a list of collapsible
 /// [TripChecklistBlock]s, one per checklist, with a persistent "add
@@ -33,7 +47,12 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class TripChecklistsPanel extends ConsumerStatefulWidget {
   final Trip trip;
 
-  const TripChecklistsPanel({super.key, required this.trip});
+  /// The trip page's open sitting: the checklists it holds are shown, and
+  /// every change waits for its Save. Null shows the checklists without
+  /// changing them: the page is locked (issue #4527).
+  final EditSession<Trip>? editing;
+
+  const TripChecklistsPanel({super.key, required this.trip, this.editing});
 
   @override
   ConsumerState<TripChecklistsPanel> createState() =>
@@ -51,9 +70,113 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
   @override
   bool get wantKeepAlive => true;
 
+  /// Where this panel's changes go: the sitting's, or none while locked.
+  TripChecklistWrites? _writes;
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final editing = widget.editing;
+    if (editing != null) {
+      final list = tripChecklistsList(
+        checklists: ref.read(tripChecklistsRepositoryProvider),
+        items: ref.read(tripChecklistRepositoryProvider),
+        viewer: () => ref.read(validatedCurrentDiverIdProvider.future),
+      );
+      final writes = HeldTripChecklistWrites(
+        session: editing,
+        list: list,
+        templates: ref.read(checklistTemplateRepositoryProvider),
+      );
+      _writes = writes;
+      final packed = tripPackedGearList(
+        read: (id) => ref.read(tripGearProvider(id).future),
+        packs: ref.read(tripEquipmentRepositoryProvider),
+      );
+      final gearWrites = HeldTripGearWrites(
+        session: editing,
+        packed: packed,
+        board: tripCylindersList(
+          cylinders: ref.read(tripCylinderRepositoryProvider),
+          copier: ref.read(tripFillPassportCopierProvider),
+        ),
+      );
+      return ListenableBuilder(
+        listenable: Listenable.merge([
+          list.changes(editing),
+          packed.changes(editing),
+        ]),
+        builder: (context, _) {
+          final held = heldChecklistsOf(editing, list);
+          if (held == null) {
+            return list.failed(editing)
+                ? Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(context.l10n.common_error_tryAgain),
+                  )
+                : const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+          }
+          final gear = packed.current(editing);
+          final packedIds = gear?.map((entry) => entry.item.id).toSet();
+          return Consumer(
+            builder: (context, ref, _) {
+              final inventory =
+                  held.items.any((item) => item.equipmentId != null)
+                  ? ref.watch(allEquipmentProvider).value
+                  : null;
+              final available = {
+                for (final item in inventory ?? const <EquipmentItem>[])
+                  if (!item.isWanted) item.id: item,
+              };
+              return _buildList(
+                context,
+                held.checklists,
+                held: held,
+                packedStates: packedIds == null
+                    ? const {}
+                    : {
+                        for (final item in held.items)
+                          if (item.equipmentId case final id?
+                              when available.containsKey(id))
+                            id: packedIds.contains(id),
+                      },
+                onTogglePacked: gear == null || inventory == null
+                    ? null
+                    : (id, isPacked) async {
+                        if (!isPacked) {
+                          await gearWrites.unpack(id);
+                          return;
+                        }
+                        final item = available[id];
+                        if (item == null) {
+                          _showGearError(editing);
+                          return;
+                        }
+                        await gearWrites.pack([item]);
+                      },
+                onAddGear: (checklistId, fromSet) => _addGear(
+                  editing,
+                  writes,
+                  checklistId,
+                  held
+                      .itemsOf(checklistId)
+                      .map((i) => i.equipmentId)
+                      .nonNulls
+                      .toSet(),
+                  fromSet: fromSet,
+                ),
+              );
+            },
+          );
+        },
+      );
+    }
+    _writes = null;
     final checklistsAsync = ref.watch(tripChecklistsProvider(widget.trip.id));
     final checklists = checklistsAsync.value;
 
@@ -72,6 +195,17 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
       );
     }
 
+    return _buildList(context, checklists);
+  }
+
+  Widget _buildList(
+    BuildContext context,
+    List<domain.TripChecklist> checklists, {
+    TripChecklistsHeld? held,
+    Map<String, bool> packedStates = const {},
+    void Function(String, bool)? onTogglePacked,
+    void Function(String, bool)? onAddGear,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -91,14 +225,102 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
             initiallyExpanded: _justCreatedChecklistIds.contains(
               checklists[i].id,
             ),
+            held: held,
+            writes: _writes,
+            packedStates: packedStates,
+            onTogglePacked: onTogglePacked,
+            onAddGear: onAddGear == null
+                ? null
+                : (fromSet) => onAddGear(checklists[i].id, fromSet),
             onMoveUp: i == 0 ? null : () => _moveChecklist(checklists, i, -1),
             onMoveDown: i == checklists.length - 1
                 ? null
                 : () => _moveChecklist(checklists, i, 1),
           ),
-        _buildAddChecklistPlaceholder(context),
+        if (_writes != null) _buildAddChecklistPlaceholder(context),
       ],
     );
+  }
+
+  Future<void> _addGear(
+    EditSession<Trip> editing,
+    HeldTripChecklistWrites writes,
+    String checklistId,
+    Set<String> plannedIds, {
+    required bool fromSet,
+  }) async {
+    final items = await showModalBottomSheet<List<EquipmentItem>>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (_, scrollController) => fromSet
+            ? EquipmentSetPickerSheet(
+                scrollController: scrollController,
+                title: sheetContext.l10n.checklists_addGearSet,
+                requireGear: true,
+                appliesWeights: false,
+                appliesCylinders: false,
+                onSetSelected: (_, items) =>
+                    Navigator.of(sheetContext).pop(items),
+              )
+            : EquipmentPickerSheet(
+                scrollController: scrollController,
+                selectedEquipmentIds: plannedIds,
+                // As the Gear tab's Add offers it: a packed assembly takes
+                // its parts along, and spares would bury the gear itself.
+                hideSpare: true,
+                hideAssemblyParts: true,
+                onEquipmentConfirmed: (items) =>
+                    Navigator.of(sheetContext).pop(items),
+              ),
+      ),
+    );
+    if (!mounted || !identical(widget.editing, editing) || items == null) {
+      return;
+    }
+    try {
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      if (!mounted || !identical(widget.editing, editing)) return;
+      final ids = diverId == null
+          ? items.map((item) => item.id).toSet()
+          : await ref
+                .read(equipmentRepositoryProvider)
+                .visibleIdsAmong(items.map((item) => item.id), diverId);
+      if (!mounted || !identical(widget.editing, editing)) return;
+      final result = writes.addGear(
+        checklistId,
+        items.where((item) => ids.contains(item.id)),
+      );
+      // Said every time, "nothing new" too: a pick that only repeated
+      // planned gear, or only held cylinders, otherwise looks ignored.
+      final l10n = context.l10n;
+      final added = l10n.checklists_apply_success(result.added);
+      showChecklistSnackBar(
+        ScaffoldMessenger.of(context),
+        result.cylinders == 0
+            ? added
+            : '$added ${l10n.checklists_addGear_cylindersOnGearTab}',
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to add gear to a trip checklist',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      _showGearError(editing);
+    }
+  }
+
+  void _showGearError(EditSession<Trip> editing) {
+    if (!mounted || !identical(widget.editing, editing)) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.l10n.common_error_tryAgain)));
   }
 
   Widget _buildEmptyState(BuildContext context) {
@@ -166,9 +388,7 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
       ),
     );
     if (name == null || !mounted) return;
-    final checklist = await ref
-        .read(tripChecklistsRepositoryProvider)
-        .createChecklist(tripId: widget.trip.id, name: name);
+    final checklist = await _writes!.createChecklist(name);
     if (!mounted) return;
     _markJustCreated(checklist.id);
   }
@@ -189,26 +409,22 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
       return;
     }
 
-    // Both read up front: ref is unusable once the panel unmounts, and the
+    // Read up front: ref is unusable once the panel unmounts, and the
     // create and apply below must finish together even if the diver leaves.
-    final checklistsRepository = ref.read(tripChecklistsRepositoryProvider);
-    final itemsRepository = ref.read(tripChecklistRepositoryProvider);
-    final checklist = await checklistsRepository.createChecklist(
-      tripId: widget.trip.id,
-      name: template.name,
-    );
+    final writes = _writes;
+    if (writes == null) return;
+    final checklist = await writes.createChecklist(template.name);
     final ({int added, int skipped}) result;
     try {
-      result = await itemsRepository.applyTemplate(
+      result = await writes.applyTemplate(
         templateId: templateId,
         checklistId: checklist.id,
-        trip: widget.trip,
       );
     } catch (e) {
       // Nothing was applied, so drop the checklist this just created rather
       // than leaving an empty, template-named orphan the diver would have to
       // notice and remove by hand.
-      await checklistsRepository.deleteChecklist(checklist.id);
+      await writes.deleteChecklist(checklist.id);
       if (!mounted) return;
       // A StateError means the template vanished between the read above and
       // here (a concurrent sync, say). The repository has logged anything
@@ -237,8 +453,6 @@ class _TripChecklistsPanelState extends ConsumerState<TripChecklistsPanel>
     final orderedIds = checklists.map((c) => c.id).toList();
     final moved = orderedIds.removeAt(index);
     orderedIds.insert(index + delta, moved);
-    await ref
-        .read(tripChecklistsRepositoryProvider)
-        .reorderChecklists(widget.trip.id, orderedIds);
+    await _writes!.reorderChecklists(orderedIds);
   }
 }

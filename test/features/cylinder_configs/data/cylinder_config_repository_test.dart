@@ -271,4 +271,20 @@ void main() {
       expect(loaded.firstWhere((i) => i.id == 'b').decoSwitchDepth, isNull);
     },
   );
+
+  group('createConfig ids (issue #4527)', () {
+    test('createConfig writes the config under the id it is given', () async {
+      final id = await repository.createConfig(id: 'given-id', name: 'Given');
+
+      expect(id, 'given-id');
+      expect((await repository.getConfigById('given-id'))?.name, 'Given');
+    });
+
+    test('createConfig without an id still makes one', () async {
+      final id = await repository.createConfig(name: 'Minted');
+
+      expect(id, isNotEmpty);
+      expect((await repository.getConfigById(id))?.name, 'Minted');
+    });
+  });
 }

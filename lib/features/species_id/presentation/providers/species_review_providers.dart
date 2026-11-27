@@ -32,10 +32,13 @@ final speciesReviewProvider = FutureProvider.autoDispose
       ref.invalidateSelfWhen(repository.watchChanges());
       return repository.load(
         scope,
-        withSuggestions: marineLifeIdEnabled,
+        withSuggestions: marineLifeLabelsShown,
         // The library's rule: the active diver's dives and media on none.
         diverId: ref.watch(currentDiverIdProvider),
-        level: marineLifeIdEnabled ? ref.watch(levelInForceProvider) : null,
+        level: marineLifeLabelsShown ? ref.watch(levelInForceProvider) : null,
+        chosen: marineLifeLabelsShown
+            ? ref.watch(namingLevelNotifierProvider)
+            : null,
       );
     });
 
@@ -56,7 +59,7 @@ final speciesReviewSaverProvider = Provider<SpeciesReviewSaver>(
     acceptor: ref.watch(suggestionAcceptorProvider),
     dismiss: (mediaId, ids) =>
         ref.read(mediaIdentificationServiceProvider).reject(mediaId, ids),
-    reconcile: (mediaId) => marineLifeIdEnabled
+    reconcile: (mediaId) => marineLifeLabelsShown
         ? ref.read(mediaIdentificationServiceProvider).reconcile(mediaId)
         : Future<void>.value(),
     taggedSpecies: ref

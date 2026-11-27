@@ -191,12 +191,18 @@ class GearPhotoRepository {
       if (item.platformAssetId?.isNotEmpty ?? false) item,
   ];
 
-  /// Local files already linked to [equipmentId], for the import dedupe.
-  Future<Set<String>> linkedLocalPathsFor(String equipmentId) async => {
+  /// Local files already linked to [equipmentId], for the import dedupe,
+  /// less the rows in [ignoring]: a sitting's unlinks, which may be picked
+  /// again (issue #4527).
+  Future<Set<String>> linkedLocalPathsFor(
+    String equipmentId, {
+    Set<String> ignoring = const {},
+  }) async => {
     for (final item in await _photosOf(
       (t) => t.equipmentId.equals(equipmentId),
     ))
-      if (item.localPath case final path? when path.isNotEmpty) path,
+      if (!ignoring.contains(item.id))
+        if (item.localPath case final path? when path.isNotEmpty) path,
   };
 
   /// The photo [coverId] that [equipmentId] names as its cover, or null when
@@ -225,7 +231,7 @@ class GearPhotoRepository {
   }
 
   /// Chooses [mediaId] as the photo that stands for [equipmentId], or clears
-  /// the choice when null. A targeted write: the edit form's save never
+  /// the choice when null. A targeted write: an item's save never
   /// touches this column. Throws a [StateError] when the item is gone (a
   /// peer's delete arriving mid-tap), so nothing is marked for sync and the
   /// caller can say the cover did not change, and an [ArgumentError] for a

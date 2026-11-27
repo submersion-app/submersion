@@ -4,12 +4,15 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart'
+    as domain;
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
+import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_review.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 import 'package:submersion/features/species_id/domain/services/naming_levels.dart';
@@ -59,11 +62,13 @@ class SpeciesReviewRepository {
   /// [diverId] keeps the log to that diver's dives and the media on no
   /// dive. [level] is the naming level in force, null for the pack's own
   /// bars (issue #4721), so the Suggested list matches the viewer's.
+  /// [chosen] is the level the diver chose (issue #4876).
   Future<List<ReviewGroup>> load(
     ReviewScope scope, {
     required bool withSuggestions,
     String? diverId,
     LevelInForce? level,
+    NamingLevel? chosen,
   }) async {
     final diveId = switch (scope) {
       DiveReviewScope(:final diveId) => diveId,
@@ -73,7 +78,10 @@ class SpeciesReviewRepository {
       diveId: diveId,
       diverId: diverId,
     );
-    final loose = level != null && level.level != NamingLevel.surer;
+    // The level the diver chose: a run that kept its pack's naming bars is
+    // named by them at it, with or without a pack here (issue #4876).
+    final choice = chosen ?? level?.level;
+    final loose = choice != null && choice != NamingLevel.surer;
     final diveMedia = diveId == null
         ? null
         : await _media.getMediaForDive(diveId);
@@ -95,46 +103,56 @@ class SpeciesReviewRepository {
         await _media.getMediaByIds(wanted.toList());
     final ids = [for (final m in items) m.id];
 
-    // At a looser level the rows are named again by their run's pack, so
-    // both are read in one snapshot (issue #4721). No track paths: the
-    // review reads names, scores and decisions only.
-    final (runs, found) = loose
-        ? await _identifications.forMediaIdsWithRuns(ids, withPaths: false)
-        : (
-            const <String, MediaIdentificationRun>{},
-            await _identifications.forMediaIds(ids, withPaths: false),
-          );
+    // The runs and rows are read in one snapshot: at a looser level the
+    // rows are named again by their run's pack (issue #4721), and the rows
+    // shown are the run's own (issue #4876). No track paths: the review
+    // reads names, scores and decisions only.
+    final (runs, stored) = await _identifications.forMediaIdsWithRuns(
+      ids,
+      withPaths: false,
+    );
+    final found = {
+      for (final e in stored.entries) e.key: visibleRows(runs[e.key], e.value),
+    };
     final tagged = open.isEmpty
         ? const <String, List<TaggedSpecies>>{}
         : await _identifications.taggedSpeciesFor([
             for (final id in ids)
               if (open.contains(id)) id,
           ]);
+    // Read before the evidence: a species outside the catalogue is matched
+    // to a crop's names by its scientific name.
+    final speciesIds = {for (final t in unconfirmed) t.speciesId};
+    final species = speciesIds.isEmpty
+        ? const <domain.Species>[]
+        : await _species.getAllSpecies(ids: speciesIds.toList());
+    final speciesById = {for (final s in species) s.id: s};
+
     final suggestionsByMedia = <String, List<SpeciesSuggestion>>{};
-    final tagEvidence = <String, ({double score, String identificationId})>{};
+    final tagEvidence = <String, TagEvidence>{};
     for (final id in ids) {
       final rows = found[id];
       if (rows == null || rows.isEmpty) continue;
       if (open.contains(id)) {
         suggestionsByMedia[id] = groupSuggestions(
-          applyNamingLevel(
+          applyChosenLevel(
             rows,
-            level: level,
-            namedWithPack: runs[id]?.packVersion,
+            run: runs[id],
+            chosen: choice,
+            installed: level,
           ),
           tagged[id] ?? const [],
         );
       }
       for (final tag in unconfirmedByMedia[id] ?? const <MediaSpeciesTag>[]) {
-        final evidence = _evidenceFor(tag, rows);
+        final evidence = _evidenceFor(
+          tag,
+          rows,
+          scientificName: speciesById[tag.speciesId]?.scientificName,
+        );
         if (evidence != null) tagEvidence[tag.id] = evidence;
       }
     }
-
-    final speciesIds = {for (final t in unconfirmed) t.speciesId};
-    final species = speciesIds.isEmpty
-        ? const []
-        : await _species.getAllSpecies(ids: speciesIds.toList());
 
     // Headings only: number, time and name, so no profile samples.
     final dives = {
@@ -162,27 +180,56 @@ class SpeciesReviewRepository {
       media: media,
       unconfirmedByMedia: unconfirmedByMedia,
       suggestionsByMedia: suggestionsByMedia,
-      speciesById: {for (final s in species) s.id: s},
+      speciesById: speciesById,
       tagEvidence: tagEvidence,
     );
   }
 
-  /// The accepted identification of [tag]'s species that scored best.
-  ({double score, String identificationId})? _evidenceFor(
+  /// The accepted identification of [tag]'s species that scored it best,
+  /// with the species' own score and key in it. That is usually the crop's
+  /// top name, the one the app tagged, but not always: reconcile accepts
+  /// the crop that ranks a species highest when no crop names it first,
+  /// and a later pack can re-name a crop whose decision stands. A crop
+  /// that no longer lists the species still shows the tag, with no score.
+  TagEvidence? _evidenceFor(
     MediaSpeciesTag tag,
-    List<MediaIdentification> found,
-  ) {
+    List<MediaIdentification> found, {
+    String? scientificName,
+  }) {
+    final tagged = TaggedSpecies(
+      speciesId: tag.speciesId,
+      scientificName: scientificName,
+    );
     MediaIdentification? best;
+    NamedCandidate? bestNamed;
     for (final i in found) {
       if (i.decision != IdentificationDecision.accepted ||
           i.decidedSpeciesId != tag.speciesId ||
           i.top == null) {
         continue;
       }
-      if (best == null || i.top!.score > best.top!.score) best = i;
+      final named = i.candidates
+          .where((c) => candidateMatches(c.candidate, tagged))
+          .firstOrNull;
+      // A crop that lists the species beats one that does not; between two
+      // that do not, the surer crop shows the tag more clearly.
+      final better =
+          best == null ||
+          (named != null &&
+              (bestNamed == null || named.score > bestNamed.score)) ||
+          (named == null &&
+              bestNamed == null &&
+              i.top!.score > best.top!.score);
+      if (better) {
+        best = i;
+        bestNamed = named;
+      }
     }
-    return best == null
-        ? null
-        : (score: best.top!.score, identificationId: best.id);
+    if (best == null) return null;
+    return (
+      score: bestNamed?.score,
+      identificationId: best.id,
+      gbifKey: bestNamed?.candidate.gbifKey,
+    );
   }
 }

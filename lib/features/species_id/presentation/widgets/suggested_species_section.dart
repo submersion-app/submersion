@@ -13,7 +13,10 @@ import 'package:submersion/features/media/presentation/widgets/media_species_she
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
+import 'package:submersion/features/species_id/presentation/providers/recorded_nearby_providers.dart';
+import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
+import 'package:submersion/features/species_id/presentation/widgets/recorded_nearby_line.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -242,14 +245,28 @@ class _SuggestionRow extends ConsumerWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              // One fish swimming out of a video and back is two tracks,
-              // so a video shows no count (issue #4675).
-              suggestion.count > 1 && !item.isVideo
-                  ? l10n.media_species_suggestedCount(name, suggestion.count)
-                  : name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  // One fish swimming out of a video and back is two
+                  // tracks, so a video shows no count (issue #4675).
+                  suggestion.count > 1 && !item.isVideo
+                      ? l10n.media_species_suggestedCount(
+                          name,
+                          suggestion.count,
+                        )
+                      : name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                RecordedNearbyLine(
+                  request: nearbyRequestForMedia(item),
+                  gbifKeys: {key},
+                  catalogId: candidate.catalogId,
+                ),
+              ],
             ),
           ),
           Text(percent, style: Theme.of(context).textTheme.bodySmall),
@@ -345,7 +362,18 @@ class SuggestionCropView extends ConsumerWidget {
             ),
             contentPadding: EdgeInsets.zero,
             title: Text(candidateDisplayName(l10n, alternative.candidate)),
-            subtitle: Text(alternative.candidate.scientificName),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(alternative.candidate.scientificName),
+                RecordedNearbyLine(
+                  request: nearbyRequestForMedia(item),
+                  gbifKeys: {alternative.candidate.gbifKey},
+                  catalogId: alternative.candidate.catalogId,
+                ),
+              ],
+            ),
             trailing: SizedBox(
               width: 120,
               child: Row(
@@ -446,19 +474,39 @@ class IdentificationCrop extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final file = ref
-        .watch(identificationCropFileProvider((mediaId, identificationId)))
-        .value;
+    final read = ref.watch(
+      identificationCropProvider((mediaId, identificationId)),
+    );
+    // Still being read: the placeholder's background and size, never "not
+    // on this device" for a crop that is about to show (issue #5024).
+    if (read.isLoading && !read.hasValue) {
+      return _Placeholder(showReason: showReason, loading: true);
+    }
+    final crop = read.value;
     final placeholder = _Placeholder(showReason: showReason);
-    if (file == null) return placeholder;
-    return Image.file(file, fit: fit, errorBuilder: (_, _, _) => placeholder);
+    return switch (crop) {
+      null => placeholder,
+      CropFile(:final file) => Image.file(
+        file,
+        fit: fit,
+        errorBuilder: (_, _, _) => placeholder,
+      ),
+      CropBytes(:final bytes) => Image.memory(
+        bytes,
+        fit: fit,
+        errorBuilder: (_, _, _) => placeholder,
+      ),
+    };
   }
 }
 
 class _Placeholder extends StatelessWidget {
-  const _Placeholder({required this.showReason});
+  const _Placeholder({required this.showReason, this.loading = false});
 
   final bool showReason;
+
+  /// The crop is still being read: the same size, with nothing said yet.
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
@@ -466,24 +514,31 @@ class _Placeholder extends StatelessWidget {
     return ColoredBox(
       color: scheme.surfaceContainerHighest,
       child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.image_not_supported_outlined,
-                color: scheme.onSurfaceVariant,
-              ),
-              if (showReason) ...[
-                const SizedBox(height: 8),
-                Text(
-                  context.l10n.media_species_cropUnavailable,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: scheme.onSurfaceVariant),
+        child: Visibility(
+          // Kept to size while loading, but neither seen nor read out.
+          visible: !loading,
+          maintainSize: true,
+          maintainAnimation: true,
+          maintainState: true,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.image_not_supported_outlined,
+                  color: scheme.onSurfaceVariant,
                 ),
+                if (showReason) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    context.l10n.media_species_cropUnavailable,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: scheme.onSurfaceVariant),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

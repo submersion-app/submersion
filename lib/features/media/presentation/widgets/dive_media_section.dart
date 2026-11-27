@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
@@ -7,8 +8,11 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/media/presentation/helpers/lightroom_scan_helper.dart';
+import 'package:submersion/features/media/presentation/helpers/media_layout_aspect.dart';
 import 'package:submersion/features/media/presentation/helpers/media_link_replacer.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
+import 'package:submersion/features/media/presentation/providers/media_thumbnail_scale_provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/utils/file_reveal.dart';
@@ -16,6 +20,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/lightroom_suggestions_row.dart';
+import 'package:submersion/features/media/presentation/widgets/justified_media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_hover_region.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -33,6 +38,13 @@ import 'package:submersion/features/media/presentation/helpers/photo_import_help
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
+
+/// The height the dive card packs its media rows at, smaller than the
+/// library's so the card sits within a details page (issue #4739).
+const double kDiveMediaRowHeight = 120;
+
+/// The space between the dive card's tiles, across and down (issue #4739).
+const double kDiveMediaGap = 4;
 
 /// Returns the OS-appropriate label for the "show file in OS file manager"
 /// menu item used by the right-click context menu.
@@ -143,6 +155,32 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
       _hoverReportedTo = null;
       reportedTo?.call(null);
     }
+  }
+
+  /// The last layout, kept while the card's width and the items' shapes
+  /// stay the same, so the grid delegate (which compares tables by
+  /// identity) does not relayout on every rebuild.
+  ({List<double> ratios, double width, JustifiedMediaTable table})? _layout;
+
+  /// The justified layout of [ratios] across [width] (issue #4739): rows of
+  /// about [kDiveMediaRowHeight], [kDiveMediaGap] apart, ending flush with
+  /// the card.
+  JustifiedMediaTable _tableFor(List<double> ratios, double width) {
+    final cached = _layout;
+    if (cached != null &&
+        cached.width == width &&
+        listEquals(cached.ratios, ratios)) {
+      return cached.table;
+    }
+    final table = JustifiedMediaTable.build(
+      sections: [JustifiedSection(headerExtents: const [], ratios: ratios)],
+      paneWidth: width,
+      targetHeight: kDiveMediaRowHeight,
+      gap: kDiveMediaGap,
+      inset: 0,
+    );
+    _layout = (ratios: ratios, width: width, table: table);
+    return table;
   }
 
   @override
@@ -344,6 +382,16 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
         ? stored
         : stored.whenData((media) => mediaInSitting(session, media));
     _scheduleEnrichmentBackfill(mediaAsync.valueOrNull);
+    // The shapes the library has learned from decoded thumbnails, so a photo
+    // stored sideways lays out the way it is shown. Watched here, in this
+    // State's build, so the subscription lives with the card rather than
+    // being reopened by the selection builder below, and only once there is
+    // media to lay out, so an empty dive does not read the whole cache. A
+    // cache that cannot be read loads as empty, so this never waits for good.
+    final hasMedia = mediaAsync.value?.isNotEmpty ?? false;
+    final learned = hasMedia
+        ? ref.watch(mediaLearnedAspectsProvider).value
+        : null;
     final settings = ref.watch(unitFormatterProvider).settings;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -370,8 +418,14 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
       selectableIds: visibleIds,
       child: ValueListenableBuilder<SelectionState>(
         valueListenable: _selection,
-        builder: (context, selection, _) =>
-            _buildCard(context, mediaAsync, settings, colorScheme, textTheme),
+        builder: (context, selection, _) => _buildCard(
+          context,
+          mediaAsync,
+          learned,
+          settings,
+          colorScheme,
+          textTheme,
+        ),
       ),
     );
   }
@@ -379,6 +433,7 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   Widget _buildCard(
     BuildContext context,
     AsyncValue<List<MediaItem>> mediaAsync,
+    Map<String, LearnedAspect>? learned,
     UnitFormatterSettings settings,
     ColorScheme colorScheme,
     TextTheme textTheme,
@@ -532,101 +587,24 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                     message: context.l10n.media_diveMediaSection_emptyState,
                   );
                 }
-                return DragSelectGridView<MediaItem>(
-                  items: media,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  startInSelectionMode: _isSelectionMode,
-                  initialSelection: _indicesFor(media),
-                  // The controller owns the mode, because only it knows how the
-                  // mode was entered: a Select-button entry must survive at
-                  // zero checked, an incidental one must evaporate. Letting the
-                  // grid also decide had the two fight -- its exit callback
-                  // cleared the controller and the selection callback
-                  // immediately reactivated it, leaving the bar stranded at
-                  // "0 selected".
-                  exitOnEmptySelection: false,
-                  onSelectionChanged: (indices) {
-                    // The grid reports its complete selection, not a delta, so
-                    // this replaces rather than toggles. Not selectAll: that
-                    // declares the mode explicit, which would launder a
-                    // grid gesture into a deliberate entry.
-                    _selection.replaceChecked(_idsFor(media, indices));
-                  },
-                  // Entry and exit both travel through onSelectionChanged
-                  // above; the grid follows the controller back out via
-                  // startInSelectionMode.
-                  onSelectionModeChanged: (_) {},
-                  onItemTap: (index) {
-                    final item = media[index];
-                    final scope = RecordEditScope.maybeOf<Dive>(context);
-                    final session = widget.editing ?? scope?.session;
-                    if (item.isDocument) {
-                      // A document held until Save has no file to open yet.
-                      if (session != null &&
-                          sittingMedia(
-                            session,
-                          ).added.any((a) => a.preview.id == item.id)) {
-                        return;
-                      }
-                      widget.onOpenDocument?.call(item);
-                      return;
-                    }
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        fullscreenDialog: true,
-                        builder: (_) => PhotoViewerPage(
-                          diveId: widget.diveId,
-                          initialMediaId: item.id,
-                          // The photos as the dive's sitting has them, so a
-                          // photo held for Save opens on itself; with no row
-                          // it cannot be unlocked, and reads only.
-                          diveEditing: scope,
-                        ),
-                      ),
-                    );
-                  },
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
+                // The first layout waits for the learned shapes, as the
+                // library's does, so photos do not jump into place.
+                if (learned == null) return const _MediaLoading();
+                final ratios = mediaLayoutRatios(media, learned);
+                final indexById = {
+                  for (var i = 0; i < media.length; i++) media[i].id: i,
+                };
+                return LayoutBuilder(
+                  builder: (context, constraints) => _buildGrid(
+                    context,
+                    media,
+                    _tableFor(ratios, constraints.maxWidth),
+                    indexById,
+                    settings,
                   ),
-                  itemBuilder: (context, item, isSelected) {
-                    final thumbnail = MediaThumbnailTile(
-                      item: item,
-                      settings: settings,
-                      isSelectionMode: _isSelectionMode,
-                      isSelected: isSelected,
-                      semanticsLabel:
-                          context.l10n.media_diveMediaSection_thumbnailLabel,
-                    );
-                    return MediaHoverRegion(
-                      // By item, not by grid slot: the grid keys its cells by
-                      // index, so when an item is unlinked its neighbour takes
-                      // over the same cell, and without this the cell would
-                      // stay "hovered" for the item that left.
-                      key: ValueKey(item.id),
-                      onHoverChanged: (hovered) => _onTileHover(item, hovered),
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        // coverage:ignore-start
-                        // The right-click context menu is desktop-only:
-                        // touchscreens never fire it and no test drives a
-                        // secondary tap here. It is exercised by manual
-                        // desktop smoke tests.
-                        onSecondaryTapDown: (details) =>
-                            _showLocalFileContextMenu(context, item, details),
-                        // coverage:ignore-end
-                        child: thumbnail,
-                      ),
-                    );
-                  },
                 );
               },
-              loading: () => const SizedBox(
-                height: 100,
-                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-              ),
+              loading: () => const _MediaLoading(),
               // The open card offers to read again, as every card of a
               // sitting does (issue #4527).
               error: (error, stack) => widget.editing != null
@@ -650,4 +628,116 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
       ),
     );
   }
+
+  /// The media in justified rows (issue #4739). The grid finds the tile
+  /// under a drag by each tile's own key, so drag-select works across rows
+  /// of uneven tiles as it did across the old square columns.
+  Widget _buildGrid(
+    BuildContext context,
+    List<MediaItem> media,
+    JustifiedMediaTable table,
+    Map<String, int> indexById,
+    UnitFormatterSettings settings,
+  ) {
+    return DragSelectGridView<MediaItem>(
+      items: media,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      startInSelectionMode: _isSelectionMode,
+      initialSelection: _indicesFor(media),
+      // The controller owns the mode, because only it knows how the
+      // mode was entered: a Select-button entry must survive at
+      // zero checked, an incidental one must evaporate. Letting the
+      // grid also decide had the two fight -- its exit callback
+      // cleared the controller and the selection callback
+      // immediately reactivated it, leaving the bar stranded at
+      // "0 selected".
+      exitOnEmptySelection: false,
+      onSelectionChanged: (indices) {
+        // The grid reports its complete selection, not a delta, so
+        // this replaces rather than toggles. Not selectAll: that
+        // declares the mode explicit, which would launder a
+        // grid gesture into a deliberate entry.
+        _selection.replaceChecked(_idsFor(media, indices));
+      },
+      // Entry and exit both travel through onSelectionChanged
+      // above; the grid follows the controller back out via
+      // startInSelectionMode.
+      onSelectionModeChanged: (_) {}, // coverage:ignore-line
+      onItemTap: (index) {
+        final item = media[index];
+        final scope = RecordEditScope.maybeOf<Dive>(context);
+        final session = widget.editing ?? scope?.session;
+        if (item.isDocument) {
+          // A document held until Save has no file to open yet.
+          if (session != null &&
+              sittingMedia(session).added.any((a) => a.preview.id == item.id)) {
+            return;
+          }
+          widget.onOpenDocument?.call(item);
+          return;
+        }
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (_) => PhotoViewerPage(
+              diveId: widget.diveId,
+              initialMediaId: item.id,
+              // The photos as the dive's sitting has them, so a
+              // photo held for Save opens on itself; with no row
+              // it cannot be unlocked, and reads only.
+              diveEditing: scope,
+            ),
+          ),
+        );
+      },
+      gridDelegate: JustifiedMediaGridDelegate(table),
+      itemBuilder: (context, item, isSelected) {
+        final cell = table.rectOf(indexById[item.id]!).size;
+        final thumbnail = MediaThumbnailTile(
+          item: item,
+          settings: settings,
+          isSelectionMode: _isSelectionMode,
+          isSelected: isSelected,
+          semanticsLabel: context.l10n.media_diveMediaSection_thumbnailLabel,
+          targetSize: mediaThumbnailDecodeTarget(cell),
+          // Teaches the library a photo's displayed shape, which
+          // relays this card out too.
+          onImageSize: (size) =>
+              ref.read(mediaLearnedAspectsProvider.notifier).report(item, size),
+        );
+        return MediaHoverRegion(
+          // By item, not by grid slot: the grid keys its cells by
+          // index, so when an item is unlinked its neighbour takes
+          // over the same cell, and without this the cell would
+          // stay "hovered" for the item that left.
+          key: ValueKey(item.id),
+          onHoverChanged: (hovered) => _onTileHover(item, hovered),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            // coverage:ignore-start
+            // The right-click context menu is desktop-only:
+            // touchscreens never fire it and no test drives a
+            // secondary tap here. It is exercised by manual
+            // desktop smoke tests.
+            onSecondaryTapDown: (details) =>
+                _showLocalFileContextMenu(context, item, details),
+            // coverage:ignore-end
+            child: thumbnail,
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// The card's spinner while its media or the learned shapes load.
+class _MediaLoading extends StatelessWidget {
+  const _MediaLoading();
+
+  @override
+  Widget build(BuildContext context) => const SizedBox(
+    height: 100,
+    child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+  );
 }

@@ -216,8 +216,8 @@ courses, species (the logbook page and the catalog) and documents.
   `search_everywhere_row.dart`: the shared list search row and its parts;
   `providers/entity_search_providers.dart` holds its open and focus state per
   subject.
-- `presentation/providers/`: results provider, focus tick, and each section's
-  records by id (`global_search_record_providers.dart`).
+- `presentation/providers/`: results provider, pending focus request, and
+  each section's records by id (`global_search_record_providers.dart`).
 - `presentation/pages/global_search_page.dart`, plus `widgets/`, where
   `global_search_rows.dart` draws each type's own row.
 

@@ -15,6 +15,9 @@ String? syncRecordId(String entityType, Map<String, dynamic> record) {
     case 'diveSafetyReviews':
       // PK is dive_id (one marker row per dive), not id.
       return record['diveId'] as String?;
+    case 'mediaIdentificationRuns':
+      // One run per media, keyed by it (issue #4876).
+      return record['mediaId'] as String?;
     case 'diveEquipment':
       return record['id'] as String? ??
           _compositeId(record['diveId'], record['equipmentId']);

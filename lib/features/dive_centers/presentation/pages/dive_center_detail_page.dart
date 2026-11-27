@@ -12,6 +12,8 @@ import 'package:submersion/features/connections/domain/entities/connection_kind.
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/core/router/pushed_route.dart';
+import 'package:submersion/features/dive_centers/presentation/editing/dive_center_new_sitting.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/maps/presentation/widgets/locked_map_scroll_passthrough.dart';
@@ -44,26 +46,24 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_fade.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
-import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
-import 'package:submersion/shared/widgets/record_editing/unlock_record_editing_flag.dart';
 
+part 'dive_center_detail_page_body.dart';
+part 'dive_center_detail_page_creating.dart';
 part 'dive_center_detail_page_dives.dart';
 part 'dive_center_detail_page_editing.dart';
 
-/// A dive centre's page. Behind phase 3's switch ([unlockEditing]) it
-/// opens locked and edits in place (issue #4527).
+/// A dive centre's page. It opens locked and edits in place (issue
+/// #4527).
 
 class DiveCenterDetailPage extends ConsumerStatefulWidget {
   final String centerId;
   final bool embedded;
   final VoidCallback? onDeleted;
-
-  /// Whether the page edits in place: phase 3's switch.
-  final bool unlockEditing;
 
   /// Opens unlocked, as the old edit address asks (`?mode=edit`).
   final bool openUnlocked;
@@ -71,15 +71,38 @@ class DiveCenterDetailPage extends ConsumerStatefulWidget {
   /// Told when a sitting the page opened unlocked ends.
   final VoidCallback? onSittingEnded;
 
+  /// A new dive centre (issue #4527, phase 3, plan 11): the page opened
+  /// unlocked on a centre not yet created.
+  final bool newDiveCenter;
+
+  /// The pane's own: given the new centre's id once created.
+  final void Function(String centerId)? onCreated;
+
+  /// The pane's own: told when a new centre's page leaves uncreated.
+  final VoidCallback? onCreateCancelled;
+
   const DiveCenterDetailPage({
     super.key,
     required this.centerId,
     this.embedded = false,
     this.onDeleted,
-    this.unlockEditing = kUnlockRecordEditing,
     this.openUnlocked = false,
     this.onSittingEnded,
-  });
+  }) : newDiveCenter = false,
+       onCreated = null,
+       onCreateCancelled = null;
+
+  /// A new dive centre's page.
+  const DiveCenterDetailPage.newDiveCenter({
+    super.key,
+    this.embedded = false,
+    this.onCreated,
+    this.onCreateCancelled,
+  }) : newDiveCenter = true,
+       centerId = '',
+       onDeleted = null,
+       openUnlocked = false,
+       onSittingEnded = null;
 
   @override
   ConsumerState<DiveCenterDetailPage> createState() =>
@@ -90,7 +113,9 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage>
     with
         RecordEditHost<DiveCenterDetailPage, DiveCenter>,
         RecordOpenUnlocked<DiveCenterDetailPage, DiveCenter>,
-        _DiveCenterDetailPageEditing {
+        _DiveCenterDetailPageEditing,
+        RecordCreating<DiveCenterDetailPage, DiveCenter>,
+        _DiveCenterDetailPageCreating {
   bool _hasRedirected = false;
 
   @override
@@ -101,6 +126,9 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage>
 
   @override
   Widget build(BuildContext context) {
+    if (isCreating) {
+      return newRecordWaiting(context) ?? _centerPage(newRecordSeed!);
+    }
     // Desktop redirect: a root visit (deep link, sidebar) moves into the
     // master-detail split. A pushed page, opened from a dive's details
     // say, stays put: the redirect's go() would erase the page under it
@@ -125,7 +153,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage>
     }
 
     final centerAsync = ref.watch(diveCenterByIdProvider(widget.centerId));
-    if (hostsEditing) followStored(diveCenterByIdProvider(widget.centerId));
+    followStored(diveCenterByIdProvider(widget.centerId));
 
     return centerAsync.when(
       loading: () => widget.embedded
@@ -160,133 +188,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage>
                 );
         }
 
-        if (hostsEditing) openUnlockedOnce(stored);
-        final center = hostsEditing ? shownRecord(stored) : stored;
-        final units = ref.watch(unitFormatterProvider);
-        final body = SingleChildScrollView(
-          controller: DetailScrollController.maybeOf(context),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (center.hasCoordinates ||
-                  _showsWhileEmpty(DiveCenterCardId.map))
-                _framed(
-                  DiveCenterCardId.map,
-                  center.hasCoordinates
-                      ? Stack(
-                          children: [
-                            _MapSection(center: center),
-                            if (_pencil(DiveCenterCardId.map) case final p?)
-                              Positioned(
-                                top: 24,
-                                left: 24,
-                                child: Material(
-                                  shape: const StadiumBorder(),
-                                  child: p,
-                                ),
-                              ),
-                          ],
-                        )
-                      : const SizedBox(height: 16),
-                ),
-              _framed(
-                DiveCenterCardId.header,
-                _HeaderSection(
-                  center: center,
-                  pencil: _pencil(DiveCenterCardId.header),
-                ),
-              ),
-              const Divider(height: 32),
-              _framed(
-                DiveCenterCardId.contact,
-                _ContactSection(
-                  center: center,
-                  units: units,
-                  pencil: _pencil(DiveCenterCardId.contact),
-                  // Shown though empty while brought in from the strip, or,
-                  // unlocked, while it holds a value it cannot show (one
-                  // fill time), so it can be reached to fix it.
-                  showEmpty:
-                      _showsWhileEmpty(DiveCenterCardId.contact) ||
-                      (isSittingOpen &&
-                          !diveCenterEditCards[DiveCenterCardId.contact]!
-                              .isEmpty(center)),
-                ),
-              ),
-              if (center.notes.isNotEmpty ||
-                  _showsWhileEmpty(DiveCenterCardId.notes)) ...[
-                const Divider(height: 32),
-                _framed(
-                  DiveCenterCardId.notes,
-                  _NotesSection(
-                    notes: center.notes,
-                    pencil: _pencil(DiveCenterCardId.notes),
-                  ),
-                ),
-              ],
-              const Divider(height: 32),
-              _framed(
-                DiveCenterCardId.documents,
-                DocumentsSection<DiveCenter>(
-                  owner: DocumentOwner(
-                    DocumentOwnerKind.diveCenter,
-                    widget.centerId,
-                  ),
-                ),
-              ),
-              _calculated(GearHereSection(centerId: widget.centerId)),
-              const Divider(height: 32),
-              _framed(
-                DiveCenterCardId.rentalGear,
-                RentalGearSection(
-                  centerId: widget.centerId,
-                  readOnly: hostsEditing,
-                  shown: maybeEditController?.session,
-                ),
-              ),
-              const Divider(height: 32),
-              _calculated(_DivesSection(centerId: widget.centerId)),
-              const SizedBox(height: 32),
-            ],
-          ),
-        );
-
-        if (widget.embedded) {
-          final header = _buildEmbeddedHeader(context, center, stored: stored);
-          if (hostsEditing) {
-            return editPane(header: header, shown: center, content: body);
-          }
-          return Column(
-            children: [
-              header,
-              Expanded(child: body),
-            ],
-          );
-        }
-
-        final bar = AppBar(
-          title: Text(center.name),
-          actions: [
-            if (hostsEditing) lockButton(center),
-            IconButton(
-              icon: const Icon(Icons.edit_outlined),
-              tooltip: context.l10n.diveCenters_tooltip_edit,
-              // Where the page edits in place, Edit unlocks it.
-              onPressed: hostsEditing
-                  ? () => editController.unlock(center)
-                  : () => context.push('/dive-centers/${widget.centerId}/edit'),
-            ),
-            _buildMoreMenu(context, center),
-          ],
-        );
-        if (!hostsEditing) return Scaffold(appBar: bar, body: body);
-        return editScaffold(
-          record: stored,
-          shown: center,
-          lockedBar: bar,
-          unlockedActions: [_buildMoreMenu(context, center)],
-          content: body,
-        );
+        return _centerPage(stored);
       },
     );
   }
@@ -295,7 +197,7 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage>
 class _HeaderSection extends StatelessWidget {
   final DiveCenter center;
 
-  /// The card's pencil, where the page edits in place.
+  /// The card's pencil.
   final Widget? pencil;
 
   const _HeaderSection({required this.center, this.pencil});
@@ -430,7 +332,7 @@ class _ContactSection extends StatelessWidget {
   final DiveCenter center;
   final UnitFormatter units;
 
-  /// The card's pencil, where the page edits in place.
+  /// The card's pencil.
   final Widget? pencil;
 
   /// Whether the title shows when there is nothing under it.
@@ -615,7 +517,7 @@ class _ContactTile extends StatelessWidget {
 class _NotesSection extends StatelessWidget {
   final String notes;
 
-  /// The card's pencil, where the page edits in place.
+  /// The card's pencil.
   final Widget? pencil;
 
   const _NotesSection({required this.notes, this.pencil});

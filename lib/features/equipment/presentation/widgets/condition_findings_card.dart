@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_findings_sitting.dart';
 import 'package:submersion/features/equipment/presentation/info/equipment_info.dart';
 import 'package:submersion/features/equipment/presentation/providers/condition_trend_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
@@ -15,6 +16,10 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// Whether [findings] has anything to show once the master toggle ([enabled])
 /// and the [disabled] rules are applied. Rules always compute; hiding happens
@@ -35,7 +40,16 @@ bool hasVisibleConditionFindings(
 class ConditionFindingsCard extends ConsumerStatefulWidget {
   final EquipmentItem equipment;
 
-  const ConditionFindingsCard({super.key, required this.equipment});
+  /// The open card's sitting (issue #4527, phase 3): dismissing and restoring
+  /// are held there until Save. With no sitting given, the findings read only;
+  /// during a sitting every view shows its dismissals.
+  final EditSession<EquipmentItem>? editing;
+
+  const ConditionFindingsCard({
+    super.key,
+    required this.equipment,
+    this.editing,
+  });
 
   @override
   ConsumerState<ConditionFindingsCard> createState() =>
@@ -47,6 +61,32 @@ class _ConditionFindingsCardState extends ConsumerState<ConditionFindingsCard> {
 
   String get _id => widget.equipment.id;
 
+  // The open card follows its own sitting: a dismissal held there redraws
+  // the rows whether or not a page's scope rebuilds the card.
+  @override
+  void initState() {
+    super.initState();
+    widget.editing?.addListener(_sittingChanged);
+  }
+
+  @override
+  void didUpdateWidget(ConditionFindingsCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.editing == widget.editing) return;
+    oldWidget.editing?.removeListener(_sittingChanged);
+    widget.editing?.addListener(_sittingChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.editing?.removeListener(_sittingChanged);
+    super.dispose();
+  }
+
+  void _sittingChanged() {
+    if (mounted) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final enabled = ref.watch(conditionEngineEnabledProvider);
@@ -55,7 +95,17 @@ class _ConditionFindingsCardState extends ConsumerState<ConditionFindingsCard> {
     );
     // The card hides while the engine's first read is in flight: a rule
     // engine never earns a spinner on a gear page.
-    final findings = ref.watch(equipmentConditionProvider(_id)).value;
+    final stored = ref.watch(equipmentConditionProvider(_id)).value;
+    final scope = RecordEditScope.maybeOf<EquipmentItem>(context);
+    final editing = widget.editing;
+    final session = editing ?? scope?.session;
+    final readOnly = scope != null && editing == null;
+    final findings = stored == null || session == null
+        ? stored
+        : findingsInSitting(session, stored);
+    final changed = session == null
+        ? const <String, bool>{}
+        : sittingFindingDismissals(session);
     if (!hasVisibleConditionFindings(
       findings,
       enabled: enabled,
@@ -94,6 +144,7 @@ class _ConditionFindingsCardState extends ConsumerState<ConditionFindingsCard> {
       sentence: conditionFindingTitle(f, l10n, units, thresholds: thresholds),
       window: conditionFindingWindow(f, l10n, units),
       selected: selected?.id == f.id,
+      changed: changed.containsKey(f.id),
       onTap: () => _toggleSelected(f),
       // A finding with no dives (an incident logged on the bench) has
       // nothing to list, so it offers no evidence sheet.
@@ -104,7 +155,9 @@ class _ConditionFindingsCardState extends ConsumerState<ConditionFindingsCard> {
               equipment: widget.equipment,
               finding: f,
             ),
-      onDismissChanged: (dismissed) => _setDismissed(f, dismissed),
+      onDismissChanged: readOnly
+          ? null
+          : (dismissed) => _setDismissed(f, dismissed, editing),
     );
 
     return Padding(
@@ -133,6 +186,9 @@ class _ConditionFindingsCardState extends ConsumerState<ConditionFindingsCard> {
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
+                  ),
+                  RecordCardPencil(
+                    cardTitle: l10n.equipmentCondition_findings_title,
                   ),
                   HeaderInfoButton(
                     title: l10n.equipmentCondition_findings_title,
@@ -171,11 +227,20 @@ class _ConditionFindingsCardState extends ConsumerState<ConditionFindingsCard> {
     notifier.state = notifier.state?.id == finding.id ? null : finding;
   }
 
-  /// The button callback cannot await; logFailure attributes a failed
-  /// write, and the unchanged list is the user-visible signal.
-  void _setDismissed(EquipmentFinding finding, bool dismissed) {
+  /// In a sitting, held until Save. Otherwise written at once: the button
+  /// callback cannot await, so logFailure attributes a failed write, and
+  /// the unchanged list is the user-visible signal.
+  void _setDismissed(
+    EquipmentFinding finding,
+    bool dismissed,
+    EditSession<EquipmentItem>? editing,
+  ) {
     if (ref.read(selectedConditionFindingProvider(_id))?.id == finding.id) {
       ref.read(selectedConditionFindingProvider(_id).notifier).state = null;
+    }
+    if (editing != null) {
+      setFindingDismissedInSitting(editing, finding, dismissed: dismissed);
+      return;
     }
     logFailure(
       setConditionFindingDismissed(ref, finding: finding, dismissed: dismissed),
@@ -190,17 +255,23 @@ class _FindingTile extends StatelessWidget {
   final String sentence;
   final String window;
   final bool selected;
+
+  /// Dismissed or restored in the sitting.
+  final bool changed;
   final VoidCallback onTap;
 
   /// Null when the finding names no dive, which hides the action.
   final VoidCallback? onEvidence;
-  final ValueChanged<bool> onDismissChanged;
+
+  /// Null offers no dismiss or restore.
+  final ValueChanged<bool>? onDismissChanged;
 
   const _FindingTile({
     required this.finding,
     required this.sentence,
     required this.window,
     required this.selected,
+    this.changed = false,
     required this.onTap,
     required this.onEvidence,
     required this.onDismissChanged,
@@ -225,7 +296,15 @@ class _FindingTile extends StatelessWidget {
         size: 20,
         color: color,
       ),
-      title: Text(sentence),
+      title: changed
+          ? Row(
+              children: [
+                Flexible(child: Text(sentence)),
+                const SizedBox(width: 6),
+                const RecordChangedDot(),
+              ],
+            )
+          : Text(sentence),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -246,17 +325,19 @@ class _FindingTile extends StatelessWidget {
             ),
         ],
       ),
-      trailing: IconButton(
-        icon: Icon(
-          dismissed ? Icons.undo : Icons.close,
-          size: 18,
-          color: scheme.onSurfaceVariant,
-        ),
-        tooltip: dismissed
-            ? l10n.equipmentCondition_findings_restore
-            : l10n.equipmentCondition_findings_dismiss,
-        onPressed: () => onDismissChanged(!dismissed),
-      ),
+      trailing: onDismissChanged == null
+          ? null
+          : IconButton(
+              icon: Icon(
+                dismissed ? Icons.undo : Icons.close,
+                size: 18,
+                color: scheme.onSurfaceVariant,
+              ),
+              tooltip: dismissed
+                  ? l10n.equipmentCondition_findings_restore
+                  : l10n.equipmentCondition_findings_dismiss,
+              onPressed: () => onDismissChanged!(!dismissed),
+            ),
     );
   }
 }

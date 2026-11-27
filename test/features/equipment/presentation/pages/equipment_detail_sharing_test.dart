@@ -29,6 +29,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_t
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/service_clock_snapshot_override.dart';
 import '../../../../helpers/detail_row_finders.dart';
 
 class _MockServiceRecordNotifier
@@ -160,6 +161,7 @@ void main() {
           serviceClockStatusesProvider(
             id,
           ).overrideWith((ref) async => const []),
+          serviceClockSnapshotOverride(id),
           equipmentComponentsProvider(id).overrideWith((ref) async => const []),
           equipmentExposureTotalsProvider(
             id,
@@ -265,7 +267,10 @@ void main() {
 
   testWidgets('a refused delete says so and stays on the page', (tester) async {
     await pump(tester, activeDiverId: 'owner', refuseDelete: true);
-    await tester.tap(find.byKey(overflow));
+    // Delete is a whole-record operation, under the lock (issue #4527).
+    await tester.tap(find.byIcon(Icons.lock_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(overflow).last);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Delete').last);
     await tester.pumpAndSettle();
@@ -317,17 +322,15 @@ void main() {
     expect(find.byKey(overflow), findsOneWidget);
   });
 
-  testWidgets('tapping Shared with lists the other profiles', (tester) async {
-    await pump(tester, activeDiverId: 'owner');
-    await tester.tap(find.text('Shared with'));
-    await tester.pumpAndSettle();
-    expect(find.widgetWithText(CheckboxListTile, 'Anna'), findsOneWidget);
-    expect(find.widgetWithText(CheckboxListTile, 'Bill'), findsNothing);
-  });
-
   group('transfer (issue #2852)', () {
+    /// Opens the page's menu, unlocking first: Transfer and Delete are
+    /// whole-record operations, under the lock (issue #4527).
     Future<void> openMenu(WidgetTester tester) async {
-      await tester.tap(find.byKey(overflow));
+      final lock = find.byIcon(Icons.lock_outline);
+      expect(lock, findsOneWidget);
+      await tester.tap(lock);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(overflow).last);
       await tester.pumpAndSettle();
     }
 
@@ -335,6 +338,21 @@ void main() {
       await pump(tester, activeDiverId: 'owner');
       await openMenu(tester);
       expect(find.text('Transfer to...'), findsOneWidget);
+    });
+
+    testWidgets('locked, the owner sees Transfer to but cannot pick it', (
+      tester,
+    ) async {
+      await pump(tester, activeDiverId: 'owner');
+      await tester.tap(find.byKey(overflow).last);
+      await tester.pumpAndSettle();
+      final item = tester.widget<PopupMenuItem<String>>(
+        find.ancestor(
+          of: find.text('Transfer to...'),
+          matching: find.byType(PopupMenuItem<String>),
+        ),
+      );
+      expect(item.enabled, isFalse);
     });
 
     testWidgets('a sharee does not', (tester) async {

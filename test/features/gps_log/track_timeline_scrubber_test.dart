@@ -24,6 +24,9 @@ Future<void> _pump(
   int startMs = _startMs,
   int endMs = _endMs,
   void Function(int, int)? onChanged,
+  void Function(int, int)? onChangeEnd,
+  int? initialStartMs,
+  int? initialEndMs,
   TimeFormat timeFormat = TimeFormat.twentyFourHour,
 }) async {
   await tester.pumpWidget(
@@ -40,6 +43,9 @@ Future<void> _pump(
             endMs: endMs,
             mode: mode,
             onChanged: onChanged ?? (_, _) {},
+            onChangeEnd: onChangeEnd,
+            initialStartMs: initialStartMs,
+            initialEndMs: initialEndMs,
           ),
         ),
       ),
@@ -189,5 +195,77 @@ void main() {
       tester.widget<RangeSlider>(find.byType(RangeSlider)).values.start,
       moved,
     );
+  });
+
+  testWidgets('onChangeEnd fires once per drag, with the values it ended on', (
+    tester,
+  ) async {
+    final changes = <(int, int)>[];
+    final ends = <(int, int)>[];
+    await _pump(
+      tester,
+      mode: TrackScrubberMode.range,
+      onChanged: (s, e) => changes.add((s, e)),
+      onChangeEnd: (s, e) => ends.add((s, e)),
+    );
+
+    final slider = tester.getRect(find.byType(RangeSlider));
+    final gesture = await tester.startGesture(
+      Offset(slider.left + 24, slider.center.dy),
+    );
+    for (var i = 1; i <= 5; i++) {
+      await gesture.moveBy(const Offset(20, 0));
+      await tester.pump();
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(changes.length, greaterThan(1));
+    expect(ends, hasLength(1));
+    expect(ends.single, changes.last);
+  });
+
+  testWidgets('a range starts at the bounds it is given, inside the span', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      mode: TrackScrubberMode.range,
+      initialStartMs: _startMs + 600000,
+      initialEndMs: _endMs + 999999,
+    );
+
+    final values = tester.widget<RangeSlider>(find.byType(RangeSlider)).values;
+    expect(values.start, (_startMs + 600000).toDouble());
+    expect(values.end, _endMs.toDouble());
+  });
+
+  testWidgets('the handles follow new starting bounds over the same span', (
+    tester,
+  ) async {
+    Widget host(int? start) => ProviderScope(
+      overrides: [
+        settingsProvider.overrideWith(
+          (ref) => _TestSettingsNotifier(TimeFormat.twentyFourHour),
+        ),
+      ],
+      child: MaterialApp(
+        home: Scaffold(
+          body: TrackTimelineScrubber(
+            startMs: _startMs,
+            endMs: _endMs,
+            initialStartMs: start,
+            mode: TrackScrubberMode.range,
+            onChanged: (_, _) {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpWidget(host(_startMs + 600000));
+    await tester.pumpWidget(host(_startMs + 1200000));
+    await tester.pumpAndSettle();
+
+    final values = tester.widget<RangeSlider>(find.byType(RangeSlider)).values;
+    expect(values.start, (_startMs + 1200000).toDouble());
   });
 }

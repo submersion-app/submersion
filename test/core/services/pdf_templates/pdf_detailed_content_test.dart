@@ -484,7 +484,8 @@ void main() {
     test('renders the species that were recorded', () async {
       final text = pdfVisibleText(await render(spotted));
 
-      expect(text, contains('MARINE LIFE'));
+      expect(text, contains('SPECIES'));
+      expect(text, isNot(contains('MARINE LIFE')));
       expect(text, contains('Green Sea Turtle'));
       expect(text, contains('Spotted Eagle Ray'));
     });

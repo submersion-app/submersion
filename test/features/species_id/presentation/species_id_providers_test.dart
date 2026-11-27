@@ -14,12 +14,15 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/streaming/video_playback_plan.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/video_color_track_provider.dart';
 import 'package:submersion/features/media/presentation/providers/video_playback_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/data/engines/channel_vision_engine.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/onnx_vision_engine.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
+import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
@@ -27,6 +30,7 @@ import 'package:submersion/features/species_id/domain/entities/media_identificat
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
 import '../../../helpers/temp_dir.dart';
@@ -153,13 +157,19 @@ void main() {
 
     setUp(() async {
       support = await Directory.systemTemp.createTemp('crop_providers');
-      crops = IdentificationCropStore(supportPath: () async => support.path);
+      crops = IdentificationCropStore(
+        supportPath: () async => support.path,
+        table: IdentificationCropRepository(database: db),
+      );
       withCrops = ProviderContainer(
         overrides: [
           mediaIdentificationRepositoryProvider.overrideWithValue(
             MediaIdentificationRepository(database: db),
           ),
           identificationCropStoreProvider.overrideWithValue(crops),
+          identificationCropRepositoryProvider.overrideWithValue(
+            IdentificationCropRepository(database: db),
+          ),
         ],
       );
     });
@@ -170,20 +180,65 @@ void main() {
 
     test('a crop written after it was looked for shows', () async {
       const key = ('m1', 'i1');
-      final sub = withCrops.listen(
-        identificationCropFileProvider(key),
-        (_, _) {},
-      );
+      final sub = withCrops.listen(identificationCropProvider(key), (_, _) {});
       addTearDown(sub.close);
       expect(
-        await withCrops.read(identificationCropFileProvider(key).future),
+        await withCrops.read(identificationCropProvider(key).future),
         isNull,
       );
       await crops.write('m1', 'i1', Uint8List.fromList([0xFF, 0xD8]));
       await pumpEventQueue();
       expect(
-        await withCrops.read(identificationCropFileProvider(key).future),
+        await withCrops.read(identificationCropProvider(key).future),
         isNotNull,
+      );
+    });
+
+    test('a named crop synced from another device shows, and follows the '
+        'logbook (issue #4876)', () async {
+      const key = ('m1', 'i2');
+      final sub = withCrops.listen(identificationCropProvider(key), (_, _) {});
+      addTearDown(sub.close);
+      expect(
+        await withCrops.read(identificationCropProvider(key).future),
+        isNull,
+      );
+      // As a sync writes it: straight into the table.
+      await IdentificationCropRepository(
+        database: db,
+      ).put('i2', 'm1', Uint8List.fromList([0xFF, 0xD8, 9]));
+      await pumpEventQueue();
+      final crop = await withCrops.read(identificationCropProvider(key).future);
+      expect(crop, isA<CropBytes>());
+      expect((crop! as CropBytes).bytes, [0xFF, 0xD8, 9]);
+    });
+
+    test('a crop already shown is not read again when other crops sync in, '
+        'so its picture is not drawn again (issue #4876)', () async {
+      const key = ('m1', 'i3');
+      final table = IdentificationCropRepository(database: db);
+      await table.put('i3', 'm1', Uint8List.fromList([0xFF, 0xD8, 3]));
+      var builds = 0;
+      final sub = withCrops.listen(identificationCropProvider(key), (_, next) {
+        if (next.hasValue) builds++;
+      }, fireImmediately: true);
+      addTearDown(sub.close);
+      final shown = await withCrops.read(
+        identificationCropProvider(key).future,
+      );
+      await pumpEventQueue();
+      final before = builds;
+
+      await table.put('other', 'm2', Uint8List.fromList([0xFF, 0xD8, 4]));
+      await pumpEventQueue();
+
+      expect(builds, before);
+      expect(
+        identical(
+          await withCrops.read(identificationCropProvider(key).future),
+          shown,
+        ),
+        isTrue,
       );
     });
 
@@ -340,17 +395,106 @@ void main() {
       final c = withPlayback(const NoPlayback(NoPlaybackReason.notFound));
       expect(await c.read(videoFileReaderProvider(item).future), isNull);
     });
+
+    group('asked for by a later copy of the video (issue #4958)', () {
+      // The Media library's items arrive without their dive enrichment,
+      // which the viewer fills in while the video plays: the copy the
+      // viewer asks with is then no longer the one the player resolved.
+      final later = item.copyWith(updatedAt: DateTime.utc(2026, 2));
+
+      /// The real playback body, over a file resolved by [resolvedFilePathProvider].
+      ProviderContainer resolvingFiles() {
+        opened.clear();
+        resolved = 0;
+        final c = ProviderContainer(
+          overrides: [
+            resolvedFilePathProvider.overrideWith((ref, _) async {
+              resolved++;
+              return '/videos/v1.mp4';
+            }),
+            videoFileAccessProvider.overrideWithValue(<T>({
+              String? path,
+              String? bookmarkRef,
+              required Future<T> Function(String path) read,
+            }) {
+              opened.add((path, bookmarkRef));
+              return read('/opened$path');
+            }),
+          ],
+        );
+        addTearDown(c.dispose);
+        return c;
+      }
+
+      test('reads the playback the player holds for the earlier copy, '
+          'resolving nothing more', () async {
+        final c = resolvingFiles();
+        final hold = c.listen(videoPlaybackProvider(item), (_, _) {});
+        addTearDown(hold.close);
+        await c.read(videoPlaybackProvider(item).future);
+
+        final reader = await c.read(videoFileReaderProvider(later).future);
+
+        expect(await reader!((path) async => path), '/opened/videos/v1.mp4');
+        expect(opened, [('/videos/v1.mp4', 'bm-1')]);
+        expect(resolved, 1);
+      });
+
+      test('is none once the player lets the earlier copy go', () async {
+        final c = resolvingFiles();
+        final hold = c.listen(videoPlaybackProvider(item), (_, _) {});
+        await c.read(videoPlaybackProvider(item).future);
+        hold.close();
+        // Let the playback dispose, as it does once nothing listens.
+        await Future<void>.delayed(Duration.zero);
+
+        expect(await c.read(videoFileReaderProvider(later).future), isNull);
+        expect(resolved, 1);
+      });
+
+      test('never reads another video\'s playback', () async {
+        final c = resolvingFiles();
+        final hold = c.listen(videoPlaybackProvider(item), (_, _) {});
+        addTearDown(hold.close);
+        await c.read(videoPlaybackProvider(item).future);
+        final other = later.copyWith(id: 'v2');
+
+        expect(await c.read(videoFileReaderProvider(other).future), isNull);
+      });
+    });
   });
 
-  test('the engine is the channel engine, unsupported off Apple', () async {
-    final engine = container.read(visionEngineProvider);
-    expect(engine, isA<ChannelVisionEngine>());
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      expect(engine.engineName, isNull);
+  test('Apple platforms get the Core ML engine', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    final c = ProviderContainer();
+    addTearDown(c.dispose);
+    expect(c.read(visionEngineProvider), isA<ChannelVisionEngine>());
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  test('Android, Windows and Linux get the ONNX engine', () async {
+    addTearDown(() => debugDefaultTargetPlatformOverride = null);
+    for (final platform in [
+      TargetPlatform.android,
+      TargetPlatform.windows,
+      TargetPlatform.linux,
+    ]) {
+      debugDefaultTargetPlatformOverride = platform;
+      final c = ProviderContainer();
+      final engine = c.read(visionEngineProvider);
+      c.dispose();
+      expect(engine, isA<OnnxVisionEngine>(), reason: '$platform');
+      expect(engine.engineName, VisionEngine.onnxEngine);
     }
+    debugDefaultTargetPlatformOverride = null;
   });
 
   group('the naming level (issue #4721)', () {
+    // A pack is read only where the models run; the file's tearDown puts
+    // the flag back.
+    setUp(() => marineLifeIdEnabled = true);
+
     // The fixture pack names at 0.50 with a location; Eager at 0.3.
     InstalledPack levelledPack() => InstalledPack(
       manifest: SpeciesPackManifest.parse(
@@ -385,7 +529,8 @@ void main() {
           overrides: [
             installedSpeciesPackProvider.overrideWith((ref) => pack()),
             namingLevelNotifierProvider.overrideWith(
-              (ref) => NamingLevelNotifier.unstored(NamingLevel.eager),
+              (ref) =>
+                  NamingLevelNotifier.unstored(NamingLevel.eager, picked: true),
             ),
           ],
         );
@@ -465,7 +610,7 @@ void main() {
             (ref) async => levelledPack(),
           ),
           namingLevelNotifierProvider.overrideWith(
-            (ref) => NamingLevelNotifier.unstored(level),
+            (ref) => NamingLevelNotifier.unstored(level, picked: true),
           ),
         ],
       );
@@ -518,23 +663,60 @@ void main() {
       expect(tracks.single.suggestable, isTrue);
     });
 
-    test(
-      'is Surer by default, remembered, and Surer for an unknown id',
-      () async {
-        expect(container.read(namingLevelNotifierProvider), NamingLevel.surer);
+    test('is Eager by default, unpicked until one is chosen, and '
+        'remembered (issue #4789)', () async {
+      expect(container.read(namingLevelNotifierProvider), NamingLevel.eager);
+      expect(
+        container.read(namingLevelNotifierProvider.notifier).picked,
+        isFalse,
+      );
 
-        SharedPreferences.setMockInitialValues({
-          SettingsKeys.marineLifeNamingLevel: 'reckless',
-        });
-        final prefs = await SharedPreferences.getInstance();
-        final notifier = NamingLevelNotifier(prefs);
-        expect(notifier.state, NamingLevel.surer);
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final notifier = NamingLevelNotifier(prefs);
+      expect(notifier.state, NamingLevel.eager);
+      expect(notifier.picked, isFalse);
 
-        await notifier.setLevel(NamingLevel.eager);
-        expect(prefs.getString(SettingsKeys.marineLifeNamingLevel), 'eager');
-        expect(NamingLevelNotifier(prefs).state, NamingLevel.eager);
-      },
-    );
+      await notifier.setLevel(NamingLevel.balanced);
+      expect(notifier.picked, isTrue);
+      expect(prefs.getString(SettingsKeys.marineLifeNamingLevel), 'balanced');
+      final reread = NamingLevelNotifier(prefs);
+      expect(reread.state, NamingLevel.balanced);
+      expect(reread.picked, isTrue);
+    });
+
+    test('an unknown stored id reads as Surer, as picked', () async {
+      SharedPreferences.setMockInitialValues({
+        SettingsKeys.marineLifeNamingLevel: 'reckless',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final notifier = NamingLevelNotifier(prefs);
+      expect(notifier.state, NamingLevel.surer);
+      expect(notifier.picked, isTrue);
+    });
+
+    test('where no model can run, no pack is ever read: a run\'s own bars '
+        'name its rows (issue #4876)', () async {
+      marineLifeIdEnabled = false;
+      var reads = 0;
+      final c = ProviderContainer(
+        overrides: [
+          installedSpeciesPackProvider.overrideWith((ref) async {
+            reads++;
+            return levelledPack();
+          }),
+          namingLevelNotifierProvider.overrideWith(
+            (ref) =>
+                NamingLevelNotifier.unstored(NamingLevel.eager, picked: true),
+          ),
+        ],
+      );
+      addTearDown(c.dispose);
+      expect(c.read(levelInForceProvider), isNull);
+      expect(await awaitLevelInForce(c), isNull);
+      await pumpEventQueue();
+      expect(reads, 0);
+    });
 
     test('Surer is no level and never reads the pack', () async {
       var reads = 0;
@@ -545,7 +727,8 @@ void main() {
             return levelledPack();
           }),
           namingLevelNotifierProvider.overrideWith(
-            (ref) => NamingLevelNotifier.unstored(NamingLevel.surer),
+            (ref) =>
+                NamingLevelNotifier.unstored(NamingLevel.surer, picked: true),
           ),
         ],
       );

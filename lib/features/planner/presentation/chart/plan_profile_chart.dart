@@ -19,6 +19,8 @@ import 'package:submersion/features/planner/presentation/chart/plan_chart_palett
 import 'package:submersion/features/planner/presentation/chart/plan_chart_series_painter.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_chart_top_readouts.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_issue_marker_layer.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_plot_clipper.dart';
+import 'package:submersion/features/planner/presentation/chart/plan_stop_tags.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_waypoint_menu.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_worst_case_marker_layer.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
@@ -32,7 +34,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// frequency (backdrop / series / overlay), a scrub readout, waypoint handles,
 /// and full on-chart editing (drag, double-click add, gas menu, keyboard).
 class PlanProfileChart extends ConsumerStatefulWidget {
-  const PlanProfileChart({super.key});
+  const PlanProfileChart({super.key, this.showStopTags = true});
+
+  /// False on a phone, where the readouts list the stops instead (#4981).
+  final bool showStopTags;
 
   @override
   ConsumerState<PlanProfileChart> createState() => _PlanProfileChartState();
@@ -300,11 +305,9 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
     );
     final direction = Directionality.of(context);
 
-    final stopTagLabels = [
-      for (final marker in series.stopLabels)
-        "${units.formatDepth(marker.depth, decimals: 0)} "
-            "${marker.durationSeconds ~/ 60}'",
-    ];
+    final stopTags = widget.showStopTags
+        ? ref.watch(planChartStopTagsProvider)
+        : const <PlanStopTag>[];
     final meanDepthLabel = context.l10n.plannerCanvas_chart_meanDepth(
       units.formatDepth(
         PlanChartGeometry.meanDepthMeters(series.profile),
@@ -687,7 +690,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                         // While the axes are frozen the plan can outgrow
                         // them; keep it inside the plot until they refit.
                         child: ClipRect(
-                          clipper: _PlotClipper(geometry.plotRect),
+                          clipper: PlanPlotClipper(geometry.plotRect),
                           clipBehavior: frozen == null
                               ? Clip.none
                               : Clip.hardEdge,
@@ -699,7 +702,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                               series: series,
                               ghost: ghost,
                               sourceDive: sourceDive,
-                              stopTagLabels: stopTagLabels,
+                              stopTags: stopTags,
                               meanDepthLabel: meanDepthLabel,
                               labelStyle: labelStyle,
                               tagStyle: tagStyle,
@@ -736,7 +739,7 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
                                 // handle on the plot edge (a surface
                                 // waypoint) whole.
                                 child: ClipRect(
-                                  clipper: _PlotClipper(
+                                  clipper: PlanPlotClipper(
                                     geometry.plotRect.inflate(8),
                                   ),
                                   clipBehavior: frozen == null
@@ -789,16 +792,4 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
       },
     );
   }
-}
-
-class _PlotClipper extends CustomClipper<Rect> {
-  const _PlotClipper(this.plot);
-
-  final Rect plot;
-
-  @override
-  Rect getClip(Size size) => plot;
-
-  @override
-  bool shouldReclip(_PlotClipper oldClipper) => oldClipper.plot != plot;
 }

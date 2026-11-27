@@ -1,58 +1,110 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
-import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/media/data/services/photo_picker_service.dart';
-import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/trip_photo_viewer_page.dart';
-import 'package:submersion/features/media/presentation/providers/media_providers.dart';
-import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
-import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
-import 'package:submersion/features/media/presentation/widgets/scan_results_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
-import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
-
-const _log = LoggerService('tripGalleryPage');
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_scan_in_sitting.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_held_photos.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 /// Full gallery page showing all photos for a trip, organized by dive.
+///
+/// Its Scan follows the trip's lock, as a dive's fullscreen profile does
+/// (issue #4527): handed the trip page's open sitting ([sitting]) it scans
+/// into that sitting and shows what it holds; otherwise (a locked trip, or
+/// opened by its address) it offers no Scan.
 class TripGalleryPage extends ConsumerWidget {
   final String tripId;
   final String? initialMediaId;
 
-  const TripGalleryPage({super.key, required this.tripId, this.initialMediaId});
+  /// The trip page's sitting, when the gallery was pushed during one.
+  final RecordEditController<Trip>? sitting;
+
+  const TripGalleryPage({
+    super.key,
+    required this.tripId,
+    this.initialMediaId,
+    this.sitting,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final sitting = this.sitting;
+    if (sitting == null) {
+      return _scaffold(context, ref, null);
+    }
+    // Followed, so the Scan goes when the sitting ends underneath.
+    // A Consumer of its own, so the media watched are watched by the
+    // element that rebuilds with the sitting.
+    return ListenableBuilder(
+      listenable: sitting,
+      builder: (context, _) => Consumer(
+        builder: (context, ref, _) => _scaffold(
+          context,
+          ref,
+          sitting.isUnlocked ? sitting.session : null,
+        ),
+      ),
+    );
+  }
+
+  Widget _scaffold(
+    BuildContext context,
+    WidgetRef ref,
+    EditSession<Trip>? session,
+  ) {
     final mediaByDiveAsync = ref.watch(mediaForTripProvider(tripId));
 
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.trips_gallery_appBar_title),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.photo_camera),
-            tooltip: context.l10n.trips_gallery_tooltip_scan,
-            onPressed: () => _showScanDialog(context, ref),
-          ),
+          if (session != null)
+            IconButton(
+              icon: const Icon(Icons.photo_camera),
+              tooltip: context.l10n.trips_gallery_tooltip_scan,
+              onPressed: () => scanTripPhotosInSitting(context, ref, session),
+            ),
         ],
       ),
       body: mediaByDiveAsync.when(
         data: (mediaByDive) {
+          final held = session == null
+              ? null
+              : Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: TripHeldPhotos(session: session),
+                );
           if (mediaByDive.isEmpty) {
-            return const _EmptyGallery();
+            return held == null
+                ? const _EmptyGallery()
+                : Column(
+                    children: [
+                      held,
+                      const Expanded(child: _EmptyGallery()),
+                    ],
+                  );
           }
-          return _GalleryContent(
+          final content = _GalleryContent(
             tripId: tripId,
             mediaByDive: mediaByDive,
             initialMediaId: initialMediaId,
           );
+          return held == null
+              ? content
+              : Column(
+                  children: [
+                    held,
+                    Expanded(child: content),
+                  ],
+                );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         // The repository logs the failure; the diver gets a plain line.
@@ -60,160 +112,6 @@ class TripGalleryPage extends ConsumerWidget {
             Center(child: Text(context.l10n.trips_gallery_error_loading)),
       ),
     );
-  }
-
-  Future<void> _showScanDialog(BuildContext context, WidgetRef ref) async {
-    if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
-      return;
-    }
-    // Show loading indicator
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
-    );
-
-    try {
-      // Get trip and dives
-      final trip = await ref.read(tripByIdProvider(tripId).future);
-      if (trip == null) {
-        if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.l10n.trips_gallery_tripNotFound)),
-          );
-        }
-        return;
-      }
-
-      final dives = await ref.read(divesForTripProvider(tripId).future);
-
-      if (dives.isEmpty) {
-        if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.l10n.trips_gallery_addDivesFirst)),
-          );
-        }
-        return;
-      }
-
-      // Get existing asset IDs to filter out
-      final mediaByDive = await ref.read(mediaForTripProvider(tripId).future);
-
-      // Scan gallery
-      final photoPickerService = ref.read(photoPickerServiceProvider);
-      final result = await TripMediaScanner.scanGalleryForTrip(
-        dives: dives,
-        tripStartDate: trip.startDate,
-        tripEndDate: trip.endDate,
-        linked: [for (final items in mediaByDive.values) ...items],
-        linkedGalleryAssets: ref.read(linkedGalleryAssetsProvider),
-        photoPickerService: photoPickerService,
-      );
-
-      if (!context.mounted) return;
-      Navigator.of(context, rootNavigator: true).pop(); // Dismiss loading
-
-      if (result == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.trips_gallery_accessDenied)),
-        );
-        return;
-      }
-
-      // Show results dialog
-      final dialogResult = await showScanResultsDialog(
-        context: context,
-        scanResult: result,
-      );
-
-      if (dialogResult.confirmed != true) return;
-      if (!context.mounted) return;
-
-      // Import selected photos
-      await _importPhotos(context, ref, dialogResult.selectedPhotos);
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to scan for trip photos',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.trips_gallery_errorScanning)),
-        );
-      }
-    }
-  }
-
-  Future<void> _importPhotos(
-    BuildContext context,
-    WidgetRef ref,
-    Map<Dive, List<AssetInfo>> photosByDive,
-  ) async {
-    // Show progress
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        content: Row(
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(width: 16),
-            Text(context.l10n.trips_gallery_linkingPhotos),
-          ],
-        ),
-      ),
-    );
-
-    try {
-      final importService = ref.read(mediaImportServiceProvider);
-      int totalImported = 0;
-
-      for (final entry in photosByDive.entries) {
-        final dive = entry.key;
-        final assets = entry.value;
-
-        final result = await importService.importPhotosForDive(
-          selectedAssets: assets,
-          dive: dive,
-        );
-
-        totalImported += result.imported.length;
-
-        // Invalidate media providers for this dive
-        ref.invalidate(mediaForDiveProvider(dive.id));
-        ref.invalidate(mediaCountForDiveProvider(dive.id));
-      }
-
-      // Invalidate trip-level providers
-      ref.invalidate(mediaForTripProvider(tripId));
-      ref.invalidate(tripMediaPreviewProvider(tripId));
-      ref.invalidate(flatMediaListForTripProvider(tripId));
-
-      if (!context.mounted) return;
-      Navigator.of(context, rootNavigator: true).pop(); // Dismiss progress
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n.trips_gallery_linkedPhotos(totalImported)),
-        ),
-      );
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to link trip photos',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.trips_gallery_errorLinking)),
-        );
-      }
-    }
   }
 }
 

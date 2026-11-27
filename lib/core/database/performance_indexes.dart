@@ -304,6 +304,15 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_dive_data_sources_dive_id '
         'ON dive_data_sources(dive_id)',
   ),
+  // A computer's "Dives imported" is counted from its sources, and the
+  // computer list reloads on every dive and source change (issue #4846).
+  // Covering, so the count reads the index alone.
+  (
+    name: 'idx_dive_data_sources_computer_dive',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_data_sources_computer_dive '
+        'ON dive_data_sources(computer_id, dive_id)',
+  ),
   (
     name: 'idx_tide_records_dive',
     ddl:
@@ -654,6 +663,46 @@ const List<PerformanceIndex> kPerformanceIndexes = [
     ddl:
         'CREATE INDEX IF NOT EXISTS idx_media_identifications_media '
         'ON media_identifications(media_id)',
+  ),
+  // The sync watermark filters on marine life results (issue #4876): the
+  // export, the clock seed's MAX and the launch republish of unstamped
+  // crops. Each clock sits after a blob (a crop's JPEG, a track's path),
+  // so unindexed every read walks past each one.
+  (
+    name: 'idx_media_identifications_hlc',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_media_identifications_hlc '
+        'ON media_identifications(hlc)',
+  ),
+  (
+    name: 'idx_media_identifications_decision_hlc',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_media_identifications_decision_hlc '
+        'ON media_identifications(decision_hlc)',
+  ),
+  (
+    name: 'idx_media_identification_crops_hlc',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_media_identification_crops_hlc '
+        'ON media_identification_crops(hlc)',
+  ),
+  (
+    name: 'idx_species_covers_hlc',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_species_covers_hlc '
+        'ON species_covers(hlc)',
+  ),
+  (
+    name: 'idx_species_practice_hlc',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_species_practice_hlc '
+        'ON species_practice(hlc)',
+  ),
+  (
+    name: 'idx_species_practice_diver',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_species_practice_diver '
+        'ON species_practice(diver_id)',
   ),
 ];
 

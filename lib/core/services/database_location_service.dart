@@ -315,10 +315,19 @@ class DatabaseLocationService {
     }
   }
 
-  /// Check if a database file exists at the given folder path
+  /// Whether a database file is at [folderPath]: false only when it is not
+  /// there. Any other failure, such as a folder that cannot be read or a
+  /// share that drops the request, throws a [FileSystemException] rather than
+  /// read as "no database" (as [File.exists] would), so a caller about to
+  /// write there can refuse instead of overwriting one it could not see.
   Future<bool> databaseExistsAt(String folderPath) async {
     final dbPath = p.join(folderPath, databaseFilename);
-    return File(dbPath).exists();
+    try {
+      await (await File(dbPath).open()).close();
+      return true;
+    } on PathNotFoundException {
+      return false;
+    }
   }
 
   /// Update the last verified timestamp for the current config

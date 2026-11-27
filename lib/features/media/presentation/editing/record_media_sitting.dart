@@ -5,11 +5,13 @@ import 'package:submersion/features/media/data/services/media_import_service.dar
 import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/data/services/network_fetch_pipeline.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_repair_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_enqueue_provider.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -36,6 +38,7 @@ class SittingMediaWriters {
     required this.replace,
     required this.drainDeletes,
     required this.enqueueUpload,
+    this.setCategories,
   });
 
   /// The app's own: the import service, the fetch pipeline, the unlink
@@ -46,32 +49,76 @@ class SittingMediaWriters {
   /// it is used: a sitting starts on every unlock, and most never write
   /// media. [read] must outlive the page (the provider container's), since
   /// a save can finish after the page has gone.
-  factory SittingMediaWriters.forDive(ProviderRead read) => SittingMediaWriters(
-    writeRows: (prepared) async => [
-      for (final row in await read(
-        mediaImportServiceProvider,
-      ).writePrepared(prepared))
-        row.id,
-    ],
-    insertNetwork: (requests) =>
-        read(networkFetchPipelineProvider).insertResolved(requests),
-    unlink: (ids) async => MediaUnlinkService(
-      repository: read(mediaRepositoryProvider),
-      deleteMedia: (ids) => read(
-        mediaDeletionCoordinatorProvider,
-      ).deleteMultipleMedia(ids, holdRemoteDelete: true),
-    ).unlinkFromDive(ids),
-    replace: (proposals, afterCommit, onRollback) async => read(
-      mediaRepairServiceProvider,
-    ).apply(proposals, afterCommit: afterCommit, onRollback: onRollback),
-    drainDeletes: () =>
-        read(mediaDeletionCoordinatorProvider).drainHeldDeletes(),
-    enqueueUpload: (mediaId) => read(mediaStoreEnqueueProvider)(mediaId),
-  );
+  factory SittingMediaWriters.forDive(ProviderRead read) =>
+      SittingMediaWriters._app(
+        read,
+        unlinkFrom: (service, ids) => service.unlinkFromDive(ids),
+        replace: (proposals, afterCommit, onRollback) async => read(
+          mediaRepairServiceProvider,
+        ).apply(proposals, afterCommit: afterCommit, onRollback: onRollback),
+      );
 
   /// A site's (issue #4527, phase 2): as [SittingMediaWriters.forDive],
   /// unlinking from the site.
-  factory SittingMediaWriters.forSite(ProviderRead read) => SittingMediaWriters(
+  factory SittingMediaWriters.forSite(ProviderRead read) =>
+      SittingMediaWriters._app(
+        read,
+        unlinkFrom: (service, ids) => service.unlinkFromSite(ids),
+        // A site's attachments are not relinked from a sitting.
+        replace: (_, _, _) async =>
+            throw UnsupportedError('a site sitting relinks no media'),
+        // The card's bulk Set category, one write per category.
+        setCategories: (categories) async {
+          final byCategory = <SiteAttachmentCategory?, List<String>>{};
+          for (final e in categories.entries) {
+            (byCategory[e.value] ??= []).add(e.key);
+          }
+          final repository = read(siteAttachmentRepositoryProvider);
+          for (final e in byCategory.entries) {
+            await repository.setSiteCategory(e.value, e.key);
+          }
+        },
+      );
+
+  /// A gear item's (issue #4527, phase 3, plan 6): as
+  /// [SittingMediaWriters.forSite], unlinking from the item, which also
+  /// clears a cover that named an unlinked photo.
+  factory SittingMediaWriters.forEquipment(ProviderRead read) =>
+      SittingMediaWriters._app(
+        read,
+        unlinkFrom: (service, ids) => service.unlinkFromEquipment(ids),
+        // A gear item's photos are not relinked from a sitting.
+        replace: (_, _, _) async =>
+            throw UnsupportedError('a gear item sitting relinks no media'),
+      );
+
+  /// A trip's (issue #4527, phase 3, plan 10): its scans hold photos for
+  /// several of its dives, each row naming its own dive. A trip's sitting
+  /// unlinks and relinks nothing.
+  factory SittingMediaWriters.forTrip(ProviderRead read) =>
+      SittingMediaWriters._app(
+        read,
+        unlinkFrom: (_, _) async =>
+            throw UnsupportedError('a trip sitting unlinks no media'),
+        replace: (_, _, _) async =>
+            throw UnsupportedError('a trip sitting relinks no media'),
+      );
+
+  /// The app's writers, every record's alike but for what an unlink
+  /// unlinks from ([unlinkFrom]) and how a link is replaced ([replace]).
+  factory SittingMediaWriters._app(
+    ProviderRead read, {
+    required Future<void> Function(MediaUnlinkService service, List<String> ids)
+    unlinkFrom,
+    required Future<void> Function(
+      List<RepairProposal> proposals,
+      List<Future<void> Function()> afterCommit,
+      List<Future<void> Function()> onRollback,
+    )
+    replace,
+    Future<void> Function(Map<String, SiteAttachmentCategory?> categories)?
+    setCategories,
+  }) => SittingMediaWriters(
     writeRows: (prepared) async => [
       for (final row in await read(
         mediaImportServiceProvider,
@@ -80,18 +127,20 @@ class SittingMediaWriters {
     ],
     insertNetwork: (requests) =>
         read(networkFetchPipelineProvider).insertResolved(requests),
-    unlink: (ids) async => MediaUnlinkService(
-      repository: read(mediaRepositoryProvider),
-      deleteMedia: (ids) => read(
-        mediaDeletionCoordinatorProvider,
-      ).deleteMultipleMedia(ids, holdRemoteDelete: true),
-    ).unlinkFromSite(ids),
-    // A site's attachments are not relinked from a sitting.
-    replace: (_, _, _) async =>
-        throw UnsupportedError('a site sitting relinks no media'),
+    unlink: (ids) => unlinkFrom(
+      MediaUnlinkService(
+        repository: read(mediaRepositoryProvider),
+        deleteMedia: (ids) => read(
+          mediaDeletionCoordinatorProvider,
+        ).deleteMultipleMedia(ids, holdRemoteDelete: true),
+      ),
+      ids,
+    ),
+    replace: replace,
     drainDeletes: () =>
         read(mediaDeletionCoordinatorProvider).drainHeldDeletes(),
     enqueueUpload: (mediaId) => read(mediaStoreEnqueueProvider)(mediaId),
+    setCategories: setCategories,
   );
 
   final Future<List<String>> Function(List<PreparedMedia> prepared) writeRows;
@@ -112,6 +161,11 @@ class SittingMediaWriters {
   /// Lets the media store take the remote deletes an unlink held.
   final Future<void> Function() drainDeletes;
   final void Function(String mediaId) enqueueUpload;
+
+  /// Writes the held site categories, by media id (a null one
+  /// uncategorizes). Only a site's sitting has one.
+  final Future<void> Function(Map<String, SiteAttachmentCategory?> categories)?
+  setCategories;
 }
 
 /// What a sitting holds for the dive's media.
@@ -121,6 +175,7 @@ class SittingMedia {
     this.added = const [],
     this.unlinked = const {},
     this.replaced = const {},
+    this.categories = const {},
   });
 
   final List<HeldMediaAdd> added;
@@ -131,7 +186,14 @@ class SittingMedia {
   /// Stored media whose link was replaced, by id.
   final Map<String, RepairProposal> replaced;
 
-  bool get isEmpty => added.isEmpty && unlinked.isEmpty && replaced.isEmpty;
+  /// Stored media given a site category, by id; a null one uncategorizes.
+  final Map<String, SiteAttachmentCategory?> categories;
+
+  bool get isEmpty =>
+      added.isEmpty &&
+      unlinked.isEmpty &&
+      replaced.isEmpty &&
+      categories.isEmpty;
 }
 
 /// Keeps the writers the held write uses.
@@ -153,7 +215,7 @@ SittingMedia sittingMedia<T>(EditSession<T> session) =>
 /// the address it was fetched from, or the connector's asset (a Lightroom
 /// scan run twice in one sitting finds its held photos again). Null for
 /// one with none of them.
-String? _sameFileKey(MediaItem m) => m.platformAssetId != null
+String? mediaSameFileKey(MediaItem m) => m.platformAssetId != null
     ? 'asset:${m.platformAssetId}'
     : m.localPath != null
     ? 'file:${m.localPath}'
@@ -168,10 +230,10 @@ String? _sameFileKey(MediaItem m) => m.platformAssetId != null
 /// and then picked) is left out: the pickers check only what is stored.
 void addMediaToSitting<T>(EditSession<T> session, List<HeldMediaAdd> adds) {
   final held = sittingMedia(session);
-  final seen = {for (final a in held.added) ?_sameFileKey(a.preview)};
+  final seen = {for (final a in held.added) ?mediaSameFileKey(a.preview)};
   final fresh = [
     for (final a in adds)
-      if (switch (_sameFileKey(a.preview)) {
+      if (switch (mediaSameFileKey(a.preview)) {
         null => true,
         final key => seen.add(key),
       })
@@ -184,6 +246,7 @@ void addMediaToSitting<T>(EditSession<T> session, List<HeldMediaAdd> adds) {
       added: [...held.added, ...fresh],
       unlinked: held.unlinked,
       replaced: held.replaced,
+      categories: held.categories,
     ),
   );
 }
@@ -204,6 +267,39 @@ void unlinkMediaInSitting<T>(EditSession<T> session, Set<String> ids) {
         for (final e in held.replaced.entries)
           if (!ids.contains(e.key)) e.key: e.value,
       },
+      // An unlinked photo takes no category.
+      categories: {
+        for (final e in held.categories.entries)
+          if (!ids.contains(e.key)) e.key: e.value,
+      },
+    ),
+  );
+}
+
+/// Gives each of [stored] (the rows as stored, not as the sitting shows
+/// them) [category], at Save. One whose stored category already is
+/// [category] holds nothing, so setting it back leaves nothing to save.
+void setCategoryInSitting<T>(
+  EditSession<T> session,
+  List<MediaItem> stored,
+  SiteAttachmentCategory? category,
+) {
+  final held = sittingMedia(session);
+  final categories = {...held.categories};
+  for (final m in stored) {
+    if (m.siteCategory == category) {
+      categories.remove(m.id);
+    } else {
+      categories[m.id] = category;
+    }
+  }
+  _set(
+    session,
+    SittingMedia(
+      added: held.added,
+      unlinked: held.unlinked,
+      replaced: held.replaced,
+      categories: categories,
     ),
   );
 }
@@ -221,6 +317,7 @@ void replaceLinkInSitting<T>(
       added: held.added,
       unlinked: held.unlinked,
       replaced: {...held.replaced, id: proposal},
+      categories: held.categories,
     ),
   );
 }
@@ -268,6 +365,13 @@ Future<void> _write<T>(EditSession<T> session, SittingMediaWriters w) async {
       if (a is HeldNetworkMedia) a.request,
   ];
   if (network.isNotEmpty) created.addAll(await w.insertNetwork(network));
+  if (held.categories.isNotEmpty) {
+    final setCategories = w.setCategories;
+    if (setCategories == null) {
+      throw UnsupportedError('this sitting sets no category');
+    }
+    await setCategories(held.categories);
+  }
   if (held.unlinked.isNotEmpty) {
     await w.unlink(held.unlinked.toList());
     after.add(w.drainDeletes);
@@ -323,7 +427,10 @@ List<MediaItem> mediaInSitting<T>(
   final storedIds = {for (final m in stored) m.id};
   final all = [
     for (final m in stored)
-      if (!held.unlinked.contains(m.id)) m,
+      if (!held.unlinked.contains(m.id))
+        held.categories.containsKey(m.id)
+            ? m.copyWith(siteCategory: held.categories[m.id])
+            : m,
     for (final a in held.added)
       if (!storedIds.contains(a.preview.id)) a.preview,
   ]..sort((a, b) => a.takenAt.compareTo(b.takenAt));

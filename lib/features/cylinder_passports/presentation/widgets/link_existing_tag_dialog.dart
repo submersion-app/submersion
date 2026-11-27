@@ -4,9 +4,13 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_passport_sitting.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// The passport id of a cylinder tag link, or null for anything else.
 String? cylinderPassportIdOf(String text) =>
@@ -15,17 +19,63 @@ String? cylinderPassportIdOf(String text) =>
       PassportRejected() => null,
     };
 
+/// A Tag card's Link existing tag: the dialog for [equipment] as the active
+/// diver, and a word once it is linked. In [editing], the gear item's
+/// sitting (issue #4527), the link is held there until Save.
+Future<void> linkExistingTag(
+  BuildContext context,
+  WidgetRef ref,
+  EquipmentItem equipment, {
+  String? Function(String text) passportIdOf = cylinderPassportIdOf,
+  String Function(AppLocalizations l10n)? invalidText,
+  EditSession<EquipmentItem>? editing,
+}) async {
+  final l10n = context.l10n;
+  final repository = ref.read(cylinderPassportRepositoryProvider);
+  // Awaited, so a link to the tag the item already holds is no change.
+  final stored = await ref.read(passportIdProvider(equipment.id).future);
+  final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+  if (!context.mounted) return;
+  final linked = await showLinkExistingTagDialog(
+    context,
+    equipmentId: equipment.id,
+    diverId: diverId,
+    passportIdOf: passportIdOf,
+    invalidText: invalidText,
+    onHold: editing == null
+        ? null
+        : (passportId) => holdPassportTag(
+            editing,
+            passportId,
+            stored: stored,
+            repository: repository,
+            diverId: diverId,
+          ),
+  );
+  // A held link is not linked yet: its changed dot says so, not a message.
+  if (linked != null && editing == null && context.mounted) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.passport_tag_linked)));
+  }
+}
+
 /// Paste a tag's link to give this item that tag's passport id, so labels
 /// already on the gear keep working after a row was re-created (spec
 /// section 6.5). [passportIdOf] reads the kind of tag this item takes:
 /// cylinder links by default, either kind for other gear (issue
 /// #2652). Resolves with the linked passport id, or null.
+///
+/// With [onHold] the link is a gear item sitting's (issue #4527): the tag
+/// is checked as the link would check it, handed back and written at Save,
+/// so nothing is written here.
 Future<String?> showLinkExistingTagDialog(
   BuildContext context, {
   required String equipmentId,
   String? diverId,
   String? Function(String text) passportIdOf = cylinderPassportIdOf,
   String Function(AppLocalizations l10n)? invalidText,
+  void Function(String passportId)? onHold,
 }) => showDialog<String>(
   context: context,
   builder: (context) => _LinkExistingTagDialog(
@@ -33,6 +83,7 @@ Future<String?> showLinkExistingTagDialog(
     diverId: diverId,
     passportIdOf: passportIdOf,
     invalidText: invalidText,
+    onHold: onHold,
   ),
 );
 
@@ -42,9 +93,13 @@ class _LinkExistingTagDialog extends ConsumerStatefulWidget {
     this.diverId,
     required this.passportIdOf,
     this.invalidText,
+    this.onHold,
   });
 
   final String equipmentId;
+
+  /// Takes the checked link instead of writing it.
+  final void Function(String passportId)? onHold;
   final String? diverId;
   final String? Function(String text) passportIdOf;
 
@@ -80,6 +135,10 @@ class _LinkExistingTagDialogState
       return;
     }
     setState(() => _busy = true);
+    if (widget.onHold case final hold?) {
+      await _holdLink(passportId, hold);
+      return;
+    }
     try {
       await ref
           .read(cylinderPassportRepositoryProvider)
@@ -112,6 +171,41 @@ class _LinkExistingTagDialogState
     ref.invalidate(fillsForEquipmentProvider(widget.equipmentId));
     if (!mounted) return;
     Navigator.of(context).pop(passportId);
+  }
+
+  /// Checks [passportId] as the link would, then hands it to [hold].
+  Future<void> _holdLink(
+    String passportId,
+    void Function(String passportId) hold,
+  ) async {
+    final l10n = context.l10n;
+    final repository = ref.read(cylinderPassportRepositoryProvider);
+    final items = ref.read(equipmentRepositoryProvider);
+    try {
+      final holderId = await repository.fittedHolderOf(
+        passportId,
+        exceptEquipmentId: widget.equipmentId,
+        diverId: widget.diverId,
+      );
+      if (holderId != null) {
+        final holder = await items.getEquipmentById(holderId);
+        if (!mounted) return;
+        setState(() {
+          _busy = false;
+          _error = l10n.passport_tag_linkInUse(holder?.name ?? holderId);
+        });
+        return;
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _error = l10n.passport_tag_linkFailed;
+      });
+      return;
+    }
+    hold(passportId);
+    if (mounted) Navigator.of(context).pop(passportId);
   }
 
   @override

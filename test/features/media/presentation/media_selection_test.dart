@@ -20,7 +20,10 @@ import 'package:submersion/features/dive_log/domain/entities/dive_picker_row.dar
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
+import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/presentation/pages/media_library_view.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
@@ -105,9 +108,13 @@ class _RecordingDeletionCoordinator implements MediaDeletionCoordinator {
   Future<void> deleteMultipleMedia(
     List<String> ids, {
     bool holdRemoteDelete = false,
+    bool deferDrain = false,
   }) async {
     deleted.addAll(ids);
   }
+
+  @override
+  Future<void> drainHeldDeletes() async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -126,9 +133,15 @@ class _RecordingMediaRepo implements MediaRepository {
   // would mean the carve-out leaked back into this surface, and noSuchMethod
   // makes that a loud failure rather than a quiet empty list.
 
+  /// When set, the caption and favourite probe throws.
+  Object? probeError;
+
   @override
-  Future<Set<String>> idsWithUserMetadata(List<String> mediaIds) async =>
-      mediaIds.where(withUserMetadata.contains).toSet();
+  Future<Set<String>> idsWithUserMetadata(List<String> mediaIds) async {
+    final error = probeError;
+    if (error != null) throw error;
+    return mediaIds.where(withUserMetadata.contains).toSet();
+  }
 
   @override
   Future<void> unlinkFromDive(List<String> mediaIds) async {
@@ -150,6 +163,33 @@ class _RecordingMediaRepo implements MediaRepository {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Clears no covers: this file runs without a database.
+class _NoCovers implements GearPhotoRepository {
+  @override
+  Future<void> clearCoversNaming(Iterable<String> mediaIds) async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Records the library's labelled Unlink instead of running it.
+class _RecordingUnlinkService extends MediaUnlinkService {
+  _RecordingUnlinkService(MediaRepository repository)
+    : super(repository: repository, deleteMedia: (_) async {});
+
+  final List<String> unlinked = [];
+
+  /// When set, the unlink throws instead of recording.
+  Object? error;
+
+  @override
+  Future<void> unlinkFromLibrary(List<String> mediaIds) async {
+    final failure = error;
+    if (failure != null) throw failure;
+    unlinked.addAll(mediaIds);
+  }
 }
 
 class _FakeDiveRepo implements DiveRepository {
@@ -201,11 +241,19 @@ void main() {
     late _RecordingDeletionCoordinator coordinator;
     late _RecordingMediaRepo mediaRepo;
 
-    Widget host(List<MediaLibraryEntry> entries) {
+    Widget host(
+      List<MediaLibraryEntry> entries, {
+      MediaUnlinkService Function(MediaRepository repo)? unlinkService,
+    }) {
       coordinator = _RecordingDeletionCoordinator();
       mediaRepo = _RecordingMediaRepo();
       return ProviderScope(
         overrides: [
+          gearPhotoRepositoryProvider.overrideWithValue(_NoCovers()),
+          if (unlinkService != null)
+            mediaUnlinkServiceProvider.overrideWithValue(
+              unlinkService(mediaRepo),
+            ),
           mediaLibraryNotifierProvider.overrideWith(
             (ref) =>
                 _SeededLibraryNotifier(MediaLibraryState(entries: entries)),
@@ -352,6 +400,60 @@ void main() {
       );
     });
 
+    // One labelled entry in History (issue #4527, media library plan 1).
+    testWidgets('confirming unlink goes through the library\'s labelled '
+        'unlink', (tester) async {
+      late _RecordingUnlinkService service;
+      await tester.pumpWidget(
+        host([
+          entry('a', diveId: 'd1'),
+          entry('b', siteId: 's1'),
+        ], unlinkService: (repo) => service = _RecordingUnlinkService(repo)),
+      );
+      await tester.pumpAndSettle();
+
+      await selectTiles(tester, [0, 1]);
+      await tapUnlink(tester);
+      await confirmUnlink(tester);
+
+      expect(service.unlinked.toSet(), {'a', 'b'});
+      expect(coordinator.deleted, isEmpty);
+    });
+
+    testWidgets('an unlink that fails says so and keeps the selection', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          [entry('a', diveId: 'd1')],
+          unlinkService: (repo) =>
+              _RecordingUnlinkService(repo)..error = StateError('disk full'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await selectTiles(tester, [0]);
+      await tapUnlink(tester);
+      await confirmUnlink(tester);
+
+      expect(find.text('Could not unlink the items'), findsOneWidget);
+      expect(find.text('1 selected'), findsOneWidget);
+    });
+
+    testWidgets('a caption check that fails says so', (tester) async {
+      await tester.pumpWidget(host([entry('a', diveId: 'd1')]));
+      mediaRepo.probeError = StateError('database locked');
+      await tester.pumpAndSettle();
+
+      await selectTiles(tester, [0]);
+      await tapUnlink(tester);
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('Could not unlink the items'), findsOneWidget);
+      expect(coordinator.deleted, isEmpty);
+      expect(find.text('1 selected'), findsOneWidget);
+    });
+
     testWidgets('cancelling deletes nothing and keeps the selection', (
       tester,
     ) async {
@@ -408,7 +510,7 @@ void main() {
       await selectTiles(tester, [0]);
       await tapUnlink(tester);
 
-      expect(find.text('Unlink 1 items?'), findsOneWidget);
+      expect(find.text('Unlink 1 item?'), findsOneWidget);
       expect(find.textContaining('caption or favorite'), findsNothing);
     });
 
@@ -423,6 +525,14 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.tap(find.textContaining('#2'));
+      await tester.pumpAndSettle();
+      // Picking the dive asks first (issue #4527, media library plan 1).
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(const ValueKey('move_to_dive_confirm')),
+          matching: find.widgetWithText(TextButton, 'Move'),
+        ),
+      );
       await tester.pumpAndSettle();
 
       expect(mediaRepo.reassigned?.$1, ['a']);

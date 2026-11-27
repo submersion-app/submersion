@@ -29,7 +29,7 @@ import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.da
 import 'package:submersion/features/trips/presentation/widgets/trip_list_content.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_summary_widget.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
-import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_list_count_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
@@ -61,7 +61,7 @@ class _TripListPageState extends ConsumerState<TripListPage>
           final currentPath = state.uri.path;
           context.goInPlace('$currentPath?mode=new');
         } else {
-          context.push('/trips/new');
+          openNewTrip(context);
         }
       },
       icon: const Icon(Icons.add),
@@ -95,11 +95,8 @@ class _TripListPageState extends ConsumerState<TripListPage>
           ),
           summaryBuilder: (context) => const TripSummaryWidget(),
           editBuilder: _buildEditPane,
-          createBuilder: (context, onSaved, onCancel) => TripEditPage(
-            embedded: true,
-            onSaved: onSaved,
-            onCancel: onCancel,
-          ),
+          createBuilder: (context, onSaved, onCancel) =>
+              newTripPane(context, onSaved, onCancel),
           selectedId: ref.watch(highlightedTripIdProvider),
           onEntitySelected: (id) {
             ref.read(highlightedTripIdProvider.notifier).state = id;
@@ -211,7 +208,7 @@ class _TripListPageState extends ConsumerState<TripListPage>
         summaryBuilder: (context) => const TripSummaryWidget(),
         editBuilder: _buildEditPane,
         createBuilder: (context, onSaved, onCancel) =>
-            TripEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
+            newTripPane(context, onSaved, onCancel),
         floatingActionButton: fab,
       );
     }
@@ -223,23 +220,23 @@ class _TripListPageState extends ConsumerState<TripListPage>
   }
 }
 
-/// The pane's edit form, open at the section the URL names (#2880).
+/// The pane's edit, open at the section the URL names (#2880): the trip
+/// page opened unlocked (issue #4527).
 Widget _buildEditPane(
   BuildContext context,
   String tripId,
   void Function(String savedId) onSaved,
   VoidCallback onCancel,
 ) {
-  return TripEditPage(
-    tripId: tripId,
-    embedded: true,
-    onSaved: onSaved,
-    onCancel: onCancel,
-    initialSection: TripEditSection.fromQuery(
-      GoRouterState.of(context).uri.queryParameters['section'],
-    ),
-    noteDay: tripNoteDayFromQuery(
-      GoRouterState.of(context).uri.queryParameters,
-    ),
+  final query = GoRouterState.of(context).uri.queryParameters;
+  return tripEditPane(
+    context,
+    tripId,
+    onSaved,
+    onCancel,
+    section: TripEditSection.fromQuery(query['section']),
+    noteDay: tripNoteDayFromQuery(query),
+    // A delete from the pane returns it to the list, as from view mode.
+    onDeleted: () => context.goInPlace(GoRouterState.of(context).uri.path),
   );
 }

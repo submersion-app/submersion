@@ -11,7 +11,10 @@ import 'package:submersion/features/transmitters/data/services/transmitter_slot_
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/features/transmitters/presentation/widgets/transmitter_section.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitter_key_saved.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -49,6 +52,28 @@ class _NoSlots extends TransmitterSlotMatcher {
       const [];
 }
 
+/// The key editor, standing in: SAVE KEY pops with [result], as the
+/// editor's Save does (issue #4527, phase 4).
+class _StandInEditor extends StatelessWidget {
+  const _StandInEditor({required this.title, this.result});
+
+  final String title;
+  final Object? result;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: Column(
+      children: [
+        Text(title),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(result),
+          child: const Text('SAVE KEY'),
+        ),
+      ],
+    ),
+  );
+}
+
 /// A transmitter's setup lives on its Equipment page (issue #3676).
 void main() {
   Transmitter key({
@@ -73,6 +98,10 @@ void main() {
     WidgetTester tester,
     List<Transmitter> keys, {
     TransmitterRepository? repository,
+    Object? editorResult,
+    RecordEditController<EquipmentItem>? item,
+    ValueNotifier<bool>? relayout,
+    List<Transmitter> Function()? keysNow,
   }) async {
     tester.view.physicalSize = const Size(900, 1600);
     tester.view.devicePixelRatio = 1;
@@ -86,20 +115,43 @@ void main() {
         ),
         GoRoute(
           path: '/equipment/:id',
-          builder: (_, s) => Scaffold(
-            body: SingleChildScrollView(
-              child: TransmitterSection(equipmentId: s.pathParameters['id']!),
-            ),
-          ),
+          builder: (_, s) {
+            final card = TransmitterSection(
+              equipmentId: s.pathParameters['id']!,
+            );
+            final section = Scaffold(
+              body: SingleChildScrollView(
+                // The item page laid out afresh puts the card in a new
+                // place: a new element, the old one unmounted.
+                child: relayout == null
+                    ? card
+                    : ValueListenableBuilder<bool>(
+                        valueListenable: relayout,
+                        builder: (_, moved, _) =>
+                            moved ? Column(children: [card]) : card,
+                      ),
+              ),
+            );
+            // The item page's sitting, when the test gives it one.
+            return item == null
+                ? section
+                : RecordEditScope<EquipmentItem>(
+                    controller: item,
+                    child: section,
+                  );
+          },
           routes: [
             GoRoute(
               path: 'transmitter',
-              builder: (_, _) => const Scaffold(body: Text('ADD KEY')),
+              builder: (_, _) =>
+                  _StandInEditor(title: 'ADD KEY', result: editorResult),
               routes: [
                 GoRoute(
                   path: ':k',
-                  builder: (_, s) =>
-                      Scaffold(body: Text('EDIT ${s.pathParameters['k']}')),
+                  builder: (_, s) => _StandInEditor(
+                    title: 'EDIT ${s.pathParameters['k']}',
+                    result: editorResult,
+                  ),
                 ),
               ],
             ),
@@ -113,7 +165,7 @@ void main() {
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           transmittersForEquipmentProvider(
             'tx-gear',
-          ).overrideWith((ref) async => keys),
+          ).overrideWith((ref) async => keysNow?.call() ?? keys),
           if (repository != null)
             transmitterRepositoryProvider.overrideWithValue(repository),
           transmitterSlotMatcherProvider.overrideWithValue(_NoSlots()),
@@ -265,4 +317,274 @@ void main() {
       expect(find.textContaining('database closed'), findsOneWidget);
     });
   });
+
+  // The key editor hands its Save back to the card, whose snackbar offers
+  // the card's own Apply (issue #4527, phase 4, plan 2).
+  group('after the key editor saves', () {
+    const nameField = EditField<EquipmentItem, String>(
+      id: 'name',
+      cardId: 'details',
+      read: _name,
+      write: _rename,
+    );
+    const item = EquipmentItem(
+      id: 'tx-gear',
+      name: 'Back gas tx',
+      type: EquipmentType.transmitter,
+    );
+
+    RecordEditController<EquipmentItem> sitting({
+      bool unlocked = true,
+      bool dirty = false,
+    }) {
+      final controller = RecordEditController<EquipmentItem>(
+        onSave: (_) async {},
+      );
+      addTearDown(controller.dispose);
+      if (unlocked) controller.unlock(item);
+      if (dirty) controller.session!.set(nameField, 'Renamed');
+      return controller;
+    }
+
+    _FakeApplyRepository repoWithDives() => _FakeApplyRepository(
+      preview: (tanksUpdated: 2, divesUpdated: 2, mixesKept: 0),
+    );
+
+    Future<void> saveFromEditor(WidgetTester tester) async {
+      await tester.tap(find.text('Add serial or channel'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('SAVE KEY'));
+      await tester.pumpAndSettle();
+    }
+
+    /// Taps the snackbar's Apply, as the diver does: the snackbar goes as
+    /// its action runs.
+    Future<void> tapSnackApply(WidgetTester tester) => tester.tap(
+      find.descendant(
+        of: find.byType(SnackBar),
+        matching: find.text('Apply to existing dives'),
+      ),
+    );
+
+    SnackBarAction? snackApply(WidgetTester tester) => tester
+        .widgetList<SnackBarAction>(find.byType(SnackBarAction))
+        .firstOrNull;
+
+    testWidgets('a first setup saved shows Saved with Apply', (tester) async {
+      await pump(
+        tester,
+        [key(cylinder: 'cyl')],
+        repository: repoWithDives(),
+        editorResult: const TransmitterKeySaved(offerApply: true),
+      );
+      await saveFromEditor(tester);
+
+      expect(find.text('Transmitter saved'), findsOneWidget);
+      expect(snackApply(tester)?.label, 'Apply to existing dives');
+    });
+
+    testWidgets('an edit saved shows Saved with no Apply', (tester) async {
+      await pump(
+        tester,
+        [key(cylinder: 'cyl')],
+        repository: repoWithDives(),
+        editorResult: const TransmitterKeySaved(offerApply: false),
+      );
+      await saveFromEditor(tester);
+
+      expect(find.text('Transmitter saved'), findsOneWidget);
+      expect(snackApply(tester), isNull);
+    });
+
+    testWidgets('Saved still shows when the card was rebuilt meanwhile', (
+      tester,
+    ) async {
+      final relayout = ValueNotifier(false);
+      addTearDown(relayout.dispose);
+      await pump(
+        tester,
+        [key(cylinder: 'cyl')],
+        repository: repoWithDives(),
+        editorResult: const TransmitterKeySaved(offerApply: true),
+        relayout: relayout,
+      );
+      await tester.tap(find.text('Add serial or channel'));
+      await tester.pumpAndSettle();
+      relayout.value = true;
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('SAVE KEY'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Transmitter saved'), findsOneWidget);
+    });
+
+    testWidgets('leaving the editor without saving shows nothing', (
+      tester,
+    ) async {
+      await pump(tester, [key(cylinder: 'cyl')], repository: repoWithDives());
+      await saveFromEditor(tester);
+
+      expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('the snackbar Apply shows the counts and asks first', (
+      tester,
+    ) async {
+      final repo = repoWithDives();
+      await pump(
+        tester,
+        [key(id: 'k1', cylinder: 'cyl'), key(id: 'k2', cylinder: 'cyl')],
+        repository: repo,
+        editorResult: const TransmitterKeySaved(offerApply: true),
+      );
+      await saveFromEditor(tester);
+      await tapSnackApply(tester);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining(
+          '4 cylinders on 4 dives carrying this transmitter need its setup',
+        ),
+        findsOneWidget,
+      );
+      expect(repo.applied, isEmpty);
+      await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
+      await tester.pumpAndSettle();
+
+      expect(repo.applied, ['k1', 'k2']);
+      expect(find.text('Updated 4 cylinders on 4 dives'), findsOneWidget);
+    });
+
+    testWidgets('the snackbar Apply works on the keys as they are now', (
+      tester,
+    ) async {
+      final repo = repoWithDives();
+      var current = [key(id: 'k1', cylinder: 'cyl')];
+      await pump(
+        tester,
+        current,
+        repository: repo,
+        editorResult: const TransmitterKeySaved(offerApply: true),
+        keysNow: () => current,
+      );
+      await saveFromEditor(tester);
+      // The save added a key; the card's list has not been read again yet.
+      current = [...current, key(id: 'k2', cylinder: 'cyl')];
+      await tapSnackApply(tester);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
+      await tester.pumpAndSettle();
+
+      expect(repo.applied, ['k1', 'k2']);
+    });
+
+    testWidgets('cancelling the snackbar Apply writes nothing', (tester) async {
+      final repo = repoWithDives();
+      await pump(
+        tester,
+        [key(cylinder: 'cyl')],
+        repository: repo,
+        editorResult: const TransmitterKeySaved(offerApply: true),
+      );
+      await saveFromEditor(tester);
+      await tapSnackApply(tester);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(repo.applied, isEmpty);
+    });
+
+    testWidgets('a snackbar Apply that fails says so', (tester) async {
+      await pump(
+        tester,
+        [key(cylinder: 'cyl')],
+        repository: _FakeApplyRepository(
+          preview: (tanksUpdated: 2, divesUpdated: 2, mixesKept: 0),
+          failApply: true,
+        ),
+        editorResult: const TransmitterKeySaved(offerApply: true),
+      );
+      await saveFromEditor(tester);
+      await tapSnackApply(tester);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('database closed'), findsOneWidget);
+    });
+
+    testWidgets('the snackbar Apply is refused while the item has changes', (
+      tester,
+    ) async {
+      final repo = repoWithDives();
+      final controller = sitting();
+      await pump(
+        tester,
+        [key(cylinder: 'cyl')],
+        repository: repo,
+        editorResult: const TransmitterKeySaved(offerApply: true),
+        item: controller,
+      );
+      await saveFromEditor(tester);
+      controller.session!.set(nameField, 'Renamed');
+      await tester.pump();
+      await tapSnackApply(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Save or cancel your changes first'), findsOneWidget);
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(repo.applied, isEmpty);
+    });
+
+    testWidgets(
+      'the snackbar Apply runs through the gate of an unlocked page',
+      (tester) async {
+        final repo = repoWithDives();
+        final controller = sitting();
+        await pump(
+          tester,
+          [key(cylinder: 'cyl')],
+          repository: repo,
+          editorResult: const TransmitterKeySaved(offerApply: true),
+          item: controller,
+        );
+        await saveFromEditor(tester);
+        await tapSnackApply(tester);
+        await tester.pumpAndSettle();
+
+        expect(find.byType(AlertDialog), findsOneWidget);
+        expect(controller.isOperating, isTrue);
+        await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
+        await tester.pumpAndSettle();
+        expect(controller.isOperating, isFalse);
+        expect(repo.applied, ['k1']);
+      },
+    );
+
+    testWidgets('on a locked page the snackbar Apply asks and runs', (
+      tester,
+    ) async {
+      final repo = repoWithDives();
+      await pump(
+        tester,
+        [key(cylinder: 'cyl')],
+        repository: repo,
+        editorResult: const TransmitterKeySaved(offerApply: true),
+        item: sitting(unlocked: false),
+      );
+      await saveFromEditor(tester);
+      await tapSnackApply(tester);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
+      await tester.pumpAndSettle();
+
+      expect(repo.applied, ['k1']);
+    });
+  });
 }
+
+String _name(EquipmentItem item) => item.name;
+
+EquipmentItem _rename(EquipmentItem item, String name) =>
+    item.copyWith(name: name);

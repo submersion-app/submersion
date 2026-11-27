@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_edit_routes.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_catalog_tile.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_category_chips.dart';
@@ -144,7 +145,7 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
           floatingActionButton: selection.isActive
               ? null
               : FloatingActionButton.extended(
-                  onPressed: () => context.push('/species/new'),
+                  onPressed: () => openNewSpecies(context),
                   tooltip: context.l10n.marineLife_speciesEdit_addTitle,
                   icon: const Icon(Icons.add),
                   label: Text(context.l10n.marineLife_speciesEdit_addTitle),
@@ -292,7 +293,10 @@ class _SpeciesManagePageState extends ConsumerState<SpeciesManagePage> {
                 IconButton(
                   icon: const Icon(Icons.edit_outlined),
                   tooltip: context.l10n.marineLife_speciesManage_editTooltip,
-                  onPressed: () => context.push('/species/${species.id}/edit'),
+                  // A row has no lock to tap: Edit opens the species
+                  // unlocked (issue #4527).
+                  onPressed: () =>
+                      context.push(speciesEditLocation(species.id)),
                 ),
                 if (isCustom)
                   IconButton(

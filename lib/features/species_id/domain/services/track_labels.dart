@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/features/species_id/domain/entities/label_mode.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
@@ -23,7 +24,8 @@ enum TrackLabelKind {
   /// The species the diver tagged: a filled pill, playing or paused.
   accepted,
 
-  /// An animal with no name: a plain dot, paused only.
+  /// An animal with no name: a plain dot. In [LabelMode.names] only on a
+  /// paused video or a photo; in [LabelMode.allLife] always.
   dot,
 }
 
@@ -74,30 +76,55 @@ class TrackLabel extends Equatable {
   ];
 }
 
-/// The label [track] gets, or null for none. [minDotMs] keeps a fleeting
-/// box (a fin, a bubble) from showing a dot. An accepted track whose tag
-/// the app applied and the diver has not confirmed ([unconfirmed]) keeps
-/// the outlined pill of the app's confident name (issue #4727).
+/// The label [track] gets in [mode], or null for none (issue #4825).
+///
+/// A named animal has its pill in [LabelMode.names] and
+/// [LabelMode.allLife] alike. An accepted one whose tag the app applied
+/// and the diver has not confirmed ([unconfirmed]) keeps the outlined pill
+/// of the app's confident name (issue #4727). On a photo, a tag fills the
+/// pill only on a detection the app could suggest or the diver named from
+/// the picture: a photo's tag is matched to every detection whose best
+/// guess is its species, however weak, and the weak ones draw as unnamed.
+///
+/// An unnamed animal has a dot. In [LabelMode.allLife], always. In
+/// [LabelMode.names], only where the diver can stop and name it: on a
+/// paused video, when it looks like something in particular and was
+/// followed for [minDotMs] (a fin or a bubble is not), and on a photo,
+/// which is always still, when it looks like something in particular.
 TrackLabelKind? labelKind(
   MediaIdentification track, {
   required bool playing,
+  LabelMode mode = LabelMode.names,
   int minDotMs = 1000,
   bool unconfirmed = false,
 }) {
+  if (mode == LabelMode.off) return null;
   switch (track.decision) {
     case IdentificationDecision.accepted:
+      final sure =
+          track.isTrack || track.suggestable || track.claimedSpeciesId != null;
+      if (!sure) return _unnamedKind(track, playing, mode, minDotMs);
       return unconfirmed ? TrackLabelKind.confident : TrackLabelKind.accepted;
     case IdentificationDecision.rejected:
       return null;
     case IdentificationDecision.undecided:
       if (track.confident) return TrackLabelKind.confident;
       if (track.suggestable) return TrackLabelKind.suggestion;
-      if (playing) return null;
-      if (track.specific && track.durationMs >= minDotMs) {
-        return TrackLabelKind.dot;
-      }
-      return null;
+      return _unnamedKind(track, playing, mode, minDotMs);
   }
+}
+
+/// A dot, or nothing, for an animal with no name to show.
+TrackLabelKind? _unnamedKind(
+  MediaIdentification found,
+  bool playing,
+  LabelMode mode,
+  int minDotMs,
+) {
+  if (mode == LabelMode.allLife) return TrackLabelKind.dot;
+  if (!found.specific) return null;
+  if (!found.isTrack) return TrackLabelKind.dot;
+  return !playing && found.durationMs >= minDotMs ? TrackLabelKind.dot : null;
 }
 
 /// Where [track] is at [ms]: its box between the two samples around [ms],
@@ -251,15 +278,15 @@ IdentificationBox? smoothedBoxAt(
 /// How many moments either side of the centre [smoothedBoxAt] averages.
 const int _taps = 4;
 
-/// The labels to draw at [ms]: one per visible animal, at most
-/// [maxLabels], the largest first so a school does not bury the picture.
+/// The labels to draw at [ms] in [mode]: one per visible animal, the
+/// largest first, however many there are (issue #4825).
 /// [unconfirmedSpeciesIds] are the video's tags the app applied and the
 /// diver has not confirmed (issue #4727).
 List<TrackLabel> labelsAt(
   List<MediaIdentification> shown,
   int ms, {
   required bool playing,
-  int maxLabels = 6,
+  LabelMode mode = LabelMode.names,
   Set<String> unconfirmedSpeciesIds = const {},
 }) {
   final labels = <TrackLabel>[];
@@ -268,34 +295,69 @@ List<TrackLabel> labelsAt(
     final kind = labelKind(
       track,
       playing: playing,
-      // A fish the diver named from the frame is theirs, whatever the tag.
-      unconfirmed:
-          track.decision == IdentificationDecision.accepted &&
-          track.claimedSpeciesId == null &&
-          unconfirmedSpeciesIds.contains(track.decidedSpeciesId),
+      mode: mode,
+      unconfirmed: _unconfirmed(track, unconfirmedSpeciesIds),
     );
     if (kind == null) continue;
     final box = smoothedBoxAt(track, ms);
     if (box == null) continue;
-    labels.add(
-      TrackLabel(
-        identificationId: track.id,
-        kind: kind,
-        box: box,
-        candidate:
-            kind == TrackLabelKind.confident ||
-                kind == TrackLabelKind.suggestion
-            ? track.top
-            : null,
-        speciesId: kind == TrackLabelKind.accepted
-            ? track.decidedSpeciesId
-            : null,
-      ),
-    );
+    labels.add(_label(track, kind, box));
   }
-  // Two tracks on one fish (a decided row a rescan could not carry, or the
-  // tracker splitting a fish) draw one label: the diver's tag first, then
-  // the app's surest name, a dot last.
+  return _oneEach(labels);
+}
+
+/// The labels to draw on a photo in [mode]: one per animal found on it,
+/// the largest first (issue #4825). A photo is a still frame, so it is
+/// labelled as a paused video is.
+List<TrackLabel> photoLabels(
+  List<MediaIdentification> shown, {
+  LabelMode mode = LabelMode.names,
+  Set<String> unconfirmedSpeciesIds = const {},
+}) {
+  final labels = <TrackLabel>[];
+  for (final found in shown) {
+    if (found.isTrack) continue;
+    final kind = labelKind(
+      found,
+      playing: false,
+      mode: mode,
+      unconfirmed: _unconfirmed(found, unconfirmedSpeciesIds),
+    );
+    if (kind == null) continue;
+    labels.add(_label(found, kind, found.box));
+  }
+  return _oneEach(labels);
+}
+
+/// Whether [found]'s tag is one the app applied and the diver has not
+/// confirmed. An animal the diver named from the picture is theirs,
+/// whatever the tag.
+bool _unconfirmed(MediaIdentification found, Set<String> unconfirmed) =>
+    found.decision == IdentificationDecision.accepted &&
+    found.claimedSpeciesId == null &&
+    unconfirmed.contains(found.decidedSpeciesId);
+
+TrackLabel _label(
+  MediaIdentification found,
+  TrackLabelKind kind,
+  IdentificationBox box,
+) => TrackLabel(
+  identificationId: found.id,
+  kind: kind,
+  box: box,
+  candidate:
+      kind == TrackLabelKind.confident || kind == TrackLabelKind.suggestion
+      ? found.top
+      : null,
+  speciesId: kind == TrackLabelKind.accepted ? found.decidedSpeciesId : null,
+);
+
+/// [labels] with one label an animal, the largest first.
+///
+/// Two detections of one animal (a decided row a rescan could not carry,
+/// or the tracker splitting a fish) draw one label: the diver's tag first,
+/// then the app's surest name, a dot last.
+List<TrackLabel> _oneEach(List<TrackLabel> labels) {
   final rank = [for (var k = 0; k < labels.length; k++) k]
     ..sort((a, b) {
       final byKind = _precedence(
@@ -305,17 +367,17 @@ List<TrackLabel> labelsAt(
     });
   final kept = <int>[];
   for (final k in rank) {
-    final sameFish = kept.any(
+    final sameAnimal = kept.any(
       (j) => labels[j].box.iou(labels[k].box) >= sameAnimalOverlap,
     );
-    if (!sameFish) kept.add(k);
+    if (!sameAnimal) kept.add(k);
   }
   // Largest first; ties keep their stored order (List.sort is not stable).
   kept.sort((a, b) {
     final byArea = labels[b].box.area.compareTo(labels[a].box.area);
     return byArea != 0 ? byArea : a.compareTo(b);
   });
-  return [for (final k in kept.take(maxLabels)) labels[k]];
+  return [for (final k in kept) labels[k]];
 }
 
 int _precedence(TrackLabelKind kind) => switch (kind) {

@@ -574,7 +574,7 @@ jobs:
             test/features/insights/data/dive_filter_sql_test.dart
             test/features/trips/domain/entities/trip_test.dart
             test/features/trips/domain/entities/itinerary_day_test.dart
-            test/features/trips/presentation/pages/trip_edit_page_test.dart
+            test/features/trips/presentation/editing/trip_new_sitting_test.dart
             test/features/trips/presentation/widgets/trip_summary_widget_test.dart
             test/features/trips/presentation/widgets/story/trip_story_hero_test.dart
             test/features/trips/domain/entities/trip_upcoming_test.dart
@@ -603,6 +603,68 @@ jobs:
             TZ="$zone" flutter test "${files[@]}"
             echo "::endgroup::"
           done
+
+  # The marine life vision package on its own (piece 3, ONNX Runtime): its
+  # tests load the real ONNX Runtime library that the package's build hook
+  # ships for Linux, so a broken binding, a hash that no longer matches or a
+  # missing library fails here. On Linux the real-runtime test never skips.
+  vision-package-tests:
+    name: Vision Package Tests
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-flutter
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: 'stable'
+
+      - name: Run the vision package's tests
+        working-directory: packages/submersion_vision
+        run: |
+          set -euo pipefail
+          flutter pub get
+          flutter test
+
+  # The same package tests on Windows, where the build hook ships Windows
+  # ML's ONNX Runtime and DirectML. The runner has no GPU, so the sessions run
+  # on the processor; what this catches is a Windows library that no longer
+  # loads or a binding that breaks there. The real-runtime test never skips
+  # on Windows either.
+  vision-package-tests-windows:
+    name: Vision Package Tests (Windows)
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - uses: ./.github/actions/setup-flutter
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: 'stable'
+
+      - name: Run the vision package's tests
+        working-directory: packages/submersion_vision
+        run: |
+          set -euo pipefail
+          flutter pub get
+          flutter test
 
   # Unit-tests the dependency-free Python guard scripts (e.g. the issue #318
   # ProGuard keep-rule checker). No Flutter/codegen needed, so it runs in
@@ -2332,6 +2394,8 @@ jobs:
       - analyze
       - test
       - timezone-tests
+      - vision-package-tests
+      - vision-package-tests-windows
       - script-tests
       - web-build
       - web-tests

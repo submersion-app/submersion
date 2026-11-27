@@ -16,8 +16,11 @@ import 'package:submersion/features/media/presentation/editing/record_media_sitt
 import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
+import '../../../../helpers/marine_life_id_off.dart';
 
 void main() {
+  turnOffMarineLifeIdForEachTest();
+
   test('showInOsFileManagerLabel returns OS-appropriate label', () {
     final label = showInOsFileManagerLabel();
     if (Platform.isMacOS) {

@@ -231,7 +231,7 @@ void main() {
       await untickEveryone();
       await tester.tap(find.text(l.common_action_unshare));
       await tester.pumpAndSettle();
-      expect(siteSharingInSitting(h.session)!.isShared, isFalse);
+      expect(siteSharing.inSitting(h.session)!.isShared, isFalse);
       expect(h.session.changedCardIds, {siteHeaderCardId});
     });
 

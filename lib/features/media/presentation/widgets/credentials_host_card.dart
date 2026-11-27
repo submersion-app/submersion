@@ -22,10 +22,13 @@
 // - `lastUsedAt` is stored as `int?` epoch millis (not `DateTime`); the
 //   relative formatter takes the int and converts internally.
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/network_url_resolver.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -91,10 +94,36 @@ class _HostTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // A row without its secret here (a restored backup, a new device) looks
+    // saved but authenticates nothing.
+    final missing =
+        ref.watch(savedHostHasSecretProvider(host.hostname)).valueOrNull ==
+        false;
+    final colors = Theme.of(context).colorScheme;
+    // A shared album's password row is named after its album; the link it
+    // is saved under moves to the subtitle, still there to tell two apart.
+    final album = ref
+        .watch(savedHostAlbumNamesProvider)
+        .valueOrNull?[host.hostname];
     return ListTile(
-      leading: const Icon(Icons.lock_outline),
-      title: Text(host.hostname),
-      subtitle: Text(_subtitle(context.l10n)),
+      leading: missing
+          ? Icon(Icons.key_off_outlined, color: colors.error)
+          : const Icon(Icons.lock_outline),
+      title: Text(album ?? host.hostname),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (album != null)
+            Text(host.hostname, key: const Key('savedHostLink')),
+          Text(_subtitle(context.l10n)),
+          if (missing)
+            Text(
+              context.l10n.media_credentials_secretMissing,
+              key: const Key('savedHostSecretMissing'),
+              style: TextStyle(color: colors.error),
+            ),
+        ],
+      ),
       trailing: PopupMenuButton<_HostAction>(
         tooltip: context.l10n.common_action_more,
         onSelected: (action) => _handle(context, ref, action),
@@ -147,15 +176,36 @@ class _HostTile extends ConsumerWidget {
     }
   }
 
+  /// The share this password row opens. The subscription that reads it
+  /// keeps a path prefix (`/photo`) the row's key drops, so its link wins;
+  /// without one, the link is rebuilt from the key.
+  Future<SynologyShareLink?> _shareLink(WidgetRef ref) async {
+    final links = await ref.read(savedHostShareLinksProvider.future);
+    return links[host.hostname] ??
+        SynologyShareLink.tryParseShareUrl('https://${host.hostname}');
+  }
+
   Future<void> _testCredentials(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     final resolver = ref.read(networkUrlResolverProvider);
+    final credentials = ref.read(networkCredentialsServiceProvider);
     try {
-      final result = await resolver.fetch(
-        Uri.parse('https://${host.hostname}/'),
-      );
+      final bool ok;
+      final share = host.authType == kSynologyShareAuthType
+          ? await _shareLink(ref)
+          : null;
+      if (share != null) {
+        // A share's web page loads whether or not the password is right;
+        // only a session opened with it says the password works.
+        final headers = await credentials.headersFor(share.shareUri);
+        ok = headers != null && headers.isNotEmpty;
+      } else {
+        final result = await resolver.fetch(
+          Uri.parse('https://${host.hostname}/'),
+        );
+        ok = result is NetworkBytesOk;
+      }
       if (!context.mounted) return;
-      final ok = result is NetworkBytesOk;
       messenger.showSnackBar(
         SnackBar(
           content: Text(

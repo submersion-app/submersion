@@ -17,6 +17,7 @@ import 'package:submersion/features/nav_track/domain/entities/nav_track_marker.d
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_point_codec.dart';
+import 'package:submersion/features/nav_track/domain/nav_track_site_anchor_rule.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_source_file_codec.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_source_metadata_codec.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
@@ -311,6 +312,50 @@ class NavTrackRepository with _NavTrackRouteLinks, _NavTrackRouteImports {
     }
   }
 
+  /// Writes the values the route's page edits in place (issue #4527): its
+  /// name, site, device and correction, each as given (null clears it).
+  /// Never the link columns: a dive is linked through [link], [relink] and
+  /// [unlink], which keep the owner, the primary route and inheritance.
+  Future<void> writeEditedColumns(
+    String routeId, {
+    required String? name,
+    required String? siteId,
+    required String? equipmentId,
+    required String? deviceName,
+    required NavTrackCorrection correction,
+  }) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await (_db.update(
+        _db.navTracks,
+      )..where((t) => t.id.equals(routeId))).write(
+        NavTracksCompanion(
+          name: Value(name),
+          siteId: Value(siteId),
+          equipmentId: Value(equipmentId),
+          deviceName: Value(deviceName),
+          anchorLatitude: Value(correction.anchor?.latitude),
+          anchorLongitude: Value(correction.anchor?.longitude),
+          endMode: Value(correction.endMode.wireValue),
+          endLatitude: Value(correction.endPoint?.latitude),
+          endLongitude: Value(correction.endPoint?.longitude),
+          trustFraction: Value(correction.trustFraction),
+          headingOffsetDeg: Value(correction.headingOffsetDeg),
+          scaleFactor: Value(correction.scaleFactor),
+          updatedAt: Value(now),
+        ),
+      );
+      await _markPending(routeId, now);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to write the edited values of nav track $routeId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Renames [routeId], or clears its label back to the file name default
   /// when [name] is null.
   Future<void> rename(String routeId, String? name) async {
@@ -361,6 +406,23 @@ class NavTrackRepository with _NavTrackRouteLinks, _NavTrackRouteImports {
       rethrow;
     }
   }
+
+  /// Whether the dive [diveId] exists: a route links only to a dive that
+  /// does.
+  Future<bool> diveExists(String diveId) async =>
+      await (_db.selectOnly(_db.dives)
+            ..addColumns([_db.dives.id])
+            ..where(_db.dives.id.equals(diveId)))
+          .getSingleOrNull() !=
+      null;
+
+  /// Whether the dive site [siteId] exists: a route's site must.
+  Future<bool> siteExists(String siteId) async =>
+      await (_db.selectOnly(_db.diveSites)
+            ..addColumns([_db.diveSites.id])
+            ..where(_db.diveSites.id.equals(siteId)))
+          .getSingleOrNull() !=
+      null;
 
   /// Ids of every route currently linked to [diveId].
   ///
@@ -415,6 +477,8 @@ class NavTrackRepository with _NavTrackRouteLinks, _NavTrackRouteImports {
   /// How each link came about carries over. [link] settles the rest as for
   /// any new link: the owner follows the dive, a route with no position
   /// inherits the dive's, and a primary already on [toDiveId] stays primary.
+  /// A route with a site or an anchor keeps both, as the two dives are one
+  /// ([_relinkForFold]): [restoreLinks] relies on that.
   /// Moving in [linkedRowsForDives]' order means that with none there, the
   /// earliest of the routes coming in takes the role.
   Future<void> moveLinks({
@@ -425,7 +489,7 @@ class NavTrackRepository with _NavTrackRouteLinks, _NavTrackRouteImports {
       final linkMode =
           domain.NavTrackLinkMode.fromWireValue(route.linkMode) ??
           domain.NavTrackLinkMode.manual;
-      await relink(
+      await _relinkForFold(
         route.id,
         fromDiveId: route.diveId!,
         toDiveId: toDiveId,

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:printing/printing.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
@@ -72,6 +73,16 @@ void main() {
       expect(fetches, 2, reason: 'regular and bold, once each');
     });
 
+    // Japanese kanji drawn by Noto Sans SC take Chinese shapes (#4833).
+    test('Japanese and Chinese load their own Noto fonts', () {
+      final ja = PdfFonts.scriptFontLoaders['ja']!;
+      expect(ja.regular, PdfGoogleFonts.notoSansJPRegular);
+      expect(ja.bold, PdfGoogleFonts.notoSansJPBold);
+      final zh = PdfFonts.scriptFontLoaders['zh']!;
+      expect(zh.regular, PdfGoogleFonts.notoSansSCRegular);
+      expect(zh.bold, PdfGoogleFonts.notoSansSCBold);
+    });
+
     test('asks for a script font only for non-Latin scripts', () async {
       final requested = <String>[];
       PdfFonts.debugScriptFontLoader = (code, {required bold}) async {
@@ -79,11 +90,11 @@ void main() {
         return null;
       };
 
-      for (final code in ['en', 'fr', 'de', 'hu', 'zh', 'ar', 'he']) {
+      for (final code in ['en', 'fr', 'de', 'hu', 'zh', 'ja', 'ar', 'he']) {
         await PdfFonts.instance.themeFor(PdfLocalization.forLanguageCode(code));
       }
 
-      expect(requested, ['zh', 'ar', 'he']);
+      expect(requested, ['zh', 'ja', 'ar', 'he']);
     });
 
     test(

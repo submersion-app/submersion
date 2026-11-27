@@ -72,6 +72,9 @@ class CylinderPassportRepository {
   /// Every item holding [passportId], in the order a lookup prefers them.
   /// One id should have one holder, but an old import could have written
   /// two. Resolve the same way every time: in service, oldest, then id.
+  ///
+  /// When no item stores the id, the item it was minted for answers in its
+  /// place (issue #4827): see [_mintersOf].
   Future<List<EquipmentData>> _holdersOf(
     String passportId, {
     String? diverId,
@@ -90,12 +93,61 @@ class CylinderPassportRepository {
     if (type != null) query.where(eq.type.equals(type.name));
     final visible = VisibilityFilter.equipmentVisibleTo(_db, eq, diverId);
     if (visible != null) query.where(visible);
-    return [for (final r in await query.get()) r.readTable(eq)]..sort((a, b) {
-      final byFitted = (_isFitted(a) ? 0 : 1) - (_isFitted(b) ? 0 : 1);
-      if (byFitted != 0) return byFitted;
-      final byAge = a.createdAt.compareTo(b.createdAt);
-      return byAge != 0 ? byAge : a.id.compareTo(b.id);
-    });
+    final stored = [for (final r in await query.get()) r.readTable(eq)];
+    final holders = stored.isNotEmpty
+        ? stored
+        : await _mintersOf(passportId, diverId: diverId, type: type);
+    return holders..sort(_preferredHolderFirst);
+  }
+
+  /// The items [passportId] was minted for that store no passport id on
+  /// this device yet (issue #4827). The device that first opens an item's
+  /// passport mints its id and stores it there, and the row reaches the
+  /// others only on that device's next sync; until then a label printed or
+  /// shown from it would read as someone else's gear. Minting is a pure
+  /// function of the equipment id, so the item is recognised without the
+  /// row. An item that stores a different id gave its minted one up (it
+  /// took another tag) and does not answer to it.
+  Future<List<EquipmentData>> _mintersOf(
+    String passportId, {
+    String? diverId,
+    EquipmentType? type,
+  }) async {
+    final wanted = passportId.trim().toLowerCase();
+    // A minted id is a version 5 UUID; anything else was never minted here,
+    // so skip hashing every item for it.
+    if (wanted.length != 36 || wanted[14] != '5') return [];
+    final attrs = _db.equipmentAttributes;
+    final eq = _db.equipment;
+    final query = _db.select(eq)
+      ..where(
+        (t) => t.id.isNotInQuery(
+          _db.selectOnly(attrs)
+            ..addColumns([attrs.equipmentId])
+            ..where(
+              attrs.attrKey.equals(EquipmentAttrKeys.passportId) &
+                  attrs.isCustom.equals(false),
+            ),
+        ),
+      );
+    if (type != null) query.where((t) => t.type.equals(type.name));
+    final visible = VisibilityFilter.equipmentVisibleTo(_db, eq, diverId);
+    if (visible != null) query.where((_) => visible);
+    return [
+      for (final row in await query.get())
+        if (_mint(row.id) == wanted) row,
+    ];
+  }
+
+  /// The passport id [ensurePassportId] mints for [equipmentId].
+  String _mint(String equipmentId) =>
+      _uuid.v5(kCylinderPassportNamespace, equipmentId);
+
+  static int _preferredHolderFirst(EquipmentData a, EquipmentData b) {
+    final byFitted = (_isFitted(a) ? 0 : 1) - (_isFitted(b) ? 0 : 1);
+    if (byFitted != 0) return byFitted;
+    final byAge = a.createdAt.compareTo(b.createdAt);
+    return byAge != 0 ? byAge : a.id.compareTo(b.id);
   }
 
   Future<String?> findEquipmentIdByPassportId(
@@ -118,6 +170,21 @@ class CylinderPassportRepository {
       row.status != EquipmentStatus.retired.name &&
       row.status != EquipmentStatus.sold.name &&
       row.status != EquipmentStatus.wanted.name;
+
+  /// The item still in service, other than [exceptEquipmentId], that holds
+  /// [passportId] for [diverId]: what [assignPassportId] refuses on, read
+  /// without writing, so a gear item's sitting can ask before it holds a
+  /// link (issue #4527). Null when the id is free to take.
+  Future<String?> fittedHolderOf(
+    String passportId, {
+    required String exceptEquipmentId,
+    String? diverId,
+  }) async {
+    for (final row in await _holdersOf(passportId, diverId: diverId)) {
+      if (row.id != exceptEquipmentId && _isFitted(row)) return row.id;
+    }
+    return null;
+  }
 
   /// Removes [equipmentId]'s passport id, so a tag can move off a cylinder
   /// that is no longer in service.
@@ -158,14 +225,15 @@ class CylinderPassportRepository {
       for (final row in others) {
         await _releasePassportId(row.id);
       }
-      final alreadyHeld = holders.any((row) => row.id == equipmentId);
       final target = await (_db.select(
         _db.equipment,
       )..where((t) => t.id.equals(equipmentId))).getSingleOrNull();
       // Fills belong to cylinders; other gear never collects them.
       final holdsFills = target?.type == EquipmentType.tank.name;
       final previous = await getPassportId(equipmentId);
-      if (!alreadyHeld) {
+      // Whether the item stores the id already. Being among the holders is
+      // not enough: an item answers to its own minted id before storing it.
+      if (previous != passportId) {
         final existing = await _equipment.getAttributesForEquipment(
           equipmentId,
         );
@@ -238,7 +306,7 @@ class CylinderPassportRepository {
   Future<String> ensurePassportId(String equipmentId, {String? diverId}) async {
     final existing = await getPassportId(equipmentId);
     if (existing != null) return existing;
-    final minted = _uuid.v5(kCylinderPassportNamespace, equipmentId);
+    final minted = _mint(equipmentId);
     await assignPassportId(
       equipmentId: equipmentId,
       passportId: minted,

@@ -8,7 +8,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 
 import '../../../../helpers/test_database.dart';
 
-/// The edit page saves an item and its tags together (issue #1942).
+/// An item created with its tags, in one transaction (issue #1942), as the
+/// demo data seeder creates gear.
 void main() {
   late EquipmentRepository equipment;
   late EquipmentTagRepository tags;
@@ -68,42 +69,6 @@ void main() {
     expect(await linkCount(), 0);
   });
 
-  test('updateEquipmentWithTags replaces the set with the row', () async {
-    final item = await equipment.createEquipmentWithTags(
-      const EquipmentItem(id: '', name: 'Wing', type: EquipmentType.bcd),
-      ['t1'],
-    );
-
-    await equipment.updateEquipmentWithTags(
-      item.copyWith(name: 'Wing renamed'),
-      ['t2'],
-    );
-
-    expect((await equipment.getEquipmentById(item.id))!.name, 'Wing renamed');
-    expect(await tagIdsOf(item.id), ['t2']);
-  });
-
-  test(
-    'a failing tag write on update keeps the old row and the old set',
-    () async {
-      final item = await equipment.createEquipmentWithTags(
-        const EquipmentItem(id: '', name: 'Wing', type: EquipmentType.bcd),
-        ['t1'],
-      );
-
-      await expectLater(
-        equipment.updateEquipmentWithTags(item.copyWith(name: 'Wing renamed'), [
-          't2',
-          'missing',
-        ]),
-        throwsA(anything),
-      );
-
-      expect((await equipment.getEquipmentById(item.id))!.name, 'Wing');
-      expect(await tagIdsOf(item.id), ['t1']);
-    },
-  );
-
   /// Counts sync notifications while [action] runs. Auto-sync must hear of
   /// a save once, after it commits: never mid-transaction, and never for a
   /// save that rolled back.
@@ -132,41 +97,27 @@ void main() {
       1,
       reason: 'create',
     );
-    expect(
-      await notificationsDuring(
-        () => equipment.updateEquipmentWithTags(
-          item.copyWith(name: 'Wing renamed'),
-          ['t2'],
-        ),
-      ),
-      1,
-      reason: 'update',
-    );
+    expect(await tagIdsOf(item.id), ['t1']);
   });
 
   test('a save whose tag write rolls back never notifies sync', () async {
-    final item = await equipment.createEquipmentWithTags(
-      const EquipmentItem(id: '', name: 'Wing', type: EquipmentType.bcd),
-      ['t1'],
-    );
-
     expect(
       await notificationsDuring(
         () => equipment.createEquipmentWithTags(
-          const EquipmentItem(id: '', name: 'Doomed', type: EquipmentType.bcd),
+          const EquipmentItem(
+            id: 'doomed',
+            name: 'Doomed',
+            type: EquipmentType.bcd,
+          ),
           ['t1', 'missing'],
         ),
       ),
       0,
       reason: 'create',
     );
-    expect(
-      await notificationsDuring(
-        () => equipment.updateEquipmentWithTags(item, ['t2', 'missing']),
-      ),
-      0,
-      reason: 'update',
-    );
+    // Rolled back whole: no row, no link.
+    expect(await equipment.getEquipmentById('doomed'), isNull);
+    expect(await linkCount(), 0);
   });
 
   test('updateEquipment with a partial entity leaves the tags alone', () async {

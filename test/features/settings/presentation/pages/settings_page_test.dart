@@ -48,7 +48,6 @@ import 'package:submersion/features/settings/presentation/widgets/settings_list_
 import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/map_style.dart';
-import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_location_backfill_provider.dart';
@@ -84,9 +83,9 @@ class _RecordingBackfill extends StateNotifier<BackfillState>
   final List<SiteLocationLookupMode> counted = [];
 
   @override
-  Future<List<DiveSite>> findCandidates(SiteLocationLookupMode mode) async {
+  Future<BackfillCandidates> findCandidates(SiteLocationLookupMode mode) async {
     counted.add(mode);
-    return const [];
+    return const BackfillCandidates(sites: []);
   }
 
   @override
@@ -399,9 +398,11 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
     required double setpointLow,
     required double setpointHigh,
     required double diluentModPpO2,
+    double? setpointSwitchDepth,
   }) async => state = state.copyWith(
     ccrSetpointLow: setpointLow,
     ccrSetpointHigh: setpointHigh,
+    ccrSetpointSwitchDepth: setpointSwitchDepth,
     ccrDiluentModPpO2: diluentModPpO2,
   );
   @override
@@ -448,25 +449,23 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   }
 
   @override
-  Future<void> setHomeCardEnabled(String cardId, bool enabled) async {
-    final hidden = {...state.hiddenHomeCards};
-    if (enabled) {
-      hidden.remove(cardId);
-    } else {
-      hidden.add(cardId);
-    }
-    state = state.copyWith(hiddenHomeCards: hidden);
-  }
+  Future<void> setHomePanelLayout({
+    required List<String> order,
+    required Set<String> hidden,
+  }) async =>
+      state = state.copyWith(homePanelOrder: order, hiddenHomePanels: hidden);
 
   @override
-  Future<void> setHomeCardOrder(List<String> order) async =>
-      state = state.copyWith(homeCardOrder: order);
+  Future<void> setHiddenHomeKeyNumbers(Set<String> hidden) async =>
+      state = state.copyWith(hiddenHomeKeyNumbers: hidden);
 
   @override
-  Future<void> resetHomeCards() async => state = state.copyWith(
-    homeCardOrder: const <String>[],
-    hiddenHomeCards: const <String>{},
-  );
+  Future<void> setHomeHeaderStyle({
+    required bool phone,
+    required String style,
+  }) async => state = phone
+      ? state.copyWith(homeHeaderStylePhone: style)
+      : state.copyWith(homeHeaderStyleWide: style);
 
   @override
   Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
@@ -2826,7 +2825,7 @@ void main() {
 
       expect(find.text('ppO2 limits CCR'), findsOneWidget);
       expect(
-        find.text('Setpoint low 0.7 · high 1.3 · Dil MOD 1.6 bar'),
+        find.text('Setpoint low 0.7 · high 1.3 · Dil MOD 1.6 bar · switch 10m'),
         findsOneWidget,
       );
 
@@ -2839,14 +2838,14 @@ void main() {
       // Drag the high setpoint to the far left: the pair is never inverted,
       // so the low setpoint is pulled down with it to 0.5.
       final sliders = find.byType(Slider);
-      expect(sliders, findsNWidgets(3));
+      expect(sliders, findsNWidgets(4));
       await tester.drag(sliders.at(1), const Offset(-1000, 0));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Setpoint low 0.5 · high 0.5 · Dil MOD 1.6 bar'),
+        find.text('Setpoint low 0.5 · high 0.5 · Dil MOD 1.6 bar · switch 10m'),
         findsOneWidget,
       );
     });

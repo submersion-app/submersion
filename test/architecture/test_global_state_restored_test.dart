@@ -26,7 +26,8 @@ import 'global_state_scanner.dart';
 ///   it back does not count.
 /// * `QualityScanScheduler.enabled`, `SensorSummaryScheduler.enabled`,
 ///   `DerivedMetricsScheduler.enabled`, `debugCanShareFiles`, `GoogleFonts.config.allowRuntimeFetching` or
-///   `DemoModeGate.instance.debugActive`: call
+///   `DemoModeGate.instance.debugActive` or
+///   `OnnxVisionEngine.debugLibraryLoadsOverride`: call
 ///   `applyGlobalTestDefaults()` from
 ///   `test/helpers/global_test_defaults.dart` in `tearDown`.
 /// * A mock on the path provider or share channel: call

@@ -152,6 +152,23 @@ TextSelection _firstParagraphOf(String text, TextSelection sel) {
   );
 }
 
+/// Whether a pin at [value]'s selection would land inside or right after
+/// the markup of an annotation link that no longer reads as one (#4815):
+/// a caret after its start up to just past its end, or a selection, its
+/// edge spaces left out, that reaches into it. A link there would make the
+/// broken one harder to mend, as when a `)` typed back at the end of the
+/// notes closes the new link instead.
+bool touchesBrokenAnnotationLink(TextEditingValue value) {
+  final text = value.text;
+  if (!mayLinkAnnotations(text)) return false;
+  final sel = _hugWords(text, _normalized(value));
+  return brokenAnnotationLinkSpans(text).any(
+    (span) => sel.isCollapsed
+        ? span.start < sel.start && sel.start <= span.end
+        : sel.start < span.end && span.start < sel.end,
+  );
+}
+
 /// The words a selection covers once hugged, or '' for a caret.
 String selectedWords(TextEditingValue value) {
   final sel = _annotationSelection(value);

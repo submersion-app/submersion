@@ -8,6 +8,7 @@ import 'package:submersion/features/species_id/data/repositories/media_identific
 import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
 import 'package:submersion/features/species_id/domain/entities/dive_species_run_state.dart';
 import 'package:submersion/features/species_id/domain/services/auto_apply_rules.dart';
+import 'package:submersion/features/species_id/domain/services/identification_rules.dart';
 
 /// Tags the species the app is confident of on a media item, with no tap
 /// (issue #4727). Each tag is marked unconfirmed and, by the diver's
@@ -25,6 +26,7 @@ class AutoApplier {
     required Future<void> Function(String mediaId) reconcile,
     required int Function() databaseGeneration,
     required bool Function() packAllows,
+    Future<String?> Function()? deviceId,
   }) : _identifications = identifications,
        _acceptor = acceptor,
        _tagging = tagging,
@@ -32,7 +34,8 @@ class AutoApplier {
        _timing = timing,
        _reconcile = reconcile,
        _generation = databaseGeneration,
-       _packAllows = packAllows;
+       _packAllows = packAllows,
+       _deviceId = deviceId ?? (() async => null);
 
   final MediaIdentificationRepository _identifications;
   final SuggestionAcceptor _acceptor;
@@ -55,6 +58,11 @@ class AutoApplier {
   /// (`packCanApply`), as the setting shows; true with none installed,
   /// when the names already stored still count (issue #4727).
   final bool Function() _packAllows;
+
+  /// This device's sync id, or null when unknown. Only the device that made
+  /// a run applies from it (issue #4876): the tags it writes sync, so a
+  /// device that received the run never tags it a second time.
+  final Future<String?> Function() _deviceId;
   final _log = LoggerService.forClass(AutoApplier);
 
   bool get isOn => marineLifeIdEnabled && _enabled() && _packAllows();
@@ -97,13 +105,19 @@ class AutoApplier {
   Future<List<SpeciesToApply>> _picks(
     String mediaId, {
     required bool isVideo,
-  }) async => identificationsToApply(
-    await _identifications.forMedia(mediaId),
-    await _identifications.taggedSpecies(mediaId),
-    isVideo: isVideo,
-    scanComplete:
-        (await _identifications.runFor(mediaId))?.scanComplete ?? false,
-  );
+  }) async {
+    final run = await _identifications.runFor(mediaId);
+    final me = await _deviceId();
+    if (run != null && me != null && !run.madeOn(me)) return const [];
+    return identificationsToApply(
+      // As the labels show them: a leftover of a run that lost a sync race
+      // is hidden, so it never tags (issue #4876).
+      visibleRows(run, await _identifications.forMedia(mediaId)),
+      await _identifications.taggedSpecies(mediaId),
+      isVideo: isVideo,
+      scanComplete: run?.scanComplete ?? false,
+    );
+  }
 
   /// Applies over a Find species run's [items], filed as one automatic
   /// History entry for the whole run (issue #4727). The scope opens only

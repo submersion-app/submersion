@@ -62,6 +62,11 @@ abstract final class ChangeLogLabels {
   static const removeSource = 'remove_source';
   static const removeDuplicateCylinders = 'remove_duplicate_cylinders';
   static const updatePlannedDives = 'update_planned_dives';
+
+  /// The media library's bulk actions (issue #4527).
+  static const moveMedia = 'move_media';
+  static const unlinkMedia = 'unlink_media';
+  static const removeGearPhotos = 'remove_gear_photos';
 }
 
 /// Tells the change log triggers what is happening (issue #3922).

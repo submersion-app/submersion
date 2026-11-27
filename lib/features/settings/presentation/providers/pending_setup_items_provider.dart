@@ -1,10 +1,11 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/pending_setup_service.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Ticks on every SyncEventBus event (repository writes that mark records
@@ -49,9 +50,20 @@ final pendingSetupItemsProvider =
           (s) => (s.cloudBackupEnabled, s.copyAccountId),
         ),
       );
+      // A poll records its outcome in per-device state, which fires no bus
+      // event, and that outcome decides the subscription password items.
+      // Watched where the database can be read; elsewhere the service lists
+      // no subscriptions either.
+      final subscriptions = ref.watch(manifestSubscriptionRepositoryProvider);
+      try {
+        ref.invalidateSelfWhen(subscriptions.watchSubscriptionsChanges());
+      } on Object {
+        // No database here (a widget test): nothing to watch.
+      }
       final service = PendingSetupService(
         prefs: ref.watch(sharedPreferencesProvider),
         registry: ref.watch(accountProviderRegistryProvider),
+        subscriptions: subscriptions,
       );
       return service.compute();
     }, retry: (_, _) => null);

@@ -16,7 +16,9 @@ import 'package:submersion/features/media/domain/entities/import_candidate.dart'
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/pages/media_import_review_page.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/import_elsewhere_hint.dart';
 import 'package:submersion/features/media/presentation/widgets/manifest_mode_panel.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/media/presentation/widgets/network_signin_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/url_review_pane.dart';
 import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
@@ -80,7 +82,7 @@ class _UrlTabState extends ConsumerState<UrlTab> {
     final hold = MediaHoldScope.maybeOf(context);
     if (hold != null && target != null) {
       final requests = requestsForTarget(resolved, target);
-      hold([for (final r in requests) HeldNetworkMedia(r, networkPreview(r))]);
+      hold([for (final r in requests) HeldNetworkMedia.of(r)]);
       notifier.clearDraft();
       _draftBecameRows();
       navigator.pop();
@@ -156,18 +158,27 @@ class _UrlTabState extends ConsumerState<UrlTab> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(urlTabNotifierProvider);
+    // A sitting holds single links but not a feed's subscription and rows:
+    // no Manifest mode here, whatever mode the library left the tab in
+    // (issue #4527, media library decision 2).
+    final inSitting = MediaHoldScope.maybeOf(context) != null;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _ModeSegmentedControl(
-            mode: state.mode,
-            onChanged: (m) =>
-                ref.read(urlTabNotifierProvider.notifier).setMode(m),
-          ),
+          if (inSitting)
+            ImportElsewhereHint(
+              message: context.l10n.media_photoPicker_feedElsewhereHint,
+            )
+          else
+            _ModeSegmentedControl(
+              mode: state.mode,
+              onChanged: (m) =>
+                  ref.read(urlTabNotifierProvider.notifier).setMode(m),
+            ),
           const SizedBox(height: 16),
-          if (state.mode == UrlTabMode.urls)
+          if (inSitting || state.mode == UrlTabMode.urls)
             ..._buildUrlsBody(context, state)
           else
             const Expanded(child: ManifestModePanel()),

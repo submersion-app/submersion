@@ -8,6 +8,7 @@ import 'package:submersion/features/species_id/data/pack/species_pack_downloader
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
+import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
 /// Where the model pack stands on this device, for the settings page.
@@ -149,7 +150,7 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
     // the files are the same, so nothing is downloaded (issue #4721).
     if (installed != null &&
         published != null &&
-        installed.manifest.adoptableFrom(published)) {
+        installed.manifest.adoptableFrom(published, engine: engineName)) {
       try {
         installed = await store.adoptManifest(installed, published);
         ref.invalidate(installedSpeciesPackProvider);
@@ -215,6 +216,8 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
         done += file.size;
       }
       state = const PackInstalling();
+      // Before the install holds analysis: an engine can take minutes.
+      await _fetchHardwareEngine(ref.read(visionEngineProvider));
       // With no analysis under way: install deletes the old version.
       final installed = await ref
           .read(mediaIdentificationServiceProvider)
@@ -273,6 +276,36 @@ class SpeciesPackController extends Notifier<SpeciesPackState> {
       );
     }
     await engine.unload();
+  }
+
+  /// Whether downloading the pack would also fetch a hardware engine
+  /// (Windows ML on Windows), so the confirmation can say so first.
+  Future<bool> downloadFetchesHardwareEngine() async {
+    if (ref.read(visionEngineProvider) case final HardwareEngineSource source) {
+      try {
+        return await source.offersEngineToFetch();
+      } on Object catch (e) {
+        _log.warning('Could not ask for a hardware engine', error: e);
+      }
+    }
+    return false;
+  }
+
+  /// Fetches the hardware engine [engine] offers (Windows ML on Windows),
+  /// the one time the app uses the network for it, as the confirmation
+  /// said. An engine that does not arrive leaves DirectML and the
+  /// processor, so it never fails the install.
+  Future<void> _fetchHardwareEngine(VisionEngine engine) async {
+    if (engine case final HardwareEngineSource source) {
+      try {
+        if (await source.offersEngineToFetch()) {
+          final arrived = await source.fetchEngine();
+          _log.info('Hardware engine fetched with the pack: $arrived');
+        }
+      } on Object catch (e) {
+        _log.warning('The hardware engine did not arrive', error: e);
+      }
+    }
   }
 
   void cancel() => _cancelled = true;

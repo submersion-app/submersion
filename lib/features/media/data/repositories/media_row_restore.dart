@@ -147,6 +147,7 @@ Future<List<MediaData>> restoreMediaRows(
   }
 
   final back = {for (final r in restored) r.id};
+  await _republishIdentifications(db, syncRepository, back, now: now);
   final species = await existingRowIds(db, db.species, {
     for (final r in snapshot.species) r.speciesId,
   });
@@ -273,3 +274,58 @@ Future<void> relinkMediaToSites(
     );
   }
 });
+
+/// Marks the marine life results of media an undo put [back] pending
+/// (issue #4876). They are never deleted here while a delete can be undone,
+/// but a peer sweeps them once the media's tombstone reaches it, so without
+/// this it would never see them again.
+Future<void> _republishIdentifications(
+  AppDatabase db,
+  SyncRepository syncRepository,
+  Set<String> back, {
+  required int now,
+}) async {
+  if (back.isEmpty) return;
+  final ids = back.toList();
+  for (final chunk in seriesIdChunks(ids)) {
+    final runs = db.mediaIdentificationRuns;
+    final rows = db.mediaIdentifications;
+    final crops = db.mediaIdentificationCrops;
+    final published = [
+      (
+        type: 'mediaIdentificationRuns',
+        ids:
+            await (db.selectOnly(runs)
+                  ..addColumns([runs.mediaId])
+                  ..where(runs.mediaId.isIn(chunk)))
+                .map((r) => r.read(runs.mediaId)!)
+                .get(),
+      ),
+      (
+        type: 'mediaIdentifications',
+        ids:
+            await (db.selectOnly(rows)
+                  ..addColumns([rows.id])
+                  ..where(rows.mediaId.isIn(chunk)))
+                .map((r) => r.read(rows.id)!)
+                .get(),
+      ),
+      (
+        type: 'mediaIdentificationCrops',
+        ids:
+            await (db.selectOnly(crops)
+                  ..addColumns([crops.id])
+                  ..where(crops.mediaId.isIn(chunk)))
+                .map((r) => r.read(crops.id)!)
+                .get(),
+      ),
+    ];
+    for (final entity in published) {
+      await syncRepository.markRecordsPending(
+        entityType: entity.type,
+        recordIds: entity.ids,
+        localUpdatedAt: now,
+      );
+    }
+  }
+}

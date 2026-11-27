@@ -6,10 +6,14 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// The app calls the catalog, the per-dive sightings and the browse page
 /// "Species". "Marine Life" was the older term and survived on a handful of
 /// section headers, the picker title and the Insights tab, which read as a
-/// second, separate feature sitting next to the Species page.
+/// second, separate feature sitting next to the Species page. The dive list
+/// filter, the Detailed PDF, two Connections labels and the video labels
+/// action followed later: the catalog and species identification cover
+/// freshwater animals too, so "marine" no longer fits.
 ///
-/// The safety incident category is deliberately excluded: there "marine life"
-/// names the cause of an injury, not the catalog, so it keeps its wording.
+/// The safety incident category is not a Species label: it names what caused
+/// an injury, not the catalog. It says "Aquatic life" rather than "Marine
+/// life" for the same freshwater reason.
 void main() {
   List<String> speciesTermLabels(AppLocalizations l10n) => [
     l10n.nav_species,
@@ -26,6 +30,17 @@ void main() {
     l10n.insights_category_marineLife_title,
     l10n.insights_marineLife_appBar_title,
     l10n.insights_marineLife_bestSites_title,
+    l10n.diveLog_filter_sectionSpecies,
+    l10n.pdf_sectionMarineLife,
+    l10n.connections_caption_reef,
+    l10n.connections_preset_life,
+    l10n.media_labels_action,
+    // The same button's tooltips, naming how far analysis has got.
+    l10n.media_labels_buttonNotAnalysed,
+    l10n.media_labels_buttonAnalysing,
+    l10n.media_labels_buttonPartlyAnalysed,
+    l10n.media_labels_buttonOutdated,
+    l10n.media_labels_buttonAnalysed,
   ];
 
   /// The wording each locale used for the old "marine life" term. Every entry
@@ -42,6 +57,7 @@ void main() {
     'ar': ['البحرية'],
     'he': ['ימי'],
     'zh': ['海洋生物'],
+    'ja': ['海洋生物'],
   };
 
   test('the English species surfaces use the Species term', () {
@@ -59,6 +75,14 @@ void main() {
     expect(en.insights_category_marineLife_title, 'Species');
     expect(en.insights_marineLife_appBar_title, 'Species');
     expect(en.insights_marineLife_bestSites_title, 'Best Sites');
+    expect(en.diveLog_filter_sectionSpecies, 'Species');
+    expect(en.pdf_sectionMarineLife, 'Species');
+    expect(
+      en.connections_caption_reef,
+      'Sites, species and dive types; a line means they share dives.',
+    );
+    expect(en.connections_preset_life, 'Sites by species');
+    expect(en.media_labels_action, 'Species labels');
   });
 
   test('the nav label matches the Species page title in every locale', () {
@@ -90,8 +114,20 @@ void main() {
     });
   }
 
-  test('the safety incident category keeps the marine-life wording', () {
+  test('the safety incident category says aquatic life', () {
     final en = lookupAppLocalizations(const Locale('en'));
-    expect(en.incidentCategory_marineLife, 'Marine life');
+    expect(en.incidentCategory_marineLife, 'Aquatic life');
   });
+
+  for (final locale in AppLocalizations.supportedLocales) {
+    final code = locale.languageCode;
+    test('the incident category does not say marine in $code', () {
+      final label = lookupAppLocalizations(
+        locale,
+      ).incidentCategory_marineLife.toLowerCase();
+      for (final term in staleTerms[code]!) {
+        expect(label, isNot(contains(term)), reason: '"$label" says "$term"');
+      }
+    });
+  }
 }

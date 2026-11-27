@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:meta/meta.dart' show visibleForTesting;
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -15,8 +16,10 @@ import 'package:submersion/features/species_id/data/repositories/media_identific
 import 'package:submersion/features/species_id/data/services/crop_naming.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/memory_readout.dart';
+import 'package:submersion/features/species_id/data/services/video_crop_capper.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
@@ -24,12 +27,16 @@ import 'package:submersion/features/species_id/domain/services/identification_ru
 import 'package:submersion/features/species_id/domain/services/naming_levels.dart';
 import 'package:submersion/features/species_id/domain/services/region_grid.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
+import 'package:submersion/features/species_id/domain/services/video_crop_cap.dart';
 import 'package:submersion/features/species_id/domain/services/video_identification_rules.dart';
 import 'package:submersion/features/species_id/domain/services/video_scan_order.dart';
 import 'package:submersion/features/species_id/domain/services/video_tracker.dart';
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
+part 'media_identification_fresh.dart';
+part 'media_identification_queue.dart';
 part 'media_identification_readiness.dart';
+part 'media_identification_reads.dart';
 part 'media_identification_run_lane.dart';
 part 'media_identification_video.dart';
 
@@ -61,6 +68,7 @@ class MediaIdentificationService {
     required Future<List<TaggedSpecies>> Function(String mediaId) taggedSpecies,
     required bool Function() enabled,
     bool Function()? runEnabled,
+    bool Function()? videoRuns,
     int Function()? databaseGeneration,
     DateTime Function()? now,
     String Function()? newId,
@@ -69,6 +77,9 @@ class MediaIdentificationService {
     int firstVideoChunkMs = 2000,
     Future<void> Function(MediaItem item, int generation)? onItemSettled,
     Future<LevelInForce?> Function()? namingLevel,
+    NamingLevel Function()? chosenLevel,
+    Future<String?> Function()? deviceId,
+    String Function()? newRunId,
   }) : _engine = engine,
        _loadPack = loadPack,
        _identifications = identifications,
@@ -79,6 +90,7 @@ class MediaIdentificationService {
        _taggedSpecies = taggedSpecies,
        _enabled = enabled,
        _runEnabled = runEnabled ?? enabled,
+       _videoRuns = videoRuns ?? (() => true),
        _databaseGeneration =
            databaseGeneration ?? (() => DatabaseService.instance.generation),
        _now = now ?? DateTime.now,
@@ -87,7 +99,10 @@ class MediaIdentificationService {
        _memoryReadout = memoryReadout,
        _firstVideoChunkMs = firstVideoChunkMs,
        _onItemSettled = onItemSettled ?? ((_, _) async {}),
-       _namingLevel = namingLevel ?? (() async => null);
+       _namingLevel = namingLevel ?? (() async => null),
+       _chosenLevel = chosenLevel,
+       _deviceId = deviceId ?? syncDeviceIdOrNull,
+       _newRunId = newRunId ?? const Uuid().v4;
 
   final VisionEngine _engine;
   final Future<LoadedPack?> Function() _loadPack;
@@ -104,6 +119,10 @@ class MediaIdentificationService {
   /// Whether a Find species run is served (issue #4727): the feature, not
   /// the identify-on-open toggle, since the diver asked for the run.
   final bool Function() _runEnabled;
+
+  /// Whether videos are scanned here: not on Linux, which has no video
+  /// player, so neither the viewer nor a Find species run reads a video.
+  final bool Function() _videoRuns;
 
   /// Moves when another logbook is opened: what an analysis found for the
   /// one it started in is then dropped, not stored in the new one.
@@ -126,6 +145,28 @@ class MediaIdentificationService {
   /// The naming level the diver chose, as the installed pack names at it,
   /// or null for the pack's own bars (issue #4721).
   final Future<LevelInForce?> Function() _namingLevel;
+
+  /// The level the diver chose (issue #4876), so a run that kept its
+  /// pack's naming bars reconciles at it with no pack installed. Null reads
+  /// the level from [_namingLevel] alone.
+  final NamingLevel Function()? _chosenLevel;
+
+  /// This device's sync id, which a run records as its maker (issue #4876),
+  /// or null when it cannot be read: the run then counts as this device's
+  /// and is stamped before it first publishes.
+  final Future<String?> Function() _deviceId;
+
+  /// Drops the crops a video does not keep (issue #5032).
+  late final _capper = VideoCropCapper(
+    identifications: _identifications,
+    crops: _crops,
+    taggedSpecies: _taggedSpecies,
+    deviceId: _deviceId,
+  );
+
+  /// A run id, minted when an analysis of a media starts (issue #4876).
+  final String Function() _newRunId;
+
   final _log = LoggerService.forClass(MediaIdentificationService);
 
   /// Insertion-ordered (a map literal is a LinkedHashMap): the newest
@@ -170,23 +211,47 @@ class MediaIdentificationService {
   /// A [location] that arrives after the first request (the dive was still
   /// loading) is not lost: a queued request takes it, and one already
   /// running is followed by another that names the photo again.
-  Future<void> request(MediaItem item, {GeoPoint? location}) {
+  ///
+  /// [byHand] is the diver asking (issue #4825): it runs whether or not
+  /// photos are identified on opening. [fresh] is the diver asking for it
+  /// again from the start: analysed whatever it needs, dismissals brought
+  /// back ([reopenDismissed]), and nothing tagged by the app after it.
+  Future<void> request(
+    MediaItem item, {
+    GeoPoint? location,
+    bool byHand = false,
+    bool fresh = false,
+  }) {
     if (_disposed) return Future<void>.value();
     final running = _running;
-    if (running != null &&
+    // A fresh request never joins the one running: it starts over after it.
+    if (!fresh &&
+        running != null &&
         running.item.id == item.id &&
         (location == null || location == running.location)) {
-      // Back on a video whose scan was told to stop: it carries on.
+      // Back on a video whose scan was told to stop: it carries on, in a
+      // fresh pass if it has already stopped (issue #4872).
       running.cancelled = false;
+      // Asked by hand, it runs whether or not media are identified on
+      // opening, revived or not.
+      if (byHand) running.byHand = true;
       return running.done.future;
     }
     final queued = _waiting.remove(item.id);
     // A later location replaces a queued one; the callers' future stays.
     final job = queued == null
-        ? _Job(item, location, _databaseGeneration())
+        ? _Job.byViewer(
+            item,
+            location,
+            _databaseGeneration(),
+            byHand: byHand || fresh,
+            fresh: fresh,
+          )
         : queued.withLocation(
             location ?? queued.location,
             _databaseGeneration(),
+            byHand: byHand || fresh,
+            fresh: fresh,
           );
     // Re-inserting moves it to the newest end.
     _waiting[item.id] = job;
@@ -282,6 +347,7 @@ class MediaIdentificationService {
         _identifications,
         mediaId,
         await _namingLevel(),
+        chosen: _chosenLevel?.call(),
       );
       if (all.isEmpty) return;
       final changed = reconcileDecisions(
@@ -291,13 +357,15 @@ class MediaIdentificationService {
       );
       if (changed.isNotEmpty && _databaseGeneration() == generation) {
         await _identifications.updateDecisions(changed);
+        await _promoteNamed(mediaId, changed);
       }
     } on Object catch (e) {
       _log.debug('Could not reconcile identifications of $mediaId', error: e);
     }
   }
 
-  /// The diver dismissed these suggestions; they do not come back. Never
+  /// The diver dismissed these suggestions; they come back only when the
+  /// diver asks for the item to be analysed again (issue #4825). Never
   /// throws, and writes nothing if another logbook opened while it read.
   Future<void> reject(String mediaId, List<String> identificationIds) async {
     final ids = identificationIds.toSet();
@@ -315,6 +383,7 @@ class MediaIdentificationService {
       ];
       if (changed.isNotEmpty && _databaseGeneration() == generation) {
         await _identifications.updateDecisions(changed);
+        await _promoteNamed(mediaId, changed);
       }
     } on Object catch (e) {
       _log.debug('Could not dismiss suggestions of $mediaId', error: e);
@@ -333,6 +402,8 @@ class MediaIdentificationService {
   ) async {
     try {
       await _identifications.claim(identificationId, speciesId);
+      // Named now: its crop syncs (issue #4876).
+      await _crops.promote(mediaId, [identificationId]);
     } on Object catch (e) {
       _log.debug('Could not record the fish named on $mediaId', error: e);
     }
@@ -396,39 +467,6 @@ class MediaIdentificationService {
     await _activity.close();
   }
 
-  void _pump() {
-    if (_running != null ||
-        (_waiting.isEmpty && _runWaiting.isEmpty) ||
-        _disposed ||
-        _paused > 0) {
-      return;
-    }
-    // The viewer's newest request first; a run's oldest only when none
-    // waits (issue #4727).
-    final job = _waiting.isNotEmpty
-        ? _waiting.remove(_waiting.keys.last)!
-        : _runWaiting.remove(_runWaiting.keys.first)!;
-    _running = job;
-    _changed();
-    final ended = _process(job).then((putBack) {
-      _running = null;
-      _videoProgress = null;
-      // A video stopped for a newer request or a pack change goes to the
-      // oldest end, to carry on once the rest is done.
-      if (putBack && !_disposed && job.fromRun) {
-        _runWaiting = {job.item.id: job, ..._runWaiting};
-      } else if (putBack && !_disposed && !_waiting.containsKey(job.item.id)) {
-        _waiting = {job.item.id: job, ..._waiting};
-      } else {
-        job.done.complete();
-      }
-      _changed();
-      _pump();
-    });
-    _runningEnded = ended;
-    unawaited(ended);
-  }
-
   void _changed() {
     if (!_activity.isClosed) _activity.add(null);
   }
@@ -449,7 +487,11 @@ class MediaIdentificationService {
         job.outcome = RunItemOutcome.skipped;
         return false;
       }
-      if (!(job.fromRun ? _runEnabled() : _enabled())) {
+      if (video && !_videoRuns()) {
+        job.outcome = RunItemOutcome.skipped;
+        return false;
+      }
+      if (!(job.fromRun || job.byHand ? _runEnabled() : _enabled())) {
         job.outcome = RunItemOutcome.skipped;
         return false;
       }
@@ -469,7 +511,14 @@ class MediaIdentificationService {
       final cell = _regionCell(manifest, job.location);
 
       final run = await _identifications.runFor(item.id);
-      final stored = await _identifications.forMedia(item.id);
+      final madeHere = await _madeHere(run);
+      final stored = await _withoutLeftovers(
+        item.id,
+        run,
+        await _identifications.forMedia(item.id),
+        madeHere: madeHere,
+        generation: generation,
+      );
       // A video's fish kept unnamed at a stop have no crop or embedding
       // yet: the resumed scan names them.
       final named = [
@@ -480,7 +529,12 @@ class MediaIdentificationService {
         for (final i in named)
           if (i.decision == IdentificationDecision.undecided) i,
       ];
-      final cropsPresent = await _cropsPresent(_crops, item.id, named);
+      final cropsPresent = await _cropsPresent(
+        _crops,
+        item.id,
+        named,
+        tags: item.isVideo ? await _taggedSpecies(item.id) : const [],
+      );
       // A video's tracks are named again only when their pack or place
       // changed: its embeddings are not read otherwise.
       final namesCurrent =
@@ -507,18 +561,23 @@ class MediaIdentificationService {
           cell: cell,
           cropsPresent: cropsPresent,
           embeddingsPresent: embeddingsPresent,
+          madeHere: madeHere,
           generation: generation,
         );
       } else {
-        switch (decideRefresh(
-          run: run,
-          packVersion: manifest.packVersion,
-          detectorId: _runDetectorId(manifest, video: false),
-          classifierId: manifest.classifier.embeddingId,
-          cell: cell,
-          cropsPresent: cropsPresent,
-          embeddingsPresent: embeddingsPresent,
-        )) {
+        final action = job.fresh
+            ? RefreshAction.analyse
+            : decideRefresh(
+                run: run,
+                packVersion: manifest.packVersion,
+                detectorId: _runDetectorId(manifest, video: false),
+                classifierId: manifest.classifier.embeddingId,
+                cell: cell,
+                cropsPresent: cropsPresent,
+                embeddingsPresent: embeddingsPresent,
+                madeHere: madeHere,
+              );
+        switch (action) {
           case RefreshAction.none:
             break;
           case RefreshAction.rename:
@@ -532,6 +591,7 @@ class MediaIdentificationService {
             );
           case RefreshAction.analyse:
             await _analyse(pack, job, stored, cell, generation);
+            job.freshStarted();
         }
       }
       if (_databaseGeneration() != generation) return false;
@@ -545,56 +605,23 @@ class MediaIdentificationService {
     }
   }
 
-  /// [_onItemSettled] for [job]'s item, its failure logged and swallowed.
-  /// A run's items are left to the run, which applies them together.
-  Future<void> _settled(_Job job) async {
-    if (job.fromRun) return;
-    final item = job.item;
-    try {
-      await _onItemSettled(item, job.generation);
-    } on Object catch (e) {
-      _log.debug('Could not auto-apply species on ${item.id}', error: e);
-    }
-  }
-
-  Future<void> _rename(
-    LoadedPack pack,
-    MediaIdentificationRun run,
-    List<MediaIdentification> undecided,
-    Map<String, Float32List> embeddings,
-    int? cell,
-    int generation,
-  ) async {
-    final results = await nameCrops(pack, [
-      for (final i in undecided)
-        (embedding: embeddings[i.id]!, shorterSide: i.boxShorterSide),
-    ], cell);
-    final naming = pack.pack.manifest.naming;
-    final changed = [
-      for (var k = 0; k < undecided.length; k++)
-        _renamed(undecided[k], _named(undecided[k], results[k], naming)),
-    ];
-    if (_databaseGeneration() != generation) return;
-    await _identifications.updateNames(
-      changed,
-      run: run.copyWith(
-        packVersion: pack.pack.manifest.packVersion,
-        locationCell: () => cell,
-      ),
-    );
-  }
-
   Future<void> _analyse(
     LoadedPack pack,
     _Job job,
-    List<MediaIdentification> stored,
+    List<MediaIdentification> storedBefore,
     int? cell,
     int generation,
   ) async {
+    var stored = storedBefore;
     final item = job.item;
     final image = await (job.resolveImage ?? _resolveImage)(item);
     if (image == null) {
       job.outcome = RunItemOutcome.unreadable;
+      return;
+    }
+    // Another logbook opened while the photo was read: not worth analysing.
+    if (_databaseGeneration() != generation) {
+      job.outcome = RunItemOutcome.skipped;
       return;
     }
     final VisionAnalysis analysis;
@@ -645,6 +672,13 @@ class MediaIdentificationService {
         ),
       );
     }
+    // Dismissals come back only for a photo that was looked at again: an
+    // analysis or naming that failed leaves them as they were.
+    if (job.fresh) {
+      final reopened = await _reopen(job, stored);
+      if (reopened == null) return;
+      stored = reopened;
+    }
     final carried = carryDecisions(previous: stored, fresh: fresh);
     final manifest = pack.pack.manifest;
     if (_databaseGeneration() != generation) return;
@@ -659,6 +693,9 @@ class MediaIdentificationService {
         imageWidth: analysis.imageWidth,
         imageHeight: analysis.imageHeight,
         detectionCount: carried.keep.length + carried.insert.length,
+        analysedBy: await _deviceId(),
+        runId: _newRunId(),
+        namingBars: NamingBars.fromNaming(manifest.naming),
       ),
       insert: carried.insert,
       deleteIds: carried.deleteIds,
@@ -671,40 +708,14 @@ class MediaIdentificationService {
       for (final i in carried.insert) i.id: byId[i.id]!.embedding,
     }, classifierId: manifest.classifier.embeddingId);
     for (final i in carried.insert) {
-      await _crops.write(item.id, i.id, byId[i.id]!.cropJpeg);
+      await _crops.write(
+        item.id,
+        i.id,
+        byId[i.id]!.cropJpeg,
+        named: isNamed(i),
+      );
     }
     await _crops.markAnalysed(item.id);
-  }
-
-  /// [identification] with what naming found, including the label flags.
-  static MediaIdentification _named(
-    MediaIdentification identification,
-    NamingResult result,
-    NamingConfig naming,
-  ) {
-    final flags = namingFlags(result, naming);
-    return identification.copyWith(
-      openScore: result.openScore,
-      candidates: result.candidates,
-      locationLimited: result.locationLimited,
-      suggestable: result.suggestable,
-      confident: flags.confident,
-      specific: flags.specific,
-    );
-  }
-
-  /// [renamed] as [suggestableOnRename] allows, given [before]: a video
-  /// track keeps a suggestion only under the same name.
-  static MediaIdentification _renamed(
-    MediaIdentification before,
-    MediaIdentification renamed,
-  ) {
-    final suggestable = suggestableOnRename(before: before, renamed: renamed);
-    if (suggestable == renamed.suggestable) return renamed;
-    return renamed.copyWith(
-      suggestable: suggestable,
-      confident: renamed.confident && suggestable,
-    );
   }
 
   /// Runs the models over [image]. Models the system unloaded behind the
@@ -771,22 +782,4 @@ class MediaIdentificationService {
       _log.debug('Could not unload the marine life models', error: e);
     }
   }
-}
-
-/// [mediaId]'s identifications as [level] would suggest them, when the
-/// pack in force named them (issue #4721). The run and rows are read in
-/// one snapshot, so the pack the run names is the pack the rows were
-/// named with: a rename landing in between cannot pair them wrongly.
-Future<List<MediaIdentification>> identificationsAtLevel(
-  MediaIdentificationRepository repository,
-  String mediaId,
-  LevelInForce? level,
-) async {
-  // Surer is the pack's own bars, so its rows read as stored: no run to
-  // read and nothing to work out again.
-  if (level == null || level.level == NamingLevel.surer) {
-    return repository.forMedia(mediaId);
-  }
-  final (run, rows) = await repository.forMediaWithRun(mediaId);
-  return applyNamingLevel(rows, level: level, namedWithPack: run?.packVersion);
 }

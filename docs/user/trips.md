@@ -12,8 +12,8 @@ Trips group a set of related dives: a holiday, a resort week, a liveaboard exped
 Tap the **+** button at the bottom right of the Trips list (**Add Trip**). Every trip needs:
 
 - **Trip Name**: a short label for the trip (for example, "Red Sea 2026").
-- **Start Date** and **End Date**: the calendar dates bounding the trip. The form shows the duration in days as you pick dates.
-- **Trip type**, chosen at the top of the form:
+- **Start Date** and **End Date**: the calendar dates bounding the trip. The page shows the duration in days as you pick dates.
+- **Trip type**, chosen in the trip's header:
 
 | Type | Use when |
 |------|----------|
@@ -35,11 +35,11 @@ Optional fields:
 When more than one diver profile exists, **Shared with** picks who else sees the trip: **Everyone**, or only the profiles you tick. See [Sharing a trip with other profiles](#sharing-a-trip-with-other-profiles).
 
 > [!TIP]
-> You can edit any of these later by opening the trip and tapping the edit (pencil) icon in the top-right corner.
+> To change any of these later, open the trip and tap the lock (in the top bar on a phone, in the pane's header on desktop). Each card shows its pencil, on every tab: open the ones you want, change them and tap **Done**, then **Save**. One Save writes everything you changed, packing, checklists and scans included, and adds one entry to the trip's **History**.
 
 ## Liveaboard details
 
-When you choose **Liveaboard**, the form adds **Vessel Details**:
+When you choose **Liveaboard**, the trip gains a **Vessel** card:
 
 | Field | Notes |
 |-------|-------|
@@ -129,11 +129,11 @@ To see the trip's dive sites on a map, tap the map icon in the trip's app bar. S
 
 With two or more diver profiles on the device (a family sharing one tablet, say), a trip can be shared so the others can add their own dives to it without typing the trip in again.
 
-- **Who sees it:** edit the trip (the pencil icon) and tap **Shared with**, then save. Choose **Everyone** (every profile, including ones you add later), or tick only the profiles that were on the trip. A profile you leave unticked never sees it, so its trip list stays clear of trips it was not on.
+- **Who sees it:** unlock the trip, open its header with the pencil and tap **Shared with**, then save. Choose **Everyone** (every profile, including ones you add later), or tick only the profiles that were on the trip. A profile you leave unticked never sees it, so its trip list stays clear of trips it was not on.
 - **Several trips at once:** select them in the trip list and choose **Share with...**. This only adds the profiles you tick; it never takes a trip away from anyone. **Settings > Shared data > Share all my trips...** does the same for every trip you own.
 - **Who owns it:** the profile that created the trip. Only the owner can delete it or change who it is shared with. A profile it is shared with sees **Shared by {name}**, can edit its details and add its own dives, but cannot delete it.
 - **Not wanted in your profile?** On a trip someone else shared, choose **Remove from my profile**. It is hidden for you only, stays in the owner's log and every other profile, and your own dives stay linked to it. Bring it back from **Settings > Shared data > Hidden from this profile**.
-- **To stop sharing:** the owner edits the trip, taps **Shared with**, unticks a profile (or every profile) and saves. That profile's dives stay linked to the trip; it just no longer appears in that profile's trip list. Nothing is deleted.
+- **To stop sharing:** the owner unlocks the trip, taps **Shared with** in its header, unticks a profile (or every profile) and saves. That profile's dives stay linked to the trip; it just no longer appears in that profile's trip list. Nothing is deleted.
 
 ## See also
 

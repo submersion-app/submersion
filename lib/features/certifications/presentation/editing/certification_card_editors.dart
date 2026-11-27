@@ -8,6 +8,7 @@ import 'package:submersion/features/certification_agencies/presentation/provider
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/certification_agency_dropdown.dart';
 import 'package:submersion/features/certification_agencies/presentation/widgets/certification_level_dialog.dart';
+import 'package:submersion/features/certifications/domain/certification_title.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 import 'package:submersion/features/certifications/presentation/editing/certification_edit_fields.dart';
@@ -22,7 +23,7 @@ import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart
 /// The certification's card editors (issue #4527, phase 3), over any
 /// sitting on a certification: the certification page's, and the dialog a
 /// buddy's certification is edited in. Each sets only its own card's
-/// values, with the edit form's widgets and rules.
+/// values, with the old edit form's widgets and rules.
 
 /// A text binding of [field], whose blank text is a value (none, for an
 /// optional one).
@@ -45,11 +46,22 @@ class CertificationDetailsCardEditor extends ConsumerStatefulWidget {
 
 class _CertificationDetailsCardEditorState
     extends ConsumerState<CertificationDetailsCardEditor> {
-  late final _title = _bindText<String>(
-    widget.session,
-    certificationTitleField,
-    (v) => v,
+  // A name that only repeats the agency and level (the old form filled it
+  // in until 2026-08) shows blank, so the hint offers the derived title
+  // instead of repeating it.
+  late final _title = FieldTextBinding<Certification, String>(
+    session: widget.session,
+    field: certificationTitleField,
+    format: (v) =>
+        _repeatsCredentials(_session.working.copyWith(name: v)) ? '' : v,
+    parse: FieldValue<String>.new,
+    onEdited: () => _titleTyped = true,
   );
+
+  /// Whether the diver has typed in the title in this sitting. Typing the
+  /// stored text back is no change to the sitting, so the value alone
+  /// cannot tell.
+  bool _titleTyped = false;
   late final _cardNumber = _bindText<String?>(
     widget.session,
     certificationCardNumberField,
@@ -66,8 +78,30 @@ class _CertificationDetailsCardEditorState
   List<CertificationCredential> get _rows =>
       _session.valueOf(certificationCredentialsField);
 
-  void _setRows(List<CertificationCredential> rows) =>
-      _session.set(certificationCredentialsField, rows);
+  /// Whether [cert]'s name only repeats its agency and level.
+  bool _repeatsCredentials(Certification cert) =>
+      hasDerivedName(cert, catalog: context.certificationCatalog);
+
+  /// Sets the recognitions. A stored name that only repeats the stored
+  /// agency and level, which the field shows blank, follows them: cleared
+  /// once they change, as the old form's blank field saved it (kept, it
+  /// would read as a custom title on the new ones), and back when they
+  /// return, so a change undone leaves nothing to save. A title the diver
+  /// can see, stored or typed in this sitting, is theirs and stays.
+  void _setRows(List<CertificationCredential> rows) {
+    final stored = _session.stored;
+    final title = _session.valueOf(certificationTitleField);
+    final follows =
+        !_titleTyped &&
+        (title == stored.name || title.isEmpty) &&
+        _repeatsCredentials(stored);
+    _session.set(certificationCredentialsField, rows);
+    if (!follows) return;
+    final repeats = _repeatsCredentials(
+      _session.working.copyWith(name: stored.name),
+    );
+    _session.set(certificationTitleField, repeats ? stored.name : '');
+  }
 
   @override
   void dispose() {
@@ -156,6 +190,12 @@ class _CertificationDetailsCardEditorState
   @override
   Widget build(BuildContext context) {
     ref.watch(certificationCatalogSyncProvider);
+    // Whether a title only repeats its credentials follows the catalog,
+    // which can arrive, or change on a sync, after the editor opens. A title
+    // typed in this sitting is left as typed.
+    ref.listen(certificationCatalogSyncProvider, (_, _) {
+      if (!_titleTyped) _title.reformat();
+    });
     final l10n = context.l10n;
     return ListenableBuilder(
       listenable: _session,

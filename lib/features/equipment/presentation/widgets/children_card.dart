@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_fitting.dart';
@@ -111,22 +113,42 @@ class ChildrenCard extends ConsumerWidget {
                               ),
                             ),
                             PopupMenuButton<_ChildAction>(
+                              key: ValueKey('child-menu-${child.id}'),
                               onSelected: (action) =>
                                   _onAction(context, ref, child, action),
-                              itemBuilder: (context) => [
-                                PopupMenuItem(
-                                  value: _ChildAction.open,
-                                  child: Text(
-                                    l10n.equipmentCondition_children_open,
+                              itemBuilder: (context) {
+                                // Replace is a whole-record operation (issue
+                                // #4527, phase 3): it retires this part and
+                                // makes a new one.
+                                final reason = recordOperationReason(
+                                  l10n,
+                                  recordOperationBlockOf(
+                                    RecordEditScope.maybeOf<EquipmentItem>(
+                                      context,
+                                    ),
                                   ),
-                                ),
-                                PopupMenuItem(
-                                  value: _ChildAction.replace,
-                                  child: Text(
-                                    l10n.equipmentCondition_children_replace,
+                                );
+                                return [
+                                  PopupMenuItem(
+                                    value: _ChildAction.open,
+                                    child: Text(
+                                      l10n.equipmentCondition_children_open,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                  if (reason != null)
+                                    recordOperationCaption<_ChildAction>(
+                                      context,
+                                      reason,
+                                    ),
+                                  PopupMenuItem(
+                                    value: _ChildAction.replace,
+                                    enabled: reason == null,
+                                    child: Text(
+                                      l10n.equipmentCondition_children_replace,
+                                    ),
+                                  ),
+                                ];
+                              },
                             ),
                           ],
                         ),
@@ -165,11 +187,20 @@ class ChildrenCard extends ConsumerWidget {
       case _ChildAction.open:
         context.push('/equipment/${child.id}');
       case _ChildAction.replace:
-        await _replace(context, ref, child);
+        final controller = RecordEditScope.maybeOf<EquipmentItem>(context);
+        if (controller == null) {
+          await _replace(context, ref, child);
+        } else {
+          await recordOperationRunnerOf(
+            controller,
+            record: 'equipment ${equipment.id}',
+          )(() => _replace(context, ref, child));
+        }
     }
   }
 
-  Future<void> _replace(
+  /// Asks, then replaces [child]; whether it was replaced.
+  Future<bool> _replace(
     BuildContext context,
     WidgetRef ref,
     EquipmentItem child,
@@ -197,7 +228,7 @@ class ChildrenCard extends ConsumerWidget {
         ],
       ),
     );
-    if (confirmed != true || !context.mounted) return;
+    if (confirmed != true || !context.mounted) return false;
     try {
       await ref.read(equipmentRepositoryProvider).replaceChild(child);
     } catch (e, st) {
@@ -208,22 +239,23 @@ class ChildrenCard extends ConsumerWidget {
           context,
         ).showSnackBar(SnackBar(content: Text(l10n.common_error_tryAgain)));
       }
-      return;
+      return false;
     }
     // The diver may have left the page while the replacement saved; a
     // disposed state can no longer use ref. Both providers re-read on the
     // next visit anyway.
-    if (!context.mounted) return;
+    if (!context.mounted) return true;
     // The child list watches the equipment stream; the findings marker
     // reads the children, so a fresh child means a fresh review.
     ref.invalidate(childEquipmentProvider(equipment.id));
     ref.invalidate(equipmentConditionProvider(equipment.id));
-    if (!context.mounted) return;
+    if (!context.mounted) return true;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(l10n.equipmentCondition_children_replaced(child.name)),
       ),
     );
+    return true;
   }
 }
 

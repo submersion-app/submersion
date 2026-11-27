@@ -3,22 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 
-/// The active diver's avatar in the dashboard hero, tappable to switch diver.
+/// The active diver's avatar in the welcome banner, tappable to switch diver.
 ///
-/// Before this the only ways to change the active profile were a row buried
-/// in Settings > Diver Profile and a desktop-only keyboard shortcut. The
-/// dashboard greeting already names the diver, so the avatar beside it is
-/// where a second-profile user looks first.
-///
-/// Rendered only once a second profile exists: with one profile there is
-/// nothing to switch to, and the header stays exactly as it was. A small swap
+/// Shown with any number of profiles, as Home's compact bar shows its diver
+/// pill (#4985): one tap behaviour whatever the count, and the switcher
+/// sheet's Add new diver row is the way to a second profile. A small swap
 /// badge marks the avatar as a control rather than decoration. The widget
-/// owns the gap to the greeting, so it collapses to nothing when hidden.
+/// owns the gap to the greeting, so it collapses to nothing when there is no
+/// diver to show.
 class HeroDiverAvatar extends ConsumerWidget {
   const HeroDiverAvatar({super.key});
 
@@ -36,22 +32,19 @@ class HeroDiverAvatar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Counted in SQL and self-invalidating on divers-table writes, so adding
-    // a second profile reveals the avatar without a restart. Unknown (still
-    // loading) counts as one: most users have a single profile, and they
-    // must never see the greeting jump.
-    final diverCount = ref.watch(diverCountProvider).value ?? 1;
-    if (diverCount < 2) return const SizedBox.shrink();
-
     // `value`, not the project's `valueOrNull` polyfill: switching diver
     // re-runs the provider through its watched id, and the polyfill returns
     // null for that reload, which would blank the avatar for a frame or two.
     // `value` keeps the previous diver until the new one has loaded.
-    final diver = ref.watch(dashboardDiverProvider).value;
+    final diverAsync = ref.watch(dashboardDiverProvider);
+    final diver = diverAsync.value;
     // Reserve the slot on first load so the greeting does not jump right
-    // when the avatar lands.
+    // when the avatar lands. With no diver to show (none stored, or a load
+    // that failed, even one Riverpod is retrying) the slot collapses.
     if (diver == null) {
-      return const SizedBox(width: tapSize + _gap, height: tapSize);
+      return diverAsync.isLoading && !diverAsync.hasError
+          ? const SizedBox(width: tapSize + _gap, height: tapSize)
+          : const SizedBox.shrink();
     }
 
     final label = context.l10n.settings_profileHub_switchDiver;

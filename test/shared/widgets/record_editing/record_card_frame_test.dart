@@ -5,6 +5,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 @immutable
@@ -72,9 +73,15 @@ const _readCard = Card(
   ),
 );
 
-Widget _host(RecordEditController<_Rec>? controller) {
+Widget _host(RecordEditController<_Rec>? controller, {TextScaler? textScaler}) {
   final frame = RecordCardFrame<_Rec>(card: _card, child: _readCard);
   return MaterialApp(
+    builder: textScaler == null
+        ? null
+        : (context, child) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(textScaler: textScaler),
+            child: child!,
+          ),
     locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
@@ -179,7 +186,7 @@ void main() {
     expect(find.text('READ'), findsOneWidget);
     expect(find.text('Notes'), findsOneWidget);
     expect(find.text('3 tags'), findsOneWidget);
-    expect(find.byIcon(Icons.edit_outlined), findsNothing);
+    expect(find.byType(RecordPencilDisc), findsNothing);
     expect(find.text('Done'), findsNothing);
   });
 
@@ -228,7 +235,7 @@ void main() {
 
     expect(find.text('READ'), findsOneWidget);
     expect(find.text('3 tags'), findsOneWidget);
-    expect(find.byIcon(Icons.edit_outlined), findsNothing);
+    expect(find.byType(RecordPencilDisc), findsNothing);
   });
 
   testWidgets('unlocked: the header gains a pencil and keeps its trailing', (
@@ -241,7 +248,7 @@ void main() {
     await tester.pump();
 
     expect(find.byTooltip('Edit Notes'), findsOneWidget);
-    expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+    expect(find.byType(RecordPencilDisc), findsOneWidget);
     expect(find.text('3 tags'), findsOneWidget);
     expect(find.text('READ'), findsOneWidget);
   });
@@ -264,6 +271,25 @@ void main() {
 
   // The header's own right edge is where the pencil and Done belong, with
   // whatever the card shows while reading just before the pencil.
+  // The pencil is no taller than the title's line at any system text size
+  // up to 100%, so a smaller one does not make unlocking grow the row.
+  testWidgets('at a small text size, unlocking keeps the header\'s height', (
+    tester,
+  ) async {
+    final controller = _controller();
+    await tester.pumpWidget(
+      _host(controller, textScaler: const TextScaler.linear(0.85)),
+    );
+    final header = find.byType(RecordCardHeader);
+    final before = tester.getSize(header);
+
+    controller.unlock(const _Rec());
+    await tester.pump();
+
+    expect(find.byType(RecordPencilDisc), findsOneWidget);
+    expect(tester.getSize(header), before);
+  });
+
   testWidgets('the pencil sits at the right edge, after the trailing', (
     tester,
   ) async {
@@ -271,7 +297,7 @@ void main() {
     await tester.pumpWidget(_host(controller));
 
     final header = tester.getRect(find.byType(RecordCardHeader));
-    final pencil = tester.getRect(find.byIcon(Icons.edit_outlined));
+    final pencil = tester.getRect(find.byType(RecordPencilDisc));
     final trailing = tester.getRect(find.text('3 tags'));
     expect(pencil.right, header.right);
     expect(trailing.right, lessThan(pencil.left));
@@ -302,7 +328,7 @@ void main() {
     expect(find.text('READ'), findsNothing);
     expect(find.text('Notes'), findsOneWidget);
     expect(find.text('Done'), findsOneWidget);
-    expect(find.byIcon(Icons.edit_outlined), findsNothing);
+    expect(find.byType(RecordPencilDisc), findsNothing);
   });
 
   testWidgets('Done closes the card back to its read layout', (tester) async {
@@ -317,7 +343,7 @@ void main() {
     expect(controller.openCardIds, isEmpty);
     expect(find.text('READ'), findsOneWidget);
     expect(find.byKey(const ValueKey('editor')), findsNothing);
-    expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+    expect(find.byType(RecordPencilDisc), findsOneWidget);
   });
 
   // Closed, the header row is one tap target and the dot's label is read
@@ -363,7 +389,7 @@ void main() {
 
     expect(find.text('READ'), findsOneWidget);
     expect(find.byKey(const ValueKey('editor')), findsNothing);
-    expect(find.byIcon(Icons.edit_outlined), findsNothing);
+    expect(find.byType(RecordPencilDisc), findsNothing);
   });
 
   // Some cards carry an icon before their title (Altitude). It stays put in
@@ -414,7 +440,7 @@ void main() {
       await tester.pumpWidget(host(frame(isOpen: false)));
 
       expectLeadingBeforeTitle(tester);
-      expect(tester.getRect(find.byIcon(Icons.edit_outlined)).right, 800);
+      expect(tester.getRect(find.byType(RecordPencilDisc)).right, 800);
       expect(find.text('info'), findsOneWidget);
     });
 

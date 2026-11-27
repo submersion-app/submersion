@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_matching.dart';
 
-/// The buddy edit page's Country field (issue #4457): free text, like a
+/// A buddy's Country field (issue #4457): free text, like a
 /// site's country, offering [suggestions] that contain what was typed.
 ///
 /// [decoration] is the field's full decoration, so the page can add its

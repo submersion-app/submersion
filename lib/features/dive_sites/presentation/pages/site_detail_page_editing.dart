@@ -527,7 +527,7 @@ mixin _SiteDetailPageEditing
     if (isOwner != true) return null;
     final session = controller?.session;
     final sharing =
-        (session == null ? null : siteSharingInSitting(session)) ??
+        (session == null ? null : siteSharing.inSitting(session)) ??
         ref
             .watch(
               itemSharingProvider((kind: SharedItemKind.site, id: site.id)),

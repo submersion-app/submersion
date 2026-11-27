@@ -209,11 +209,14 @@ class EquipmentComponentRepository {
 
   /// Appends [componentId] under [parentId]. Throws
   /// [EquipmentComponentCycleException] rather than writing a loop; adding
-  /// a pair that already exists returns the existing row unchanged.
+  /// a pair that already exists returns the existing row unchanged. [id]
+  /// names the new row (a gear item's sitting gives it one, issue #4527);
+  /// one is minted when null.
   Future<EquipmentComponent> addComponent({
     required String parentId,
     required String componentId,
     String role = '',
+    String? id,
   }) async {
     if (await wouldCreateCycle(parentId: parentId, componentId: componentId)) {
       throw EquipmentComponentCycleException(parentId, componentId);
@@ -234,12 +237,12 @@ class EquipmentComponentRepository {
         ? 0
         : siblings.map((s) => s.sortOrder).reduce((a, b) => a > b ? a : b) + 1;
     final now = DateTime.now().millisecondsSinceEpoch;
-    final id = _uuid.v4();
+    final rowId = id ?? _uuid.v4();
     await _db
         .into(_db.equipmentComponents)
         .insert(
           EquipmentComponentsCompanion(
-            id: Value(id),
+            id: Value(rowId),
             parentEquipmentId: Value(parentId),
             componentEquipmentId: Value(componentId),
             role: Value(role.trim()),
@@ -250,14 +253,14 @@ class EquipmentComponentRepository {
         );
     await _syncRepository.markRecordPending(
       entityType: entityType,
-      recordId: id,
+      recordId: rowId,
       localUpdatedAt: now,
     );
     SyncEventBus.notifyLocalChange();
     _log.info('Added component $componentId under $parentId');
     final row = await (_db.select(
       _db.equipmentComponents,
-    )..where((t) => t.id.equals(id))).getSingle();
+    )..where((t) => t.id.equals(rowId))).getSingle();
     return _map(row);
   }
 

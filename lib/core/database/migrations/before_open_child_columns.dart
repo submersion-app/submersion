@@ -37,7 +37,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v324: buddy card swap columns (issue #3728).
     await _assertBuddyCardColumns();
 
-    // v380: divers.emergency_tag_share (issue #5060).
+    // v388: divers.emergency_tag_share (issue #5060).
     await _assertEmergencyTagColumn();
 
     // v325: trips.parent_trip_id (issue #3658). Every trip read selects the
@@ -74,6 +74,15 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v368: dives.media_time_offset_seconds (issue #4539), for the same
     // reason.
     await _assertDiveMediaTimeOffsetColumn();
+
+    // v382: dives.hand_set_fields (issue #4909), for the same reason.
+    await _assertDiveHandSetFieldsColumn();
+
+    // v384: trip_checklist_items.equipment_id (issue #4934).
+    await _assertTripChecklistEquipmentColumn();
+
+    // v385: trip_equipment.bag_equipment_id and bag_hlc (issue #4945).
+    await _assertTripEquipmentBagColumn();
 
     // v350: sightings.abundance (issue #4337). Every sighting read selects
     // the whole row, for the same reason as the tank columns.

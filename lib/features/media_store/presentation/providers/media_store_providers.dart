@@ -239,7 +239,7 @@ final mediaDeletionCoordinatorProvider = Provider<MediaDeletionCoordinator>((
       // delete can still be undone (issue #4668). An analysis of one of
       // them finishes first, so it cannot write after the purge.
       final ids = [for (final item in items) item.id];
-      if (!undoable && marineLifeIdEnabled) {
+      if (!undoable && marineLifeLabelsShown) {
         await ref.read(mediaIdentificationServiceProvider).settle(ids);
       }
       await ref

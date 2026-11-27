@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/documents/data/repositories/document_owner_options_repository.dart';
+import 'package:submersion/features/documents/presentation/providers/document_owner_providers.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/editing/document_details_card_editor.dart';
 import 'package:submersion/features/documents/presentation/editing/document_edit_fields.dart';
@@ -16,9 +19,8 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import '../../../../helpers/test_database.dart';
 import 'document_detail_page_unlock_harness.dart';
 
-/// The document page edits in place behind the phase 3 switch (issue
-/// #4527): it opens locked, a sitting edits its details, and one Save
-/// writes it.
+/// The document page edits in place (issue #4527): it opens locked, a
+/// sitting edits its details, and one Save writes it.
 void main() {
   final l = AppLocalizationsEn();
 
@@ -41,11 +43,23 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('with the switch off there is no lock', (tester) async {
-    await pumpDocumentPage(tester, unlockEditing: false);
+  // The lock is the one way in (issue #4527, plan 12): no Edit pencil.
+  testWidgets('the locked bar has the lock and no Edit pencil', (tester) async {
+    await pumpDocumentPage(tester);
 
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
+  });
+
+  testWidgets('the pane header has the lock and no Edit pencil', (
+    tester,
+  ) async {
+    await pumpDocumentPage(tester, embedded: true);
+
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
   });
 
   testWidgets('locked, no tap writes', (tester) async {
@@ -131,8 +145,83 @@ void main() {
         find.byKey(const Key('document-type')),
       );
       expect(type.onChanged, isNull);
+      // The owner shows, locked to its certification.
+      final owner = find.byKey(const ValueKey('document-owner-field'));
+      expect(owner, findsOneWidget);
+      expect(find.text(l.documents_owner_locked), findsOneWidget);
+      expect(
+        tester
+            .widget<InkWell>(
+              find.descendant(of: owner, matching: find.byType(InkWell)),
+            )
+            .onTap,
+        isNull,
+      );
     },
   );
+
+  testWidgets('a document refiled under a trip in Details saves that owner '
+      'and names it', (tester) async {
+    final harness = await pumpDocumentPage(
+      tester,
+      extraOverrides: [
+        documentOwnerOptionsProvider(DocumentOwnerKind.trip).overrideWith(
+          (ref) async => const [DocumentOwnerOption('t1', 'Bonaire')],
+        ),
+        documentOwnerLabelProvider.overrideWith(
+          (ref, owner) async => owner.id == 't1'
+              ? const DocumentOwnerOption('t1', 'Bonaire')
+              : null,
+        ),
+      ],
+    );
+    await unlock(tester);
+    await openDetails(tester);
+
+    final owner = find.byKey(const ValueKey('document-owner-field'));
+    await tester.ensureVisible(owner);
+    await tester.tap(owner);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('owner-kind-trip')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Bonaire').last);
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(of: owner, matching: find.text('Bonaire')),
+      findsOneWidget,
+    );
+
+    await save(tester);
+
+    final call = harness.save.calls.single;
+    expect(
+      call.after.document.owner,
+      const DocumentOwner(DocumentOwnerKind.trip, 't1'),
+    );
+    expect(call.cards, {'details'});
+  });
+
+  testWidgets('a tag typed into Details is saved with the sitting', (
+    tester,
+  ) async {
+    final harness = await pumpDocumentPage(tester);
+    await unlock(tester);
+    await openDetails(tester);
+
+    final input = find.descendant(
+      of: find.byType(TagInputWidget),
+      matching: find.byType(TextField),
+    );
+    await tester.ensureVisible(input);
+    await tester.enterText(input, 'Club');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    await save(tester);
+
+    final call = harness.save.calls.single;
+    expect(call.after.tagIds, hasLength(1));
+    expect(call.cards, {'details'});
+  });
 
   testWidgets('tags that could not be read are shown read only', (
     tester,
@@ -145,6 +234,26 @@ void main() {
       find.byKey(const ValueKey('document_details_tags_browse')),
     );
     expect(browse.onPressed, isNull);
+  });
+
+  testWidgets('a record that cannot be read says so, with a way back', (
+    tester,
+  ) async {
+    await pumpDocumentPage(tester, recordReadError: StateError('broken'));
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.textContaining('broken'), findsOneWidget);
+    expect(find.byType(AppBar), findsOneWidget);
+  });
+
+  testWidgets('a record that is gone says so instead of waiting', (
+    tester,
+  ) async {
+    await pumpDocumentPage(tester, recordMissing: true);
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text(l.documents_empty), findsOneWidget);
+    expect(find.byType(AppBar), findsOneWidget);
   });
 
   testWidgets('Cancel with changes asks first', (tester) async {

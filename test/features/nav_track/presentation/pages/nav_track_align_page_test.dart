@@ -17,7 +17,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/seacraft_enc_csv_parser.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
@@ -27,24 +26,38 @@ import 'package:submersion/features/nav_track/presentation/pages/nav_track_align
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/nav_track/presentation/editing/nav_track_edit_fields.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/world_map_expectations.dart';
 
-/// Records `updateCorrection` calls instead of touching a real database.
-class _RecordingNavTrackRepository extends NavTrackRepository {
-  String? lastRouteId;
-  NavTrackCorrection? lastCorrection;
+/// The track page's sitting the align page is handed (issue #4527): what
+/// Done handed it reads back as the correction the page "saved".
+class _Held {
+  _Held(this.sitting, this.routeId);
 
-  @override
-  Future<void> updateCorrection(
-    String routeId,
-    NavTrackCorrection correction,
-  ) async {
-    lastRouteId = routeId;
-    lastCorrection = correction;
+  final RecordEditController<NavTrack> sitting;
+  final String routeId;
+
+  /// The correction Done handed the sitting; null while it holds none.
+  NavTrackCorrection? get lastCorrection {
+    final session = sitting.session;
+    if (session == null) return null;
+    if (!session.changedCardIds.contains('correction')) return null;
+    return navTrackCorrectionIn(session);
   }
+
+  /// The correction the sitting holds, changed or not: a correction put
+  /// back as it was stored is no change.
+  NavTrackCorrection? get correction {
+    final session = sitting.session;
+    return session == null ? null : navTrackCorrectionIn(session);
+  }
+
+  /// The track the held correction is for, once there is one.
+  String? get lastRouteId => lastCorrection == null ? null : routeId;
 }
 
 List<NavTrackPoint> _points() => [
@@ -73,7 +86,7 @@ NavTrack _route({String? diveId, String? siteId}) => NavTrack(
   updatedAt: DateTime(2026, 8, 22),
 );
 
-Future<_RecordingNavTrackRepository> _pump(
+Future<_Held> _pump(
   WidgetTester tester, {
   required NavTrack route,
   Dive? linkedDive,
@@ -82,7 +95,10 @@ Future<_RecordingNavTrackRepository> _pump(
   MockSettingsNotifier? settingsNotifier,
 }) async {
   final overrides = await getBaseOverrides(settingsNotifier: settingsNotifier);
-  final repository = _RecordingNavTrackRepository();
+  // The align page edits only in the track page's sitting (issue #4527).
+  final sitting = RecordEditController<NavTrack>(onSave: (_) async {});
+  addTearDown(sitting.dispose);
+  sitting.unlock(route);
   final router = GoRouter(
     initialLocation: '/tracks/underwater/${route.id}',
     routes: [
@@ -93,8 +109,10 @@ Future<_RecordingNavTrackRepository> _pump(
       ),
       GoRoute(
         path: '/tracks/underwater/:id/align',
-        builder: (context, state) =>
-            NavTrackAlignPage(routeId: state.pathParameters['id']!),
+        builder: (context, state) => NavTrackAlignPage(
+          routeId: state.pathParameters['id']!,
+          joinedSitting: sitting,
+        ),
       ),
       GoRoute(
         path: '/tracks/underwater/:id/3d',
@@ -108,7 +126,6 @@ Future<_RecordingNavTrackRepository> _pump(
       overrides: [
         ...overrides,
         navTrackByIdProvider(route.id).overrideWith((ref) async => route),
-        navTrackRepositoryProvider.overrideWithValue(repository),
         if (linkedDive != null)
           diveProvider(linkedDive.id).overrideWith((ref) async => linkedDive),
         if (site != null)
@@ -126,7 +143,7 @@ Future<_RecordingNavTrackRepository> _pump(
   );
   router.push('/tracks/underwater/${route.id}/align');
   await tester.pumpAndSettle();
-  return repository;
+  return _Held(sitting, route.id);
 }
 
 void main() {
@@ -157,7 +174,7 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('nav-track-align-set-here')));
       await tester.pump();
 
-      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
       await tester.pumpAndSettle();
 
       expect(repository.lastRouteId, 'r1');
@@ -250,7 +267,7 @@ void main() {
       );
       await tester.pump();
 
-      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
       await tester.pumpAndSettle();
 
       expect(repository.lastCorrection?.anchor, const GeoPoint(46.9, 7.2));
@@ -273,7 +290,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('nav-track-align-from-site')));
     await tester.pump();
-    await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
     await tester.pumpAndSettle();
 
     expect(repository.lastCorrection?.anchor, const GeoPoint(47.1, 8.3));
@@ -397,7 +414,7 @@ void main() {
       await tester.tap(chipFinder);
       await tester.pump();
 
-      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
       await tester.pumpAndSettle();
 
       expect(repository.lastCorrection?.anchor, const GeoPoint(47.1, 8.3));
@@ -462,7 +479,7 @@ void main() {
       await tester.tap(chipFinder);
       await tester.pump();
 
-      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
       await tester.pumpAndSettle();
 
       final anchor = repository.lastCorrection?.anchor;
@@ -633,7 +650,7 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
     await tester.pumpAndSettle();
 
     expect(repository.lastCorrection?.endMode, NavTrackEndMode.sameAsStart);
@@ -694,7 +711,7 @@ void main() {
       await tester.tap(chipFinder);
       await tester.pump();
 
-      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
       await tester.pumpAndSettle();
 
       expect(repository.lastCorrection?.endMode, NavTrackEndMode.gpsFix);
@@ -794,7 +811,7 @@ void main() {
         findsOneWidget,
       );
 
-      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
       await tester.pumpAndSettle();
 
       expect(repository.lastCorrection?.endMode, NavTrackEndMode.point);
@@ -815,7 +832,7 @@ void main() {
       await tester.drag(sliderFinder, const Offset(80, 0));
       await tester.pump();
 
-      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
       await tester.pumpAndSettle();
 
       expect(repository.lastCorrection?.trustFraction, greaterThan(0));
@@ -862,12 +879,12 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('nav-track-align-reset')));
     await tester.pump();
 
-    await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
     await tester.pumpAndSettle();
 
-    expect(repository.lastCorrection?.anchor, isNull);
-    expect(repository.lastCorrection?.endMode, NavTrackEndMode.none);
-    expect(repository.lastCorrection?.trustFraction, 0);
+    expect(repository.correction?.anchor, isNull);
+    expect(repository.correction?.endMode, NavTrackEndMode.none);
+    expect(repository.correction?.trustFraction, 0);
   });
 
   testWidgets(
@@ -893,7 +910,7 @@ void main() {
       await tester.drag(markerFinder, const Offset(40, 30));
       await tester.pump();
 
-      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
       await tester.pumpAndSettle();
 
       const before = GeoPoint(0, 0);
@@ -927,7 +944,7 @@ void main() {
     );
     await tester.pump();
 
-    await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
     await tester.pumpAndSettle();
 
     final correction = repository.lastCorrection;
@@ -946,10 +963,10 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('nav-track-align-end-none')));
     await tester.pump();
 
-    await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
     await tester.pumpAndSettle();
 
-    expect(repository.lastCorrection?.endMode, NavTrackEndMode.none);
+    expect(repository.correction?.endMode, NavTrackEndMode.none);
   });
 
   testWidgets(
@@ -971,29 +988,6 @@ void main() {
 
     expect(repository.lastCorrection, isNull);
   });
-
-  testWidgets(
-    '"Open 3D" saves the in-progress correction before navigating, so the '
-    '3D view (which reloads the route from the repository) reflects what '
-    'is currently being edited rather than the last-saved state (item 22)',
-    (tester) async {
-      final repository = await _pump(tester, route: _route());
-
-      await tester.tap(
-        find.byKey(const ValueKey('nav-track-align-place-start')),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('nav-track-align-set-here')));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byKey(const ValueKey('nav-track-align-3d')));
-      await tester.pumpAndSettle();
-
-      expect(repository.lastRouteId, 'r1');
-      expect(repository.lastCorrection, isNotNull);
-      expect(find.text('ROUTE_3D_PAGE'), findsOneWidget);
-    },
-  );
 
   testWidgets(
     'the "Open 3D" button uses the same icon as "3D-Unterwasserwelt" on the '
@@ -1024,7 +1018,7 @@ void main() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pump();
 
-      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
       await tester.pumpAndSettle();
 
       expect(repository.lastCorrection?.headingOffsetDeg, 12.5);
@@ -1046,7 +1040,7 @@ void main() {
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
 
-    await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+    await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
     await tester.pumpAndSettle();
 
     expect(
@@ -1089,7 +1083,7 @@ void main() {
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pump();
 
-      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
       await tester.pumpAndSettle();
 
       expect(repository.lastCorrection?.headingOffsetDeg, 0.5);
@@ -1263,7 +1257,7 @@ void main() {
       );
 
       final repository = await _pump(tester, route: route);
-      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
       await tester.pumpAndSettle();
 
       expect(repository.lastCorrection?.endMode, NavTrackEndMode.sameAsStart);
@@ -1754,7 +1748,7 @@ void main() {
       final repository = await _pump(tester, route: _route());
       await tester.tap(find.byKey(scaleUp));
       await tester.pump();
-      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
       await tester.pumpAndSettle();
       expect(repository.lastCorrection?.scaleFactor, closeTo(1.01, 1e-9));
     });
@@ -1954,7 +1948,7 @@ void main() {
       testWidgets('Save persists a dragged scale', (tester) async {
         final repository = await _pump(tester, route: longTrack());
         await dragHandle(tester, const Offset(10, -60));
-        await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+        await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
         await tester.pumpAndSettle();
         expect(repository.lastCorrection!.scaleFactor, greaterThan(1));
       });
@@ -2149,7 +2143,7 @@ void main() {
         );
         // And functionally: Save must be directly tappable with no
         // scrolling, proving the cap truly does not apply here.
-        await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+        await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
         await tester.pumpAndSettle();
         expect(repository.lastRouteId, 'r1');
       },
@@ -2180,10 +2174,10 @@ void main() {
         );
 
         await tester.ensureVisible(
-          find.byKey(const ValueKey('nav-track-align-save')),
+          find.byKey(const ValueKey('nav-track-align-done')),
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+        await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
         await tester.pumpAndSettle();
         expect(repository.lastRouteId, 'r1');
       });
@@ -2202,7 +2196,7 @@ void main() {
         final scrollbar = tester.widget<Scrollbar>(
           find
               .ancestor(
-                of: find.byKey(const ValueKey('nav-track-align-save')),
+                of: find.byKey(const ValueKey('nav-track-align-done')),
                 matching: find.byType(Scrollbar),
               )
               .last,
@@ -2225,9 +2219,9 @@ void main() {
       );
 
       await tester.ensureVisible(
-        find.byKey(const ValueKey('nav-track-align-save')),
+        find.byKey(const ValueKey('nav-track-align-done')),
       );
-      await tester.tap(find.byKey(const ValueKey('nav-track-align-save')));
+      await tester.tap(find.byKey(const ValueKey('nav-track-align-done')));
       await tester.pumpAndSettle();
 
       expect(repository.lastRouteId, 'r1');

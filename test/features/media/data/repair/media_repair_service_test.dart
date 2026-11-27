@@ -6,7 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
+import 'package:submersion/features/change_log/data/services/change_log_settler.dart';
+import 'package:submersion/features/media/data/repositories/media_repair_log_repository.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
@@ -16,8 +19,39 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 
+import '../../../../core/database/change_log/change_log_support.dart';
 import '../../../../helpers/fake_photo_picker_service.dart';
 import '../../../../helpers/test_database.dart';
+
+/// Runs [during] while it looks the ids up, as a save elsewhere would.
+class _SlowCloudIds implements CloudIdentifierSource {
+  _SlowCloudIds(this.during);
+
+  final Future<void> Function() during;
+
+  @override
+  bool get isSupported => true;
+
+  @override
+  Future<Map<String, String>> cloudIdentifiers(List<String> localIds) async {
+    await during();
+    return {for (final id in localIds) id: 'cloud-$id'};
+  }
+}
+
+/// Runs [during] while it drops the cached mappings, as a save elsewhere
+/// would.
+class _SlowAssetCache extends LocalAssetCacheRepository {
+  _SlowAssetCache(this.during, {super.database});
+
+  final Future<void> Function() during;
+
+  @override
+  Future<void> clearEntries(Iterable<String> mediaIds) async {
+    await during();
+    await super.clearEntries(mediaIds);
+  }
+}
 
 void main() {
   late AppDatabase db;
@@ -106,6 +140,153 @@ void main() {
     final digest = await sha256OfFile(file);
     return (file, digest.hash);
   }
+
+  // Issue #4527 (media library, plan 2): a pass no one reviewed is never
+  // filed as the diver's change.
+  group('History', () {
+    Future<ChangeLogOperationRow> relinkFiledAs({
+      RepairLogSource? source,
+    }) async {
+      final (file, hash) = await tempFile('a.jpg', 'aaaa');
+      await seed('a', contentHash: hash);
+      final item = (await repo.getMediaById('a'))!;
+      await ChangeLogSettler(db).settle();
+      await clearLog(db);
+      await db.customStatement('DELETE FROM change_log_operations');
+      final proposal = RepairProposal(
+        item: item,
+        confidence: RepairConfidence.exact,
+        candidate: RepairCandidate.file(path: file.path, sizeBytes: 4),
+      );
+      await (source == null
+          ? service().apply([proposal])
+          : service().apply([proposal], source: source));
+      await ChangeLogSettler(db).settle();
+      return (await db.select(db.changeLogOperations).get()).single;
+    }
+
+    test('a watcher relink files as one automatic media repair', () async {
+      final op = await relinkFiledAs(source: RepairLogSource.watcher);
+      expect(op.source, ChangeLogSource.automatic.name);
+      expect(op.label, ChangeLogLabels.mediaRepair);
+    });
+
+    // ChangeLogScope.automatic: anything saved while the scope is open takes
+    // its label, so the per-row work before the writes stays outside it.
+    test('a save made while the files are prepared is not filed as the '
+        'repair', () async {
+      final (file, hash) = await tempFile('a.jpg', 'aaaa');
+      await seed('a', contentHash: hash);
+      await seed('other');
+      final item = (await repo.getMediaById('a'))!;
+      await ChangeLogSettler(db).settle();
+      await clearLog(db);
+      await db.customStatement('DELETE FROM change_log_operations');
+
+      await service(
+        // Stands in for the diver saving elsewhere while a bookmark is made.
+        createBookmark: (_) async {
+          await db.customStatement(
+            "UPDATE media SET caption = 'saved meanwhile' WHERE id = 'other'",
+          );
+          return Uint8List(0);
+        },
+        writeBookmark: (_, _) async {},
+      ).apply([
+        RepairProposal(
+          item: item,
+          confidence: RepairConfidence.exact,
+          candidate: RepairCandidate.file(path: file.path, sizeBytes: 4),
+        ),
+      ], source: RepairLogSource.watcher);
+
+      await ChangeLogSettler(db).settle();
+      final repair = (await db.select(db.changeLogOperations).get())
+          .singleWhere((o) => o.label == ChangeLogLabels.mediaRepair);
+      final filed = await (db.select(
+        db.changeLogEvents,
+      )..where((e) => e.operationId.equals(repair.id))).get();
+      expect(filed.map((e) => e.recordId), isNot(contains('other')));
+      expect(filed.map((e) => e.recordId), contains('a'));
+    });
+
+    test('a save made while cloud ids are looked up is not filed as the '
+        'repair', () async {
+      await seed('a');
+      await seed('other');
+      final item = (await repo.getMediaById('a'))!;
+      await ChangeLogSettler(db).settle();
+      await clearLog(db);
+      await db.customStatement('DELETE FROM change_log_operations');
+
+      await service(
+        cloudIdentifiers: _SlowCloudIds(
+          () => db.customStatement(
+            "UPDATE media SET caption = 'saved meanwhile' WHERE id = 'other'",
+          ),
+        ),
+      ).apply([
+        RepairProposal(
+          item: item,
+          confidence: RepairConfidence.probable,
+          candidate: const RepairCandidate.galleryAsset(
+            assetId: 'asset-9',
+            sizeBytes: null,
+          ),
+        ),
+      ]);
+
+      await ChangeLogSettler(db).settle();
+      final repair = (await db.select(db.changeLogOperations).get())
+          .singleWhere((o) => o.label == ChangeLogLabels.mediaRepair);
+      final filed = await (db.select(
+        db.changeLogEvents,
+      )..where((e) => e.operationId.equals(repair.id))).get();
+      expect(filed.map((e) => e.recordId), isNot(contains('other')));
+      expect(filed.map((e) => e.recordId), contains('a'));
+    });
+
+    test('a save made while the cache is cleared is not filed as the '
+        'repair', () async {
+      final (file, hash) = await tempFile('a.jpg', 'aaaa');
+      await seed('a', contentHash: hash);
+      await seed('other');
+      final item = (await repo.getMediaById('a'))!;
+      await ChangeLogSettler(db).settle();
+      await clearLog(db);
+      await db.customStatement('DELETE FROM change_log_operations');
+
+      await service(
+        assetCache: _SlowAssetCache(
+          () => db.customStatement(
+            "UPDATE media SET caption = 'saved meanwhile' WHERE id = 'other'",
+          ),
+          database: cacheDb,
+        ),
+      ).apply([
+        RepairProposal(
+          item: item,
+          confidence: RepairConfidence.exact,
+          candidate: RepairCandidate.file(path: file.path, sizeBytes: 4),
+        ),
+      ], source: RepairLogSource.watcher);
+
+      await ChangeLogSettler(db).settle();
+      final repair = (await db.select(db.changeLogOperations).get())
+          .singleWhere((o) => o.label == ChangeLogLabels.mediaRepair);
+      final filed = await (db.select(
+        db.changeLogEvents,
+      )..where((e) => e.operationId.equals(repair.id))).get();
+      expect(filed.map((e) => e.recordId), isNot(contains('other')));
+      expect(filed.map((e) => e.recordId), contains('a'));
+    });
+
+    test('a reviewed relink (the wizard) stays manual', () async {
+      final op = await relinkFiledAs();
+      expect(op.source, ChangeLogSource.manual.name);
+      expect(op.label, ChangeLogLabels.mediaRepair);
+    });
+  });
 
   test('exact file proposal rewrites the path and clears isOrphaned', () async {
     final (file, hash) = await tempFile('a.jpg', 'aaaa');

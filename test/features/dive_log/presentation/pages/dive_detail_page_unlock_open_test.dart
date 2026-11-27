@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
-import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,7 +20,7 @@ void main() {
 
   Finder lock() => find.byTooltip('Unlock to edit');
   Finder saveAction() =>
-      find.byWidgetPredicate((w) => w is AppBarTextAction && w.label == 'Save');
+      find.byWidgetPredicate((w) => w is RecordEditAction && w.label == 'Save');
 
   testWidgets('opened unlocked, the page shows Cancel and Save', (
     tester,
@@ -115,7 +115,7 @@ void main() {
 
     await tester.tap(
       find.byWidgetPredicate(
-        (w) => w is AppBarTextAction && w.label == 'Cancel',
+        (w) => w is RecordEditAction && w.label == 'Cancel',
       ),
     );
     await settle(tester);
@@ -247,7 +247,7 @@ void main() {
     expect(saveAction(), findsOneWidget);
     await tester.tap(
       find.byWidgetPredicate(
-        (w) => w is AppBarTextAction && w.label == 'Cancel',
+        (w) => w is RecordEditAction && w.label == 'Cancel',
       ),
     );
     await settle(tester);
@@ -310,7 +310,7 @@ void main() {
     await settle(tester);
     await tester.tap(
       find.byWidgetPredicate(
-        (w) => w is AppBarTextAction && w.label == 'Cancel',
+        (w) => w is RecordEditAction && w.label == 'Cancel',
       ),
     );
     await settle(tester);

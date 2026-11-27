@@ -24,6 +24,7 @@ import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_database.dart';
@@ -163,7 +164,7 @@ void main() {
 
     expect(_section(DiveDetailSectionId.notes), findsOneWidget);
     expect(_section(DiveDetailSectionId.tags), findsOneWidget);
-    expect(find.byIcon(Icons.edit_outlined), findsNothing);
+    expect(find.byType(RecordPencilDisc), findsNothing);
   });
 
   testWidgets('unlocked: Notes, Tags and Custom fields gain a pencil', (
@@ -182,7 +183,7 @@ void main() {
     expect(find.byTooltip('Edit Tags'), findsOneWidget);
     expect(find.byTooltip('Edit Custom Fields'), findsOneWidget);
     expect(_section(DiveDetailSectionId.customFields), findsOneWidget);
-    expect(find.byIcon(Icons.edit_outlined), findsNWidgets(3));
+    expect(find.byType(RecordPencilDisc), findsNWidgets(3));
   });
 
   testWidgets('a card the page leaves out appears, open, once added', (
@@ -378,7 +379,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.edit_outlined), findsNothing);
+      expect(find.byType(RecordPencilDisc), findsNothing);
     });
 
     testWidgets('unlocked: the pencil is on the fold row, which still folds', (
@@ -602,7 +603,7 @@ void main() {
       await pumpWide(tester, logged);
 
       expectBesideDetails(tester, find.byType(DiveEnvironmentSection));
-      expect(find.byIcon(Icons.edit_outlined), findsNothing);
+      expect(find.byType(RecordPencilDisc), findsNothing);
     });
 
     testWidgets(

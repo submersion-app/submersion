@@ -28,6 +28,7 @@ void main() {
     'nl',
     'pt',
     'zh',
+    'ja',
   ];
 
   AppLocalizations l10nFor(String locale) =>
@@ -81,6 +82,7 @@ void main() {
         'nl': 'Duikgegevens importeren uit bestand',
         'pt': 'Importar dados de mergulho de um arquivo',
         'zh': '从文件导入潜水数据',
+        'ja': 'ファイルからダイブデータをインポート',
       };
       for (final entry in expected.entries) {
         expect(

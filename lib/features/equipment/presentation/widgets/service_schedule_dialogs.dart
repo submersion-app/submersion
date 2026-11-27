@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -34,19 +36,24 @@ void invalidateServiceClockProviders(WidgetRef ref, String equipmentId) {
 }
 
 /// Bottom sheet listing service kinds that apply to [equipmentType] and are
-/// not yet attached; tapping one creates an enabled schedule with no
+/// not yet attached; tapping one makes an enabled schedule with no
 /// overrides (kind defaults apply).
+///
+/// It writes nothing, in an item page's sitting (issue #4527, phase 3):
+/// [attachedKindIds] are the kinds the sitting's clocks have, and [onHold]
+/// is handed the new clock, with an id of its own, and any interval set for
+/// it; [records] are the sitting's service records.
 Future<void> showServiceKindPicker(
   BuildContext context,
   WidgetRef ref, {
   required String equipmentId,
   required EquipmentType equipmentType,
+  required Set<String> attachedKindIds,
+  required void Function(ServiceSchedule schedule) onHold,
+  List<ServiceRecord>? records,
 }) async {
   final kinds = await ref.read(serviceKindsProvider.future);
-  final existing = await ref.read(
-    serviceSchedulesForEquipmentProvider(equipmentId).future,
-  );
-  final attached = existing.map((s) => s.serviceKindId).toSet();
+  final attached = attachedKindIds;
   // Built-in kinds the diver hid are not offered (issue #401).
   final hidden = ref.read(
     hiddenBuiltInIdsProvider(BuiltInCatalog.serviceKinds),
@@ -78,17 +85,14 @@ Future<void> showServiceKindPicker(
                   onTap: () async {
                     Navigator.pop(sheetContext);
                     final now = DateTime.now();
-                    final created = await ref
-                        .read(serviceScheduleRepositoryProvider)
-                        .createSchedule(
-                          ServiceSchedule(
-                            id: '',
-                            equipmentId: equipmentId,
-                            serviceKindId: kind.id,
-                            createdAt: now,
-                            updatedAt: now,
-                          ),
-                        );
+                    final created = ServiceSchedule(
+                      id: const Uuid().v4(),
+                      equipmentId: equipmentId,
+                      serviceKindId: kind.id,
+                      createdAt: now,
+                      updatedAt: now,
+                    );
+                    onHold(created);
                     // A kind with no default interval yields an invisible
                     // clock until an interval is set, so configure it now.
                     final needsInterval =
@@ -101,9 +105,10 @@ Future<void> showServiceKindPicker(
                         ref,
                         schedule: created,
                         kind: kind,
+                        onHold: onHold,
+                        records: records,
                       );
                     }
-                    invalidateServiceClockProviders(ref, equipmentId);
                   },
                 ),
               ),
@@ -132,25 +137,33 @@ Future<void> showServiceKindPicker(
 /// Edits one schedule's interval overrides and baseline date. Accepts the
 /// schedule and its kind directly so it serves brand-new and unconfigured
 /// clocks as well as existing ones.
+///
+/// It writes nothing, in an item page's sitting (issue #4527, phase 3):
+/// [records] are the sitting's service records, which judge the baseline,
+/// and Save hands the clock to [onHold].
 Future<void> showScheduleOverrideDialog(
   BuildContext context,
   WidgetRef ref, {
   required ServiceSchedule schedule,
   required ServiceKind kind,
+  required void Function(ServiceSchedule schedule) onHold,
+  List<ServiceRecord>? records,
 }) async {
   // Only a baseline the clock still counts from is offered for editing. A
   // later service (logged here, synced in, or written by an older build)
   // takes the clock over while the stored date stays (so deleting that
   // service restores it); showing that date would claim a start the clock
   // no longer uses.
-  final records = await ref
-      .read(serviceRecordRepositoryProvider)
-      .getRecordsForEquipment(schedule.equipmentId);
+  final judged =
+      records ??
+      await ref
+          .read(serviceRecordRepositoryProvider)
+          .getRecordsForEquipment(schedule.equipmentId);
   final inEffect = baselineInEffect(
     serviceKindId: schedule.serviceKindId,
     baseline: schedule.anchorDate,
     baselineSetAt: schedule.anchorSetAt,
-    records: records,
+    records: judged,
   );
   if (!context.mounted) return;
   await showDialog<void>(
@@ -158,8 +171,8 @@ Future<void> showScheduleOverrideDialog(
     builder: (context) => _ScheduleOverrideDialog(
       schedule: schedule,
       kind: kind,
-      ref: ref,
       initialBaseline: inEffect ? schedule.anchorDate : null,
+      onHold: onHold,
     ),
   );
 }
@@ -167,17 +180,19 @@ Future<void> showScheduleOverrideDialog(
 class _ScheduleOverrideDialog extends ConsumerStatefulWidget {
   final ServiceSchedule schedule;
   final ServiceKind kind;
-  final WidgetRef ref;
 
   /// The baseline the clock counts from, or null when it has none in
   /// effect (see [baselineInEffect]).
   final DateTime? initialBaseline;
 
+  /// Takes the clock, in an item page's sitting.
+  final void Function(ServiceSchedule schedule) onHold;
+
   const _ScheduleOverrideDialog({
     required this.schedule,
     required this.kind,
-    required this.ref,
     required this.initialBaseline,
+    required this.onHold,
   });
 
   @override
@@ -434,7 +449,7 @@ class _ScheduleOverrideDialogState
           child: Text(l10n.equipment_scheduleDialog_cancel),
         ),
         FilledButton(
-          onPressed: () async {
+          onPressed: () {
             if (!(_formKey.currentState?.validate() ?? true)) return;
             final schedule = widget.schedule;
             // Stamps the baseline's set time when the date changed or was
@@ -483,11 +498,8 @@ class _ScheduleOverrideDialogState
               createdAt: schedule.createdAt,
               updatedAt: schedule.updatedAt,
             );
-            await widget.ref
-                .read(serviceScheduleRepositoryProvider)
-                .updateSchedule(updated);
-            invalidateServiceClockProviders(widget.ref, schedule.equipmentId);
-            if (context.mounted) Navigator.pop(context);
+            widget.onHold(updated);
+            Navigator.pop(context);
           },
           child: Text(l10n.equipment_scheduleDialog_save),
         ),

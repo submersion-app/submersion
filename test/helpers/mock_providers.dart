@@ -42,6 +42,8 @@ import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.d
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/media/data/services/subscription_poller_scheduler.dart';
+import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
@@ -295,9 +297,11 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
     required double setpointLow,
     required double setpointHigh,
     required double diluentModPpO2,
+    double? setpointSwitchDepth,
   }) async => state = state.copyWith(
     ccrSetpointLow: setpointLow,
     ccrSetpointHigh: setpointHigh,
+    ccrSetpointSwitchDepth: setpointSwitchDepth,
     ccrDiluentModPpO2: diluentModPpO2,
   );
   @override
@@ -360,25 +364,23 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   }
 
   @override
-  Future<void> setHomeCardEnabled(String cardId, bool enabled) async {
-    final hidden = {...state.hiddenHomeCards};
-    if (enabled) {
-      hidden.remove(cardId);
-    } else {
-      hidden.add(cardId);
-    }
-    state = state.copyWith(hiddenHomeCards: hidden);
-  }
+  Future<void> setHomePanelLayout({
+    required List<String> order,
+    required Set<String> hidden,
+  }) async =>
+      state = state.copyWith(homePanelOrder: order, hiddenHomePanels: hidden);
 
   @override
-  Future<void> setHomeCardOrder(List<String> order) async =>
-      state = state.copyWith(homeCardOrder: order);
+  Future<void> setHiddenHomeKeyNumbers(Set<String> hidden) async =>
+      state = state.copyWith(hiddenHomeKeyNumbers: hidden);
 
   @override
-  Future<void> resetHomeCards() async => state = state.copyWith(
-    homeCardOrder: const <String>[],
-    hiddenHomeCards: const <String>{},
-  );
+  Future<void> setHomeHeaderStyle({
+    required bool phone,
+    required String style,
+  }) async => state = phone
+      ? state.copyWith(homeHeaderStylePhone: style)
+      : state.copyWith(homeHeaderStyleWide: style);
 
   @override
   Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
@@ -1051,6 +1053,18 @@ Future<List<Override>> getBaseOverrides({
     nearbyLinkManagerProvider.overrideWithValue(
       nearbyLinkManager ?? FakeNearbyLinkManager(),
     ),
+    // The app root starts the manifest subscription poller; a widget test
+    // must not reach a feed, the keychain or the database through it.
+    // Disposed with the scope like the real provider, so the warm-up timer
+    // the app root starts never outlives the test's widget tree.
+    subscriptionPollerSchedulerProvider.overrideWith((ref) {
+      final scheduler = SubscriptionPollerScheduler.forTest(
+        pollAllDue: (_) async => 0,
+        activePollIntervals: () async => const [],
+      );
+      ref.onDispose(scheduler.dispose);
+      return scheduler;
+    }),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     // Settings > Data health (#3390, #3394) reads live sync, backup, library
     // and media state plus the database file; pages under test get a quiet,

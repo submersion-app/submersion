@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -74,6 +76,13 @@ void main() {
       bool editing = false,
       bool canSave = false,
       double dockedPanel = 0,
+      bool labels = false,
+      bool goToDive = true,
+      ToolbarRing? ring,
+      bool labelsOn = true,
+      ToolbarTone? tone,
+      String? labelsLabel,
+      Brightness brightness = Brightness.light,
     }) async {
       tester.view.physicalSize = Size(width, 800);
       tester.view.devicePixelRatio = 1.0;
@@ -88,6 +97,7 @@ void main() {
               ),
           ],
           child: MaterialApp(
+            theme: ThemeData(brightness: brightness),
             locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
@@ -120,7 +130,16 @@ void main() {
                           perdixEnabled: false,
                           onTogglePerdix: () => calls.add('perdix'),
                           onOpenInLightroom: () => calls.add('lightroom'),
-                          onGoToDive: () => calls.add('go_to_dive'),
+                          onGoToDive: goToDive
+                              ? () => calls.add('go_to_dive')
+                              : null,
+                          onMarineLifeLabels: labels
+                              ? (_) => calls.add('marine_life_labels')
+                              : null,
+                          marineLifeRing: ring,
+                          marineLifeLabelsOn: labelsOn,
+                          marineLifeTone: tone,
+                          marineLifeLabel: labelsLabel,
                           onReupload: (_) => calls.add('reupload'),
                           onAdjustColor: () => calls.add('adjust_color'),
                           onUnlock: unlockable
@@ -185,6 +204,249 @@ void main() {
       expect(find.byKey(const ValueKey('viewer_share')), findsOneWidget);
       expect(find.byKey(const ValueKey('viewer_info')), findsNothing);
       expect(find.byKey(const ValueKey('viewer_overflow')), findsOneWidget);
+    });
+
+    group('the marine life labels action (issue #4825)', () {
+      final labelsKey = find.byKey(const ValueKey('viewer_marine_life_labels'));
+      final infoKey = find.byKey(const ValueKey('viewer_info'));
+
+      testWidgets('on a dive\'s phone viewer it takes the slot Info had', (
+        tester,
+      ) async {
+        await pumpFull(
+          tester,
+          390,
+          unlockable: true,
+          labels: true,
+          goToDive: false,
+        );
+        expect(find.byKey(const ValueKey('viewer_unlock')), findsOneWidget);
+        expect(find.byKey(const ValueKey('viewer_share')), findsOneWidget);
+        expect(labelsKey, findsOneWidget);
+        expect(infoKey, findsNothing);
+        expect(find.byKey(const ValueKey('viewer_overflow')), findsOneWidget);
+      });
+
+      testWidgets('unlocked on a phone, it stays on the bar beside Share', (
+        tester,
+      ) async {
+        await pumpFull(
+          tester,
+          390,
+          editing: true,
+          labels: true,
+          goToDive: false,
+        );
+        expect(find.byKey(const ValueKey('viewer_share')), findsOneWidget);
+        expect(labelsKey, findsOneWidget);
+        expect(infoKey, findsNothing);
+      });
+
+      testWidgets('is offered while locked and in a read-only browser', (
+        tester,
+      ) async {
+        await pumpFull(
+          tester,
+          1024,
+          browser: true,
+          writeControls: false,
+          labels: true,
+        );
+        expect(labelsKey, findsOneWidget);
+      });
+
+      testWidgets('fires its own callback', (tester) async {
+        final calls = await pumpFull(tester, 1280, labels: true);
+        await tester.tap(labelsKey);
+        expect(calls, ['marine_life_labels']);
+      });
+
+      testWidgets('draws a ring round its icon while analysing', (
+        tester,
+      ) async {
+        await pumpFull(
+          tester,
+          1280,
+          labels: true,
+          ring: const ToolbarRing(0.42),
+        );
+        final ring = tester.widget<CircularProgressIndicator>(
+          find.descendant(
+            of: labelsKey,
+            matching: find.byType(CircularProgressIndicator),
+          ),
+        );
+        expect(ring.value, 0.42);
+      });
+
+      // The ring is drawn round the icon, never makes its button bigger, so
+      // the bar keeps its height while an analysis runs (issue #4870).
+      for (final editing in [false, true]) {
+        testWidgets('the ring leaves the button and the bar their size'
+            '${editing ? ' (unlocked)' : ''}', (tester) async {
+          Size measure() => tester.getSize(labelsKey);
+          Size bar() => tester.getSize(
+            find
+                .ancestor(of: labelsKey, matching: find.byType(Positioned))
+                .first,
+          );
+
+          await pumpFull(tester, 1280, labels: true, editing: editing);
+          final button = measure();
+          final band = bar();
+
+          await pumpFull(
+            tester,
+            1280,
+            labels: true,
+            editing: editing,
+            ring: const ToolbarRing(),
+          );
+          // Still 32 px across: 4 px out from the 24 px icon all round.
+          expect(
+            tester.getSize(
+              find.descendant(
+                of: labelsKey,
+                matching: find.byType(CircularProgressIndicator),
+              ),
+            ),
+            const Size.square(32),
+          );
+          expect(measure(), button);
+          expect(bar(), band);
+          expect(tester.takeException(), isNull);
+        }, variant: TargetPlatformVariant.all());
+      }
+
+      /// The labels icon as drawn on the bar.
+      Icon labelsIcon(WidgetTester tester) => tester.widget<Icon>(
+        find.descendant(of: labelsKey, matching: find.byType(Icon)),
+      );
+
+      testWidgets('is a fish while labels are drawn, a struck fish while '
+          'they are off (issue #4926)', (tester) async {
+        await pumpFull(tester, 1280, labels: true);
+        expect(labelsIcon(tester).icon, MdiIcons.fish);
+        await pumpFull(tester, 1280, labels: true, labelsOn: false);
+        expect(labelsIcon(tester).icon, MdiIcons.fishOff);
+      });
+
+      testWidgets('its tooltip names how far analysis has got, and is the '
+          'plain name without one (issue #4958)', (tester) async {
+        await pumpFull(tester, 1280, labels: true);
+        expect(find.byTooltip('Species labels'), findsOneWidget);
+        await pumpFull(
+          tester,
+          1280,
+          labels: true,
+          tone: ToolbarTone.warn,
+          labelsLabel: 'Species labels: partly analysed',
+        );
+        expect(
+          find.byTooltip('Species labels: partly analysed'),
+          findsOneWidget,
+        );
+      });
+
+      group('its colour says how far analysis has got (issue #4926)', () {
+        // The viewer's bar is dark over any photo, in either theme, so it
+        // takes the dark palette's marks.
+        for (final brightness in Brightness.values) {
+          testWidgets('on the dark bar in a ${brightness.name} theme', (
+            tester,
+          ) async {
+            Future<Color?> colour(ToolbarTone? tone) async {
+              await pumpFull(
+                tester,
+                1280,
+                labels: true,
+                tone: tone,
+                brightness: brightness,
+              );
+              return labelsIcon(tester).color;
+            }
+
+            expect(await colour(null), Colors.white);
+            expect(
+              await colour(ToolbarTone.warn),
+              StatusColors.dark.warn.accent,
+            );
+            expect(await colour(ToolbarTone.ok), StatusColors.dark.ok.accent);
+            expect(
+              await colour(ToolbarTone.active),
+              ThemeData(brightness: brightness).colorScheme.primary,
+            );
+          });
+        }
+
+        testWidgets('on the pale editing bar it takes the theme\'s marks', (
+          tester,
+        ) async {
+          Future<Color?> colour(ToolbarTone tone) async {
+            await pumpFull(
+              tester,
+              1280,
+              labels: true,
+              editing: true,
+              tone: tone,
+            );
+            return labelsIcon(tester).color;
+          }
+
+          expect(
+            await colour(ToolbarTone.warn),
+            StatusColors.light.warn.accent,
+          );
+          expect(await colour(ToolbarTone.ok), StatusColors.light.ok.accent);
+        });
+
+        testWidgets('in the overflow menu it takes the theme\'s marks', (
+          tester,
+        ) async {
+          await tester.pumpWidget(
+            MaterialApp(
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: Builder(
+                  builder: (context) => Row(
+                    children: toolbarActionButtons(
+                      context,
+                      ToolbarActionSplit(const [], [
+                        MediaViewerAction(
+                          id: 'marine_life_labels',
+                          icon: MdiIcons.fish,
+                          label: 'labels',
+                          priority: 2,
+                          tone: ToolbarTone.ok,
+                          onPressed: (_) {},
+                        ),
+                      ]),
+                      Colors.white,
+                      onDarkBar: true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+          await tester.tap(find.byKey(const ValueKey('viewer_overflow')));
+          await tester.pumpAndSettle();
+          final icon = tester.widget<Icon>(
+            find.descendant(
+              of: find.byKey(const ValueKey('viewer_menu_marine_life_labels')),
+              matching: find.byType(Icon),
+            ),
+          );
+          expect(icon.color, StatusColors.light.ok.accent);
+        });
+      });
+
+      testWidgets('no labels action without a callback', (tester) async {
+        await pumpFull(tester, 1280);
+        expect(labelsKey, findsNothing);
+      });
     });
 
     testWidgets('a 412 px phone shows three icons and the menu', (

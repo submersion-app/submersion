@@ -151,6 +151,30 @@ void main() {
     },
   );
 
+  // Marks the diver made on the plan (issue #4909): the download replaces
+  // the measured values, so their marks go; a value it leaves stays marked.
+  test('fill clears the marks of the values it measured', () async {
+    final planned = await plannedDive();
+    await db.customStatement(
+      'UPDATE dives SET gradient_factor_low = 30, hand_set_fields = '
+      "'[\"gradientFactorLow\",\"heartRate\",\"maxDepth\",\"waterTemp\"]' "
+      'WHERE id = ?',
+      [planned.id],
+    );
+
+    await service.fill(
+      targetDiveId: planned.id,
+      dive: download(reportsDecoSettings: false),
+      computerId: computerId,
+    );
+
+    final row = await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals(planned.id))).getSingle();
+    expect(row.handSetFields, '["gradientFactorLow","heartRate"]');
+    expect(row.gradientFactorLow, 30);
+  });
+
   test(
     'fill takes the surface pressure the computer measured (#4208)',
     () async {

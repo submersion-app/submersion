@@ -57,6 +57,12 @@ class SectionListEditor<T> extends StatefulWidget {
   final bool readOnly;
   final Future<void> Function(String title) onAddSection;
   final Future<void> Function(String sectionId, String title) onRenameSection;
+
+  /// Told of each keystroke in a section's title field, as typed, before
+  /// [onRenameSection] commits it when the field lets go. A save-at-the-end
+  /// editor counts a title being typed as a change with it (issue #4527); a
+  /// caller that persists at once leaves it null.
+  final void Function(String sectionId, String text)? onTitleChanged;
   final Future<void> Function(List<String> orderedSectionIds) onReorderSections;
   final Future<void> Function(String sectionId, {String? moveItemsToSectionId})
   onDeleteSection;
@@ -80,6 +86,7 @@ class SectionListEditor<T> extends StatefulWidget {
     this.readOnly = false,
     required this.onAddSection,
     required this.onRenameSection,
+    this.onTitleChanged,
     required this.onReorderSections,
     required this.onDeleteSection,
     required this.onMoveItem,
@@ -385,6 +392,12 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
                             child: TextField(
                               controller: _controllerFor(section),
                               focusNode: _focusNodeFor(section),
+                              onChanged: widget.onTitleChanged == null
+                                  ? null
+                                  : (text) => widget.onTitleChanged!(
+                                      section.id,
+                                      text,
+                                    ),
                               onSubmitted: (_) =>
                                   _titleFocusNodes[section.id]?.unfocus(),
                               style: theme.textTheme.titleMedium?.copyWith(

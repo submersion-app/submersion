@@ -663,7 +663,8 @@ class EquipmentRepository {
   ///
   /// The tag links are clockless children of the item: only the junction
   /// rows are marked pending, never the row again (#1769). Sync hears of the
-  /// save once, after it commits.
+  /// save once, after it commits. The demo data seeder uses it to create
+  /// tagged gear.
   Future<EquipmentItem> createEquipmentWithTags(
     EquipmentItem equipment,
     List<String> tagIds,
@@ -679,25 +680,6 @@ class EquipmentRepository {
     });
     SyncEventBus.notifyLocalChange();
     return created;
-  }
-
-  /// Rewrites [equipment]'s row and makes its tags exactly [tagIds]
-  /// (issue #1942), in one transaction. The edit page is the only caller:
-  /// it holds the whole entity and the tags the diver saw. [updateEquipment]
-  /// itself never touches tags, because partially built entities reach it.
-  Future<void> updateEquipmentWithTags(
-    EquipmentItem equipment,
-    List<String> tagIds,
-  ) async {
-    await transaction(() async {
-      await updateEquipment(equipment, notify: false);
-      await EquipmentTagRepository().replaceTags(
-        equipment.id,
-        tagIds,
-        notify: false,
-      );
-    });
-    SyncEventBus.notifyLocalChange();
   }
 
   /// Splits a dying item's attachments (issue #1517): rows only this item
@@ -1086,8 +1068,8 @@ class EquipmentRepository {
         _db.equipment,
       )..where((t) => t.id.equals(id))).getSingleOrNull();
       // Wanted gear is not owned yet (#2025): reactivating would leave a
-      // wishlist row flagged active. Buying it goes through
-      // markEquipmentPurchased instead.
+      // wishlist row flagged active. Buying it is the header block's Mark
+      // purchased, saved with the item's sitting.
       if (current == null || current.status == EquipmentStatus.wanted.name) {
         return;
       }
@@ -1112,49 +1094,6 @@ class EquipmentRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to reactivate equipment: $id',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
-  /// Turns a Wanted item into owned, active gear (#2025): status active,
-  /// isActive true, and the purchase date set to [today] (date only) unless
-  /// one was already entered on the wishlist. Everything else is kept. A
-  /// row that is not Wanted is left alone.
-  Future<void> markEquipmentPurchased(String id, {DateTime? today}) async {
-    try {
-      final current = await (_db.select(
-        _db.equipment,
-      )..where((t) => t.id.equals(id))).getSingleOrNull();
-      if (current == null || current.status != EquipmentStatus.wanted.name) {
-        return;
-      }
-      final now = DateTime.now();
-      final day = today ?? now;
-      final ts = now.millisecondsSinceEpoch;
-      await (_db.update(_db.equipment)..where((t) => t.id.equals(id))).write(
-        EquipmentCompanion(
-          isActive: const Value(true),
-          status: Value(EquipmentStatus.active.name),
-          purchaseDate: current.purchaseDate == null
-              ? Value(
-                  DateTime(day.year, day.month, day.day).millisecondsSinceEpoch,
-                )
-              : const Value.absent(),
-          updatedAt: Value(ts),
-        ),
-      );
-      await _syncRepository.markRecordPending(
-        entityType: 'equipment',
-        recordId: id,
-        localUpdatedAt: ts,
-      );
-      SyncEventBus.notifyLocalChange();
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to mark equipment as purchased: $id',
         error: e,
         stackTrace: stackTrace,
       );
@@ -2084,9 +2023,9 @@ class EquipmentRepository {
   /// Writes [desired] as the item's attribute set.
   ///
   /// With [preserveSystem] (the default), a system attribute the caller did
-  /// not pass (a cylinder's passport id) is kept rather than deleted: the
-  /// edit form shows only its type's fields and may have been opened before
-  /// a synced id arrived, and neither is a reason to drop the tag's
+  /// not pass (a cylinder's passport id) is kept rather than deleted: an
+  /// item's sitting shows only its type's fields and may have been opened
+  /// before a synced id arrived, and neither is a reason to drop the tag's
   /// identity. The passport repository passes false to release a tag.
   ///
   /// Returns the attributes as they were before the write.

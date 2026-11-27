@@ -14,6 +14,7 @@ import 'package:submersion/features/media/presentation/editing/photo_edit_fields
 import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
 import 'package:submersion/features/media/presentation/widgets/media_tagged_species_section.dart';
 import 'package:submersion/features/species_id/presentation/widgets/suggested_species_section.dart';
+import 'package:submersion/features/species_id/presentation/widgets/species_download_prompt.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
@@ -95,6 +96,8 @@ class MediaSpeciesSheet extends ConsumerWidget {
           style: Theme.of(context).textTheme.titleLarge,
         ),
         const SizedBox(height: 16),
+        // With no model, the offer to download one (issue #4773).
+        const SpeciesDownloadPrompt(),
         SuggestedSpeciesSection(item: item, sitting: sitting),
         if (sightings == null)
           Text(l10n.media_species_noDiveHint)

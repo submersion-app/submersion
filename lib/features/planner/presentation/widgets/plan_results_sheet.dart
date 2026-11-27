@@ -193,8 +193,9 @@ class PlanResultsSheet extends ConsumerWidget {
       state.id,
     );
     final lostGas = planResultView(ref.watch(planLostGasProvider), state.id);
-    final selectedDeviation = ref.watch(selectedDeviationProvider);
-    final selectedLostGasTankId = ref.watch(selectedLostGasTankIdProvider);
+    final selection = ref.watch(contingencySelectionProvider);
+    final selectedDeviation = selection.deviationKey;
+    final selectionNotifier = ref.read(contingencySelectionProvider.notifier);
     final collapsedKeys = ref.watch(collapsedContingencyKeysProvider);
     final theme = Theme.of(context);
 
@@ -204,27 +205,12 @@ class PlanResultsSheet extends ConsumerWidget {
       ref.read(collapsedContingencyKeysProvider.notifier).state = next;
     }
 
-    void toggleDeviation(String key) {
-      final isSelected = selectedDeviation == key;
-      ref.read(selectedDeviationProvider.notifier).state = isSelected
-          ? null
-          : key;
-      // Only one contingency ghost/preview can be active at a time.
-      if (!isSelected) {
-        ref.read(selectedLostGasTankIdProvider.notifier).state = null;
-      }
-    }
-
-    void toggleLostGas(String tankId) {
-      final isSelected = selectedLostGasTankId == tankId;
-      ref.read(selectedLostGasTankIdProvider.notifier).state = isSelected
-          ? null
-          : tankId;
-      // Only one contingency ghost/preview can be active at a time.
-      if (!isSelected) {
-        ref.read(selectedDeviationProvider.notifier).state = null;
-      }
-    }
+    // A row sets the same toggles as the chart chips: a deviation row sets
+    // +depth / +time to its own variant (the "both" row turns both on), and
+    // the lost gases stay as they are.
+    void toggleDeviation(String key) => selectionNotifier.selectDeviation(
+      selectedDeviation == key ? null : key,
+    );
 
     String deviationLabel(String key) {
       // The plan's own deviation, else the diver's Settings default (#3552).
@@ -280,13 +266,25 @@ class PlanResultsSheet extends ConsumerWidget {
       );
     }
 
+    // The contingencies are not in effect in Bailout view (#5018), so a row
+    // picked there puts its own in effect: back to the plan, the row on.
+    final inBailoutView = ref.watch(planBailoutViewProvider);
+    VoidCallback pick(bool selected, VoidCallback toggle) => () {
+      if (!inBailoutView) return toggle();
+      ref.read(chartDisplayModeProvider.notifier).state = ChartDisplayMode.ccr;
+      if (!selected) toggle();
+    };
+
     final rows = [
       for (final deviation in deviations.value ?? const <DeviationOutcome>[])
         row(
           key: deviation.key,
           label: deviationLabel(deviation.key),
           selected: selectedDeviation == deviation.key,
-          onSelect: () => toggleDeviation(deviation.key),
+          onSelect: pick(
+            selectedDeviation == deviation.key,
+            () => toggleDeviation(deviation.key),
+          ),
           outcome: deviation.outcome,
         ),
       for (final lost in lostGas.value ?? const <LostGasOutcome>[])
@@ -295,8 +293,11 @@ class PlanResultsSheet extends ConsumerWidget {
           label: context.l10n.plannerCanvas_contingency_lostGas(
             lost.tank.gasMix.name,
           ),
-          selected: selectedLostGasTankId == lost.tank.id,
-          onSelect: () => toggleLostGas(lost.tank.id),
+          selected: selection.lostTankIds.contains(lost.tank.id),
+          onSelect: pick(
+            selection.lostTankIds.contains(lost.tank.id),
+            () => selectionNotifier.toggleLostGas(lost.tank.id),
+          ),
           outcome: lost.outcome,
         ),
     ];

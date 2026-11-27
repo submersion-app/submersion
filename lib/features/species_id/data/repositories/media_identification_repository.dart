@@ -8,12 +8,17 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/species_id/data/repositories/identification_sync_marks.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/naming_bars.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/scanned_ranges.dart';
 import 'package:submersion/features/species_id/domain/entities/track_sample.dart';
 import 'package:submersion/features/species_id/domain/services/scanned_ranges_codec.dart';
 import 'package:submersion/features/species_id/domain/services/track_path_codec.dart';
+
+part 'media_identification_rows.dart';
+part 'media_identification_tombstones.dart';
 
 /// The logbook a transaction of [MediaIdentificationRepository] runs on,
 /// and whether that transaction has ended.
@@ -27,18 +32,28 @@ typedef StoreRunWrite = ({
 });
 
 /// What the marine life model found on each piece of media, and the diver's
-/// decisions on it (issue #4668). Never synced: the rows are this device's,
-/// and the app derives them; the diver's own record is the species tags.
+/// decisions on it (issue #4668). Synced since v381 (issue #4876): every
+/// write is published through [IdentificationSyncMarks].
 class MediaIdentificationRepository {
   /// [database] fixes the logbook; otherwise [currentDatabase] (by default
   /// [DatabaseService]'s) is asked on every call. Both together are
   /// refused in every build, since one would silently win.
+  ///
+  /// [marks] publishes writes to sync. By default only the app's own
+  /// logbook publishes: a repository given a database of its own (a test)
+  /// marks nothing unless it is handed marks.
   MediaIdentificationRepository({
     AppDatabase? database,
     AppDatabase Function()? currentDatabase,
+    IdentificationSyncMarks? marks,
   }) : _currentDatabase = database != null
            ? (() => database)
-           : (currentDatabase ?? _openLogbook) {
+           : (currentDatabase ?? _openLogbook),
+       _marks =
+           marks ??
+           (database == null && currentDatabase == null
+               ? IdentificationSyncMarks()
+               : null) {
     if (database != null && currentDatabase != null) {
       throw ArgumentError(
         'Give a fixed database or a way to find one, not both',
@@ -47,6 +62,7 @@ class MediaIdentificationRepository {
   }
 
   final AppDatabase Function() _currentDatabase;
+  final IdentificationSyncMarks? _marks;
 
   static AppDatabase _openLogbook() => DatabaseService.instance.database;
 
@@ -158,9 +174,17 @@ class MediaIdentificationRepository {
     MediaIdentificationRun run, {
     required List<MediaIdentification> insert,
     required List<String> deleteIds,
-  }) => _transaction(
-    (db) => _write(db, run, insert: insert, deleteIds: deleteIds),
-  );
+  }) async {
+    final decided = await _transaction(
+      (db) => _write(db, run, insert: insert, deleteIds: deleteIds),
+    );
+    await _publishStored(
+      run.mediaId,
+      insert: insert,
+      deleteIds: deleteIds,
+      decided: decided,
+    );
+  }
 
   /// [storeRun], with what to write worked out by [build] from the rows of
   /// [mediaId] as they are stored, read in the same transaction when
@@ -173,25 +197,64 @@ class MediaIdentificationRepository {
     required bool read,
     required Future<StoreRunWrite?> Function(List<MediaIdentification>? current)
     build,
-  }) => _transaction((db) async {
-    final current = read ? await forMedia(mediaId) : null;
-    final write = await build(current);
-    if (write == null) return false;
-    await _write(
-      db,
-      write.run,
+  }) async {
+    final stored = await _transaction((db) async {
+      final current = read ? await forMedia(mediaId) : null;
+      final write = await build(current);
+      if (write == null) return null;
+      final decided = await _write(
+        db,
+        write.run,
+        insert: write.insert,
+        deleteIds: write.deleteIds,
+      );
+      return (write: write, decided: decided);
+    });
+    if (stored == null) return false;
+    final (:write, :decided) = stored;
+    await _publishStored(
+      write.run.mediaId,
       insert: write.insert,
       deleteIds: write.deleteIds,
+      decided: decided,
     );
     return true;
-  });
+  }
 
-  Future<void> _write(
+  /// Publishes a stored run: the run, the rows written, the rows whose
+  /// decisions it changed ([decided]) under the decision clock, and
+  /// tombstones for the rows deleted.
+  Future<void> _publishStored(
+    String mediaId, {
+    required List<MediaIdentification> insert,
+    required List<String> deleteIds,
+    required List<String> decided,
+  }) async {
+    final marks = _marks;
+    if (marks == null) return;
+    await marks.runsWritten([mediaId]);
+    await marks.rowsWritten([for (final i in insert) i.id]);
+    await marks.decisionsWritten(decided);
+    await marks.deleted(rowIds: deleteIds);
+  }
+
+  /// Returns the ids of the rows whose decision fields it changed
+  /// ([_decisionsChanged]).
+  Future<List<String>> _write(
     AppDatabase db,
     MediaIdentificationRun run, {
     required List<MediaIdentification> insert,
     required List<String> deleteIds,
   }) async {
+    final decided = await _decisionsChanged(db, insert);
+    // A write that does not name its run id (a later chunk of a video scan)
+    // continues the stored run's, and its rows join it (issue #4876).
+    final runId =
+        run.runId ??
+        (await (db.select(
+              db.mediaIdentificationRuns,
+            )..where((r) => r.mediaId.equals(run.mediaId))).getSingleOrNull())
+            ?.runId;
     await db
         .into(db.mediaIdentificationRuns)
         .insertOnConflictUpdate(_runToCompanion(run));
@@ -203,8 +266,15 @@ class MediaIdentificationRepository {
     for (final identification in insert) {
       await db
           .into(db.mediaIdentifications)
-          .insertOnConflictUpdate(_toCompanion(identification));
+          .insertOnConflictUpdate(
+            _toCompanion(
+              identification.runId != null || runId == null
+                  ? identification
+                  : identification.copyWith(runId: () => runId),
+            ),
+          );
     }
+    return decided;
   }
 
   /// Writes the decisions on [changed] (the decision, its species and
@@ -213,50 +283,92 @@ class MediaIdentificationRepository {
   /// same rows since (issue #4675), and those columns stay as stored. Only
   /// rows still stored are written: a decision that lands after the rows
   /// were cleared or replaced must not bring them back.
-  Future<void> updateDecisions(List<MediaIdentification> changed) =>
-      _transaction((db) async {
-        for (final identification in changed) {
-          final row = _toCompanion(identification);
-          await _writeOver(
-            db,
-            identification.id,
-            MediaIdentificationsCompanion(
-              decision: row.decision,
-              decidedSpeciesId: row.decidedSpeciesId,
-              decidedAt: row.decidedAt,
-            ),
-          );
-        }
-      });
+  Future<void> updateDecisions(List<MediaIdentification> changed) async {
+    final written = await _transaction((db) async {
+      final written = <String>[];
+      for (final identification in changed) {
+        final row = _toCompanion(identification);
+        final count = await _writeOver(
+          db,
+          identification.id,
+          MediaIdentificationsCompanion(
+            decision: row.decision,
+            decidedSpeciesId: row.decidedSpeciesId,
+            decidedAt: row.decidedAt,
+          ),
+        );
+        if (count > 0) written.add(identification.id);
+      }
+      return written;
+    });
+    await _marks?.decisionsWritten(written);
+  }
 
   /// Writes what naming found for [changed] (scores, candidates and label
   /// flags) and [run], moved on to the pack and place they were named for,
   /// in one transaction. Decisions, claims, boxes and paths stay as stored:
   /// the diver may have decided since [changed] was read. Only rows still
   /// stored are written, and [run] only while it is.
-  Future<void> updateNames(
+  ///
+  /// Nothing is written once another run is stored than the one [run] was
+  /// read as (issue #4876): a run synced in from another device since is
+  /// newer than this naming. Of the run, only what naming moves is
+  /// written (its pack, place and bars), so a scan stored since stays.
+  /// Returns the ids of the rows written, none when it wrote nothing.
+  Future<List<String>> updateNames(
     List<MediaIdentification> changed, {
     required MediaIdentificationRun run,
-  }) => _transaction((db) async {
-    for (final identification in changed) {
-      final row = _toCompanion(identification);
-      await _writeOver(
-        db,
-        identification.id,
-        MediaIdentificationsCompanion(
-          openScore: row.openScore,
-          candidatesJson: row.candidatesJson,
-          locationLimited: row.locationLimited,
-          suggestable: row.suggestable,
-          confident: row.confident,
-          specific: row.specific,
-        ),
-      );
-    }
-    await db.update(db.mediaIdentificationRuns).replace(_runToCompanion(run));
-  });
+  }) async {
+    final written = await _transaction((db) async {
+      final runs = db.mediaIdentificationRuns;
+      if (run.runId != null) {
+        final stored =
+            await (db.selectOnly(runs)
+                  ..addColumns([runs.runId])
+                  ..where(runs.mediaId.equals(run.mediaId)))
+                .map((r) => r.read(runs.runId))
+                .getSingleOrNull();
+        if (stored != run.runId) {
+          return (rows: const <String>[], run: false);
+        }
+      }
+      final written = <String>[];
+      for (final identification in changed) {
+        final row = _toCompanion(identification);
+        final count = await _writeOver(
+          db,
+          identification.id,
+          MediaIdentificationsCompanion(
+            openScore: row.openScore,
+            candidatesJson: row.candidatesJson,
+            locationLimited: row.locationLimited,
+            suggestable: row.suggestable,
+            confident: row.confident,
+            specific: row.specific,
+          ),
+        );
+        if (count > 0) written.add(identification.id);
+      }
+      // Only what naming moves; bars it does not know stay as stored.
+      final moved =
+          await (db.update(
+            runs,
+          )..where((r) => r.mediaId.equals(run.mediaId))).write(
+            MediaIdentificationRunsCompanion(
+              packVersion: Value(run.packVersion),
+              locationCell: Value(run.locationCell),
+              namingBars: Value.absentIfNull(run.namingBars?.toJson()),
+            ),
+          );
+      return (rows: written, run: moved > 0);
+    });
+    await _marks?.rowsWritten(written.rows);
+    if (written.run) await _marks?.runsWritten([run.mediaId]);
+    return written.rows;
+  }
 
-  Future<void> _writeOver(
+  /// Returns how many rows it wrote: none when the row is gone.
+  Future<int> _writeOver(
     AppDatabase db,
     String id,
     MediaIdentificationsCompanion columns,
@@ -267,25 +379,127 @@ class MediaIdentificationRepository {
   /// Records that the diver gave [identificationId] the species
   /// [speciesId] from the frame (issue #4675). Writes nothing when the row
   /// is gone: a claim must not bring back a cleared identification.
-  Future<void> claim(String identificationId, String speciesId) {
+  Future<void> claim(String identificationId, String speciesId) async {
     final db = _db;
-    return (db.update(
-      db.mediaIdentifications,
-    )..where((r) => r.id.equals(identificationId))).write(
-      MediaIdentificationsCompanion(claimedSpeciesId: Value(speciesId)),
-    );
+    final count =
+        await (db.update(
+          db.mediaIdentifications,
+        )..where((r) => r.id.equals(identificationId))).write(
+          MediaIdentificationsCompanion(claimedSpeciesId: Value(speciesId)),
+        );
+    if (count > 0) await _marks?.decisionsWritten([identificationId]);
+  }
+
+  /// Writes [bars] onto the runs [packVersion] named on this device that
+  /// kept none (made before runs kept them, issue #4876), and publishes
+  /// them, so a device with no pack names their rows at the diver's level.
+  /// A run is this device's when [deviceId] made it, or when it records no
+  /// maker yet. Returns how many runs it wrote.
+  Future<int> fillNamingBars(
+    String packVersion,
+    NamingBars bars, {
+    required String? deviceId,
+  }) async {
+    final written = await _transaction((db) async {
+      final runs = db.mediaIdentificationRuns;
+      final mine = deviceId == null
+          ? runs.analysedBy.isNull()
+          : runs.analysedBy.isNull() | runs.analysedBy.equals(deviceId);
+      final ids =
+          await (db.selectOnly(runs)
+                ..addColumns([runs.mediaId])
+                ..where(
+                  runs.packVersion.equals(packVersion) &
+                      runs.namingBars.isNull() &
+                      mine,
+                ))
+              .map((r) => r.read(runs.mediaId)!)
+              .get();
+      for (final slice in ids.slices(_slice)) {
+        await (db.update(runs)..where((r) => r.mediaId.isIn(slice))).write(
+          MediaIdentificationRunsCompanion(namingBars: Value(bars.toJson())),
+        );
+      }
+      return ids;
+    });
+    await _marks?.runsWritten(written);
+    return written.length;
+  }
+
+  /// Deletes [ids], leftovers of a run that lost a sync race on [mediaId]
+  /// (issue #4876), with tombstones. They were judged against the run
+  /// [runId], so nothing goes once another run is stored (a sync landed
+  /// since), and no row of [runId] itself ever does. Only rows nobody has
+  /// said anything on go: one a decision or claim synced into since is
+  /// shown again, so it stays. Returns the ids deleted, for their crops and
+  /// embeddings.
+  Future<List<String>> deleteLeftovers(
+    String mediaId,
+    String runId,
+    List<String> ids,
+  ) async {
+    if (ids.isEmpty) return const [];
+    final deleted = await _transaction((db) async {
+      final stored =
+          await (db.selectOnly(db.mediaIdentificationRuns)
+                ..addColumns([db.mediaIdentificationRuns.runId])
+                ..where(db.mediaIdentificationRuns.mediaId.equals(mediaId)))
+              .map((r) => r.read(db.mediaIdentificationRuns.runId))
+              .getSingleOrNull();
+      if (stored != runId) return const <String>[];
+      final table = db.mediaIdentifications;
+      final gone = <String>[];
+      for (final slice in ids.slices(_slice)) {
+        final unsaid =
+            await (db.selectOnly(table)
+                  ..addColumns([table.id])
+                  ..where(
+                    table.mediaId.equals(mediaId) &
+                        table.id.isIn(slice) &
+                        table.runId.isNotNull() &
+                        table.runId.equals(runId).not() &
+                        table.decision.equals(
+                          IdentificationDecision.undecided.name,
+                        ) &
+                        table.claimedSpeciesId.isNull() &
+                        table.decidedAt.isNull(),
+                  ))
+                .map((r) => r.read(table.id)!)
+                .get();
+        if (unsaid.isEmpty) continue;
+        await (db.delete(table)..where((r) => r.id.isIn(unsaid))).go();
+        gone.addAll(unsaid);
+      }
+      return gone;
+    });
+    await _marks?.deleted(rowIds: deleted);
+    return deleted;
   }
 
   /// Removes the runs and identifications of [mediaIds]; returns the ids of
-  /// the identifications removed, for their crops and embeddings.
-  Future<List<String>> deleteForMedia(List<String> mediaIds) async {
+  /// the identifications removed, for their crops and embeddings. They are
+  /// tombstoned unless not [publish] (issue #4876): a sweep acting on a
+  /// media tombstone removes this device's copies only.
+  Future<List<String>> deleteForMedia(
+    List<String> mediaIds, {
+    bool publish = true,
+  }) async {
     if (mediaIds.isEmpty) return const [];
-    return _transaction((db) async {
+    final (:ids, :runs) = await _transaction((db) async {
       final ids = <String>[];
+      final runs = <String>[];
       // In slices: a sweep after a large sync deletion can name more media
       // than SQLite takes in one statement.
       for (final slice in mediaIds.slices(_slice)) {
         ids.addAll(await _idsWhere(db, (r) => r.mediaId.isIn(slice)));
+        final table = db.mediaIdentificationRuns;
+        runs.addAll(
+          await (db.selectOnly(table)
+                ..addColumns([table.mediaId])
+                ..where(table.mediaId.isIn(slice)))
+              .map((r) => r.read(table.mediaId)!)
+              .get(),
+        );
         await (db.delete(
           db.mediaIdentifications,
         )..where((r) => r.mediaId.isIn(slice))).go();
@@ -293,27 +507,50 @@ class MediaIdentificationRepository {
           db.mediaIdentificationRuns,
         )..where((r) => r.mediaId.isIn(slice))).go();
       }
-      return ids;
+      return (ids: ids, runs: runs);
     });
+    if (publish) await _marks?.deleted(runMediaIds: runs, rowIds: ids);
+    return ids;
   }
 
   static const _slice = 500;
 
-  /// Media ids with rows here but no media row: deleted by sync, or by a
-  /// delete that was held for undo and never undone.
-  Future<List<String>> orphanMediaIds() async {
+  /// Media ids with rows here whose media row is gone because the media
+  /// was deleted (a tombstone says so): by sync, or by a delete that was
+  /// held for undo and never undone. Rows whose media has simply not
+  /// arrived yet are not orphans: results sync on their own, and may land
+  /// before the media they describe (issue #4876).
+  ///
+  /// Results this device made ([deviceId], or a run with no maker yet) are
+  /// orphans with no tombstone too: this device analysed the media, so it
+  /// had it, and a tombstone retired since must not keep them forever.
+  Future<List<String>> orphanMediaIds({String? deviceId}) async {
     final db = _db;
+    // ?1 is this device's id: a run it made, or one with no maker yet.
+    const gone =
+        'NOT IN (SELECT id FROM media) AND (media_id IN '
+        "(SELECT record_id FROM deletion_log WHERE entity_type = 'media') "
+        'OR media_id IN (SELECT media_id FROM media_identification_runs '
+        'WHERE analysed_by IS NULL OR analysed_by = ?1))';
     final rows = await db
         .customSelect(
           'SELECT media_id FROM media_identification_runs '
-          'WHERE media_id NOT IN (SELECT id FROM media) '
+          'WHERE media_id $gone '
           'UNION '
           'SELECT media_id FROM media_identifications '
-          'WHERE media_id NOT IN (SELECT id FROM media)',
+          'WHERE media_id $gone '
+          // A synced crop has no reference either, and may be all that is
+          // left of a media's results here.
+          'UNION '
+          'SELECT media_id FROM media_identification_crops '
+          'WHERE media_id $gone',
+          variables: [Variable<String>(deviceId)],
           readsFrom: {
             db.mediaIdentificationRuns,
             db.mediaIdentifications,
+            db.mediaIdentificationCrops,
             db.media,
+            db.deletionLog,
           },
         )
         .get();
@@ -506,152 +743,5 @@ class MediaIdentificationRepository {
     return query.map((r) => r.read(table.id)!).get();
   }
 
-  static MediaIdentificationRun _runFromRow(MediaIdentificationRunRow row) =>
-      MediaIdentificationRun(
-        mediaId: row.mediaId,
-        packVersion: row.packVersion,
-        detectorId: row.detectorId,
-        classifierId: row.classifierId,
-        locationCell: row.locationCell,
-        analysedAt: _time(row.analysedAt),
-        imageWidth: row.imageWidth,
-        imageHeight: row.imageHeight,
-        detectionCount: row.detectionCount,
-        scannedMs: row.scannedMs,
-        videoDurationMs: row.videoDurationMs,
-        scannedRanges: _ranges(row.scannedRanges),
-      );
-
-  /// The stored stretches, or null when there are none or they cannot be
-  /// read: the run's scanned_ms mark then applies.
-  static ScannedRanges? _ranges(Uint8List? bytes) {
-    if (bytes == null) return null;
-    try {
-      return decodeScannedRanges(bytes);
-    } on FormatException catch (e) {
-      _log.warning('Unreadable scanned stretches, using the mark', error: e);
-      return null;
-    }
-  }
-
-  static MediaIdentificationRunsCompanion _runToCompanion(
-    MediaIdentificationRun run,
-  ) => MediaIdentificationRunsCompanion.insert(
-    mediaId: run.mediaId,
-    packVersion: run.packVersion,
-    detectorId: run.detectorId,
-    classifierId: run.classifierId,
-    locationCell: Value(run.locationCell),
-    analysedAt: run.analysedAt.millisecondsSinceEpoch,
-    imageWidth: run.imageWidth,
-    imageHeight: run.imageHeight,
-    detectionCount: run.detectionCount,
-    scannedMs: Value(run.scannedMs),
-    videoDurationMs: Value(run.videoDurationMs),
-    scannedRanges: Value(
-      run.scannedRanges == null
-          ? null
-          : encodeScannedRanges(run.scannedRanges!),
-    ),
-  );
-
-  static MediaIdentification _fromRow(
-    MediaIdentificationRow row, {
-    bool withPath = true,
-  }) => MediaIdentification(
-    id: row.id,
-    mediaId: row.mediaId,
-    box: IdentificationBox(
-      x: row.boxX,
-      y: row.boxY,
-      width: row.boxWidth,
-      height: row.boxHeight,
-    ),
-    boxPixelWidth: row.boxPixelWidth,
-    boxPixelHeight: row.boxPixelHeight,
-    detectorScore: row.detectorScore,
-    openScore: row.openScore,
-    candidates: _decodeCandidates(row.candidatesJson),
-    locationLimited: row.locationLimited,
-    suggestable: row.suggestable,
-    decision: IdentificationDecision.values.firstWhere(
-      (d) => d.name == row.decision,
-      orElse: () => IdentificationDecision.undecided,
-    ),
-    decidedSpeciesId: row.decidedSpeciesId,
-    decidedAt: row.decidedAt == null ? null : _time(row.decidedAt!),
-    createdAt: _time(row.createdAt),
-    startMs: row.startMs,
-    endMs: row.endMs,
-    bestMs: row.bestMs,
-    path: withPath ? _decodePath(row) : const [],
-    claimedSpeciesId: row.claimedSpeciesId,
-    confident: row.confident,
-    specific: row.specific,
-  );
-
-  static MediaIdentificationsCompanion _toCompanion(MediaIdentification i) =>
-      MediaIdentificationsCompanion.insert(
-        id: i.id,
-        mediaId: i.mediaId,
-        boxX: i.box.x,
-        boxY: i.box.y,
-        boxWidth: i.box.width,
-        boxHeight: i.box.height,
-        boxPixelWidth: i.boxPixelWidth,
-        boxPixelHeight: i.boxPixelHeight,
-        detectorScore: i.detectorScore,
-        openScore: i.openScore,
-        candidatesJson: jsonEncode([for (final c in i.candidates) c.toJson()]),
-        locationLimited: i.locationLimited,
-        suggestable: i.suggestable,
-        decision: i.decision.name,
-        decidedSpeciesId: Value(i.decidedSpeciesId),
-        decidedAt: Value(i.decidedAt?.millisecondsSinceEpoch),
-        createdAt: i.createdAt.millisecondsSinceEpoch,
-        startMs: Value(i.startMs),
-        endMs: Value(i.endMs),
-        bestMs: Value(i.bestMs),
-        trackPath: Value(
-          i.isTrack ? encodeTrackPath(i.startMs!, i.path) : null,
-        ),
-        claimedSpeciesId: Value(i.claimedSpeciesId),
-        confident: Value(i.confident),
-        specific: Value(i.specific),
-      );
-
-  /// A path that cannot be read keeps its row with no path, which draws no
-  /// label: the rest of what was found stays usable.
-  static List<TrackSample> _decodePath(MediaIdentificationRow row) {
-    final bytes = row.trackPath;
-    final start = row.startMs;
-    if (bytes == null || start == null) return const [];
-    try {
-      return decodeTrackPath(start, bytes);
-    } on FormatException catch (e) {
-      _log.debug('Unreadable track path on ${row.id}', error: e);
-      return const [];
-    }
-  }
-
   static final _log = LoggerService.forClass(MediaIdentificationRepository);
-
-  /// A row whose JSON cannot be read keeps its place with no candidates,
-  /// which the rules never suggest.
-  static List<NamedCandidate> _decodeCandidates(String json) {
-    try {
-      final list = jsonDecode(json);
-      if (list is! List) return const [];
-      return [
-        for (final entry in list)
-          if (entry is Map)
-            NamedCandidate.fromJson(entry.cast<String, Object?>()),
-      ];
-    } on Object {
-      return const [];
-    }
-  }
-
-  static DateTime _time(int millis) =>
-      DateTime.fromMillisecondsSinceEpoch(millis, isUtc: true);
 }

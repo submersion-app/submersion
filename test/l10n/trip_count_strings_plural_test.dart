@@ -50,31 +50,8 @@ void main() {
     'nl': ('1 dag', '3 dagen'),
     'pt': ('1 dia', '3 dias'),
     'zh': ('1 天', '3 天'),
+    'ja': ('1日間', '3日間'),
   });
-
-  const linkedPhotos = {
-    'en': ('Linked 1 photo', 'Linked 3 photos'),
-    'ar': ('تم ربط صورة واحدة', 'تم ربط 3 صور'),
-    'de': ('1 Foto verknüpft', '3 Fotos verknüpft'),
-    'es': ('Se vinculó 1 foto', 'Se vincularon 3 fotos'),
-    'fr': ('1 photo associée', '3 photos associées'),
-    'he': ('קושרה תמונה אחת', 'קושרו 3 תמונות'),
-    'hu': ('1 fotó csatolva', '3 fotó csatolva'),
-    'it': ('Collegata 1 foto', 'Collegate 3 foto'),
-    'nl': ('1 foto gekoppeld', "3 foto's gekoppeld"),
-    'pt': ('1 foto vinculada', '3 fotos vinculadas'),
-    'zh': ('已关联 1 照片', '已关联 3 照片'),
-  };
-  check(
-    'trips_detail_scan_linkedPhotos',
-    (l, n) => l.trips_detail_scan_linkedPhotos(n),
-    linkedPhotos,
-  );
-  check(
-    'trips_gallery_linkedPhotos',
-    (l, n) => l.trips_gallery_linkedPhotos(n),
-    linkedPhotos,
-  );
 
   check('trips_diveScan_addButton', (l, n) => l.trips_diveScan_addButton(n), {
     'en': ('Add 1 Dive', 'Add 3 Dives'),
@@ -88,6 +65,7 @@ void main() {
     'nl': ('1 duik toevoegen', '3 duiken toevoegen'),
     'pt': ('Adicionar 1 mergulho', 'Adicionar 3 mergulhos'),
     'zh': ('添加 1 潜水', '添加 3 潜水'),
+    'ja': ('1本のダイブを追加', '3本のダイブを追加'),
   });
 
   check('trips_diveScan_added', (l, n) => l.trips_diveScan_added(n), {
@@ -114,6 +92,7 @@ void main() {
       '3 mergulhos adicionados à viagem',
     ),
     'zh': ('已将 1 次潜水添加到旅行', '已将 3 次潜水添加到旅行'),
+    'ja': ('トリップに1本のダイブを追加しました', 'トリップに3本のダイブを追加しました'),
   });
 
   check('trips_diveScan_subtitle', (l, n) => l.trips_diveScan_subtitle(n), {
@@ -152,6 +131,7 @@ void main() {
       '3 mergulhos encontrados no intervalo de datas',
     ),
     'zh': ('在日期范围内找到 1 次潜水', '在日期范围内找到 3 次潜水'),
+    'ja': ('期間内に1本のダイブが見つかりました', '期間内に3本のダイブが見つかりました'),
   });
 
   check('trips_list_tile_diveCount', (l, n) => l.trips_list_tile_diveCount(n), {
@@ -166,6 +146,7 @@ void main() {
     'nl': ('1 duik', '3 duiken'),
     'pt': ('1 mergulho', '3 mergulhos'),
     'zh': ('1 次潜水', '3 次潜水'),
+    'ja': ('1本', '3本'),
   });
 
   check(
@@ -183,6 +164,7 @@ void main() {
       'nl': ('1 meer foto', "3 meer foto's"),
       'pt': ('1 foto a mais', '3 fotos a mais'),
       'zh': ('1 更多照片', '3 更多照片'),
+      'ja': ('ほか1枚の写真', 'ほか3枚の写真'),
     },
   );
 }

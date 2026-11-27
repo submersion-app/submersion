@@ -15,9 +15,6 @@ mixin _CertificationDetailPageEditing
   String recordIdOf(Certification record) => record.id;
 
   @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  @override
   bool openUnlockedOf(CertificationDetailPage widget) => widget.openUnlocked;
 
   @override
@@ -128,27 +125,20 @@ mixin _CertificationDetailPageEditing
       );
 }
 
-/// A section's title row: its title, and the card's pencil where the page
-/// edits in place ([editing]).
-Widget _sectionTitle(
-  BuildContext context,
-  String title, {
-  required bool editing,
-}) {
-  final text = Text(
-    title,
-    style: Theme.of(
-      context,
-    ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-  );
-  if (!editing) return text;
-  return Row(
-    children: [
-      Expanded(child: text),
-      RecordCardPencil(cardTitle: title),
-    ],
-  );
-}
+/// A section's title row: its title, and the card's pencil.
+Widget _sectionTitle(BuildContext context, String title) => Row(
+  children: [
+    Expanded(
+      child: Text(
+        title,
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+      ),
+    ),
+    RecordCardPencil(cardTitle: title),
+  ],
+);
 
 /// [child], a section the page calculates, faded and labelled
 /// "Calculated" while unlocked.

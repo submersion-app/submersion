@@ -3,14 +3,16 @@ import 'package:submersion/features/dive_planner/presentation/providers/dive_pla
 import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
 import 'package:submersion/features/planner/domain/services/plan_issue_markers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 
 /// Where the shown plan's warnings start, for the chart to mark (#3738).
 /// Taken from [activePlanOutcomeProvider], the outcome the warnings list
 /// shows, so a marker and its list row always agree. Empty while the chart
 /// draws the bailout picture, which is a different dive from the one the
-/// warnings describe.
+/// warnings describe. In Bailout view with no picture to draw (a gas gap, no
+/// bailout tank left), the chart draws the plan, so they show.
 final planIssueMarkersProvider = Provider<List<PlanIssueMarker>>((ref) {
-  if (ref.watch(chartDisplayModeProvider) == ChartDisplayMode.bailout) {
+  if (ref.watch(planChartBailoutProvider.select((c) => c.picture != null))) {
     return const [];
   }
   return planIssueMarkers(ref.watch(activePlanOutcomeProvider).issues);

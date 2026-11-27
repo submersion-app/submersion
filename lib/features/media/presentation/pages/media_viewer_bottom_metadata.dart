@@ -19,7 +19,9 @@ extension _ViewerBottomPanel on _MediaViewerPageState {
       item: item,
       settings: settings,
       onMomentTap: (tag) => _showMoment(item, tag),
+      onSpeciesMoment: item.isVideo ? (at) => _showMomentAt(item, at) : null,
       sitting: photoSitting,
+      locked: photoLocked,
       onSuggestionTap: photoSitting == null
           ? null
           : () {
@@ -41,6 +43,7 @@ extension _ViewerBottomPanel on _MediaViewerPageState {
               key: ValueKey('video_controls_${item.id}'),
               controller: video,
               mediaId: item.id,
+              audio: _audio,
               // The controls hide 3 s after a reveal: hold them up while
               // scrubbing or under the mouse, so the bar is not pulled from
               // under the pointer.
@@ -49,6 +52,13 @@ extension _ViewerBottomPanel on _MediaViewerPageState {
       // Clear of the mini profile in the corner.
       controlsClearance: miniProfileShown
           ? PositionedMiniProfileOverlay.reach + 8
+          : 0,
+      // The details stop short of the chart (issue #4921), past the
+      // panel's own side inset.
+      chartClearance: miniProfileShown
+          ? PositionedMiniProfileOverlay.span +
+                8 -
+                _BottomMetadataOverlay.sideInset
           : 0,
       onHeightChanged: (height) =>
           _onBottomPanelHeight(height, video: item.isVideo),
@@ -75,12 +85,20 @@ class _BottomMetadataOverlay extends StatelessWidget {
   /// A video face tag's chip was tapped (issue #1745).
   final ValueChanged<MediaPersonTag>? onMomentTap;
 
+  /// A time on a species' crop sheet was tapped (issue #5032): play the
+  /// video from there. Null for a photo.
+  final ValueChanged<Duration>? onSpeciesMoment;
+
   /// The photo's sitting, whose held tags the chips show (issue #4527).
   final EditSession<PhotoRecord>? sitting;
 
   /// Opens the species sheet from a suggested species (issue #4668); null
   /// while the photo is locked.
   final VoidCallback? onSuggestionTap;
+
+  /// The photo or video is locked: a species tag opens its crops (issue
+  /// #5024).
+  final bool locked;
 
   /// A video's scrub bar, drawn above everything else in the panel; null
   /// for a photo.
@@ -89,6 +107,15 @@ class _BottomMetadataOverlay extends StatelessWidget {
   /// How far up from the viewer's bottom edge the panel keeps clear under
   /// [controls], so they clear the mini profile chart in the corner.
   final double controlsClearance;
+
+  /// How much further in from the right the details keep, past
+  /// [sideInset], so no tag or reading runs over the mini profile chart in
+  /// the corner (issue #4921). Right, not end: the chart is in the right
+  /// corner whichever way the text runs.
+  final double chartClearance;
+
+  /// How far in from each side the details sit.
+  static const double sideInset = 16;
 
   /// The panel's height, whenever it changes: the fish labels on a video
   /// keep above it.
@@ -101,10 +128,13 @@ class _BottomMetadataOverlay extends StatelessWidget {
     this.onSetTime,
     this.siteName,
     this.onMomentTap,
+    this.onSpeciesMoment,
     this.sitting,
     this.onSuggestionTap,
+    this.locked = false,
     this.controls,
     this.controlsClearance = 0,
+    this.chartClearance = 0,
     this.onHeightChanged,
   });
 
@@ -152,9 +182,9 @@ class _BottomMetadataOverlay extends StatelessWidget {
               top: false,
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
-                  16,
+                  sideInset,
                   controls == null ? 32 : 8,
-                  16,
+                  sideInset + chartClearance,
                   16,
                 ),
                 child: Column(
@@ -198,12 +228,29 @@ class _BottomMetadataOverlay extends StatelessWidget {
                       mediaId: item.id,
                       sitting: sitting,
                       onSuggestionTap: onSuggestionTap,
+                      item: item,
+                      tagsOpenCrops: locked,
+                      onMoment: onSpeciesMoment,
+                      // Every species, from the "+N" chip: the sheet while
+                      // the photo is unlocked, else the list (issue #4825).
+                      onMoreTap:
+                          onSuggestionTap ??
+                          () => showMediaSpeciesListSheet(
+                            context,
+                            item,
+                            sitting: sitting,
+                            onMoment: onSpeciesMoment,
+                          ),
                     ),
-                    // Metadata row
-                    Row(
+                    // Metadata row, onto a second line where the chart
+                    // leaves too little room (issue #4921).
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         // Depth
-                        if (enrichment?.depthMeters != null) ...[
+                        if (enrichment?.depthMeters != null)
                           _MetadataChip(
                             icon: Icons.arrow_downward,
                             value: formatter.formatDepth(
@@ -211,11 +258,9 @@ class _BottomMetadataOverlay extends StatelessWidget {
                               decimals: 1,
                             ),
                           ),
-                          const SizedBox(width: 16),
-                        ],
 
                         // Temperature
-                        if (enrichment?.temperatureCelsius != null) ...[
+                        if (enrichment?.temperatureCelsius != null)
                           _MetadataChip(
                             icon: Icons.thermostat,
                             value: formatter.formatTemperature(
@@ -223,8 +268,6 @@ class _BottomMetadataOverlay extends StatelessWidget {
                               decimals: 0,
                             ),
                           ),
-                          const SizedBox(width: 16),
-                        ],
 
                         // Elapsed time: the diver's pin, the automatic
                         // position, or an explicit unknown for a linked item
@@ -253,7 +296,10 @@ class _BottomMetadataOverlay extends StatelessWidget {
                     const SizedBox(height: 8),
 
                     // Timestamp row
-                    Row(
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
                           formatter.formatDateTime(item.takenAt, l10n: l10n),
@@ -271,8 +317,7 @@ class _BottomMetadataOverlay extends StatelessWidget {
                                 MatchConfidence.exact &&
                             enrichment.matchConfidence !=
                                 MatchConfidence.interpolated &&
-                            !enrichment.isManual) ...[
-                          const SizedBox(width: 8),
+                            !enrichment.isManual)
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 6,
@@ -293,7 +338,6 @@ class _BottomMetadataOverlay extends StatelessWidget {
                               ),
                             ),
                           ),
-                        ],
                       ],
                     ),
                   ],

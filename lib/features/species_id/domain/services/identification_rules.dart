@@ -6,6 +6,7 @@ library;
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/pack_candidate.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
+import 'package:submersion/features/species_id/domain/services/pack_versions.dart';
 import 'package:submersion/features/species_id/domain/services/species_namer.dart';
 
 /// How much two boxes must overlap to be taken for the same animal.
@@ -233,7 +234,23 @@ RefreshAction decideRefresh({
   required int? cell,
   required bool cropsPresent,
   required bool embeddingsPresent,
+  bool madeHere = true,
 }) {
+  // A run another device made is trusted (issue #4876): its crops and
+  // embeddings are that device's, and its place was its own. Only newer
+  // models here analyse it again.
+  if (run != null && !madeHere) {
+    return hasNewerModels(
+          packVersion: packVersion,
+          detectorId: detectorId,
+          classifierId: classifierId,
+          runPackVersion: run.packVersion,
+          runDetectorId: run.detectorId,
+          runClassifierId: run.classifierId,
+        )
+        ? RefreshAction.analyse
+        : RefreshAction.none;
+  }
   if (run == null ||
       !cropsPresent ||
       run.detectorId != detectorId ||
@@ -246,12 +263,62 @@ RefreshAction decideRefresh({
   return RefreshAction.none;
 }
 
+/// [stored]'s dismissed rows, undecided again: what a re-analysis the
+/// diver asked for does to them before it runs (issue #4825). Each keeps
+/// [now] as its decision time, which marks it
+/// ([MediaIdentification.reopened]) as one the app never tags by itself.
+/// Only the changed rows are returned.
+List<MediaIdentification> reopenDismissed(
+  List<MediaIdentification> stored, {
+  required DateTime now,
+}) => [
+  for (final i in stored)
+    if (i.decision == IdentificationDecision.rejected) _reopenedAt(i, now),
+];
+
+/// [i] undecided again since [now], naming no species: a row a tag was
+/// removed from still names that tag's species.
+MediaIdentification _reopenedAt(MediaIdentification i, DateTime now) =>
+    MediaIdentification(
+      id: i.id,
+      mediaId: i.mediaId,
+      box: i.box,
+      boxPixelWidth: i.boxPixelWidth,
+      boxPixelHeight: i.boxPixelHeight,
+      detectorScore: i.detectorScore,
+      openScore: i.openScore,
+      candidates: i.candidates,
+      locationLimited: i.locationLimited,
+      suggestable: i.suggestable,
+      decision: IdentificationDecision.undecided,
+      decidedAt: now,
+      createdAt: i.createdAt,
+      startMs: i.startMs,
+      endMs: i.endMs,
+      bestMs: i.bestMs,
+      path: i.path,
+      claimedSpeciesId: i.claimedSpeciesId,
+      confident: i.confident,
+      specific: i.specific,
+      runId: i.runId,
+    );
+
 /// What to store after a photo is analysed again.
 ///
 /// Old undecided identifications are replaced by [fresh]. A decided one is
 /// kept, unless a fresh detection of the same top species overlaps it by at
 /// least [sameAnimalOverlap]: then the fresh detection carries its decision
 /// and replaces it, so a dismissal survives and the crop is restored.
+///
+/// A reopened one ([MediaIdentification.reopened]) is carried the same
+/// way, so the app goes on leaving it to the diver; one no fresh detection
+/// matches is dropped, being only an old guess.
+///
+/// A name the diver gave an animal from the picture and has not saved as
+/// a tag yet (a claim on an undecided row, issue #4825) is carried by
+/// place alone, to the fresh detection that overlaps it most: the diver
+/// named that animal, whatever the app calls it now. With none, the row is
+/// kept as it is.
 ({
   List<MediaIdentification> keep,
   List<MediaIdentification> insert,
@@ -261,13 +328,22 @@ carryDecisions({
   required List<MediaIdentification> previous,
   required List<MediaIdentification> fresh,
 }) {
+  // A name given from the picture, on a row with no decision (reopened or
+  // not), follows the animal by place.
+  bool claimOnly(MediaIdentification p) =>
+      p.decision == IdentificationDecision.undecided &&
+      p.claimedSpeciesId != null;
   final decided = [
     for (final p in previous)
-      if (p.decision != IdentificationDecision.undecided) p,
+      if (p.saidByDiver && !claimOnly(p)) p,
+  ];
+  final claimed = [
+    for (final p in previous)
+      if (claimOnly(p)) p,
   ];
   final deleteIds = [
     for (final p in previous)
-      if (p.decision == IdentificationDecision.undecided) p.id,
+      if (!p.saidByDiver) p.id,
   ];
   final carried = <String>{};
   final insert = <MediaIdentification>[];
@@ -284,13 +360,40 @@ carryDecisions({
         decision: match.decision,
         decidedSpeciesId: match.decidedSpeciesId,
         decidedAt: match.decidedAt,
+        claimedSpeciesId: () => match.claimedSpeciesId,
       ),
     );
+  }
+  final keptClaims = <MediaIdentification>[];
+  for (final claim in claimed) {
+    int? best;
+    var bestOverlap = sameAnimalOverlap;
+    for (var k = 0; k < insert.length; k++) {
+      if (insert[k].saidByDiver) continue;
+      final overlap = insert[k].box.iou(claim.box);
+      if (overlap >= bestOverlap) {
+        best = k;
+        bestOverlap = overlap;
+      }
+    }
+    if (best == null) {
+      keptClaims.add(claim);
+      continue;
+    }
+    insert[best] = insert[best].copyWith(
+      claimedSpeciesId: () => claim.claimedSpeciesId,
+      decidedAt: claim.decidedAt,
+    );
+    deleteIds.add(claim.id);
+  }
+  for (final d in decided) {
+    if (d.reopened && !carried.contains(d.id)) deleteIds.add(d.id);
   }
   return (
     keep: [
       for (final d in decided)
-        if (!carried.contains(d.id)) d,
+        if (!carried.contains(d.id) && !d.reopened) d,
+      ...keptClaims,
     ],
     insert: insert,
     deleteIds: deleteIds,
@@ -310,3 +413,27 @@ MediaIdentification? _matchFor(
   }
   return null;
 }
+
+/// [rows] as shown (issue #4876): a run's own rows, and every row the diver
+/// said something on. An undecided, unclaimed row from another run is a
+/// leftover of a run that lost a sync race (two devices analysed the same
+/// media before syncing), and is hidden until the next analysis here
+/// deletes it. With no run, or a run from before run ids, every row shows.
+List<MediaIdentification> visibleRows(
+  MediaIdentificationRun? run,
+  List<MediaIdentification> rows,
+) {
+  final runId = run?.runId;
+  if (runId == null) return rows;
+  return [
+    for (final i in rows)
+      if (i.runId == null || i.runId == runId || i.saidByDiver) i,
+  ];
+}
+
+/// Whether [i] has a name to show anywhere (issue #4876): it looks like
+/// something in particular, is suggested, or the diver said something on
+/// it. Its crop then syncs with the logbook; an unnamed one's stays a file
+/// on the device that analysed it.
+bool isNamed(MediaIdentification i) =>
+    i.specific || i.suggestable || i.saidByDiver;

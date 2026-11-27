@@ -50,10 +50,21 @@ class RecordingIdentificationService extends MediaIdentificationService {
   var requestsWait = false;
   final _waiting = <String>{};
 
+  /// How each request was asked: by hand, and fresh (issue #4825).
+  final byHand = <bool>[];
+  final fresh = <bool>[];
+
   @override
-  Future<void> request(MediaItem item, {GeoPoint? location}) async {
+  Future<void> request(
+    MediaItem item, {
+    GeoPoint? location,
+    bool byHand = false,
+    bool fresh = false,
+  }) async {
     requested.add(item.id);
     locations.add(location);
+    this.byHand.add(byHand);
+    this.fresh.add(fresh);
     if (requestsWait) _waiting.add(item.id);
   }
 
@@ -147,3 +158,26 @@ SpeciesSuggestion suggestion(
     const NamedCandidate(candidate: chromis, score: 0.05),
   ],
 );
+
+/// A repository whose every media item holds [rows], for the views that
+/// read a photo's identifications once (issue #5024).
+class FixedIdentifications extends MediaIdentificationRepository {
+  FixedIdentifications(this.rows);
+
+  final List<MediaIdentification> rows;
+
+  @override
+  Future<List<MediaIdentification>> forMedia(String mediaId) async => rows;
+
+  @override
+  Future<
+    (
+      Map<String, MediaIdentificationRun>,
+      Map<String, List<MediaIdentification>>,
+    )
+  >
+  forMediaIdsWithRuns(List<String> mediaIds, {bool withPaths = true}) async => (
+    const <String, MediaIdentificationRun>{},
+    {for (final id in mediaIds) id: rows},
+  );
+}

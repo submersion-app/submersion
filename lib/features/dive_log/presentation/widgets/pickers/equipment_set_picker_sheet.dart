@@ -36,6 +36,9 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
   /// left out of the row.
   final bool appliesWeights;
 
+  /// Whether the caller applies the set's cylinder configurations.
+  final bool appliesCylinders;
+
   const EquipmentSetPickerSheet({
     super.key,
     required this.scrollController,
@@ -44,6 +47,7 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
     this.pickEmptySets = false,
     this.requireGear = false,
     this.appliesWeights = true,
+    this.appliesCylinders = true,
   });
 
   @override
@@ -110,6 +114,7 @@ class EquipmentSetPickerSheet extends ConsumerWidget {
                     pickEmpty: pickEmptySets,
                     requireGear: requireGear,
                     appliesWeights: appliesWeights,
+                    appliesCylinders: appliesCylinders,
                     onTap: (items) => onSetSelected(set, items),
                   );
                 },
@@ -136,6 +141,7 @@ class _EquipmentSetTile extends ConsumerWidget {
   final bool pickEmpty;
   final bool requireGear;
   final bool appliesWeights;
+  final bool appliesCylinders;
   final void Function(List<EquipmentItem> items) onTap;
 
   const _EquipmentSetTile({
@@ -143,6 +149,7 @@ class _EquipmentSetTile extends ConsumerWidget {
     required this.pickEmpty,
     required this.requireGear,
     required this.appliesWeights,
+    required this.appliesCylinders,
     required this.onTap,
   });
 
@@ -164,7 +171,9 @@ class _EquipmentSetTile extends ConsumerWidget {
         ];
         // The lead and cylinders the set carries besides gear (issue
         // #4525). A set with only those is still worth applying.
-        final summary = ref.watch(setBundleSummaryProvider(set.id)).valueOrNull;
+        final summary = appliesWeights || appliesCylinders
+            ? ref.watch(setBundleSummaryProvider(set.id)).valueOrNull
+            : null;
         final carried = summary == null
             ? ''
             : setBundleSummaryText(
@@ -172,7 +181,7 @@ class _EquipmentSetTile extends ConsumerWidget {
                 (kg) => ref.watch(unitFormatterProvider).formatWeight(kg),
                 gearCount: 0,
                 leadKg: appliesWeights ? summary.leadKg : 0,
-                cylinderCount: summary.cylinderCount,
+                cylinderCount: appliesCylinders ? summary.cylinderCount : 0,
               );
         final gearText = items.isEmpty
             ? context.l10n.diveLog_equipmentSetPicker_emptySet

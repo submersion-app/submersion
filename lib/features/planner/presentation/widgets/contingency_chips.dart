@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Selector for the ghosted contingency: Base / +depth / +time / both.
-/// Hidden when the plan has no segments.
+/// Contingency toggles for the chart: Base / +depth / +time / one chip per
+/// losable cylinder. All but Base combine freely; Base clears them.
 class ContingencyChips extends ConsumerWidget {
   const ContingencyChips({super.key, this.overlay = false});
 
@@ -20,7 +22,12 @@ class ContingencyChips extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(divePlanNotifierProvider);
     if (state.segments.isEmpty) return const SizedBox.shrink();
-    final selected = ref.watch(selectedDeviationProvider);
+    final canLengthen = ref.watch(planCanLengthenProvider);
+    final selection = ref.watch(contingencySelectionProvider);
+    final losable = ref.watch(planLosableTanksProvider);
+    final notifier = ref.read(contingencySelectionProvider.notifier);
+    // Not in effect in Bailout view, so held as they are, dimmed (#5018).
+    final held = ref.watch(planBailoutViewProvider);
     final units = ref.watch(unitFormatterProvider);
 
     // The plan's own deviation, else the diver's Settings default (#3552).
@@ -29,25 +36,46 @@ class ContingencyChips extends ConsumerWidget {
         '+${units.formatDepth(resolved.deviationDepthDelta, decimals: 0)}';
     final timeLabel = '+${resolved.deviationTimeMinutes}′';
 
-    void select(String? key) {
-      ref.read(selectedDeviationProvider.notifier).state = key;
-      // Only one contingency ghost can be on the chart at a time.
-      if (key != null) {
-        ref.read(selectedLostGasTankIdProvider.notifier).state = null;
-      }
+    // A lost id whose tank is gone or no longer losable has no chip, so it
+    // must not keep Base dark either.
+    final losableIds = {for (final t in losable) t.id};
+    final anyOn =
+        selection.deeper ||
+        selection.longer ||
+        selection.lostTankIds.any(losableIds.contains);
+
+    Widget chip(String label, bool on, VoidCallback? toggle) {
+      final onTap = held ? null : toggle;
+      return Semantics(
+        selected: on,
+        enabled: onTap != null,
+        child: Opacity(
+          opacity: onTap == null ? 0.4 : 1,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: onTap,
+            child: PlanChip(label: label, emphasized: on),
+          ),
+        ),
+      );
     }
 
-    Widget chip(String? key, String label) => InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () => select(key),
-      child: PlanChip(label: label, emphasized: selected == key),
-    );
+    Widget lostChip(DiveTank tank) {
+      final on = selection.lostTankIds.contains(tank.id);
+      return chip(
+        context.l10n.plannerCanvas_contingency_lostGas(tank.gasMix.name),
+        on,
+        notifier.canToggleLostGas(tank.id)
+            ? () => notifier.toggleLostGas(tank.id)
+            : null,
+      );
+    }
 
     final chips = [
-      chip(null, context.l10n.plannerCanvas_contingency_base),
-      chip('deeper', depthLabel),
-      chip('longer', timeLabel),
-      chip('both', '$depthLabel $timeLabel'),
+      chip(context.l10n.plannerCanvas_contingency_base, !anyOn, notifier.clear),
+      chip(depthLabel, selection.deeper, notifier.toggleDeeper),
+      if (canLengthen) chip(timeLabel, selection.longer, notifier.toggleLonger),
+      for (final tank in losable) lostChip(tank),
     ];
 
     if (!overlay) {

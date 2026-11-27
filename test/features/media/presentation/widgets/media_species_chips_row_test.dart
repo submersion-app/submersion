@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -126,5 +127,116 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('My Nudibranch'), findsOneWidget);
+  });
+
+  group('one line, then a count (issue #4825)', () {
+    final many = [
+      for (var i = 0; i < 16; i++)
+        SpeciesTagChip(
+          speciesId: 'sp_$i',
+          storedName: 'Striped species $i',
+          category: SpeciesCategory.fish,
+          isBuiltIn: false,
+        ),
+    ];
+    final more = find.byKey(const ValueKey('media_species_more'));
+
+    Future<void> pumpMany(
+      WidgetTester tester, {
+      VoidCallback? onMoreTap,
+    }) async {
+      tester.view.physicalSize = const Size(390, 844);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            ...overrides,
+            mediaTagChipsProvider('p1').overrideWith((ref) async => many),
+          ],
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: MediaSpeciesChipsRow(mediaId: 'p1', onMoreTap: onMoreTap),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('sixteen tags stay on one line with a count chip', (
+      tester,
+    ) async {
+      await pumpMany(tester);
+      expect(more, findsOneWidget);
+      // A plain chip when there is nothing to open (issue #4921), so read
+      // the RawChip both kinds build on.
+      final chip = tester.widget<RawChip>(
+        find.descendant(of: more, matching: find.byType(RawChip)),
+      );
+      expect((chip.label as Text).data, startsWith('+'));
+      final row = tester.getSize(find.byType(MediaSpeciesChipsRow));
+      final oneChip = tester.getSize(find.byType(ActionChip).first);
+      // One chip's height and the row's gap under it.
+      expect(row.height, lessThanOrEqualTo(oneChip.height + 8));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the count says how many species it stands for', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpMany(tester);
+      // A plain chip when there is nothing to open (issue #4921), so read
+      // the RawChip both kinds build on.
+      final chip = tester.widget<RawChip>(
+        find.descendant(of: more, matching: find.byType(RawChip)),
+      );
+      final hidden = int.parse((chip.label as Text).data!.substring(1));
+      expect(find.bySemanticsLabel('$hidden more species'), findsOneWidget);
+      // The ones shown and the ones counted are all of them.
+      expect(
+        find.textContaining('Striped species').evaluate().length + hidden,
+        16,
+      );
+      semantics.dispose();
+    });
+
+    testWidgets('with nothing to open, the count is not announced as a '
+        'button', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpMany(tester);
+      final node = tester.getSemantics(more);
+      expect(node.flagsCollection.isButton, isFalse);
+      expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isFalse);
+      semantics.dispose();
+    });
+
+    testWidgets('the count chip calls onMoreTap', (tester) async {
+      var taps = 0;
+      await pumpMany(tester, onMoreTap: () => taps++);
+      await tester.tap(more);
+      expect(taps, 1);
+    });
+
+    testWidgets('a few tags show without a count', (tester) async {
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            ...overrides,
+            mediaTagChipsProvider(
+              'p1',
+            ).overrideWith((ref) async => many.take(2).toList()),
+          ],
+          child: const MediaSpeciesChipsRow(mediaId: 'p1'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(more, findsNothing);
+      expect(find.textContaining('Striped species'), findsNWidgets(2));
+    });
   });
 }

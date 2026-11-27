@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
+import 'package:submersion/features/dive_computer/presentation/editing/dive_computer_settings_sitting.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
@@ -15,9 +17,17 @@ final _log = LoggerService.forClass(DiveComputerActionsCard);
 /// Download, view, re-import and re-parse, on a dive computer's Equipment
 /// page (issue #3676).
 class DiveComputerActionsCard extends ConsumerWidget {
-  const DiveComputerActionsCard({super.key, required this.computer});
+  const DiveComputerActionsCard({
+    super.key,
+    required this.computer,
+    this.operations,
+  });
 
   final DiveComputer computer;
+
+  /// On the computer's gear item page (issue #4527, phase 3):
+  /// re-parse all is a whole-record operation. Downloads work locked.
+  final DiveComputerOperations? operations;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -54,7 +64,7 @@ class DiveComputerActionsCard extends ConsumerWidget {
                 label: Text(context.l10n.diveComputer_detail_reimportAllButton),
               ),
             ],
-            _RawDataActions(computer: computer),
+            _RawDataActions(computer: computer, operations: operations),
           ],
         ),
       ),
@@ -91,9 +101,10 @@ class DiveComputerActionsCard extends ConsumerWidget {
 /// Re-parse all and discard raw data, shown only while the computer has
 /// stored raw dive data.
 class _RawDataActions extends ConsumerWidget {
-  const _RawDataActions({required this.computer});
+  const _RawDataActions({required this.computer, this.operations});
 
   final DiveComputer computer;
+  final DiveComputerOperations? operations;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -105,10 +116,19 @@ class _RawDataActions extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: () => _confirmReparseAll(context, ref, c),
-              icon: const Icon(Icons.refresh),
-              label: Text(context.l10n.diveComputer_detail_reparseAllButton),
+            RecordOperationButton(
+              reason: operations?.reason,
+              onPressed: () => runDiveComputerOperation(
+                operations,
+                () => _confirmReparseAll(context, ref, c),
+                're-parse all',
+              ),
+              builder: (onPressed) => OutlinedButton.icon(
+                key: const ValueKey('dive_computer_reparse_all'),
+                onPressed: onPressed,
+                icon: const Icon(Icons.refresh),
+                label: Text(context.l10n.diveComputer_detail_reparseAllButton),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.only(top: 4),
@@ -133,7 +153,8 @@ class _RawDataActions extends ConsumerWidget {
     );
   }
 
-  Future<void> _confirmReparseAll(
+  /// Asks, then re-parses every dive of the computer; whether it did.
+  Future<bool> _confirmReparseAll(
     BuildContext context,
     WidgetRef ref,
     ({int withRawData, int withoutRawData}) counts,
@@ -143,8 +164,17 @@ class _RawDataActions extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(l10n.diveComputer_detail_reparseAllTitle),
-        content: Text(
-          l10n.diveComputer_detail_reparseAllMessage(counts.withRawData),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.diveComputer_detail_reparseAllMessage(counts.withRawData),
+            ),
+            // A batch asks nothing per dive (issue #4909).
+            const SizedBox(height: 12),
+            Text(l10n.reparseBatch_confirmHandSetKept),
+          ],
         ),
         actions: [
           TextButton(
@@ -159,15 +189,14 @@ class _RawDataActions extends ConsumerWidget {
       ),
     );
 
-    if (confirmed == true && context.mounted) {
-      await _executeReparseAll(context, ref);
-    }
+    if (confirmed != true || !context.mounted) return false;
+    return _executeReparseAll(context, ref);
   }
 
   /// Runs through the shared progress and results dialog (issue #224),
   /// re-parsing only this computer's sources on a dive combined with another
-  /// computer's.
-  Future<void> _executeReparseAll(BuildContext context, WidgetRef ref) async {
+  /// computer's. Whether a batch ran.
+  Future<bool> _executeReparseAll(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     final failed = context.l10n.common_error_tryAgain;
     final List<String> diveIds;
@@ -182,9 +211,10 @@ class _RawDataActions extends ConsumerWidget {
         stackTrace: stackTrace,
       );
       messenger.showSnackBar(SnackBar(content: Text(failed)));
-      return;
+      return false;
     }
-    if (diveIds.isEmpty || !context.mounted) return;
+    if (diveIds.isEmpty || !context.mounted) return false;
     await runReparseBatch(context, ref, diveIds, computerId: computer.id);
+    return true;
   }
 }

@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitter_key_saved.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/features/transmitters/presentation/widgets/transmitter_key_widgets.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -37,6 +41,89 @@ class _SectionCard extends ConsumerWidget {
   final String equipmentId;
   final List<Transmitter> keys;
 
+  /// Opens the key editor at [path]. Once it has saved, says so, and after
+  /// a first setup, a downloaded key confirmed or a takeover offers to fill
+  /// the dives already logged (spec section 5): the card's own Apply, with
+  /// its counts and confirmation (issue #4527, phase 4). The message goes
+  /// out even when this card was rebuilt meanwhile; the offer needs the card
+  /// that opened the editor, so it goes with it.
+  Future<void> _openKeyEditor(
+    BuildContext context,
+    WidgetRef ref,
+    String path,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final saved = await context.push<Object?>(path);
+    if (saved is! TransmitterKeySaved) return;
+    final offerApply = saved.offerApply && context.mounted;
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(l10n.transmitters_saved),
+        persist: false,
+        action: !offerApply
+            ? null
+            : SnackBarAction(
+                label: l10n.transmitters_action_apply,
+                onPressed: () => _applyAfterSave(context, ref),
+              ),
+      ),
+    );
+  }
+
+  /// The snackbar's Apply: every key of the item as it is now (the setup
+  /// went onto each), through the card's Apply. Nothing once the item page
+  /// has gone, as its card's Apply has gone with it.
+  Future<void> _applyAfterSave(BuildContext context, WidgetRef ref) async {
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final List<Transmitter> current;
+    try {
+      // Read again, not the card's copy: the save may not have reached it.
+      current = await ref.refresh(
+        transmittersForEquipmentProvider(equipmentId).future,
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('${l10n.common_label_error}: $e')),
+      );
+      return;
+    }
+    if (!context.mounted) return;
+    await _runApply(context, ref, current);
+  }
+
+  /// The card's Apply, from its button or from the snackbar after a save:
+  /// refused with "Save or cancel your changes first" while the item page
+  /// holds unsaved changes or is busy; through the item page's operation
+  /// gate while it is unlocked, as a whole-record operation (phase 3); at
+  /// once on a locked page or one with no editing. The counts and the
+  /// confirmation are applyTransmitterSetupToExistingDives'.
+  Future<void> _runApply(
+    BuildContext context,
+    WidgetRef ref,
+    List<Transmitter> keys,
+  ) async {
+    final controller = RecordEditScope.maybeOf<EquipmentItem>(context);
+    Future<bool> apply() =>
+        applyTransmitterSetupToExistingDives(context, ref, keys);
+    final block = recordOperationBlockOf(controller);
+    switch (block) {
+      case RecordOperationBlock.unsaved:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(recordOperationReason(context.l10n, block)!)),
+        );
+      case RecordOperationBlock.none:
+        await recordOperationRunnerOf(
+          controller!,
+          record: 'equipment $equipmentId',
+        )(apply);
+      case RecordOperationBlock.locked || null:
+        await apply();
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
@@ -65,7 +152,7 @@ class _SectionCard extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               FilledButton.icon(
-                onPressed: () => context.push(addKey),
+                onPressed: () => _openKeyEditor(context, ref, addKey),
                 icon: const Icon(Icons.add),
                 label: Text(l10n.transmitters_section_addKey),
               ),
@@ -77,7 +164,8 @@ class _SectionCard extends ConsumerWidget {
                   leading: const Icon(Icons.sensors),
                   title: TransmitterKeyLabel(entry: key),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('$addKey/${key.id}'),
+                  onTap: () =>
+                      _openKeyEditor(context, ref, '$addKey/${key.id}'),
                 ),
               if (setup.equipmentId case final cylinderId?)
                 _CylinderRow(cylinderId: cylinderId),
@@ -91,21 +179,34 @@ class _SectionCard extends ConsumerWidget {
                 runSpacing: 8,
                 children: [
                   FilledButton.tonal(
-                    onPressed: () => context.push('$addKey/${setup.id}'),
+                    onPressed: () =>
+                        _openKeyEditor(context, ref, '$addKey/${setup.id}'),
                     child: Text(l10n.transmitters_section_setUp),
                   ),
                   TextButton(
-                    onPressed: () => context.push(addKey),
+                    onPressed: () => _openKeyEditor(context, ref, addKey),
                     child: Text(l10n.transmitters_section_addKey),
                   ),
+                  // On the item's page (issue #4527, phase 3), Apply
+                  // rewrites dives: a whole-record operation.
                   if (setup.isSetUp)
-                    TextButton(
-                      onPressed: () => applyTransmitterSetupToExistingDives(
-                        context,
-                        ref,
-                        keys,
-                      ),
-                      child: Text(l10n.transmitters_action_apply),
+                    Builder(
+                      builder: (context) {
+                        final controller =
+                            RecordEditScope.maybeOf<EquipmentItem>(context);
+                        return RecordOperationButton(
+                          reason: recordOperationReason(
+                            l10n,
+                            recordOperationBlockOf(controller),
+                          ),
+                          onPressed: () => _runApply(context, ref, keys),
+                          builder: (onPressed) => TextButton(
+                            key: const ValueKey('transmitter_apply'),
+                            onPressed: onPressed,
+                            child: Text(l10n.transmitters_action_apply),
+                          ),
+                        );
+                      },
                     ),
                 ],
               ),

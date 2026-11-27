@@ -19,7 +19,11 @@
 /// their statement uses for `dives`.
 library;
 
+import 'package:submersion/core/database/app_sql_functions.dart'
+    show kSameComputerIdentityFunction;
 import 'package:submersion/core/database/dive_source_stamp.dart';
+import 'package:submersion/features/dive_log/data/services/data_source_strand.dart'
+    show sameRecordingDepthToleranceMeters;
 import 'package:submersion/features/dive_log/data/sql/analysis_inputs_stamp_sql.dart';
 
 /// `entry_time` and `exit_time` are epoch milliseconds; `runtime` and
@@ -52,11 +56,10 @@ String timestampRuntimeSecondsSql(String alias) =>
 ///
 /// That read keeps primary and demoted series alike, minus two kinds of
 /// demoted row: an inactive child revision (a history row with a parent),
-/// and, once a saved edit is primary, the superseded originals of the edited
-/// family (`dropSupersededSeries`). Family membership follows that rule: a
-/// series with no computer, every series of a dive with no data sources, or
-/// one on the computer of the dive's first source in shown order (primary
-/// first, then oldest).
+/// and the demoted series of the primary source's family once that family
+/// holds an active one (`dropSupersededSeries`). Family membership follows
+/// that rule, by source row where the series names one and by computer where
+/// it does not; see [_primaryFamilySql].
 ///
 /// One case stays apart: a series whose packed blob fails to decode is
 /// skipped by the Dart read but still counted here, because SQL reads only
@@ -81,18 +84,88 @@ String _inactiveChildRevisionSql(String s) =>
     'WHERE h.series_id = $s.id AND h.dive_id = $s.dive_id '
     'AND h.parent_series_id IS NOT NULL)';
 
-/// Whether demoted series [s] belongs to the family a primary saved edit (a
-/// primary series with no computer) supersedes.
-String _supersededOriginalSql(String s) {
-  const sources = 'dive_data_sources ds WHERE ds.dive_id';
-  return '(EXISTS (SELECT 1 FROM dive_profile_series e '
-      'WHERE e.dive_id = $s.dive_id AND e.is_primary = 1 '
-      'AND e.computer_id IS NULL) '
-      'AND ($s.computer_id IS NULL '
-      'OR NOT EXISTS (SELECT 1 FROM $sources = $s.dive_id) '
-      'OR $s.computer_id = (SELECT ds.computer_id FROM $sources = $s.dive_id '
-      'ORDER BY ds.is_primary DESC, ds.created_at ASC, ds.rowid ASC '
-      'LIMIT 1)))';
+/// Whether demoted series [s] is one an active series of the primary
+/// source's family superseded, as `dropSupersededSeries` decides it: any
+/// demoted family member beside an active series with no computer (a saved
+/// edit), and beside an active computer recording only one proven to share
+/// its source, by naming a source row of the dive or by every source row
+/// showing as the primary (issue #4960).
+String _supersededOriginalSql(String s) =>
+    '(${_primaryFamilySql(s)} AND EXISTS (SELECT 1 FROM dive_profile_series e '
+    'WHERE e.dive_id = $s.dive_id AND e.is_primary = 1 '
+    'AND ${_primaryFamilySql('e')} '
+    'AND (e.computer_id IS NULL '
+    'OR EXISTS (SELECT 1 FROM dive_data_sources r '
+    'WHERE r.id = $s.source_id AND r.dive_id = $s.dive_id) '
+    'OR (EXISTS (SELECT 1 FROM dive_data_sources r '
+    'WHERE r.dive_id = $s.dive_id) '
+    'AND NOT EXISTS (SELECT 1 FROM dive_data_sources r '
+    'JOIN dive_data_sources p ON p.id = ${_firstSourceRowSql('$s.dive_id')} '
+    'WHERE r.dive_id = $s.dive_id AND NOT ${_sameStrandSql('r', 'p')})))))';
+
+/// The id of the first `dive_data_sources` row of the dive [diveId] names, in
+/// shown order: primary first, then oldest, then by id, as the Dart read
+/// orders them.
+String _firstSourceRowSql(String diveId) =>
+    '(SELECT ds.id FROM dive_data_sources ds WHERE ds.dive_id = $diveId '
+    'ORDER BY ds.is_primary DESC, ds.created_at ASC, ds.id ASC LIMIT 1)';
+
+/// Whether source rows [r] and [p] show as one chip: the same row, the same
+/// computer, with no computer on either the same merge slot, or two
+/// computer-less rows of one recording ([_sameRecordingWithoutComputerSql]).
+/// That is `dataSourceStrandKeysById`, compared pairwise against the first
+/// row. Never NULL, so it can be negated.
+String _sameStrandSql(String r, String p) =>
+    '(COALESCE(($r.id = $p.id OR $r.computer_id = $p.computer_id '
+    'OR ($r.computer_id IS NULL AND $p.computer_id IS NULL '
+    'AND $r.merge_source_slot = $p.merge_source_slot) '
+    'OR ${_sameRecordingWithoutComputerSql(r, p)}), 0) = 1)';
+
+/// `sameRecordingWithoutComputer` for two rows with no computer and no merge
+/// slot: not written by one import, the same computer by model and serial
+/// ([kSameComputerIdentityFunction], which runs the Dart check itself), the
+/// same start to the second (the column stores whole seconds, so `=` on it
+/// is Dart's comparison), the same runtime, and the maximum depth within
+/// [sameRecordingDepthToleranceMeters]. It compares each row with the first
+/// row only, where Dart wants every row already on the strand to agree, so
+/// a serial-less first row can take in two rows whose serials conflict.
+String _sameRecordingWithoutComputerSql(String r, String p) =>
+    '($r.computer_id IS NULL AND $p.computer_id IS NULL '
+    'AND $r.merge_source_slot IS NULL AND $p.merge_source_slot IS NULL '
+    // IS, not =: one row with no file name must not turn the guard NULL.
+    'AND NOT ($r.source_file_name IS NOT NULL '
+    'AND $r.source_file_name IS $p.source_file_name '
+    'AND $r.imported_at IS $p.imported_at) '
+    'AND $kSameComputerIdentityFunction($r.computer_model, '
+    '$r.computer_serial, $p.computer_model, $p.computer_serial) = 1 '
+    'AND $r.entry_time = $p.entry_time '
+    'AND $r.duration = $p.duration '
+    'AND ABS($r.max_depth - $p.max_depth) <= '
+    '$sameRecordingDepthToleranceMeters)';
+
+/// Whether series [x] is in the primary source's family, as
+/// `dropSupersededSeries` places it.
+///
+/// A series naming one of the dive's source rows is family when that row
+/// shows as the first source in shown order ([_sameStrandSql]). A series
+/// naming no such row follows the computer: it is family with no computer,
+/// on a dive with no sources, or on the first source's computer.
+///
+/// Never NULL: the computer comparison is NULL when the first source has no
+/// computer, and a NULL here would survive the `NOT (...)` in
+/// [profileSpanSecondsSql] and drop the series as if it were superseded.
+String _primaryFamilySql(String x) {
+  final firstRow = _firstSourceRowSql('$x.dive_id');
+  return '(COALESCE((CASE WHEN EXISTS (SELECT 1 FROM dive_data_sources r '
+      'WHERE r.id = $x.source_id AND r.dive_id = $x.dive_id) '
+      'THEN EXISTS (SELECT 1 FROM dive_data_sources r '
+      'JOIN dive_data_sources p ON p.id = $firstRow '
+      "WHERE r.id = $x.source_id AND ${_sameStrandSql('r', 'p')}) "
+      'ELSE ($x.computer_id IS NULL '
+      'OR NOT EXISTS (SELECT 1 FROM dive_data_sources ds '
+      'WHERE ds.dive_id = $x.dive_id) '
+      'OR $x.computer_id = (SELECT p.computer_id FROM dive_data_sources p '
+      'WHERE p.id = $firstRow)) END), 0) = 1)';
 }
 
 /// A duration the dive actually measured, in seconds, or NULL: the form of

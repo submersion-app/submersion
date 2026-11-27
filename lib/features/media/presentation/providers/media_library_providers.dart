@@ -159,6 +159,25 @@ final mediaLibraryNotifierProvider =
       );
     });
 
+/// Every row the Library's query matches, read past the loaded pages, for
+/// Select All and Ctrl/Cmd-A (issue #5022).
+///
+/// Takes the container, not a widget's ref, so a widget gone by the time the
+/// read finishes cannot fail it. The ids come from the notifier that did the
+/// reading: a filter or sort changed meanwhile builds a new one whose first
+/// page may not be in yet, and checking "all" of its empty rows would clear
+/// the diver's checks. The old query's ids are pruned once the new rows land.
+/// Null when a read failed and some rows are still missing.
+Future<List<String>?> loadAllLibraryIds(ProviderContainer container) async {
+  final state = container.read(mediaLibraryNotifierProvider);
+  // Page one of a new filter or sort is still queued: it has no cursor yet,
+  // but the rows it brings are part of "all", and loadRest waits for them.
+  if (!state.hasMore && !state.isLoading) {
+    return [for (final entry in state.entries) entry.item.id];
+  }
+  return container.read(mediaLibraryNotifierProvider.notifier).loadRest();
+}
+
 class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
   MediaLibraryNotifier(
     this._repo,
@@ -302,6 +321,55 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
       state = state.copyWith(isLoadingMore: false);
       return;
     }
+    await _appendAfter(cursor, limit: MediaLibraryRepository.pageSize);
+  }
+
+  /// Reads every row past the loaded ones, for Select All (issue #5022).
+  ///
+  /// Each read asks for twice the last, so a library of thousands takes a
+  /// handful of reads rather than one per page. A failed read stops here
+  /// with the rows it has, as a failed [loadMore] does.
+  ///
+  /// Returns the ids of the rows loaded once it is done, which are this
+  /// notifier's even if it has since been disposed, or null when a read
+  /// failed and rows are still missing.
+  Future<List<String>?> loadRest() async {
+    List<String>? ids = _loadedIds();
+    await _enqueuePaging(() async {
+      var limit = MediaLibraryRepository.pageSize;
+      while (mounted) {
+        final cursor = state.nextCursor;
+        if (cursor == null) break;
+        final appended = await _appendAfter(
+          cursor,
+          limit: limit,
+          keepLoadingMore: true,
+        );
+        if (!appended) {
+          ids = null;
+          return;
+        }
+        limit *= 2;
+      }
+      if (mounted) ids = _loadedIds();
+    });
+    return ids;
+  }
+
+  List<String> _loadedIds() => [
+    for (final entry in state.entries) entry.item.id,
+  ];
+
+  /// Appends up to [limit] rows after [cursor], reporting whether the read
+  /// worked.
+  ///
+  /// [keepLoadingMore] leaves the spinner flag of a [loadMore] queued behind
+  /// this read, which clears it on its own turn.
+  Future<bool> _appendAfter(
+    MediaLibraryCursor cursor, {
+    required int limit,
+    bool keepLoadingMore = false,
+  }) async {
     try {
       final page = await _repo.getPage(
         diverId: _diverId,
@@ -309,8 +377,9 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
         sort: _sort,
         grouping: _grouping,
         after: cursor,
+        limit: limit,
       );
-      if (!mounted) return;
+      if (!mounted) return false;
       // A write can move a loaded row past the cursor (hashing a row sets its
       // size); the refresh that write ticks has not landed yet. Appending by
       // id keeps the row from showing twice until it does.
@@ -321,14 +390,18 @@ class MediaLibraryNotifier extends StateNotifier<MediaLibraryState> {
           ...page.entries.where((e) => !loaded.contains(e.item.id)),
         ],
         nextCursor: page.nextCursor,
+        isLoadingMore: keepLoadingMore && state.isLoadingMore,
       );
+      return true;
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted) return false;
       state = MediaLibraryState(
         entries: state.entries,
         nextCursor: cursor,
+        isLoadingMore: keepLoadingMore && state.isLoadingMore,
         error: e,
       );
+      return false;
     }
   }
 

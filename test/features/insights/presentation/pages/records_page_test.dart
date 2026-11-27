@@ -312,9 +312,11 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
     required double setpointLow,
     required double setpointHigh,
     required double diluentModPpO2,
+    double? setpointSwitchDepth,
   }) async => state = state.copyWith(
     ccrSetpointLow: setpointLow,
     ccrSetpointHigh: setpointHigh,
+    ccrSetpointSwitchDepth: setpointSwitchDepth,
     ccrDiluentModPpO2: diluentModPpO2,
   );
   @override
@@ -361,25 +363,23 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   }
 
   @override
-  Future<void> setHomeCardEnabled(String cardId, bool enabled) async {
-    final hidden = {...state.hiddenHomeCards};
-    if (enabled) {
-      hidden.remove(cardId);
-    } else {
-      hidden.add(cardId);
-    }
-    state = state.copyWith(hiddenHomeCards: hidden);
-  }
+  Future<void> setHomePanelLayout({
+    required List<String> order,
+    required Set<String> hidden,
+  }) async =>
+      state = state.copyWith(homePanelOrder: order, hiddenHomePanels: hidden);
 
   @override
-  Future<void> setHomeCardOrder(List<String> order) async =>
-      state = state.copyWith(homeCardOrder: order);
+  Future<void> setHiddenHomeKeyNumbers(Set<String> hidden) async =>
+      state = state.copyWith(hiddenHomeKeyNumbers: hidden);
 
   @override
-  Future<void> resetHomeCards() async => state = state.copyWith(
-    homeCardOrder: const <String>[],
-    hiddenHomeCards: const <String>{},
-  );
+  Future<void> setHomeHeaderStyle({
+    required bool phone,
+    required String style,
+  }) async => state = phone
+      ? state.copyWith(homeHeaderStylePhone: style)
+      : state.copyWith(homeHeaderStyleWide: style);
 
   @override
   Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {

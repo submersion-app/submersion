@@ -535,4 +535,79 @@ void main() {
       expect(await repo.getForEquipment('mine'), isEmpty);
     });
   });
+
+  // Inside an editor's sitting the key is written in its transaction, and
+  // the fold, its own History entry, runs after the commit (issue #4527).
+  group('writeTransmitterKey and foldTakenOverPlaceholder', () {
+    test('a takeover writes the key and leaves the placeholder', () async {
+      final placeholder = await registerFromDownload();
+      final unclaimed = await holderOfSerial();
+
+      final write = await writeTransmitterKey(
+        keyOn('mine'),
+        isNew: true,
+        repository: repo,
+      );
+
+      expect(write.saved.id, unclaimed.id);
+      expect(write.tookOver?.id, unclaimed.id);
+      expect(await itemExists(placeholder), isTrue);
+      expect((await repo.getForEquipment('mine')).single.id, unclaimed.id);
+    });
+
+    test('the fold folds what the write took over', () async {
+      final placeholder = await registerFromDownload();
+      final write = await writeTransmitterKey(
+        keyOn('mine'),
+        isNew: true,
+        repository: repo,
+      );
+
+      await foldTakenOverPlaceholder(write);
+
+      expect(await itemExists(placeholder), isFalse);
+      expect(await itemExists('mine'), isTrue);
+    });
+
+    test(
+      'a plain write took nothing over, and the fold does nothing',
+      () async {
+        await insertItem('other', name: 'Other');
+        final write = await writeTransmitterKey(
+          keyOn('mine'),
+          isNew: true,
+          repository: repo,
+        );
+
+        expect(write.tookOver, isNull);
+        expect(write.saved.id, 'new-key');
+        await foldTakenOverPlaceholder(write);
+        expect(await itemExists('other'), isTrue);
+        expect(await itemExists('mine'), isTrue);
+      },
+    );
+
+    test('a fold that throws is logged, not passed on', () async {
+      final placeholder = await registerFromDownload();
+      final write = await writeTransmitterKey(
+        keyOn('mine'),
+        isNew: true,
+        repository: repo,
+      );
+
+      await foldTakenOverPlaceholder(write, itemFold: _FailingFold());
+
+      expect(await itemExists(placeholder), isTrue);
+    });
+
+    test('a clash with a set-up key still throws', () async {
+      await insertItem('theirs', name: 'Theirs');
+      await repo.create(keyOn('theirs', id: 'theirs-key'));
+
+      await expectLater(
+        writeTransmitterKey(keyOn('mine'), isNew: true, repository: repo),
+        throwsA(isA<TransmitterConflictException>()),
+      );
+    });
+  });
 }

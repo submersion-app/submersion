@@ -137,107 +137,114 @@ class _TagInputWidgetState extends ConsumerState<TagInputWidget> {
             ),
           ),
 
-          // Suggestions dropdown
+          // Suggestions dropdown. Part of the field's tap region: a tap off
+          // the field drops its focus (#4813), and the list then hides, so
+          // without this a press on a suggestion could lose it mid-tap.
           if (_showSuggestions && _textController.text.isNotEmpty)
-            allTagsAsync.when(
-              data: (everyTag) {
-                // Only tags offered where this input is. Typing the name of
-                // a tag from the other scope still offers "create", which
-                // widens that tag instead of duplicating it.
-                final allTags = everyTag
-                    .where((tag) => tag.appliesTo(widget.scope))
-                    .toList();
-                final query = foldForSearch(_textController.text);
-                final filteredTags = allTags
-                    .where(
-                      (tag) =>
-                          foldForSearch(tag.name).contains(query) &&
-                          !widget.selectedTags.any((t) => t.id == tag.id),
-                    )
-                    .take(5)
-                    .toList();
+            TextFieldTapRegion(
+              child: allTagsAsync.when(
+                data: (everyTag) {
+                  // Only tags offered where this input is. Typing the name of
+                  // a tag from the other scope still offers "create", which
+                  // widens that tag instead of duplicating it.
+                  final allTags = everyTag
+                      .where((tag) => tag.appliesTo(widget.scope))
+                      .toList();
+                  final query = foldForSearch(_textController.text);
+                  final filteredTags = allTags
+                      .where(
+                        (tag) =>
+                            foldForSearch(tag.name).contains(query) &&
+                            !widget.selectedTags.any((t) => t.id == tag.id),
+                      )
+                      .take(5)
+                      .toList();
 
-                final exactMatch = allTags.any(
-                  // Case only: [query] is accent-folded for the search.
-                  (tag) =>
-                      tag.name.toLowerCase() ==
-                      _textController.text.toLowerCase(),
-                );
+                  final exactMatch = allTags.any(
+                    // Case only: [query] is accent-folded for the search.
+                    (tag) =>
+                        tag.name.toLowerCase() ==
+                        _textController.text.toLowerCase(),
+                  );
 
-                if (filteredTags.isEmpty && exactMatch) {
-                  return const SizedBox.shrink();
-                }
+                  if (filteredTags.isEmpty && exactMatch) {
+                    return const SizedBox.shrink();
+                  }
 
-                return Container(
-                  margin: const EdgeInsets.only(top: 4),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.colorScheme.shadow.withValues(alpha: 0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  // The tiles need a Material of their own inside the
-                  // decorated box, or their ink paints behind its background
-                  // (and Flutter asserts in debug builds).
-                  child: Material(
-                    type: MaterialType.transparency,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Existing tag suggestions
-                        ...filteredTags.map(
-                          (tag) => ListTile(
-                            dense: true,
-                            leading: CircleAvatar(
-                              radius: 12,
-                              backgroundColor: tag.color,
-                            ),
-                            title: Text(tag.name),
-                            onTap: () => _addTag(tag),
+                  return Container(
+                    margin: const EdgeInsets.only(top: 4),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: theme.colorScheme.shadow.withValues(
+                            alpha: 0.1,
                           ),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
-
-                        // Create new tag option
-                        if (!exactMatch)
-                          ListTile(
-                            dense: true,
-                            leading: CircleAvatar(
-                              radius: 12,
-                              backgroundColor: TagColors.fromHex(
-                                TagColors.predefined[widget
-                                        .selectedTags
-                                        .length %
-                                    TagColors.predefined.length],
-                              ),
-                              child: const Icon(
-                                Icons.add,
-                                size: 14,
-                                color: Colors.white,
-                              ),
-                            ),
-                            title: Text(
-                              context.l10n.tags_action_createNamed(
-                                _textController.text,
-                              ),
-                            ),
-                            onTap: () => _createAndAddTag(_textController.text),
-                          ),
                       ],
                     ),
-                  ),
-                );
-              },
-              loading: () => const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Center(child: CircularProgressIndicator()),
+                    // The tiles need a Material of their own inside the
+                    // decorated box, or their ink paints behind its background
+                    // (and Flutter asserts in debug builds).
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Existing tag suggestions
+                          ...filteredTags.map(
+                            (tag) => ListTile(
+                              dense: true,
+                              leading: CircleAvatar(
+                                radius: 12,
+                                backgroundColor: tag.color,
+                              ),
+                              title: Text(tag.name),
+                              onTap: () => _addTag(tag),
+                            ),
+                          ),
+
+                          // Create new tag option
+                          if (!exactMatch)
+                            ListTile(
+                              dense: true,
+                              leading: CircleAvatar(
+                                radius: 12,
+                                backgroundColor: TagColors.fromHex(
+                                  TagColors.predefined[widget
+                                          .selectedTags
+                                          .length %
+                                      TagColors.predefined.length],
+                                ),
+                                child: const Icon(
+                                  Icons.add,
+                                  size: 14,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              title: Text(
+                                context.l10n.tags_action_createNamed(
+                                  _textController.text,
+                                ),
+                              ),
+                              onTap: () =>
+                                  _createAndAddTag(_textController.text),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (e, _) => const SizedBox.shrink(),
               ),
-              error: (e, _) => const SizedBox.shrink(),
             ),
         ],
       ],

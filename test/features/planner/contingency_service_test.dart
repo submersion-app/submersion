@@ -289,6 +289,128 @@ void main() {
     expect(service.lostGas(plan), isEmpty);
   });
 
+  // Issue #4849: a plan authored as one descent "split at the configured
+  // rate" has no level leg; its bottom is the hold half of that descent.
+  test('longer lengthens a single rate-split descent plan', () {
+    final plan = _plan().copyWith(
+      segments: [
+        const PlanSegment(
+          id: 'seg-1',
+          targetDepth: 40.0,
+          durationSeconds: 25 * 60,
+          tankId: 'back',
+          gasMix: _backGas,
+          splitAtConfiguredRate: true,
+        ),
+      ],
+    );
+    final base = engine.compute(plan);
+
+    final longer = service.deviationFor(plan, 'longer')!;
+    final both = service.deviationFor(plan, 'both')!;
+
+    expect(longer.plan.segments.single.durationSeconds, 30 * 60);
+    expect(longer.outcome.totalDecoSeconds, greaterThan(base.totalDecoSeconds));
+    expect(both.plan.segments.single.durationSeconds, 30 * 60);
+    expect(both.plan.segments.single.targetDepth, closeTo(45.0, 0.01));
+  });
+
+  test('longer adds its whole delta to a travel-only rate-split descent', () {
+    // 40 m at the default 18 m/min is 2:13 of travel. Authored at 1:00, the
+    // engine stretches the segment to 2:13 with no hold, so +5 min must
+    // start from 2:13 to buy five minutes of bottom.
+    final plan = _plan().copyWith(
+      segments: [
+        const PlanSegment(
+          id: 'seg-1',
+          targetDepth: 40.0,
+          durationSeconds: 60,
+          tankId: 'back',
+          gasMix: _backGas,
+          splitAtConfiguredRate: true,
+        ),
+      ],
+    );
+
+    final longer = service.deviationFor(plan, 'longer')!;
+
+    expect(longer.plan.segments.single.durationSeconds, 133 + 5 * 60);
+  });
+
+  test('longer lengthens a deeper holding split descent, not a shallower '
+      'level', () {
+    // 20 m for 20 min, then a split descent to 40 m whose 15 min leaves a
+    // 12:47 hold at 18 m/min: the 40 m hold is the bottom, as it would be
+    // for a descent authored with its own level leg.
+    final plan = _plan().copyWith(
+      segments: [
+        const PlanSegment(
+          id: 'down',
+          targetDepth: 20.0,
+          durationSeconds: 2 * 60,
+          tankId: 'back',
+          gasMix: _backGas,
+          order: 0,
+        ),
+        const PlanSegment(
+          id: 'level',
+          targetDepth: 20.0,
+          durationSeconds: 20 * 60,
+          tankId: 'back',
+          gasMix: _backGas,
+          order: 1,
+        ),
+        const PlanSegment(
+          id: 'deep',
+          targetDepth: 40.0,
+          durationSeconds: 15 * 60,
+          tankId: 'back',
+          gasMix: _backGas,
+          splitAtConfiguredRate: true,
+          order: 2,
+        ),
+      ],
+    );
+
+    final longer = service.deviationFor(plan, 'longer')!;
+    final byId = {for (final s in longer.plan.segments) s.id: s};
+
+    expect(byId['level']!.durationSeconds, 20 * 60);
+    expect(byId['deep']!.durationSeconds, 20 * 60);
+  });
+
+  group('a plan with no bottom to lengthen', () {
+    // A linear descent never holds at depth, so a time delta has nothing to
+    // lengthen: '+time' would equal the base plan and 'both' would equal
+    // 'deeper', so neither is offered.
+    final noBottom = _plan().copyWith(
+      segments: [
+        const PlanSegment(
+          id: 'seg-1',
+          targetDepth: 40.0,
+          durationSeconds: 25 * 60,
+          tankId: 'back',
+          gasMix: _backGas,
+        ),
+      ],
+    );
+
+    test('cannot be lengthened, unlike a plan with a bottom', () {
+      expect(service.canLengthen(noBottom), isFalse);
+      expect(service.canLengthen(_plan()), isTrue);
+    });
+
+    test('offers only the deeper deviation', () {
+      expect(service.deviations(noBottom).map((d) => d.key), ['deeper']);
+    });
+
+    test('has no longer or both variant', () {
+      expect(service.deviationFor(noBottom, 'longer'), isNull);
+      expect(service.deviationFor(noBottom, 'both'), isNull);
+      expect(service.deviationFor(noBottom, 'deeper'), isNotNull);
+    });
+  });
+
   test('no segments yields no deviations', () {
     final empty = domain.DivePlan(
       id: 'p',

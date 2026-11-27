@@ -90,6 +90,7 @@ class _FakeConfigRepository implements CylinderConfigRepository {
 
   @override
   Future<String> createConfig({
+    String? id,
     String? diverId,
     String? equipmentId,
     required String name,
@@ -97,7 +98,7 @@ class _FakeConfigRepository implements CylinderConfigRepository {
     int sortOrder = 0,
   }) async {
     createConfigCalls++;
-    return 'new-cfg';
+    return id ?? 'new-cfg';
   }
 
   @override

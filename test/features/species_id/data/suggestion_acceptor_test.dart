@@ -29,6 +29,7 @@ class _Species extends SpeciesRepository {
 
   @override
   Future<Species> createSpecies({
+    String? id,
     required String commonName,
     String? scientificName,
     required SpeciesCategory category,

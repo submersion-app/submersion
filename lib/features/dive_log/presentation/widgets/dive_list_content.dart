@@ -34,6 +34,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/divers/presentation/widgets/misplaced_logbook_banner.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
@@ -491,24 +492,59 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   }
 
   /// Loads every dive past the end of the list, so End lands on the last
-  /// dive rather than the last loaded one (#3302).
-  Future<void> _loadRestOfList() async {
+  /// dive rather than the last loaded one (#3302), and Select All and Select
+  /// by date range reach every dive the filter matches (#5022).
+  ///
+  /// Reports whether no read failed: a failed one leaves the list flagged
+  /// for retry with dives still missing.
+  Future<bool> _loadRestOfList() async {
     final paginated = ref.read(paginatedDiveListProvider).value;
-    if (paginated == null || !paginated.hasMore) return;
+    if (paginated == null || !paginated.hasMore) return true;
     setState(() => _restLoads++);
     try {
       // A failed read is logged and flagged for retry by the notifier; this
       // catches anything else.
       await ref.read(paginatedDiveListProvider.notifier).loadRest();
+      return !(ref.read(paginatedDiveListProvider).value?.loadMoreFailed ??
+          false);
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to load the rest of the dive list for End',
+        'Failed to load the rest of the dive list',
         error: e,
         stackTrace: stackTrace,
       );
+      return false;
     } finally {
       if (mounted) setState(() => _restLoads--);
     }
+  }
+
+  /// Every dive the filter matches, once the ones past the loaded pages are
+  /// in, or null when a read failed: a bulk action given only the dives that
+  /// loaded would miss the rest without anyone seeing, so the caller checks
+  /// nothing new and the diver is told to try again.
+  ///
+  /// A filter or sort changed meanwhile reloads the list from the top, and
+  /// the read can land while that reload has no rows yet: checking "all" of
+  /// none would clear the diver's checks, so the dives held when this started
+  /// answer instead, and the prune drops them once the new rows land.
+  Future<List<DiveSummary>?> _loadAllDives() async {
+    final before = ref.read(paginatedDiveListProvider).value?.dives ?? const [];
+    // Read before the await: the list can be gone once the rows are in.
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final failedMessage = context.l10n.common_selection_selectAllLoadFailed;
+    final loaded = await _loadRestOfList();
+    if (!loaded) {
+      messenger?.showSnackBar(SnackBar(content: Text(failedMessage)));
+      return null;
+    }
+    if (!mounted) return before;
+    return ref.read(paginatedDiveListProvider).value?.dives ?? before;
+  }
+
+  Future<List<String>?> _loadAllDiveIds() async {
+    final dives = await _loadAllDives();
+    return dives == null ? null : [for (final dive in dives) dive.id];
   }
 
   void _landOnDive(BuildContext context, String diveId, {required bool toTop}) {
@@ -701,13 +737,21 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   }
 
   /// Pick a date range and select every dive whose date falls inside it.
-  Future<BulkActionOutcome> _selectByDateRange(List<DiveSummary> dives) async {
+  ///
+  /// [loadDives] returns every dive the list shows, including any past the
+  /// loaded pages, and is read only once a range is picked.
+  Future<BulkActionOutcome> _selectByDateRange(
+    Future<List<DiveSummary>?> Function() loadDives,
+  ) async {
     final range = await showAppDateRangePicker(
       context: context,
       firstDate: DateTime(1970),
       lastDate: DateTime(2100),
     );
     if (range == null) return BulkActionOutcome.cancelled;
+    final dives = await loadDives();
+    if (dives == null) return BulkActionOutcome.failed;
+    if (!mounted) return BulkActionOutcome.cancelled;
     final matching = dives
         .where((d) => inDateRange(d, range))
         .map((d) => d.id)
@@ -1471,6 +1515,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
 
     final loadedDives = paginatedAsync.value?.dives ?? [];
     final visibleIds = loadedDives.map((d) => d.id).toList();
+    // Dives past the loaded pages: Select All loads them before checking
+    // (#5022), and stays on until they are checked too.
+    final hasUnloadedRows = paginatedAsync.value?.hasMore ?? false;
 
     // Drop checked dives that fell out of the filtered, searched or sorted
     // list, so the count always matches what is on screen and a bulk action
@@ -1488,6 +1535,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     return SelectableListScope(
       controller: _selection,
       selectableIds: visibleIds,
+      loadAllIds: _loadAllDiveIds,
       child: ValueListenableBuilder<SelectionState>(
         valueListenable: _selection,
         builder: (context, selection, _) {
@@ -1524,7 +1572,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             return Column(
               children: [
                 if (selection.isActive)
-                  _buildSelectionBar(loadedDives)
+                  _buildSelectionBar(
+                    loadedDives,
+                    loadAll: _loadAllDives,
+                    hasUnloadedRows: hasUnloadedRows,
+                  )
                 else
                   _buildCompactAppBar(context, filter),
                 Expanded(child: body),
@@ -1536,7 +1588,11 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           return LayoutBuilder(
             builder: (context, constraints) => Scaffold(
               appBar: selection.isActive
-                  ? _buildSelectionAppBar(loadedDives)
+                  ? _buildSelectionAppBar(
+                      loadedDives,
+                      loadAll: _loadAllDives,
+                      hasUnloadedRows: hasUnloadedRows,
+                    )
                   : _buildAppBar(
                       context,
                       filter,
@@ -1951,7 +2007,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// [SelectionAppBar], so they are deliberately absent here. This list is
   /// computed once and handed to both shells, which is what stops the master
   /// pane from silently offering fewer actions than the full-width bar.
-  List<BulkAction> _bulkActions(List<DiveSummary> dives) {
+  ///
+  /// [loadAll] returns every dive the list shows; see [_buildSelectionBar].
+  List<BulkAction> _bulkActions(Future<List<DiveSummary>?> Function() loadAll) {
     return [
       BulkAction(
         id: 'combine',
@@ -1989,7 +2047,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         // Operates on the visible list rather than the selection, so it is
         // useful with nothing checked.
         alwaysEnabled: true,
-        onInvoke: () => _selectByDateRange(dives),
+        onInvoke: () => _selectByDateRange(loadAll),
       ),
       // A new trip made from the checked dives (issue #3658). After the
       // inline icons, so it sits in the overflow menu with its label and the
@@ -2028,14 +2086,18 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     ];
   }
 
-  /// Contextual bar for the full-width standalone layout.
-  SelectionAppBar _buildSelectionAppBar(List<DiveSummary> dives) {
-    return SelectionAppBar(
-      controller: _selection,
-      selectableIds: dives.map((d) => d.id).toList(),
-      actions: _bulkActions(dives),
+  /// Contextual bar for the full-width standalone layout; see
+  /// [_buildSelectionBar].
+  SelectionAppBar _buildSelectionAppBar(
+    List<DiveSummary> dives, {
+    Future<List<DiveSummary>?> Function()? loadAll,
+    bool hasUnloadedRows = false,
+  }) {
+    return _selectionBar(
+      dives,
+      loadAll: loadAll,
+      hasUnloadedRows: hasUnloadedRows,
       shell: SelectionBarShell.appBar,
-      onDelete: _confirmAndDelete,
       maxInlineActions: 5,
     );
   }
@@ -2043,14 +2105,45 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   /// Contextual bar for the master pane, which is too narrow for every icon.
   ///
   /// Same actions, same order; only the inline/overflow split differs.
-  Widget _buildSelectionBar(List<DiveSummary> dives) {
+  ///
+  /// [dives] are the loaded dives. A paged list passes [loadAll], which
+  /// loads the rest and returns every dive, for Select All and Select by date
+  /// range (#5022); without it [dives] is taken as every dive.
+  Widget _buildSelectionBar(
+    List<DiveSummary> dives, {
+    Future<List<DiveSummary>?> Function()? loadAll,
+    bool hasUnloadedRows = false,
+  }) {
+    return _selectionBar(
+      dives,
+      loadAll: loadAll,
+      hasUnloadedRows: hasUnloadedRows,
+      shell: SelectionBarShell.pane,
+      maxInlineActions: 1,
+    );
+  }
+
+  SelectionAppBar _selectionBar(
+    List<DiveSummary> dives, {
+    required Future<List<DiveSummary>?> Function()? loadAll,
+    required bool hasUnloadedRows,
+    required SelectionBarShell shell,
+    required int maxInlineActions,
+  }) {
     return SelectionAppBar(
       controller: _selection,
       selectableIds: dives.map((d) => d.id).toList(),
-      actions: _bulkActions(dives),
-      shell: SelectionBarShell.pane,
+      loadAllIds: loadAll == null
+          ? null
+          : () async {
+              final all = await loadAll();
+              return all == null ? null : [for (final dive in all) dive.id];
+            },
+      hasUnloadedRows: hasUnloadedRows,
+      actions: _bulkActions(loadAll ?? () async => dives),
+      shell: shell,
       onDelete: _confirmAndDelete,
-      maxInlineActions: 1,
+      maxInlineActions: maxInlineActions,
     );
   }
 
@@ -2534,6 +2627,47 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     );
   }
 
+  /// Check every dive of the trip [tripId], whose loaded dives are
+  /// [loadedIds].
+  ///
+  /// A trip that goes on past the loaded pages loads the rest of the list
+  /// first (#5022); see [_tripMayContinue].
+  void _checkTrip(String tripId, List<String> loadedIds) {
+    if (!_tripMayContinue(tripId)) {
+      _selection.selectAll([..._selectedIds, ...loadedIds]);
+      return;
+    }
+    logFailure(
+      _selection.selectAllAfterLoading(() async {
+        final kept = _selectedIds.toList();
+        final dives = await _loadAllDives();
+        if (dives == null) return null;
+        return [
+          ...kept,
+          for (final dive in dives)
+            if (dive.tripId == tripId) dive.id,
+        ];
+      }),
+      DiveListContent,
+      'check a trip',
+    );
+  }
+
+  /// Whether the trip [tripId] may have dives past the loaded pages.
+  ///
+  /// Only the last trip on screen can go on past them, and only while it
+  /// holds fewer dives than the trip has; any other trip is all there. Until
+  /// the trips' dive counts arrive that is unknown, so it may go on.
+  bool _tripMayContinue(String tripId) {
+    final last = _lastSections.isEmpty ? null : _lastSections.last;
+    final hasMore = ref.read(paginatedDiveListProvider).value?.hasMore ?? false;
+    final countsKnown = ref.read(tripDiveCountsProvider).hasValue;
+    return hasMore &&
+        last is TripSection &&
+        last.tripId == tripId &&
+        (!countsKnown || last.isPartial);
+  }
+
   /// One trip: a faint full-bleed band behind a pinned header and its dives.
   ///
   /// The band is a [DecoratedSliver] rather than a widget wrapping the rows,
@@ -2550,9 +2684,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     final scheme = Theme.of(context).colorScheme;
     final groupIds = section.entries.map((e) => e.dive.id).toList();
     final checkedInGroup = groupIds.where(_selectedIds.contains).length;
+    // A trip going on past the loaded pages is not all checked while the
+    // dives there are not: it reads mixed, and a tap checks the rest rather
+    // than clearing the loaded ones.
+    final allChecked =
+        checkedInGroup == groupIds.length && !_tripMayContinue(section.tripId);
     final bool? groupChecked = checkedInGroup == 0
         ? false
-        : (checkedInGroup == groupIds.length ? true : null);
+        : (allChecked ? true : null);
 
     return DecoratedSliver(
       decoration: BoxDecoration(
@@ -2587,14 +2726,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               isSelectionMode: _isSelectionMode,
               groupChecked: groupChecked,
               onGroupCheckedChanged: (_) {
-                // Loaded dives only, matching the existing select-all: the
-                // list can only act on rows it holds.
-                if (checkedInGroup == groupIds.length) {
+                if (allChecked) {
                   _selection.replaceChecked(
                     _selectedIds.where((id) => !groupIds.contains(id)).toList(),
                   );
                 } else {
-                  _selection.selectAll([..._selectedIds, ...groupIds]);
+                  _checkTrip(section.tripId, groupIds);
                 }
               },
             ),

@@ -7,12 +7,15 @@ import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_pane_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_shortcuts.dart';
+import 'package:submersion/shared/widgets/record_editing/record_satellite.dart';
 import 'package:submersion/shared/widgets/record_editing/record_satellite_bar.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blocker.dart';
 
 import 'fake_note_record.dart';
 
@@ -47,6 +50,46 @@ void main() {
 
   FakeNotePageState parent(WidgetTester tester) =>
       tester.state(find.byType(FakeNotePage, skipOffstage: false));
+
+  // A satellite's route is not a page, so its exit blocker answers for the
+  // record page it was pushed from: leaving that page asks about a sitting
+  // the satellite holds on its own.
+  testWidgets('a satellite is on the page of the record it was pushed '
+      'from', (tester) async {
+    Object? satellitePage;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Navigator(
+          onDidRemovePage: (_) {},
+          pages: [
+            MaterialPage<void>(
+              key: const ValueKey('record'),
+              child: Builder(
+                builder: (context) => TextButton(
+                  onPressed: () => pushRecordSatellite<FakeNote, void>(
+                    context,
+                    rootNavigator: false,
+                    builder: (_) => Builder(
+                      builder: (context) {
+                        satellitePage = recordSittingPageOf(context);
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ),
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(satellitePage, const ValueKey('record'));
+  });
 
   testWidgets("pushed during the parent's sitting it joins it", (tester) async {
     final probe = await pumpFakeNotes(tester, const FakeNotePage());
@@ -224,6 +267,22 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
+  // The bar's only way out, in the pencil's amber (issue #5034).
+  testWidgets("the bar's Done is filled", (tester) async {
+    await pumpFakeNotes(tester, const FakeNotePage());
+    await unlock(tester);
+    await openSatellite(tester);
+
+    final done = tester.widget<RecordEditAction>(
+      find.descendant(
+        of: find.byType(RecordSatelliteBar),
+        matching: find.byType(RecordEditAction),
+      ),
+    );
+    expect(done.label, l.common_action_done);
+    expect(done.style, RecordEditActionStyle.filled);
+  });
+
   testWidgets('Done waits while the sitting is busy', (tester) async {
     await pumpFakeNotes(tester, const FakeNotePage());
     await unlock(tester);
@@ -241,27 +300,6 @@ void main() {
     expect(find.byType(FakeSatellitePage), findsOneWidget);
     gate.complete(false);
     await tester.pumpAndSettle();
-  });
-
-  testWidgets('a satellite that offers no editing takes no sitting', (
-    tester,
-  ) async {
-    final probe = await pumpFakeNotes(tester, const SizedBox.shrink());
-    final sitting = sittingOn(tester, probe);
-    await tester.pumpWidget(
-      fakeNotesApp(
-        probe,
-        FakeSatellitePage(joined: sitting, hostsEditing: false),
-      ),
-    );
-    await tester.pumpAndSettle();
-    final state = tester.state<FakeSatellitePageState>(
-      find.byType(FakeSatellitePage),
-    );
-
-    expect(state.maybeEditController, isNull);
-    expect(state.isSittingOpen, isFalse);
-    await tester.pumpWidget(const SizedBox.shrink());
   });
 
   testWidgets('a joined satellite in a pane shows Done and asks nothing', (

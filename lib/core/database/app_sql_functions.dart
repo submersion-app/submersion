@@ -24,6 +24,7 @@ import 'package:drift/drift.dart';
 import 'package:sqlite3/common.dart'
     show AllowedArgumentCount, CommonDatabase, SqliteArguments;
 import 'package:submersion/core/constants/app_enums.dart';
+import 'package:submersion/core/database/computer_serial_identity.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_name_key.dart';
@@ -64,6 +65,14 @@ const String kDiveAmbientBarFunction = 'dive_ambient_bar';
 /// UI's. NULL stays NULL.
 const String kCatalogueNameKeyFunction = 'catalogue_name_key';
 
+/// `same_computer_identity(model_a, serial_a, model_b, serial_b)`: 1 when
+/// two source rows with no registered computer name one computer by model
+/// and serial, else 0, by [sameComputerModelAndSerial]. It lets
+/// `profileSpanSecondsSql` group a dive's source rows as the Dart read does,
+/// Shearwater serial forms and Unicode whitespace included, without
+/// restating that rule in SQL.
+const String kSameComputerIdentityFunction = 'same_computer_identity';
+
 /// Registers the app's SQL functions on [db].
 void registerAppSqlFunctions(CommonDatabase db) {
   db.createFunction(
@@ -89,6 +98,12 @@ void registerAppSqlFunctions(CommonDatabase db) {
     functionName: kCatalogueNameKeyFunction,
     function: _catalogueNameKey,
     argumentCount: const AllowedArgumentCount(1),
+    deterministic: true,
+  );
+  db.createFunction(
+    functionName: kSameComputerIdentityFunction,
+    function: _sameComputerIdentity,
+    argumentCount: const AllowedArgumentCount(4),
     deterministic: true,
   );
   db.createFunction(
@@ -121,6 +136,25 @@ Object? _diveAmbientBar(SqliteArguments arguments) {
   );
   return environment.pressureAtDepth(depth);
 }
+
+/// [value] as text, a number rendered as text, or null for anything else:
+/// a model or serial column holds text, and a throw here would fail the
+/// whole statement, not the row.
+String? _textOrNull(Object? value) => switch (value) {
+  final String s => s,
+  final num n => n.toString(),
+  _ => null,
+};
+
+Object? _sameComputerIdentity(SqliteArguments arguments) =>
+    sameComputerModelAndSerial(
+      modelA: _textOrNull(arguments[0]),
+      serialA: _textOrNull(arguments[1]),
+      modelB: _textOrNull(arguments[2]),
+      serialB: _textOrNull(arguments[3]),
+    )
+    ? 1
+    : 0;
 
 Object? _unicodeLower(SqliteArguments arguments) =>
     _foldText(arguments[0], (s) => s.toLowerCase());

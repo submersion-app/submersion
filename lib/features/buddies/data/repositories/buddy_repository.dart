@@ -111,8 +111,8 @@ class BuddyRepository {
   /// Emits whenever a buddy as the hydrated reads return it may change: its
   /// `buddies` row, a `certifications` row its primary certification is
   /// derived from, or a custom agency or level that ranks and titles it (see
-  /// [_withPrimaryCerts]). The buddy edit form writes the certifications
-  /// after the buddy row, so a reader that follows only [watchBuddiesChanges]
+  /// [_withPrimaryCerts]). A buddy's save writes its certifications after
+  /// the buddy row, so a reader that follows only [watchBuddiesChanges]
   /// reloads too early and keeps the old level (issue #4496). Readers that
   /// use only the buddy rows stay on [watchBuddiesChanges].
   Stream<void> watchHydratedBuddiesChanges() => _db.tableUpdates(
@@ -1124,38 +1124,6 @@ class BuddyRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get buddies with dive counts',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      rethrow;
-    }
-  }
-
-  /// Toggle favorite status for a buddy
-  Future<void> toggleFavorite(String buddyId) async {
-    try {
-      _log.info('Toggling favorite for buddy: $buddyId');
-      final now = DateTime.now().millisecondsSinceEpoch;
-      final buddy = await (_db.select(
-        _db.buddies,
-      )..where((t) => t.id.equals(buddyId))).getSingleOrNull();
-      if (buddy == null) return;
-      await (_db.update(_db.buddies)..where((t) => t.id.equals(buddyId))).write(
-        BuddiesCompanion(
-          isFavorite: Value(!buddy.isFavorite),
-          updatedAt: Value(now),
-        ),
-      );
-      await _syncRepository.markRecordPending(
-        entityType: 'buddies',
-        recordId: buddyId,
-        localUpdatedAt: now,
-      );
-      SyncEventBus.notifyLocalChange();
-      _log.info('Toggled favorite for buddy: $buddyId');
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to toggle favorite for buddy: $buddyId',
         error: e,
         stackTrace: stackTrace,
       );

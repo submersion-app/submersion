@@ -317,7 +317,7 @@ void main() {
         fetchElevation: (_) async => null,
       );
       await session.settled();
-      expect(siteSharingInSitting(session), source.sharing);
+      expect(siteSharing.inSitting(session), source.sharing);
     });
 
     // Review Focus 2 and 4 end to end: the copy's rows reach the database

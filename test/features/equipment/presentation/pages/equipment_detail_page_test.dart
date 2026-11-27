@@ -33,6 +33,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/service_clock_snapshot_override.dart';
 
 void main() {
   // Dates format through the process-global Intl.defaultLocale, which
@@ -608,6 +609,8 @@ void main() {
               serviceClockStatusesProvider(
                 equipment.id,
               ).overrideWith((ref) async => clocks),
+            if (clocks != null)
+              serviceClockSnapshotOverride(equipment.id, statuses: clocks),
           ].cast(),
           child: MaterialApp(
             locale: const Locale('en'),
@@ -799,7 +802,7 @@ void main() {
         final state = isActive ? 'an active' : 'a retired';
         final layout = embedded ? 'embedded' : 'standalone';
         testWidgets(
-          'the $layout overflow menu of $state item offers only History, Connections, Clone and Delete',
+          'the $layout overflow menu of $state item offers only History, Connections, Clone and Delete, Delete under the lock',
           (tester) async {
             final equipment = EquipmentItem(
               id: 'equip-menu-$layout-$isActive',
@@ -830,18 +833,13 @@ void main() {
             expect(find.text('Retire Equipment'), findsNothing);
             expect(find.text('Reactivate'), findsNothing);
             expect(find.text('History'), findsOneWidget);
-            expect(find.byType(PopupMenuItem<String>), findsNWidgets(4));
-
-            // Selecting Delete still reaches the handler: it asks first,
-            // and cancelling leaves the item in place.
-            await tester.tap(find.text('Delete'));
-            await tester.pumpAndSettle();
-            expect(find.text('Delete Equipment'), findsOneWidget);
-
-            await tester.tap(find.text('Cancel'));
-            await tester.pumpAndSettle();
-            expect(find.text('Delete Equipment'), findsNothing);
-            expect(find.byType(EquipmentDetailPage), findsOneWidget);
+            // Locked, a caption over Delete says it needs the unlock (issue
+            // #4527): it is the fifth entry, and Delete is off.
+            expect(find.byType(PopupMenuItem<String>), findsNWidgets(5));
+            final delete = tester.widget<PopupMenuItem<String>>(
+              find.widgetWithText(PopupMenuItem<String>, 'Delete'),
+            );
+            expect(delete.enabled, isFalse);
           },
         );
       }
@@ -1299,7 +1297,7 @@ void main() {
     });
 
     // Issue #2520: a battery has no colour, so one that reached it shows
-    // as the diver's own field, the way the edit form keeps it.
+    // as the diver's own field, the way the Details editor keeps it.
     testWidgets('a colour on a battery shows as a custom field', (
       tester,
     ) async {

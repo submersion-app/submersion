@@ -14,6 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
@@ -150,6 +151,20 @@ class _GatedGpsMatch extends GpsTrackMatchService {
 class _RecordingNavRepository extends NavTrackRepository {
   String? deletedId;
   bool failDelete = false;
+  final linked = <(String, String)>[];
+
+  @override
+  Future<bool> diveExists(String diveId) async => true;
+
+  @override
+  Future<bool> link(
+    String routeId,
+    String diveId, {
+    required NavTrackLinkMode linkMode,
+  }) async {
+    linked.add((routeId, diveId));
+    return true;
+  }
 
   @override
   Future<void> delete(String routeId) async {
@@ -430,6 +445,55 @@ void main() {
       find.text('Something went wrong. Please try again.'),
       findsOneWidget,
     );
+  });
+
+  group('Match proposes underwater tracks by time (#4851)', () {
+    // r1 records 10:00 to 11:00 on 2025-08-22; this dive covers it.
+    final overlapping = Dive(
+      id: 'd1',
+      diveNumber: 7,
+      dateTime: DateTime.utc(2025, 8, 22, 10),
+      entryTime: DateTime.utc(2025, 8, 22, 10),
+      exitTime: DateTime.utc(2025, 8, 22, 11),
+    );
+
+    Future<void> pressMatch(WidgetTester tester) async {
+      await tester.pumpWidget(
+        await app(
+          underwater: [_uw()],
+          gpsMatch: _GpsMatch(),
+          extraOverrides: [
+            divesProvider.overrideWith((ref) async => [overlapping]),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Match dives to GPS logs'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Link links each track to its dive and says so', (
+      tester,
+    ) async {
+      await pressMatch(tester);
+      expect(find.text('Link 1 underwater track?'), findsOneWidget);
+      expect(find.textContaining('Dive #7'), findsOneWidget);
+
+      await tester.tap(find.text('Link'));
+      await tester.pumpAndSettle();
+
+      expect(navRepo.linked, [('r1', 'd1')]);
+      expect(find.text('1 underwater track linked'), findsOneWidget);
+    });
+
+    testWidgets('Not now links nothing and says nothing', (tester) async {
+      await pressMatch(tester);
+      await tester.tap(find.text('Not now'));
+      await tester.pumpAndSettle();
+
+      expect(navRepo.linked, isEmpty);
+      expect(find.byType(SnackBar), findsNothing);
+    });
   });
 
   testWidgets('unlinked underwater tracks show the pending-choice hint', (

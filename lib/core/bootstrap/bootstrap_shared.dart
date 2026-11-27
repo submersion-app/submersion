@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/features/species_id/data/engines/onnx/onnx_runtime_attribution.dart';
 import 'package:submersion/core/network/proxy/proxy_controller.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
 import 'package:submersion/core/services/database_location_service.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/core/services/geocoding/sea_area_service.dart';
 import 'package:submersion/core/services/log_environment.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/theme/brand_typography.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_attribution.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_detector_toggles.dart';
 import 'package:submersion/features/demo_mode/data/demo_paths.dart';
@@ -28,11 +30,15 @@ ProxyController? processProxyController;
 /// The ocean and sea table is CC-BY, so its credit has to reach the license
 /// page whether or not anything ever geocodes a coordinate; likewise the
 /// CC BY bathymetry sources behind the seascape, and the OpenStreetMap
-/// data (ODbL) behind the built-in dive sites.
+/// data (ODbL) behind the built-in dive sites, ONNX Runtime (MIT) with its
+/// notices where the marine life engine ships it, and the logo's font
+/// (SIL OFL) the app name is set in.
 void registerBundledLicenses() {
   SeaAreaService.registerLicense();
   BathymetryAttribution.registerLicense();
   SiteCatalogueAttribution.registerLicense();
+  OnnxRuntimeAttribution.registerLicense();
+  BrandTypography.registerLicense();
 }
 
 /// Applies the preferences that must be in force before the first frame.

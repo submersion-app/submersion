@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -10,19 +9,14 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/core/services/accounts/account_kind.dart';
-import 'package:submersion/core/services/accounts/connected_account.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
-import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
-import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_day_picker.dart';
-import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_page.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_trip_page.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklists_panel.dart';
@@ -299,141 +293,6 @@ void main() {
       expect(find.byType(TripStoryTripPage), findsOneWidget);
     });
 
-    // Exercises the overflow-menu scan actions and the Lightroom item, which
-    // only shows when a Lightroom account is connected.
-    testWidgets('overflow menu runs scan actions', (tester) async {
-      // The Lightroom menu item is gated behind lightroomUiEnabled (default
-      // false while pending Adobe review); enable it to verify the wiring.
-      lightroomUiEnabled = true;
-      addTearDown(() => lightroomUiEnabled = false);
-      _setMobileTestSurfaceSize(tester);
-      final story = buildTripStory(
-        trip: testTrip,
-        dives: [],
-        itineraryDays: [],
-        mediaByDiveId: {},
-        sightingsByDiveId: {},
-        checklistItems: [],
-        today: DateTime(2026, 6, 1),
-      );
-      final account = ConnectedAccount(
-        id: 'acc-1',
-        kind: AccountKind.adobeLightroom,
-        label: 'Adobe',
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
-      );
-
-      Future<void> pumpPage() async {
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              tripWithStatsProvider(
-                testTrip.id,
-              ).overrideWith((ref) => Future.value(testTripWithStats)),
-              diveIdsForTripProvider(
-                testTrip.id,
-              ).overrideWith((ref) async => <String>[]),
-              tripStoryProvider(testTrip.id).overrideWith((ref) async => story),
-              divesForTripProvider(
-                testTrip.id,
-              ).overrideWith((ref) async => <Dive>[]),
-              // Sync return so the AsyncValue resolves to data immediately and
-              // the conditional Lightroom menu item renders when the menu opens.
-              lightroomAccountProvider.overrideWith((ref) => account),
-              tripListNotifierProvider.overrideWith(
-                (ref) => _MockTripListNotifier([]),
-              ),
-              settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
-              currentDiverIdProvider.overrideWith(
-                (ref) => MockCurrentDiverIdNotifier(),
-              ),
-            ],
-            child: MaterialApp(
-              locale: const Locale('en'),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              home: TripDetailPage(tripId: testTrip.id),
-            ),
-          ),
-        );
-        await tester.pump();
-        await tester.pump(const Duration(seconds: 1));
-      }
-
-      Future<void> openMenu() async {
-        await tester.tap(find.byType(PopupMenuButton<String>).first);
-        await tester.pumpAndSettle();
-      }
-
-      await pumpPage();
-
-      // Lightroom account connected, so all three scan menu items are present.
-      // ('Find matching dives' also appears as the empty-state button, so scope
-      // menu assertions/taps to PopupMenuItem.)
-      await openMenu();
-      expect(
-        find.widgetWithText(PopupMenuItem<String>, 'Find matching dives'),
-        findsOneWidget,
-      );
-      expect(
-        find.widgetWithText(PopupMenuItem<String>, 'Scan device gallery'),
-        findsOneWidget,
-      );
-      expect(
-        find.widgetWithText(PopupMenuItem<String>, 'Scan Lightroom'),
-        findsOneWidget,
-      );
-
-      // scan-lightroom with no dives shows the "add dives first" snackbar.
-      await tester.tap(find.text('Scan Lightroom'));
-      await tester.pumpAndSettle();
-      expect(find.text('Add dives first to link photos'), findsOneWidget);
-
-      // scan-photos with no dives shows the same guidance.
-      await openMenu();
-      await tester.tap(find.text('Scan device gallery'));
-      await tester.pumpAndSettle();
-      expect(find.text('Add dives first to link photos'), findsWidgets);
-
-      // scan-dives with no active diver short-circuits without error.
-      await openMenu();
-      await tester.tap(
-        find.widgetWithText(PopupMenuItem<String>, 'Find matching dives'),
-      );
-      await tester.pumpAndSettle();
-    });
-
-    testWidgets('should display edit icon button', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            tripWithStatsProvider(testTrip.id).overrideWith((ref) {
-              return Future.value(testTripWithStats);
-            }),
-            diveIdsForTripProvider(testTrip.id).overrideWith((ref) {
-              return Future.value(<String>[]);
-            }),
-            tripListNotifierProvider.overrideWith((ref) {
-              return _MockTripListNotifier([]);
-            }),
-            settingsProvider.overrideWith((ref) {
-              return _MockSettingsNotifier();
-            }),
-          ],
-          child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: TripDetailPage(tripId: testTrip.id),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.edit), findsOneWidget);
-    });
-
     testWidgets('should display popup menu with export and delete', (
       tester,
     ) async {
@@ -626,7 +485,10 @@ void main() {
         await tester.pumpAndSettle();
 
         // Open the more menu and tap Delete.
-        await tester.tap(find.byIcon(Icons.more_vert));
+        // Delete is a whole-record operation, under the lock (issue #4527).
+        await tester.tap(find.byIcon(Icons.lock_outline));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.more_vert).last);
         await tester.pumpAndSettle();
         await tester.tap(find.text('Delete'));
         await tester.pumpAndSettle();
@@ -776,213 +638,6 @@ void main() {
     });
   });
 
-  group('TripDetailPage day note (#4625)', () {
-    final now = DateTime.now();
-    final pastTrip = Trip(
-      id: 'past-trip',
-      name: 'Bonaire',
-      startDate: DateTime(now.year - 1, 3, 7),
-      endDate: DateTime(now.year - 1, 3, 9),
-      createdAt: DateTime(2026, 1, 1),
-      updatedAt: DateTime(2026, 1, 1),
-    );
-
-    /// Pumps a trip already over, opens its first day from the picker, taps
-    /// Add note, and returns where the router ends up.
-    Future<String> pump(WidgetTester tester, {required bool embedded}) async {
-      _setMobileTestSurfaceSize(tester);
-      final story = buildTripStory(
-        trip: pastTrip,
-        dives: const [],
-        itineraryDays: const [],
-        mediaByDiveId: const {},
-        sightingsByDiveId: const {},
-        checklistItems: const [],
-        today: now,
-      );
-      final router = GoRouter(
-        initialLocation: embedded
-            ? '/trips?selected=${pastTrip.id}'
-            : '/trips/${pastTrip.id}',
-        routes: [
-          GoRoute(
-            path: '/trips',
-            builder: (context, state) => Scaffold(
-              body: TripDetailPage(tripId: pastTrip.id, embedded: true),
-            ),
-            routes: [
-              GoRoute(
-                path: ':id',
-                builder: (context, state) =>
-                    TripDetailPage(tripId: state.pathParameters['id']!),
-                routes: [
-                  GoRoute(
-                    path: 'edit',
-                    builder: (context, state) =>
-                        const Scaffold(body: Text('EDIT_PAGE')),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      );
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            tripWithStatsProvider(pastTrip.id).overrideWith(
-              (ref) async => TripWithStats(trip: pastTrip, diveCount: 0),
-            ),
-            diveIdsForTripProvider(
-              pastTrip.id,
-            ).overrideWith((ref) async => <String>[]),
-            tripStoryProvider(pastTrip.id).overrideWith((ref) async => story),
-            itineraryDaysProvider(
-              pastTrip.id,
-            ).overrideWith((ref) async => const []),
-            tripListNotifierProvider.overrideWith(
-              (ref) => _MockTripListNotifier([]),
-            ),
-            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
-            ..._tabOverrides(pastTrip.id),
-          ],
-          child: MaterialApp.router(
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            routerConfig: router,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(TripDayPicker.dayTileKey(1)));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(TripStoryDayPage.editNoteKey));
-      await tester.pumpAndSettle();
-      return router.state.uri.toString();
-    }
-
-    String dayQuery() =>
-        'section=notes&noteDate=${pastTrip.startDate.year}-03-07&noteDay=1';
-
-    testWidgets('in the pane, edits the day note in the pane', (tester) async {
-      final location = await pump(tester, embedded: true);
-      expect(
-        location,
-        '/trips?selected=${pastTrip.id}&mode=edit&${dayQuery()}',
-      );
-      expect(find.text('EDIT_PAGE'), findsNothing);
-    });
-
-    testWidgets('as a page, opens the edit page at the day note', (
-      tester,
-    ) async {
-      final location = await pump(tester, embedded: false);
-      expect(location, '/trips/${pastTrip.id}/edit?${dayQuery()}');
-      expect(find.text('EDIT_PAGE'), findsOneWidget);
-    });
-  });
-
-  group('TripDetailPage Plan row (#2880)', () {
-    final now = DateTime.now();
-    final futureTrip = Trip(
-      id: 'future-trip',
-      name: 'Bonaire',
-      startDate: DateTime(now.year, now.month, now.day + 12),
-      endDate: DateTime(now.year, now.month, now.day + 19),
-      createdAt: DateTime(2026, 1, 1),
-      updatedAt: DateTime(2026, 1, 1),
-    );
-
-    /// Pumps the trip before departure, so its Overview is the Prepare page,
-    /// taps Plan, and returns where the router ends up.
-    Future<String> pump(WidgetTester tester, {required bool embedded}) async {
-      _setMobileTestSurfaceSize(tester);
-      final story = buildTripStory(
-        trip: futureTrip,
-        dives: const [],
-        itineraryDays: const [],
-        mediaByDiveId: const {},
-        sightingsByDiveId: const {},
-        checklistItems: const [],
-        today: now,
-      );
-      final router = GoRouter(
-        initialLocation: embedded
-            ? '/trips?selected=${futureTrip.id}'
-            : '/trips/${futureTrip.id}',
-        routes: [
-          GoRoute(
-            path: '/trips',
-            builder: (context, state) => Scaffold(
-              body: TripDetailPage(tripId: futureTrip.id, embedded: true),
-            ),
-            routes: [
-              GoRoute(
-                path: ':id',
-                builder: (context, state) =>
-                    TripDetailPage(tripId: state.pathParameters['id']!),
-                routes: [
-                  GoRoute(
-                    path: 'edit',
-                    builder: (context, state) =>
-                        const Scaffold(body: Text('EDIT_PAGE')),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      );
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            tripWithStatsProvider(futureTrip.id).overrideWith(
-              (ref) async => TripWithStats(trip: futureTrip, diveCount: 0),
-            ),
-            diveIdsForTripProvider(
-              futureTrip.id,
-            ).overrideWith((ref) async => <String>[]),
-            tripStoryProvider(futureTrip.id).overrideWith((ref) async => story),
-            itineraryDaysProvider(
-              futureTrip.id,
-            ).overrideWith((ref) async => const []),
-            tripListNotifierProvider.overrideWith(
-              (ref) => _MockTripListNotifier([]),
-            ),
-            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
-            ..._tabOverrides(futureTrip.id),
-          ],
-          child: MaterialApp.router(
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            routerConfig: router,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Plan'));
-      await tester.pumpAndSettle();
-      return router.state.uri.toString();
-    }
-
-    testWidgets('in the pane, edits in the pane at Planning', (tester) async {
-      final location = await pump(tester, embedded: true);
-      expect(
-        location,
-        '/trips?selected=${futureTrip.id}&mode=edit&section=planning',
-      );
-      expect(find.text('EDIT_PAGE'), findsNothing);
-    });
-
-    testWidgets('as a page, opens the edit page at Planning', (tester) async {
-      final location = await pump(tester, embedded: false);
-      expect(location, '/trips/${futureTrip.id}/edit?section=planning');
-      expect(find.text('EDIT_PAGE'), findsOneWidget);
-    });
-  });
-
   group('TripDetailPage embedded layouts', () {
     final embeddedTrip = Trip(
       id: 'embedded-trip',
@@ -1031,10 +686,10 @@ void main() {
       // Flight takeoff icon appears in embedded header avatar
       // (may also appear elsewhere in the overview tab).
       expect(find.byIcon(Icons.flight_takeoff), findsWidgets);
-      // Compact map/edit/more-options icons should be present in embedded
+      // Compact map/lock/more-options icons should be present in embedded
       // header (along with potentially more on other sections).
       expect(find.byIcon(Icons.map_outlined), findsWidgets);
-      expect(find.byIcon(Icons.edit_outlined), findsWidgets);
+      expect(find.byIcon(Icons.lock_outline), findsWidgets);
       expect(find.byIcon(Icons.more_vert), findsOneWidget);
     });
 
@@ -1141,48 +796,6 @@ void main() {
       expect(find.textContaining('DIVES_view=map'), findsOneWidget);
     });
 
-    testWidgets('embedded edit button navigates to edit mode', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      final router = GoRouter(
-        initialLocation: '/embedded/slot',
-        routes: [
-          GoRoute(
-            path: '/embedded/slot',
-            builder: (context, state) => Scaffold(
-              body: TripDetailPage(tripId: embeddedTrip.id, embedded: true),
-            ),
-          ),
-        ],
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            tripWithStatsProvider(
-              embeddedTrip.id,
-            ).overrideWith((ref) async => embeddedStats),
-            diveIdsForTripProvider(
-              embeddedTrip.id,
-            ).overrideWith((ref) async => <String>[]),
-            tripListNotifierProvider.overrideWith(
-              (ref) => _MockTripListNotifier([]),
-            ),
-            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
-          ],
-          child: MaterialApp.router(
-            routerConfig: router,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.edit_outlined));
-      await tester.pumpAndSettle();
-      // Router location should now contain selected=...&mode=edit.
-      expect(router.state.uri.toString(), contains('mode=edit'));
-    });
-
     testWidgets('delete action on embedded trip calls onDeleted callback', (
       tester,
     ) async {
@@ -1219,7 +832,10 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.more_vert));
+      // Delete is a whole-record operation, under the lock (issue #4527).
+      await tester.tap(find.byIcon(Icons.lock_outline));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.more_vert).last);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Delete'));
       await tester.pumpAndSettle();
@@ -1287,52 +903,6 @@ void main() {
       await tester.tap(find.byIcon(Icons.map_outlined));
       await tester.pumpAndSettle();
       expect(find.textContaining('DIVES_view=map'), findsOneWidget);
-    });
-
-    testWidgets('app bar edit button pushes to edit route', (tester) async {
-      _setMobileTestSurfaceSize(tester);
-      final router = GoRouter(
-        initialLocation: '/trips/map-trip',
-        routes: [
-          GoRoute(
-            path: '/trips/:id',
-            builder: (context, state) =>
-                TripDetailPage(tripId: state.pathParameters['id']!),
-            routes: [
-              GoRoute(
-                path: 'edit',
-                builder: (context, state) =>
-                    const Scaffold(body: Text('EDIT_PAGE')),
-              ),
-            ],
-          ),
-        ],
-      );
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            tripWithStatsProvider(
-              mapTrip.id,
-            ).overrideWith((ref) async => mapStats),
-            diveIdsForTripProvider(
-              mapTrip.id,
-            ).overrideWith((ref) async => <String>[]),
-            tripListNotifierProvider.overrideWith(
-              (ref) => _MockTripListNotifier([]),
-            ),
-            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
-          ],
-          child: MaterialApp.router(
-            routerConfig: router,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.edit));
-      await tester.pumpAndSettle();
-      expect(find.text('EDIT_PAGE'), findsOneWidget);
     });
   });
 
@@ -1702,12 +1272,6 @@ class _MockTripListNotifier
 
   @override
   Future<void> refresh() async {}
-
-  @override
-  Future<Trip> addTrip(Trip trip) async => trip;
-
-  @override
-  Future<void> updateTrip(Trip trip) async {}
 
   @override
   Future<bool> deleteTrip(String id) async => true;

@@ -14,6 +14,7 @@ import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/onnx_vision_engine.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 
@@ -58,6 +59,8 @@ class GlobalStateSnapshot {
       'GoogleFonts.config.allowRuntimeFetching':
           GoogleFonts.config.allowRuntimeFetching,
       'DemoModeGate.instance.isActive': DemoModeGate.instance.isActive,
+      'OnnxVisionEngine.debugLibraryLoadsOverride':
+          OnnxVisionEngine.debugLibraryLoadsOverride,
       'canShareFiles': canShareFiles,
       'debugPrint': debugPrint,
       'FlutterError.onError': FlutterError.onError,

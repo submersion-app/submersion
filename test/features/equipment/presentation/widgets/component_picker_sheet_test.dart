@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
@@ -15,35 +17,26 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_c
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/component_picker_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_components_sitting.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/folded_groups.dart';
+import '../../../../helpers/test_database.dart';
 
+/// Records what Save writes through it.
 class _FakeComponentRepository extends EquipmentComponentRepository {
   final added = <(String, String)>[];
   final replaced = <(String, String)>[];
-  bool throwCycle = false;
-
-  /// Refuse as a cycle once this many adds have landed.
-  int? throwCycleAfter;
-  Object? throwOther;
-
-  /// When set, every add waits on it, so a test can act mid-save.
-  Completer<void>? gate;
 
   @override
   Future<EquipmentComponent> addComponent({
     required String parentId,
     required String componentId,
     String role = '',
+    String? id,
   }) async {
-    if (throwCycle ||
-        (throwCycleAfter != null && added.length >= throwCycleAfter!)) {
-      throw EquipmentComponentCycleException(parentId, componentId);
-    }
-    if (throwOther != null) throw throwOther!;
-    if (gate != null) await gate!.future;
     added.add((parentId, componentId));
     return EquipmentComponent(
       id: 'new-$componentId',
@@ -75,6 +68,9 @@ class _FakeComponentRepository extends EquipmentComponentRepository {
 class _DiveCount {
   int diveCount = 0;
   Object? throwOnCount;
+
+  /// When set, the count waits on it, so a test can act while it is read.
+  Completer<int>? gate;
 }
 
 /// Stands in for anything else that reads the equipment repository.
@@ -88,6 +84,7 @@ class _FakeDiveRepository extends Fake implements DiveRepository {
   @override
   Future<int> countLoggedDivesWithAssembly(String assemblyId) async {
     if (count.throwOnCount != null) throw count.throwOnCount!;
+    if (count.gate != null) return count.gate!.future;
     return count.diveCount;
   }
 
@@ -127,6 +124,24 @@ void main() {
   // (self), first (already a part), and offer hose and fins.
   final edges = [edge('kit', 'reg'), edge('reg', 'first')];
 
+  // Issue #4527, phase 3: the picker opens in the assembly's sitting, holds
+  // its choice there with the answer to Update past dives?, and writes
+  // nothing. Its parts are reg's, first among them.
+  late EditSession<EquipmentItem> session;
+  setUp(() {
+    session = EditSession(item('reg', EquipmentType.regulator));
+    addTearDown(session.dispose);
+    gearItemComponentsList
+      ..loadNone(session)
+      ..set(session, [edges[1]]);
+  });
+
+  /// The parts the sitting holds for reg, by the item each one is.
+  List<String> heldParts() => [
+    for (final p in gearItemComponentsList.current(session)!)
+      p.componentEquipmentId,
+  ];
+
   Widget build(
     _FakeComponentRepository repo, {
     Future<ComponentsIndex>? index,
@@ -156,6 +171,7 @@ void main() {
           parentId: 'reg',
           scrollController: ScrollController(),
           replacing: replacing,
+          editing: session,
         ),
       ),
     ),
@@ -198,11 +214,12 @@ void main() {
     expect(find.text('Name first'), findsNothing);
   });
 
-  testWidgets('confirm adds every checked item under the parent', (
+  testWidgets('confirm holds every checked item under the parent', (
     tester,
   ) async {
     final repo = _FakeComponentRepository();
-    await tester.pumpWidget(build(repo));
+    final dives = _FakeDiveRepository();
+    await tester.pumpWidget(build(repo, dives: dives));
     await tester.pumpAndSettle();
     await openFoldedGroups(tester);
     expect(find.text('Add'), findsOneWidget);
@@ -213,52 +230,23 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('Add 2'));
     await tester.pumpAndSettle();
-    expect(repo.added, unorderedEquals([('reg', 'hose'), ('reg', 'fins')]));
-  });
-
-  testWidgets('adding on an assembly with past dives asks once, then replays', (
-    tester,
-  ) async {
-    final repo = _FakeComponentRepository();
-    final dives = _FakeDiveRepository();
-    await tester.pumpWidget(
-      build(repo, count: _DiveCount()..diveCount = 3, dives: dives),
-    );
-    await tester.pumpAndSettle();
-    await openFoldedGroups(tester);
-    await tester.tap(find.text('Name hose'));
-    await tester.pump();
-    await tester.tap(find.text('Name fins'));
-    await tester.pump();
-    await tester.tap(find.text('Add 2'));
-    await tester.pumpAndSettle();
-    expect(find.text('Update past dives?'), findsOneWidget);
-    expect(find.textContaining('Add the new part'), findsOneWidget);
-    await tester.tap(find.text('Also update 3 dives'));
-    await tester.pumpAndSettle();
-    expect(find.text('Update past dives?'), findsNothing);
-    expect(repo.added, unorderedEquals([('reg', 'hose'), ('reg', 'fins')]));
-    // One call carrying both parts, not one call per part: the replay
-    // makes a single pass over the dives.
-    expect(dives.rewrites, hasLength(1));
-    expect(dives.rewrites.single.$1, 'reg');
+    expect(heldParts(), unorderedEquals(['first', 'hose', 'fins']));
+    final added = gearItemComponentsList.current(session)!.skip(1);
+    expect(added.map((p) => p.parentEquipmentId), ['reg', 'reg']);
     expect(
-      dives.rewrites.single.$2,
-      unorderedEquals([
-        const GearPartAdded('hose'),
-        const GearPartAdded('fins'),
-      ]),
+      added.map((p) => p.component?.name),
+      unorderedEquals(['Name hose', 'Name fins']),
     );
-    expect(dives.rewrites.single.$3, isTrue);
+    expect(repo.added, isEmpty);
+    expect(dives.rewrites, isEmpty);
   });
 
-  testWidgets('a failed dive count is reported, and adds nothing', (
+  testWidgets('a failed dive count is reported, and holds nothing', (
     tester,
   ) async {
-    final repo = _FakeComponentRepository();
     await tester.pumpWidget(
       build(
-        repo,
+        _FakeComponentRepository(),
         count: _DiveCount()..throwOnCount = StateError('no database'),
       ),
     );
@@ -270,7 +258,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Update past dives?'), findsNothing);
     expect(find.textContaining('no database'), findsOneWidget);
-    expect(repo.added, isEmpty);
+    expect(heldParts(), ['first']);
     expect(tester.takeException(), isNull);
     // The sheet is still usable: the selection and the button survive.
     expect(find.text('Add 1'), findsOneWidget);
@@ -278,83 +266,12 @@ void main() {
     expect(button.onPressed, isNotNull);
   });
 
-  testWidgets('a partial save drops the saved parts from the selection', (
+  testWidgets('cancelling the question keeps the sheet open, nothing held', (
     tester,
   ) async {
-    // The saved part stops being a candidate, so leaving it selected would
-    // count a row the diver can no longer see or untick.
-    final repo = _FakeComponentRepository()..throwCycleAfter = 1;
-    await tester.pumpWidget(build(repo, count: _DiveCount()..diveCount = 0));
-    await tester.pumpAndSettle();
-    await openFoldedGroups(tester);
-    await tester.tap(find.text('Name hose'));
-    await tester.pump();
-    await tester.tap(find.text('Name fins'));
-    await tester.pump();
-    expect(find.text('Add 2'), findsOneWidget);
-    await tester.tap(find.text('Add 2'));
-    await tester.pumpAndSettle();
-    expect(repo.added, hasLength(1));
-    // One saved, one refused: the count drops to the one still pending.
-    expect(find.text('Add 1'), findsOneWidget);
-    expect(find.text('Add 2'), findsNothing);
-  });
-
-  testWidgets('parts added before a refusal are still replayed', (
-    tester,
-  ) async {
-    // The second add is refused; the first already reached the template,
-    // so it has to reach the past dives too or the two drift apart.
-    final repo = _FakeComponentRepository()..throwCycleAfter = 1;
-    final dives = _FakeDiveRepository();
     await tester.pumpWidget(
-      build(repo, count: _DiveCount()..diveCount = 2, dives: dives),
+      build(_FakeComponentRepository(), count: _DiveCount()..diveCount = 3),
     );
-    await tester.pumpAndSettle();
-    await openFoldedGroups(tester);
-    await tester.tap(find.text('Name hose'));
-    await tester.pump();
-    await tester.tap(find.text('Name fins'));
-    await tester.pump();
-    await tester.tap(find.text('Add 2'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Also update 2 dives'));
-    await tester.pumpAndSettle();
-    expect(repo.added, hasLength(1));
-    expect(dives.rewrites.single.$2, [GearPartAdded(repo.added.single.$2)]);
-    expect(
-      find.textContaining('cannot be added as a component'),
-      findsOneWidget,
-    );
-  });
-
-  testWidgets('from now on adds and rewrites planned dives only', (
-    tester,
-  ) async {
-    final repo = _FakeComponentRepository();
-    final dives = _FakeDiveRepository();
-    await tester.pumpWidget(
-      build(repo, count: _DiveCount()..diveCount = 3, dives: dives),
-    );
-    await tester.pumpAndSettle();
-    await openFoldedGroups(tester);
-    await tester.tap(find.text('Name hose'));
-    await tester.pump();
-    await tester.tap(find.text('Add 1'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('From now on'));
-    await tester.pumpAndSettle();
-    expect(repo.added, [('reg', 'hose')]);
-    expect(dives.rewrites, hasLength(1));
-    expect(dives.rewrites.single.$2, const [GearPartAdded('hose')]);
-    expect(dives.rewrites.single.$3, isFalse);
-  });
-
-  testWidgets('cancelling the question keeps the sheet open, nothing added', (
-    tester,
-  ) async {
-    final repo = _FakeComponentRepository();
-    await tester.pumpWidget(build(repo, count: _DiveCount()..diveCount = 3));
     await tester.pumpAndSettle();
     await openFoldedGroups(tester);
     await tester.tap(find.text('Name hose'));
@@ -363,51 +280,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
-    expect(repo.added, isEmpty);
+    expect(heldParts(), ['first']);
+    expect(find.byType(ComponentPickerSheet), findsOneWidget);
     final button = tester.widget<FilledButton>(find.byType(FilledButton));
     expect(button.onPressed, isNotNull);
-  });
-
-  testWidgets('replace mode selects one, swaps the row, and replays', (
-    tester,
-  ) async {
-    final repo = _FakeComponentRepository();
-    final dives = _FakeDiveRepository();
-    final row = edges[1];
-    await tester.pumpWidget(
-      build(
-        repo,
-        replacing: row,
-        count: _DiveCount()..diveCount = 1,
-        dives: dives,
-      ),
-    );
-    await tester.pumpAndSettle();
-    await openFoldedGroups(tester);
-    expect(find.text('Replace with'), findsOneWidget);
-    expect(find.text('Replace'), findsOneWidget);
-    await tester.tap(find.text('Name hose'));
-    await tester.pump();
-    // Single select: the second tap moves the selection.
-    await tester.tap(find.text('Name fins'));
-    await tester.pump();
-    final checked = tester
-        .widgetList<CheckboxListTile>(find.byType(CheckboxListTile))
-        .where((t) => t.value == true)
-        .length;
-    expect(checked, 1);
-    await tester.tap(find.text('Replace'));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('Swap the part'), findsOneWidget);
-    await tester.tap(find.text('Also update 1 dive'));
-    await tester.pumpAndSettle();
-    expect(repo.replaced, [(row.id, 'fins')]);
-    expect(repo.added, isEmpty);
-    expect(dives.rewrites, hasLength(1));
-    expect(dives.rewrites.single.$1, 'reg');
-    expect(dives.rewrites.single.$2, const [
-      GearPartReplaced(oldPartId: 'first', newPartId: 'fins'),
-    ]);
   });
 
   testWidgets('offers nothing while the index is still loading', (
@@ -430,53 +306,21 @@ void main() {
     expect(find.text('Name reg'), findsNothing);
   });
 
-  testWidgets('a non-cycle failure reports itself and re-enables the sheet', (
-    tester,
-  ) async {
-    final repo = _FakeComponentRepository()..throwOther = StateError('boom');
-    await tester.pumpWidget(build(repo));
-    await tester.pumpAndSettle();
-    await openFoldedGroups(tester);
-    await tester.tap(find.text('Name hose'));
-    await tester.pump();
-    await tester.tap(find.text('Add 1'));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('boom'), findsOneWidget);
-    final button = tester.widget<FilledButton>(find.byType(FilledButton));
-    expect(button.onPressed, isNotNull);
-  });
-
-  testWidgets('checkboxes are frozen while the adds run', (tester) async {
-    final repo = _FakeComponentRepository()..gate = Completer<void>();
-    await tester.pumpWidget(build(repo));
-    await tester.pumpAndSettle();
-    await openFoldedGroups(tester);
-    await tester.tap(find.text('Name hose'));
-    await tester.pump();
-    await tester.tap(find.text('Add 1'));
-    await tester.pump();
-    for (final tile in tester.widgetList<CheckboxListTile>(
-      find.byType(CheckboxListTile),
-    )) {
-      expect(tile.onChanged, isNull);
-    }
-    repo.gate!.complete();
-    await tester.pumpAndSettle();
-    expect(repo.added, [('reg', 'hose')]);
-  });
-
-  testWidgets('a sheet dismissed mid-save does not pop the page beneath', (
-    tester,
-  ) async {
-    final repo = _FakeComponentRepository()..gate = Completer<void>();
+  testWidgets('a sheet dismissed while the dive count is read does not pop '
+      'the page beneath', (tester) async {
+    final count = _DiveCount()..gate = Completer<int>();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          equipmentComponentRepositoryProvider.overrideWithValue(repo),
+          equipmentComponentRepositoryProvider.overrideWithValue(
+            _FakeComponentRepository(),
+          ),
           equipmentRepositoryProvider.overrideWithValue(
             _FakeEquipmentRepository(),
           ),
-          diveRepositoryProvider.overrideWithValue(_FakeDiveRepository()),
+          diveRepositoryProvider.overrideWithValue(
+            _FakeDiveRepository()..count = count,
+          ),
           activeEquipmentProvider.overrideWith((ref) async => active),
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           equipmentComponentsIndexProvider.overrideWith(
@@ -490,7 +334,11 @@ void main() {
           home: Scaffold(
             body: Builder(
               builder: (context) => TextButton(
-                onPressed: () => showComponentPicker(context, parentId: 'reg'),
+                onPressed: () => showComponentPicker(
+                  context,
+                  parentId: 'reg',
+                  editing: session,
+                ),
                 child: const Text('PAGE BENEATH'),
               ),
             ),
@@ -505,32 +353,166 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('Add 1'));
     await tester.pump();
-    // Dismiss the sheet by tapping the barrier while the add is pending.
+    // Dismiss the sheet by tapping the barrier while the count is read.
     await tester.tapAt(const Offset(5, 5));
     await tester.pumpAndSettle();
     expect(find.byType(ComponentPickerSheet), findsNothing);
-    repo.gate!.complete();
+    count.gate!.complete(0);
     await tester.pumpAndSettle();
-    // The save finished, and the page under the sheet is still there.
-    expect(repo.added, [('reg', 'hose')]);
+    // The dismissed sheet holds nothing, and the page under it is still
+    // there.
+    expect(heldParts(), ['first']);
     expect(find.text('PAGE BENEATH'), findsOneWidget);
   });
 
-  testWidgets('a cycle refused by the repository shows the explanation', (
-    tester,
-  ) async {
-    final repo = _FakeComponentRepository()..throwCycle = true;
-    await tester.pumpWidget(build(repo));
-    await tester.pumpAndSettle();
-    await openFoldedGroups(tester);
-    await tester.tap(find.text('Name hose'));
-    await tester.pump();
-    await tester.tap(find.text('Add 1'));
-    await tester.pumpAndSettle();
-    expect(
-      find.textContaining('cannot be added as a component'),
-      findsOneWidget,
-    );
+  // The parts as stored, read into the sitting: Save writes what the picker
+  // held, through the fakes here, with each part under its answer.
+  group('saved from the sitting', () {
+    late _FakeComponentRepository repo;
+    late _FakeDiveRepository dives;
+    late EquipmentComponent stored;
+
+    setUp(() async {
+      await setUpTestDatabase();
+      addTearDown(SyncCoordinator.reset);
+      repo = _FakeComponentRepository();
+      dives = _FakeDiveRepository();
+      final items = EquipmentRepository();
+      for (final id in ['reg', 'first']) {
+        await items.createEquipment(active.firstWhere((i) => i.id == id));
+      }
+      await EquipmentComponentRepository().addComponent(
+        parentId: 'reg',
+        componentId: 'first',
+      );
+      session = EditSession(item('reg', EquipmentType.regulator));
+      addTearDown(session.dispose);
+      T read<T>(ProviderListenable<T> provider) =>
+          (identical(provider, equipmentComponentRepositoryProvider)
+                  ? repo
+                  : identical(provider, diveRepositoryProvider)
+                  ? dives
+                  : throw ArgumentError('$provider'))
+              as T;
+      holdGearItemComponents(session, read);
+      await gearItemComponentsList.currentOrRead(session);
+      stored = gearItemComponentsList.loaded(session)!.single;
+    });
+    tearDown(tearDownTestDatabase);
+
+    testWidgets('adding on an assembly with past dives asks once, and Save '
+        'replays both parts in one pass', (tester) async {
+      await tester.pumpWidget(
+        build(repo, count: _DiveCount()..diveCount = 3, dives: dives),
+      );
+      await tester.pumpAndSettle();
+      await openFoldedGroups(tester);
+      await tester.tap(find.text('Name hose'));
+      await tester.pump();
+      await tester.tap(find.text('Name fins'));
+      await tester.pump();
+      await tester.tap(find.text('Add 2'));
+      await tester.pumpAndSettle();
+      expect(find.text('Update past dives?'), findsOneWidget);
+      expect(find.textContaining('Add the new part'), findsOneWidget);
+      await tester.tap(find.text('Also update 3 dives'));
+      await tester.pumpAndSettle();
+      expect(find.text('Update past dives?'), findsNothing);
+      expect(heldParts(), unorderedEquals(['first', 'hose', 'fins']));
+      expect(repo.added, isEmpty);
+      expect(dives.rewrites, isEmpty);
+
+      await session.runHeldWrites();
+
+      expect(repo.added, unorderedEquals([('reg', 'hose'), ('reg', 'fins')]));
+      // Both parts in the one pass over the logged dives, compared field by
+      // field: a record holding a List compares that field by identity.
+      expect(dives.rewrites.map((r) => (r.$1, r.$3)), [
+        ('reg', true),
+        ('reg', false),
+      ]);
+      expect(
+        dives.rewrites.first.$2,
+        unorderedEquals([
+          const GearPartAdded('hose'),
+          const GearPartAdded('fins'),
+        ]),
+      );
+      expect(dives.rewrites.last.$2, isEmpty);
+    });
+
+    testWidgets('From now on holds the part, and Save rewrites the planned '
+        'dives only', (tester) async {
+      await tester.pumpWidget(
+        build(repo, count: _DiveCount()..diveCount = 3, dives: dives),
+      );
+      await tester.pumpAndSettle();
+      await openFoldedGroups(tester);
+      await tester.tap(find.text('Name hose'));
+      await tester.pump();
+      await tester.tap(find.text('Add 1'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('From now on'));
+      await tester.pumpAndSettle();
+      expect(heldParts(), ['first', 'hose']);
+      expect(repo.added, isEmpty);
+
+      await session.runHeldWrites();
+
+      expect(repo.added, [('reg', 'hose')]);
+      expect(dives.rewrites.map((r) => r.$3), [true, false]);
+      expect(dives.rewrites.first.$2, isEmpty);
+      expect(dives.rewrites.last.$2, const [GearPartAdded('hose')]);
+    });
+
+    testWidgets('replace mode selects one, swaps the part on its row, and '
+        'Save replays the swap', (tester) async {
+      await tester.pumpWidget(
+        build(
+          repo,
+          replacing: stored,
+          count: _DiveCount()..diveCount = 1,
+          dives: dives,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await openFoldedGroups(tester);
+      expect(find.text('Replace with'), findsOneWidget);
+      expect(find.text('Replace'), findsOneWidget);
+      await tester.tap(find.text('Name hose'));
+      await tester.pump();
+      // Single select: the second tap moves the selection.
+      await tester.tap(find.text('Name fins'));
+      await tester.pump();
+      final checked = tester
+          .widgetList<CheckboxListTile>(find.byType(CheckboxListTile))
+          .where((t) => t.value == true)
+          .length;
+      expect(checked, 1);
+      await tester.tap(find.text('Replace'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Swap the part'), findsOneWidget);
+      await tester.tap(find.text('Also update 1 dive'));
+      await tester.pumpAndSettle();
+      final held = gearItemComponentsList.current(session)!;
+      expect(held.single.id, stored.id);
+      expect(held.single.componentEquipmentId, 'fins');
+      expect(held.single.component?.name, 'Name fins');
+      expect(repo.replaced, isEmpty);
+      expect(dives.rewrites, isEmpty);
+
+      await session.runHeldWrites();
+
+      expect(repo.replaced, [(stored.id, 'fins')]);
+      expect(repo.added, isEmpty);
+      expect(dives.rewrites.map((r) => (r.$1, r.$3)), [
+        ('reg', true),
+        ('reg', false),
+      ]);
+      expect(dives.rewrites.first.$2, const [
+        GearPartReplaced(oldPartId: 'first', newPartId: 'fins'),
+      ]);
+    });
   });
 
   testWidgets('groups follow the type label, not the enum (#2937)', (

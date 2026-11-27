@@ -127,6 +127,10 @@ class ConflictReferenceResolver {
     'serviceKindId': 'serviceKinds',
     'locationId': 'equipmentLocations',
     'speciesId': 'species',
+    // What the diver decided or named on a marine life identification
+    // (issue #4876).
+    'decidedSpeciesId': 'species',
+    'claimedSpeciesId': 'species',
     'sightingId': 'sightings',
     'mediaId': 'media',
     // An item's cover photo (issue #3355).
@@ -146,6 +150,8 @@ class ConflictReferenceResolver {
     'cylinderBId': 'equipment',
     'componentEquipmentId': 'equipment',
     'transmitterEquipmentId': 'equipment',
+    // The bag a trip's packed item rides in (issue #4945).
+    'bagEquipmentId': 'equipment',
     'diveComputerId': 'diveComputers',
     'linkedDiverId': 'divers',
     'sessionId': 'preDiveSessions',

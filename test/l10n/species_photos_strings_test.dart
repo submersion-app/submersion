@@ -10,7 +10,6 @@ void main() {
     expect(l10n.marineLife_speciesPhotos_tagPhotos, 'Tag photos');
     expect(l10n.marineLife_tagPicker_confirm(1), 'Tag 1 photo');
     expect(l10n.marineLife_tagPicker_confirm(4), 'Tag 4 photos');
-    expect(l10n.marineLife_speciesPhotos_importAdded(2), '2 photos added');
     expect(l10n.media_species_sheetTitle, 'Species in this photo');
     expect(l10n.media_species_sheetTitleVideo, 'Species in this video');
     expect(l10n.media_species_scanProgress('40%'), 'Looking for fish, 40%');
@@ -18,7 +17,11 @@ void main() {
     expect(l10n.media_species_unnamedFishLocked, 'Unnamed fish');
     expect(
       l10n.settings_speciesId_toggle,
-      'Identify fish when I open a photo or video',
+      'Identify species when I open a photo or video',
+    );
+    expect(
+      l10n.settings_speciesId_levelTitle,
+      'How readily to suggest a species',
     );
     expect(l10n.marineLife_tagPicker_diveLabel(101), 'Dive 101');
   });

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/features/trips/data/side_trip_sql.dart';
 
 /// Prepares the side-trip links for deleting [tripIds] (issue #3658). Run it
@@ -91,12 +92,21 @@ Future<void> detachSideTripsForDelete(
 /// and never for a trip that has side trips of its own. The trip form only
 /// offers valid parents; this keeps a stale choice or a sync race from
 /// writing a link every reader would then ignore.
+///
+/// Only a parent being set or changed is checked: [parentId] equal to
+/// [storedParentId], the trip's parent as stored, is kept as it is (issue
+/// #4941). `parent_trip_id` has no foreign key because a sync can deliver a
+/// side trip before its larger trip, so an edit that leaves the parent
+/// alone must not unlink it while the larger trip is missing here, or while
+/// a sync race leaves either trip briefly in a shape the check refuses.
 Future<String?> writableParentId(
   AppDatabase db, {
   required String tripId,
   required String? parentId,
+  String? storedParentId,
 }) async {
   if (parentId == null || parentId == tripId) return null;
+  if (parentId == storedParentId) return parentId;
   final row = await db
       .customSelect(
         'SELECT '
@@ -109,4 +119,32 @@ Future<String?> writableParentId(
       .getSingle();
   final ok = row.read<int>('parent_ok') == 1 && row.read<int>('children') == 0;
   return ok ? parentId : null;
+}
+
+/// Drops the links every dive on [tripId] (every profile's) has to cylinders
+/// of a trip it no longer shares cylinders with: for a side trip moved to
+/// another larger trip, or made a trip of its own (issue #3658). Run it
+/// after the trip's new parent is written, so the rule reads it.
+Future<void> clearForeignLinksOnTripDives(
+  AppDatabase db,
+  SyncRepository syncRepository,
+  String tripId, {
+  required int now,
+}) async {
+  final rows = await db
+      .customSelect(
+        // stats-scope-exempt: tank link cleanup, excluded dives included.
+        'SELECT id FROM dives WHERE trip_id = ?',
+        variables: [Variable.withString(tripId)],
+      )
+      .get();
+  for (final row in rows) {
+    await clearForeignTripCylinderLinks(
+      db,
+      syncRepository,
+      row.read<String>('id'),
+      tripId: tripId,
+      now: now,
+    );
+  }
 }

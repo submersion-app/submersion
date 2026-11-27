@@ -90,7 +90,6 @@ class _NotePage extends ConsumerStatefulWidget {
     required this.noteId,
     this.embedded = false,
     this.offersEditing = true,
-    this.hostsEditing = true,
     this.stripEntry = false,
     this.openUnlocked = false,
     this.onSittingEnded,
@@ -103,7 +102,6 @@ class _NotePage extends ConsumerStatefulWidget {
   final bool allowSave;
   final bool embedded;
   final bool offersEditing;
-  final bool hostsEditing;
   final bool stripEntry;
   final bool openUnlocked;
   final VoidCallback? onSittingEnded;
@@ -136,9 +134,6 @@ class _NotePageState extends ConsumerState<_NotePage>
 
   @override
   bool get offersEditing => widget.offersEditing;
-
-  @override
-  bool get hostsEditing => widget.hostsEditing;
 
   @override
   Iterable<EditCard<_Note>> get hostEditCards => [_textCard];
@@ -191,7 +186,7 @@ class _NotePageState extends ConsumerState<_NotePage>
     followStored(_noteProvider(widget.noteId));
     final stored = ref.watch(_noteProvider(widget.noteId)).value;
     if (stored == null) return const SizedBox.shrink();
-    if (hostsEditing) openUnlockedOnce(stored);
+    openUnlockedOnce(stored);
     final shown = shownRecord(stored);
     final content = ListView(
       children: [
@@ -207,12 +202,6 @@ class _NotePageState extends ConsumerState<_NotePage>
         ),
       ],
     );
-    if (!hostsEditing) {
-      return Scaffold(
-        appBar: AppBar(title: Text(shown.title)),
-        body: content,
-      );
-    }
     if (widget.embedded) {
       final header = isSittingOpen
           ? editingPaneRow(shown, menu: const SizedBox.shrink())
@@ -679,16 +668,6 @@ void main() {
     target!.unlock();
     await tester.pumpAndSettle();
     expect(find.byType(RecordEditBar), findsOneWidget);
-  });
-
-  testWidgets('a page that never hosts editing builds no sitting', (
-    tester,
-  ) async {
-    await pump(tester, const _NotePage(noteId: 'n1', hostsEditing: false));
-
-    final state = tester.state<_NotePageState>(find.byType(_NotePage));
-    expect(state.maybeEditController, isNull);
-    expect(container.read(recordEditShortcutTargetsProvider).current, isNull);
   });
 
   testWidgets('a page that offers no editing takes no keys', (tester) async {

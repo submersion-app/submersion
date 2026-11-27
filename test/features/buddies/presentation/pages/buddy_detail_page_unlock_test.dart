@@ -53,16 +53,23 @@ void main() {
   final header = BuddyCardId.header.localizedDisplayName(l);
   final contact = l.buddies_section_contact;
 
-  testWidgets('with the switch off there is no lock and the star toggles', (
+  // The lock is the one way in (issue #4527, plan 12): no Edit pencil.
+  testWidgets('the locked bar has the lock and no Edit pencil', (tester) async {
+    await pumpBuddyPage(tester);
+
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
+  });
+
+  testWidgets('the pane header has the lock and no Edit pencil', (
     tester,
   ) async {
-    await pumpBuddyPage(tester, unlockEditing: false);
+    await pumpBuddyPage(tester, embedded: true);
 
-    expect(find.byIcon(Icons.lock_outline), findsNothing);
-    expect(
-      find.byTooltip(l.diveLog_detail_tooltip_addToFavorites),
-      findsOneWidget,
-    );
+    expect(find.byIcon(Icons.lock_outline), findsOneWidget);
+    expect(find.widgetWithIcon(IconButton, Icons.edit), findsNothing);
+    expect(find.widgetWithIcon(IconButton, Icons.edit_outlined), findsNothing);
   });
 
   testWidgets('locked, no tap writes', (tester) async {
@@ -140,6 +147,25 @@ void main() {
     expect(harness.save.calls.single.after.excludedFromRankings, isTrue);
   });
 
+  testWidgets('an excluded buddy opens with the switch on, and turning it off '
+      'saves', (tester) async {
+    final harness = await pumpBuddyPage(
+      tester,
+      buddy: alex.copyWith(excludedFromRankings: true),
+    );
+    await unlock(tester);
+    await openCard(tester, l.buddies_section_diveStatistics);
+    final rankings = find.byKey(const ValueKey('buddy-edit-rankings'));
+    expect(tester.widget<SwitchListTile>(rankings).value, isTrue);
+
+    await tester.tap(rankings);
+    await tester.pumpAndSettle();
+    await save(tester);
+
+    expect(harness.save.calls.single.cards, {'statistics'});
+    expect(harness.save.calls.single.after.excludedFromRankings, isFalse);
+  });
+
   testWidgets('empty Contact and Notes are offered in the strip', (
     tester,
   ) async {
@@ -170,14 +196,6 @@ void main() {
 
     expect(find.text(l.buddies_action_lendGear), findsNothing);
     expect(find.text(l.buddies_action_shareDives), findsOneWidget);
-  });
-
-  testWidgets('the menu offers Lend with the switch off', (tester) async {
-    await pumpBuddyPage(tester, unlockEditing: false);
-    await tester.tap(find.byType(PopupMenuButton<String>).first);
-    await tester.pumpAndSettle();
-
-    expect(find.text(l.buddies_action_lendGear), findsOneWidget);
   });
 
   testWidgets('Cancel with changes asks first', (tester) async {

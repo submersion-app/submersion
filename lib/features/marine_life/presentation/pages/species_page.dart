@@ -7,22 +7,32 @@ import 'package:submersion/features/marine_life/domain/entities/seen_species.dar
 import 'package:submersion/features/marine_life/domain/seen_species_filter.dart';
 import 'package:submersion/features/marine_life/presentation/providers/seen_species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
-import 'package:submersion/features/marine_life/presentation/widgets/seen_species_tile.dart';
-import 'package:submersion/features/marine_life/presentation/widgets/species_category_chips.dart';
+import 'package:submersion/features/marine_life/domain/entities/species_crop.dart';
+import 'package:submersion/features/marine_life/domain/life_list_summary.dart';
+import 'package:submersion/features/marine_life/domain/species_grouping.dart';
+import 'package:submersion/features/marine_life/domain/species_rarity.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_browse_prefs_providers.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_gallery_providers.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/life_list_header.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_browse_controls.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_grouped_view.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_query_providers.dart';
 import 'package:submersion/features/marine_life/query/species_query_entity.dart';
+import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
 import 'package:submersion/features/query/presentation/widgets/entity_search_header.dart';
 import 'package:submersion/features/query/presentation/widgets/query_chips_frame.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/widgets/query_filter_sheet.dart';
+import 'package:submersion/features/species_id/presentation/widgets/species_download_prompt.dart';
 import 'package:submersion/features/species_id/presentation/widgets/species_review_banner.dart';
 
-/// The species the diver has seen across every dive, searchable and sortable.
+/// The species the diver has seen across every dive, searchable and sortable,
+/// as a photo-first life list (issue #5027): a header with the totals, cards
+/// with each species' best picture and rarity, and Group by.
 ///
 /// Reached at `/species` from the nav and from the Insights > Species
 /// tab. Housekeeping
@@ -39,6 +49,12 @@ class SpeciesPage extends ConsumerStatefulWidget {
 class _SpeciesPageState extends ConsumerState<SpeciesPage> {
   SpeciesCategory? _category;
   SeenSpeciesSort _sort = SeenSpeciesSort.mostDives;
+  bool _noPhotoOnly = false;
+
+  /// Whether a shelf's See all is showing its category as one flat grid.
+  /// For this visit only: the saved grouping is untouched, and comes back
+  /// when the category is cleared or another grouping is picked.
+  bool _seeAll = false;
 
   @override
   void dispose() {
@@ -54,24 +70,22 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
       appBar: AppBar(
         title: Text(l10n.marineLife_speciesPage_title),
         actions: [
+          // Search opens from here and closes when empty, as on every other
+          // list.
+          EntitySearchAction(
+            subject: QuerySubject.species,
+            active: ref.watch(seenSpeciesQueryProvider) != null,
+          ),
           QueryFilterAction(
             provider: seenSpeciesQueryProvider,
             subject: QuerySubject.species,
             root: speciesQueryEntity,
           ),
-          PopupMenuButton<SeenSpeciesSort>(
-            key: const ValueKey('species_sort_menu'),
-            icon: const Icon(Icons.sort),
-            tooltip: l10n.marineLife_speciesPage_sortTooltip,
-            onSelected: (sort) => setState(() => _sort = sort),
-            itemBuilder: (context) => [
-              for (final sort in SeenSpeciesSort.values)
-                CheckedPopupMenuItem(
-                  value: sort,
-                  checked: sort == _sort,
-                  child: Text(_sortLabel(l10n, sort)),
-                ),
-            ],
+          IconButton(
+            key: const ValueKey('species_practice'),
+            icon: const Icon(Icons.quiz_outlined),
+            tooltip: l10n.marineLife_speciesPage_practiceTooltip,
+            onPressed: () => context.push('/species/practice'),
           ),
           IconButton(
             key: const ValueKey('species_map'),
@@ -79,11 +93,16 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
             tooltip: l10n.speciesMap_openTooltip,
             onPressed: () => context.push('/species/map'),
           ),
-          IconButton(
-            key: const ValueKey('manage_catalog'),
-            icon: const Icon(Icons.library_books_outlined),
-            tooltip: l10n.marineLife_speciesPage_manageCatalogTooltip,
-            onPressed: () => context.push('/species/manage'),
+          PopupMenuButton<String>(
+            key: const ValueKey('species_more_menu'),
+            onSelected: (_) => context.push('/species/manage'),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                key: const ValueKey('manage_catalog'),
+                value: 'manage',
+                child: Text(l10n.marineLife_speciesPage_manageCatalogTooltip),
+              ),
+            ],
           ),
         ],
       ),
@@ -91,6 +110,8 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
         children: [
           // What the app tagged on its own, to confirm (issue #4727).
           const SpeciesReviewBanner(),
+          // With no model, the offer to download one (issue #4773).
+          const SpeciesDownloadPrompt(banner: true),
           EntitySearchHeader(
             subject: QuerySubject.species,
             root: speciesQueryEntity,
@@ -98,11 +119,6 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
             onChanged: (q) =>
                 ref.read(seenSpeciesQueryProvider.notifier).state = q,
             hintText: l10n.marineLife_speciesPage_searchHint,
-            alwaysShown: true,
-          ),
-          SpeciesCategoryChips(
-            selected: _category,
-            onSelected: (category) => setState(() => _category = category),
           ),
           Expanded(
             child: QueryChipsFrame(
@@ -137,11 +153,6 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
         onClear: () => ref.read(seenSpeciesQueryProvider.notifier).state = null,
       );
     }
-    // Covers load beside the list, not ahead of it: a species with no photo
-    // yet, or a cover query still running, shows the category avatar.
-    final covers =
-        ref.watch(speciesCoverMediaProvider).value ??
-        const <String, MediaItem>{};
     final l10n = context.l10n;
     if (entries.isEmpty) {
       return _EmptyState(
@@ -149,56 +160,108 @@ class _SpeciesPageState extends ConsumerState<SpeciesPage> {
         hint: l10n.marineLife_speciesPage_emptyHint,
       );
     }
-
-    final visible = filterSeenSpecies(
-      entries,
-      category: _category,
-      sort: _sort,
-      nameOf: (species) => species.localizedCommonName(l10n),
-    );
-    if (visible.isEmpty) {
-      return Center(child: Text(l10n.marineLife_speciesPage_noMatch));
+    // Pictures, covers and practice load beside the cards, not ahead of
+    // them: until they arrive a card shows its category tile.
+    final picturesAsync = ref.watch(speciesPicturesProvider);
+    final pictures = picturesAsync.value ?? const <String, SpeciesPicture>{};
+    // Until the pictures arrive nothing is known to lack one: no count, and
+    // no filtering on it.
+    final picturesKnown =
+        picturesAsync.hasValue &&
+        (ref.watch(speciesPicturesCompleteProvider).value ?? false);
+    final covers =
+        ref.watch(speciesCoverMediaProvider).value ??
+        const <String, MediaItem>{};
+    final practice = ref.watch(speciesPracticeStatesProvider).value ?? const {};
+    final groupBy = _seeAll
+        ? SpeciesGroupBy.none
+        : ref.watch(speciesGroupByProvider);
+    final grid = ref.watch(speciesBrowseGridProvider);
+    final places =
+        groupBy == SpeciesGroupBy.trip || groupBy == SpeciesGroupBy.site
+        ? ref.watch(speciesPlacesProvider).value
+        : null;
+    // The header describes the whole life list, whatever the filters keep.
+    final all = ref.watch(seenSpeciesProvider).value ?? entries;
+    bool hasPicture(SeenSpecies e) {
+      final picture = pictures[e.species.id];
+      return picture != null && picture is! NoPicture;
     }
 
+    final now = DateTime.now();
+    final visible = [
+      for (final e in filterSeenSpecies(
+        entries,
+        category: _category,
+        sort: _sort,
+        nameOf: (species) => species.localizedCommonName(l10n),
+      ))
+        if (!_noPhotoOnly || !picturesKnown || !hasPicture(e)) e,
+    ];
     final sightings = visible.fold<int>(0, (sum, e) => sum + e.totalSightings);
-    return Column(
+    final header = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-          child: Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: Text(
+        LifeListHeader(
+          summary: summarizeLifeList(all, now: now),
+          year: now.year,
+        ),
+        SpeciesBrowseControls(
+          summary:
               '${l10n.marineLife_speciesPage_speciesCount(visible.length)} · '
               '${l10n.marineLife_speciesPage_sightingsCount(sightings)}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+          shortSummary: l10n.marineLife_speciesPage_speciesCount(
+            visible.length,
           ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            itemCount: visible.length,
-            itemBuilder: (context, index) {
-              final entry = visible[index];
-              return SeenSpeciesTile(
-                entry: entry,
-                cover: covers[entry.species.id],
-                onTap: () => context.push('/species/${entry.species.id}'),
-              );
-            },
-          ),
+          groupBy: groupBy,
+          grid: grid,
+          sort: _sort,
+          withoutPhoto: picturesKnown
+              ? all.where((e) => !hasPicture(e)).length
+              : 0,
+          noPhotoFilterOn: _noPhotoOnly,
+          category: _category,
+          onGroupBy: (by) {
+            setState(() => _seeAll = false);
+            ref.read(speciesGroupByProvider.notifier).set(by);
+          },
+          onGrid: (on) => ref.read(speciesBrowseGridProvider.notifier).set(on),
+          onSort: (sort) => setState(() => _sort = sort),
+          onNoPhotoFilter: (on) => setState(() => _noPhotoOnly = on),
+          onClearCategory: () => setState(() {
+            _category = null;
+            _seeAll = false;
+          }),
         ),
       ],
     );
+    if (visible.isEmpty) {
+      return ListView(
+        children: [
+          header,
+          Padding(
+            padding: const EdgeInsets.all(32),
+            child: Center(child: Text(l10n.marineLife_speciesPage_noMatch)),
+          ),
+        ],
+      );
+    }
+    return SpeciesGroupedView(
+      groups: groupSeenSpecies(visible, by: groupBy, places: places),
+      by: groupBy,
+      grid: grid,
+      pictures: pictures,
+      covers: covers,
+      header: header,
+      rarityOf: (e) =>
+          rarityFor(e, now: now, practiceBox: practice[e.species.id]?.box),
+      onOpen: (e) => context.push('/species/${e.species.id}'),
+      onSeeAllCategory: (category) => setState(() {
+        _category = category;
+        _seeAll = true;
+      }),
+    );
   }
-
-  String _sortLabel(AppLocalizations l10n, SeenSpeciesSort sort) =>
-      switch (sort) {
-        SeenSpeciesSort.mostDives => l10n.marineLife_speciesPage_sort_mostDives,
-        SeenSpeciesSort.recentlySeen =>
-          l10n.marineLife_speciesPage_sort_recentlySeen,
-        SeenSpeciesSort.firstSeen => l10n.marineLife_speciesPage_sort_firstSeen,
-        SeenSpeciesSort.name => l10n.marineLife_speciesPage_sort_name,
-      };
 }
 
 class _EmptyState extends StatelessWidget {

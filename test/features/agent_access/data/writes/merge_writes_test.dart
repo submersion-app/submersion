@@ -149,17 +149,19 @@ void main() {
     await computer('c1');
     await computer('c2');
     await (db.update(db.diveComputers)..where((c) => c.id.equals('c2'))).write(
-      const DiveComputersCompanion(
-        serialNumber: Value('SN2'),
-        diveCount: Value(3),
-      ),
+      const DiveComputersCompanion(serialNumber: Value('SN2')),
+    );
+    // dive_count is the dives a computer recorded (issue #4846), so the
+    // duplicate brings its dive with it.
+    await (db.update(db.dives)..where((d) => d.id.equals('d1'))).write(
+      const DivesCompanion(computerId: Value('c2')),
     );
 
     final plan = await h.preview([
       deleteOp('dive_computers', 'c2', mergeInto: 'c1'),
     ]);
     final reach = plan.items.single.reach;
-    expect(reach.survivor, {'serial_number': 'SN2', 'dive_count': 3});
+    expect(reach.survivor, {'serial_number': 'SN2', 'dive_count': 1});
     expect(reach.records, {'equipment': 1});
     await h.apply(plan);
 

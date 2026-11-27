@@ -28,6 +28,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_trac
 import 'package:submersion/features/dive_log/presentation/widgets/avelo_summary_block.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinder_block.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_tank_series_exchange.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dot_joined_wrap.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/field_attribution_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_cursor_line.dart';
@@ -55,8 +56,9 @@ import 'package:submersion/shared/widgets/record_editing/record_operation_gate.d
 /// Unified card showing every cylinder on a dive: each tank drawn as a
 /// figure filled to show the gas left and the gas used, labelled with its
 /// start, end and used pressures (issue #3773), beside what the tank is, its
-/// gas, and a quiet detail block (gas used, loop use on a CCR dive, SAC and
-/// RMV, MOD/MND, trip cylinder, transmitter, check-in). Issue #3675 had first
+/// gas (with the check-in and cylinder menu at the end of that line), and a
+/// quiet detail block (gas used, loop use on a CCR dive, SAC and RMV,
+/// MOD/MND, trip cylinder, transmitter). Issue #3675 had first
 /// made the stack of differently styled lines a table.
 ///
 /// Replaces the former Tanks card and SAC by Cylinder block. Occupies the
@@ -356,18 +358,18 @@ class CylindersCard extends ConsumerWidget {
         gasLeft: contents.gasLeft,
         now: cursorSeconds != null ? contents.gasLeft : null,
       ),
-      label: liters == null
-          ? null
-          : l10n.diveLog_cylinders_figureWater(
-              units.formatVolume(
-                liters,
-                decimals: units.settings.volumeUnit == VolumeUnit.liters
-                    ? 1
-                    : 2,
-              ),
-            ),
+      label: liters == null ? null : _waterLabel(l10n, liters),
     );
   }
+
+  /// The water label under an Avelo Hydrotank's figure: [liters] of water.
+  String _waterLabel(AppLocalizations l10n, double liters) =>
+      l10n.diveLog_cylinders_figureWater(
+        units.formatVolume(
+          liters,
+          decimals: units.settings.volumeUnit == VolumeUnit.liters ? 1 : 2,
+        ),
+      );
 
   /// Where the profile cursor is, in seconds into the dive. The cursor is an
   /// index into the chart's own series, so it is resolved against that
@@ -422,6 +424,21 @@ class CylindersCard extends ConsumerWidget {
     // zero or negative value is "not recorded", not a rating, so it is a gap.
     double? positive(double? value) =>
         value != null && value > 0 ? value : null;
+    // A Hydrotank that shows a water label somewhere on the dive keeps the
+    // label's line where it has none (before the computer's first gas
+    // remaining), so the card keeps its height while the cursor moves. On
+    // a phone nothing beside the figure is taller than it (issue #5041).
+    final waterVolume = positive(tank.volume) ?? preset?.volumeLiters;
+    final waterLabelReserve =
+        waterDriven &&
+            waterVolume != null &&
+            pressures.$1 != null &&
+            // A pressure to read the water at: the end, or the chart's line
+            // under the cursor.
+            (pressures.$2 != null || cursorLine != null) &&
+            dive.profile.any((p) => p.aveloGasRemaining != null)
+        ? _waterLabel(l10n, waterVolume)
+        : null;
     // Only the figure follows the profile cursor (issue #4291), so only it
     // rebuilds on every hover frame, not the whole card.
     final figure = Consumer(
@@ -447,7 +464,7 @@ class CylindersCard extends ConsumerWidget {
                 start: pressures.$1,
                 pressure: cursorShown ? now : pressures.$2,
                 cursorSeconds: cursorSeconds,
-                volume: positive(tank.volume) ?? preset?.volumeLiters,
+                volume: waterVolume,
               )
             : null;
         final figure = TankFigure(
@@ -480,16 +497,34 @@ class CylindersCard extends ConsumerWidget {
           nowLabelReserve: nowLabel(cursorLine?.peak),
         );
         final waterLabel = water?.label;
-        if (waterLabel == null) return figure;
+        if (waterLabel == null && waterLabelReserve == null) return figure;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             figure,
-            Text(
-              waterLabel,
-              key: Key('tank-water-label-${tank.id}'),
-              style: theme.textTheme.bodySmall,
+            // The reserve is the whole tank's water, at least as wide as
+            // any label: kept under the shown one, so neither the height
+            // nor the width changes while the cursor moves.
+            Stack(
+              children: [
+                if (waterLabelReserve != null)
+                  ExcludeSemantics(
+                    child: Opacity(
+                      opacity: 0,
+                      child: Text(
+                        waterLabelReserve,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ),
+                  ),
+                if (waterLabel != null)
+                  Text(
+                    waterLabel,
+                    key: Key('tank-water-label-${tank.id}'),
+                    style: theme.textTheme.bodySmall,
+                  ),
+              ],
             ),
           ],
         );
@@ -675,9 +710,11 @@ class CylindersCard extends ConsumerWidget {
   }
 
   /// The check-in of a linked cylinder, then the tank's cylinder menu
-  /// (issue #4494). The menu writes at once, so like Assign it shows only
-  /// where [canAssign] allows; its room is kept while hidden, so the row is
-  /// the same width locked and unlocked.
+  /// (issue #4494), at the end of the tank's title line, so they take no
+  /// width from its details (issue #5041). The menu writes at once, so it is
+  /// disabled until the page is unlocked with nothing to save (issue #4527);
+  /// it is shown at every lock state, so the line is the same width locked
+  /// and unlocked.
   Widget _trailing(
     DiveTank tank, {
     required bool checkInReadOnly,
@@ -705,7 +742,7 @@ class CylindersCard extends ConsumerWidget {
   }
 
   /// A cylinder that is a gear item (the registry wrote its equipment link)
-  /// gets the check-in button at the end of its detail block; any other
+  /// gets the check-in button on its title line; any other
   /// cylinder has none. The item loads through its own provider so the row
   /// never blocks on it.
   Widget? _checkInButton(

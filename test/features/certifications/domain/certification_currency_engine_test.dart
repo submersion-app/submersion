@@ -661,6 +661,38 @@ void main() {
       expect(s.rule.id, 'padi_reactivate');
     });
 
+    // Issue #4942: a card's mapping this build cannot read decodes to an
+    // empty list, which would read as "any dive". The rule's own mapping
+    // applies instead, and the pref's other settings still do.
+    test('a pref mapping this build cannot read falls back to the rule', () {
+      final cave = rule(
+        'cave',
+        levels: const [CertificationLevel.cave],
+        types: const ['cave'],
+      );
+      final s = run(
+        certs: [cert('fc', level: CertificationLevel.cave)],
+        rules: [cave],
+        prefs: [
+          pref(
+            'fc',
+            'cave',
+            muted: true,
+            types: const [],
+            modes: const [],
+          ).copyWith(unreadableMapping: true),
+        ],
+        activity: DiveActivityIndex(
+          lastDiveAt: DateTime(2026, 2, 1),
+          lastDiveByTypeId: {'cave': DateTime(2024, 6, 1)},
+        ),
+        now: DateTime(2026, 3, 1),
+      ).single;
+      expect(s.origin, CurrencyAnchorOrigin.lastQualifyingDive);
+      expect(s.anchor, DateTime(2024, 6, 1));
+      expect(s.muted, isTrue);
+    });
+
     test('a card expiry event never moves the due date', () {
       // The synthesized card-expiry status follows the printed date alone;
       // a renewed card is a new expiry date on the card.

@@ -7,7 +7,9 @@ import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// A card showing quick action buttons for common tasks
+/// The original Home card of quick action buttons for common tasks, back as
+/// an optional Home panel (issue #5003): off in every preset, switched on
+/// and placed from Settings > Home like any other panel.
 class QuickActionsCard extends StatelessWidget {
   const QuickActionsCard({super.key});
 
@@ -29,9 +31,10 @@ class QuickActionsCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            // Self-sizing (no Expanded): this card must lay out correctly
-            // both directly in the dashboard's unbounded scroll column
-            // (phone, 1-column) and inside a grid row (desktop).
+            // Self-sizing (no Expanded): the card sits in Home's fixed
+            // extraTall row at every width, which is sized to hold the six
+            // buttons on touch platforms; on desktop, where buttons are
+            // shorter, the space left over stays at the bottom.
             SizedBox(
               width: double.infinity,
               child: FilledButton.icon(

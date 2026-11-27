@@ -31,8 +31,10 @@ enum DiveDetailSectionId {
   surfaceGps,
   tide,
   navTrack,
+
+  /// The Weights and buoyancy card: the lead carried, then the modeled
+  /// buoyancy of the dive (issue #5005).
   weights,
-  buoyancy,
   buddies,
   signatures,
   equipment,
@@ -62,6 +64,14 @@ enum DiveDetailSectionId {
   /// [DiveDetailSectionConfig.sectionsFromJson] drops it.
   static const String legacyReefHealthId = 'reefHealth';
 
+  /// The retired section that showed the buoyancy model on a card of its
+  /// own, before it joined the [weights] card (issue #5005).
+  ///
+  /// Saved orders written before then still name it;
+  /// [DiveDetailSectionConfig.sectionsFromJson] drops it, so the merged card
+  /// follows the diver's choice for Weights.
+  static const String legacyBuoyancyId = 'buoyancy';
+
   /// Human-readable name shown in the settings UI (English fallback).
   String get displayName {
     return switch (this) {
@@ -77,8 +87,7 @@ enum DiveDetailSectionId {
       tide => 'Tide',
       surfaceGps => 'Location',
       navTrack => 'Underwater Track',
-      weights => 'Weights',
-      buoyancy => 'Buoyancy',
+      weights => 'Weights and buoyancy',
       tanks => 'Cylinders',
       buddies => 'Buddies',
       signatures => 'Signatures',
@@ -111,9 +120,9 @@ enum DiveDetailSectionId {
       surfaceGps =>
         'Map of the dive site, GPS entry/exit points and surface drift',
       navTrack => 'Measured underwater track from a navigation console',
-      weights => 'Weight breakdown, total weight',
-      buoyancy =>
-        'Buoyancy through the dive, lead for next time, ditchable weight',
+      weights =>
+        'Weights carried, buoyancy through the dive, lead for next time, '
+            'ditchable weight',
       tanks =>
         'Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption',
       buddies => 'Buddy list with roles',
@@ -147,7 +156,6 @@ enum DiveDetailSectionId {
       surfaceGps => Icons.gps_fixed,
       navTrack => Icons.route,
       weights => Icons.fitness_center,
-      buoyancy => Icons.bubble_chart_outlined,
       tanks => Icons.propane_tank_outlined,
       buddies => Icons.group_outlined,
       signatures => Icons.draw_outlined,
@@ -179,7 +187,6 @@ enum DiveDetailSectionId {
       surfaceGps => l10n.diveDetailSection_surfaceGps_name,
       navTrack => l10n.diveDetailSection_navTrack_trackName,
       weights => l10n.diveDetailSection_weights_name,
-      buoyancy => l10n.diveDetailSection_buoyancy_name,
       tanks => l10n.diveDetailSection_tanks_name,
       buddies => l10n.diveDetailSection_buddies_name,
       signatures => l10n.diveDetailSection_signatures_name,
@@ -211,7 +218,6 @@ enum DiveDetailSectionId {
       surfaceGps => l10n.diveDetailSection_surfaceGps_description,
       navTrack => l10n.diveDetailSection_navTrack_trackDescription,
       weights => l10n.diveDetailSection_weights_description,
-      buoyancy => l10n.diveDetailSection_buoyancy_description,
       tanks => l10n.diveDetailSection_tanks_description,
       buddies => l10n.diveDetailSection_buddies_description,
       signatures => l10n.diveDetailSection_signatures_description,
@@ -326,7 +332,6 @@ class DiveDetailSectionConfig {
     DiveDetailSectionConfig(id: DiveDetailSectionId.tide, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.navTrack, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.weights, visible: true),
-    DiveDetailSectionConfig(id: DiveDetailSectionId.buoyancy, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.buddies, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.signatures, visible: true),
     DiveDetailSectionConfig(id: DiveDetailSectionId.equipment, visible: true),
@@ -393,12 +398,17 @@ class DiveDetailSectionConfig {
   /// exceptions. `decoO2` covered the deco/tissue panel as a whole, so it
   /// expands into both sections that replaced it, each inheriting the
   /// visibility and fold state the diver had chosen for the combined panel.
-  /// `reefHealth` stands for nothing: its content now lives inside the
-  /// Environment card, which keeps its own entry.
+  /// `reefHealth` and `buoyancy` stand for nothing: their content now lives
+  /// inside the Environment card and the Weights and buoyancy card, which
+  /// keep their own entries.
   static Iterable<DiveDetailSectionConfig> _configsForEntry(
     Map<String, dynamic> json,
   ) {
-    if (json['id'] == DiveDetailSectionId.legacyReefHealthId) return const [];
+    final id = json['id'];
+    if (id == DiveDetailSectionId.legacyReefHealthId ||
+        id == DiveDetailSectionId.legacyBuoyancyId) {
+      return const [];
+    }
     if (json['id'] == DiveDetailSectionId.legacyDecoO2Id) {
       final visible = json['visible'] as bool? ?? true;
       final expanded = json['expanded'] as bool? ?? false;

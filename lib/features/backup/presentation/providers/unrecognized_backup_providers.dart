@@ -21,6 +21,15 @@ final unrecognizedBackupServiceProvider = Provider<UnrecognizedBackupService>((
 
 /// Backup files on disk that this device's history does not account for, or
 /// null when the configured location cannot be enumerated.
-final unrecognizedBackupsProvider = FutureProvider<List<UnrecognizedBackup>?>(
-  (ref) => ref.watch(unrecognizedBackupServiceProvider).find(),
-);
+///
+/// Re-runs when the backup location changes. Each entry carries whether its
+/// folder was private to the app, and a listing cached from the default folder
+/// would otherwise keep offering another device's files after the diver
+/// points backups at a shared one: every delete would be refused, after a
+/// confirmation that called it safe.
+final unrecognizedBackupsProvider = FutureProvider<List<UnrecognizedBackup>?>((
+  ref,
+) {
+  ref.watch(backupSettingsProvider.select((s) => s.backupLocation));
+  return ref.watch(unrecognizedBackupServiceProvider).find();
+});

@@ -226,9 +226,4 @@ List<RecordEntry> trainingEntries(RecordRepositories r) => [
 Future<List<CourseRequirement>> _requirements(
   RecordRepositories r,
   String courseId,
-) async => [
-  for (final p in (await r.courseRequirements.getCourseProgress(
-    courseId,
-  )).requirements)
-    p.requirement,
-];
+) => r.courseRequirements.getRequirements(courseId);

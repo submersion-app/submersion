@@ -145,21 +145,25 @@ class CylinderConfigRepository {
     return _mapConfig(row, includeItems ? await _itemsFor(id) : const []);
   }
 
+  /// Creates a configuration and returns its id: [id] when given (an
+  /// editor's sitting chooses its new record's id as it opens, issue #4527),
+  /// a fresh one when not.
   Future<String> createConfig({
+    String? id,
     String? diverId,
     String? equipmentId,
     required String name,
     String description = '',
     int sortOrder = 0,
   }) async {
-    final id = _uuid.v4();
+    final configId = id ?? _uuid.v4();
     final now = DateTime.now().millisecondsSinceEpoch;
 
     await _db
         .into(_db.cylinderConfigs)
         .insert(
           CylinderConfigsCompanion.insert(
-            id: id,
+            id: configId,
             diverId: Value(diverId),
             equipmentId: Value(equipmentId),
             name: name,
@@ -172,11 +176,11 @@ class CylinderConfigRepository {
 
     await _syncRepository.markRecordPending(
       entityType: _configEntity,
-      recordId: id,
+      recordId: configId,
       localUpdatedAt: now,
     );
     SyncEventBus.notifyLocalChange();
-    return id;
+    return configId;
   }
 
   Future<void> updateConfig(domain.CylinderConfig config) async {

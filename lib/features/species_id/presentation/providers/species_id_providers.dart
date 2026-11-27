@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
@@ -18,17 +20,23 @@ import 'package:submersion/features/media/domain/value_objects/sighting_timing.d
 import 'package:submersion/features/settings/presentation/providers/media_badge_settings_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/serial_preference_writes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/species_id/data/engines/channel_vision_engine.dart';
+import 'package:submersion/features/species_id/data/engines/platform_vision_engine.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
+import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/species_id/data/services/auto_applier.dart';
 import 'package:submersion/features/species_id/domain/services/auto_apply_rules.dart';
 import 'package:submersion/features/species_id/data/services/identification_cleanup.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
+import 'package:submersion/features/species_id/data/services/named_crop_backfill.dart';
+import 'package:submersion/features/species_id/data/services/naming_bars_fill.dart';
 import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
+import 'package:submersion/features/species_id/data/services/video_crop_capper.dart';
+import 'package:submersion/features/species_id/domain/services/video_crop_cap.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/entities/naming_level.dart';
@@ -40,7 +48,7 @@ import 'package:submersion/features/species_id/domain/services/vision_engine.dar
 /// Marine life identification (issue #4668).
 
 final visionEngineProvider = Provider<VisionEngine>(
-  (ref) => ChannelVisionEngine(),
+  (ref) => createPlatformVisionEngine(),
 );
 
 final visionAvailabilityProvider = FutureProvider<VisionAvailability>(
@@ -134,28 +142,42 @@ final sightingTimingProvider =
       (ref) => SightingTimingNotifier.unstored(SightingTiming.onConfirm),
     );
 
-/// How sure the app must be before it names a fish (issue #4721). Per
-/// device, Surer by default; an id this version does not know reads as
-/// Surer and is kept until another level is chosen.
+/// How readily the app suggests a species (issue #4721). Per device,
+/// [NamingLevel.byDefault] until the diver picks one (issue #4789); an id
+/// this version does not know reads as Surer and is kept until another
+/// level is chosen.
 class NamingLevelNotifier extends StateNotifier<NamingLevel>
     with SerialPreferenceWrites {
   NamingLevelNotifier(SharedPreferences prefs)
+    : this._stored(prefs, prefs.getString(SettingsKeys.marineLifeNamingLevel));
+
+  NamingLevelNotifier._stored(SharedPreferences prefs, String? id)
     : _prefs = prefs,
+      _picked = id != null,
       super(
-        NamingLevel.fromId(
-              prefs.getString(SettingsKeys.marineLifeNamingLevel),
-            ) ??
-            NamingLevel.surer,
+        id == null
+            ? NamingLevel.byDefault
+            : NamingLevel.fromId(id) ?? NamingLevel.surer,
       );
 
   /// Fixed state with nothing behind it, as
-  /// [DeviceBadgeToggleNotifier.unstored].
-  NamingLevelNotifier.unstored(super.level) : _prefs = null;
+  /// [DeviceBadgeToggleNotifier.unstored]. [picked] says whether [level]
+  /// stands for a level the diver chose.
+  NamingLevelNotifier.unstored(super.level, {required bool picked})
+    : _prefs = null,
+      _picked = picked;
 
   final SharedPreferences? _prefs;
+  bool _picked;
+
+  /// Whether the diver chose the level, rather than it being the default
+  /// (issue #4789). It only turns true as the level itself changes, so a
+  /// widget watching the level rebuilds with it.
+  bool get picked => _picked;
 
   Future<void> setLevel(NamingLevel level) {
     if (state == level) return Future<void>.value();
+    _picked = true;
     state = level;
     final prefs = _prefs;
     if (prefs == null) return Future<void>.value();
@@ -165,11 +187,12 @@ class NamingLevelNotifier extends StateNotifier<NamingLevel>
   }
 }
 
-/// Surer, with no storage behind it; `rootProviderOverrides` gives it the
-/// stored preference.
+/// The default level, unpicked, with no storage behind it;
+/// `rootProviderOverrides` gives it the stored preference.
 final namingLevelNotifierProvider =
     StateNotifierProvider<NamingLevelNotifier, NamingLevel>(
-      (ref) => NamingLevelNotifier.unstored(NamingLevel.surer),
+      (ref) =>
+          NamingLevelNotifier.unstored(NamingLevel.byDefault, picked: false),
     );
 
 /// The level the installed pack names at for the diver's choice, or null
@@ -181,6 +204,9 @@ final namingLevelNotifierProvider =
 final levelInForceProvider = Provider<LevelInForce?>((ref) {
   final chosen = ref.watch(namingLevelNotifierProvider);
   if (chosen == NamingLevel.surer) return null;
+  // Where no model can run there is no pack to read, and a browser has no
+  // files to read one from: a run's own bars name its rows (issue #4876).
+  if (!marineLifeIdEnabled) return null;
   final pack = ref.watch(installedSpeciesPackProvider).value;
   return levelInForce(pack?.manifest, chosen);
 });
@@ -201,8 +227,9 @@ Future<LevelInForce?> awaitLevelInForce(
 }) async {
   final chosen = container.read(namingLevelNotifierProvider);
   // Surer is in force on any pack and reads as the stored flags, so there
-  // is nothing to wait for.
-  if (chosen == NamingLevel.surer) return null;
+  // is nothing to wait for; nor is there where no model can run (issue
+  // #4876), which has no pack to read.
+  if (chosen == NamingLevel.surer || !marineLifeIdEnabled) return null;
   final current = container.read(installedSpeciesPackProvider);
   // A failed read may still hold the pack it was to replace, which may be
   // another version or carry other levels: it is not taken.
@@ -230,10 +257,20 @@ final identificationEmbeddingRepositoryProvider =
       (ref) => IdentificationEmbeddingRepository(),
     );
 
+/// The crops of named identifications, synced with the logbook (issue
+/// #4876).
+final identificationCropRepositoryProvider =
+    Provider<IdentificationCropRepository>(
+      (ref) => IdentificationCropRepository(),
+    );
+
 final identificationCropStoreProvider = Provider<IdentificationCropStore>((
   ref,
 ) {
-  final store = IdentificationCropStore(supportPath: AppDirectories.support);
+  final store = IdentificationCropStore(
+    supportPath: AppDirectories.support,
+    table: ref.watch(identificationCropRepositoryProvider),
+  );
   ref.onDispose(store.dispose);
   return store;
 });
@@ -243,6 +280,7 @@ final identificationCleanupProvider = Provider<IdentificationCleanup>(
     identifications: ref.watch(mediaIdentificationRepositoryProvider),
     embeddings: ref.watch(identificationEmbeddingRepositoryProvider),
     crops: ref.watch(identificationCropStoreProvider),
+    deviceId: syncDeviceIdOrNull,
   ),
 );
 
@@ -252,8 +290,69 @@ final identificationCleanupProvider = Provider<IdentificationCleanup>(
 Future<void> sweepIdentificationOrphansAtLaunch(
   IdentificationCleanup cleanup,
 ) async {
-  if (!marineLifeIdEnabled) return;
+  // Results synced from another device are swept here too (issue #4876).
+  if (!marineLifeLabelsShown) return;
   await cleanup.sweepOrphans();
+}
+
+/// The marine life steps at app start, one after another (issue #4876):
+/// the orphan sweep first, so the crop backfill never moves a crop of
+/// media the sweep is purging into the logbook and publishes it again;
+/// then the naming bars, then the backfill. Never throws.
+Future<void> runIdentificationLaunchSteps(ProviderContainer container) async {
+  await sweepIdentificationOrphansAtLaunch(
+    container.read(identificationCleanupProvider),
+  );
+  await fillIdentificationNamingBarsAtLaunch(container);
+  await backfillNamedCropsAtLaunch(container);
+  await trimVideoCropsAtLaunch(container);
+}
+
+/// Trims every video this device analysed down to the crops it keeps
+/// (issue #5032): the clearest few of each species. After the backfill, so
+/// crops it moved into the logbook are counted. Only media holding more
+/// crops than one species may keep are read. Never throws.
+Future<void> trimVideoCropsAtLaunch(ProviderContainer container) async {
+  if (!marineLifeIdEnabled) return;
+  final identifications = container.read(mediaIdentificationRepositoryProvider);
+  final crops = container.read(identificationCropStoreProvider);
+  try {
+    await VideoCropCapper(
+      identifications: identifications,
+      crops: crops,
+      taggedSpecies: identifications.taggedSpecies,
+      deviceId: syncDeviceIdOrNull,
+    ).capAll(await crops.mediaWithMoreThan(videoCropsKept));
+  } on Object catch (e) {
+    LoggerService.forClass(
+      VideoCropCapper,
+    ).debug('Could not trim video crops at launch', error: e);
+  }
+}
+
+/// Moves the crops of named identifications this device analysed before
+/// crops synced into the logbook, once at app start (issue #4876). Never
+/// throws.
+Future<void> backfillNamedCropsAtLaunch(ProviderContainer container) async {
+  if (!marineLifeIdEnabled) return;
+  await NamedCropBackfill(
+    identifications: container.read(mediaIdentificationRepositoryProvider),
+    crops: container.read(identificationCropStoreProvider),
+    deviceId: syncDeviceIdOrNull,
+  ).run();
+}
+
+/// Gives this device's runs from before runs kept their naming bars the
+/// installed pack's bars, once at app start (issue #4876). Never throws.
+Future<void> fillIdentificationNamingBarsAtLaunch(
+  ProviderContainer container,
+) async {
+  if (!marineLifeIdEnabled) return;
+  await fillNamingBarsFromInstalledPack(
+    installed: container.read(speciesPackStoreProvider).installed,
+    identifications: container.read(mediaIdentificationRepositoryProvider),
+    deviceId: syncDeviceIdOrNull,
+  );
 }
 
 // Typed: it and [autoApplierProvider] read each other when called.
@@ -275,6 +374,7 @@ final Provider<MediaIdentificationService> mediaIdentificationServiceProvider =
         resolveImage: (item) => identificationImageOf(ref, item),
         resolveVideo: (item) => ref.read(videoFileReaderProvider(item).future),
         taggedSpecies: identifications.taggedSpecies,
+        videoRuns: () => visionVideoRuns(defaultTargetPlatform),
         enabled: () =>
             marineLifeIdEnabled && ref.read(identifyFishOnOpenProvider),
         // A Find species run is the diver's own request (issue #4727).
@@ -291,6 +391,7 @@ final Provider<MediaIdentificationService> mediaIdentificationServiceProvider =
         // reconcile before it has been read would otherwise decide by the
         // stored flags, not the level the diver chose.
         namingLevel: () => awaitLevelInForce(ref.container),
+        chosenLevel: () => ref.read(namingLevelNotifierProvider),
       );
       ref.onDispose(service.dispose);
       return service;
@@ -310,16 +411,25 @@ final videoFileReaderProvider =
       (ref, item) async {
         // Only the playback the player on screen holds: resolving one here
         // could fetch a whole original the diver never played (a load that
-        // failed, a cache that let it go). A scan downloads nothing.
-        if (!ref.exists(videoPlaybackProvider(item))) return null;
+        // failed, a cache that let it go). A scan downloads nothing. The
+        // player may hold it under an earlier copy of the item (issue
+        // #4958): the newest such copy is read.
+        final held = ref.exists(videoPlaybackProvider(item))
+            ? item
+            : ref
+                  .read(liveVideoPlaybacksProvider)
+                  .of(item.id)
+                  .where((copy) => ref.exists(videoPlaybackProvider(copy)))
+                  .lastOrNull;
+        if (held == null) return null;
         final resolving = ref.keepAlive();
         try {
           final access = ref.read(videoFileAccessProvider);
-          final playback = await ref.read(videoPlaybackProvider(item).future);
+          final playback = await ref.read(videoPlaybackProvider(held).future);
           if (playback is! FilePlayback) return null;
           final path = playback.path;
           return <T>(Future<T> Function(String path) read) =>
-              access<T>(path: path, bookmarkRef: item.bookmarkRef, read: read);
+              access<T>(path: path, bookmarkRef: held.bookmarkRef, read: read);
         } finally {
           resolving.close();
         }
@@ -354,13 +464,19 @@ Future<IdentificationImage?> identificationImageOf(
 /// suggestions show whether or not a model is installed.
 final mediaSuggestionsProvider = FutureProvider.autoDispose
     .family<List<SpeciesSuggestion>, String>((ref, mediaId) async {
-      if (!marineLifeIdEnabled) return const [];
+      if (!marineLifeLabelsShown) return const [];
       final repository = ref.watch(mediaIdentificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
       ref.invalidateSelfWhen(repository.watchTagChanges());
       final level = ref.watch(levelInForceProvider);
+      final chosen = ref.watch(namingLevelNotifierProvider);
       return groupSuggestions(
-        await identificationsAtLevel(repository, mediaId, level),
+        await identificationsAtLevel(
+          repository,
+          mediaId,
+          level,
+          chosen: chosen,
+        ),
         await repository.taggedSpecies(mediaId),
       );
     });
@@ -380,15 +496,17 @@ final mediaIdentificationProgressProvider = StreamProvider.autoDispose
 /// #4675). Empty when the feature is off.
 final videoTracksProvider = FutureProvider.autoDispose
     .family<List<MediaIdentification>, String>((ref, mediaId) async {
-      if (!marineLifeIdEnabled) return const [];
+      if (!marineLifeLabelsShown) return const [];
       final repository = ref.watch(mediaIdentificationRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
       final level = ref.watch(levelInForceProvider);
+      final chosen = ref.watch(namingLevelNotifierProvider);
       return [
         for (final i in await identificationsAtLevel(
           repository,
           mediaId,
           level,
+          chosen: chosen,
         ))
           if (i.isTrack) i,
       ];
@@ -423,6 +541,7 @@ final Provider<AutoApplier> autoApplierProvider = Provider<AutoApplier>(
       final installed = ref.read(installedSpeciesPackProvider).value;
       return installed == null || packCanApply(installed.manifest.naming);
     },
+    deviceId: syncDeviceIdOrNull,
   ),
 );
 
@@ -430,16 +549,67 @@ final suggestionAcceptorProvider = Provider<SuggestionAcceptor>(
   (ref) => SuggestionAcceptor(species: ref.watch(speciesRepositoryProvider)),
 );
 
-/// The crop file of an identification, or null when it is not on this
-/// device. Looked for again when the photo's crops change: an analysis
-/// stores its rows before it writes the crops.
-final identificationCropFileProvider = FutureProvider.autoDispose
-    .family<File?, (String mediaId, String identificationId)>((ref, key) async {
+/// The crop of an identification: a file analysed here, or a named one's
+/// from the logbook, whichever device analysed it (issue #4876); null when
+/// this device holds neither. Looked for again when the photo's crops
+/// change (an analysis stores its rows before it writes the crops), and
+/// when a sync brings crops.
+final identificationCropProvider = FutureProvider.autoDispose
+    .family<
+      IdentificationCropImage?,
+      (String mediaId, String identificationId)
+    >((ref, key) async {
       final store = ref.watch(identificationCropStoreProvider);
+      final table = ref.watch(identificationCropRepositoryProvider);
       ref.invalidateSelfWhen(store.watchChanges().where((id) => id == key.$1));
-      final file = await store.fileFor(key.$1, key.$2);
-      return await file.exists() ? file : null;
+      final crop = await store.read(key.$1, key.$2);
+      if (crop != null || !ref.mounted) return crop;
+      // A synced crop is written once, so only one still to come is waited
+      // for: a sync bringing other crops must not read this one again and
+      // have its picture decoded and drawn anew.
+      ref.invalidateSelfWhen(table.watchChanges());
+      // A video keeps only a few crops of each species (issue #5032): a
+      // dropped one shows the largest kept crop of its group instead.
+      final repository = ref.read(mediaIdentificationRepositoryProvider);
+      final rows = await _rowsWithoutPaths(repository, key.$1);
+      final row = rows.firstWhereOrNull((i) => i.id == key.$2);
+      if (row == null || !row.isTrack || !ref.mounted) return null;
+      // Its tags tell a track the diver accepted as another species, which
+      // falls back within that species, as the cap ranks it.
+      final tags = await repository.taggedSpecies(key.$1);
+      if (!ref.mounted) return null;
+      final present = await ref.watch(presentCropIdsProvider(key.$1).future);
+      final standIn = keptStandIn(rows, row, present, tags: tags);
+      if (standIn == null) return null;
+      return store.read(key.$1, standIn.id);
     });
+
+/// The identifications of a media item that have a crop on this device, a
+/// file or a synced one (issue #5032): a video keeps only a few of each
+/// species.
+final presentCropIdsProvider = FutureProvider.autoDispose
+    .family<Set<String>, String>((ref, mediaId) async {
+      final store = ref.watch(identificationCropStoreProvider);
+      final repository = ref.watch(mediaIdentificationRepositoryProvider);
+      ref.invalidateSelfWhen(store.watchChanges().where((id) => id == mediaId));
+      ref.invalidateSelfWhen(
+        ref.watch(identificationCropRepositoryProvider).watchChanges(),
+      );
+      final rows = await _rowsWithoutPaths(repository, mediaId);
+      return store.presentAmong(mediaId, [for (final i in rows) i.id]);
+    });
+
+/// [mediaId]'s identifications without their track paths, which only the
+/// labels over a playing video need.
+Future<List<MediaIdentification>> _rowsWithoutPaths(
+  MediaIdentificationRepository repository,
+  String mediaId,
+) async {
+  final (_, rows) = await repository.forMediaIdsWithRuns([
+    mediaId,
+  ], withPaths: false);
+  return rows[mediaId] ?? const [];
+}
 
 /// How many identifications the open logbook keeps.
 final identificationCountProvider = FutureProvider.autoDispose<int>((ref) {

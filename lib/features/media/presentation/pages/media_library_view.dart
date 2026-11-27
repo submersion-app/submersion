@@ -12,6 +12,7 @@ import 'package:submersion/features/media/presentation/widgets/media_map_content
 import 'package:submersion/features/media/presentation/widgets/media_library_grouped_list.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_missing_banner.dart';
+import 'package:submersion/features/media/presentation/widgets/media_subscription_error_banner.dart';
 import 'package:submersion/features/media/presentation/widgets/media_thumbnail_row_height_builder.dart';
 import 'package:submersion/features/media/presentation/widgets/media_thumbnail_wheel_zoom.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -24,31 +25,54 @@ import 'package:submersion/shared/selection/selection_state.dart';
 /// then the active view mode. The by-dive and timeline presentations reuse
 /// the same paged state.
 class MediaLibraryView extends ConsumerStatefulWidget {
-  const MediaLibraryView({super.key, this.openViewer = openMediaViewer});
+  const MediaLibraryView({
+    super.key,
+    this.openViewer = openMediaViewer,
+    this.selection,
+    this.showToolbar = true,
+  });
 
   /// Opens the viewer on a tapped tile; a test passes one that records the
   /// list it is handed.
   final MediaViewerOpener openViewer;
+
+  /// The bulk-selection state, when a host shows the toolbar somewhere else
+  /// and so has to share it (#4777). The host owns and disposes it and
+  /// decides when it ends, which can outlive this view: `MediaSectionPage`
+  /// keeps it across the remount a resize past the master-detail breakpoint
+  /// causes. Null gives the view one of its own.
+  final SelectionController? selection;
+
+  /// Whether the view shows [MediaLibraryHeaderToolbar] above its content.
+  /// False where a host shows it in the page header instead.
+  final bool showToolbar;
 
   @override
   ConsumerState<MediaLibraryView> createState() => _MediaLibraryViewState();
 }
 
 class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
-  /// Owns the bulk-selection state machine for the library.
+  /// The bulk-selection state machine for the library when no host passes
+  /// [MediaLibraryView.selection]; the view owns and disposes only this one.
   ///
-  /// Deliberately view state rather than a provider: the selection prunes to
-  /// what is on screen and does not outlive the surface, and a single owner
-  /// is what keeps "mode is active" and "something is checked" from being
-  /// the same fact -- which is exactly what the old id-set provider could
-  /// not express, and why long-press was its only way in.
-  final SelectionController _selection = SelectionController();
+  /// Deliberately widget state rather than a provider: the selection prunes
+  /// to what is on screen and does not outlive the surface, and a single
+  /// owner (this view, or the page hosting it, #4777) is what keeps "mode is
+  /// active" and "something is checked" from being the same fact. That is
+  /// exactly what the old id-set provider could not express, and why
+  /// long-press was its only way in.
+  SelectionController? _ownSelection;
+
+  SelectionController get _selection =>
+      widget.selection ?? (_ownSelection ??= SelectionController());
 
   @override
   void dispose() {
-    _selection.dispose();
+    _ownSelection?.dispose();
     super.dispose();
   }
+
+  Future<List<String>?> _loadAllIds() => _loadAllLibraryIdsOrSay(context);
 
   void _openViewer(
     BuildContext context,
@@ -96,6 +120,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     return SelectableListScope(
       controller: _selection,
       selectableIds: visibleIds,
+      loadAllIds: _loadAllIds,
       child: ValueListenableBuilder<SelectionState>(
         valueListenable: _selection,
         builder: (context, selection, _) => Column(
@@ -104,22 +129,22 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
               MediaSelectionBar(
                 controller: _selection,
                 selectableIds: visibleIds,
+                loadAllIds: _loadAllIds,
+                hasUnloadedRows: state.hasMore,
                 selectedItems: state.entries
                     .where((e) => selection.isChecked(e.item.id))
                     .map((e) => e.item)
                     .toList(),
               ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: MediaLibraryToolbar(
-                selection: _selection,
-                // Filter and sort stay reachable inside the mode -- narrow
-                // the list, then Select All -- but the control that opens a
-                // mode already open would just be dead weight.
-                canSelect: state.entries.isNotEmpty && !selection.isActive,
+            if (widget.showToolbar)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: MediaLibraryHeaderToolbar(selection: _selection),
               ),
-            ),
             const MediaLibraryActiveFilterChips(),
+            // Shown at every width: on desktop the toolbar moves into the
+            // page header, the banner does not.
+            const MediaSubscriptionErrorBanner(),
             if (showingMissing)
               MediaMissingBanner(isEmpty: state.entries.isEmpty),
             Expanded(
@@ -212,4 +237,63 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
       ),
     );
   }
+}
+
+/// The Library's [MediaLibraryToolbar] for [selection], wherever it is
+/// shown: above the Library on a phone, in the page header's tab row at
+/// desktop widths (#4777).
+class MediaLibraryHeaderToolbar extends ConsumerWidget {
+  const MediaLibraryHeaderToolbar({
+    super.key,
+    required this.selection,
+    this.keyboardScope = false,
+  });
+
+  final SelectionController selection;
+
+  /// Whether the toolbar brings its own [SelectableListScope]. A toolbar in
+  /// the page header sits outside the Library's scope, so without one,
+  /// Escape and Ctrl/Cmd-A would do nothing while focus is on one of its
+  /// controls, such as the Select button just used to enter the mode.
+  final bool keyboardScope;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hasEntries = ref.watch(
+      mediaLibraryNotifierProvider.select((s) => s.entries.isNotEmpty),
+    );
+    final toolbar = ValueListenableBuilder<SelectionState>(
+      valueListenable: selection,
+      builder: (context, state, _) => MediaLibraryToolbar(
+        selection: selection,
+        // Filter and sort stay reachable inside the mode (narrow the list,
+        // then Select All), but the control that opens a mode already open
+        // would just be dead weight.
+        canSelect: hasEntries && !state.isActive,
+      ),
+    );
+    if (!keyboardScope) return toolbar;
+    final entries = ref.watch(
+      mediaLibraryNotifierProvider.select((s) => s.entries),
+    );
+    return SelectableListScope(
+      controller: selection,
+      selectableIds: [for (final e in entries) e.item.id],
+      loadAllIds: () => _loadAllLibraryIdsOrSay(context),
+      child: toolbar,
+    );
+  }
+}
+
+/// [loadAllLibraryIds] for Select All, saying so when a read failed and
+/// nothing new was checked (issue #5022).
+Future<List<String>?> _loadAllLibraryIdsOrSay(BuildContext context) async {
+  // Read before the await: the widget can be gone once the rows are in.
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final message = context.l10n.common_selection_selectAllLoadFailed;
+  final ids = await loadAllLibraryIds(
+    ProviderScope.containerOf(context, listen: false),
+  );
+  if (ids == null) messenger?.showSnackBar(SnackBar(content: Text(message)));
+  return ids;
 }

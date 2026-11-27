@@ -178,6 +178,165 @@ void main() {
     });
   });
 
+  group('computeSteps with the species model offered (#4881)', () {
+    const offered = SetupWizardDraft(
+      mode: SetupWizardMode.firstRun,
+      speciesModelOffered: true,
+    );
+
+    test('the fresh path runs it after Photos and before Finish', () {
+      expect(computeSteps(offered.copyWith(path: SetupPath.fresh)), [
+        SetupStepId.welcomeFork,
+        SetupStepId.profile,
+        SetupStepId.units,
+        ...kSetUpWizardSteps,
+        SetupStepId.speciesModel,
+        SetupStepId.finish,
+      ]);
+    });
+
+    test('cloud sync runs it after Photos, before the profile and Finish', () {
+      final draft = offered.copyWith(
+        path: SetupPath.existingData,
+        source: ExistingDataSource.cloudSync,
+      );
+      expect(computeSteps(draft), [
+        SetupStepId.welcomeFork,
+        SetupStepId.existingChoice,
+        ...kSetUpWizardSteps,
+        SetupStepId.speciesModel,
+        SetupStepId.finish,
+      ]);
+      expect(computeSteps(draft.copyWith(needsProfile: true)), [
+        SetupStepId.welcomeFork,
+        SetupStepId.existingChoice,
+        ...kSetUpWizardSteps,
+        SetupStepId.speciesModel,
+        SetupStepId.profile,
+        SetupStepId.finish,
+      ]);
+    });
+
+    test('the setup assistant runs it after the four steps', () {
+      const draft = SetupWizardDraft(
+        mode: SetupWizardMode.settings,
+        speciesModelOffered: true,
+      );
+      expect(computeSteps(draft), [
+        SetupStepId.units,
+        ...kSetUpWizardSteps,
+        SetupStepId.speciesModel,
+        SetupStepId.finish,
+      ]);
+    });
+
+    test('not offered, every list is as it was', () {
+      for (final draft in [
+        const SetupWizardDraft(
+          mode: SetupWizardMode.firstRun,
+          path: SetupPath.fresh,
+        ),
+        const SetupWizardDraft(mode: SetupWizardMode.settings),
+        const SetupWizardDraft(
+          mode: SetupWizardMode.firstRun,
+          path: SetupPath.existingData,
+          source: ExistingDataSource.cloudSync,
+        ),
+      ]) {
+        expect(
+          computeSteps(draft),
+          isNot(contains(SetupStepId.speciesModel)),
+          reason: '${draft.mode} ${draft.path}',
+        );
+      }
+    });
+
+    test('skip, restore, open folder and a browser never get it', () {
+      final drafts = [
+        offered.copyWith(path: SetupPath.fresh, skipRequested: true),
+        offered.copyWith(
+          path: SetupPath.existingData,
+          source: ExistingDataSource.restoreBackup,
+        ),
+        offered.copyWith(
+          path: SetupPath.existingData,
+          source: ExistingDataSource.openFolder,
+        ),
+        for (final mode in SetupWizardMode.values)
+          SetupWizardDraft(
+            mode: mode,
+            browser: true,
+            path: SetupPath.fresh,
+            speciesModelOffered: true,
+          ),
+      ];
+      for (final draft in drafts) {
+        expect(
+          computeSteps(draft),
+          isNot(contains(SetupStepId.speciesModel)),
+          reason:
+              '${draft.mode} ${draft.path} ${draft.source} '
+              'browser=${draft.browser}',
+        );
+      }
+    });
+
+    test('copyWith keeps the offer', () {
+      expect(offered.copyWith(name: 'Ana').speciesModelOffered, isTrue);
+      expect(
+        const SetupWizardDraft(
+          mode: SetupWizardMode.firstRun,
+        ).speciesModelOffered,
+        isFalse,
+      );
+    });
+  });
+
+  group('speciesModelOfferFits (#4881)', () {
+    const fresh = [
+      SetupStepId.welcomeFork,
+      SetupStepId.profile,
+      SetupStepId.units,
+      ...kSetUpWizardSteps,
+      SetupStepId.finish,
+    ];
+
+    test('fits while the diver has not passed Photos', () {
+      expect(speciesModelOfferFits(fresh, 0), isTrue);
+      expect(
+        speciesModelOfferFits(fresh, fresh.indexOf(SetupStepId.setUpPhotos)),
+        isTrue,
+      );
+    });
+
+    test('a list with no Photos step yet takes it for later', () {
+      expect(speciesModelOfferFits(const [SetupStepId.welcomeFork], 0), isTrue);
+    });
+
+    test('never behind the diver: not on Finish', () {
+      expect(
+        speciesModelOfferFits(fresh, fresh.indexOf(SetupStepId.finish)),
+        isFalse,
+      );
+    });
+
+    // Cloud sync with no diver: Finish sends the diver to a Profile step
+    // that sits after Photos.
+    test('never behind the diver: not on a Profile after Photos', () {
+      const cloud = [
+        SetupStepId.welcomeFork,
+        SetupStepId.existingChoice,
+        ...kSetUpWizardSteps,
+        SetupStepId.profile,
+        SetupStepId.finish,
+      ];
+      expect(
+        speciesModelOfferFits(cloud, cloud.indexOf(SetupStepId.profile)),
+        isFalse,
+      );
+    });
+  });
+
   group('computeSteps in a browser (#4121)', () {
     // A browser has no automatic backups (no files, no background work) and
     // no photo library to sync, so those two shared steps are gone in every

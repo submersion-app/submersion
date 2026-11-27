@@ -31,12 +31,13 @@ class BlenderDecimalDigitsFormatter extends TextInputFormatter {
   final int maxIntDigits;
   final int maxFractionDigits;
 
-  /// Both ASCII separators, which the smart parser reads, plus the active
-  /// locale's own, so a U+066B decimal is limited like any other rather than
-  /// counted as an integer digit.
+  /// Both ASCII separators, which the smart parser reads, their full-width
+  /// forms a Japanese or Chinese IME types (#4833), plus the active locale's
+  /// own, so a U+066B decimal is limited like any other rather than counted
+  /// as an integer digit.
   static RegExp get _separator {
     final local = localeNumberFormat().symbols.DECIMAL_SEP;
-    return RegExp('[.,${RegExp.escape(local)}]');
+    return RegExp('[.,\uFF0E\uFF0C${RegExp.escape(local)}]');
   }
 
   @override

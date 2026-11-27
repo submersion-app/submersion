@@ -7,6 +7,7 @@ import 'package:submersion/features/data_quality/data/services/quality_scan_serv
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/species_id/data/engines/onnx/onnx_vision_engine.dart';
 
 import 'blocked_network.dart';
 
@@ -41,6 +42,12 @@ import 'blocked_network.dart';
 /// Marine life identification follows the platform again, with no test's
 /// override left over.
 ///
+/// ONNX Runtime does not load for a vision engine that does not say how to
+/// check for it. `flutter test` builds the library in for a Linux host and
+/// not for a Mac, so on Linux every photo a viewer test opened was analysed
+/// for real: the labels ring spun while that analysis waited on real IO,
+/// and a pumpAndSettle that overlapped it timed out, in CI only.
+///
 /// Network access is limited to this machine (test/helpers/blocked_network.dart):
 /// a request or socket to any other host fails with the URL or host, the same
 /// way in a file run alone and in a bundle.
@@ -54,4 +61,5 @@ void applyGlobalTestDefaults() {
   HttpOverrides.global = blockedNetworkHttpOverrides;
   IOOverrides.global = blockedNetworkIOOverrides;
   resetMarineLifeIdEnabled();
+  OnnxVisionEngine.debugLibraryLoadsOverride = false;
 }

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_edit_routes.dart';
 import 'package:submersion/features/query/presentation/widgets/entity_search_action.dart';
 import 'package:submersion/features/query/presentation/widgets/entity_search_header.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
@@ -1553,7 +1554,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
                   final routerState = GoRouterState.of(context);
                   context.go('${routerState.uri.path}?mode=new');
                 } else {
-                  context.push('/equipment/new');
+                  openNewGearItem(context);
                 }
               },
               icon: const Icon(Icons.add),

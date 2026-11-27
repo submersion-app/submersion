@@ -20,6 +20,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_e
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/service_clock_snapshot_override.dart';
 
 void main() {
   final t0 = DateTime(2025, 1, 1);
@@ -100,6 +101,7 @@ void main() {
           serviceClockStatusesProvider(
             item.id,
           ).overrideWith((ref) async => clockStatuses),
+          serviceClockSnapshotOverride(item.id, statuses: clockStatuses),
         ].cast(),
         child: MaterialApp(
           locale: const Locale('en'),

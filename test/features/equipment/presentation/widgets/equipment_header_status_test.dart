@@ -1,22 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_header_status.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-
-import '../../../../helpers/mock_providers.dart';
-import '../../../../helpers/test_database.dart';
-
-/// A purchase whose write fails, as a locked or full database would.
-class _FailingPurchaseRepository extends EquipmentRepository {
-  @override
-  Future<void> markEquipmentPurchased(String id, {DateTime? today}) =>
-      Future.error(StateError('database locked'));
-}
 
 EquipmentItem _item(EquipmentStatus status, {bool isActive = true}) =>
     EquipmentItem(
@@ -62,93 +49,38 @@ void main() {
   });
 
   group('EquipmentHeaderStatus', () {
-    late EquipmentRepository repository;
-
-    setUp(() async {
-      await setUpTestDatabase();
-      repository = EquipmentRepository();
-    });
-
-    tearDown(tearDownTestDatabase);
-
-    Future<void> pump(
-      WidgetTester tester,
-      EquipmentItem item, {
-      EquipmentRepository? repo,
-    }) async {
-      final overrides = await getBaseOverrides();
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            ...overrides,
-            equipmentRepositoryProvider.overrideWithValue(repo ?? repository),
-          ].cast(),
-          child: MaterialApp(
+    Future<void> pump(WidgetTester tester, EquipmentItem item) =>
+        tester.pumpWidget(
+          MaterialApp(
             locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(body: EquipmentHeaderStatus(item: item)),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
-    }
+        );
 
     testWidgets('sold gear shows Sold, not Retired', (tester) async {
       await pump(tester, _item(EquipmentStatus.sold, isActive: false));
 
       expect(find.text('Sold'), findsOneWidget);
       expect(find.text('Retired'), findsNothing);
-      expect(find.text('Mark as purchased'), findsNothing);
     });
 
-    testWidgets('wanted gear shows its chip and buys in one tap', (
+    // The purchase is made in the header block's editor (issue #4527,
+    // phase 3), not here.
+    testWidgets('wanted gear shows its chip and offers no purchase', (
       tester,
     ) async {
-      final created = await repository.createEquipment(
-        const EquipmentItem(
-          id: '',
-          name: 'Dream Reg',
-          type: EquipmentType.regulator,
-          status: EquipmentStatus.wanted,
-          isActive: false,
-        ),
-      );
-      await pump(tester, created);
+      await pump(tester, _item(EquipmentStatus.wanted, isActive: false));
+
       expect(find.text('Wanted'), findsOneWidget);
-
-      await tester.tap(find.text('Mark as purchased'));
-      await tester.pumpAndSettle();
-
-      final stored = await repository.getEquipmentById(created.id);
-      expect(stored!.status, EquipmentStatus.active);
-      expect(stored.isActive, isTrue);
-      expect(stored.purchaseDate, isNotNull);
-      expect(find.text('Moved to your active gear'), findsOneWidget);
-    });
-
-    testWidgets('a failed purchase says so instead of failing silently', (
-      tester,
-    ) async {
-      await pump(
-        tester,
-        _item(EquipmentStatus.wanted, isActive: false),
-        repo: _FailingPurchaseRepository(),
-      );
-
-      await tester.tap(find.text('Mark as purchased'));
-      await tester.pumpAndSettle();
-
-      expect(tester.takeException(), isNull);
-      expect(find.textContaining('database locked'), findsOneWidget);
-      expect(find.text('Moved to your active gear'), findsNothing);
+      expect(find.text('Mark as purchased'), findsNothing);
     });
 
     testWidgets('active gear renders nothing', (tester) async {
       await pump(tester, _item(EquipmentStatus.active));
 
       expect(find.byType(Chip), findsNothing);
-      expect(find.byType(FilledButton), findsNothing);
     });
   });
 }

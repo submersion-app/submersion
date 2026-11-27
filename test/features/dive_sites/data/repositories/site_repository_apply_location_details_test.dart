@@ -197,4 +197,42 @@ void main() {
     expect(site.country, 'South Korea');
     expect(site.countryCode, 'KR');
   });
+
+  group('onlyAt (issue #4992)', () {
+    Future<void> seedAt(GeoPoint point) =>
+        sites.createSite(DiveSite(id: 'm', name: 'Moved', location: point));
+
+    test('writes when the site is still at the looked-up point', () async {
+      await seedAt(const GeoPoint(47.0, 8.4));
+
+      final changed = await sites.applyLocationDetails(
+        'm',
+        found,
+        overwrite: false,
+        onlyAt: const GeoPoint(47.0, 8.4),
+      );
+
+      expect(changed, isTrue);
+      expect((await sites.getSiteById('m'))!.city, 'Weggis');
+    });
+
+    test('writes nothing to a site that has moved since', () async {
+      // The lookup answered for 47.0, 8.4; a sync moved the site meanwhile.
+      await seedAt(const GeoPoint(46.0, 7.0));
+      await clearSyncRecords('m');
+
+      final changed = await sites.applyLocationDetails(
+        'm',
+        found,
+        overwrite: false,
+        onlyAt: const GeoPoint(47.0, 8.4),
+      );
+
+      expect(changed, isFalse);
+      final stored = await sites.getSiteById('m');
+      expect(stored!.country, isNull);
+      expect(stored.city, isNull);
+      expect(await pendingCount('m'), 0, reason: 'no write, no sync');
+    });
+  });
 }

@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_photo_import_helper.dart';
 import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
-import 'package:submersion/features/equipment/presentation/widgets/gear_photo_remove_dialog.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_launcher.dart';
-import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
@@ -24,10 +27,28 @@ import 'package:submersion/shared/selection/selection_state.dart';
 ///
 /// One photo can be chosen as the item's cover, which stands for it in the
 /// equipment list and the page header.
+///
+/// It offers nothing that changes the photos outside the open Photos card
+/// (issue #4527, phase 3); in the page's sitting ([editing]) photos added
+/// and removed and the cover chosen are held until Save, a remove asking
+/// nothing, and a closed card shows what a sitting holds ([shown]).
 class EquipmentPhotosSection extends ConsumerStatefulWidget {
-  const EquipmentPhotosSection({super.key, required this.equipment});
+  const EquipmentPhotosSection({
+    super.key,
+    required this.equipment,
+    this.editing,
+    this.shown,
+  });
 
+  /// The item as shown: the sitting's while unlocked, so its cover is the
+  /// sitting's.
   final EquipmentItem equipment;
+
+  /// The sitting photos are held in: the Photos card's editor.
+  final EditSession<EquipmentItem>? editing;
+
+  /// The sitting whose photos a closed card shows.
+  final EditSession<EquipmentItem>? shown;
 
   @override
   ConsumerState<EquipmentPhotosSection> createState() =>
@@ -43,6 +64,37 @@ class _EquipmentPhotosSectionState
   /// A browser shows the photos it can and links none (issue #4121).
   bool get _canAttach => ref.watch(deviceCapabilitiesProvider).mediaAttach;
 
+  /// The item's cover: the sitting's while it holds one, since an open
+  /// card's [EquipmentPhotosSection.equipment] is the record as it was when
+  /// the card opened.
+  String? get _coverId => switch (widget.editing ?? widget.shown) {
+    final session? => session.valueOf(gearCoverField),
+    null => widget.equipment.coverMediaId,
+  };
+
+  /// Whether a change may be made: only in the open card.
+  bool get _canAct => widget.editing != null;
+
+  Future<void> _addPhotos() async {
+    final editing = widget.editing;
+    if (editing == null) return;
+    await GearPhotoImportHelper.holdPhotos(
+      context: context,
+      ref: ref,
+      equipmentId: _equipmentId,
+      // What the sitting unlinks here or on a check-in is gone at Save.
+      ignoringMediaIds: {
+        ...sittingMedia(editing).unlinked,
+        ...checkInPhotoUnlinks(editing),
+      },
+      // A photo a check-in in the sitting holds is on the item already.
+      onHold: (adds) => addMediaToSitting(
+        editing,
+        photosNotHeld(adds, checkInPhotoKeys(editing)),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _selection.dispose();
@@ -51,61 +103,49 @@ class _EquipmentPhotosSectionState
 
   Future<BulkActionOutcome> _removeSelected(BuildContext context) async {
     final ids = _selection.value.checkedIds.toList();
-    if (ids.isEmpty) return BulkActionOutcome.cancelled;
-    final l10n = context.l10n;
-    final confirmed = await confirmRemoveGearPhotos(context, ids.length);
-    if (!confirmed || !context.mounted) {
-      return BulkActionOutcome.cancelled;
+    final editing = widget.editing;
+    // Outside the open card nothing changes, however the selection was
+    // started.
+    if (ids.isEmpty || editing == null) return BulkActionOutcome.cancelled;
+    // A remove asks nothing: Cancel brings it back. A cover among them is
+    // cleared with them, as the unlink does.
+    unlinkMediaInSitting(editing, ids.toSet());
+    if (ids.contains(editing.valueOf(gearCoverField))) {
+      editing.set(gearCoverField, null);
     }
-    try {
-      await ref.read(mediaUnlinkServiceProvider).unlinkFromEquipment(ids);
-      ref.invalidate(identificationPhotosProvider(_equipmentId));
-      return BulkActionOutcome.completed;
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.media_siteMediaSection_unlinkError(e)),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-      return BulkActionOutcome.failed;
-    }
+    return BulkActionOutcome.completed;
   }
 
   /// Chooses the one checked photo as the cover, or clears the cover when
   /// that photo already is it.
   Future<BulkActionOutcome> _toggleCover() async {
     final ids = _selection.value.checkedIds;
-    if (ids.length != 1) return BulkActionOutcome.cancelled;
+    final editing = widget.editing;
+    if (ids.length != 1 || editing == null) return BulkActionOutcome.cancelled;
     final id = ids.single;
-    final isCover = widget.equipment.coverMediaId == id;
-    try {
-      await ref
-          .read(gearPhotoRepositoryProvider)
-          .setCover(_equipmentId, isCover ? null : id);
-    } catch (_) {
-      // A concurrent sync can delete the item mid-tap: say the cover did
-      // not change rather than failing silently.
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n.common_error_tryAgain),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
-      }
-      return BulkActionOutcome.failed;
-    }
-    // The item's new cover id is a new key for the avatar's cover read, so
-    // nothing needs invalidating here.
+    editing.set(gearCoverField, _coverId == id ? null : id);
     return BulkActionOutcome.completed;
   }
 
   @override
   Widget build(BuildContext context) {
-    final photosAsync = ref.watch(identificationPhotosProvider(_equipmentId));
+    final sitting = widget.editing ?? widget.shown;
+    if (sitting == null) return _buildStored(context, null);
+    return ListenableBuilder(
+      listenable: sitting,
+      builder: (context, _) => _buildStored(context, sitting),
+    );
+  }
+
+  Widget _buildStored(
+    BuildContext context,
+    EditSession<EquipmentItem>? sitting,
+  ) {
+    final stored = ref.watch(identificationPhotosProvider(_equipmentId));
+    // The sitting's photos: those it unlinked gone, those it added in.
+    final photosAsync = sitting == null
+        ? stored
+        : stored.whenData((rows) => mediaInSitting(sitting, rows));
     final visibleIds =
         photosAsync.value?.map((m) => m.id).toList() ?? const <String>[];
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -132,7 +172,7 @@ class _EquipmentPhotosSectionState
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
     final photos = photosAsync.value ?? const <MediaItem>[];
-    final coverId = widget.equipment.coverMediaId;
+    final coverId = _coverId;
     final singleChecked = selection.checkedIds.length == 1
         ? selection.checkedIds.single
         : null;
@@ -156,13 +196,14 @@ class _EquipmentPhotosSectionState
                 shell: SelectionBarShell.pane,
                 onDelete: null,
                 actions: [
-                  BulkAction(
-                    id: 'remove',
-                    icon: Icons.link_off,
-                    label: l10n.equipment_photos_remove,
-                    onInvoke: () => _removeSelected(context),
-                  ),
-                  if (canToggleCover)
+                  if (_canAct)
+                    BulkAction(
+                      id: 'remove',
+                      icon: Icons.link_off,
+                      label: l10n.equipment_photos_remove,
+                      onInvoke: () => _removeSelected(context),
+                    ),
+                  if (canToggleCover && _canAct)
                     BulkAction(
                       id: 'setCover',
                       icon: singleChecked == coverId
@@ -187,7 +228,7 @@ class _EquipmentPhotosSectionState
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
-                  if (_canAttach && photos.isNotEmpty)
+                  if (_canAttach && _canAct && photos.isNotEmpty)
                     IconButton(
                       key: const ValueKey('enter_selection'),
                       icon: Icon(Icons.checklist, color: colorScheme.primary),
@@ -195,7 +236,8 @@ class _EquipmentPhotosSectionState
                       tooltip: l10n.common_selection_enterTooltip,
                       onPressed: _selection.enterExplicit,
                     ),
-                  if (_canAttach)
+                  RecordCardPencil(cardTitle: l10n.equipment_photos_title),
+                  if (_canAttach && _canAct)
                     IconButton(
                       key: const ValueKey('equipment_photos_add'),
                       icon: Icon(
@@ -203,11 +245,7 @@ class _EquipmentPhotosSectionState
                         color: colorScheme.primary,
                       ),
                       tooltip: l10n.equipment_photos_add,
-                      onPressed: () => GearPhotoImportHelper.importPhotos(
-                        context: context,
-                        ref: ref,
-                        equipmentId: _equipmentId,
-                      ),
+                      onPressed: _addPhotos,
                     ),
                 ],
               ),

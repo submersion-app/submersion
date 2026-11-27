@@ -1,7 +1,7 @@
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 
 /// An item mid-edit on the pre-dive template editor page. See
-/// checklist_template_edit_page.dart's `_EditableTemplateItem` for why
+/// checklist_editable_item.dart's `EditableChecklistItem` for why
 /// sections and items are held in memory here instead of going through the
 /// repository directly: resolving a section one at a time as each item
 /// dialog closes would touch the database for a section the diver then

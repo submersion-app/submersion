@@ -342,6 +342,41 @@ void main() {
     expect(engine.detectCalls.first, (10000, 20000));
   });
 
+  test('each chunk keeps the run the scan started, even when another '
+      'device\'s run was stored meanwhile (issue #4876)', () async {
+    final start = run(mediaId: 'v1').copyWith(
+      scannedMs: () => 0,
+      runId: () => 'mine',
+      analysedBy: () => 'laptop',
+    );
+    await identifications.storeRun(start, insert: const [], deleteIds: []);
+    final first = _fish(0, 25000);
+    final later = _fish(12000, 18000, y: 0.7);
+    engine.videoFrames = {
+      for (final ms in {...first.keys, ...later.keys})
+        ms: [...?first[ms], ...?later[ms]],
+    };
+    final s = scan(resumeFrom: start);
+    expect(await s.runChunk(), isTrue);
+    // Another device's scan of the same video syncs in between chunks.
+    await identifications.storeRun(
+      (await identifications.runFor(
+        'v1',
+      ))!.copyWith(runId: () => 'theirs', analysedBy: () => 'mac'),
+      insert: const [],
+      deleteIds: const [],
+    );
+
+    await runAll(s);
+
+    final stored = (await identifications.runFor('v1'))!;
+    expect(stored.runId, 'mine');
+    expect(stored.analysedBy, 'laptop');
+    final rows = await identifications.forMedia('v1');
+    expect(rows, hasLength(2));
+    expect({for (final r in rows) r.runId}, {'mine'});
+  });
+
   test('a rescan carries a dismissal to the same fish', () async {
     engine.videoFrames = _fish(1000, 4000);
     await runAll(scan());

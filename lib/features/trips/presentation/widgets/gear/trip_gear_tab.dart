@@ -1,26 +1,36 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/domain/entities/trip_packed_item.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_drafts.dart';
 import 'package:submersion/features/trips/domain/services/trip_gear_split.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_gear_sitting.dart';
+import 'package:submersion/features/trips/presentation/helpers/open_trip_cylinder_board.dart';
 import 'package:submersion/features/trips/presentation/providers/scrubber_margin_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_fill_forecast_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_fill_forecast_banner.dart';
+import 'package:submersion/features/trips/presentation/widgets/gear/trip_bag_picker.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_cylinder_slot_row.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_gear_add_sheet.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_packed_item_row.dart';
 import 'package:submersion/features/trips/presentation/widgets/gear/trip_unslotted_tank_row.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 const _log = LoggerService('tripGearTab');
 
@@ -29,13 +39,19 @@ const _log = LoggerService('tripGearTab');
 class TripGearTab extends ConsumerWidget {
   final Trip trip;
 
-  const TripGearTab({super.key, required this.trip});
+  /// The trip page's open sitting: the packed gear and the board it holds
+  /// are shown, and every change waits for its Save. Null, the page is
+  /// locked (issue #4527): the gear only shows, with no Add, unpack or put
+  /// on board, and Open board still opens the board.
+  final EditSession<Trip>? editing;
+
+  const TripGearTab({super.key, required this.trip, this.editing});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final editing = this.editing;
+    if (editing != null) return _buildHeld(context, ref, editing);
     final l10n = context.l10n;
-    final theme = Theme.of(context);
-    final units = ref.watch(unitFormatterProvider);
     final gearAsync = ref.watch(tripGearProvider(trip.id));
     final statesAsync = ref.watch(tripCylinderStatesProvider(trip.id));
     final gear = gearAsync.value;
@@ -56,6 +72,112 @@ class TripGearTab extends ConsumerWidget {
       }
       return const Center(child: CircularProgressIndicator.adaptive());
     }
+    final assignments = tripPackingBags(gear).isEmpty
+        ? const AsyncData(<String, String>{})
+        : ref.watch(tripBagAssignmentsProvider(trip.id));
+    // Bags that cannot be read leave the gear loose rather than hiding it.
+    final bagIds =
+        assignments.value ??
+        (assignments.hasError ? const <String, String>{} : null);
+    if (bagIds == null) {
+      return const Center(child: CircularProgressIndicator.adaptive());
+    }
+    return _buildGear(context, ref, gear: gear, states: states, bagIds: bagIds);
+  }
+
+  /// The gear and board [editing] holds, drawn as they change.
+  Widget _buildHeld(
+    BuildContext context,
+    WidgetRef ref,
+    EditSession<Trip> editing,
+  ) {
+    final packed = tripPackedGearList(
+      read: (id) => ref.read(tripGearProvider(id).future),
+      packs: ref.read(tripEquipmentRepositoryProvider),
+    );
+    final board = tripCylindersList(
+      cylinders: ref.read(tripCylinderRepositoryProvider),
+      copier: ref.read(tripFillPassportCopierProvider),
+    );
+    final checklists = tripChecklistsList(
+      checklists: ref.read(tripChecklistsRepositoryProvider),
+      items: ref.read(tripChecklistRepositoryProvider),
+      viewer: () => ref.read(validatedCurrentDiverIdProvider.future),
+    );
+    final checklistWrites = HeldTripChecklistWrites(
+      session: editing,
+      list: checklists,
+      templates: ref.read(checklistTemplateRepositoryProvider),
+    );
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        packed.changes(editing),
+        board.changes(editing),
+        checklists.changes(editing),
+      ]),
+      builder: (context, _) {
+        final gear = packed.current(editing);
+        final held = heldCylindersOf(editing, board);
+        // Add can put a set's lead on a checklist: it waits for the held
+        // checklists too, so it never takes a trip still being read for
+        // one with none. A failed read leaves the lead off, as with none.
+        final checklistsPending =
+            heldChecklistsOf(editing, checklists) == null &&
+            !checklists.failed(editing);
+        if (gear == null || held == null || checklistsPending) {
+          if (packed.failed(editing) || board.failed(editing)) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Text(
+                  context.l10n.common_error_tryAgain,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          }
+          return const Center(child: CircularProgressIndicator.adaptive());
+        }
+        // A Consumer of its own, so what the gear watches is watched by the
+        // element that rebuilds with the held lists.
+        return Consumer(
+          builder: (context, ref, _) => _buildGear(
+            context,
+            ref,
+            gear: [for (final row in gear) row.item],
+            bagIds: {for (final row in gear) row.item.id: ?row.bagId},
+            states: held.states,
+            writes: HeldTripGearWrites(
+              session: editing,
+              packed: packed,
+              board: board,
+            ),
+            lead: (
+              checklists: () async =>
+                  heldChecklistsOf(editing, checklists)?.checklists ?? const [],
+              itemsOf: (id) async =>
+                  heldChecklistsOf(editing, checklists)?.itemsOf(id) ??
+                  const [],
+              createItem: checklistWrites.createItem,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGear(
+    BuildContext context,
+    WidgetRef ref, {
+    required List<EquipmentItem> gear,
+    required List<TripCylinderState> states,
+    required Map<String, String> bagIds,
+    TripGearWrites? writes,
+    TripLeadChecklists? lead,
+  }) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final units = ref.watch(unitFormatterProvider);
     final now = clock.now();
     final started = !trip.startsAfter(now);
     final upcoming = trip.isUpcoming;
@@ -92,24 +214,90 @@ class TripGearTab extends ConsumerWidget {
     final slots = [for (final s in states) s.cylinder];
     // An owned cylinder on the board is listed under Cylinders only, and so
     // is a tank packed without a slot (#2873), offered to the board.
-    final (:packed, :unslottedTanks) = splitTripGear(gear, slots);
+    final bags = tripPackingBags(gear);
+    final bagsById = {for (final bag in bags) bag.id: bag};
+    final contents = {for (final bag in bags) bag.id: <EquipmentItem>[]};
+    final loose = <EquipmentItem>[];
+    for (final item in gear) {
+      if (item.type == EquipmentType.bag) continue;
+      final bagItems = contents[bagIds[item.id]];
+      (bagItems ?? loose).add(item);
+    }
+    final nonslottedGear = splitTripGear(loose, slots).packed;
+    // A tank off the board is offered to it wherever it is packed, in a bag
+    // or loose.
+    final unslottedTanks = splitTripGear([
+      for (final item in gear)
+        if (item.type != EquipmentType.bag) item,
+    ], slots).unslottedTanks;
+    final slottedIds = {for (final slot in slots) ?slot.equipmentId};
+    final packed = [
+      ...nonslottedGear,
+      if (bags.isNotEmpty)
+        for (final item in loose)
+          if (slottedIds.contains(item.id)) item,
+    ];
 
-    Future<void> add() => showTripGearAddSheet(
-      context,
-      ref,
-      trip: trip,
-      packed: gear,
-      slots: slots,
-    );
-    void openBoard() => context.push('/trips/${trip.id}/cylinders');
-    final addButton = FilledButton.tonalIcon(
-      key: const Key('trip-gear-add'),
-      icon: const Icon(Icons.add),
-      label: Text(l10n.trips_gear_add_action),
-      onPressed: add,
+    VoidCallback? moveAction(EquipmentItem item) {
+      if (writes == null || bags.isEmpty || bagsById.containsKey(item.id)) {
+        return null;
+      }
+      return () async {
+        final messenger = ScaffoldMessenger.of(context);
+        final l10n = context.l10n;
+        try {
+          final choice = await pickTripBag(
+            context,
+            bags,
+            currentBagId: bagIds[item.id],
+          );
+          if (choice != null && context.mounted) {
+            writes.assignBag(item.id, choice.bagId);
+          }
+        } catch (e, stackTrace) {
+          _log.error(
+            'Failed to move trip gear to a bag',
+            error: e,
+            stackTrace: stackTrace,
+          );
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.trips_gear_failed)),
+          );
+        }
+      };
+    }
+
+    Widget packedRow(EquipmentItem item) => TripPackedItemRow(
+      item: item,
+      alerts: alertsByItem[item.id] ?? const [],
+      margin: marginByItem[item.id],
+      onMoveToBag: moveAction(item),
+      onUnpack: writes == null ? null : () => _unpack(context, writes, item.id),
     );
 
-    if (packed.isEmpty && unslottedTanks.isEmpty && states.isEmpty) {
+    void openBoard() => openTripCylinderBoard(context, trip.id);
+    // Only the open sitting changes the gear: locked, nothing is offered.
+    final addButton = writes == null || lead == null || !upcoming
+        ? null
+        : FilledButton.tonalIcon(
+            key: const Key('trip-gear-add'),
+            icon: const Icon(Icons.add),
+            label: Text(l10n.trips_gear_add_action),
+            onPressed: () => showTripGearAddSheet(
+              context,
+              ref,
+              trip: trip,
+              packed: gear,
+              slots: slots,
+              writes: writes,
+              lead: lead,
+            ),
+          );
+
+    if (bags.isEmpty &&
+        packed.isEmpty &&
+        unslottedTanks.isEmpty &&
+        states.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -125,7 +313,7 @@ class TripGearTab extends ConsumerWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              if (upcoming) ...[const SizedBox(height: 16), addButton],
+              if (addButton != null) ...[const SizedBox(height: 16), addButton],
             ],
           ),
         ),
@@ -135,7 +323,7 @@ class TripGearTab extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.only(bottom: 24),
       children: [
-        if (upcoming)
+        if (addButton != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
             child: Align(
@@ -143,15 +331,25 @@ class TripGearTab extends ConsumerWidget {
               child: addButton,
             ),
           ),
+        if (bags.isNotEmpty) ...[
+          _SectionHeader(title: l10n.trips_bags_section),
+          for (final bag in bags) ...[
+            packedRow(bag),
+            _BagWeight(
+              contents: TripBagContents(bag: bag, items: contents[bag.id]!),
+              units: units,
+            ),
+            for (final item in contents[bag.id]!)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(start: 16),
+                child: packedRow(item),
+              ),
+            const Divider(),
+          ],
+        ],
         if (packed.isNotEmpty) ...[
           _SectionHeader(title: l10n.trips_gear_section_packed),
-          for (final item in packed)
-            TripPackedItemRow(
-              item: item,
-              alerts: alertsByItem[item.id] ?? const [],
-              margin: marginByItem[item.id],
-              onUnpack: () => _unpack(context, ref, item.id),
-            ),
+          for (final item in packed) packedRow(item),
         ],
         if (states.isNotEmpty || unslottedTanks.isNotEmpty) ...[
           _SectionHeader(
@@ -185,10 +383,18 @@ class TripGearTab extends ConsumerWidget {
               units: units,
               alerts: alertsByItem[item.id] ?? const [],
               // An ended trip's board is history: no prompt to put it on.
-              onPutOnBoard: ended
+              onMoveToBag: moveAction(item),
+              onPutOnBoard: ended || writes == null
                   ? null
-                  : () => _putOnBoard(context, ref, item),
-              onUnpack: () => _unpack(context, ref, item.id),
+                  : () => _putOnBoard(
+                      context,
+                      writes,
+                      item,
+                      bagged: bagIds[item.id] != null,
+                    ),
+              onUnpack: writes == null
+                  ? null
+                  : () => _unpack(context, writes, item.id),
             ),
         ],
       ],
@@ -198,22 +404,23 @@ class TripGearTab extends ConsumerWidget {
   /// Puts a packed tank with no slot on the board (#2873): a slot from the
   /// item, as Add makes one, appended after the board's last slot as it is
   /// written (two tanks put on before the board refreshes would otherwise
-  /// tie); then its packed link goes, as Add packs none for a cylinder.
-  /// Should the unpack fail, the slot still lists the tank once (a slotted
-  /// tank's link is not shown), and a repeat adds no second slot (the
-  /// append skips a tank already on the board) but retries the unpack.
+  /// tie); then its packed link goes, as Add packs none for a loose
+  /// cylinder. A [bagged] tank stays packed in its bag, as Add leaves a
+  /// tank packed into a bag. Should the unpack fail, the slot still lists
+  /// the tank once (a slotted tank's link is not shown), and a repeat adds
+  /// no second slot (the append skips a tank already on the board) but
+  /// retries the unpack.
   Future<void> _putOnBoard(
     BuildContext context,
-    WidgetRef ref,
-    EquipmentItem item,
-  ) async {
+    TripGearWrites writes,
+    EquipmentItem item, {
+    required bool bagged,
+  }) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
-    final cylinders = ref.read(tripCylinderRepositoryProvider);
-    final packs = ref.read(tripEquipmentRepositoryProvider);
     try {
       final now = clock.now().toUtc();
-      await cylinders.appendCylinders(trip.id, [
+      await writes.appendCylinders([
         tripCylinderDraftFromEquipment(
           item,
           tripId: trip.id,
@@ -221,7 +428,7 @@ class TripGearTab extends ConsumerWidget {
           now: now,
         ),
       ]);
-      await packs.unpack(trip.id, item.id);
+      if (!bagged) await writes.unpack(item.id);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to put a packed tank on the board',
@@ -232,11 +439,15 @@ class TripGearTab extends ConsumerWidget {
     }
   }
 
-  Future<void> _unpack(BuildContext context, WidgetRef ref, String id) async {
+  Future<void> _unpack(
+    BuildContext context,
+    TripGearWrites writes,
+    String id,
+  ) async {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     try {
-      await ref.read(tripEquipmentRepositoryProvider).unpack(trip.id, id);
+      await writes.unpack(id);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to unpack trip gear',
@@ -245,6 +456,47 @@ class TripGearTab extends ConsumerWidget {
       );
       messenger.showSnackBar(SnackBar(content: Text(l10n.trips_gear_failed)));
     }
+  }
+}
+
+class _BagWeight extends StatelessWidget {
+  const _BagWeight({required this.contents, required this.units});
+
+  /// How many names of unweighed gear a bag lists before counting the rest.
+  static const _shownNames = 3;
+
+  static String _names(AppLocalizations l10n, List<String> names) {
+    final shown = names
+        .take(_shownNames)
+        .join(l10n.trips_bags_missingSeparator);
+    final rest = names.length - _shownNames;
+    return rest > 0 ? l10n.trips_bags_missingMore(shown, rest) : shown;
+  }
+
+  final TripBagContents contents;
+  final UnitFormatter units;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final missing = contents.missingWeights;
+    final weight = units.formatWeight(contents.knownWeightKg);
+
+    return Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            missing.isEmpty
+                ? l10n.trips_bags_total(weight)
+                : l10n.trips_bags_subtotal(weight),
+          ),
+          if (missing.isNotEmpty)
+            Text(l10n.trips_bags_missing(_names(l10n, missing))),
+        ],
+      ),
+    );
   }
 }
 

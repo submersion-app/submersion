@@ -186,8 +186,10 @@ void main() {
     },
   );
 
-  test('a demoted null-computer series next to a computer-owned primary is '
-      'kept, as the legacy read keeps it', () async {
+  // Issue #4960: the demoted series is an older copy of the same source, so
+  // drawing it beside the active recording interleaved the two curves.
+  test('a demoted null-computer series of the computer-owned primary\'s own '
+      'source is superseded by it', () async {
     await source('src-1', 'comp-1', primary: true);
     await series.insertSeries(
       diveId: 'dive-1',
@@ -204,7 +206,7 @@ void main() {
       now: now,
     );
     final merged = await dives.getMergedProfile('dive-1');
-    expect(merged.map((p) => p.depth), [1.0, 2.0]);
+    expect(merged.map((p) => p.depth), [1.0]);
   });
 
   test('series present but none primary: getDiveProfile is empty, '

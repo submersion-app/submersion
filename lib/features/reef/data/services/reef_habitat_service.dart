@@ -7,6 +7,7 @@ import 'package:submersion/features/reef/data/services/arcgis_feature_query.dart
 import 'package:submersion/features/reef/data/services/reef_request_timeout.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/domain/entities/reef_habitat.dart';
+import 'package:submersion/features/reef/data/services/reef_failure.dart';
 
 /// Fetches reef presence and threat level from WRI Reefs at Risk Revisited
 /// 2011 (CC BY 3.0), hosted on a UNEP-WCMC ArcGIS server.
@@ -60,7 +61,7 @@ class ReefHabitatService {
         'Reef habitat fetch failed: $e',
         name: 'ReefHabitatService',
       );
-      return const ReefPart.unavailable();
+      return reefFailure(e);
     }
   }
 }

@@ -1,12 +1,16 @@
 import 'package:equatable/equatable.dart';
 
-/// How sure the app must be before it names a fish (issue #4721), surest
-/// first. Surer is the pack's own suggest bars; the others are measured
-/// per pack and carried in its manifest.
+/// How readily the app suggests a species (issue #4721), surest first.
+/// Surer is the pack's own suggest bars; the others are measured per pack
+/// and carried in its manifest.
 enum NamingLevel {
   surer,
   balanced,
   eager;
+
+  /// The level until the diver picks one (issue #4789). A pack without it
+  /// names at the most eager level it carries.
+  static const NamingLevel byDefault = eager;
 
   /// The level's id in a manifest and in the stored preference.
   String get id => name;

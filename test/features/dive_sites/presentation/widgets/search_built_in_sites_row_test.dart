@@ -7,6 +7,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
+import 'package:submersion/core/ui/app_actions.dart';
 import 'package:submersion/features/buddies/query/buddy_query_entity.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/search_built_in_sites_row.dart';
@@ -72,6 +73,9 @@ Widget _app({
       demoModeActiveProvider.overrideWithValue(demoMode),
     ],
     child: MaterialApp.router(
+      // The app's own, as lib/app.dart sets them: a tap off the field drops
+      // its focus, touch included (#4813).
+      actions: appActions(),
       routerConfig: router,
       locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -160,7 +164,14 @@ void main() {
     await tester.pumpAndSettle();
     await _type(tester, ' thistlegorm ');
 
-    await tester.tap(find.byKey(kSearchBuiltInSitesRowKey));
+    // A finger's tap, with a frame between down and up: the down drops the
+    // field's focus, so the row must count as part of the field or it is
+    // gone by the time the finger lifts (#4813).
+    final finger = await tester.startGesture(
+      tester.getCenter(find.byKey(kSearchBuiltInSitesRowKey)),
+    );
+    await tester.pump();
+    await finger.up();
     await tester.pumpAndSettle();
 
     expect(find.text('import page q=thistlegorm'), findsOneWidget);

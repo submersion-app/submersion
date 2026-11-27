@@ -15,6 +15,7 @@ class DiveQueryEditor extends StatelessWidget {
     this.onSave,
     this.canSave,
     this.initialTab = 0,
+    this.onValidityChanged,
   });
 
   final QueryNode? value;
@@ -25,6 +26,9 @@ class DiveQueryEditor extends StatelessWidget {
   /// See [QueryEditor.initialTab].
   final int initialTab;
 
+  /// See [QueryEditor.onValidityChanged].
+  final ValueChanged<bool>? onValidityChanged;
+
   @override
   Widget build(BuildContext context) => EntityQueryEditor(
     root: diveQueryEntity,
@@ -33,5 +37,6 @@ class DiveQueryEditor extends StatelessWidget {
     onSave: onSave,
     canSave: canSave,
     initialTab: initialTab,
+    onValidityChanged: onValidityChanged,
   );
 }

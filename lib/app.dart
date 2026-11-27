@@ -27,6 +27,7 @@ import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/theme/display_zoom.dart';
 import 'package:submersion/core/theme/display_zoom_shortcuts.dart';
 import 'package:submersion/core/router/app_router.dart';
+import 'package:submersion/core/ui/app_actions.dart';
 import 'package:submersion/features/gps_log/presentation/dive_mark_action_bridge.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_gc_providers.dart';
@@ -48,6 +49,7 @@ import 'package:submersion/features/cylinder_passports/presentation/services/rec
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_caches_keeper.dart';
+import 'package:submersion/features/media/presentation/providers/subscription_polling.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_origin_republish_provider.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
@@ -224,11 +226,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       _republishOwnedMedia();
       _convertGearFiles();
       _importSiteCatalogue();
-      unawaited(
-        sweepIdentificationOrphansAtLaunch(
-          ref.read(identificationCleanupProvider),
-        ),
-      );
+      unawaited(runIdentificationLaunchSteps(ref.container));
       _fileShareHandler.initialize();
       _passportLinks.start();
       _buddyCardLinks.start();
@@ -239,6 +237,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       DerivedMetricsScheduler.instance.scheduleStaleSweep();
       ChangeLogSettleScheduler.instance.start();
       _pruneChangeLog();
+      startSubscriptionPolling(ref);
       unawaited(_staleDrafts.check(ref, rootNavigatorKey.currentContext));
       unawaited(_runHealthImport());
     });
@@ -836,6 +835,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         ...AppLocalizations.localizationsDelegates,
       ],
       supportedLocales: AppLocalizations.supportedLocales,
+      actions: appActions(),
       routerConfig: router,
       builder: (context, child) {
         Intl.defaultLocale = Localizations.localeOf(context).toLanguageTag();

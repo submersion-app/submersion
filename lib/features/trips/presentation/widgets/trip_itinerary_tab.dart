@@ -7,7 +7,10 @@ import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
+import 'package:submersion/features/trips/domain/services/itinerary_day_numbers.dart';
 import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_itinerary_sitting.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -16,6 +19,7 @@ import 'package:submersion/features/trips/presentation/widgets/day/today_anchore
 import 'package:submersion/features/trips/presentation/widgets/itinerary/itinerary_day_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/itinerary/trip_itinerary_generate_button.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 /// Itinerary tab showing the day-by-day timeline of a trip, any type
 /// (#2845): Generate fills the dates, each day opens its edit sheet.
@@ -32,6 +36,14 @@ class TripItineraryTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // On the trip page (issue #4527): unlocked, the days are the sitting's,
+    // and Generate and the day sheet hold their changes until Save; locked,
+    // the days only read.
+    final slots = TripCardSlotsScope.maybeOf(context);
+    final session = slots?.session;
+    if (slots != null && session != null) {
+      return _buildInSitting(context, ref, slots.shown, session);
+    }
     final daysAsync = ref.watch(numberedItineraryDaysProvider(tripId));
     final divesAsync = ref.watch(divesForTripProvider(tripId));
     // The trip types the days Generate writes and labels the sheet's place
@@ -57,13 +69,58 @@ class TripItineraryTab extends ConsumerWidget {
     );
   }
 
+  /// The sitting's days, numbered from [working]'s dates as the stored
+  /// ones are, with Generate and the day sheet holding what they change.
+  Widget _buildInSitting(
+    BuildContext context,
+    WidgetRef ref,
+    Trip working,
+    EditSession<Trip> session,
+  ) {
+    final list = tripItineraryDays(ref.read(itineraryDayRepositoryProvider));
+    final divesAsync = ref.watch(divesForTripProvider(tripId));
+    return ListenableBuilder(
+      listenable: list.changes(session),
+      builder: (context, _) {
+        final held = list.current(session);
+        final dives = divesAsync.value;
+        if (held == null || dives == null) {
+          if (list.failed(session) || divesAsync.hasError) {
+            return Center(
+              child: Text(context.l10n.trips_itinerary_error_loading),
+            );
+          }
+          return const Center(child: CircularProgressIndicator());
+        }
+        final sorted = [...held]..sort((a, b) => a.date.compareTo(b.date));
+        final days = numberItineraryDays(
+          trip: working,
+          dives: dives,
+          itineraryDays: sorted,
+        );
+        return _buildTimeline(
+          context,
+          ref,
+          days,
+          dives,
+          working,
+          onGenerate: (missing) =>
+              list.set(session, withDaysAdded(held, missing)),
+          onEditDay: (day) => list.set(session, withDayEdited(held, day)),
+        );
+      },
+    );
+  }
+
   Widget _buildTimeline(
     BuildContext context,
     WidgetRef ref,
     List<ItineraryDay> days,
     List<Dive> dives,
-    Trip? trip,
-  ) {
+    Trip? trip, {
+    ValueChanged<List<ItineraryDay>>? onGenerate,
+    ValueChanged<ItineraryDay>? onEditDay,
+  }) {
     if (days.isEmpty) {
       return Center(
         child: Padding(
@@ -78,9 +135,13 @@ class TripItineraryTab extends ConsumerWidget {
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-              if (trip != null) ...[
+              if (trip != null && onGenerate != null) ...[
                 const SizedBox(height: 16),
-                TripItineraryGenerateButton(trip: trip, days: days),
+                TripItineraryGenerateButton(
+                  trip: trip,
+                  days: days,
+                  hold: onGenerate,
+                ),
               ],
             ],
           ),
@@ -120,13 +181,17 @@ class TripItineraryTab extends ConsumerWidget {
     final now = ref.watch(tripTodayProvider);
 
     // The fill-in button renders nothing once every date has a row.
-    final header = trip == null
+    final header = trip == null || onGenerate == null
         ? null
         : Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: Align(
               alignment: AlignmentDirectional.centerStart,
-              child: TripItineraryGenerateButton(trip: trip, days: days),
+              child: TripItineraryGenerateButton(
+                trip: trip,
+                days: days,
+                hold: onGenerate,
+              ),
             ),
           );
 
@@ -137,13 +202,13 @@ class TripItineraryTab extends ConsumerWidget {
       return ItineraryDayCard(
         day: day,
         dives: dayDives,
-        tripId: tripId,
         isLiveaboard: trip?.isLiveaboard ?? false,
         kind: tripDayKind(day.date, now),
         photoCount: storyDay?.photoCount ?? 0,
         sightings: storyDay?.sightings ?? const [],
         storedWeather: storedWeather[tripDayMillis(day.date)]?.toStoryWeather(),
         bottomGap: bottomGap,
+        hold: onEditDay,
       );
     }
 

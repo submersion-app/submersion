@@ -157,7 +157,7 @@ final class VideoScanner {
           return NSNull()
         }
         // Nil for a crop too small to read: that fish is simply not named.
-        return try pipeline.cropAndEmbed(image, x: x, y: y, w: w, h: h) ?? NSNull()
+        return try pipeline.cropAndEmbed(image, x: x, y: y, w: w, h: h, moment: true) ?? NSNull()
       }
     }
     if !moments.isEmpty, unread == moments.count {

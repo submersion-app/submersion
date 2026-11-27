@@ -4,7 +4,9 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/theme/full_themes/submersion_theme.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
@@ -16,6 +18,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/dive_sites/presentation/widgets/site_map_content.dart';
 import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_button.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_terrain_pane.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -40,6 +43,7 @@ Future<void> _pump(
   AppSettings? settings,
   BathymetryGrid? grid,
   ThemeData? theme,
+  LocationService? location,
 }) async {
   final base = await getBaseOverrides(
     settingsNotifier: settings == null ? null : MockSettingsNotifier(settings),
@@ -58,6 +62,8 @@ Future<void> _pump(
         siteSeascapeProvider.overrideWith(
           (ref, id) async => const SiteSeascapeNoData(),
         ),
+        if (location != null)
+          locationServiceProvider.overrideWithValue(location),
       ],
       child: MaterialApp(
         theme: theme,
@@ -108,6 +114,19 @@ Finder _marker(String name) => find
     )
     .hitTestable();
 
+/// A device that is always at 25.0, -80.0.
+class _FixedLocation implements LocationService {
+  @override
+  Future<LocationResult?> getCurrentLocation({
+    bool includeGeocoding = true,
+    Duration timeout = const Duration(seconds: 15),
+    String languageCode = LocationService.defaultLanguageCode,
+  }) async => const LocationResult(latitude: 25, longitude: -80);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 void _expectCenteredOn(MapCamera camera, LatLng target) {
   expect(camera.center.latitude, closeTo(target.latitude, 1e-6));
   expect(camera.center.longitude, closeTo(target.longitude, 1e-6));
@@ -121,7 +140,8 @@ void main() {
     );
 
     expect(find.byType(FlutterMap), findsOneWidget);
-    expect(find.byIcon(Icons.my_location), findsOneWidget);
+    expect(find.byIcon(Icons.zoom_out_map), findsOneWidget);
+    expect(find.byType(MyLocationButton), findsOneWidget);
 
     // Tapping empty map (a corner, away from the centered marker) clears the
     // selection via the map's onTap. No animation, so this is teardown-safe.
@@ -306,12 +326,35 @@ void main() {
     await tester.pump();
     expect(_camera(tester).zoom, closeTo(8, 1e-6));
 
-    await tester.tap(find.byIcon(Icons.my_location));
+    await tester.tap(find.byIcon(Icons.zoom_out_map));
     await tester.pump();
 
     final camera = _camera(tester);
     _expectCenteredOn(camera, framed.center);
     expect(camera.zoom, closeTo(framed.zoom, 1e-6));
+  });
+
+  // Issue #4808: the crosshair used to be the fit-all button, so pressing
+  // it on a map already framed on every site did nothing at all.
+  testWidgets('Show my location eases the camera onto the device', (
+    tester,
+  ) async {
+    await _pump(tester, sites: _twoApartSites(), location: _FixedLocation());
+    expect(_camera(tester).zoom, lessThan(10));
+
+    await tester.tap(find.byTooltip('Show my location'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    final camera = _camera(tester);
+    _expectCenteredOn(camera, const LatLng(25, -80));
+    expect(camera.zoom, closeTo(12, 1e-6));
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is Semantics && w.properties.label == 'Your location',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('tapping a marker eases the camera onto its site', (

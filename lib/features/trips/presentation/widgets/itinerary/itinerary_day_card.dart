@@ -28,7 +28,6 @@ import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 class ItineraryDayCard extends ConsumerWidget {
   final ItineraryDay day;
   final List<Dive> dives;
-  final String tripId;
   final bool isLiveaboard;
 
   /// Where the day sits against today; drives the Today styling and whether
@@ -48,17 +47,22 @@ class ItineraryDayCard extends ConsumerWidget {
   /// above today, so the card just before it takes none.
   final double bottomGap;
 
+  /// What a tap does on the trip page (issue #4527): unlocked, the day
+  /// sheet hands its day here to hold until Save; locked (null), a tap does
+  /// nothing.
+  final ValueChanged<ItineraryDay>? hold;
+
   const ItineraryDayCard({
     super.key,
     required this.day,
     required this.dives,
-    required this.tripId,
     required this.isLiveaboard,
     required this.kind,
     this.photoCount = 0,
     this.sightings = const [],
     this.storedWeather,
     this.bottomGap = 8,
+    this.hold,
   });
 
   @override
@@ -95,12 +99,15 @@ class ItineraryDayCard extends ConsumerWidget {
             : null,
         shape: isToday ? todayCardShape(theme) : null,
         child: InkWell(
-          onTap: () => showItineraryDayEditSheet(
-            context: context,
-            day: day,
-            tripId: tripId,
-            isLiveaboard: isLiveaboard,
-          ),
+          onTap: switch (hold) {
+            null => null,
+            final hold => () => showItineraryDayEditSheet(
+              context: context,
+              day: day,
+              isLiveaboard: isLiveaboard,
+              hold: hold,
+            ),
+          },
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(12),

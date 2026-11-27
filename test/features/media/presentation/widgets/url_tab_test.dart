@@ -49,11 +49,13 @@ import 'package:submersion/features/media/data/services/network_fetch_pipeline.d
 import 'package:submersion/features/media/data/services/url_metadata_extractor.dart';
 import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/features/media/presentation/pages/media_import_review_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_import_suggestion_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/network_sources_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/manifest_mode_panel.dart';
 import 'package:submersion/features/media/presentation/widgets/network_signin_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/url_tab.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -206,6 +208,54 @@ void main() {
     // button (see Phase 3b Task 13).
     expect(find.text('Manifest URL'), findsOneWidget);
     expect(find.text('Fetch'), findsOneWidget);
+  });
+
+  // A sitting holds single links but not a feed's subscription and rows,
+  // so a picker opened from one offers no Manifest mode (issue #4527,
+  // media library decision 2).
+  group('in a sitting', () {
+    const hint = 'To add a feed of photos, use Import on the Media screen.';
+    Widget held(Widget child) => MediaHoldScope(sink: (_) {}, child: child);
+
+    testWidgets('there is no Manifest switch, and the hint shows', (
+      tester,
+    ) async {
+      await tester.pumpWidget(wrap(held(const UrlTab())));
+      expect(find.text('Manifest'), findsNothing);
+      expect(find.text('URLs'), findsNothing);
+      expect(find.text(hint), findsOneWidget);
+      expect(find.byType(TextField), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('a tab left in Manifest mode shows the links form', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        wrap(
+          held(const UrlTab()),
+          seed: const UrlTabState(mode: UrlTabMode.manifest),
+        ),
+      );
+      expect(find.byType(ManifestModePanel), findsNothing);
+      expect(find.text('Manifest URL'), findsNothing);
+      expect(find.text(hint), findsOneWidget);
+      expect(find.byType(TextField), findsAtLeastNWidgets(1));
+    });
+
+    testWidgets('outside a sitting the switch turns Manifest mode on', (
+      tester,
+    ) async {
+      await tester.pumpWidget(wrap(const UrlTab()));
+      await tester.tap(find.text('Manifest'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ManifestModePanel), findsOneWidget);
+    });
+
+    testWidgets('outside a sitting the hint does not show', (tester) async {
+      await tester.pumpWidget(wrap(const UrlTab()));
+      expect(find.text('Manifest'), findsOneWidget);
+      expect(find.text(hint), findsNothing);
+    });
   });
 
   testWidgets('per-line validation marks invalid URL inline', (tester) async {

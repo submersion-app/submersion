@@ -61,6 +61,7 @@ import 'package:submersion/features/gps_log/presentation/providers/gps_log_provi
 import 'package:submersion/features/media/presentation/providers/gallery_cloud_id_backfill_provider.dart';
 import 'package:submersion/features/media/presentation/providers/gallery_origin_backfill_provider.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/sync_health.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
@@ -704,6 +705,10 @@ final syncServiceProvider = Provider<SyncService>((ref) {
     // relink drops the old photo's mapping (spec 6.2).
     onMediaResolutionHints: (hints) =>
         ref.read(localAssetCacheRepositoryProvider).applyResolutionHints(hints),
+    // A peer's re-analysis deletes this device's identifications; their
+    // crop files and embeddings go with them (issue #4890).
+    onIdentificationsDeleted: (deleted) =>
+        ref.read(identificationCleanupProvider).onDeletedBySync(deleted),
   );
 });
 

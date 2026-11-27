@@ -274,8 +274,9 @@ class SpeciesPackStore {
     SpeciesPackManifest.classifierStem,
   ];
 
-  /// The model inside an unpacked folder: a compiled model when one was
-  /// made beside the package, else the package or file as unpacked.
+  /// The model inside an unpacked folder: a compiled Core ML model when one
+  /// was made beside the package, else an ONNX model, else the package or
+  /// file as unpacked.
   static Future<String?> _model(Directory dir) async {
     if (!await dir.exists()) return null;
     final names = [
@@ -285,6 +286,10 @@ class SpeciesPackStore {
     if (names.isEmpty) return null;
     for (final path in names) {
       if (path.endsWith('.mlmodelc')) return path;
+    }
+    // An ONNX model may keep its weights in a data file beside it.
+    for (final path in names) {
+      if (path.endsWith('.onnx')) return path;
     }
     return names.first;
   }

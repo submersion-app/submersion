@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/utils/number_display.dart';
+import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -20,6 +21,8 @@ import 'package:submersion/features/maps/presentation/widgets/map_corner_control
 import 'package:submersion/features/maps/presentation/widgets/map_interaction_options.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
 import 'package:submersion/features/maps/presentation/widgets/world_copies.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_button.dart';
+import 'package:submersion/features/maps/presentation/widgets/my_location_layer.dart';
 import 'package:submersion/shared/widgets/map_list_layout/map_list_scaffold.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_avatar.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_closed_tag.dart';
@@ -116,7 +119,7 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
           ? _buildMapInfoCard(context, selectedCenter)
           : null,
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/dive-centers/new'),
+        onPressed: () => openNewDiveCenter(context),
         icon: const Icon(Icons.add),
         label: Text(context.l10n.diveCenters_action_addCenter),
       ),
@@ -127,11 +130,19 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
           onPressed: () => context.go('/dive-centers'),
         ),
         IconButton(
-          icon: const Icon(Icons.my_location),
+          icon: const Icon(Icons.zoom_out_map),
           tooltip: context.l10n.diveCenters_tooltip_fitAllCenters,
           onPressed: () =>
               _camera.fitAll(_centerPoints(centersAsync.value ?? [])),
         ),
+        // Only while the pane draws the map: a fix found during the load or
+        // an error would have no map to move (#4808).
+        if (centersAsync.when(
+          data: (_) => true,
+          loading: () => false,
+          error: (_, _) => false,
+        ))
+          MyLocationButton(onLocated: _camera.animateTo),
       ],
     );
   }
@@ -251,6 +262,8 @@ class _DiveCenterMapPageState extends ConsumerState<DiveCenterMapPage>
                   },
                 ),
               ),
+              // The device, once Show my location has found it (#4808).
+              const MyLocationLayer(),
               const MapAttribution(),
             ],
           ),

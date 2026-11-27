@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -207,6 +209,84 @@ void main() {
         await tester.pumpAndSettle();
         expect(result, isFalse);
       });
+    });
+  });
+
+  group('closeRoutesAboveRouterPage', () {
+    NavigatorState navigatorOf(WidgetTester tester) =>
+        tester.state<NavigatorState>(find.byType(Navigator).first);
+
+    Route<void> pageless(String text, {bool guarded = false}) =>
+        MaterialPageRoute<void>(
+          builder: (_) => PopScope(
+            canPop: !guarded,
+            child: Scaffold(body: Text(text)),
+          ),
+        );
+
+    Future<void> pumpRouter(WidgetTester tester) async {
+      final router = GoRouter(
+        initialLocation: '/root',
+        routes: [GoRoute(path: '/root', builder: (_, _) => const Text('ROOT'))],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('pops the routes pushed above the router page', (tester) async {
+      await pumpRouter(tester);
+      unawaited(navigatorOf(tester).push(pageless('VIEWER')));
+      await tester.pumpAndSettle();
+      unawaited(
+        showModalBottomSheet<void>(
+          context: tester.element(find.text('VIEWER')),
+          builder: (_) => const Text('SHEET'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(closeRoutesAboveRouterPage(navigatorOf(tester)), isTrue);
+      await tester.pumpAndSettle();
+      expect(find.text('SHEET'), findsNothing);
+      expect(find.text('VIEWER'), findsNothing);
+      expect(find.text('ROOT'), findsOneWidget);
+    });
+
+    testWidgets('a route that will not close stops it, and is asked', (
+      tester,
+    ) async {
+      await pumpRouter(tester);
+      unawaited(navigatorOf(tester).push(pageless('VIEWER', guarded: true)));
+      await tester.pumpAndSettle();
+      unawaited(
+        showModalBottomSheet<void>(
+          context: tester.element(find.text('VIEWER')),
+          builder: (_) => const Text('SHEET'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(closeRoutesAboveRouterPage(navigatorOf(tester)), isFalse);
+      await tester.pumpAndSettle();
+      expect(find.text('SHEET'), findsNothing);
+      expect(find.text('VIEWER'), findsOneWidget);
+    });
+
+    // A navigator started from `home:` has no page: its first route is the
+    // floor, or the navigator would be left with nothing on it.
+    testWidgets('never pops the first route of a navigator with no page', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: Text('HOME')));
+      unawaited(navigatorOf(tester).push(pageless('VIEWER')));
+      await tester.pumpAndSettle();
+
+      expect(closeRoutesAboveRouterPage(navigatorOf(tester)), isTrue);
+      await tester.pumpAndSettle();
+      expect(find.text('VIEWER'), findsNothing);
+      expect(find.text('HOME'), findsOneWidget);
+      expect(navigatorOf(tester).canPop(), isFalse);
     });
   });
 }

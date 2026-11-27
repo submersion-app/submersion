@@ -321,77 +321,85 @@ class _QueryTextFieldState extends State<QueryTextField> {
     final error = _error;
     _controller.errorColor = Theme.of(context).colorScheme.error;
     final describe = widget.describeError ?? (QueryError e) => e.message;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CallbackShortcuts(
-          bindings: {
-            ...widget.shortcuts,
-            if (widget.onEscape != null)
-              const SingleActivator(LogicalKeyboardKey.escape):
-                  widget.onEscape!,
-          },
-          child: TextField(
-            key: widget.fieldKey,
-            controller: _controller,
-            focusNode: _focus,
-            autofocus: widget.autofocus,
-            autocorrect: false,
-            enableSuggestions: false,
-            textInputAction: TextInputAction.search,
-            style: const TextStyle(fontFamily: 'monospace'),
-            decoration: InputDecoration(
-              hintText: widget.hintText,
-              // The hint is prose: in the field's monospace it is too wide
-              // for a phone's search row.
-              hintStyle: TextStyle(
-                fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
+    // The suggestion and completion chips sit outside the TextField: in its
+    // tap region they count as part of it, so a tap on one keeps the caret
+    // (and a phone's keyboard) where it is (#4813).
+    return TextFieldTapRegion(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CallbackShortcuts(
+            bindings: {
+              ...widget.shortcuts,
+              if (widget.onEscape != null)
+                const SingleActivator(LogicalKeyboardKey.escape):
+                    widget.onEscape!,
+            },
+            child: TextField(
+              key: widget.fieldKey,
+              controller: _controller,
+              focusNode: _focus,
+              autofocus: widget.autofocus,
+              autocorrect: false,
+              enableSuggestions: false,
+              textInputAction: TextInputAction.search,
+              style: const TextStyle(fontFamily: 'monospace'),
+              decoration: InputDecoration(
+                hintText: widget.hintText,
+                // The hint is prose: in the field's monospace it is too wide
+                // for a phone's search row.
+                hintStyle: TextStyle(
+                  fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
+                ),
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _controller.text.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.clear),
+                        tooltip: widget.clearTooltip,
+                        onPressed: () =>
+                            _replace(0, _controller.text.length, ''),
+                      ),
+                errorText: error == null ? null : describe(error),
               ),
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _controller.text.isEmpty
-                  ? null
-                  : IconButton(
-                      icon: const Icon(Icons.clear),
-                      tooltip: widget.clearTooltip,
-                      onPressed: () => _replace(0, _controller.text.length, ''),
+              onChanged: _onEdited,
+              onSubmitted: (_) => widget.onSubmitted?.call(),
+            ),
+          ),
+          if (error != null && suggestionsReplaceSpan(error, _controller.text))
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Wrap(
+                spacing: 8,
+                children: [
+                  for (final s in error.suggestions)
+                    ActionChip(
+                      avatar: const Icon(Icons.error_outline, size: 16),
+                      label: Text(s),
+                      onPressed: () =>
+                          _replace(error.offset!, error.length!, s),
                     ),
-              errorText: error == null ? null : describe(error),
+                ],
+              ),
+            )
+          else if (_completions.isNotEmpty &&
+              (_focus.hasFocus || error == null))
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Wrap(
+                spacing: 8,
+                children: [
+                  for (final c in _completions)
+                    ActionChip(
+                      label: Text(c.text),
+                      onPressed: () =>
+                          _replace(c.replaceStart, c.replaceLength, c.text),
+                    ),
+                ],
+              ),
             ),
-            onChanged: _onEdited,
-            onSubmitted: (_) => widget.onSubmitted?.call(),
-          ),
-        ),
-        if (error != null && suggestionsReplaceSpan(error, _controller.text))
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Wrap(
-              spacing: 8,
-              children: [
-                for (final s in error.suggestions)
-                  ActionChip(
-                    avatar: const Icon(Icons.error_outline, size: 16),
-                    label: Text(s),
-                    onPressed: () => _replace(error.offset!, error.length!, s),
-                  ),
-              ],
-            ),
-          )
-        else if (_completions.isNotEmpty && (_focus.hasFocus || error == null))
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Wrap(
-              spacing: 8,
-              children: [
-                for (final c in _completions)
-                  ActionChip(
-                    label: Text(c.text),
-                    onPressed: () =>
-                        _replace(c.replaceStart, c.replaceLength, c.text),
-                  ),
-              ],
-            ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -27,6 +27,9 @@ class ServiceRecordDialog extends ConsumerStatefulWidget {
 
   /// Pre-selects which service clock this record fulfills.
   final String? serviceKindId;
+
+  /// Takes the record: an item page's sitting holds it until its Save
+  /// (issue #4527, phase 3).
   final Future<void> Function(ServiceRecord) onSave;
 
   const ServiceRecordDialog({
@@ -626,18 +629,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
 
       await widget.onSave(record);
 
-      if (mounted) {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              isEditing
-                  ? context.l10n.equipment_serviceDialog_snackbar_updated
-                  : context.l10n.equipment_serviceDialog_snackbar_added,
-            ),
-          ),
-        );
-      }
+      if (mounted) Navigator.of(context).pop();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -654,19 +646,19 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
 }
 
 /// Logs a service for [equipmentId], fulfilling [serviceKindId]'s clock when
-/// given: the detail page's Log service and the gear passport's share it.
+/// given, from a clock in an item page's sitting (issue #4527, phase 3): the
+/// record is handed to [onHold] and written with the Save.
 Future<void> showLogServiceDialog(
   BuildContext context,
   WidgetRef ref, {
   required String equipmentId,
   String? serviceKindId,
+  required void Function(ServiceRecord record) onHold,
 }) => showDialog<void>(
   context: context,
   builder: (context) => ServiceRecordDialog(
     equipmentId: equipmentId,
     serviceKindId: serviceKindId,
-    onSave: (record) => ref
-        .read(serviceRecordNotifierProvider(equipmentId).notifier)
-        .addRecord(record),
+    onSave: (record) async => onHold(record),
   ),
 );

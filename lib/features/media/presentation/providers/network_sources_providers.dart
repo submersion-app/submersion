@@ -29,7 +29,9 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
 import 'package:submersion/features/media/data/services/cached_network_image_diagnostics.dart';
 import 'package:submersion/features/media/data/services/host_rate_limiter.dart';
+import 'package:submersion/features/media/data/services/network_credentials_service.dart';
 import 'package:submersion/features/media/data/services/network_scan_service.dart';
+import 'package:submersion/features/media/data/synology/synology_share_link.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
@@ -67,6 +69,71 @@ final networkScanServiceProvider = Provider<NetworkScanService>(
 final savedHostsProvider = FutureProvider<List<NetworkCredentialHost>>(
   (ref) => ref.watch(networkCredentialsServiceProvider).list(),
 );
+
+/// The album name of each saved share password row, keyed by the row's
+/// hostname ([NetworkCredentialsService.synologyShareKey]), from the
+/// subscription that reads the share. A row whose share has no named
+/// subscription is absent. Empty when the subscriptions cannot be read: a
+/// name is a convenience, the list must show without it.
+final savedHostAlbumNamesProvider = FutureProvider<Map<String, String>>((
+  ref,
+) async {
+  try {
+    // Every subscription, paused ones too: pausing a feed keeps its saved
+    // password row, which must keep its album name.
+    final repository = ref.watch(manifestSubscriptionRepositoryProvider);
+    ref.invalidateSelfWhen(repository.watchSubscriptionsChanges());
+    final subs = await repository.listAll();
+    return {
+      for (final s in subs)
+        if (s.displayName != null && s.displayName!.isNotEmpty)
+          if (SynologyShareLink.tryParseShareUrl(s.manifestUrl)
+              case final link?)
+            NetworkCredentialsService.synologyShareKey(link): s.displayName!,
+    };
+  } on Object {
+    return const {};
+  }
+});
+
+/// The share link each saved share password row stands for, keyed by the
+/// row's hostname ([NetworkCredentialsService.synologyShareKey]), from the
+/// subscription that reads the share. The key drops the share's path
+/// prefix (`/photo` behind some reverse proxies), and the subscription's
+/// own link keeps it. Empty when the subscriptions cannot be read.
+final savedHostShareLinksProvider =
+    FutureProvider<Map<String, SynologyShareLink>>((ref) async {
+      try {
+        final repository = ref.watch(manifestSubscriptionRepositoryProvider);
+        ref.invalidateSelfWhen(repository.watchSubscriptionsChanges());
+        final links = [
+          for (final s in await repository.listAll())
+            SynologyShareLink.tryParseShareUrl(s.manifestUrl),
+        ].nonNulls;
+        return {
+          for (final link in links)
+            NetworkCredentialsService.synologyShareKey(link): link,
+        };
+      } on Object {
+        return const {};
+      }
+    });
+
+/// Whether this device holds the secret of the saved host row named by the
+/// argument; see [NetworkCredentialsService.hasSecret]. Recomputed with the
+/// saved hosts, so saving a password clears the mark. A keychain that cannot
+/// be read is not reported as missing.
+final savedHostHasSecretProvider = FutureProvider.autoDispose
+    .family<bool, String>((ref, hostname) async {
+      ref.watch(savedHostsProvider);
+      try {
+        return await ref
+            .watch(networkCredentialsServiceProvider)
+            .hasSecret(hostname);
+      } on Object {
+        return true;
+      }
+    });
 
 /// Manifest subscriptions displayed in the Manifest subscriptions card.
 /// Surfaces every active subscription regardless of `nextPollAt`.

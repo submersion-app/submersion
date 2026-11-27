@@ -1,224 +1,301 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:go_router/go_router.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/waiting_for_download_card.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
-
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
+import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_requirement_providers.dart';
-import 'package:submersion/features/dashboard/presentation/home_cards.dart';
+import 'package:submersion/features/dashboard/presentation/home_header_style.dart';
 import 'package:submersion/features/dashboard/presentation/home_layout.dart';
+import 'package:submersion/features/dashboard/presentation/home_panels.dart';
+import 'package:submersion/features/dashboard/presentation/home_presets.dart';
+import 'package:submersion/features/dashboard/presentation/panels/activity_calendar_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/coming_due_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/conditional_panels.dart';
+import 'package:submersion/features/dashboard/presentation/panels/depth_mix_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/distribution_panels.dart';
+import 'package:submersion/features/dashboard/presentation/panels/dives_per_month_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/first_dive_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/gear_service_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/key_numbers_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/latest_profile_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/latest_vs_average_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/next_trip_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/ranking_panels.dart';
+import 'package:submersion/features/dashboard/presentation/panels/recent_outings_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/recent_dives_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/sac_trend_panel.dart';
+import 'package:submersion/features/dashboard/presentation/panels/species_seen_panel.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
-import 'package:submersion/features/dashboard/presentation/providers/milestone_providers.dart';
+import 'package:submersion/features/dashboard/presentation/providers/home_panel_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/media_ribbon_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/dashboard_grid.dart';
-import 'package:submersion/features/dashboard/presentation/widgets/gauge_strip.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/hero_header.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/home_banner_row.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/home_header_bar.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/home_panel.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/pause_when_scrolled_away.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/quick_actions_card.dart';
 import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_entries.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
+import 'package:submersion/features/insights/presentation/providers/career_totals_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/species_id/presentation/widgets/home_species_banner.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Dashboard home page: monitor-first status gauges over a responsive
-/// card grid that reflows from one phone column to a 3-column desktop
-/// layout (one ordered block list drives both). The user's card order and
-/// visibility come from settings, except that a live safety alert forces
-/// the gauge strip to render (see [_hasSafetyAlert]).
+/// Home as a technical dashboard (issue #4824): a slim header with the
+/// status lights over a grid of panels whose rows always run edge to edge.
+/// Which panels show, and in what order, comes from the diver's layout
+/// (a preset they may have customised).
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Conditional-block gating: a block is included only once its provider
-    // has resolved to content. Loading and error both resolve to excluded,
-    // because these cards render SizedBox.shrink() when they have nothing
-    // to show and a zero-height block would still consume a grid row gap
-    // (phantom spacing). Always-on blocks contain their own error state.
+    final layout = resolveHomeLayout(
+      storedOrder: ref.watch(settingsProvider.select((s) => s.homePanelOrder)),
+      storedHidden: ref.watch(
+        settingsProvider.select((s) => s.hiddenHomePanels),
+      ),
+      legacyHiddenCards: ref.watch(
+        settingsProvider.select((s) => s.hiddenHomeCards),
+      ),
+    );
+    final hiddenTiles = ref.watch(
+      settingsProvider.select((s) => s.hiddenHomeKeyNumbers),
+    );
+
+    // A conditional panel joins the grid only once its data resolves to
+    // something worth showing: loading and error both leave it out, so the
+    // grid never lays out an empty box. A hidden panel's provider is never
+    // watched (issue #4251): hiding a panel spares Home its work.
     bool show<T>(AsyncValue<T>? value, bool Function(T data) hasContent) =>
         value?.maybeWhen(data: hasContent, orElse: () => false) ?? false;
-
-    final homeCardOrder = ref.watch(
-      settingsProvider.select((s) => s.homeCardOrder),
-    );
-    final hiddenHomeCards = ref.watch(
-      settingsProvider.select((s) => s.hiddenHomeCards),
-    );
-
-    // A hidden card's provider is not watched here (issue #4251): On This Day
-    // reads dives, and hiding the card has to spare Home that work. Null
-    // stands for "hidden, never loaded"; [show] reads it as no content. The
-    // gauge strip stays watched, since a live alert brings it back when
-    // hidden, and its course chip reads the active courses itself, so hiding
-    // the Active Courses card saves no read.
-    AsyncValue<T>? watchUnlessHidden<T>(
-      HomeCardType card,
+    AsyncValue<T>? watchIfShown<T>(
+      HomePanelType panel,
       ProviderListenable<AsyncValue<T>> provider,
-    ) => hiddenHomeCards.contains(card.name) ? null : ref.watch(provider);
+    ) => layout.hidden.contains(panel) ? null : ref.watch(provider);
 
-    final gauges = ref.watch(dashboardGaugesProvider);
-    final milestones = watchUnlessHidden(
-      HomeCardType.milestones,
-      milestonesProvider,
-    );
-    final media = watchUnlessHidden(
-      HomeCardType.photoRibbon,
-      recentMediaProvider,
-    );
-    final onThisDay = watchUnlessHidden(
-      HomeCardType.onThisDay,
-      onThisDayProvider,
-    );
-    final yearInReview = watchUnlessHidden(
-      HomeCardType.yearInReview,
-      yearInReviewProvider,
-    );
-    final courses = watchUnlessHidden(
-      HomeCardType.activeCourses,
-      activeCoursesProgressProvider,
-    );
-    final sites = watchUnlessHidden(
-      HomeCardType.recentSitesMap,
+    final media = watchIfShown(HomePanelType.photoRibbon, recentMediaProvider);
+    final sites = watchIfShown(
+      HomePanelType.recentSitesMap,
       recentSitesProvider,
     );
-    final drafts = watchUnlessHidden(
-      HomeCardType.waitingForDownload,
+    final onThisDay = watchIfShown(HomePanelType.onThisDay, onThisDayProvider);
+    final courses = watchIfShown(
+      HomePanelType.activeCourses,
+      activeCoursesProgressProvider,
+    );
+    final drafts = watchIfShown(
+      HomePanelType.waitingForDownload,
       draftDivesProvider,
     );
+    final species = watchIfShown(
+      HomePanelType.speciesSeen,
+      homeRecentSpeciesProvider,
+    );
+    final gauges = ref.watch(dashboardGaugesProvider);
+    final preDive =
+        !layout.hidden.contains(HomePanelType.preDive) &&
+        preDivePanelHasContent(ref);
+    // Watched only when shown (issue #4251): the numbers read ten sources.
+    final keyNumbers = layout.hidden.contains(HomePanelType.keyNumbers)
+        ? null
+        : ref.watch(homeKeyNumbersProvider).value;
 
-    bool hasContent(HomeCardType card) => switch (card) {
-      HomeCardType.milestones => show(milestones, (m) => !m.isEmpty),
-      HomeCardType.photoRibbon => show(media, (m) => m.isNotEmpty),
-      HomeCardType.onThisDay => show(onThisDay, (d) => d.isNotEmpty),
-      HomeCardType.yearInReview => show(yearInReview, (y) => y != null),
-      HomeCardType.activeCourses => show(courses, (c) => c.isNotEmpty),
-      HomeCardType.waitingForDownload => show(
+    bool hasContent(HomePanelType panel) => switch (panel) {
+      HomePanelType.photoRibbon => show(media, (m) => m.isNotEmpty),
+      // Waits for the first photo result: photos arriving later would join
+      // the map's row and change the panel the row is keyed by, which would
+      // remount the map. A hidden photo panel never joins, so nothing waits.
+      HomePanelType.recentSitesMap =>
+        (media == null || media.hasValue || !media.isLoading) &&
+            show(sites, (s) => s.isNotEmpty),
+      HomePanelType.onThisDay => show(onThisDay, (d) => d.isNotEmpty),
+      HomePanelType.activeCourses => show(courses, (c) => c.isNotEmpty),
+      HomePanelType.waitingForDownload => show(
         drafts,
         (d) => draftsWaitingForDownload(d).isNotEmpty,
       ),
-      // Holds for the first photo result: photos arriving later would pull
-      // the map into a shared row, and moving it under that Row remounts it,
-      // paying for the map twice on the way to the same layout. A hidden
-      // photo ribbon never joins the row, so there is nothing to wait for.
-      HomeCardType.recentSitesMap =>
-        (media == null || media.hasValue || !media.isLoading) &&
-            show(sites, (s) => s.isNotEmpty),
+      HomePanelType.speciesSeen => show(species, (s) => s.isNotEmpty),
+      HomePanelType.nextTrip => show(gauges, (g) => g.nextTrip != null),
+      HomePanelType.preDive => preDive,
+      // With every tile off, or none with anything to say yet, the row would
+      // be an empty box.
+      HomePanelType.keyNumbers =>
+        KeyNumbersPanel.enabledTiles(hiddenTiles).isNotEmpty &&
+            (keyNumbers == null ||
+                KeyNumbersPanel.visibleTileCount(keyNumbers, hiddenTiles) > 0),
       _ => true,
     };
 
-    // A live safety alert overrides the diver's choice to hide the gauge
-    // strip: hardened chips are useless if the whole card they live in can
-    // be switched off. Keyed off the same provider the strip itself reads,
-    // so there is one definition of what counts as urgent.
-    final forceGaugeStrip = show(gauges, _hasSafetyAlert);
-
-    final orderedCards = reconcileHomeCardOrder(homeCardOrder);
-
-    // The cards the diver actually asked for. Tracked separately from
-    // visibleCards so a forced gauge strip cannot masquerade as "you still
-    // have cards" and suppress the all-hidden CTA.
-    final chosenCards = [
-      for (final card in orderedCards)
-        if (!hiddenHomeCards.contains(card.name) && hasContent(card)) card,
+    final visible = [
+      for (final p in layout.visible)
+        if (hasContent(p)) p,
     ];
+    final tier = homeWidthTierOf(context);
+    final rows = packHomeRows(visible, tier);
+    // The header the diver chose for this width (issue #5003), saved on the
+    // device: the welcome banner scrolls with the page above a pinned row of
+    // quick actions and lights; the compact bar stays above the scroll view.
+    final banner =
+        ref.watch(
+          settingsProvider.select((s) => homeHeaderStyleFor(s, tier)),
+        ) ==
+        HomeHeaderStyle.banner;
+    final noDives = ref.watch(diveStatisticsProvider).value?.totalDives == 0;
 
-    // The forced strip keeps its natural position in the order rather than
-    // being pinned to the top: it is a card that came back, not a banner.
-    final visibleCards = [
-      for (final card in orderedCards)
-        if ((!hiddenHomeCards.contains(card.name) ||
-                (card == HomeCardType.gaugeStrip && forceGaugeStrip)) &&
-            hasContent(card))
-          card,
-    ];
-
-    final entries = buildDashboardEntries(visibleCards);
+    double rowHeight(HomeRow row) =>
+        row.panels.first == HomePanelType.keyNumbers
+        ? KeyNumbersPanel.heightFor(
+            context,
+            tier,
+            KeyNumbersPanel.visibleTileCount(keyNumbers, hiddenTiles),
+          )
+        : homeRowHeight(row.height, context);
 
     return Scaffold(
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(diveStatisticsProvider);
-            ref.invalidate(recentDivesProvider);
-            ref.invalidate(dashboardGaugesProvider);
-            ref.invalidate(daysSinceLastDiveProvider);
-            ref.invalidate(dashboardQuickStatsProvider);
-            ref.invalidate(milestonesProvider);
-            ref.invalidate(recentMediaProvider);
-            ref.invalidate(onThisDayProvider);
-            ref.invalidate(yearInReviewProvider);
-            ref.invalidate(recentSitesProvider);
-            ref.invalidate(certificationListNotifierProvider);
-            // dueClocksProvider derives from this; invalidating the base
-            // forces a fresh per-item clock evaluation on pull-to-refresh.
-            ref.invalidate(activeEquipmentClocksProvider);
-            ref.invalidate(activeCoursesProgressProvider);
-            ref.invalidate(draftDivesProvider);
-          },
-          child: CustomScrollView(
-            slivers: [
-              // Demo mode's way out heads the page (issue #4436).
-              const SliverToBoxAdapter(child: DemoModeDashboardCard()),
-              SliverPadding(
-                padding: const EdgeInsets.all(16),
-                // Keyed off chosenCards, not visibleCards: a strip forced back
-                // by a safety alert renders above the CTA rather than replacing
-                // it, so the diver keeps the route to re-enable their cards.
-                sliver: chosenCards.isEmpty
-                    ? SliverToBoxAdapter(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            if (forceGaugeStrip) ...[
-                              const GaugeStrip(),
-                              const SizedBox(height: 16),
-                            ],
-                            const _AllCardsHiddenState(),
-                          ],
+        child: Column(
+          children: [
+            if (!banner) ...[const HomeHeaderBar(), const HomeStatusStrip()],
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async => _refresh(ref),
+                child: CustomScrollView(
+                  slivers: [
+                    // Demo mode's way out heads the page (issue #4436).
+                    const SliverToBoxAdapter(child: DemoModeDashboardCard()),
+                    if (banner) ...[
+                      // Its ocean stops animating once it has scrolled
+                      // away under the pinned row.
+                      const SliverToBoxAdapter(
+                        child: PauseWhenScrolledAway(
+                          child: Padding(
+                            padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
+                            child: HeroHeader(),
+                          ),
                         ),
-                      )
-                    : DashboardGrid(entries: entries),
+                      ),
+                      const SliverPersistentHeader(
+                        pinned: true,
+                        delegate: HomeBannerRowDelegate(),
+                      ),
+                    ],
+                    // The species model offer, for a diver who would
+                    // otherwise never hear of it (issue #4881).
+                    const SliverToBoxAdapter(child: HomeSpeciesBanner()),
+                    SliverPadding(
+                      padding: const EdgeInsets.all(12),
+                      // The first-dive panel cannot be hidden, so an empty
+                      // log keeps the grid even with every panel off. With
+                      // dives, no panel to show (all off, or the ones on
+                      // have nothing today) points at the settings.
+                      sliver: visible.isEmpty && !noDives
+                          ? const SliverToBoxAdapter(child: _AllHiddenState())
+                          : DashboardGrid(
+                              rows: rows,
+                              panelBuilder: _panel,
+                              rowHeight: rowHeight,
+                              leadingFirst:
+                                  rows.isEmpty ||
+                                  rows.first.panels.first !=
+                                      HomePanelType.keyNumbers,
+                              leading: noDives
+                                  ? SizedBox(
+                                      height: homeRowHeight(
+                                        HomePanelHeight.medium,
+                                        context,
+                                      ),
+                                      child: const FirstDivePanel(),
+                                    )
+                                  : null,
+                            ),
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
+
+  static Widget _panel(HomePanelType panel) => switch (panel) {
+    HomePanelType.keyNumbers => const KeyNumbersPanel(),
+    HomePanelType.quickActions => const QuickActionsCard(),
+    HomePanelType.waitingForDownload => const WaitingForDownloadPanel(),
+    HomePanelType.preDive => const PreDivePanel(),
+    HomePanelType.activeCourses => const ActiveCoursePanel(),
+    HomePanelType.activityCalendar => const ActivityCalendarPanel(),
+    HomePanelType.recentOutings => const RecentOutingsPanel(),
+    HomePanelType.gearService => const GearServicePanel(),
+    HomePanelType.comingDue => const ComingDuePanel(),
+    HomePanelType.nextTrip => const NextTripPanel(),
+    HomePanelType.latestProfile => const LatestProfilePanel(),
+    HomePanelType.latestVsAverage => const LatestVsAveragePanel(),
+    HomePanelType.recentDives => const RecentDivesPanel(),
+    HomePanelType.sacTrend => const SacTrendPanel(),
+    HomePanelType.depthMix => const DepthMixPanel(),
+    HomePanelType.divesPerMonth => const DivesPerMonthPanel(),
+    HomePanelType.gasMix => const GasMixPanel(),
+    HomePanelType.diveTypes => const DiveTypesPanel(),
+    HomePanelType.topSites => const TopSitesPanel(),
+    HomePanelType.topBuddies => const TopBuddiesPanel(),
+    HomePanelType.speciesSeen => const SpeciesSeenPanel(),
+    HomePanelType.photoRibbon => const PhotosPanel(),
+    HomePanelType.recentSitesMap => const RecentSitesPanel(),
+    HomePanelType.onThisDay => const OnThisDayPanel(),
+  };
+
+  /// Everything Home reads, so a pull to refresh reloads all of it.
+  void _refresh(WidgetRef ref) {
+    ref.invalidate(diveStatisticsProvider);
+    // The welcome banner's totals and countries.
+    ref.invalidate(careerTotalsProvider);
+    ref.invalidate(logbookDiveCountsProvider);
+    ref.invalidate(homeCountriesVisitedProvider);
+    ref.invalidate(recentDivesProvider);
+    ref.invalidate(dashboardGaugesProvider);
+    ref.invalidate(daysSinceLastDiveProvider);
+    ref.invalidate(homeSpeciesCountProvider);
+    ref.invalidate(yearInReviewProvider);
+    ref.invalidate(recentMediaProvider);
+    ref.invalidate(onThisDayProvider);
+    ref.invalidate(recentSitesProvider);
+    ref.invalidate(certificationListNotifierProvider);
+    // The service clocks derive from this; invalidating the base forces a
+    // fresh evaluation of every clock.
+    ref.invalidate(activeEquipmentClocksProvider);
+    ref.invalidate(activeCoursesProgressProvider);
+    ref.invalidate(draftDivesProvider);
+    ref.invalidate(homeTripChecklistProvider);
+    ref.invalidate(homeActivityDaysProvider);
+    ref.invalidate(homeMonthlyDivesProvider);
+    ref.invalidate(homeSacSeriesProvider);
+    ref.invalidate(homeAveragesProvider);
+    ref.invalidate(homeGasMixProvider);
+    ref.invalidate(homeDiveTypesProvider);
+    ref.invalidate(homeTopBuddiesProvider);
+    ref.invalidate(homeRecentSpeciesProvider);
+    ref.invalidate(homeLatestProfileProvider);
+    // Reads the documents itself, so it is not reached through the gauges.
+    ref.invalidate(homeComingDueProvider);
+    ref.invalidate(homeNewSpeciesThisYearProvider);
+    ref.invalidate(homeDeepestThisYearProvider);
+    ref.invalidate(homeKeyNumbersProvider);
+  }
 }
 
-/// Whether the gauge strip is currently carrying a dive-safety fact the diver
-/// cannot dismiss: lapsed gear service, an expired insurance policy, or a
-/// flight window that is shut.
-///
-/// GaugeStrip hardens these three chip types against the hidden-chips setting;
-/// this is the matching guard one level up, so hiding the whole strip card
-/// cannot suppress them either. Currency and backup-age chips can also go red
-/// but are deliberately absent: they are habit nags, and hiding one is a
-/// legitimate choice.
-bool _hasSafetyAlert(DashboardGauges g) {
-  final insurance = g.insurance;
-  // Mirrors GaugeStrip's expired branch, which only fires on a real policy:
-  // a diver with no insurance recorded gets a neutral chip, not an alert, so
-  // it must not force the strip open either.
-  final expiredPolicy =
-      insurance != null &&
-      insurance.providerLabel != null &&
-      insurance.isExpired;
-  // The strip renders one alert-tone chip for the whole overdue bucket,
-  // whatever its size, so the presence of the bucket is the whole rule.
-  return g.gearOverdue != null ||
-      expiredPolicy ||
-      g.flightWindow?.state == FlightWindowState.closed ||
-      g.flightWindow?.state == FlightWindowState.conflict;
-}
-
-/// Shown when the user has hidden every home card: points at the settings
-/// page where cards can be re-enabled instead of leaving a blank page.
-class _AllCardsHiddenState extends StatelessWidget {
-  const _AllCardsHiddenState();
+/// Shown when the diver has switched every panel off: points at the
+/// settings page where they come back, instead of leaving a blank page.
+class _AllHiddenState extends StatelessWidget {
+  const _AllHiddenState();
 
   @override
   Widget build(BuildContext context) {

@@ -309,6 +309,32 @@ void main() {
     },
   );
 
+  test('a species row saved before keys were kept is refetched', () async {
+    // Written by a build that saved no species keys: read back, it would
+    // match no marine life suggestion for the rest of its 30 days.
+    await ReefCacheDao(db, now: () => clock).write(
+      provider: ReefProviderId.species,
+      coordKey: ReefCoordinateKey.format(const GeoPoint(12.16, -68.28)),
+      variant: 'v3',
+      status: ReefDataStatus.ok,
+      payloadJson:
+          '{"matched":[{"speciesId":"sp_sixbar_wrasse","occurrenceCount":5}],'
+          '"unmatchedNames":[]}',
+    );
+    var searches = 0;
+    final repo = buildRepository(
+      speciesClient: MockClient((request) async {
+        if (request.url.path.endsWith('/occurrence/search')) searches++;
+        return http.Response(_facetBody([2384460]), 200);
+      }),
+    );
+
+    final part = await repo.speciesFor(const GeoPoint(12.16, -68.28));
+
+    expect(searches, 1);
+    expect(part.value!.speciesKeys, {2384460});
+  });
+
   test('a concurrent caller shares a partial species result', () async {
     var searches = 0;
     final repo = buildRepository(
@@ -517,6 +543,42 @@ void main() {
     clock = clock.add(const Duration(hours: 2));
     await repo.habitatFor(const GeoPoint(12.16, -68.28));
     expect(habitatCalls, 2);
+  });
+
+  // A request that got no answer (no network) says nothing about the
+  // source, so it is not saved: back online, the next view asks again
+  // rather than reading "could not fetch" for the next hour. A failure the
+  // server answered is still saved, as the test above shows.
+  group('a request that got no answer is not saved as a failure', () {
+    const point = GeoPoint(12.16, -68.28);
+    final parts = <String, Future<ReefPart<Object?>> Function(ReefRepository)>{
+      'habitat': (repo) => repo.habitatFor(point),
+      'current health': (repo) => repo.currentHealthFor(point),
+      'protection': (repo) => repo.protectionFor(point),
+      'nearby species': (repo) => repo.speciesFor(point),
+    };
+    for (final MapEntry(key: name, value: read) in parts.entries) {
+      test(name, () async {
+        var requests = 0;
+        final offline = MockClient((request) async {
+          requests++;
+          throw http.ClientException('Failed host lookup', request.url);
+        });
+        final repo = buildRepository(
+          habitatClient: offline,
+          healthClient: offline,
+          protectionClient: offline,
+          speciesClient: offline,
+        );
+
+        final first = await read(repo);
+        expect(first.status, ReefDataStatus.unavailable);
+        final asked = requests;
+        await read(repo);
+
+        expect(requests, greaterThan(asked));
+      });
+    }
   });
 
   test('healthFor caches a past dive date permanently', () async {

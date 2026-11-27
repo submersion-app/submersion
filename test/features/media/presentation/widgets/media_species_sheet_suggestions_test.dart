@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,7 +16,10 @@ import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_sheet.dart';
+import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/presentation/providers/recorded_nearby_providers.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
@@ -88,17 +93,21 @@ void main() {
   late _Tagging tagging;
   late RecordingIdentificationService service;
   late FakeAcceptor acceptor;
+  late List<NearbyListRequest> nearbyAsked;
 
   setUp(() {
     marineLifeIdEnabled = true;
     tagging = _Tagging();
     service = RecordingIdentificationService();
     acceptor = FakeAcceptor();
+    nearbyAsked = [];
   });
   tearDown(resetMarineLifeIdEnabled);
 
   /// Pumps the sheet over [sitting], or over a sitting opened on [chips]
-  /// as the viewer does, and returns the sitting it holds in.
+  /// as the viewer does, and returns the sitting it holds in. The
+  /// "Recorded nearby" list is [nearby], or [pending] until it completes,
+  /// so no test here reaches GBIF.
   Future<EditSession<PhotoRecord>> pump(
     WidgetTester tester, {
     List<SpeciesSuggestion> suggestions = const [],
@@ -109,6 +118,9 @@ void main() {
     List<Species> allSpecies = const [],
     MediaItem? item,
     double? progress,
+    bool promptWanted = false,
+    NearbySpecies? nearby,
+    Completer<NearbySpecies?>? pending,
   }) async {
     final shown =
         sitting ??
@@ -133,11 +145,16 @@ void main() {
           ).overrideWith((ref) => Stream.value(busy)),
           mediaIdentificationServiceProvider.overrideWithValue(service),
           suggestionAcceptorProvider.overrideWithValue(acceptor),
-          identificationCropFileProvider.overrideWith((ref, key) async => null),
+          identificationCropProvider.overrideWith((ref, key) async => null),
           allSpeciesProvider.overrideWith((ref) async => allSpecies),
           mediaIdentificationProgressProvider(
             'p1',
           ).overrideWith((ref) => Stream.value(progress)),
+          speciesDownloadPromptProvider.overrideWithValue(promptWanted),
+          recordedNearbyListProvider.overrideWith((ref, request) {
+            nearbyAsked.add(request);
+            return pending?.future ?? Future.value(nearby);
+          }),
         ],
         child: MediaSpeciesSheet(item: item ?? _photo(), sitting: shown),
       ),
@@ -175,6 +192,14 @@ void main() {
     ) async {
       await pump(tester);
       expect(find.text('Suggested'), findsNothing);
+    });
+
+    testWidgets('with no model it offers the download (#4773)', (tester) async {
+      await pump(tester, promptWanted: true);
+      expect(
+        find.byKey(const ValueKey('species_download_prompt')),
+        findsOneWidget,
+      );
     });
 
     testWidgets('a video says video in its title (issue #4675)', (
@@ -333,6 +358,127 @@ void main() {
         find.byKey(const ValueKey('media_suggested_candidate_2')),
         findsOneWidget,
       );
+    });
+  });
+
+  group('Recorded nearby (issue #4668)', () {
+    Finder markerIn(String key) => find.descendant(
+      of: find.byKey(ValueKey(key)),
+      matching: find.text('Recorded nearby'),
+    );
+
+    testWidgets('a suggestion recorded nearby says so', (tester) async {
+      await pump(
+        tester,
+        suggestions: [
+          suggestion(parrotfish, score: 0.92),
+          suggestion(chromis, score: 0.71, cropId: 'i2'),
+        ],
+        nearby: const NearbySpecies(speciesKeys: {1}),
+      );
+      expect(markerIn('media_suggested_row_1'), findsOneWidget);
+      expect(markerIn('media_suggested_row_2'), findsNothing);
+      // The photo's dive, and no GPS of its own.
+      expect(nearbyAsked.toSet(), {(diveId: 'd1', photo: null)});
+    });
+
+    testWidgets('a catalogue species on the list says so, whatever its key', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        suggestions: [suggestion(parrotfish)],
+        nearby: const NearbySpecies(
+          matched: [
+            MatchedNearbySpecies(
+              speciesId: 'sp_queen_parrotfish',
+              occurrenceCount: 4,
+            ),
+          ],
+        ),
+      );
+      expect(markerIn('media_suggested_row_1'), findsOneWidget);
+    });
+
+    testWidgets('while the list loads, no row shows the marker', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        suggestions: [suggestion(parrotfish)],
+        pending: Completer<NearbySpecies?>(),
+      );
+      expect(find.byKey(const ValueKey('media_suggested_row_1')), findsOne);
+      expect(find.text('Recorded nearby'), findsNothing);
+    });
+
+    testWidgets('with no list, no row shows the marker', (tester) async {
+      await pump(tester, suggestions: [suggestion(parrotfish)]);
+      expect(find.byKey(const ValueKey('media_suggested_row_1')), findsOne);
+      expect(find.text('Recorded nearby'), findsNothing);
+    });
+
+    testWidgets('the marker arriving late moves no row or button', (
+      tester,
+    ) async {
+      // Add and dismiss act at once, so a line that pushed them down as
+      // the list arrived could turn a tap into the neighbour's.
+      final pending = Completer<NearbySpecies?>();
+      await pump(
+        tester,
+        suggestions: [
+          suggestion(parrotfish),
+          suggestion(chromis, cropId: 'i2'),
+        ],
+        pending: pending,
+      );
+      List<Rect> buttons() => [
+        for (final key in [
+          'media_suggested_add_1',
+          'media_suggested_dismiss_1',
+          'media_suggested_add_2',
+          'media_suggested_dismiss_2',
+        ])
+          tester.getRect(find.byKey(ValueKey(key))),
+      ];
+      final before = buttons();
+
+      pending.complete(const NearbySpecies(speciesKeys: {1}));
+      await tester.pumpAndSettle();
+
+      expect(markerIn('media_suggested_row_1'), findsOneWidget);
+      expect(buttons(), before);
+    });
+
+    testWidgets('while the list loads, the crop view shows no marker', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        suggestions: [suggestion(parrotfish)],
+        pending: Completer<NearbySpecies?>(),
+      );
+      await tester.tap(find.byKey(const ValueKey('media_suggested_crop_1')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('media_suggested_candidate_2')),
+        findsOne,
+      );
+      expect(find.text('Recorded nearby'), findsNothing);
+    });
+
+    testWidgets('a possible match recorded nearby says so in the crop view', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        suggestions: [suggestion(parrotfish)],
+        nearby: const NearbySpecies(speciesKeys: {2}),
+      );
+      await tester.tap(find.byKey(const ValueKey('media_suggested_crop_1')));
+      await tester.pumpAndSettle();
+      expect(markerIn('media_suggested_candidate_2'), findsOneWidget);
+      expect(markerIn('media_suggested_candidate_1'), findsNothing);
     });
   });
 

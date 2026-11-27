@@ -1,7 +1,4 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/accessibility/app_shortcuts.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -30,18 +27,14 @@ import 'package:submersion/features/import_wizard/presentation/pages/unified_imp
 import 'package:submersion/features/setup_wizard/domain/setup_wizard_models.dart';
 import 'package:submersion/features/setup_wizard/presentation/pages/setup_wizard_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_detail_page.dart';
-import 'package:submersion/features/buddies/presentation/pages/buddy_edit_page.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_edit_routes.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_page.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
-import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_edit_routes.dart';
-import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_detail_page.dart';
-import 'package:submersion/features/certifications/presentation/pages/certification_edit_page.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_edit_routes.dart';
 import 'package:submersion/features/certifications/presentation/pages/certification_wallet_page.dart';
 import 'package:submersion/features/checklists/presentation/pages/checklist_template_edit_page.dart';
@@ -51,16 +44,14 @@ import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_session
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_template_edit_page.dart';
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_templates_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_detail_page.dart';
-import 'package:submersion/features/courses/presentation/pages/course_edit_page.dart';
 import 'package:submersion/features/courses/presentation/pages/course_edit_routes.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_routes.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_detail_page.dart';
-import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_edit_routes.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_import_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_list_page.dart';
 import 'package:submersion/features/dive_centers/presentation/pages/dive_center_map_page.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
-import 'package:submersion/features/trips/domain/services/trip_draft.dart';
 import 'package:submersion/features/trips/presentation/navigation/open_trip_list.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/data_quality/presentation/pages/data_quality_inbox_page.dart';
@@ -87,7 +78,7 @@ import 'package:submersion/features/dive_sites/presentation/pages/site_map_page.
 import 'package:submersion/features/dive_sites/presentation/pages/site_match_review_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
-import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
+import 'package:submersion/features/equipment/presentation/pages/equipment_edit_routes.dart';
 import 'package:submersion/features/cylinder_configs/presentation/pages/cylinder_config_edit_page.dart';
 import 'package:submersion/features/cylinder_configs/presentation/pages/cylinder_config_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_list_page.dart';
@@ -95,11 +86,8 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_locat
 import 'package:submersion/features/equipment/presentation/pages/equipment_location_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/service_kind_list_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
-import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
-import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart';
-import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
-import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
+import 'package:submersion/features/trips/presentation/pages/trip_edit_routes.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_cylinder_board_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_gallery_page.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
@@ -150,6 +138,7 @@ import 'package:submersion/shared/widgets/record_editing/record_sitting_exit_blo
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
+import 'package:submersion/features/settings/presentation/pages/home_key_numbers_page.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
 import 'package:submersion/features/settings/presentation/pages/default_visible_metrics_page.dart';
 import 'package:submersion/features/settings/presentation/pages/equipment_default_view_page.dart';
@@ -179,6 +168,7 @@ import 'package:submersion/features/settings/presentation/pages/storage_settings
 import 'package:submersion/features/backup/presentation/pages/unrecognized_backups_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_usage_page.dart';
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
+import 'package:submersion/features/settings/presentation/pages/new_diver_page.dart';
 import 'package:submersion/features/settings/presentation/pages/personal_info_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/emergency_contacts_edit_page.dart';
 import 'package:submersion/features/settings/presentation/pages/medical_info_edit_page.dart';
@@ -203,17 +193,17 @@ import 'package:submersion/features/tank_presets/presentation/pages/tank_presets
 import 'package:submersion/features/weight_presets/presentation/pages/weight_preset_editor_page.dart';
 import 'package:submersion/features/weight_presets/presentation/pages/weight_presets_page.dart';
 import 'package:submersion/features/tank_presets/presentation/pages/tank_preset_edit_page.dart';
-import 'package:submersion/features/transmitters/presentation/pages/transmitter_edit_page.dart';
+import 'package:submersion/features/transmitters/presentation/pages/transmitter_edit_routes.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_item_redirect.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_setup_redirect.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitters_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_manage_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_page.dart';
 import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart';
-import 'package:submersion/features/marine_life/presentation/pages/species_edit_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_edit_routes.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_map_page.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_practice_page.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_chart_fullscreen_page.dart';
 import 'package:submersion/features/planning/presentation/pages/planning_page.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_disclaimer_gate.dart';
@@ -767,6 +757,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/equipment',
             name: 'equipment',
+            // A sitting in the gear or sets pane, or on a page pushed above
+            // it, is asked about before a tab or a link goes (issue #4527).
+            onExit: confirmLeaveRecordSitting,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
               child: const EquipmentListPage(),
@@ -775,42 +768,45 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newEquipment',
-                builder: (context, state) => EquipmentEditPage(
-                  initialParentId: state.uri.queryParameters['parent'],
-                  cloneFromId: state.uri.queryParameters['cloneFrom'],
-                  // The Dive Computers and Transmitters lists' "add by hand"
-                  // (issue #3676).
-                  initialType: EquipmentType.values
-                      .asNameMap()[state.uri.queryParameters['type']],
-                  initialSerial: state.uri.queryParameters['serial'],
-                ),
+                onExit: confirmLeaveRecordSitting,
+                // The item page opened on a new item or a clone (issue #4527,
+                // plan 11).
+                builder: (context, state) =>
+                    newGearItemPage(state.uri.queryParameters),
               ),
               GoRoute(
                 path: 'sets',
                 name: 'equipmentSets',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => const EquipmentSetListPage(),
                 routes: [
                   GoRoute(
                     path: 'new',
                     name: 'newEquipmentSet',
-                    builder: (context, state) => EquipmentSetEditPage(
-                      // A set page's Clone (issue #2156).
+                    onExit: confirmLeaveRecordSitting,
+                    // The set page opened on a new set or a set page's Clone
+                    // (issues #2156, #4527).
+                    builder: (context, state) => newEquipmentSetPage(
                       cloneFromId: state.uri.queryParameters['cloneFrom'],
                     ),
                   ),
                   GoRoute(
                     path: ':setId',
                     name: 'equipmentSetDetail',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => EquipmentSetDetailPage(
                       setId: state.pathParameters['setId']!,
+                      // The old edit address opens the page unlocked
+                      // (issue #4527, phase 3).
+                      openUnlocked: state.uri.queryParameters['mode'] == 'edit',
                     ),
                     routes: [
                       GoRoute(
                         path: 'edit',
                         name: 'editEquipmentSet',
-                        builder: (context, state) => EquipmentSetEditPage(
-                          setId: state.pathParameters['setId'],
-                        ),
+                        // The old address opens the page unlocked (issue
+                        // #4527).
+                        redirect: equipmentSetEditRedirect,
                       ),
                     ],
                   ),
@@ -853,6 +849,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     name: 'newCylinderConfig',
+                    // An editor with no read page (issue #4527, phase 4).
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => CylinderConfigEditPage(
                       equipmentId: state.uri.queryParameters['equipmentId'],
                     ),
@@ -860,6 +858,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: ':configId',
                     name: 'cylinderConfigEdit',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => CylinderConfigEditPage(
                       configId: state.pathParameters['configId'],
                     ),
@@ -886,48 +885,34 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':equipmentId',
                 name: 'equipmentDetail',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => EquipmentDetailPage(
                   equipmentId: state.pathParameters['equipmentId']!,
+                  openUnlocked: state.uri.queryParameters['mode'] == 'edit',
                 ),
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editEquipment',
-                    builder: (context, state) => EquipmentEditPage(
-                      equipmentId: state.pathParameters['equipmentId'],
-                    ),
+                    // The old address opens the page unlocked (issue #4527).
+                    redirect: gearItemEditRedirect,
                   ),
                   GoRoute(
                     path: 'passport',
                     name: 'equipmentPassport',
+                    // A satellite of the item: it may hold a sitting.
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => PassportPage(
                       equipmentId: state.pathParameters['equipmentId']!,
                       scannedTag: scannedTagFrom(state.extra),
                     ),
                   ),
-                  // A Transmitter item's setup (issue #3676): add a key, or
-                  // edit one; role and cylinder go onto every key.
-                  GoRoute(
-                    path: 'transmitter',
-                    name: 'transmitterSetup',
-                    builder: (context, state) => TransmitterEditPage(
-                      equipmentId: state.pathParameters['equipmentId']!,
-                    ),
-                    routes: [
-                      GoRoute(
-                        path: ':transmitterId',
-                        name: 'transmitterKeyEdit',
-                        builder: (context, state) => TransmitterEditPage(
-                          equipmentId: state.pathParameters['equipmentId']!,
-                          transmitterId: state.pathParameters['transmitterId'],
-                        ),
-                      ),
-                    ],
-                  ),
+                  ...transmitterEditRoutes(),
                   // Any other gear's tag page (issue #2652).
                   GoRoute(
                     path: 'gear-passport',
                     name: 'gearPassport',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => GearPassportPage(
                       equipmentId: state.pathParameters['equipmentId']!,
                       scannedTag: scannedGearTagFrom(state.extra),
@@ -958,15 +943,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 // in the foreground (see app_router_test.dart and
                 // buddy_picker_navigation_render_test.dart).
                 parentNavigatorKey: rootNavigatorKey,
-                builder: (context, state) {
-                  final extra = state.extra as Map<String, dynamic>?;
-                  return BuddyEditPage(
-                    initialName: extra?['name'] as String?,
-                    initialEmail: extra?['email'] as String?,
-                    initialPhone: extra?['phone'] as String?,
-                    initialPhoto: extra?['photo'] as Uint8List?,
-                  );
-                },
+                onExit: confirmLeaveRecordSitting,
+                // The buddy page opened on a new buddy (issue #4527, plan 11).
+                builder: (context, state) => newBuddyPage(state.extra),
               ),
               GoRoute(
                 path: 'merge',
@@ -1007,10 +986,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'edit',
                     name: 'editBuddy',
-                    // Behind phase 3's switch, the page opened unlocked.
+                    // The old address opens the page unlocked (issue #4527).
                     redirect: buddyEditRedirect,
-                    builder: (context, state) =>
-                        BuddyEditPage(buddyId: state.pathParameters['buddyId']),
                   ),
                 ],
               ),
@@ -1043,7 +1020,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newCertification',
-                builder: (context, state) => const CertificationEditPage(),
+                onExit: confirmLeaveRecordSitting,
+                // The certification page opened on a new certification (issue
+                // #4527, plan 11).
+                builder: (context, state) => newCertificationPage(),
               ),
               GoRoute(
                 path: ':certificationId',
@@ -1057,11 +1037,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'edit',
                     name: 'editCertification',
-                    // Behind phase 3's switch, the page opened unlocked.
+                    // The old address opens the page unlocked (issue #4527).
                     redirect: certificationEditRedirect,
-                    builder: (context, state) => CertificationEditPage(
-                      certificationId: state.pathParameters['certificationId'],
-                    ),
                   ),
                 ],
               ),
@@ -1086,17 +1063,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newDocument',
-                builder: (context, state) {
-                  final q = state.uri.queryParameters;
-                  final kind = DocumentOwnerKind.fromStorage(q['ownerKind']);
-                  final ownerId = q['ownerId'];
-                  return DocumentEditPage(
-                    owner: kind == DocumentOwnerKind.personal || ownerId == null
-                        ? const DocumentOwner.personal()
-                        : DocumentOwner(kind, ownerId),
-                    initialType: DocumentType.values.asNameMap()[q['type']],
-                  );
-                },
+                onExit: confirmLeaveRecordSitting,
+                // The document page opened on a new document (issue #4527, plan
+                // 11).
+                builder: (context, state) =>
+                    newDocumentPage(state.uri.queryParameters),
               ),
               GoRoute(
                 path: ':documentId',
@@ -1110,11 +1081,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'edit',
                     name: 'editDocument',
-                    // Behind phase 3's switch, the page opened unlocked.
+                    // The old address opens the page unlocked (issue #4527).
                     redirect: documentEditRedirect,
-                    builder: (context, state) => DocumentEditPage(
-                      documentId: state.pathParameters['documentId'],
-                    ),
                   ),
                 ],
               ),
@@ -1132,7 +1100,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newCourse',
-                builder: (context, state) => const CourseEditPage(),
+                onExit: confirmLeaveRecordSitting,
+                // The course page opened on a new course (issue #4527, plan
+                // 11).
+                builder: (context, state) => newCoursePage(),
               ),
               GoRoute(
                 path: ':courseId',
@@ -1146,11 +1117,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'edit',
                     name: 'editCourse',
-                    // Behind phase 3's switch, the page opened unlocked.
+                    // The old address opens the page unlocked (issue #4527).
                     redirect: courseEditRedirect,
-                    builder: (context, state) => CourseEditPage(
-                      courseId: state.pathParameters['courseId'],
-                    ),
                   ),
                 ],
               ),
@@ -1180,7 +1148,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newDiveCenter',
-                builder: (context, state) => const DiveCenterEditPage(),
+                onExit: confirmLeaveRecordSitting,
+                // The centre page opened on a new centre (issue #4527, plan
+                // 11).
+                builder: (context, state) => newDiveCenterPage(),
               ),
               GoRoute(
                 path: ':centerId',
@@ -1194,11 +1165,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'edit',
                     name: 'editDiveCenter',
-                    // Behind phase 3's switch, the page opened unlocked.
+                    // The old address opens the page unlocked (issue #4527).
                     redirect: diveCenterEditRedirect,
-                    builder: (context, state) => DiveCenterEditPage(
-                      centerId: state.pathParameters['centerId'],
-                    ),
                   ),
                 ],
               ),
@@ -1209,6 +1177,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/trips',
             name: 'trips',
+            // A trip pane's sitting asks before the list goes (issue #4527).
+            onExit: confirmLeaveRecordSitting,
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
               // Set when openTripList pushed this list: what to put back
@@ -1224,26 +1194,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newTrip',
-                // Selected dives can arrive as a prefilled draft (#3658).
-                builder: (context, state) =>
-                    TripEditPage(draft: state.extra as TripDraft?),
+                onExit: confirmLeaveRecordSitting,
+                // Selected dives can arrive as a prefilled draft (#3658). The
+                // trip page opened on a new trip (issue #4527).
+                builder: (context, state) => newTripPage(state.extra),
               ),
               GoRoute(
                 path: ':tripId',
                 name: 'tripDetail',
-                builder: (context, state) =>
-                    TripDetailPage(tripId: state.pathParameters['tripId']!),
+                onExit: confirmLeaveRecordSitting,
+                builder: tripDetailRoutePage,
                 routes: [
                   GoRoute(
                     path: 'edit',
                     name: 'editTrip',
-                    builder: (context, state) => TripEditPage(
-                      tripId: state.pathParameters['tripId'],
-                      initialSection: TripEditSection.fromQuery(
-                        state.uri.queryParameters['section'],
-                      ),
-                      noteDay: tripNoteDayFromQuery(state.uri.queryParameters),
-                    ),
+                    // The old address opens the page unlocked (issue #4527).
+                    redirect: tripEditRedirect,
                   ),
                   GoRoute(
                     path: 'gallery',
@@ -1256,6 +1222,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'cylinders',
                     name: 'tripCylinders',
+                    // The board has a lock of its own (issue #4527): leaving
+                    // its own sitting asks first.
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => TripCylinderBoardPage(
                       tripId: state.pathParameters['tripId']!,
                     ),
@@ -1456,18 +1425,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '$kTracksLocation/gps/:id',
             name: 'gpsTrackDetail',
+            onExit: confirmLeaveRecordSitting,
             builder: (context, state) =>
                 GpsTrackDetailPage(trackId: state.pathParameters['id']!),
           ),
           GoRoute(
             path: '$kTracksLocation/underwater/:id',
             name: 'underwaterTrackDetail',
+            onExit: confirmLeaveRecordSitting,
             builder: (context, state) =>
                 NavTrackDetailPage(trackId: state.pathParameters['id']!),
           ),
           GoRoute(
             path: '$kTracksLocation/underwater/:id/align',
             name: 'underwaterTrackAlign',
+            onExit: confirmLeaveRecordSitting,
             builder: (context, state) =>
                 NavTrackAlignPage(routeId: state.pathParameters['id']!),
           ),
@@ -1522,6 +1494,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'incidentNew',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => IncidentEditPage(
                   diveId: state.uri.queryParameters['diveId'],
                   observationId: state.uri.queryParameters['observationId'],
@@ -1530,6 +1503,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':incidentId',
                 name: 'incidentEdit',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => IncidentEditPage(
                   incidentId: state.pathParameters['incidentId'],
                 ),
@@ -1651,6 +1625,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'home',
                     name: 'appearanceHome',
                     builder: (context, state) => const HomeAppearancePage(),
+                    routes: [
+                      GoRoute(
+                        path: 'key-numbers',
+                        name: 'appearanceHomeKeyNumbers',
+                        builder: (context, state) => const HomeKeyNumbersPage(),
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'navigation',
@@ -2005,17 +1986,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     name: 'newDiverProfile',
-                    builder: (context, state) =>
-                        const PersonalInfoEditPage(isNewDiver: true),
+                    onExit: confirmLeaveRecordSitting,
+                    builder: (context, state) => const NewDiverPage(),
                   ),
                   GoRoute(
                     path: 'personal',
                     name: 'editPersonalInfo',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => const PersonalInfoEditPage(),
                   ),
                   GoRoute(
                     path: 'emergency',
                     name: 'editEmergencyContacts',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) =>
                         const EmergencyContactsEditPage(),
                   ),
@@ -2027,6 +2010,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: 'add-chamber',
                         name: 'addChamber',
+                        onExit: confirmLeaveRecordSitting,
                         builder: (context, state) => const AddChamberPage(),
                       ),
                       GoRoute(
@@ -2045,6 +2029,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'medical',
                     name: 'editMedicalInfo',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => const MedicalInfoEditPage(),
                   ),
                   GoRoute(
@@ -2057,11 +2042,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'notes',
                     name: 'editNotes',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) => const NotesEditPage(),
                   ),
                   GoRoute(
                     path: 'prior',
                     name: 'editPriorExperience',
+                    onExit: confirmLeaveRecordSitting,
                     builder: (context, state) =>
                         const PriorExperienceEditPage(),
                   ),
@@ -2134,6 +2121,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/rules/new',
             name: 'ruleNew',
+            onExit: confirmLeaveRecordSitting,
             builder: (context, state) => const RuleEditPage(),
           ),
           GoRoute(
@@ -2156,6 +2144,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/rules/:id',
             name: 'ruleEdit',
+            onExit: confirmLeaveRecordSitting,
             builder: (context, state) =>
                 RuleEditPage(ruleId: state.pathParameters['id']),
           ),
@@ -2196,11 +2185,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newTankPreset',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => const TankPresetEditPage(),
               ),
               GoRoute(
                 path: ':presetId/edit',
                 name: 'editTankPreset',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => TankPresetEditPage(
                   presetId: state.pathParameters['presetId'],
                 ),
@@ -2217,11 +2208,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newWeightPreset',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => const WeightPresetEditorPage(),
               ),
               GoRoute(
                 path: ':presetId/edit',
                 name: 'editWeightPreset',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => WeightPresetEditorPage(
                   presetId: state.pathParameters['presetId'],
                 ),
@@ -2238,11 +2231,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newChecklistTemplate',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => const ChecklistTemplateEditPage(),
               ),
               GoRoute(
                 path: ':templateId/edit',
                 name: 'editChecklistTemplate',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => ChecklistTemplateEditPage(
                   templateId: state.pathParameters['templateId'],
                 ),
@@ -2259,11 +2254,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newPreDiveTemplate',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => const PreDiveTemplateEditPage(),
               ),
               GoRoute(
                 path: ':templateId/edit',
                 name: 'editPreDiveTemplate',
+                onExit: confirmLeaveRecordSitting,
                 builder: (context, state) => PreDiveTemplateEditPage(
                   templateId: state.pathParameters['templateId'],
                 ),
@@ -2328,7 +2325,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'new',
                 name: 'newSpecies',
-                builder: (context, state) => const SpeciesEditPage(),
+                onExit: confirmLeaveRecordSitting,
+                // The species page opened on a new species (issue #4527, plan
+                // 11).
+                builder: (context, state) => newSpeciesPage(),
+              ),
+              // ID practice (issue #5027). Before `:speciesId`, which would
+              // take it for an id.
+              GoRoute(
+                path: 'practice',
+                name: 'speciesPractice',
+                builder: (context, state) => const SpeciesPracticePage(),
               ),
               // Species to review (issue #4727): one dive with `?dive=`,
               // else the whole log. Before `:speciesId`, which would take
@@ -2357,11 +2364,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: ':speciesId/edit',
                 name: 'editSpecies',
-                // Behind phase 3's switch, the page opened unlocked.
+                // The old address opens the page unlocked (issue #4527).
                 redirect: speciesEditRedirect,
-                builder: (context, state) => SpeciesEditPage(
-                  speciesId: state.pathParameters['speciesId'],
-                ),
               ),
             ],
           ),

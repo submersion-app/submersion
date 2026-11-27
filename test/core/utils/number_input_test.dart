@@ -36,6 +36,34 @@ void main() {
       }
     });
 
+    // A Japanese or Chinese IME in full-width mode types these (#4833).
+    test('reads full-width digits and separators', () {
+      Intl.defaultLocale = 'ja';
+      expect(parseUserDecimal('\uff11\uff12\uff0e\uff15'), 12.5);
+      expect(parseUserDecimal('\uff11\uff0c\uff12\uff15\uff10'), 1250);
+      expect(parseUserDecimal('\uff0d\uff12\uff0e\uff15'), -2.5);
+      expect(parseUserDecimal('\u3000\uff18\u3000'), 8);
+    });
+
+    // intl reads these locales' own digits; folding them to ASCII would
+    // hide them from it (#4833 review).
+    test('leaves Arabic-Indic and Persian digits to their own locales', () {
+      Intl.defaultLocale = 'ar_EG';
+      expect(parseUserDecimal('\u0661\u0662\u066b\u0665'), 12.5);
+      Intl.defaultLocale = 'fa';
+      expect(parseUserDecimal('\u06f1\u06f2\u066b\u06f5'), 12.5);
+    });
+
+    test('folds full-width input under a comma locale too', () {
+      Intl.defaultLocale = 'fr';
+      expect(parseUserDecimal('\uff11\uff12\uff0c\uff15'), 12.5);
+    });
+
+    test('the smart parser folds full-width input before correcting', () {
+      Intl.defaultLocale = 'fr';
+      expect(smartParseUserDecimal('\uff11\uff12\uff0e\uff15'), 12.5);
+    });
+
     test('ignores surrounding whitespace', () {
       Intl.defaultLocale = 'fr';
       expect(parseUserDecimal('  12,50  '), 12.5);
@@ -299,6 +327,7 @@ void main() {
         'nl',
         'pt',
         'zh',
+        'ja',
         'hu',
         'ar',
         'he',

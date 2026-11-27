@@ -7,66 +7,45 @@ import 'package:submersion/features/checklists/data/repositories/checklist_templ
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklists_repository.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
-import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/features/checklists/presentation/widgets/trip_checklists_panel.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 
-/// Holds [applyTemplate] back until [gate] opens.
-class _GatedApplyRepository extends TripChecklistRepository {
-  _GatedApplyRepository(this.gate);
+/// Holds a template's items back until [gate] opens, so applying it waits.
+class _GatedItemsRepository extends ChecklistTemplateRepository {
+  _GatedItemsRepository(this.gate);
 
   final Future<void> gate;
 
   @override
-  Future<({int added, int skipped})> applyTemplate({
-    required String templateId,
-    required String checklistId,
-    required Trip trip,
-  }) async {
+  Future<List<ChecklistTemplateItem>> getItemsForTemplate(
+    String templateId,
+  ) async {
     await gate;
-    return super.applyTemplate(
-      templateId: templateId,
-      checklistId: checklistId,
-      trip: trip,
-    );
+    return super.getItemsForTemplate(templateId);
   }
 }
 
-/// Returns from [createChecklist] only once [gate] opens.
-class _GatedCreateRepository extends TripChecklistsRepository {
-  _GatedCreateRepository(this.gate);
-
-  final Future<void> gate;
-
+/// Fails to read a template's items, so applying it fails.
+class _FailingItemsRepository extends ChecklistTemplateRepository {
   @override
-  Future<TripChecklist> createChecklist({
-    required String tripId,
-    required String name,
-  }) async {
-    final created = await super.createChecklist(tripId: tripId, name: name);
-    await gate;
-    return created;
-  }
-}
-
-class _FailingApplyRepository extends TripChecklistRepository {
-  @override
-  Future<({int added, int skipped})> applyTemplate({
-    required String templateId,
-    required String checklistId,
-    required Trip trip,
-  }) async => throw Exception('disk full');
+  Future<List<ChecklistTemplateItem>> getItemsForTemplate(
+    String templateId,
+  ) async => throw Exception('disk full');
 }
 
 void main() {
   late TripRepository tripRepository;
   late TripChecklistsRepository checklistsRepository;
+  late SittingList<Trip, TripChecklistsHeld> list;
   late Trip upcomingTrip;
   late SharedPreferences prefs;
 
@@ -76,6 +55,10 @@ void main() {
     prefs = await SharedPreferences.getInstance();
     tripRepository = TripRepository();
     checklistsRepository = TripChecklistsRepository();
+    list = tripChecklistsList(
+      checklists: checklistsRepository,
+      items: TripChecklistRepository(),
+    );
     upcomingTrip = await tripRepository.createTrip(
       Trip(
         id: '',
@@ -90,8 +73,22 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
+  /// A sitting over the trip with its checklists read, as the trip page
+  /// opens one when the diver unlocks it (issue #4527).
+  Future<EditSession<Trip>> openSitting() async {
+    final session = EditSession<Trip>(upcomingTrip);
+    addTearDown(session.dispose);
+    await list.load(session);
+    return session;
+  }
+
+  /// The checklists [session] holds, in their order.
+  TripChecklistsHeld heldOf(EditSession<Trip> session) =>
+      heldChecklistsOf(session, list)!;
+
   Future<void> pumpPanel(
     WidgetTester tester, {
+    EditSession<Trip>? editing,
     List<dynamic> overrides = const [],
   }) async {
     await tester.pumpWidget(
@@ -102,16 +99,16 @@ void main() {
           ...overrides,
         ],
         child: SingleChildScrollView(
-          child: TripChecklistsPanel(trip: upcomingTrip),
+          child: TripChecklistsPanel(trip: upcomingTrip, editing: editing),
         ),
       ),
     );
     await tester.pumpAndSettle();
   }
 
-  testWidgets('a trip with no checklists shows the empty state and the "add '
-      'checklist" row', (tester) async {
-    await pumpPanel(tester);
+  testWidgets('in a sitting, a trip with no checklists shows the empty state '
+      'and the "add checklist" row', (tester) async {
+    await pumpPanel(tester, editing: await openSitting());
 
     expect(
       find.text('No checklists yet - add one to start planning'),
@@ -120,9 +117,39 @@ void main() {
     expect(find.text('Add checklist'), findsOneWidget);
   });
 
+  testWidgets('locked, a trip with no checklists shows the empty state and no '
+      '"add checklist" row', (tester) async {
+    await pumpPanel(tester);
+
+    expect(
+      find.text('No checklists yet - add one to start planning'),
+      findsOneWidget,
+    );
+    expect(find.text('Add checklist'), findsNothing);
+  });
+
+  testWidgets('locked, the checklists show with no reorder arrows and no '
+      '"add checklist" row', (tester) async {
+    await checklistsRepository.createChecklist(
+      tripId: upcomingTrip.id,
+      name: 'Dive equipment',
+    );
+    await checklistsRepository.createChecklist(
+      tripId: upcomingTrip.id,
+      name: 'Clothing',
+    );
+    await pumpPanel(tester);
+
+    expect(find.text('Dive equipment'), findsOneWidget);
+    expect(find.text('Clothing'), findsOneWidget);
+    expect(find.byIcon(Icons.keyboard_arrow_up), findsNothing);
+    expect(find.byIcon(Icons.keyboard_arrow_down), findsNothing);
+    expect(find.text('Add checklist'), findsNothing);
+  });
+
   testWidgets(
-    'picking a template on the "add checklist" row creates a new checklist '
-    'named after it and applies its items, no name prompt involved',
+    'picking a template on the "add checklist" row holds a new checklist '
+    'named after it with its items, no name prompt involved',
     (tester) async {
       final template = await ChecklistTemplateRepository().createTemplate(
         ChecklistTemplate(
@@ -142,7 +169,8 @@ void main() {
         ),
       ]);
 
-      await pumpPanel(tester);
+      final session = await openSitting();
+      await pumpPanel(tester, editing: session);
       // Not find.byType(PopupMenuButton<String>): the "add checklist" row's
       // menu opens from tapping the row itself now, same as tapping its
       // trailing icon (issue #3356 maintainer feedback).
@@ -154,10 +182,17 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      final checklists = await checklistsRepository.getChecklistsForTrip(
-        upcomingTrip.id,
+      final held = heldOf(session);
+      expect(held.checklists.single.name, 'Dive equipment');
+      expect(
+        [for (final i in held.itemsOf(held.checklists.single.id)) i.title],
+        ['Mask'],
       );
-      expect(checklists.single.name, 'Dive equipment');
+      // Nothing is written until Save.
+      expect(
+        await checklistsRepository.getChecklistsForTrip(upcomingTrip.id),
+        isEmpty,
+      );
       expect(find.text('Dive equipment'), findsOneWidget);
       // A just-created checklist renders expanded (maintainer feedback
       // after testing): "Mask" is visible without an extra tap.
@@ -196,16 +231,17 @@ void main() {
 
   testWidgets('a new checklist opens even when its row reached the list '
       'before the template finished applying', (tester) async {
-    // In the app the write runs on a worker isolate, so the panel rebuilds
-    // with the new row while the template is still being copied in.
+    // The sitting holds the new checklist at once, so the panel rebuilds
+    // with its row while the template's items are still being read.
     await seedTemplate();
     final gate = Completer<void>();
 
     await pumpPanel(
       tester,
+      editing: await openSitting(),
       overrides: [
-        tripChecklistRepositoryProvider.overrideWithValue(
-          _GatedApplyRepository(gate.future),
+        checklistTemplateRepositoryProvider.overrideWithValue(
+          _GatedItemsRepository(gate.future),
         ),
       ],
     );
@@ -221,17 +257,18 @@ void main() {
     expect(find.text('Mask'), findsOneWidget);
   });
 
-  testWidgets('leaving the trip while a checklist is being created keeps it', (
-    tester,
-  ) async {
+  testWidgets('the panel going away while a template is applied still holds '
+      'the whole checklist', (tester) async {
     await seedTemplate();
     final gate = Completer<void>();
+    final session = await openSitting();
 
     await pumpPanel(
       tester,
+      editing: session,
       overrides: [
-        tripChecklistsRepositoryProvider.overrideWithValue(
-          _GatedCreateRepository(gate.future),
+        checklistTemplateRepositoryProvider.overrideWithValue(
+          _GatedItemsRepository(gate.future),
         ),
       ],
     );
@@ -241,22 +278,26 @@ void main() {
     gate.complete();
     await tester.pumpAndSettle();
 
-    final checklists = await checklistsRepository.getChecklistsForTrip(
-      upcomingTrip.id,
+    final held = heldOf(session);
+    expect(held.checklists.single.name, 'Dive equipment');
+    expect(
+      [for (final i in held.itemsOf(held.checklists.single.id)) i.title],
+      ['Mask'],
     );
-    expect(checklists.single.name, 'Dive equipment');
   });
 
   testWidgets('a failed apply leaves no empty checklist behind', (
     tester,
   ) async {
     await seedTemplate();
+    final session = await openSitting();
 
     await pumpPanel(
       tester,
+      editing: session,
       overrides: [
-        tripChecklistRepositoryProvider.overrideWithValue(
-          _FailingApplyRepository(),
+        checklistTemplateRepositoryProvider.overrideWithValue(
+          _FailingItemsRepository(),
         ),
       ],
     );
@@ -267,10 +308,8 @@ void main() {
       find.text('Something went wrong. Please try again.'),
       findsOneWidget,
     );
-    expect(
-      await checklistsRepository.getChecklistsForTrip(upcomingTrip.id),
-      isEmpty,
-    );
+    expect(heldOf(session).checklists, isEmpty);
+    expect(session.changedCardIds, isEmpty);
   });
 
   testWidgets('a block stays open across a tab switch', (tester) async {
@@ -278,6 +317,7 @@ void main() {
       tripId: upcomingTrip.id,
       name: 'Clothing',
     );
+    final session = await openSitting();
     await tester.pumpWidget(
       testApp(
         locale: const Locale('en'),
@@ -296,7 +336,10 @@ void main() {
                 child: TabBarView(
                   children: [
                     SingleChildScrollView(
-                      child: TripChecklistsPanel(trip: upcomingTrip),
+                      child: TripChecklistsPanel(
+                        trip: upcomingTrip,
+                        editing: session,
+                      ),
                     ),
                     const SizedBox(),
                   ],
@@ -322,10 +365,11 @@ void main() {
   });
 
   testWidgets(
-    '"New checklist..." prompts for a name, creates an empty checklist and '
+    '"New checklist..." prompts for a name, holds an empty checklist and '
     'renders it expanded',
     (tester) async {
-      await pumpPanel(tester);
+      final session = await openSitting();
+      await pumpPanel(tester, editing: session);
 
       await tester.tap(find.widgetWithText(ListTile, 'Add checklist'));
       await tester.pumpAndSettle();
@@ -340,10 +384,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      final checklists = await checklistsRepository.getChecklistsForTrip(
-        upcomingTrip.id,
-      );
-      expect(checklists.single.name, 'Beach vacation');
+      expect(heldOf(session).checklists.single.name, 'Beach vacation');
       expect(find.text('Beach vacation'), findsOneWidget);
       // Renders expanded, like a template-created checklist: the empty
       // state's "Add section" affordance is already on screen.
@@ -351,7 +392,7 @@ void main() {
     },
   );
 
-  testWidgets('picking the same template twice creates two separately-named '
+  testWidgets('picking the same template twice holds two separately-named '
       'checklists, not one overwriting the other', (tester) async {
     await ChecklistTemplateRepository().createTemplate(
       ChecklistTemplate(
@@ -362,7 +403,8 @@ void main() {
       ),
     );
 
-    await pumpPanel(tester);
+    final session = await openSitting();
+    await pumpPanel(tester, editing: session);
     for (var i = 0; i < 2; i++) {
       // Not find.byType(PopupMenuButton<String>).last: on the second pass
       // that would hit the checklist block's own menu instead of the "add
@@ -387,11 +429,10 @@ void main() {
     }
 
     expect(tester.takeException(), isNull);
-    final checklists = await checklistsRepository.getChecklistsForTrip(
-      upcomingTrip.id,
-    );
+    final checklists = heldOf(session).checklists;
     expect(checklists, hasLength(2));
     expect(checklists.every((c) => c.name == 'Dive equipment'), isTrue);
+    expect({for (final c in checklists) c.id}, hasLength(2));
     expect(find.text('Dive equipment'), findsNWidgets(2));
   });
 
@@ -405,7 +446,7 @@ void main() {
       tripId: upcomingTrip.id,
       name: 'Clothing',
     );
-    await pumpPanel(tester);
+    await pumpPanel(tester, editing: await openSitting());
 
     expect(find.text('Dive equipment'), findsOneWidget);
     expect(find.text('Clothing'), findsOneWidget);
@@ -414,7 +455,9 @@ void main() {
     expect(find.text('Add item'), findsNothing);
   });
 
-  testWidgets('the up/down arrows reorder checklists', (tester) async {
+  testWidgets('the up/down arrows reorder checklists, written at Save', (
+    tester,
+  ) async {
     await checklistsRepository.createChecklist(
       tripId: upcomingTrip.id,
       name: 'A',
@@ -423,7 +466,8 @@ void main() {
       tripId: upcomingTrip.id,
       name: 'B',
     );
-    await pumpPanel(tester);
+    final session = await openSitting();
+    await pumpPanel(tester, editing: session);
 
     // The first checklist's down arrow is the first one on screen (the
     // "add checklist" row has no reorder arrows of its own).
@@ -431,6 +475,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
+    expect(heldOf(session).checklists.map((c) => c.name).toList(), ['B', 'A']);
+    // The new order shows at once, before anything is written.
+    expect(
+      tester.getTopLeft(find.text('B')).dy,
+      lessThan(tester.getTopLeft(find.text('A')).dy),
+    );
+
+    await session.runHeldWrites();
+
     final checklists = await checklistsRepository.getChecklistsForTrip(
       upcomingTrip.id,
     );
@@ -449,7 +502,7 @@ void main() {
         tripId: upcomingTrip.id,
         name: 'B',
       );
-      await pumpPanel(tester);
+      await pumpPanel(tester, editing: await openSitting());
 
       final firstUp = tester.widget<IconButton>(
         find.widgetWithIcon(IconButton, Icons.keyboard_arrow_up).first,

@@ -10,8 +10,9 @@ Measured on 2026-11-17 on an Apple M5 Pro (64 GB, macOS 27.2), with pack
 54 MB of weights) and BioCLIP 2 (`bioclip-2-vitl14-2957b32`, 608 MB), both
 16-bit Core ML. On 2026-11-18 the same pack was run in the app on an iPhone
 17 Pro Max (see "On an iPhone"), which settles how iOS counts the Neural
-Engine's memory. A 6 GB iPhone is still unmeasured; what is left is at the
-end.
+Engine's memory. On 2026-11-22 the ONNX engine was run on a 6 GB Android
+phone, a Pixel 6a (see "On a Pixel 6a"). A 6 GB iPhone is still unmeasured;
+what is left is at the end.
 
 Sizes are MiB of **physical footprint**, the figure iOS compares with an
 app's memory limit, unless a line says otherwise.
@@ -54,6 +55,13 @@ app's memory limit, unless a line says otherwise.
    once unloaded. The app's limit there was 3,376 MiB. Identification's
    highest point was 2,432 MiB, with a 50 MP photo open, leaving 944 MiB.
    The app's own media handling, not the models, set its overall peak.
+7. **A 6 GB Android phone does not hold the ONNX engine.** On a Pixel 6a
+   (2026-11-22, see "On a Pixel 6a") the app sat at 3.0 to 3.3 GB with the
+   models loaded, and Android's low memory killer stopped it twice, both
+   times within a second of the camera opening. Android's floor stays at
+   8 GB (the 6.5 GiB cut-off), as section 5 of
+   [piece 3's design](../specs/2026-11-19-marine-life-identification-3-other-platforms-design.md)
+   decided for a failed run.
 
 ## How it was measured
 
@@ -184,6 +192,82 @@ MiB throughout. What the run showed:
   about 7 s: pass 1 took about 1.6 s per 10 seconds of video, and pass 2 up
   to 1.9 s a chunk.
 
+## On a Pixel 6a
+
+Task D2 of piece 3 (Refs #4801), run on 2026-11-22 on the maintainer's
+Pixel 6a (Android 17, `MemTotal` 5,723,472 kB, which is 5.46 GiB, with
+3 GiB of swap). The build was a release APK for arm64 made with
+`MARINE_LIFE_ID_ONNX=true` and `MARINE_LIFE_ID_IGNORE_FLOOR=true`, from main
+after the D1 speed-up (#4853), with pack `2026.11.20.0513` and its ONNX
+files (published in D4). It was signed with the debug key, so it went on by
+uninstalling the Play copy first; the maintainer chose that over waiting for
+a testing-track build. The app then restored the diver's own log through
+sync, so it ran with a real library.
+
+ONNX Runtime opened the models on the processor (`Marine life models open
+on cpu`). Recorded throughout: the phone's whole log (main, system, events
+and crash buffers) and the app's memory every 4 seconds from
+`dumpsys meminfo`. The app's readout lines came from its saved debug log.
+
+### What happened
+
+| Time | Event |
+| --- | --- |
+| 01:12:19 to 01:12:27 | A photo added from the file picker (by the timing, the 50 MP Display P3 test photo) |
+| 01:12:46 to 01:13:13 | The models loaded: the app went from 0.75 to 3.0 GB (PSS) and the phone's available memory from 1.9 GB to 124 MB |
+| 01:13:40 to 01:13:45 | A 4K video added |
+| 01:15:15 to 01:16:37 | The video scanned: pass 1 twice and pass 2 once, all for `0:00 to 0:02` |
+| 01:16:58 | Chrome opened over the app |
+| 01:17:04.2 | The camera opened |
+| 01:17:04.3 | **Killed** by `lowmemorykiller`, in the background (`oom_score_adj 900`) |
+| 01:17:22 | The app relaunched; the models loaded again by 01:17:56 |
+| 01:18:14.1 | The camera opened |
+| 01:18:15.0 | **Killed** by `lowmemorykiller` (`oom_score_adj 200`, perceptible) |
+
+The two kill lines:
+
+```text
+01:17:04.318 Kill 'app.submersion' (10660), oom_score_adj 900 to free 1643792kB rss, 1400840kB anon rss, 1464040kB swap; reason: low watermark is breached and swap is low (207892kB < 314572kB)
+01:18:15.034 Kill 'app.submersion' (20985), oom_score_adj 200 to free 2463644kB rss, 2245624kB anon rss, 276824kB swap; reason: min watermark is breached and swap is low (103900kB < 314572kB)
+```
+
+The readout lines (MiB; "left" on Android is the phone's available memory,
+not a limit for the app):
+
+```text
+01:15:15 Memory after pass 1 (0:00 to 0:02): 467 MiB left, footprint 1851 MiB (peak 2595 MiB), -276 MiB left at the peak
+01:16:13 Memory after pass 1 (0:00 to 0:02): 324 MiB left, footprint 1793 MiB (peak 2595 MiB), -478 MiB left at the peak
+01:16:37 Memory after pass 2 (0:00 to 0:02): 425 MiB left, footprint 1835 MiB (peak 2675 MiB), -414 MiB left at the peak
+01:17:56 Memory after load: 985 MiB left, footprint 1934 MiB (peak 2516 MiB), 404 MiB left at the peak
+```
+
+### What the run showed
+
+- **It failed the pass rule.** Section 5 passes the phone only if the app
+  is never killed; it was killed twice. No readout line said `low memory`,
+  but neither kill was preceded by one, so that check would not have caught
+  it.
+- **Identification holds about 2.4 GB on Android.** Loading the models took the app
+  from about 0.6 to 0.75 GB to 3.0 to 3.3 GB (PSS), with up to 1.2 GB of
+  that in swap. ONNX Runtime keeps the weights in the app's own memory,
+  where Core ML maps them from disk; the design expected 1.5 to 2.5 GB.
+- **The phone had almost nothing left while they were loaded.** Available
+  memory stayed between 84 and 550 MB for the whole scan, so whatever the
+  diver opens next decides whether the app survives.
+- **The camera was what tipped it.** Chrome alone did not; both kills came
+  within a second of the camera opening, the first while the app was in the
+  background, the second while it was still perceptible. Opening the
+  camera between dives, to check a shot, is ordinary.
+- **Unconfirmed.** The readout has no line after the photo and none after
+  the first load, so the photo's figures, and whether that photo was the
+  one identified, rest on the timing above. The scanned video was about
+  2 seconds long (one chunk, `0:00 to 0:02`), not the two chunks the plan
+  asked for. The stage start times are not logged, so the 6a's times for a
+  load, a photo and a chunk could not be read from this run.
+- **The readout's "left at the peak" is wrong on Android.** It is worked out
+  against an app limit, which iOS has and Android does not, so on Android
+  it comes out negative. It should be left out there, as it is on a Mac.
+
 ## Still open
 
 - **A 6 GB iPhone.** Its limit is unmeasured. If it is about 3 GB, as
@@ -200,5 +284,7 @@ MiB throughout. What the run showed:
   (`com.apple.developer.kernel.increased-memory-limit`) was not tried; the
   app does not have it.
 
-Until a 6 GB phone is measured, the 6 GB floor (`minimumMemoryBytes` in
-`SubmersionVisionPlugin.swift`) stays as it is.
+Until a 6 GB iPhone is measured, iPhones and iPads keep the 8 GB floor
+(`MemoryFloor.minimumMemoryBytes` in `MemoryReading.swift`, 6.5 GiB as
+reported). The Pixel 6a run says nothing about them, since it ran the ONNX
+engine, not Core ML.

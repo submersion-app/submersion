@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:submersion/core/constants/feature_flags.dart';
@@ -59,10 +60,13 @@ class _IdentificationTriggerState extends ConsumerState<IdentificationTrigger>
   /// read.
   MediaIdentificationService? _service;
 
+  /// Photos, and videos where they are scanned (not Linux, which has no
+  /// video player).
   bool get _applies =>
       marineLifeIdEnabled &&
       (widget.item.mediaType == MediaType.photo ||
-          widget.item.mediaType == MediaType.video);
+          (widget.item.mediaType == MediaType.video &&
+              visionVideoRuns(defaultTargetPlatform)));
 
   @override
   void initState() {

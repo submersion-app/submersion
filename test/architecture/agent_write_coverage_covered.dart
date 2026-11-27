@@ -46,8 +46,6 @@ final reachedThrough = <String, String>{
       'updateTag',
   'lib/features/buddies/data/repositories/buddy_repository.dart:setFavorite':
       'updateFields',
-  'lib/features/buddies/data/repositories/buddy_repository.dart:toggleFavorite':
-      'updateFields',
   'lib/features/buddies/data/repositories/buddy_repository.dart:updateBuddy':
       'updateFields',
   'lib/features/dive_log/data/repositories/dive_custom_field_repository.dart:replaceFieldsForDive':
@@ -90,8 +88,6 @@ final reachedThrough = <String, String>{
       'BulkDiveEditService',
   'lib/features/buddies/data/repositories/buddy_repository.dart:removeBuddyFromDive':
       'BulkDiveEditService',
-  'lib/features/certifications/data/repositories/certification_repository.dart:replaceBuddyCertifications':
-      'createCertification',
   'lib/features/checklists/data/repositories/trip_checklist_repository.dart:clearItems':
       'deleteItem',
   'lib/features/checklists/data/repositories/trip_checklist_section_repository.dart:createSectionRow':
@@ -427,7 +423,7 @@ final covered = <String, String>{
     'assignDivesToTrip',
   ])
     '$trips/trip_repository.dart:$method': 'trips',
-  for (final method in const ['pack', 'unpack'])
+  for (final method in const ['pack', 'unpack', 'assignBags'])
     '$trips/trip_equipment_repository.dart:$method': 'trips',
   '$trips/liveaboard_details_repository.dart:createOrUpdate':
       'liveaboard_details',
@@ -494,7 +490,6 @@ final covered = <String, String>{
     'createCertification',
     'updateCertification',
     'deleteCertification',
-    'replaceBuddyCertifications',
   ])
     '$certs/certification_repository.dart:$method': 'certifications',
   for (final (method, entity) in const [
@@ -641,12 +636,13 @@ final covered = <String, String>{
     'lib/features/dive_sites/data/repositories/site_feature_repository.dart:'
             '$method':
         'site_features',
-  for (final method in const [
-    'createIncident',
-    'updateIncident',
-    'deleteIncident',
-  ])
+  for (final method in const ['createIncident', 'deleteIncident'])
     '$safety/incident_repository.dart:$method': 'incidents',
+  // The near-miss editor's Save (issue #4527, phase 4) and the writer's
+  // update (#4924): the columns a change names, plus the check-in link a
+  // move to another item drops, so a link a read gives as none is never
+  // written back.
+  '$safety/incident_repository.dart:applyIncidentChanges': 'incidents',
   // An item's delete takes it off its incidents.
   '$safety/incident_repository.dart:unlinkFromDeletedEquipment': 'equipment',
   for (final method in const ['createChamber', 'deleteChamber'])
@@ -751,8 +747,6 @@ final covered = <String, String>{
         'pre_dive_templates',
   // The same record changed by another path the app also takes.
   'lib/features/buddies/data/repositories/buddy_repository.dart:setFavorite':
-      'buddies',
-  'lib/features/buddies/data/repositories/buddy_repository.dart:toggleFavorite':
       'buddies',
   'lib/features/buddies/data/repositories/buddy_repository.dart:updateBuddy':
       'buddies',

@@ -1,26 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
-import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/helpers/day_type_l10n.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 
-const _log = LoggerService('itineraryDayEditSheet');
-
 /// Shows a modal bottom sheet to edit an itinerary day's type, location,
-/// notes and planned dives. Persists changes via ItineraryDayRepository and
-/// invalidates the itineraryDaysProvider on save. [isLiveaboard] offers the
-/// maritime day types and labels the place a port (#2845).
+/// notes and planned dives. Save hands the edited day to [hold]: the trip
+/// page holds it in its sitting until its own Save (issue #4527).
+/// [isLiveaboard] offers the maritime day types and labels the place a port
+/// (#2845).
 Future<void> showItineraryDayEditSheet({
   required BuildContext context,
   required ItineraryDay day,
-  required String tripId,
   required bool isLiveaboard,
+  required ValueChanged<ItineraryDay> hold,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -28,36 +24,36 @@ Future<void> showItineraryDayEditSheet({
     useSafeArea: true,
     builder: (context) => _ItineraryDayEditSheet(
       day: day,
-      tripId: tripId,
       isLiveaboard: isLiveaboard,
+      hold: hold,
     ),
   );
 }
 
-class _ItineraryDayEditSheet extends ConsumerStatefulWidget {
+class _ItineraryDayEditSheet extends StatefulWidget {
   final ItineraryDay day;
-  final String tripId;
   final bool isLiveaboard;
+
+  /// Takes the edited day: the trip page holds it in its sitting until Save
+  /// (issue #4527).
+  final ValueChanged<ItineraryDay> hold;
 
   const _ItineraryDayEditSheet({
     required this.day,
-    required this.tripId,
     required this.isLiveaboard,
+    required this.hold,
   });
 
   @override
-  ConsumerState<_ItineraryDayEditSheet> createState() =>
-      _ItineraryDayEditSheetState();
+  State<_ItineraryDayEditSheet> createState() => _ItineraryDayEditSheetState();
 }
 
-class _ItineraryDayEditSheetState
-    extends ConsumerState<_ItineraryDayEditSheet> {
+class _ItineraryDayEditSheetState extends State<_ItineraryDayEditSheet> {
   late DayType _selectedDayType;
   late TextEditingController _portNameController;
   late TextEditingController _notesController;
   late TextEditingController _plannedDivesController;
   String? _plannedDivesError;
-  bool _isSaving = false;
 
   @override
   void initState() {
@@ -96,7 +92,7 @@ class _ItineraryDayEditSheetState
     return offered;
   }
 
-  Future<void> _save() async {
+  void _save() {
     // Blank derives the count; 0 is a rest day; a word, or more dives than
     // the planning board can show, is refused in place.
     final int? plannedDives;
@@ -122,44 +118,19 @@ class _ItineraryDayEditSheetState
         );
         return;
     }
-    setState(() {
-      _isSaving = true;
-      _plannedDivesError = null;
-    });
-
-    try {
-      final portName = _portNameController.text.trim();
-      final notes = _notesController.text.trim();
-      // Saving a day as Rest plans it at none (#2658).
-      final dayType = _selectedDayType;
-      final updatedDay = widget.day.copyWith(
+    final portName = _portNameController.text.trim();
+    final notes = _notesController.text.trim();
+    // Saving a day as Rest plans it at none (#2658).
+    final dayType = _selectedDayType;
+    widget.hold(
+      widget.day.copyWith(
         dayType: dayType,
         portName: portName.isEmpty ? null : portName,
         notes: notes,
         plannedDives: dayType == DayType.rest ? 0 : plannedDives,
-      );
-
-      final repository = ref.read(itineraryDayRepositoryProvider);
-      await repository.updateDay(updatedDay);
-
-      ref.invalidate(itineraryDaysProvider(widget.tripId));
-
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
-    } catch (e, stackTrace) {
-      _log.error(
-        'Failed to save itinerary day',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.trips_itinerary_daySaveError)),
-        );
-        setState(() => _isSaving = false);
-      }
-    }
+      ),
+    );
+    Navigator.of(context).pop();
   }
 
   @override
@@ -276,14 +247,8 @@ class _ItineraryDayEditSheetState
 
             // Save button
             FilledButton(
-              onPressed: _isSaving ? null : _save,
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(l10n.common_action_save),
+              onPressed: _save,
+              child: Text(l10n.common_action_save),
             ),
           ],
         ),

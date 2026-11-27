@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_location_backfill_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
@@ -21,9 +20,9 @@ class _RecordingBackfill extends StateNotifier<BackfillState>
   final List<SiteLocationLookupMode> counted = [];
 
   @override
-  Future<List<DiveSite>> findCandidates(SiteLocationLookupMode mode) async {
+  Future<BackfillCandidates> findCandidates(SiteLocationLookupMode mode) async {
     counted.add(mode);
-    return const [];
+    return const BackfillCandidates(sites: []);
   }
 
   @override
@@ -100,6 +99,18 @@ void main() {
     expect(find.text('System Default'), findsOneWidget);
     expect(find.text('Deutsch'), findsOneWidget);
     expect(find.text('German'), findsOneWidget);
+  });
+
+  testWidgets('offers Japanese after Chinese', (tester) async {
+    final codes = LanguageSettingsPage.supportedLocales
+        .map((o) => o.code)
+        .toList();
+    expect(codes.indexOf('ja'), codes.indexOf('zh') + 1);
+
+    await _pumpPage(tester);
+
+    expect(find.text('日本語'), findsOneWidget);
+    expect(find.text('Japanese'), findsOneWidget);
   });
 
   testWidgets('marks only the current language as selected', (tester) async {

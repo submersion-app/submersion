@@ -38,6 +38,10 @@ class _VideoItem extends ConsumerStatefulWidget {
   final void Function(String mediaId, VideoPlayerController? controller)
   onControllerChanged;
 
+  /// The viewer's sound: this page's player plays at it and follows each
+  /// change, and M toggles it (issue #4817).
+  final ViewerAudio audio;
+
   /// The viewer's people tag mode (issue #1745).
   final PeopleTagSession people;
 
@@ -58,6 +62,7 @@ class _VideoItem extends ConsumerStatefulWidget {
     required this.onSetOverlay,
     required this.onHoldChanged,
     required this.onControllerChanged,
+    required this.audio,
     required this.people,
     this.identificationsEditable = true,
     this.hideIdentifications = false,
@@ -99,6 +104,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   @override
   void initState() {
     super.initState();
+    widget.audio.addListener(_applyAudio);
     // A neighbour built ahead holds no native player: only the page on
     // screen gets a decoder and texture, as before neighbours stayed built
     // (#1175 is the memory budget this protects).
@@ -108,6 +114,12 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   @override
   void didUpdateWidget(covariant _VideoItem oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // One sound for the viewer's whole life: the page owns it, so the
+    // listener added in initState stays on the right one.
+    assert(
+      identical(oldWidget.audio, widget.audio),
+      'a video page keeps the ViewerAudio it was built with',
+    );
     if (!oldWidget.isCurrent && widget.isCurrent) {
       _initializeVideo();
     } else if (oldWidget.isCurrent && !widget.isCurrent) {
@@ -136,8 +148,35 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     _releaseController(controller, widget.item.id);
   }
 
+  /// Gives the live player the viewer's sound: after the sound changes, and
+  /// when a player is handed over. The opener sets it before any play; this
+  /// catches a change made while the player was still being readied.
+  void _applyAudio() {
+    final controller = _controller;
+    if (controller == null ||
+        controller.value.volume == widget.audio.effectiveVolume) {
+      return;
+    }
+    unawaited(
+      widget.audio.applyTo(controller).catchError((Object e) {
+        _log.warning('Video ${widget.item.id} volume change failed', error: e);
+      }),
+    );
+  }
+
   /// Handle keyboard events for video playback
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    // M mutes or unmutes, in tag mode too: it does not move the frame. A
+    // chord with Ctrl, Cmd or Alt is some other shortcut's to take.
+    final keyboard = HardwareKeyboard.instance;
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.keyM &&
+        !keyboard.isControlPressed &&
+        !keyboard.isMetaPressed &&
+        !keyboard.isAltPressed) {
+      widget.audio.toggleMute();
+      return KeyEventResult.handled;
+    }
     // In people tag mode the video stays on the frame its boxes are drawn
     // on (issue #1745), so Space does not play it.
     if (event is KeyDownEvent &&
@@ -147,6 +186,16 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
+  }
+
+  /// Switches this video to its original file: the player is let go and
+  /// reopened from the original, which [resolvedFilePathProvider] fetches
+  /// once the choice is set. The viewer's loading state covers the download.
+  void _playOriginal() {
+    ref.read(playVideoOriginalProvider(widget.item.id).notifier).state = true;
+    _release();
+    setState(() {});
+    _initializeVideo();
   }
 
   Future<void> _initializeVideo() async {
@@ -175,6 +224,9 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       final opener = VideoPlaybackOpener(
         playback,
         release: (controller) => _releaseController(controller, mediaId),
+        // Read at each open, a reopen included: never a moment of sound
+        // while the viewer is muted.
+        volume: () => widget.audio.effectiveVolume,
       );
       final controller = await opener.open();
 
@@ -191,6 +243,8 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
         _isInitialized = true;
         _isLoading = false;
       });
+      // As for a reopen: any toggle since the opener set its volume.
+      _applyAudio();
       // Ownership has moved to _controller; dispose() owns it from here.
       widget.onControllerChanged(mediaId, controller);
       opener.watch(controller, onReplaced: _onReplaced);
@@ -227,11 +281,15 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       return;
     }
     setState(() => _controller = next);
+    // It took the viewer's sound when it opened; a toggle since, while it
+    // seeked and resumed, reached only the failed player.
+    _applyAudio();
     widget.onControllerChanged(mediaId, next);
   }
 
   @override
   void dispose() {
+    widget.audio.removeListener(_applyAudio);
     final controller = _controller;
     _opener?.dispose();
     if (controller != null) {
@@ -281,6 +339,14 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
   @override
   Widget build(BuildContext context) {
+    // Watched on every build, not only where the button shows: this page is
+    // what keeps the choice alive while the overlay is hidden, tag mode is
+    // on, or the page sits next to the current one (the viewer's galleries
+    // keep a neighbour built with allowImplicitScrolling). Paged further
+    // away, the page is disposed and the conversion plays again.
+    final playingOriginal = ref.watch(
+      playVideoOriginalProvider(widget.item.id),
+    );
     final resolved = _resolvedFor;
     if (widget.isCurrent && resolved != null) {
       ref.listen(videoPlaybackProvider(resolved), (_, _) {});
@@ -386,7 +452,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
 
           // Name pills and dots on the fish (issue #4675). Out of tag mode
           // and white-point picking, which take the taps.
-          if (marineLifeIdEnabled &&
+          if (marineLifeLabelsShown &&
               widget.isCurrent &&
               !widget.people.active &&
               !widget.hideIdentifications)
@@ -442,6 +508,26 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
                     ),
             ),
 
+          // A shared album's video plays its smaller conversion; the
+          // original is one tap away. Gone once chosen, and in tag mode.
+          if (widget.isCurrent &&
+              (!widget.fullscreen || widget.showOverlay) &&
+              !widget.people.active &&
+              hasPlayableOriginal(widget.item) &&
+              !playingOriginal)
+            // Below the viewer's top bar (close, lock, info, share), which
+            // draws over this page.
+            Positioned(
+              top: MediaQuery.paddingOf(context).top + kToolbarHeight + 16,
+              right: 16,
+              child: FilledButton.tonalIcon(
+                key: const Key('videoPlayOriginal'),
+                icon: const Icon(Icons.high_quality_outlined),
+                label: Text(context.l10n.media_viewer_playOriginal),
+                onPressed: _playOriginal,
+              ),
+            ),
+
           // Fullscreen's controls bar, at the bottom edge.
           if (showBar)
             Positioned(
@@ -451,6 +537,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
               child: VideoControlsBar(
                 controller: controller,
                 mediaId: widget.item.id,
+                audio: widget.audio,
                 // The controls hide 3 s after a reveal: hold them up while
                 // scrubbing or under the mouse, so the bar is not pulled from
                 // under the pointer, then restart the clock only if the video

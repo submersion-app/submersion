@@ -388,22 +388,28 @@ void main() {
     );
     await _seedDecoPlan(tester, find.byType(PlanStatusChips));
 
-    container.read(selectedDeviationProvider.notifier).state = 'deeper';
+    container
+        .read(contingencySelectionProvider.notifier)
+        .selectDeviation('deeper');
     await tester.pumpAndSettle();
     expect(find.textContaining('Previewing: +5m'), findsOneWidget);
 
-    container.read(selectedDeviationProvider.notifier).state = 'longer';
+    container
+        .read(contingencySelectionProvider.notifier)
+        .selectDeviation('longer');
     await tester.pumpAndSettle();
     expect(find.textContaining("Previewing: +5′"), findsOneWidget);
 
-    container.read(selectedDeviationProvider.notifier).state = 'both';
+    container
+        .read(contingencySelectionProvider.notifier)
+        .selectDeviation('both');
     await tester.pumpAndSettle();
     expect(find.textContaining("Previewing: +5m +5′"), findsOneWidget);
 
     await tester.tap(find.byType(ContingencyPreviewChip));
     await tester.pumpAndSettle();
 
-    expect(container.read(selectedDeviationProvider), isNull);
+    expect(container.read(contingencySelectionProvider).deviationKey, isNull);
     expect(find.textContaining('Previewing'), findsNothing);
   });
 
@@ -427,7 +433,7 @@ void main() {
         );
     await tester.pumpAndSettle();
 
-    container.read(selectedLostGasTankIdProvider.notifier).state = 'deco';
+    container.read(contingencySelectionProvider.notifier).toggleLostGas('deco');
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Previewing: Lost EAN50'), findsOneWidget);
@@ -435,8 +441,8 @@ void main() {
     await tester.tap(find.byType(ContingencyPreviewChip));
     await tester.pumpAndSettle();
 
-    expect(container.read(selectedLostGasTankIdProvider), isNull);
-    expect(container.read(selectedDeviationProvider), isNull);
+    expect(container.read(contingencySelectionProvider).lostTankIds, isEmpty);
+    expect(container.read(contingencySelectionProvider).deviationKey, isNull);
     expect(find.textContaining('Previewing'), findsNothing);
   });
 
@@ -454,7 +460,9 @@ void main() {
     // id lingers but no contingency is computed, so the headline stats fall
     // back to the live plan. The chip must not claim a preview that is not
     // in effect.
-    container.read(selectedLostGasTankIdProvider.notifier).state = 'removed';
+    container
+        .read(contingencySelectionProvider.notifier)
+        .toggleLostGas('removed');
     await tester.pumpAndSettle();
 
     expect(container.read(selectedContingencyProvider), isNull);

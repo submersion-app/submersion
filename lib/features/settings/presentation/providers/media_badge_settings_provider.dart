@@ -31,9 +31,11 @@ class MediaProvenanceBadgesNotifier extends DeviceBadgeToggleNotifier {
 
 /// A device-local on/off setting, stored in SharedPreferences under [_key]
 /// and on by default ([defaultValue]). Shared by the source badges and the
-/// tag markers so the two cannot drift apart, and by marine life
-/// auto-apply (`AutoApplyNotifier`, off by default): a change here reaches
-/// all three.
+/// tag markers so the two cannot drift apart, and by species
+/// identification's identify-on-open switch, its auto-apply
+/// (`AutoApplyNotifier`, off by default) and the dismissal of its download
+/// offer (`SpeciesDownloadPromptDismissedNotifier`, off by default): a
+/// change here reaches all five.
 class DeviceBadgeToggleNotifier extends StateNotifier<bool>
     with SerialPreferenceWrites {
   DeviceBadgeToggleNotifier(

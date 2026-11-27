@@ -31,12 +31,12 @@ Each entry carries a common name, optional scientific name, taxonomy class, desc
 
 ### Adding a custom species
 
-1. Open the catalog (**Settings > Manage > Species**, or **Manage catalog** on the Species page) and add a species.
-2. **Look up online** searches iNaturalist by common or scientific name and fills in the details and a photo from the result. **Create without lookup** starts from a blank form.
+1. Open the catalog (**Settings > Manage > Species**, or **Manage catalog** on the Species page) and add a species. It opens on its own page, unlocked.
+2. In its header, **Look up online** searches iNaturalist by common or scientific name and fills in the details from the result.
 3. Enter or correct the common name (required), scientific name, taxonomy class, description and category.
-4. Save. The species is immediately available when you log a sighting.
+4. Tap **Save**. The species is immediately available when you log a sighting.
 
-If you later realize the identification was wrong, open the species and edit it. If a species you logged should be in the built-in catalog for everyone, **Suggest for the catalog** on its page sends the suggestion to the project.
+If you later realize the identification was wrong, open the species, tap the lock and correct it, then **Save**. If a species you logged should be in the built-in catalog for everyone, **Suggest for the catalog** on its page sends the suggestion to the project.
 
 ### Logging a sighting on a dive
 
@@ -53,9 +53,29 @@ You can add as many sightings as you like to a single dive.
 
 ### The Species page
 
-**Species** in the navigation lists every species you have seen. Search it, and sort by **Most sightings**, **Recently seen**, **First seen**, or **Name**. Open a species to see its **Sighting Statistics** (sightings, dives, first and last seen), **Top Sites**, **Sighting Period**, **Depth Range**, and every sighting.
+**Species** in the navigation is your life list: every species you have seen, as a card showing its best picture. The picture is the cover you chose, else the largest crop the identification model cut from your photos and videos, else your newest tagged photo, else the category's colour and icon.
 
-A species page also gathers its **Photos**: **Tag photos** picks photos from that species' dives to tag with it, and **Add photos** links new ones.
+The header counts your species and the ones new this calendar year, with a line of how the list has grown. It always describes the whole list, whatever you search or filter.
+
+The search icon opens a search row, as on the other lists, and the filter narrows the cards with a query. Below the header, one row holds the rest: a chip with the number of species that still have no picture (tap it to show only those), the sort menu, **Group by** and the list button. **Group by** sets the cards out by **Category** (the default: a scrolling shelf per category), **Year first seen**, **Trip** or **Site**; a species seen on several trips or sites appears under each, marked **First seen here** where you first logged it. A shelf's **See all** shows that category as one grid, with a chip to clear it; your grouping comes back when you do. The list button switches to compact rows. This device remembers your grouping and the list choice.
+
+A card's badge says what stands out: **New** (first seen in the last 90 days), **Seen once**, **Not seen lately** (over two years) or **Mastered** (see ID practice below).
+
+### A species' page
+
+A species' page opens on a large picture of the animal. For a crop of a photo, the page shows the original photo zoomed to the animal, so it stays sharp; when the original is not on this device it shows the stored crop. Below it, a strip holds every crop of the species, one per photo, newest first. Tap one to open the photo, or the video at the moment the animal appears. Long-press (or right-click) a crop to **Use as cover**, or to **Remove cover**. Covers are yours alone and sync to your other devices.
+
+Then come the facts (dives, sites, first and last seen), the description, **Where seen**, and **Depth and season**: a band of the depths you photographed it at (or, with no photo depths, the range of your dives' maximum depths, labelled as such) beside a bar of how many dives saw it in each month. A timeline shows every dive as a dot across the years; tap one to open the dive. The sightings list and **Photos** follow. On a wide window the page splits into two columns.
+
+A species with no picture offers **Find photos**, which opens the photos from the dives where you logged it, ready to tag.
+
+The page's **Photos** card works as before: **Tag photos** picks photos from that species' dives to tag with it, and **Add photos** links new ones.
+
+### ID practice
+
+**Practice** on the Species page asks you to name your own animals: up to ten rounds, each one of your confirmed crops and four names, chosen from the same category where possible. A switch shows scientific names instead. Practice needs at least four species with a confirmed crop.
+
+Practice remembers how you do. A right answer moves a species up a box and rests it for 1, 3, 7 and then 21 days; a wrong one brings it back at once. Each session starts with the species that are due, then the ones you have not practised. A species in the top box shows **Mastered** on its card.
 
 ### Species on dive sites
 

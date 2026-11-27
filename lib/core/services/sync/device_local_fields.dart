@@ -1,4 +1,5 @@
 import 'package:submersion/core/services/sync/child_column_clears.dart';
+import 'package:submersion/core/services/sync/held_references.dart';
 
 /// Columns a synced row never carries, by entity type and wire (JSON) key,
 /// because their value belongs to one device rather than to the library, or
@@ -57,6 +58,10 @@ const Set<String> deviceLocalSettingsKeys = {
   'nav_always_hide_labels',
   'nav_always_hide_labels_phone',
   'nav_always_hide_labels_desktop',
+  // The links and rows a sync apply set aside until their parent arrives
+  // (issue #4954): they describe this device's copy of the library.
+  heldLinksSettingsKey,
+  heldOrphansSettingsKey,
 };
 
 /// Whether the synced record [recordId] of [entityType] is a device-local

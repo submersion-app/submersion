@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
+import 'package:submersion/core/theme/record_pencil_colors.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 
 // ---------------------------------------------------------------------------
@@ -16,6 +17,7 @@ final ThemeData submersionLight = ThemeData(
   extensions: const <ThemeExtension<dynamic>>[
     FeatureAccentColors.light,
     StatusColors.light,
+    RecordPencilColors.light,
   ],
   colorScheme: ColorScheme.fromSeed(
     seedColor: _seedColor,
@@ -45,6 +47,7 @@ final ThemeData submersionDark = ThemeData(
   extensions: const <ThemeExtension<dynamic>>[
     FeatureAccentColors.dark,
     StatusColors.dark,
+    RecordPencilColors.dark,
   ],
   colorScheme: ColorScheme.fromSeed(
     seedColor: _seedColor,

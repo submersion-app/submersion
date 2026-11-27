@@ -48,8 +48,14 @@ final exempt = <String, String>{
       'verdicts derived from dive analysis, recomputed from the dives',
   'lib/features/species_id/data/repositories/media_identification_repository.dart:*':
       'what the on-device model found; derived by the app, never the diver',
+  'lib/features/species_id/data/repositories/identification_crop_repository.dart:*':
+      'crops the on-device model cut from media; derived by the app',
   'lib/features/species_id/data/repositories/identification_embedding_repository.dart:*':
       'a cache',
+  'lib/features/marine_life/data/repositories/species_cover_repository.dart:*':
+      'which picture stands for a species on the Species pages: screen state',
+  'lib/features/marine_life/data/repositories/species_practice_repository.dart:*':
+      'ID practice progress, not a record of the diving',
   'lib/features/insights/data/repositories/observation_dismissals_repository.dart:*':
       'the state of derived findings, recomputed from records',
   'lib/features/data_quality/data/repositories/quality_findings_repository.dart:*':
@@ -61,21 +67,18 @@ final exempt = <String, String>{
       'updates',
   'lib/features/weight_presets/data/repositories/weight_preset_repository.dart:createFromWeights':
       'a shortcut for a create with entries, which weight_presets covers',
-  for (final method in const [
-    'retireEquipment',
-    'setStatusForMany',
-    'markEquipmentPurchased',
-  ])
+  for (final method in const ['retireEquipment', 'setStatusForMany'])
     '$gear/equipment_repository_impl.dart:$method':
         'a shortcut for a status change, which equipment covers through '
         'updateEquipment',
-  for (final method in const [
-    'createEquipmentWithTags',
-    'updateEquipmentWithTags',
-  ])
-    '$gear/equipment_repository_impl.dart:$method':
-        'the edit page\'s save, which equipment covers as fields and a tags '
-        'relation',
+  'lib/features/trips/data/repositories/trip_equipment_repository.dart:packInBag':
+      'a shortcut for pack then assignBag, which trips covers as '
+      'equipment_ids and bag_contents',
+  'lib/features/trips/data/repositories/trip_equipment_repository.dart:assignBag':
+      'a one-item assignBags, which trips covers as bag_contents',
+  '$gear/equipment_repository_impl.dart:createEquipmentWithTags':
+      'the demo data seeder\'s create, which equipment covers as fields and '
+      'a tags relation',
   '$gear/dive_sensor_summary_repository.dart:*':
       'a summary derived from dives, recomputed when they change',
   '$gear/equipment_service_status_repository.dart:*':
@@ -292,6 +295,7 @@ final exempt = <String, String>{
     'lib/features/trips/data/repositories/itinerary_day_repository.dart:deleteBarePlanDaysOutside',
     'lib/features/trips/data/repositories/itinerary_day_repository.dart:deleteByTripId',
     'lib/features/trips/data/repositories/liveaboard_details_repository.dart:deleteByTripId',
+    'lib/features/trips/data/repositories/side_trip_links.dart:clearForeignLinksOnTripDives',
     'lib/features/trips/data/repositories/side_trip_links.dart:detachSideTripsForDelete',
     'lib/features/trips/data/repositories/trip_date_stretch.dart:restoreStretchedTripDates',
     'lib/features/trips/data/repositories/trip_day_weather_repository.dart:deleteByTripId',
@@ -319,6 +323,15 @@ final exempt = <String, String>{
       '(issue #4527, phase 3): the same rows an agent writes one by one '
       'through course_requirements (create, update, delete, tick, credit and '
       'uncredit a dive)',
+  'lib/features/gps_log/data/repositories/gps_track_repository.dart:writeEditedColumns':
+      'a GPS track page writes the name and trim its sitting held at Save '
+      '(issue #4527, phase 3): the same columns an agent writes through '
+      'gps_tracks (setTrimBounds, clearTrim)',
+  'lib/features/nav_track/data/repositories/nav_track_repository.dart:writeEditedColumns':
+      'an underwater track page writes the name, site, device and correction '
+      'its sitting held at Save (issue #4527, phase 3): the same columns an '
+      'agent writes through nav_tracks (rename, setSite, setEquipment, '
+      'updateCorrection)',
   // Planned dives.
   for (final method in const [
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createPlannedDive',
@@ -415,6 +428,7 @@ final exempt = <String, String>{
     'lib/features/media/data/repositories/manifest_subscription_repository.dart:recordPollNotModified',
     'lib/features/media/data/repositories/manifest_subscription_repository.dart:recordPollSuccess',
     'lib/features/media/data/repositories/manifest_subscription_repository.dart:setActive',
+    'lib/features/media/data/repositories/manifest_subscription_repository.dart:setPollInterval',
     'lib/features/media/data/repositories/manifest_subscription_repository.dart:updateUrlAndDisplayName',
     'lib/features/media/data/repositories/media_repair_log_repository.dart:record',
     'lib/features/media/data/repositories/media_repository.dart:clearRemoteCompressed',

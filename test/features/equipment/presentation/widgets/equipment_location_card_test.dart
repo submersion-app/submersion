@@ -4,6 +4,10 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location_move.dart';
+import 'package:submersion/features/equipment/data/services/equipment_move_flow.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_location_sitting.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_location_picker_sheet.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -40,30 +44,133 @@ void main() {
     createdAt: DateTime(2026, 9, day),
   );
 
-  Future<void> pump(WidgetTester tester, List<EquipmentLocationMove> moves) =>
-      tester.pumpWidget(
-        testApp(
-          locale: const Locale('en'),
-          overrides: [
-            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
-            equipmentLocationMovesProvider(
-              'reg',
-            ).overrideWith((ref) async => moves),
-            equipmentLocationsProvider.overrideWith(
-              (ref) async => [place('shop', "Joe's Scuba")],
-            ),
-            allEquipmentLocationsByIdProvider.overrideWith(
-              (ref) async => {
-                'shop': place('shop', "Joe's Scuba"),
-                'old': place('old', 'Old locker', archived: true),
-              },
-            ),
-          ],
-          child: const SingleChildScrollView(
-            child: EquipmentLocationCard(equipment: reg),
+  Future<void> pump(
+    WidgetTester tester,
+    List<EquipmentLocationMove> moves, {
+    Widget card = const EquipmentLocationCard(equipment: reg),
+  }) => tester.pumpWidget(
+    testApp(
+      locale: const Locale('en'),
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        equipmentLocationMovesProvider(
+          'reg',
+        ).overrideWith((ref) async => moves),
+        equipmentLocationsProvider.overrideWith(
+          (ref) async => [place('shop', "Joe's Scuba")],
+        ),
+        allEquipmentLocationsByIdProvider.overrideWith(
+          (ref) async => {
+            'shop': place('shop', "Joe's Scuba"),
+            'old': place('old', 'Old locker', archived: true),
+          },
+        ),
+      ],
+      child: SingleChildScrollView(child: card),
+    ),
+  );
+
+  // Where the item page edits in place (issue #4527, phase 3).
+  group('on a page that edits in place', () {
+    testWidgets('locked, it offers no Move and its moves open nothing', (
+      tester,
+    ) async {
+      await pump(tester, [
+        move('b', 'shop', 3),
+      ], card: const EquipmentLocationCard(equipment: reg));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const ValueKey('equipment_location_move')),
+        findsNothing,
+      );
+      await tester.tap(find.byKey(const ValueKey('equipment_location_move_b')));
+      await tester.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsNothing);
+    });
+
+    testWidgets('a closed card shows the held move as the current place, and '
+        'offers nothing', (tester) async {
+      final session = EditSession(reg);
+      addTearDown(session.dispose);
+      holdGearItemMove(
+        session,
+        HeldGearItemMove(
+          pick: PlacePick(place('shop', "Joe's Scuba")),
+          plan: EquipmentMovePlan(
+            items: const {'reg': EquipmentStatus.active},
+            movedAt: DateTime(2026, 9, 9),
+            note: 'Annual service',
           ),
         ),
       );
+      await pump(tester, [
+        move('a', 'old', 1),
+      ], card: EquipmentLocationCard(equipment: reg, shown: session));
+      await tester.pumpAndSettle();
+
+      final current = find.byKey(const ValueKey('equipment_location_current'));
+      expect(
+        find.descendant(of: current, matching: find.text("Joe's Scuba")),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Annual service'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('equipment_location_move')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('open, past moves open nothing until the sitting has read '
+        'them', (tester) async {
+      final session = EditSession(reg);
+      addTearDown(session.dispose);
+      await pump(tester, [
+        move('b', 'shop', 3),
+      ], card: EquipmentLocationCard(equipment: reg, editing: session));
+      // A progress bar waiting for a read never settles.
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(LinearProgressIndicator), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('equipment_location_move_b')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.byType(AlertDialog), findsNothing);
+    });
+
+    testWidgets('open, a past move edited is held in the sitting', (
+      tester,
+    ) async {
+      final session = EditSession(reg);
+      addTearDown(session.dispose);
+      final moves = [move('b', 'shop', 3), move('a', 'old', 1)];
+      // No database here: the list starts empty and is given the moves.
+      gearItemMovesList
+        ..loadNone(session)
+        ..set(session, moves);
+      await pump(
+        tester,
+        moves,
+        card: EquipmentLocationCard(equipment: reg, editing: session),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('equipment_location_move_a')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('location_move_delete')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete').last);
+      await tester.pumpAndSettle();
+
+      expect(gearItemMovesList.current(session)!.map((m) => m.id), ['b']);
+      expect(session.changedCardIds, {'location'});
+      expect(
+        find.byKey(const ValueKey('equipment_location_move_a')),
+        findsNothing,
+      );
+    });
+  });
 
   testWidgets('no moves reads No location set', (tester) async {
     await pump(tester, const []);
@@ -104,25 +211,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       find.byKey(const ValueKey('equipment_location_move_m1')),
-      findsOneWidget,
-    );
-  });
-
-  testWidgets('a move that fails says so instead of throwing', (tester) async {
-    // No database behind this test: recording the move throws.
-    await pump(tester, const []);
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('equipment_location_move')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('move_equipment_to')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text("Joe's Scuba"));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('move_equipment_confirm')));
-    await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull);
-    expect(
-      find.text('Something went wrong. Please try again.'),
       findsOneWidget,
     );
   });

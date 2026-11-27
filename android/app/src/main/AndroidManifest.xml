@@ -70,11 +70,22 @@
     <application
         android:label="Submersion"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules">
+        <!-- singleTask (issue #4843): a share, "Open with" or link sent from
+             another app while Submersion runs reaches the running instance
+             through onNewIntent, which receive_sharing_intent and app_links
+             both listen to. singleTop reused only an instance on top of the
+             SENDER's task, so each such intent started a second activity,
+             a second Flutter engine and a second sync on the same database,
+             and one sync then took the other's uploads for a cloned install.
+             taskAffinity stays empty, as flutter_web_auth_2 asks; the
+             running task is still found by its root activity. -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"

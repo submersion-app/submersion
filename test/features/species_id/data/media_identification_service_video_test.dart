@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:drift/native.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/app_sql_functions.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/features/species_id/domain/services/video_tracker.dar
 import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 
 import '../../../helpers/temp_dir.dart';
+import '../../../helpers/wait_until.dart';
 import 'fake_vision_engine.dart';
 import 'media_identification_service_fixtures.dart';
 
@@ -62,6 +64,18 @@ class _StoreHookRepository extends MediaIdentificationRepository {
       onStore();
     }
   }
+}
+
+/// Waits for [done], turning the event loop, for up to five seconds.
+///
+/// A wall-clock budget, not a count of turns: the scan writes crops with
+/// real file I/O, and on a loaded CI runner 200 turns ran out first.
+Future<void> until(bool Function() done) async {
+  final clock = Stopwatch()..start();
+  while (!done() && clock.elapsed < const Duration(seconds: 5)) {
+    await Future<void>.delayed(Duration.zero);
+  }
+  expect(done(), isTrue);
 }
 
 void main() {
@@ -151,12 +165,60 @@ void main() {
       };
     }
 
-    Future<void> until(bool Function() done) async {
-      for (var k = 0; k < 200 && !done(); k++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect(done(), isTrue);
-    }
+    group('where videos are not scanned (Linux)', () {
+      late MediaIdentificationService photosOnly;
+      var resolved = 0;
+
+      setUp(() {
+        resolved = 0;
+        photosOnly = MediaIdentificationService(
+          engine: engine,
+          loadPack: () async => installed,
+          identifications: identifications,
+          embeddings: embeddings,
+          crops: crops,
+          resolveImage: (item) async => imageFor(item),
+          resolveVideo: (item) async {
+            resolved++;
+            return null;
+          },
+          taggedSpecies: (_) async => tagged,
+          enabled: () => enabled,
+          videoRuns: () => false,
+          databaseGeneration: () => generation,
+          now: () => DateTime.utc(2026, 11, 17),
+          newId: () => 'id-${ids++}',
+          idleUnload: const Duration(milliseconds: 50),
+        );
+      });
+      tearDown(() => photosOnly.dispose());
+
+      test('a viewer video request is skipped, its file never read', () async {
+        oneFish();
+        await photosOnly.request(video());
+        expect(engine.detectCalls, isEmpty);
+        expect(resolved, 0);
+        expect(await identifications.runFor('v1'), isNull);
+      });
+
+      test('a run passes over a video without counting it as failed', () async {
+        final outcome = await photosOnly.requestFromRun(
+          video(),
+          resolveImage: (item) async => imageFor(item),
+          resolveVideo: (item) async {
+            resolved++;
+            return null;
+          },
+        );
+        expect(outcome, RunItemOutcome.skipped);
+        expect(resolved, 0);
+      });
+
+      test('a photo is still analysed', () async {
+        await photosOnly.request(photo('p1'));
+        expect(await identifications.runFor('p1'), isNotNull);
+      });
+    });
 
     test('a video is scanned to the end and its fish stored', () async {
       oneFish();
@@ -168,11 +230,42 @@ void main() {
       expect(fish.top!.candidate, parrotfish);
     });
 
+    test('a scan keeps 3 crops of a species followed 5 times (issue '
+        '#5032)', () async {
+      // Five fish of one species side by side, each a little smaller.
+      engine.videoFrames = {
+        for (var ms = 1000; ms < 4000; ms += 250)
+          ms: [
+            for (var k = 0; k < 5; k++)
+              DetectedBox(
+                box: IdentificationBox(
+                  x: 0.02 + k * 0.19,
+                  y: 0.4,
+                  width: 0.15 - k * 0.01,
+                  height: 0.1,
+                ),
+                score: 0.9,
+              ),
+          ],
+      };
+      await service.request(video());
+      final fish = await identifications.forMedia('v1');
+      expect(fish, hasLength(5));
+      final kept = await crops.presentAmong('v1', [for (final f in fish) f.id]);
+      expect(kept, hasLength(3));
+      final largest = fish.sorted(
+        (a, b) => (b.boxPixelWidth * b.boxPixelHeight).compareTo(
+          a.boxPixelWidth * a.boxPixelHeight,
+        ),
+      );
+      expect(kept, {for (final f in largest.take(3)) f.id});
+    });
+
     test('leaving the video stops after the chunk in progress and resumes '
         'next time', () async {
       engine.videoGate = Completer<void>();
       final done = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       expect(service.cancelPending('v1'), isTrue);
       engine.videoGate!.complete();
       await done;
@@ -199,7 +292,7 @@ void main() {
       () async {
         engine.videoGate = Completer<void>();
         final run = fromRun(video());
-        await until(() => engine.detectCalls.length == 1);
+        await _until(() => engine.detectCalls.length == 1);
         expect(service.cancelPending('v1'), isFalse);
         engine.videoGate!.complete();
         engine.videoGate = null;
@@ -212,7 +305,7 @@ void main() {
         'the end when the viewer leaves', () async {
       engine.videoGate = Completer<void>();
       final viewing = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       final run = fromRun(video());
       expect(service.cancelPending('v1'), isTrue);
       engine.videoGate!.complete();
@@ -227,7 +320,7 @@ void main() {
       () async {
         engine.videoGate = Completer<void>();
         final first = service.request(video());
-        await until(() => engine.detectCalls.length == 1);
+        await _until(() => engine.detectCalls.length == 1);
         expect(service.cancelPending('v1'), isTrue);
         final again = service.request(video());
         engine.videoGate!.complete();
@@ -243,7 +336,7 @@ void main() {
       oneFish();
       engine.videoGate = Completer<void>();
       final first = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       final located = service.request(
         video(),
         location: const GeoPoint(20.5, -87.0),
@@ -262,7 +355,7 @@ void main() {
         'it returns', () async {
       engine.videoGate = Completer<void>();
       final scanning = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       final queued = service.request(photo('m1'));
       final settling = service.settleAll();
       engine.videoGate!.complete();
@@ -277,7 +370,7 @@ void main() {
     test('a pack change waits for one chunk, not the whole video', () async {
       engine.videoGate = Completer<void>();
       final done = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       final change = service.packChanged();
       engine.videoGate!.complete();
       await change;
@@ -292,7 +385,7 @@ void main() {
       () async {
         engine.videoGate = Completer<void>();
         final scanning = service.request(video());
-        await until(() => engine.detectCalls.length == 1);
+        await _until(() => engine.detectCalls.length == 1);
         final opened = service.request(photo('m1'));
         engine.videoGate!.complete();
         engine.videoGate = null;
@@ -377,7 +470,7 @@ void main() {
     test('another logbook opening mid-scan drops the chunk', () async {
       engine.videoGate = Completer<void>();
       final done = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       generation++;
       engine.videoGate!.complete();
       await done;
@@ -493,7 +586,7 @@ void main() {
       await service.packChanged();
       engine.videoGate = Completer<void>();
       final stopped = service.request(video());
-      await until(() => engine.detectCalls.length == 4);
+      await _until(() => engine.detectCalls.length == 4);
       expect(service.cancelPending('v1'), isTrue);
       engine.videoGate!.complete();
       engine.videoGate = null;
@@ -536,7 +629,7 @@ void main() {
     test('a resume with nothing to rename reads the rows once', () async {
       engine.videoGate = Completer<void>();
       final stopped = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       service.cancelPending('v1');
       engine.videoGate!.complete();
       engine.videoGate = null;
@@ -584,7 +677,7 @@ void main() {
       };
       engine.videoGate = Completer<void>();
       final stopped = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       service.cancelPending('v1');
       engine.videoGate!.complete();
       engine.videoGate = null;
@@ -738,20 +831,13 @@ void main() {
   group('following the playhead (issue #4709)', () {
     MediaItem video([String id = 'v1']) => photo(id, type: MediaType.video);
 
-    Future<void> until(bool Function() done) async {
-      for (var k = 0; k < 200 && !done(); k++) {
-        await Future<void>.delayed(Duration.zero);
-      }
-      expect(done(), isTrue);
-    }
-
     setUp(() => engine.videoDurationMs = 60000);
 
     test('a seek reported while a video is scanned moves its next '
         'chunk', () async {
       engine.videoGate = Completer<void>();
       final done = service.request(video());
-      await until(() => engine.detectCalls.length == 1);
+      await _until(() => engine.detectCalls.length == 1);
       service.followPlayhead('v1', 40000, seek: true);
       engine.videoGate!.complete();
       engine.videoGate = null;
@@ -830,8 +916,8 @@ void main() {
         return null;
       };
       final done = service.request(video());
-      await until(() => engine.detectCalls.length == 2);
-      await until(() => service.progressOf('v1') != null);
+      await _until(() => engine.detectCalls.length == 2);
+      await _until(() => service.progressOf('v1') != null);
       final fish = (await identifications.forMedia('v1')).single;
       expect(fish.decision, IdentificationDecision.accepted);
       expect(fish.decidedSpeciesId, 'sp_queen_parrotfish');
@@ -842,3 +928,9 @@ void main() {
     });
   });
 }
+
+/// Waits for [done] on the shared wall-clock budget, not a count of
+/// event-loop turns: the scan's real file writes can need more turns than
+/// any fixed number when CI runs many test files in one isolate (issue
+/// #4796). Every wait here is behind a gate, so the state holds still.
+Future<void> _until(bool Function() done) => waitUntil(() async => done());

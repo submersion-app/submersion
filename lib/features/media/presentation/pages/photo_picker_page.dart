@@ -14,6 +14,7 @@ import 'package:submersion/features/media/presentation/providers/files_tab_provi
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
+import 'package:submersion/features/media/presentation/widgets/import_elsewhere_hint.dart';
 import 'package:submersion/features/media/presentation/widgets/gallery_album_filter_bar.dart';
 import 'package:submersion/features/media/presentation/widgets/gallery_selection_toolbar.dart';
 import 'package:submersion/features/media/presentation/widgets/url_tab.dart';
@@ -67,6 +68,11 @@ class PhotoPickerPage extends ConsumerStatefulWidget {
   /// work nobody is waiting for.
   final Future<List<AssetInfo>> Function(bool Function() isActive)? loadAssets;
 
+  /// Only the Gallery tab, with a line saying where files and links are
+  /// added: a species page's Add photos takes back only the Gallery's
+  /// choice (issue #4527, media library decision 5).
+  final bool galleryOnly;
+
   const PhotoPickerPage({
     super.key,
     required this.startTime,
@@ -76,7 +82,8 @@ class PhotoPickerPage extends ConsumerStatefulWidget {
     this.target,
     this.initialFilePaths,
     this.loadAssets,
-  });
+    this.galleryOnly = false,
+  }) : assert(!galleryOnly || initialFilePaths == null);
 
   @override
   ConsumerState<PhotoPickerPage> createState() => _PhotoPickerPageState();
@@ -270,36 +277,62 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
           // permanently-greyed Done over those tabs read as "the app
           // rejected my photos" to users who had staged files there,
           // so the action tracks the active tab.
-          ListenableBuilder(
-            listenable: tabController,
-            builder: (context, _) => tabController.index == _galleryTabIndex
-                ? doneAction
-                : const SizedBox.shrink(),
-          ),
+          if (widget.galleryOnly)
+            doneAction
+          else
+            ListenableBuilder(
+              listenable: tabController,
+              builder: (context, _) => tabController.index == _galleryTabIndex
+                  ? doneAction
+                  : const SizedBox.shrink(),
+            ),
         ],
-        bottom: TabBar(
-          controller: tabController,
-          labelColor: barColors.selected,
-          unselectedLabelColor: barColors.unselected,
-          indicatorColor: barColors.selected,
-          overlayColor: barColors.overlay,
-          // On a coloured bar its own edge separates it from the page.
-          dividerColor: barColors.barMatchesPage ? null : Colors.transparent,
-          tabs: [
-            Tab(text: context.l10n.media_photoPicker_tab_gallery),
-            Tab(text: context.l10n.media_photoPicker_tab_files),
-            Tab(text: context.l10n.media_photoPicker_tab_url),
-          ],
-        ),
+        bottom: widget.galleryOnly
+            ? null
+            : TabBar(
+                controller: tabController,
+                labelColor: barColors.selected,
+                unselectedLabelColor: barColors.unselected,
+                indicatorColor: barColors.selected,
+                overlayColor: barColors.overlay,
+                // On a coloured bar its own edge separates it from the page.
+                dividerColor: barColors.barMatchesPage
+                    ? null
+                    : Colors.transparent,
+                tabs: [
+                  Tab(text: context.l10n.media_photoPicker_tab_gallery),
+                  Tab(text: context.l10n.media_photoPicker_tab_files),
+                  Tab(text: context.l10n.media_photoPicker_tab_url),
+                ],
+              ),
       ),
-      body: TabBarView(
-        controller: tabController,
-        children: [
-          _galleryTab(context),
-          FilesTab(target: widget.target),
-          UrlTab(target: widget.target),
-        ],
-      ),
+      body: widget.galleryOnly
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                  child: ImportElsewhereHint(
+                    // Where the Gallery is a file dialog, files are added here.
+                    message:
+                        ref
+                            .read(photoPickerServiceProvider)
+                            .supportsGalleryBrowsing
+                        ? context.l10n.media_photoPicker_galleryOnlyHint
+                        : context.l10n.media_photoPicker_galleryOnlyLinksHint,
+                  ),
+                ),
+                Expanded(child: _galleryTab(context)),
+              ],
+            )
+          : TabBarView(
+              controller: tabController,
+              children: [
+                _galleryTab(context),
+                FilesTab(target: widget.target),
+                UrlTab(target: widget.target),
+              ],
+            ),
     );
   }
 

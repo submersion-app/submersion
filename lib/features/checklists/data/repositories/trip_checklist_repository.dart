@@ -7,15 +7,24 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/checklists/data/repositories/checklist_template_repository.dart';
+import 'package:submersion/features/checklists/domain/services/checklist_rows.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart'
     as domain;
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart'
     as domain;
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_section.dart'
     as domain;
+import 'package:submersion/features/checklists/data/repositories/trip_checklist_gear_link.dart';
+import 'package:submersion/features/trips/data/repositories/trip_equipment_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_section_repository.dart';
+
+/// One checklist's sections and items, as a caller holds them.
+typedef ChecklistRows = ({
+  List<domain.TripChecklistSection> sections,
+  List<domain.TripChecklistItem> items,
+});
 
 /// Item CRUD for one of a trip's checklists (issue #3356).
 class TripChecklistRepository {
@@ -25,11 +34,26 @@ class TripChecklistRepository {
   final _log = LoggerService.forClass(TripChecklistRepository);
   final _sections = TripChecklistSectionRepository();
 
-  Stream<void> watchTripChecklistChanges() =>
-      _db.tableUpdates(TableUpdateQuery.onTable(_db.tripChecklistItems));
+  /// Ticks on equipment, its shares and trips too: a gear item reads as a
+  /// plain one while its equipment is missing or unusable by the trip's
+  /// diver (gearFollowsPacking), and turns back when that changes, a trip
+  /// handed to another diver included.
+  Stream<void> watchTripChecklistChanges() => _db.tableUpdates(
+    TableUpdateQuery.onAllTables([
+      _db.tripChecklistItems,
+      _db.tripEquipment,
+      _db.equipment,
+      _db.equipmentShares,
+      _db.trips,
+    ]),
+  );
 
   Stream<void> watchTripChecklistSectionChanges() =>
       _sections.watchTripChecklistSectionChanges();
+
+  /// Every section of every checklist of [tripId], in one read.
+  Future<List<domain.TripChecklistSection>> getSectionsForTrip(String tripId) =>
+      _sections.getSectionsForTrip(tripId);
 
   Future<List<domain.TripChecklistSection>> getSectionsForChecklist(
     String checklistId,
@@ -39,7 +63,8 @@ class TripChecklistRepository {
   Future<domain.TripChecklistSection> createSection({
     required String checklistId,
     required String title,
-  }) => _sections.createSection(checklistId: checklistId, title: title);
+    String? id,
+  }) => _sections.createSection(checklistId: checklistId, title: title, id: id);
 
   Future<void> renameSection(String id, String title) =>
       _sections.renameSection(id, title);
@@ -136,29 +161,15 @@ class TripChecklistRepository {
   /// through `trip_checklists`. Used by the trip overview card, which needs
   /// individual due dates for its overdue/due-soon counts rather than just
   /// the done/total counts [getProgressForTrips] returns.
+  ///
+  /// With [viewerId], a gear item whose equipment that diver cannot use
+  /// reads as a plain item (see gearFollowsPacking).
   Future<List<domain.TripChecklistItem>> getAllItemsForTrip(
-    String tripId,
-  ) async {
+    String tripId, {
+    String? viewerId,
+  }) async {
     try {
-      final rows =
-          await (_db.select(_db.tripChecklistItems).join([
-                  innerJoin(
-                    _db.tripChecklists,
-                    _db.tripChecklists.id.equalsExp(
-                      _db.tripChecklistItems.checklistId,
-                    ),
-                  ),
-                ])
-                ..where(_db.tripChecklists.tripId.equals(tripId))
-                ..orderBy([
-                  OrderingTerm.asc(_db.tripChecklists.sortOrder),
-                  OrderingTerm.asc(_db.tripChecklists.createdAt),
-                  OrderingTerm.asc(_db.tripChecklistItems.sortOrder),
-                ]))
-              .get();
-      return rows
-          .map((r) => _mapRow(r.readTable(_db.tripChecklistItems)))
-          .toList();
+      return await _readItems(tripId: tripId, viewerId: viewerId);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get checklist items for trip $tripId',
@@ -169,16 +180,13 @@ class TripChecklistRepository {
     }
   }
 
+  /// One checklist's items; [viewerId] as in [getAllItemsForTrip].
   Future<List<domain.TripChecklistItem>> getByChecklistId(
-    String checklistId,
-  ) async {
+    String checklistId, {
+    String? viewerId,
+  }) async {
     try {
-      final rows =
-          await (_db.select(_db.tripChecklistItems)
-                ..where((t) => t.checklistId.equals(checklistId))
-                ..orderBy([(t) => OrderingTerm.asc(t.sortOrder)]))
-              .get();
-      return rows.map(_mapRow).toList();
+      return await _readItems(checklistId: checklistId, viewerId: viewerId);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get checklist items for checklist $checklistId',
@@ -189,13 +197,79 @@ class TripChecklistRepository {
     }
   }
 
+  Future<List<domain.TripChecklistItem>> _readItems({
+    String? tripId,
+    String? checklistId,
+    String? viewerId,
+  }) async {
+    final items = _db.tripChecklistItems;
+    final checklists = _db.tripChecklists;
+    final packs = _db.tripEquipment;
+    final gear = _db.equipment;
+    final trips = _db.trips;
+    final query =
+        _db.select(items).join([
+            innerJoin(checklists, checklists.id.equalsExp(items.checklistId)),
+            leftOuterJoin(
+              packs,
+              packs.tripId.equalsExp(checklists.tripId) &
+                  packs.equipmentId.equalsExp(items.equipmentId),
+            ),
+            leftOuterJoin(
+              trips,
+              trips.id.equalsExp(checklists.tripId),
+              useColumns: false,
+            ),
+            leftOuterJoin(
+              gear,
+              gear.id.equalsExp(items.equipmentId) &
+                  gearFollowsPacking(
+                    _db,
+                    gear,
+                    trips.diverId,
+                    viewerId: viewerId,
+                  ),
+              useColumns: false,
+            ),
+          ])
+          ..addColumns([gear.id])
+          ..orderBy([
+            OrderingTerm.asc(checklists.sortOrder),
+            OrderingTerm.asc(checklists.createdAt),
+            OrderingTerm.asc(items.sortOrder),
+          ]);
+    if (tripId != null) query.where(checklists.tripId.equals(tripId));
+    if (checklistId != null) query.where(items.checklistId.equals(checklistId));
+    return query.map((row) {
+      final item = _mapRow(row.readTable(items));
+      if (item.equipmentId == null) return item;
+      // The equipment was deleted since it was planned, has not synced here
+      // yet, or is not usable on this trip (gearFollowsPacking): the row
+      // reads as a plain item, ticked by its own is_done, so it never sits
+      // there unticked for good.
+      if (row.read(gear.id) == null) return item.copyWith(equipmentId: null);
+      final packed = row.readTableOrNull(packs);
+      return item.copyWith(
+        isDone: packed != null,
+        completedAt: packed == null
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(packed.createdAt),
+      );
+    }).get();
+  }
+
+  /// Adds [item] at the end of its checklist, or, with [keepSortOrder], at
+  /// its own sort order (an editing sitting's rows, issue #4527).
   Future<domain.TripChecklistItem> createItem(
-    domain.TripChecklistItem item,
-  ) async {
+    domain.TripChecklistItem item, {
+    bool keepSortOrder = false,
+  }) async {
     try {
       final id = item.id.isEmpty ? _uuid.v4() : item.id;
       final now = DateTime.now().millisecondsSinceEpoch;
-      final sortOrder = await _nextSortOrder(item.checklistId);
+      final sortOrder = keepSortOrder
+          ? item.sortOrder
+          : await _nextSortOrder(item.checklistId);
       await _db
           .into(_db.tripChecklistItems)
           .insert(
@@ -203,11 +277,16 @@ class TripChecklistRepository {
               id: Value(id),
               checklistId: Value(item.checklistId),
               title: Value(item.title),
+              equipmentId: Value(item.equipmentId),
               sectionId: Value(item.sectionId),
               notes: Value(item.notes),
               dueDate: Value(item.dueDate?.millisecondsSinceEpoch),
-              isDone: Value(item.isDone),
-              completedAt: Value(item.completedAt?.millisecondsSinceEpoch),
+              isDone: Value(item.equipmentId == null && item.isDone),
+              completedAt: Value(
+                item.equipmentId == null
+                    ? item.completedAt?.millisecondsSinceEpoch
+                    : null,
+              ),
               sortOrder: Value(sortOrder),
               createdAt: Value(now),
               updatedAt: Value(now),
@@ -219,11 +298,18 @@ class TripChecklistRepository {
         localUpdatedAt: now,
       );
       SyncEventBus.notifyLocalChange();
-      return item.copyWith(
+      final created = item.copyWith(
         id: id,
         sortOrder: sortOrder,
         createdAt: DateTime.fromMillisecondsSinceEpoch(now),
         updatedAt: DateTime.fromMillisecondsSinceEpoch(now),
+      );
+      if (item.equipmentId == null) return created;
+      // A gear item's tick is its gear's packing, not the caller's isDone:
+      // answer the row as every read will.
+      return (await _readItems(checklistId: item.checklistId)).firstWhere(
+        (i) => i.id == id,
+        orElse: () => created.copyWith(isDone: false, completedAt: null),
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -246,8 +332,12 @@ class TripChecklistRepository {
           sectionId: Value(item.sectionId),
           notes: Value(item.notes),
           dueDate: Value(item.dueDate?.millisecondsSinceEpoch),
-          isDone: Value(item.isDone),
-          completedAt: Value(item.completedAt?.millisecondsSinceEpoch),
+          isDone: Value(item.equipmentId == null && item.isDone),
+          completedAt: Value(
+            item.equipmentId == null
+                ? item.completedAt?.millisecondsSinceEpoch
+                : null,
+          ),
           sortOrder: Value(item.sortOrder),
           updatedAt: Value(now),
         ),
@@ -270,6 +360,53 @@ class TripChecklistRepository {
 
   Future<void> toggleDone(String id, {required bool isDone}) async {
     try {
+      final items = _db.tripChecklistItems;
+      final checklists = _db.tripChecklists;
+      final trips = _db.trips;
+      final row =
+          await (_db.select(items).join([
+                  innerJoin(
+                    checklists,
+                    checklists.id.equalsExp(items.checklistId),
+                  ),
+                  leftOuterJoin(
+                    trips,
+                    trips.id.equalsExp(checklists.tripId),
+                    useColumns: false,
+                  ),
+                ])
+                ..addColumns([trips.diverId])
+                ..where(items.id.equals(id)))
+              .getSingleOrNull();
+      final equipmentId = row?.readTable(items).equipmentId;
+      // The link is soft: equipment deleted since it was planned, or not
+      // usable on this trip (gearFollowsPacking), leaves a plain item,
+      // ticked below by is_done as every read shows it. So wishlist gear,
+      // or gear the trip's diver cannot use, is never packed from here.
+      final follows =
+          equipmentId != null &&
+          await (_db.selectOnly(_db.equipment)
+                    ..addColumns([_db.equipment.id])
+                    ..where(
+                      _db.equipment.id.equals(equipmentId) &
+                          gearFollowsPacking(
+                            _db,
+                            _db.equipment,
+                            Variable<String>(row!.read(trips.diverId)),
+                          ),
+                    ))
+                  .getSingleOrNull() !=
+              null;
+      if (follows) {
+        final tripId = row.readTable(checklists).tripId;
+        final packs = TripEquipmentRepository();
+        if (isDone) {
+          await packs.pack(tripId, [equipmentId]);
+        } else {
+          await packs.unpack(tripId, equipmentId);
+        }
+        return;
+      }
       final now = DateTime.now().millisecondsSinceEpoch;
       await (_db.update(
         _db.tripChecklistItems,
@@ -436,99 +573,45 @@ class TripChecklistRepository {
         );
         final templateSections = await templateRepository
             .getSectionsForTemplate(templateId);
-        final templateSectionTitleById = {
-          for (final s in templateSections) s.id: s.title,
-        };
-        final existing = await getByChecklistId(checklistId);
-        final existingKeys = existing
-            .map((i) => (i.title, i.sectionId))
-            .toSet();
-        var sortOrder = await _nextSortOrder(checklistId);
-        var added = 0;
-        var skipped = 0;
-        // Fetched once and grown immutably below as sections are created
-        // mid-loop, rather than re-querying every checklist section on
-        // every template item.
-        var knownSections = await getSectionsForChecklist(checklistId);
-
-        for (final item in templateItems) {
-          // Bridge the template's section (its own table now) to a
-          // checklist section by title: find an existing one
-          // case-insensitively before creating one, the same resolution the
-          // item editor's picker uses. The match is looked up (not created)
-          // before the skip check below, so a fully-skipped re-apply creates
-          // no sections. A placeholder key standing in for "this section
-          // doesn't exist among the checklist's sections yet" cannot equal
-          // any persisted item's real sectionId (null or an existing uuid),
-          // so it never causes a false-positive skip either.
-          final trimmedSectionTitle = item.sectionId == null
-              ? null
-              : templateSectionTitleById[item.sectionId]?.trim();
-          final hasSectionTitle =
-              trimmedSectionTitle != null && trimmedSectionTitle.isNotEmpty;
-          final matchedSectionId = hasSectionTitle
-              ? _sections.matchSectionByTitle(
-                  trimmedSectionTitle,
-                  knownSections,
-                )
-              : null;
-          final comparisonSectionId =
-              matchedSectionId ??
-              (hasSectionTitle
-                  ? '__pending_section__:${trimmedSectionTitle.toLowerCase()}'
-                  : null);
-          if (existingKeys.contains((item.title, comparisonSectionId))) {
-            skipped++;
-            continue;
-          }
-          var sectionId = matchedSectionId;
-          if (sectionId == null && hasSectionTitle) {
-            // One past the highest sortOrder, not the section count:
-            // deleting a section leaves a gap rather than renumbering, so
-            // the count can equal a sortOrder already in use.
-            final created = await _sections.createSectionRow(
-              checklistId,
-              trimmedSectionTitle,
-              knownSections.fold<int>(
-                    -1,
-                    (highest, s) =>
-                        s.sortOrder > highest ? s.sortOrder : highest,
-                  ) +
-                  1,
-            );
-            knownSections = [...knownSections, created];
-            pendingSectionIds.add(created.id);
-            sectionId = created.id;
-          }
-          final id = _uuid.v4();
-          final dueDate = item.dueOffsetDays == null
-              ? null
-              : DateTime(
-                  trip.startDate.year,
-                  trip.startDate.month,
-                  trip.startDate.day - item.dueOffsetDays!,
-                ).millisecondsSinceEpoch;
+        final rows = checklistRowsFromTemplate(
+          templateItems: templateItems,
+          templateSections: templateSections,
+          checklistId: checklistId,
+          tripStart: trip.startDate,
+          existingItems: await getByChecklistId(checklistId),
+          existingSections: await getSectionsForChecklist(checklistId),
+          newId: _uuid.v4,
+          now: DateTime.fromMillisecondsSinceEpoch(now),
+        );
+        for (final section in rows.sections) {
+          await _sections.createSectionRow(
+            checklistId,
+            section.title,
+            section.sortOrder,
+            id: section.id,
+          );
+          pendingSectionIds.add(section.id);
+        }
+        for (final item in rows.items) {
           await _db
               .into(_db.tripChecklistItems)
               .insert(
                 TripChecklistItemsCompanion(
-                  id: Value(id),
+                  id: Value(item.id),
                   checklistId: Value(checklistId),
                   title: Value(item.title),
-                  sectionId: Value(sectionId),
+                  sectionId: Value(item.sectionId),
                   notes: Value(item.notes),
-                  dueDate: Value(dueDate),
+                  dueDate: Value(item.dueDate?.millisecondsSinceEpoch),
                   isDone: const Value(false),
-                  sortOrder: Value(sortOrder++),
+                  sortOrder: Value(item.sortOrder),
                   createdAt: Value(now),
                   updatedAt: Value(now),
                 ),
               );
-          pendingIds.add(id);
-          added++;
+          pendingIds.add(item.id);
         }
-
-        return (added: added, skipped: skipped);
+        return (added: rows.added, skipped: rows.skipped);
       });
 
       // Sync bookkeeping for both the items and any section the loop above
@@ -567,16 +650,22 @@ class TripChecklistRepository {
   /// Absolute due dates convert back to offsets from the trip start date
   /// (only when the due date is on or before the start); dateless items
   /// stay dateless.
+  ///
+  /// With [rows], the checklist is taken as they have it rather than as
+  /// stored: a trip page's sitting, whose changes wait for its Save (issue
+  /// #4527).
   Future<domain.ChecklistTemplate> saveAsTemplate({
     required String checklistId,
     required DateTime tripStartDate,
     required String name,
     String? diverId,
+    ChecklistRows? rows,
   }) async {
     try {
       final templateRepository = ChecklistTemplateRepository();
-      final items = await getByChecklistId(checklistId);
-      final sections = await getSectionsForChecklist(checklistId);
+      final items = rows?.items ?? await getByChecklistId(checklistId);
+      final sections =
+          rows?.sections ?? await getSectionsForChecklist(checklistId);
       final template = await templateRepository.createTemplate(
         domain.ChecklistTemplate(
           id: '',
@@ -654,23 +743,48 @@ class TripChecklistRepository {
   /// fan a per-trip query -- and, through the provider family, a per-trip
   /// table subscription -- out of a widget that rebuilds on every dashboard
   /// paint. Mirrors PreDiveSessionRepository.getItemsForSessions.
+  ///
+  /// [viewerId] as in [getAllItemsForTrip], so the counts agree with the
+  /// rows that diver reads.
   Future<Map<String, ({int done, int total})>> getProgressForTrips(
-    List<String> tripIds,
-  ) async {
+    List<String> tripIds, {
+    String? viewerId,
+  }) async {
     if (tripIds.isEmpty) return {};
     try {
       // Only the placeholder count is interpolated; every id is bound.
       final placeholders = List.filled(tripIds.length, '?').join(', ');
+      final viewer = viewerId == null ? '' : 'AND $gearUsableByViewerSql ';
       final rows = await _db
           .customSelect(
             'SELECT c.trip_id AS trip_id, COUNT(*) AS total, '
-            'SUM(CASE WHEN i.is_done THEN 1 ELSE 0 END) AS done '
+            // A gear item whose equipment is gone or unusable counts by
+            // is_done, as _readItems reads it.
+            'SUM(CASE WHEN e.id IS NULL THEN i.is_done '
+            'WHEN p.id IS NOT NULL THEN 1 ELSE 0 END) AS done '
             'FROM trip_checklist_items i '
             'JOIN trip_checklists c ON c.id = i.checklist_id '
+            'LEFT JOIN trips t ON t.id = c.trip_id '
+            'LEFT JOIN equipment e ON e.id = i.equipment_id '
+            'AND $gearFollowsPackingSql '
+            '$viewer'
+            'LEFT JOIN trip_equipment p '
+            'ON p.trip_id = c.trip_id AND p.equipment_id = i.equipment_id '
             'WHERE c.trip_id IN ($placeholders) '
             'GROUP BY c.trip_id',
-            variables: [for (final id in tripIds) Variable.withString(id)],
-            readsFrom: {_db.tripChecklistItems, _db.tripChecklists},
+            variables: [
+              if (viewerId != null)
+                for (var n = 0; n < 3; n++) Variable.withString(viewerId),
+              for (final id in tripIds) Variable.withString(id),
+            ],
+            readsFrom: {
+              _db.tripChecklistItems,
+              _db.tripChecklists,
+              _db.tripEquipment,
+              _db.equipment,
+              _db.equipmentShares,
+              _db.trips,
+            },
           )
           .get();
       return {
@@ -706,6 +820,7 @@ class TripChecklistRepository {
         id: row.id,
         checklistId: row.checklistId,
         title: row.title,
+        equipmentId: row.equipmentId,
         sectionId: row.sectionId,
         notes: row.notes,
         dueDate: row.dueDate == null

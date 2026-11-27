@@ -1,5 +1,15 @@
 part of 'site_detail_page.dart';
 
+/// Below this pane width, at the normal text size, the pane header has no
+/// room for a library's text button beside the site's name (issue #4928):
+/// Connect on this device moves to the top of the site's menu, and a
+/// reader's Suggest changes shows as an icon with its words as the tooltip.
+/// It grows with the diver's text size, as the button's words do.
+const double _kSitePaneCompactHeaderWidth = 560;
+
+/// The pane menu's value for Connect on this device.
+const String _kConnectHereAction = 'connectHere';
+
 /// The site page's top bars: the full page's locked bar and the list
 /// pane's header row (issue #4527, phase 2).
 extension _SiteDetailBars on _SiteDetailContentState {
@@ -155,8 +165,21 @@ extension _SiteDetailBars on _SiteDetailContentState {
 
   /// The lock for an editor; for a shared site library's reader, "Suggest
   /// changes", which opens a reader's sitting (issue #4527, plan 5).
-  Widget _unlockControl(DiveSite site, {bool compact = false}) {
+  /// [iconOnly] shows Suggest changes as an icon, for a narrow pane.
+  Widget _unlockControl(
+    DiveSite site, {
+    bool compact = false,
+    bool iconOnly = false,
+  }) {
     if (!_suggestsNow(watch: true)) return lockButton(site, compact: compact);
+    if (iconOnly) {
+      return IconButton(
+        key: const ValueKey('site_suggest_unlock'),
+        icon: const Icon(Icons.rate_review_outlined, size: 20),
+        tooltip: context.l10n.sharedLibrary_suggest_title,
+        onPressed: () => editController.unlock(site),
+      );
+    }
     return TextButton.icon(
       key: const ValueKey('site_suggest_unlock'),
       icon: Icon(Icons.rate_review_outlined, size: compact ? 18 : null),
@@ -177,73 +200,119 @@ extension _SiteDetailBars on _SiteDetailContentState {
     final colorScheme = Theme.of(context).colorScheme;
     final ownership = _watchOwnership(ref, site);
     // One per row, each with its own controller: while unlocked both rows
-    // are mounted, the locked one unseen under the other.
-    Widget menuWith(MenuController controller) => SiteDetailPropertiesMenu(
-      controller: controller,
-      child: PopupMenuButton<String>(
-        icon: const Icon(Icons.more_vert, size: 20),
-        onSelected: (value) => _handleMenuAction(context, ref, value, site),
-        itemBuilder: (context) => _siteMenuItems(
-          context,
-          ref,
-          site,
-          historyItem: true,
-          ownership: ownership,
-        ),
-      ),
-    );
-
-    final locked = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
-        ),
-      ),
-      child: Row(
-        children: [
-          if (widget.onClose != null) ...[
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: widget.onClose,
-              tooltip: context.l10n.common_action_back,
-            ),
-            const SizedBox(width: 8),
-          ],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  site.name,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+    // are mounted, the locked one unseen under the other. [connectFirst]
+    // puts Connect on this device at the top, for a narrow pane.
+    Widget menuWith(MenuController controller, {bool connectFirst = false}) =>
+        SiteDetailPropertiesMenu(
+          controller: controller,
+          child: PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) {
+              if (value == _kConnectHereAction) {
+                _connectHere(context, ref, site);
+                return;
+              }
+              _handleMenuAction(context, ref, value, site);
+            },
+            itemBuilder: (context) => [
+              if (connectFirst) ...[
+                PopupMenuItem(
+                  value: _kConnectHereAction,
+                  child: ListTile(
+                    leading: const Icon(Icons.link),
+                    title: Text(context.l10n.sharedLibrary_site_connectHere),
+                    contentPadding: EdgeInsets.zero,
                   ),
                 ),
-                if (site.locationString.isNotEmpty)
-                  Text(
-                    site.locationString,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+                const PopupMenuDivider(),
               ],
+              ..._siteMenuItems(
+                context,
+                ref,
+                site,
+                historyItem: true,
+                ownership: ownership,
+              ),
+            ],
+          ),
+        );
+
+    final textTheme = Theme.of(context).textTheme;
+    final libraryButtons = _libraryButtons(context, ref, site);
+    final locked = LayoutBuilder(
+      builder: (context, constraints) {
+        // How much the buttons' words grow: a platform's nonlinear scaler
+        // grows a label far more than it would a 560 px "size".
+        final labelSize = textTheme.labelLarge?.fontSize ?? 14;
+        final growth =
+            MediaQuery.textScalerOf(context).scale(labelSize) / labelSize;
+        final compact =
+            constraints.maxWidth < _kSitePaneCompactHeaderWidth * growth;
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            border: Border(
+              bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
             ),
           ),
-          if (site.hasCoordinates)
-            IconButton(
-              icon: const Icon(Icons.terrain, size: 20),
-              tooltip: context.l10n.dive3d_seascape_siteTitle,
-              onPressed: () =>
-                  _showFullscreenMap(context, ref, site, initialScape3d: true),
-            ),
-          if (offered) _unlockControl(site, compact: true),
-          ..._libraryButtons(context, ref, site),
-          menuWith(_displayOptionsMenu),
-        ],
-      ),
+          child: Row(
+            children: [
+              if (widget.onClose != null) ...[
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: widget.onClose,
+                  tooltip: context.l10n.common_action_back,
+                ),
+                const SizedBox(width: 8),
+              ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      site.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (site.locationString.isNotEmpty)
+                      Text(
+                        site.locationString,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              if (site.hasCoordinates)
+                IconButton(
+                  icon: const Icon(Icons.terrain, size: 20),
+                  tooltip: context.l10n.dive3d_seascape_siteTitle,
+                  onPressed: () => _showFullscreenMap(
+                    context,
+                    ref,
+                    site,
+                    initialScape3d: true,
+                  ),
+                ),
+              if (offered)
+                _unlockControl(site, compact: true, iconOnly: compact),
+              if (!compact) ...libraryButtons,
+              menuWith(
+                _displayOptionsMenu,
+                connectFirst: compact && libraryButtons.isNotEmpty,
+              ),
+            ],
+          ),
+        );
+      },
     );
     return RecordPaneRow(
       locked: locked,

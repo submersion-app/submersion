@@ -23,6 +23,7 @@ Future<List<AssetInfo>?> showPhotoPicker({
   List<String>? initialFilePaths,
   Future<List<AssetInfo>> Function(bool Function() isActive)? loadAssets,
   MediaHoldSink? onHold,
+  bool galleryOnly = false,
 }) {
   // Nothing comes in while demo mode is on (#3708): the note, not a picker.
   if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {
@@ -44,6 +45,7 @@ Future<List<AssetInfo>?> showPhotoPicker({
           target: target,
           initialFilePaths: initialFilePaths,
           loadAssets: loadAssets,
+          galleryOnly: galleryOnly,
         ),
       ),
     ),

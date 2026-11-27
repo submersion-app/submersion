@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/documents/presentation/pages/document_edit_routes.dart';
 import 'package:submersion/features/query/presentation/providers/entity_search_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -11,7 +12,6 @@ import 'package:submersion/features/documents/data/repositories/document_reposit
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/pages/document_detail_page.dart';
-import 'package:submersion/features/documents/presentation/pages/document_edit_page.dart';
 import 'package:submersion/features/documents/presentation/pages/documents_page.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_expiring_strip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -312,6 +312,9 @@ void main() {
     expect(find.text('Bonaire'), findsOneWidget);
     expect(find.text('Park permit.txt'), findsOneWidget);
 
+    // Delete is a whole-record operation, under the lock (issue #4527).
+    await t.tap(find.byIcon(Icons.lock_outline));
+    await t.pumpAndSettle();
     await t.tap(
       find.descendant(
         of: find.byType(DocumentDetailPage),
@@ -333,23 +336,14 @@ void main() {
     );
   });
 
-  testWidgets('on a wide screen, Edit opens the editor in the detail pane', (
-    t,
-  ) async {
-    final doc = await _save('Park permit', DocumentType.permit);
-    await pump(t, '/documents?selected=${doc.id}', size: const Size(1400, 900));
-    await t.tap(find.byTooltip('Edit'));
-    await t.pumpAndSettle();
-    // Not the standalone /documents/:id/edit page over the whole shell.
-    expect(find.text('EDIT'), findsNothing);
-    expect(find.byType(DocumentEditPage), findsOneWidget);
-  });
-
   testWidgets('on a wide screen, Delete in the pane menu clears the pane', (
     t,
   ) async {
     final doc = await _save('Park permit', DocumentType.permit);
     await pump(t, '/documents?selected=${doc.id}', size: const Size(1400, 900));
+    // Delete is a whole-record operation, under the lock (issue #4527).
+    await t.tap(find.byIcon(Icons.lock_outline));
+    await t.pumpAndSettle();
     await t.tap(
       find.descendant(
         of: find.byType(DocumentDetailPage),
@@ -425,4 +419,72 @@ void main() {
       expect(find.text('There are no documents to export'), findsOneWidget);
     });
   }
+  // A new document opens on the document page behind the phase 3 switch
+  // (issue #4527, phase 3, plan 11).
+  testWidgets("the pane's new document is the page", (t) async {
+    void onSaved(String id) {}
+    void onCancel() {}
+    late BuildContext context;
+    await t.pumpWidget(
+      Builder(
+        builder: (c) {
+          context = c;
+          return const SizedBox.shrink();
+        },
+      ),
+    );
+    final page =
+        newDocumentPane(
+              context,
+              onSaved,
+              onCancel,
+              initialType: DocumentType.insurance,
+            )
+            as DocumentDetailPage;
+    expect(page.embedded, isTrue);
+    expect(page.newDocument?.type, DocumentType.insurance);
+    expect(page.onCreated, same(onSaved));
+    expect(page.onCreateCancelled, same(onCancel));
+  });
+
+  testWidgets('Add on a phone opens the new document once created', (t) async {
+    final router = GoRouter(
+      initialLocation: '/documents',
+      routes: [
+        GoRoute(
+          path: '/documents',
+          builder: (context, _) => Scaffold(
+            body: TextButton(
+              onPressed: () =>
+                  openNewDocument(context, type: DocumentType.insurance),
+              child: const Text('add'),
+            ),
+          ),
+          routes: [
+            GoRoute(
+              path: 'new',
+              builder: (context, state) => Scaffold(
+                body: TextButton(
+                  onPressed: () => context.pop('n1'),
+                  child: Text('NEW ${state.uri.query}'),
+                ),
+              ),
+            ),
+            GoRoute(
+              path: ':id',
+              builder: (_, state) => Text('DOC ${state.pathParameters['id']}'),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    await t.pumpWidget(MaterialApp.router(routerConfig: router));
+    await t.tap(find.text('add'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('NEW type=insurance'));
+    await t.pumpAndSettle();
+
+    expect(find.text('DOC n1'), findsOneWidget);
+  });
 }

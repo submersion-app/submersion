@@ -186,14 +186,14 @@ Future<void> _awaitCurrentDecoPass(ProviderContainer container) async {
   await container.awaitFuture(diveDecoStatusCacheProvider.future);
 }
 
-/// [awaitQueryCachesIfRead] for a widget, which has a [WidgetRef] rather
-/// than a provider's [Ref]: a one-off wait, so the listeners are always
-/// released.
-Future<void> awaitQueryCachesIfReadFromWidget(
-  WidgetRef ref,
+/// [awaitQueryCachesIfRead] for work that outlives the widget that started
+/// it (a check after a save, say): it listens through [container], which
+/// outlives the page, and closes its listeners afterwards.
+Future<void> awaitQueryCachesIfReadFromContainer(
+  ProviderContainer container,
   Set<String> tablesTouched,
 ) => _awaitWriters(
   tablesTouched,
-  (writer) => ref.listenManual(writer, (_, _) {}),
+  (writer) => container.listen(writer, (_, _) {}),
   release: true,
 );

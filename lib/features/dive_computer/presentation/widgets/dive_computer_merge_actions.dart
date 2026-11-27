@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
+import 'package:submersion/features/dive_computer/presentation/editing/dive_computer_settings_sitting.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_merge_sheet.dart';
@@ -12,9 +14,17 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// number (#645). Shrinks to nothing while loading or when there is none,
 /// so the page never reserves space for a banner it may not show.
 class DiveComputerDuplicateBanner extends ConsumerWidget {
-  const DiveComputerDuplicateBanner({super.key, required this.computer});
+  const DiveComputerDuplicateBanner({
+    super.key,
+    required this.computer,
+    this.operations,
+  });
 
   final DiveComputer computer;
+
+  /// On the computer's gear item page (issue #4527, phase 3):
+  /// merging is a whole-record operation.
+  final DiveComputerOperations? operations;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -58,13 +68,25 @@ class DiveComputerDuplicateBanner extends ConsumerWidget {
               ),
               Align(
                 alignment: AlignmentDirectional.centerEnd,
-                child: TextButton.icon(
-                  key: const ValueKey('duplicate_banner_merge'),
-                  onPressed: () =>
-                      mergeDiveComputerWith(context, ref, computer, duplicates),
-                  icon: const Icon(Icons.merge_type),
-                  label: Text(
-                    context.l10n.diveComputer_detail_duplicateBannerAction,
+                child: RecordOperationButton(
+                  reason: operations?.reason,
+                  onPressed: () => runDiveComputerOperation(
+                    operations,
+                    () => mergeDiveComputerWith(
+                      context,
+                      ref,
+                      computer,
+                      duplicates,
+                    ),
+                    'merge from the duplicate banner',
+                  ),
+                  builder: (onPressed) => TextButton.icon(
+                    key: const ValueKey('duplicate_banner_merge'),
+                    onPressed: onPressed,
+                    icon: const Icon(Icons.merge_type),
+                    label: Text(
+                      context.l10n.diveComputer_detail_duplicateBannerAction,
+                    ),
                   ),
                 ),
               ),
@@ -77,14 +99,15 @@ class DiveComputerDuplicateBanner extends ConsumerWidget {
 }
 
 /// Lists the diver's other computers so one can be merged with [computer].
-/// Records that share its serial number are listed first.
-Future<void> showDiveComputerMergePicker(
+/// Records that share its serial number are listed first. Whether a merge
+/// was made.
+Future<bool> showDiveComputerMergePicker(
   BuildContext context,
   WidgetRef ref,
   DiveComputer computer,
 ) async {
   final all = await ref.read(allDiveComputersProvider.future);
-  if (!context.mounted) return;
+  if (!context.mounted) return false;
 
   final duplicates = duplicateCandidatesFor(computer, all);
   final duplicateIds = duplicates.map((d) => d.id).toSet();
@@ -150,14 +173,14 @@ Future<void> showDiveComputerMergePicker(
       );
     },
   );
-  if (chosen == null || !context.mounted) return;
-  await mergeDiveComputerWith(context, ref, computer, [chosen]);
+  if (chosen == null || !context.mounted) return false;
+  return mergeDiveComputerWith(context, ref, computer, [chosen]);
 }
 
 /// Opens the merge sheet for [computer] and [others]. When a record behind
 /// another Equipment item survives, the page moves to that item: this one's
-/// device no longer exists (issue #3676).
-Future<void> mergeDiveComputerWith(
+/// device no longer exists (issue #3676). Whether a merge was made.
+Future<bool> mergeDiveComputerWith(
   BuildContext context,
   WidgetRef ref,
   DiveComputer computer,
@@ -166,7 +189,8 @@ Future<void> mergeDiveComputerWith(
   final computers = [computer, ...others];
   final messenger = ScaffoldMessenger.of(context);
   final result = await DiveComputerMergeSheet.show(context, computers);
-  if (result == null || !context.mounted) return;
+  if (result == null) return false;
+  if (!context.mounted) return true;
 
   final survivor = computers.firstWhere((c) => c.id == result.survivorId);
   messenger.showSnackBar(
@@ -183,4 +207,5 @@ Future<void> mergeDiveComputerWith(
   if (survivorItem != null && survivorItem != computer.equipmentId) {
     context.pushReplacement('/equipment/$survivorItem');
   }
+  return true;
 }

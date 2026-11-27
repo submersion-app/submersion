@@ -11,12 +11,17 @@ import 'package:submersion/features/media/presentation/providers/media_watcher_p
 import 'package:submersion/features/media/presentation/widgets/media_console_scaffold.dart';
 import 'package:submersion/features/media_store/presentation/pages/transfers_page.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
 
 /// The Media screen's Photos/Videos tab: owns the selected console section
 /// and renders its content inside [MediaConsoleScaffold], whose section tabs
-/// sit under [headerTitle], and carries out the tab row's Import, Transfers
+/// sit under [headerTitle], and carries out the header's Import, Transfers
 /// and Sources buttons (#4587).
+///
+/// It also owns the Library's selection, so the Library toolbar can sit in
+/// the header's tab row at desktop widths and still drive the grid below
+/// (#4777).
 class MediaSectionPage extends ConsumerStatefulWidget {
   const MediaSectionPage({
     super.key,
@@ -40,6 +45,43 @@ class MediaSectionPage extends ConsumerStatefulWidget {
 
 class _MediaSectionPageState extends ConsumerState<MediaSectionPage> {
   MediaConsoleSection _section = MediaConsoleSection.library;
+
+  /// The Library's bulk selection, held here rather than in the Library view
+  /// because at desktop widths its toolbar, Select button included, sits in
+  /// the header's tab row (#4777). It lasts as long as the Library section
+  /// stays selected: a resize that remounts the view keeps it, and [_select]
+  /// ends it when another section takes the page.
+  final SelectionController _librarySelection = SelectionController();
+
+  // Built once: the page reads the screen size to place the toolbar, so it
+  // rebuilds on every resize frame and every new missing-file count. The
+  // same instances let Flutter skip the Library, whose build walks every
+  // loaded row, rather than re-running it each time.
+  late final Widget _libraryWithToolbar = MediaLibraryView(
+    selection: _librarySelection,
+  );
+  late final Widget _libraryUnderHeader = MediaLibraryView(
+    selection: _librarySelection,
+    showToolbar: false,
+  );
+  late final Widget _headerToolbar = MediaLibraryHeaderToolbar(
+    selection: _librarySelection,
+    keyboardScope: true,
+  );
+
+  @override
+  void dispose() {
+    _librarySelection.dispose();
+    super.dispose();
+  }
+
+  /// Shows [section]. Leaving the Library ends its selection, so a bulk
+  /// action never reaches rows the user can no longer see.
+  void _select(MediaConsoleSection section) {
+    if (section == _section) return;
+    if (_section == MediaConsoleSection.library) _librarySelection.exit();
+    setState(() => _section = section);
+  }
 
   @override
   void initState() {
@@ -97,7 +139,7 @@ class _MediaSectionPageState extends ConsumerState<MediaSectionPage> {
           MaterialPageRoute(builder: (_) => const MediaSourcesSectionPage()),
         );
         if (browsed == true && mounted) {
-          setState(() => _section = MediaConsoleSection.library);
+          _select(MediaConsoleSection.library);
         }
     }
   }
@@ -107,15 +149,21 @@ class _MediaSectionPageState extends ConsumerState<MediaSectionPage> {
     // Missing files live under the Library's health chip; the badge on the
     // Library tab is how a broken file gets noticed from another section.
     final missingCount = ref.watch(missingCountProvider).value ?? 0;
+    final library = _section == MediaConsoleSection.library;
+    // At desktop widths the Library's toolbar joins the tab row instead of
+    // taking a row of its own under the header (#4777).
+    final toolbarInHeader = MediaConsoleScaffold.hostsTabRowTrailing(context);
 
     return MediaConsoleScaffold(
       headerTitle: widget.headerTitle,
       selected: _section,
-      onSelect: (section) => setState(() => _section = section),
+      onSelect: _select,
       onAction: _onAction,
       badgeCounts: {MediaConsoleSection.library: missingCount},
+      tabRowTrailing: library ? _headerToolbar : null,
       child: switch (_section) {
-        MediaConsoleSection.library => const MediaLibraryView(),
+        MediaConsoleSection.library =>
+          toolbarInHeader ? _libraryUnderHeader : _libraryWithToolbar,
         MediaConsoleSection.gear => const GearGalleryView(),
       },
     );

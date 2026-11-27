@@ -150,6 +150,12 @@ device to the next:
 | Photo and video files | Only their links sync; the files themselves travel through [Media Sync](media-sync.md) |
 | The [change log](change-log.md) | Each device keeps its own record of what changed. A change from another device appears there as a synced change, and a revert syncs like any other edit |
 
+With three or more devices, a change can arrive before the thing it belongs
+to: a checklist item moved into a section that another device made, say,
+when that device's changes have not come in yet. The item waits on its own
+until the section arrives, then goes back into it. Editing the item in the
+meantime never takes it out of the section on your other devices.
+
 ## Sync Behavior
 
 On the sync page:

@@ -61,6 +61,7 @@ void main() {
   AutoApplier applier({
     Future<void> Function(String mediaId)? reconcile,
     SuggestionAcceptor? acceptor,
+    String? deviceId,
   }) => AutoApplier(
     identifications: identifications,
     acceptor: acceptor ?? SuggestionAcceptor(species: species),
@@ -74,6 +75,7 @@ void main() {
     reconcile: reconcile ?? reconcileStored,
     databaseGeneration: () => generation,
     packAllows: () => packAllows,
+    deviceId: () async => deviceId,
   );
 
   Future<void> store(String mediaId, {bool confident = true}) =>
@@ -123,6 +125,65 @@ void main() {
     expect(tag.createdSpecies, isFalse);
     final row = (await identifications.forMedia('p1')).single;
     expect(row.decision, IdentificationDecision.accepted);
+  });
+
+  test(
+    'only the device that made the run applies from it (issue #4876)',
+    () async {
+      await insertTestSpecies(
+        id: 'sp_queen_parrotfish',
+        name: 'Queen Parrotfish',
+      );
+      await identifications.storeRun(
+        run(mediaId: 'p1').copyWith(analysedBy: () => 'laptop'),
+        insert: [
+          identification('i-p1', mediaId: 'p1').copyWith(confident: true),
+        ],
+        deleteIds: const [],
+      );
+
+      expect(
+        await applier(
+          deviceId: 'phone',
+        ).applyInScope('p1', isVideo: false, generation: 0),
+        0,
+      );
+      expect(await tags.findTag('p1', 'sp_queen_parrotfish'), isNull);
+      expect(
+        await applier(
+          deviceId: 'laptop',
+        ).applyInScope('p1', isVideo: false, generation: 0),
+        1,
+      );
+    },
+  );
+
+  test('a leftover of a run that lost a sync race is hidden, so it is not '
+      'applied (issue #4876)', () async {
+    await insertTestSpecies(
+      id: 'sp_queen_parrotfish',
+      name: 'Queen Parrotfish',
+    );
+    await identifications.storeRun(
+      run(
+        mediaId: 'p1',
+      ).copyWith(analysedBy: () => 'laptop', runId: () => 'r-laptop'),
+      insert: [
+        identification(
+          'i-mac',
+          mediaId: 'p1',
+        ).copyWith(confident: true, runId: () => 'r-mac'),
+      ],
+      deleteIds: const [],
+    );
+
+    expect(
+      await applier(
+        deviceId: 'laptop',
+      ).applyInScope('p1', isVideo: false, generation: 0),
+      0,
+    );
+    expect(await tags.findTag('p1', 'sp_queen_parrotfish'), isNull);
   });
 
   test('reconciles through the service, which follows the naming level, '

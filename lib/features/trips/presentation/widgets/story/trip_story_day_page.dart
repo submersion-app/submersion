@@ -12,6 +12,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/features/trips/domain/services/day_conditions.dart';
+import 'package:submersion/features/trips/domain/services/trip_day_notes.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_day_map_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_story_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/day/day_conditions_line.dart';
@@ -22,6 +24,7 @@ import 'package:submersion/features/trips/presentation/widgets/story/trip_story_
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_plan.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_under_way_cards.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 
 /// One day of a trip, as a page of its own: the day's head, its map, its
 /// plan, its timeline, its dives, then photos and species.
@@ -196,6 +199,29 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
               ),
             ),
           );
+    // On the trip page the plan and its note button are the Notes card's frame
+    // on this day: its editor holds the day's passage (issue #4527).
+    final slots = TripCardSlotsScope.maybeOf(context);
+    final Widget? planBlock = slots == null
+        ? null
+        : slots.dayPlanFrame(
+            TripNoteDay(date: day.date, dayNumber: day.dayNumber),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ?plan,
+                Row(
+                  children: [
+                    Expanded(child: editNote ?? const SizedBox.shrink()),
+                    RecordCardPencil(
+                      cardTitle: l10n.trips_detail_sectionTitle_notes,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
     final timeline = day.dives.isEmpty
         ? null
         : Column(
@@ -262,8 +288,7 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
                     flex: 4,
                     child: _stacked([
                       mapOf(230),
-                      plan,
-                      editNote,
+                      ...planBlock == null ? [plan, editNote] : [planBlock],
                       timeline,
                       photos,
                       species,
@@ -276,8 +301,7 @@ class _TripStoryDayPageState extends ConsumerState<TripStoryDayPage> {
               )
             : _stacked([
                 mapOf(180),
-                plan,
-                editNote,
+                ...planBlock == null ? [plan, editNote] : [planBlock],
                 timeline,
                 dives,
                 // Where the dives would be, not under what the day did have.

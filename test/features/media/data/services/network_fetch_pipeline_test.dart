@@ -265,6 +265,26 @@ void main() {
       // The manifest's takenAt wins over the extracted one.
       expect(resolved.single.takenAt, entry.takenAt);
     });
+
+    test('an entry marked complete skips extraction without GPS', () async {
+      final entry = ManifestEntry(
+        entryKey: 'k-complete',
+        url: 'https://nas.example.com/original.jpg',
+        takenAt: DateTime.utc(2024, 6, 1, 12),
+        width: 800,
+        height: 600,
+        metadataComplete: true,
+      );
+      final extractor = _StubExtractor(results: const {});
+      final pipeline = NetworkFetchPipeline(db: db, extractor: extractor);
+
+      final resolved = await pipeline.resolveManifestEntries([entry]);
+
+      expect(extractor.calls, isEmpty);
+      expect(resolved.single.result, isNull);
+      expect(resolved.single.failed, isFalse);
+      expect(resolved.single.takenAt, entry.takenAt);
+    });
   });
 
   group('insertResolved', () {
@@ -296,6 +316,55 @@ void main() {
       );
       expect(row.lastVerifiedAt, fixedNow.millisecondsSinceEpoch);
       expect(row.isOrphaned, isFalse);
+    });
+
+    test('a manifest entry stores its original file name', () async {
+      await insertDiveRow('d1');
+      final pipeline = NetworkFetchPipeline(
+        db: db,
+        extractor: _StubExtractor(results: const {}),
+      );
+      final resolved = await pipeline.resolveManifestEntries([
+        ManifestEntry(
+          entryKey: 'k-name',
+          url: 'https://nas.example.com/original',
+          takenAt: DateTime.utc(2024, 6, 1, 12),
+          metadataComplete: true,
+          filename: 'P1.JPG',
+        ),
+      ]);
+
+      final ids = await pipeline.insertResolved([
+        NetworkInsertRequest(media: resolved.single, diveId: 'd1'),
+      ], subscriptionId: null);
+
+      final row = await rowOf(ids.single);
+      expect(row.originalFilename, 'P1.JPG');
+      expect(row.caption, isNull);
+    });
+
+    // A sitting draws a held web photo before Save under the id the row
+    // is then written with, so a choice made on it (a gear item's cover,
+    // issue #4527) names the row Save writes.
+    test('a request carrying an id is written under it', () async {
+      const url = 'https://example.com/a.jpg';
+      await insertDiveRow('d1');
+      final pipeline = NetworkFetchPipeline(
+        db: db,
+        extractor: _StubExtractor(results: {url: _ok(url)}),
+      );
+      final resolved = await pipeline.resolve([Uri.parse(url)]);
+
+      final ids = await pipeline.insertResolved([
+        NetworkInsertRequest(
+          media: resolved.single,
+          diveId: 'd1',
+          id: 'held-1',
+        ),
+      ]);
+
+      expect(ids, ['held-1']);
+      expect((await rowOf('held-1')).url, url);
     });
 
     test('stamps siteId when the request targets a site', () async {

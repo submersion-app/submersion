@@ -1,6 +1,7 @@
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/dive_media_enricher.dart';
 import 'package:submersion/features/media/data/services/media_unlink_service.dart';
@@ -62,6 +63,15 @@ final mediaUnlinkServiceProvider = Provider<MediaUnlinkService>((ref) {
     repository: ref.watch(mediaRepositoryProvider),
     deleteMedia: (ids) =>
         ref.read(mediaDeletionCoordinatorProvider).deleteMultipleMedia(ids),
+    deleteMediaUndrained: (ids) => ref
+        .read(mediaDeletionCoordinatorProvider)
+        .deleteMultipleMedia(ids, deferDrain: true),
+    deleteMediaHeld: (ids) => ref
+        .read(mediaDeletionCoordinatorProvider)
+        .deleteMultipleMedia(ids, holdRemoteDelete: true),
+    drainDeletes: () =>
+        ref.read(mediaDeletionCoordinatorProvider).drainHeldDeletes(),
+    gearPhotos: ref.watch(gearPhotoRepositoryProvider),
   );
 });
 

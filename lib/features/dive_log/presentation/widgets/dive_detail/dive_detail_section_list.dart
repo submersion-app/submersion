@@ -37,7 +37,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_profile_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_route_links_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_weight_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_weights_buoyancy_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_safety_summary_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -66,8 +66,8 @@ part 'dive_detail_section_list_content.dart';
 ///
 /// Renders the fixed card pairs in [kDiveDetailSectionPairs] side by side when
 /// the pane is wide enough: Deco Status + Tissue Loading, Cylinders + Gas
-/// consumption by segment, Details + Conditions, Surface GPS + Tide, Weights +
-/// Buoyancy, and Buddies + Signatures.
+/// consumption by segment, Details + Conditions, Surface GPS + Tide, and
+/// Buddies + Signatures.
 ///
 /// A pair forms whenever both halves are visible and both have content to
 /// show, wherever they sit in the configured order. The row renders at the

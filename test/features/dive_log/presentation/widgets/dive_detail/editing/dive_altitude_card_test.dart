@@ -27,6 +27,7 @@ import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 
 import '../../../../../../helpers/mock_providers.dart';
 import '../../../../../../helpers/test_database.dart';
@@ -566,7 +567,7 @@ void main() {
         title.style,
         Theme.of(tester.element(header)).textTheme.titleMedium,
       );
-      expect(find.byIcon(Icons.edit_outlined), findsNothing);
+      expect(find.byType(RecordPencilDisc), findsNothing);
     });
 
     testWidgets('the icon sits before the title and the info button at the '
@@ -664,7 +665,7 @@ void main() {
       );
 
       expect(tester.widget<ListTile>(find.byType(ListTile)).onTap, isNull);
-      expect(find.byIcon(Icons.edit_outlined), findsNothing);
+      expect(find.byType(RecordPencilDisc), findsNothing);
     });
   });
 }

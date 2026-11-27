@@ -23,7 +23,6 @@ void main() {
     WidgetTester tester,
     MediaItem item, {
     String? editableSiteId,
-    bool attachmentLock = false,
   }) async {
     late WidgetRef capturedRef;
     late BuildContext capturedContext;
@@ -62,7 +61,6 @@ void main() {
         capturedRef,
         item,
         editableSiteId: editableSiteId,
-        attachmentLock: attachmentLock,
       ),
     );
     await tester.pumpAndSettle();
@@ -80,22 +78,20 @@ void main() {
     expect(find.text('reef-map.pdf'), findsOneWidget);
   });
 
-  testWidgets('a PDF with attachmentLock opens the viewer locked', (
-    tester,
-  ) async {
+  testWidgets('a site PDF opens the viewer under its lock', (tester) async {
     final pdf = testMediaItem(
       siteId: 's1',
       mediaType: MediaType.document,
       originalFilename: 'reef-map.pdf',
     );
 
-    await pumpAndOpen(tester, pdf, editableSiteId: 's1', attachmentLock: true);
+    await pumpAndOpen(tester, pdf, editableSiteId: 's1');
 
     final viewer = tester.widget<DocumentViewerPage>(
       find.byType(DocumentViewerPage),
     );
-    expect(viewer.attachmentLock, isTrue);
     expect(viewer.editableSiteId, 's1');
+    expect(find.byKey(const ValueKey('document_unlock')), findsOneWidget);
   });
 
   testWidgets('a non-PDF document never reaches the in-app viewer', (
@@ -117,7 +113,7 @@ void main() {
     );
   });
 
-  testWidgets('a document with no viewer and attachmentLock opens its '
+  testWidgets('a site document with no viewer opens its '
       'details page', (tester) async {
     final doc = testMediaItem(
       siteId: 's1',
@@ -125,7 +121,7 @@ void main() {
       originalFilename: 'briefing.docx',
     );
 
-    await pumpAndOpen(tester, doc, editableSiteId: 's1', attachmentLock: true);
+    await pumpAndOpen(tester, doc, editableSiteId: 's1');
 
     expect(find.byType(AttachmentDetailsPage), findsOneWidget);
     expect(

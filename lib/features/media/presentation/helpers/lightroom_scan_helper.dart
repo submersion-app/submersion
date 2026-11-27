@@ -65,15 +65,15 @@ Future<void> runLightroomScan(
   }
 }
 
-/// The open Media card's Lightroom scan (issue #4527): the photos the
-/// catalog holds for the dive of [session] are found and placed as a scan
-/// does, then held in it until Save, which writes them and queues their
-/// uploads, instead of linked at once. No-op when Lightroom is not
-/// connected.
-Future<void> runLightroomScanInSitting(
+/// A trip's Lightroom scan in its sitting (issue #4527, phase 3, plan 10):
+/// [runLightroomScanInSitting] for each of [dives], the photos found held
+/// in [session] (a trip's) until Save. Like it, it makes no pending
+/// suggestion. No-op when Lightroom is not connected.
+Future<void> runLightroomScanForDivesInSitting<T>(
   BuildContext context,
   WidgetRef ref,
-  EditSession<Dive> session,
+  EditSession<T> session,
+  List<Dive> dives,
 ) async {
   final account = await ref.read(lightroomAccountProvider.future);
   if (account == null || !context.mounted) return;
@@ -86,22 +86,24 @@ Future<void> runLightroomScanInSitting(
     SnackBar(content: Text(l10n.settings_lightroom_scan_running)),
   );
   try {
-    final scan = await service.prepareForDive(
-      account: account,
-      dive: session.working,
-      state: state,
-    );
+    final rows = [
+      for (final dive in dives)
+        ...(await service.prepareForDive(
+          account: account,
+          dive: dive,
+          state: state,
+        )).rows,
+    ];
     await state.setLastError(null);
     messenger.hideCurrentSnackBar();
-    if (scan.rows.isEmpty) {
+    if (rows.isEmpty) {
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.media_diveScan_noPhotosFound)),
       );
       return;
     }
-    // A sitting that ended while the catalog was read takes nothing.
     if (session.isDisposed || session.isFrozen) return;
-    addMediaToSitting(session, [for (final r in scan.rows) HeldMediaRow(r)]);
+    addMediaToSitting(session, [for (final r in rows) HeldMediaRow(r)]);
   } on Exception catch (e) {
     final message = e is CloudStorageException
         ? e.displayMessage
@@ -111,3 +113,15 @@ Future<void> runLightroomScanInSitting(
     messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 }
+
+/// The open Media card's Lightroom scan (issue #4527): the photos the
+/// catalog holds for the dive of [session] are found and placed as a scan
+/// does, then held in it until Save, which writes them and queues their
+/// uploads, instead of linked at once. No-op when Lightroom is not
+/// connected.
+Future<void> runLightroomScanInSitting(
+  BuildContext context,
+  WidgetRef ref,
+  EditSession<Dive> session,
+) =>
+    runLightroomScanForDivesInSitting(context, ref, session, [session.working]);

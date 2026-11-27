@@ -80,6 +80,24 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
   /// The consolidation classification and plan, kept between frames.
   late final _preview = ConsolidationPreviewCache(_dives!);
 
+  /// (primary id, alignment) -> whether the selection consolidates with that
+  /// dive as primary. A copy of a stretch of one dive is valid only with that
+  /// dive as primary, so the radio list offers only the primaries that work:
+  /// choosing another would replace the panel, radio list included, with an
+  /// error the diver could not get back from.
+  final _readyAsPrimary = <(String, ConsolidationAlignment), bool>{};
+
+  bool _canBePrimary(String diveId) => _readyAsPrimary.putIfAbsent(
+    (diveId, _alignment),
+    () =>
+        const DiveConsolidationBuilder().classify(
+              _dives!,
+              primaryDiveId: diveId,
+              alignment: _alignment,
+            )
+            is ConsolidationReady,
+  );
+
   @override
   void initState() {
     super.initState();
@@ -118,10 +136,16 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
   /// against the primary currently chosen (the hint must not outlive a
   /// primary it was not checked against).
   ///
-  /// classify() rejects a repeated serial, so a serial on every dive is what
-  /// proves each record came from a different computer.
+  /// classify() rejects a repeated serial except on a copy of a stretch of
+  /// the primary (listed in duplicateIds), so a serial on every other dive is
+  /// what proves each record came from a different computer.
   bool _looksLikeSameDive() {
     if (!_dives!.every((d) => (d.diveComputerSerial ?? '').isNotEmpty)) {
+      return false;
+    }
+    final classification = _consolidationClassification();
+    if (classification is ConsolidationReady &&
+        classification.duplicateIds.isNotEmpty) {
       return false;
     }
     final alignments = _planFor().alignments;
@@ -559,6 +583,15 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
                     const SizedBox(height: 16),
                     _modeSelector(),
                   ],
+                  if (ready.duplicateIds.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      context.l10n.diveLog_consolidate_duplicateHint,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                   if (ready.realignedIds.isNotEmpty) ...[
                     const SizedBox(height: 16),
                     ConsolidationAlignmentControls(
@@ -623,6 +656,7 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
                             contentPadding: EdgeInsets.zero,
                             dense: true,
                             value: sortedDives[i].id,
+                            enabled: _canBePrimary(sortedDives[i].id),
                             secondary: ExcludeSemantics(
                               child: Icon(
                                 Icons.circle,
@@ -657,7 +691,11 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
               ),
               FilledButton(
                 onPressed: () => _confirmConsolidation(ready),
-                child: Text(context.l10n.diveLog_consolidate_confirm),
+                child: Text(
+                  _onlyCopies(ready)
+                      ? context.l10n.diveLog_consolidate_confirmDuplicate
+                      : context.l10n.diveLog_consolidate_confirm,
+                ),
               ),
             ],
           ),
@@ -690,6 +728,7 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
       targetDiveId: targetId,
       secondaryDiveIds: secondaryIds,
       alignment: alignment,
+      onlyCopies: _onlyCopies(ready),
       onConsolidated: () {
         // Captured via the container (rather than `ref`) so this still works
         // once this dialog's own State has been disposed.
@@ -710,6 +749,11 @@ class _CombineDivesDialogState extends ConsumerState<CombineDivesDialog> {
       },
     );
   }
+
+  /// Whether every secondary is a same-computer copy of a stretch of the
+  /// primary, so no second computer joins the dive.
+  bool _onlyCopies(ConsolidationReady ready) =>
+      ready.duplicateIds.length == ready.secondaries.length;
 
   /// "`<model>` · `<entry time>`", or just the entry time when the dive has
   /// no recorded computer model.

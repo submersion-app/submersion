@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
@@ -12,9 +10,21 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// alignment page as the AppBar's tune icon (#4023): the status it summarizes
 /// is what that page sets.
 class NavTrackCorrectionCard extends StatelessWidget {
-  const NavTrackCorrectionCard({super.key, required this.route});
+  const NavTrackCorrectionCard({
+    super.key,
+    required this.route,
+    required this.onOpen,
+    this.pencil,
+  });
 
   final NavTrack route;
+
+  /// Opens the alignment page: the track page hands it its sitting this
+  /// way (issue #4527).
+  final VoidCallback onOpen;
+
+  /// The card's pencil.
+  final Widget? pencil;
 
   /// To 0.1%, with no decimal on a whole percentage.
   String _scalePercent() {
@@ -37,7 +47,7 @@ class NavTrackCorrectionCard extends StatelessWidget {
       key: const ValueKey('nav-track-correction-status'),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => context.push(underwaterTrackAlignLocation(route.id)),
+        onTap: onOpen,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -63,6 +73,7 @@ class NavTrackCorrectionCard extends StatelessWidget {
                   ],
                 ),
               ),
+              ?pencil,
               const Icon(Icons.chevron_right),
             ],
           ),

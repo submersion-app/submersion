@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -13,30 +14,27 @@ import 'package:submersion/features/courses/presentation/editing/course_requirem
 /// dive requirements offer suggestion chips (one tap credits the dive) and
 /// a picker that reaches every other dive.
 ///
-/// What a tap does is [actions]'s: written at once, as before, when none is
-/// given, or held in a course page's sitting (issue #4527, phase 3). With
-/// [readOnly] (the page edits in place and is locked, or the card is closed)
-/// it offers no action and shows the tick as it is.
-class RequirementTile extends ConsumerWidget {
+/// What a tap does is [actions]'s, held in a course page's sitting (issue
+/// #4527, phase 3). With none (the page is locked, or the card is closed) it
+/// offers no action and shows the tick as it is.
+class RequirementTile extends StatelessWidget {
   const RequirementTile({
     super.key,
     required this.progress,
     required this.suggestions,
     this.actions,
-    this.readOnly = false,
   });
 
   final CourseRequirementProgress progress;
   final List<RequirementDiveSummary> suggestions;
+
+  /// Null where the tile offers no action.
   final RequirementActions? actions;
-  final bool readOnly;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final requirement = progress.requirement;
-    final actions = readOnly
-        ? null
-        : this.actions ?? StoredRequirementActions(ref, requirement.courseId);
+    final actions = this.actions;
     if (requirement.kind == RequirementKind.checklist) {
       return CheckboxListTile(
         value: requirement.completedAt != null,
@@ -55,10 +53,67 @@ class RequirementTile extends ConsumerWidget {
         dense: true,
       );
     }
+    if (requirement.kind.isDerived) {
+      return _DerivedRequirementTile(progress: progress, actions: actions);
+    }
     return _DiveRequirementTile(
       progress: progress,
       suggestions: suggestions,
       actions: actions,
+    );
+  }
+}
+
+/// A requirement counted from the logbook (hours on a CCR, or dives matching
+/// a query): progress only, with nothing to credit or tick.
+class _DerivedRequirementTile extends StatelessWidget {
+  const _DerivedRequirementTile({
+    required this.progress,
+    required this.actions,
+  });
+
+  final CourseRequirementProgress progress;
+
+  /// Null where the tile offers no action.
+  final RequirementActions? actions;
+
+  String _progressText(BuildContext context) {
+    final l10n = context.l10n;
+    final requirement = progress.requirement;
+    if (requirement.kind == RequirementKind.ccrHours) {
+      final format = NumberFormat(
+        '0.0',
+        Localizations.localeOf(context).toString(),
+      );
+      return l10n.courses_requirement_hoursProgress(
+        format.format((progress.derivedAmount ~/ 6) / 10),
+        requirement.targetCount,
+      );
+    }
+    return l10n.courses_requirement_matchProgress(
+      progress.derivedAmount,
+      requirement.targetCount,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final requirement = progress.requirement;
+    final theme = Theme.of(context);
+    final actions = this.actions;
+    return ListTile(
+      leading: progress.isSatisfied
+          ? Icon(Icons.check_circle, color: theme.colorScheme.primary)
+          : Icon(
+              Icons.radio_button_unchecked,
+              color: theme.colorScheme.outline,
+            ),
+      title: Text(requirement.name),
+      subtitle: Text(_progressText(context), style: theme.textTheme.bodySmall),
+      trailing: actions == null
+          ? null
+          : RequirementMenuButton(requirement: requirement, actions: actions),
+      dense: true,
     );
   }
 }

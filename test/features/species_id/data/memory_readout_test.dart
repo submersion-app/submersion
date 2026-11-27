@@ -64,6 +64,46 @@ void main() {
       );
     });
 
+    test('a device-wide reading names the device and gives no figure at '
+        'the peak', () {
+      // Android, Windows and Linux report the whole device's available
+      // memory, not the room left before the app is stopped, so
+      // available + footprint - peak means nothing there. These are the
+      // figures of a Pixel 6a line that printed -276 MiB at the peak.
+      const pixel = VisionMemory(
+        footprintBytes: 1851 * _mib,
+        footprintPeakBytes: 2595 * _mib,
+        availableBytes: 467 * _mib,
+        availableIsDeviceWide: true,
+      );
+      expect(
+        describeMemory('pass 1 (0:00 to 0:02)', pixel),
+        'Memory after pass 1 (0:00 to 0:02): 467 MiB available on the '
+        'device, footprint 1851 MiB (peak 2595 MiB)',
+      );
+    });
+
+    test('a device-wide reading with plenty available still gives no '
+        'figure at the peak', () {
+      const pc = VisionMemory(
+        footprintBytes: 612 * _mib,
+        footprintPeakBytes: 845 * _mib,
+        availableBytes: 9000 * _mib,
+        availableIsDeviceWide: true,
+      );
+      expect(describeMemory('photo', pc), isNot(contains('at the peak')));
+    });
+
+    test('a reading that says the system is low on memory says so', () {
+      expect(
+        describeMemory(
+          'photo',
+          const VisionMemory(footprintBytes: 612 * _mib, lowMemory: true),
+        ),
+        endsWith(', low memory'),
+      );
+    });
+
     test('a reading with only the footprint', () {
       expect(
         describeMemory('load', const VisionMemory(footprintBytes: 612 * _mib)),

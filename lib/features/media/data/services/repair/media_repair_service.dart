@@ -207,21 +207,45 @@ class MediaRepairService {
   /// bookmark is written now; [onRollback] gets what takes it away again,
   /// for the caller to run if the write does not commit. It deletes only a
   /// bookmark no row refers to, so running it after a commit is harmless.
+  ///
+  /// A watcher pass (the daily one, and Media, Sources, Scan now) is matched
+  /// and written without review, so History files it as automatic; a
+  /// reviewed Re-link files as the diver's (issue #4527). Only the database
+  /// writes run in that scope: anything saved while it is open takes its
+  /// label, so the hashing, bookmarks, lookups, cache, upload queue and
+  /// audit log stay outside. Inside a scope already running, such as a
+  /// dive's sitting, it joins that one.
   Future<RepairApplyReport> apply(
     List<RepairProposal> accepted, {
     RepairLogSource source = RepairLogSource.manual,
     List<Future<void> Function()>? afterCommit,
     List<Future<void> Function()>? onRollback,
-  }) => ChangeLogScope.bulk(
-    DatabaseService.instance.databaseOrNull,
-    label: ChangeLogLabels.mediaRepair,
-    body: () => _applyInner(
-      accepted,
-      source: source,
-      afterCommit: afterCommit,
-      onRollback: onRollback,
-    ),
+  }) => _applyInner(
+    accepted,
+    source: source,
+    afterCommit: afterCommit,
+    onRollback: onRollback,
   );
+
+  /// Runs [writes] as one History entry labelled as a media repair, filed
+  /// by [source].
+  static Future<T> _logged<T>(
+    RepairLogSource source,
+    Future<T> Function() writes,
+  ) {
+    final db = DatabaseService.instance.databaseOrNull;
+    return source == RepairLogSource.watcher
+        ? ChangeLogScope.automatic(
+            db,
+            label: ChangeLogLabels.mediaRepair,
+            body: writes,
+          )
+        : ChangeLogScope.bulk(
+            db,
+            label: ChangeLogLabels.mediaRepair,
+            body: writes,
+          );
+  }
 
   Future<RepairApplyReport> _applyInner(
     List<RepairProposal> accepted, {
@@ -357,8 +381,33 @@ class MediaRepairService {
       }
     }
 
-    // Stage B: one transaction for every surviving write.
-    await repository.applyRepairWrites(await _withCloudIds(writes));
+    // Reads and lookups before the History scope opens, and the cache, the
+    // upload queue and the audit log after it closes: anything saved while
+    // the scope is open takes its label, so it holds only the repair's own
+    // database writes.
+    final resolved = await _withCloudIds(writes);
+    final storeId = storeIds.isEmpty ? null : await attachedStoreId?.call();
+
+    final converted = await _logged(source, () async {
+      // Stage B: one transaction for every surviving write.
+      await repository.applyRepairWrites(resolved);
+      // Stage C: the identity of a file whose bytes changed, so the store
+      // takes it again.
+      for (final stamp in editedStamps) {
+        await repository.stampContentIdentity(
+          stamp.mediaId,
+          contentHash: stamp.hash,
+          sizeBytes: stamp.sizeBytes,
+        );
+        await repository.clearRemoteUploaded(stamp.mediaId);
+        await repository.clearRemoteThumbUploaded(stamp.mediaId);
+        await repository.clearRemoteCompressed(stamp.mediaId);
+      }
+      return storeIds.isEmpty || storeId == null
+          ? const <String>{}
+          : await repository.convertToCloudBacked(storeIds, storeId: storeId);
+    });
+
     Future<void> clearCache() async {
       try {
         await assetCache?.clearEntries([for (final w in writes) w.mediaId]);
@@ -375,16 +424,8 @@ class MediaRepairService {
       afterCommit.add(clearCache);
     }
 
-    // Stage C: store side effects.
+    // Store side effects: the changed files go up again.
     for (final stamp in editedStamps) {
-      await repository.stampContentIdentity(
-        stamp.mediaId,
-        contentHash: stamp.hash,
-        sizeBytes: stamp.sizeBytes,
-      );
-      await repository.clearRemoteUploaded(stamp.mediaId);
-      await repository.clearRemoteThumbUploaded(stamp.mediaId);
-      await repository.clearRemoteCompressed(stamp.mediaId);
       Future<void> enqueue() => queue.enqueueUpload(mediaId: stamp.mediaId);
       if (afterCommit == null) {
         await enqueue();
@@ -394,10 +435,6 @@ class MediaRepairService {
       reuploadsQueued++;
     }
     if (storeIds.isNotEmpty) {
-      final storeId = await attachedStoreId?.call();
-      final converted = storeId == null
-          ? const <String>{}
-          : await repository.convertToCloudBacked(storeIds, storeId: storeId);
       cloudBacked = converted.length;
       // Refused rows (stamped only for another store, or no store attached)
       // keep their pointers and stay missing.
@@ -410,7 +447,7 @@ class MediaRepairService {
 
     // Audit last: history records what actually happened, so it is written
     // only after the DB and store effects have gone through. That ordering
-    // also means the repair is already committed here -- letting a history
+    // also means the repair is already committed here: letting a history
     // failure escape would report a successful repair as failed and invite
     // a retry against rows that are no longer missing.
     try {

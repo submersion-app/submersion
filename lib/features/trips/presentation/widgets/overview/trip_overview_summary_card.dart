@@ -12,7 +12,8 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/trip_dive_days.dart';
 import 'package:submersion/features/trips/domain/services/trip_gear_split.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
-import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
@@ -20,6 +21,7 @@ import 'package:submersion/features/trips/presentation/widgets/trip_detail_tabs.
 import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_list.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 
 /// The Prepare overview's one card (#2845): a row per thing to prepare,
 /// each a one-line summary that opens its tab. A row whose data has not
@@ -30,16 +32,16 @@ class TripOverviewSummaryCard extends ConsumerWidget {
   /// Where a row goes; without one the page's DefaultTabController is used.
   final ValueChanged<TripDetailTab>? onOpenTab;
 
-  /// Where the Plan row goes; without one the edit page is pushed, open at
-  /// its Planning section. The page passes one so that in the master-detail
-  /// pane the edit opens in the pane (#2880).
-  final VoidCallback? onEditPlan;
+  /// Whether the rows that open the other tabs show: not for a new trip,
+  /// whose page has no tabs and nothing stored to count (issue #4527, plan
+  /// 11). The Plan row always shows.
+  final bool tabRows;
 
   const TripOverviewSummaryCard({
     super.key,
     required this.trip,
     this.onOpenTab,
-    this.onEditPlan,
+    this.tabRows = true,
   });
 
   void _open(BuildContext context, TripDetailTab tab) {
@@ -54,6 +56,12 @@ class TripOverviewSummaryCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    if (!tabRows) {
+      return Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        child: _planRow(context, l10n),
+      );
+    }
     final status = StatusColors.of(context);
     final checklist = ref.watch(tripChecklistAllItemsProvider(trip.id)).value;
     final gear = ref.watch(tripGearProvider(trip.id)).value;
@@ -116,19 +124,7 @@ class TripOverviewSummaryCard extends ConsumerWidget {
                 : _itinerarySpans(l10n, tripStoryItinerary(trip, days)),
             onTap: () => _open(context, TripDetailTab.itinerary),
           ),
-          _Row(
-            icon: Icons.tune,
-            label: l10n.trips_overview_plan,
-            summary: [TextSpan(text: _planText(l10n))],
-            onTap:
-                onEditPlan ??
-                () => openTripEdit(
-                  context,
-                  trip.id,
-                  embedded: false,
-                  section: TripEditSection.planning,
-                ),
-          ),
+          _planRow(context, l10n),
         ],
       ),
     );
@@ -196,29 +192,46 @@ class TripOverviewSummaryCard extends ConsumerWidget {
     ];
   }
 
-  /// The edit page's planning numbers.
-  String _planText(AppLocalizations l10n) {
-    final parts = [
-      if (trip.divesPerDayTarget != null)
-        l10n.trips_overview_plan_divesPerDay(trip.divesPerDayTarget!),
-      if (trip.diversSharingCylinders > 1)
-        l10n.trips_overview_plan_sharing(trip.diversSharingCylinders),
-    ];
-    return parts.isEmpty ? l10n.trips_overview_plan_notSet : parts.join(' · ');
+  /// The Plan row: what the trip plans with. It is the Plan card (issue
+  /// #4527): a tap opens it, unlocking the page first when it is locked, as
+  /// the plan's edit address does.
+  Widget _planRow(BuildContext context, AppLocalizations l10n) {
+    final slots = TripCardSlotsScope.maybeOf(context);
+    final row = _Row(
+      icon: Icons.tune,
+      label: l10n.trips_overview_plan,
+      summary: [TextSpan(text: _planText(l10n, editsInPlace: slots != null))],
+      // Locked it keeps its chevron: a tap still opens the card.
+      trailing: slots?.isUnlocked ?? false
+          ? RecordCardPencil(cardTitle: l10n.trips_overview_plan)
+          : null,
+      onTap: slots == null ? null : () => slots.openCard(TripCardId.plan),
+    );
+    return slots?.frame(TripCardId.plan, row) ?? row;
   }
+
+  String _planText(AppLocalizations l10n, {bool editsInPlace = false}) =>
+      tripPlanText(l10n, trip, editsInPlace: editsInPlace);
 }
 
 class _Row extends StatelessWidget {
   final IconData icon;
   final String label;
   final List<InlineSpan>? summary;
-  final VoidCallback onTap;
+
+  /// Null when there is nothing to open: the Plan row outside a trip page.
+  final VoidCallback? onTap;
+
+  /// In place of the chevron: the Plan card's pencil while the page is
+  /// unlocked.
+  final Widget? trailing;
 
   const _Row({
     required this.icon,
     required this.label,
     required this.summary,
     required this.onTap,
+    this.trailing,
   });
 
   @override
@@ -240,8 +253,30 @@ class _Row extends StatelessWidget {
                 children: spans,
               ),
             ),
-      trailing: const Icon(Icons.chevron_right),
+      // A row with nothing to open shows no chevron.
+      trailing:
+          trailing ?? (onTap == null ? null : const Icon(Icons.chevron_right)),
       onTap: onTap,
     );
   }
+}
+
+/// The plan in a line. Where the page edits in place it also names the
+/// expected dives and runtime once set, which nothing else shows.
+String tripPlanText(
+  AppLocalizations l10n,
+  Trip trip, {
+  bool editsInPlace = false,
+}) {
+  final parts = [
+    if (trip.divesPerDayTarget != null)
+      l10n.trips_overview_plan_divesPerDay(trip.divesPerDayTarget!),
+    if (trip.diversSharingCylinders > 1)
+      l10n.trips_overview_plan_sharing(trip.diversSharingCylinders),
+    if (editsInPlace && trip.expectedDives != null)
+      l10n.trips_scrubber_expectedDives(trip.expectedDives!),
+    if (editsInPlace && trip.expectedRuntimeMinutes != null)
+      l10n.trips_overview_plan_runtime(trip.expectedRuntimeMinutes!),
+  ];
+  return parts.isEmpty ? l10n.trips_overview_plan_notSet : parts.join(' · ');
 }

@@ -8,6 +8,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_contact_card_editor.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_country_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_profile_link_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_country_field.dart';
 import 'package:submersion/features/buddies/presentation/widgets/linked_profile_field.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -68,6 +69,7 @@ void main() {
     EditSession<Buddy> s, {
     bool fail = false,
     Completer<void>? allowAfter,
+    List<String> countries = const [],
   }) async {
     tester.view.physicalSize = const Size(600, 1200);
     tester.view.devicePixelRatio = 1;
@@ -83,7 +85,9 @@ void main() {
             (ref, args) async => profile,
           ),
           allDiversProvider.overrideWith((ref) async => [profile]),
-          buddyCountrySuggestionsProvider.overrideWith((ref) async => []),
+          buddyCountrySuggestionsProvider.overrideWith(
+            (ref) async => countries,
+          ),
         ],
         child: Scaffold(
           body: SingleChildScrollView(
@@ -142,6 +146,123 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(session.working.linkedDiverId, isNull);
+  });
+
+  testWidgets('Link takes the suggested profile into the sitting', (
+    tester,
+  ) async {
+    final session = EditSession(alex());
+    addTearDown(session.dispose);
+    await pump(tester, session, allowAfter: Completer<void>()..complete());
+
+    await tester.tap(find.text(l.buddies_linkedProfile_link));
+    await tester.pumpAndSettle();
+
+    expect(session.working.linkedDiverId, 'p1');
+    expect(find.text(l.buddies_linkedProfile_link), findsNothing);
+    expect(session.changedCardIds, {'contact'});
+  });
+
+  testWidgets('Not now hides the suggestion and changes nothing', (
+    tester,
+  ) async {
+    final session = EditSession(alex());
+    addTearDown(session.dispose);
+    await pump(tester, session);
+
+    await tester.tap(find.text(l.buddies_linkedProfile_notNow));
+    await tester.pumpAndSettle();
+
+    expect(find.text(l.buddies_linkedProfile_link), findsNothing);
+    expect(session.working.linkedDiverId, isNull);
+    expect(session.isDirty, isFalse);
+  });
+
+  testWidgets('a linked buddy shows its profile, and clearing unlinks it', (
+    tester,
+  ) async {
+    final session = EditSession(alex().copyWith(linkedDiverId: 'p1'));
+    addTearDown(session.dispose);
+    await pump(tester, session);
+    final field = find.byType(LinkedProfileField);
+
+    expect(
+      find.descendant(of: field, matching: find.text('Alex Diver')),
+      findsOneWidget,
+    );
+    expect(find.text(l.buddies_linkedProfile_link), findsNothing);
+
+    await tester.tap(
+      find.descendant(of: field, matching: find.byIcon(Icons.clear)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(session.working.linkedDiverId, isNull);
+    expect(
+      find.descendant(
+        of: field,
+        matching: find.text(l.buddies_field_linkedProfileNone),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a profile picked from the Linked profile sheet is held', (
+    tester,
+  ) async {
+    final session = EditSession(alex());
+    addTearDown(session.dispose);
+    await pump(tester, session, allowAfter: Completer<void>()..complete());
+
+    await tester.tap(find.byKey(const Key('buddy_edit_linked_profile')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Alex Diver').last);
+    await tester.pumpAndSettle();
+
+    expect(session.working.linkedDiverId, 'p1');
+    expect(session.changedCardIds, {'contact'});
+  });
+
+  testWidgets('a social handle typed is held as a change of Contact', (
+    tester,
+  ) async {
+    final session = EditSession(alex());
+    addTearDown(session.dispose);
+    await pump(tester, session);
+
+    await tester.enterText(
+      find.byKey(const ValueKey('buddy-edit-social')),
+      '@alice',
+    );
+    await tester.pumpAndSettle();
+
+    expect(session.working.socialHandle, '@alice');
+    expect(session.changedCardIds, {'contact'});
+  });
+
+  testWidgets('the stored country shows below the social handle, and a '
+      'country typed is held', (tester) async {
+    final session = EditSession(alex().copyWith(country: 'Malta'));
+    addTearDown(session.dispose);
+    await pump(tester, session, countries: const ['Italy', 'Malta']);
+    final country = find.descendant(
+      of: find.byType(BuddyCountryField),
+      matching: find.byType(TextField),
+    );
+
+    expect(tester.widget<TextField>(country).controller!.text, 'Malta');
+    expect(
+      tester.getTopLeft(country).dy,
+      greaterThan(
+        tester.getTopLeft(find.byKey(const ValueKey('buddy-edit-social'))).dy,
+      ),
+    );
+
+    await tester.enterText(country, 'Italy');
+    await tester.pumpAndSettle();
+
+    expect(session.working.country, 'Italy');
+    expect(session.changedCardIds, {'contact'});
   });
 
   testWidgets('a bad email is flagged', (tester) async {

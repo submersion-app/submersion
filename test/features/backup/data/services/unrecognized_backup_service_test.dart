@@ -47,11 +47,13 @@ void main() {
   UnrecognizedBackupService serviceFor({
     Set<String> knownPaths = const {},
     String? configuredLocation,
+    bool defaultIsAppPrivate = false,
   }) => UnrecognizedBackupService(
     access: BackupsDirectoryAccess(
       configuredLocation: () async => configuredLocation,
       acquireLease: () async =>
           BackupDirLease(backups.path, () async => leasesReleased++),
+      defaultIsAppPrivate: defaultIsAppPrivate,
     ),
     knownPaths: () async => knownPaths,
     thisDeviceId: () async => thisDevice,
@@ -88,6 +90,45 @@ void main() {
       expect(found.single.isReclaimable, isFalse);
     },
   );
+
+  group('the app-private default folder', () {
+    // Issue #4973: the scan is told whether the leased folder is private, on
+    // the way in to the listing and again on the way in to the delete.
+    test(
+      'lists another device\'s file as reclaimable and deletes it',
+      () async {
+        final path = await writeBackup(
+          timestamp: '2026-09-01_1200',
+          deviceId: otherDevice,
+          bytes: 2048,
+        );
+        final service = serviceFor(defaultIsAppPrivate: true);
+
+        final found = (await service.find())!;
+        expect(found.single.isReclaimable, isTrue);
+
+        expect(await service.reclaim(found), 2048);
+        expect(File(path).existsSync(), isFalse);
+      },
+    );
+
+    test('a custom folder keeps another device\'s file', () async {
+      final path = await writeBackup(
+        timestamp: '2026-09-01_1200',
+        deviceId: otherDevice,
+      );
+      final service = serviceFor(
+        configuredLocation: backups.path,
+        defaultIsAppPrivate: true,
+      );
+
+      final found = (await service.find())!;
+      expect(found.single.isReclaimable, isFalse);
+
+      expect(await service.reclaim(found), 0);
+      expect(File(path).existsSync(), isTrue);
+    });
+  });
 
   test('a location that cannot be enumerated reports null, not empty', () async {
     // Null is not zero, the same distinction slice A's StorageCategory.measure

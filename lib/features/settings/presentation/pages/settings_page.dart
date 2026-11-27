@@ -7,7 +7,6 @@ import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/equipment/presentation/widgets/profile_checklist_dialog.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/providers/provider.dart';
 
@@ -37,6 +36,7 @@ import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/theme/brand_typography.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
@@ -50,7 +50,7 @@ import 'package:submersion/features/settings/presentation/pages/diver_profile_hu
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/build_date_label.dart';
 import 'package:submersion/features/settings/presentation/widgets/diagnostics_card.dart';
-import 'package:submersion/features/settings/presentation/widgets/submersion_about_dialog.dart';
+import 'package:submersion/features/settings/presentation/widgets/about_submersion.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/settings_root_set_up_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/core/router/section_navigation.dart';
@@ -2130,21 +2130,7 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
 
   @override
   Widget build(BuildContext context) {
-    final packageInfoAsync = ref.watch(packageInfoProvider);
-    final isBetaChannel =
-        UpdateChannelConfig.isAutoUpdateEnabled &&
-        ref.watch(releaseChannelProvider) == ReleaseChannel.beta;
-    final versionString = packageInfoAsync.when(
-      data: (info) {
-        final version = formatAppVersion(info);
-        final base = context.l10n.settings_about_version(version);
-        return isBetaChannel
-            ? context.l10n.settings_updates_channelBadgeBeta(base)
-            : base;
-      },
-      loading: () => '',
-      error: (_, _) => '',
-    );
+    final versionString = watchAboutVersionLabel(context, ref);
     final builtOn = watchBuildDateLabel(context, ref);
 
     return SingleChildScrollView(
@@ -2163,8 +2149,7 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                 ListTile(
                   leading: const Icon(Icons.info_outline),
                   title: Text(context.l10n.settings_about_aboutSubmersion),
-                  onTap: () =>
-                      _showAboutDialog(context, versionString, builtOn),
+                  onTap: () => showAboutSubmersion(context),
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -2246,7 +2231,9 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                 const SizedBox(height: 16),
                 Text(
                   context.l10n.settings_about_appName,
-                  style: Theme.of(context).textTheme.headlineSmall,
+                  style: BrandTypography.wordmark(
+                    Theme.of(context).textTheme.headlineSmall,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 GestureDetector(
@@ -2440,24 +2427,6 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
     // its next check.
     if (!mounted || !context.mounted) return;
     await ref.read(updateStatusProvider.notifier).checkForUpdate();
-  }
-
-  void _showAboutDialog(
-    BuildContext context,
-    String versionString,
-    String? builtOn,
-  ) {
-    showSubmersionAboutDialog(
-      context: context,
-      applicationName: context.l10n.settings_about_appName,
-      applicationVersion: versionString,
-      builtOn: builtOn,
-      applicationIcon: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Image.asset('assets/icon/icon.png', width: 64, height: 64),
-      ),
-      children: [Text(context.l10n.settings_about_description)],
-    );
   }
 }
 

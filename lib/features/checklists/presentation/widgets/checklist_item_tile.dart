@@ -12,14 +12,16 @@ class ChecklistItemTile extends ConsumerWidget {
 
   /// Whether overdue styling applies (false for past trips - they never nag).
   final bool showOverdue;
-  final ValueChanged<bool> onToggle;
+
+  /// Ticks or unticks the item; null shows the tick without changing it.
+  final ValueChanged<bool>? onToggle;
   final VoidCallback? onEdit;
 
   const ChecklistItemTile({
     super.key,
     required this.item,
     required this.showOverdue,
-    required this.onToggle,
+    this.onToggle,
     this.onEdit,
   });
 
@@ -29,13 +31,21 @@ class ChecklistItemTile extends ConsumerWidget {
     final units = ref.watch(unitFormatterProvider);
     final isOverdue = showOverdue && item.isOverdue(DateTime.now());
     final due = item.dueDate;
+    final packingStatus = item.equipmentId == null
+        ? null
+        : item.isDone
+        ? context.l10n.checklists_packed
+        : context.l10n.checklists_toPack;
 
     return ListTile(
       dense: true,
       contentPadding: const EdgeInsets.only(left: 4, right: 0),
       leading: Checkbox(
         value: item.isDone,
-        onChanged: (value) => onToggle(value ?? false),
+        onChanged: switch (onToggle) {
+          final toggle? => (value) => toggle(value ?? false),
+          null => null,
+        },
       ),
       title: Text(
         item.title,
@@ -46,17 +56,24 @@ class ChecklistItemTile extends ConsumerWidget {
               )
             : theme.textTheme.bodyMedium,
       ),
-      isThreeLine: item.notes.isNotEmpty && due != null,
+      isThreeLine:
+          [
+            item.notes.isNotEmpty,
+            due != null,
+            packingStatus != null,
+          ].where((hasLine) => hasLine).length >
+          1,
       // The due chip sits under the title rather than in trailing: a ListTile
       // measures trailing before the title, so a text-bearing chip there
       // squeezes the title to one fragment per line on a phone or in a
       // longer translation (issue #2717).
-      subtitle: item.notes.isEmpty && due == null
+      subtitle: item.notes.isEmpty && due == null && packingStatus == null
           ? null
           : Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (packingStatus != null) Text(packingStatus),
                 if (item.notes.isNotEmpty)
                   Text(
                     item.notes,

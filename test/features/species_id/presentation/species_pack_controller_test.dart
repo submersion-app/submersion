@@ -9,6 +9,7 @@ import 'package:submersion/features/species_id/data/pack/species_pack_downloader
 import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/domain/entities/species_pack_manifest.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
+import 'package:submersion/features/species_id/domain/services/vision_engine.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_pack_controller.dart';
 
@@ -139,6 +140,35 @@ void main() {
   late _Service service;
   late ProviderContainer container;
 
+  ProviderContainer makeContainer() => ProviderContainer(
+    overrides: [
+      visionEngineProvider.overrideWithValue(engine),
+      speciesPackManifestClientProvider.overrideWithValue(client),
+      speciesPackDownloaderProvider.overrideWithValue(downloader),
+      speciesPackStoreProvider.overrideWithValue(store),
+      mediaIdentificationServiceProvider.overrideWithValue(service),
+    ],
+  );
+
+  /// Swaps the engine for one that can fetch a hardware engine.
+  _HardwareEngine useHardwareEngine({
+    bool offers = true,
+    bool arrives = true,
+    bool throws = false,
+    bool askingThrows = false,
+  }) {
+    final hardware = _HardwareEngine(
+      offers: offers,
+      arrives: arrives,
+      throws: throws,
+      askingThrows: askingThrows,
+    );
+    container.dispose();
+    engine = hardware;
+    container = makeContainer();
+    return hardware;
+  }
+
   setUp(() async {
     root = await Directory.systemTemp.createTemp('pack_controller');
     engine = FakeEngine();
@@ -147,15 +177,7 @@ void main() {
     store = _Store(root.path);
     service = _Service();
     store.changing = () => service.changing;
-    container = ProviderContainer(
-      overrides: [
-        visionEngineProvider.overrideWithValue(engine),
-        speciesPackManifestClientProvider.overrideWithValue(client),
-        speciesPackDownloaderProvider.overrideWithValue(downloader),
-        speciesPackStoreProvider.overrideWithValue(store),
-        mediaIdentificationServiceProvider.overrideWithValue(service),
-      ],
-    );
+    container = makeContainer();
   });
   tearDown(() async {
     container.dispose();
@@ -306,6 +328,70 @@ void main() {
     expect(state(), isA<PackInstalled>());
   });
 
+  group('a device whose engine can fetch a hardware engine (Windows ML)', () {
+    test('fetches it as part of installing, before the models load', () async {
+      final hardware = useHardwareEngine();
+      await controller().refresh();
+      await controller().download();
+      expect(hardware.events.take(2), ['fetch', 'load']);
+      expect(state(), isA<PackInstalled>());
+    });
+
+    test('identification is not held while the engine downloads', () async {
+      // An engine can be hundreds of megabytes; analysis is held only for
+      // the pack's own install.
+      final hardware = useHardwareEngine();
+      bool? heldWhileFetching;
+      hardware.whileFetching = () => heldWhileFetching = service.changing;
+      await controller().refresh();
+      await controller().download();
+      expect(heldWhileFetching, isFalse);
+      expect(hardware.events.take(2), ['fetch', 'load']);
+    });
+
+    test('an engine that does not arrive still installs the pack', () async {
+      final hardware = useHardwareEngine(arrives: false);
+      await controller().refresh();
+      await controller().download();
+      expect(hardware.events.first, 'fetch');
+      expect(state(), isA<PackInstalled>());
+    });
+
+    test('a fetch that throws still installs the pack', () async {
+      useHardwareEngine(throws: true);
+      await controller().refresh();
+      await controller().download();
+      expect(state(), isA<PackInstalled>());
+    });
+
+    test('the page is told the download fetches an engine', () async {
+      useHardwareEngine();
+      expect(await controller().downloadFetchesHardwareEngine(), isTrue);
+    });
+
+    test('when asking fails, the page shows the plain confirmation', () async {
+      useHardwareEngine(askingThrows: true);
+      expect(await controller().downloadFetchesHardwareEngine(), isFalse);
+    });
+
+    test('with nothing to fetch the page is told so', () async {
+      useHardwareEngine(offers: false);
+      expect(await controller().downloadFetchesHardwareEngine(), isFalse);
+    });
+
+    test('with no engine to fetch, nothing is fetched', () async {
+      final hardware = useHardwareEngine(offers: false);
+      await controller().refresh();
+      await controller().download();
+      expect(hardware.events, isNot(contains('fetch')));
+      expect(state(), isA<PackInstalled>());
+    });
+  });
+
+  test('an engine that cannot fetch hardware engines fetches none', () async {
+    expect(await controller().downloadFetchesHardwareEngine(), isFalse);
+  });
+
   test('a pack whose models do not load is not left installed', () async {
     await controller().refresh();
     engine.loadFailure = Exception('not a model');
@@ -425,6 +511,31 @@ void main() {
       expect(pack!.manifest.naming.levels, hasLength(1));
     });
 
+    test('that only adds another engine\'s files is taken in place', () async {
+      client.manifest = measured();
+      await controller().refresh();
+      await controller().download();
+      await container.read(installedSpeciesPackProvider.future);
+      final downloads = downloader.calls;
+      client.manifest = SpeciesPackManifest.parse(
+        manifestJson((m) {
+          (m['naming']! as Map<String, Object?>)['provisional'] = false;
+          (m['files']! as List).add({
+            'name': 'classifier.onnx.zip',
+            'engine': 'onnx',
+            'size': 1,
+            'sha256': 'c' * 64,
+          });
+        }),
+      );
+
+      await controller().refresh();
+
+      expect(store.adopted, 1);
+      expect(downloader.calls, downloads);
+      expect((state() as PackInstalled).updateBytes, isNull);
+    });
+
     test('that changes a bar is not taken', () async {
       client.manifest = measured();
       await controller().refresh();
@@ -438,4 +549,39 @@ void main() {
       expect((state() as PackInstalled).updateBytes, isNull);
     });
   });
+}
+
+/// [FakeEngine] that can fetch a hardware engine, recording `fetch` among
+/// its events.
+class _HardwareEngine extends FakeEngine implements HardwareEngineSource {
+  _HardwareEngine({
+    required this.offers,
+    required this.arrives,
+    required this.throws,
+    this.askingThrows = false,
+  });
+
+  final bool offers;
+  final bool arrives;
+  final bool throws;
+
+  /// Whether asking if there is an engine to fetch fails.
+  final bool askingThrows;
+
+  /// Asked while fetching, to see what else is going on.
+  void Function()? whileFetching;
+
+  @override
+  Future<bool> offersEngineToFetch() async {
+    if (askingThrows) throw StateError('Windows ML failed');
+    return offers;
+  }
+
+  @override
+  Future<bool> fetchEngine() async {
+    events.add('fetch');
+    whileFetching?.call();
+    if (throws) throw StateError('Windows ML failed');
+    return arrives;
+  }
 }

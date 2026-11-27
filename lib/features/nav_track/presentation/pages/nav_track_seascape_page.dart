@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_3d/presentation/scene_player.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/scene_player_bar.dart';
 import 'package:submersion/features/nav_track/application/nav_track_scene_providers.dart';
+import 'package:submersion/features/nav_track/presentation/providers/nav_track_preview_provider.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_terrain_pane.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -47,7 +48,10 @@ class NavTrackSeascapePage extends ConsumerWidget {
       );
     }
     final siteId = trackAsync.valueOrNull?.siteId;
-    if (siteId == null) {
+    // A correction held in a sitting is drawn on this route alone: the
+    // site's view reads every route from storage (issue #4527).
+    final previewing = ref.watch(navTrackPreviewProvider(trackId)) != null;
+    if (siteId == null || previewing) {
       return _NavTrackSeascapeStandalone(trackId: trackId);
     }
     // A site that cannot render terrain (no coordinates, or no bathymetry

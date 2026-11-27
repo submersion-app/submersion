@@ -35,6 +35,7 @@ import 'package:submersion/features/dive_computer/data/services/libdc_sample_uni
 import 'package:submersion/features/dive_computer/domain/services/dive_computer_merge_rules.dart'
     show computerModelsCompatible, identityPartsCompatible;
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_dive_counts.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -67,6 +68,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 import 'package:submersion/features/dive_log/data/repositories/stored_tank_serial_fill.dart';
+import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/equipment/data/services/dive_set_bundle_applier.dart';
 
 /// A `dive_profile_series` row [DiveComputerRepository.findComputerDivesContainingTime]
@@ -108,8 +110,18 @@ class DiveComputerRepository {
   /// inside a download that also writes dives, profiles, tanks, and data
   /// sources, so an un-debounced tick would rebuild the pickers repeatedly
   /// mid-download instead of once on the settled state.
+  ///
+  /// Data sources and dives tick it too: "Dives imported" is counted from
+  /// both (issue #4846), and a dive can change its computer_id without any
+  /// source changing.
   Stream<void> watchComputersChanges() => _db
-      .tableUpdates(TableUpdateQuery.onTable(_db.diveComputers))
+      .tableUpdates(
+        TableUpdateQuery.allOf([
+          TableUpdateQuery.onTable(_db.diveComputers),
+          TableUpdateQuery.onTable(_db.diveDataSources),
+          TableUpdateQuery.onTable(_db.dives),
+        ]),
+      )
       .debounce(DiveRepository.changeTickDebounce);
 
   /// The same refcounted sweep the dive-deletion cascade uses (issue #478):
@@ -144,7 +156,7 @@ class DiveComputerRepository {
                 (t) => OrderingTerm.asc(t.id),
               ]))
             .get();
-    return rows.map(_mapRowToComputer).toList();
+    return await _toComputers(rows);
   }
 
   /// Get all dive computers
@@ -161,11 +173,9 @@ class DiveComputerRepository {
       }
 
       final rows = await query.get();
-      return sortedByText(
-        rows,
-        (r) => r.name,
-        groupOf: (r) => r.isFavorite,
-      ).map((row) => _mapRowToComputer(row)).toList();
+      return await _toComputers(
+        sortedByText(rows, (r) => r.name, groupOf: (r) => r.isFavorite),
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get all dive computers',
@@ -183,7 +193,7 @@ class DiveComputerRepository {
         ..where((t) => t.id.equals(id));
 
       final row = await query.getSingleOrNull();
-      return row != null ? _mapRowToComputer(row) : null;
+      return row != null ? await _toComputer(row) : null;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get dive computer by id: $id',
@@ -206,7 +216,7 @@ class DiveComputerRepository {
       }
 
       final row = await query.getSingleOrNull();
-      return row != null ? _mapRowToComputer(row) : null;
+      return row != null ? await _toComputer(row) : null;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get favorite dive computer',
@@ -244,7 +254,7 @@ class DiveComputerRepository {
       }
 
       final row = await query.getSingleOrNull();
-      return row != null ? _mapRowToComputer(row) : null;
+      return row != null ? await _toComputer(row) : null;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to find dive computer by bluetooth address: $address',
@@ -305,7 +315,7 @@ class DiveComputerRepository {
           serialNumber,
           shearwater: shearwater,
         )) {
-          return _mapRowToComputer(row);
+          return await _toComputer(row);
         }
       }
       return null;
@@ -575,7 +585,9 @@ class DiveComputerRepository {
         _db.diveComputers,
       )..where((t) => t.id.equals(id))).getSingleOrNull();
       if (row != null) {
-        await _backfillProvenanceSnapshots(_mapRowToComputer(row));
+        await _backfillProvenanceSnapshots(
+          _mapRowToComputer(row, diveCount: row.diveCount),
+        );
         // A source saved before the computer knew its serial still has an
         // empty serial copy unless a heal has run since. Fill it while the
         // link still says which computer it is, or nothing would identify
@@ -784,6 +796,8 @@ class DiveComputerRepository {
   void _notifyRelinked() => _db.notifyUpdates({
     TableUpdate.onTable(_db.diveDataSources, kind: UpdateKind.update),
     TableUpdate.onTable(_db.dives, kind: UpdateKind.update),
+    // The relink also puts the computer's item on the dives (issue #4846).
+    TableUpdate.onTable(_db.diveEquipment, kind: UpdateKind.update),
   });
 
   /// Set or clear one computer's opt-out from auto-download (issue #3361),
@@ -994,7 +1008,7 @@ class DiveComputerRepository {
         ..where((t) => t.id.isIn(computerIds));
 
       final rows = await query.get();
-      return rows.map((row) => _mapRowToComputer(row)).toList();
+      return await _toComputers(rows);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get computers for dive: $diveId',
@@ -2450,11 +2464,17 @@ class DiveComputerRepository {
           cnsEnd: exposure(cnsEnd),
           otu: exposure(otu),
         );
+        // A deco setting the diver set by hand stays, as a re-parse keeps it
+        // (issue #4909).
+        final stored = await (_db.select(
+          _db.dives,
+        )..where((t) => t.id.equals(diveId))).getSingle();
+        final guarded = keepHandSetFields(diveUpdate, stored).companion;
         // One write: the companion's columns, plus the surface pressure as
         // an expression, since a fill reads the stored value in SQL.
         await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
           RawValuesInsertable({
-            ...diveUpdate.toColumns(false),
+            ...guarded.toColumns(false),
             _db.dives.surfacePressure.name: ?surfacePressureWrite,
           }),
         );
@@ -2603,7 +2623,7 @@ class DiveComputerRepository {
         ),
       );
       if (match != null) {
-        return _mapRowToComputer(rows.firstWhere((r) => r.id == match.id));
+        return await _toComputer(rows.firstWhere((r) => r.id == match.id));
       }
 
       // Deterministic, so the import and the beforeOpen self-heal agree and a
@@ -2622,7 +2642,7 @@ class DiveComputerRepository {
       final byDerivedId = await (_db.select(
         _db.diveComputers,
       )..where((t) => t.id.equals(id))).getSingleOrNull();
-      if (byDerivedId != null) return _mapRowToComputer(byDerivedId);
+      if (byDerivedId != null) return await _toComputer(byDerivedId);
 
       final trimmedModel = model.trim();
       final trimmedManufacturer = manufacturer?.trim();
@@ -2677,7 +2697,7 @@ class DiveComputerRepository {
 
       final existing = await query.getSingleOrNull();
       if (existing != null) {
-        return _mapRowToComputer(existing);
+        return await _toComputer(existing);
       }
 
       // Create new computer
@@ -2855,7 +2875,27 @@ class DiveComputerRepository {
   // Mapping Helpers
   // ============================================================================
 
-  domain.DiveComputer _mapRowToComputer(db.DiveComputer row) {
+  /// [row] as a domain computer whose `diveCount` is counted from the dives
+  /// it recorded (see [diveComputerDiveCounts]).
+  Future<domain.DiveComputer> _toComputer(db.DiveComputer row) async =>
+      (await _toComputers([row])).single;
+
+  /// [rows] in order, each with its counted `diveCount`, in one query.
+  Future<List<domain.DiveComputer>> _toComputers(
+    List<db.DiveComputer> rows,
+  ) async {
+    final counts = await diveComputerDiveCounts(_db, [
+      for (final r in rows) r.id,
+    ]);
+    return [
+      for (final r in rows) _mapRowToComputer(r, diveCount: counts[r.id] ?? 0),
+    ];
+  }
+
+  domain.DiveComputer _mapRowToComputer(
+    db.DiveComputer row, {
+    required int diveCount,
+  }) {
     return domain.DiveComputer(
       id: row.id,
       diverId: row.diverId,
@@ -2870,7 +2910,7 @@ class DiveComputerRepository {
       lastDownload: row.lastDownloadTimestamp != null
           ? DateTime.fromMillisecondsSinceEpoch(row.lastDownloadTimestamp!)
           : null,
-      diveCount: row.diveCount,
+      diveCount: diveCount,
       isFavorite: row.isFavorite,
       autoDownloadDisabled: row.autoDownloadDisabled,
       notes: row.notes,

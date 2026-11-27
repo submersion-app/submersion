@@ -1,30 +1,11 @@
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/media/data/repositories/media_aspect_cache_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/learned_aspect.dart';
 import 'package:submersion/features/media/presentation/providers/media_learned_aspect_provider.dart';
-
-class _FakeRepository implements MediaAspectCacheRepository {
-  _FakeRepository([this.stored = const {}, this.failLoad = false]);
-
-  final Map<String, LearnedAspect> stored;
-  final bool failLoad;
-  final List<Map<String, LearnedAspect>> writes = [];
-
-  @override
-  Future<Map<String, LearnedAspect>> loadAll() async {
-    if (failLoad) throw StateError('Local cache database not initialized.');
-    return stored;
-  }
-
-  @override
-  Future<void> putAll(Map<String, LearnedAspect> entries) async {
-    writes.add(Map.of(entries));
-  }
-}
+import '../support/media_widget_harness.dart';
 
 MediaItem _item(
   String id, {
@@ -44,13 +25,13 @@ MediaItem _item(
 
 /// Shapes learned from decoded library thumbnails (issue #4738).
 void main() {
-  late _FakeRepository repository;
+  late FakeAspectCacheRepository repository;
   late ProviderContainer container;
 
   Future<MediaLearnedAspectsNotifier> start([
     Map<String, LearnedAspect> stored = const {},
   ]) async {
-    repository = _FakeRepository(stored);
+    repository = FakeAspectCacheRepository(stored);
     container = ProviderContainer(
       overrides: [
         mediaAspectCacheRepositoryProvider.overrideWithValue(repository),
@@ -67,7 +48,7 @@ void main() {
   testWidgets('a cache that cannot be read starts with nothing learned', (
     tester,
   ) async {
-    repository = _FakeRepository(const {}, true);
+    repository = FakeAspectCacheRepository.failing();
     container = ProviderContainer(
       overrides: [
         mediaAspectCacheRepositoryProvider.overrideWithValue(repository),

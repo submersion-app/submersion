@@ -26,14 +26,19 @@ class TripPackedItemRow extends ConsumerWidget {
   /// the one-line subtitle, the sheet lists them all.
   final List<DueClock> alerts;
   final ScrubberMargin? margin;
-  final Future<void> Function() onUnpack;
+
+  /// Takes the item off the trip; null offers no menu (a trip page that
+  /// only reads, issue #4527).
+  final Future<void> Function()? onUnpack;
+  final VoidCallback? onMoveToBag;
 
   const TripPackedItemRow({
     super.key,
     required this.item,
     this.alerts = const [],
     this.margin,
-    required this.onUnpack,
+    this.onUnpack,
+    this.onMoveToBag,
   });
 
   @override
@@ -76,13 +81,24 @@ class TripPackedItemRow extends ConsumerWidget {
               child: subtitleText,
             )
           : subtitleText,
-      trailing: PopupMenuButton<String>(
-        key: Key('trip-gear-menu-${item.id}'),
-        onSelected: (_) => onUnpack(),
-        itemBuilder: (_) => [
-          PopupMenuItem(value: 'unpack', child: Text(l10n.trips_gear_remove)),
-        ],
-      ),
+      trailing: switch (onUnpack) {
+        final unpack? => PopupMenuButton<String>(
+          key: Key('trip-gear-menu-${item.id}'),
+          onSelected: (action) {
+            if (action == 'move') {
+              onMoveToBag?.call();
+            } else {
+              unpack();
+            }
+          },
+          itemBuilder: (_) => [
+            if (onMoveToBag != null)
+              PopupMenuItem(value: 'move', child: Text(l10n.trips_bags_move)),
+            PopupMenuItem(value: 'unpack', child: Text(l10n.trips_gear_remove)),
+          ],
+        ),
+        null => null,
+      },
       onTap: () => context.push('/equipment/${item.id}'),
     );
   }

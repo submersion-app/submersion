@@ -6,6 +6,10 @@ import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/widgets/documents_section.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_ids.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_card_slots.dart';
+import 'package:submersion/features/trips/presentation/editing/trip_header_card_editor.dart';
+import 'package:submersion/features/trips/presentation/widgets/overview/trip_overview_summary_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_line.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_empty_state.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_under_way_cards.dart';
@@ -13,9 +17,11 @@ import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel
 import 'package:submersion/features/trips/presentation/widgets/trip_country_flags.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 
-/// The whole trip on one page: its dates, its totals, a line per day that
-/// opens that day, then the vessel, the notes and the documents.
+/// The whole trip on one page: its dates, the line of its type, location,
+/// resort and sharing, its totals, a line per day that opens that day, then
+/// the vessel, the notes and the documents.
 ///
 /// This is where everything about the trip as a whole lives, so that a day's
 /// page can be about the day alone. The trip's name is not repeated here; it
@@ -62,7 +68,12 @@ class TripStoryTripPage extends ConsumerWidget {
     final scheme = theme.colorScheme;
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
-    final trip = story.trip;
+    // On the trip page, the cards show the sitting's trip and sit in its frames
+    // (issue #4527).
+    final slots = TripCardSlotsScope.maybeOf(context);
+    final trip = slots?.shown ?? story.trip;
+    Widget framed(TripCardId id, Widget child) =>
+        slots?.frame(id, child) ?? child;
     final dates = Text(
       '${units.formatDate(trip.startDate)}'
       ' - ${units.formatDate(trip.endDate)}'
@@ -114,6 +125,13 @@ class TripStoryTripPage extends ConsumerWidget {
               ],
             ),
           ),
+          // The trip's type, where it is, its resort and who it is shared
+          // with, on one line under the dates, and the header block's
+          // editor (issue #4927).
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: framed(TripCardId.header, TripHeaderRows(trip: trip)),
+          ),
           if (story.isEmpty) ...[
             // A trip under way with nothing logged yet still has cylinders
             // to fill and a flight to count down to. Shows nothing otherwise.
@@ -144,36 +162,78 @@ class TripStoryTripPage extends ConsumerWidget {
           if (trip.isLiveaboard)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: TripVesselSection(tripId: trip.id),
+              child: framed(
+                TripCardId.vessel,
+                TripVesselSection(tripId: trip.id, session: slots?.session),
+              ),
             ),
-          if (trip.notes.isNotEmpty)
+          // The plan, from the trip's first day, only once brought in from
+          // the strip or open (issue #4527).
+          if (slots?.showsWhileEmpty(TripCardId.plan) ?? false)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: Card(
-                key: notesKey,
-                margin: EdgeInsets.zero,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.trips_detail_sectionTitle_notes,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+              child: framed(
+                TripCardId.plan,
+                Card(
+                  margin: EdgeInsets.zero,
+                  child: ListTile(
+                    leading: Icon(Icons.tune, color: scheme.primary),
+                    title: Text(l10n.trips_overview_plan),
+                    subtitle: Text(
+                      tripPlanText(l10n, trip, editsInPlace: true),
+                    ),
+                    trailing: RecordCardPencil(
+                      cardTitle: l10n.trips_overview_plan,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          if (trip.notes.isNotEmpty ||
+              (slots?.showsWhileEmpty(TripCardId.notes) ?? false))
+            Padding(
+              key: notesKey,
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: framed(
+                TripCardId.notes,
+                Card(
+                  margin: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                l10n.trips_detail_sectionTitle_notes,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            // The card's pencil while the page edits in place.
+                            RecordCardPencil(
+                              cardTitle: l10n.trips_detail_sectionTitle_notes,
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      MarkdownNotesView(trip.notes),
-                    ],
+                        const SizedBox(height: 12),
+                        MarkdownNotesView(trip.notes),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: DocumentsSection(
-              owner: DocumentOwner(DocumentOwnerKind.trip, trip.id),
+            child: framed(
+              TripCardId.documents,
+              DocumentsSection(
+                owner: DocumentOwner(DocumentOwnerKind.trip, trip.id),
+              ),
             ),
           ),
         ],

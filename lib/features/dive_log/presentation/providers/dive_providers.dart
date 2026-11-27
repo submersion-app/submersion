@@ -255,6 +255,18 @@ final diveSourceRemovalServiceProvider = Provider<DiveSourceRemovalService>(
   (ref) => DiveSourceRemovalService(),
 );
 
+/// Whether a source shares its dive computer with another source of its
+/// dive, which Remove source refuses (issue #4972). Asks the removal
+/// service, which reads the raw source rows: [diveDataSourcesProvider]
+/// collapses rows sharing a merge slot into one display source, so a check
+/// over that list can miss the sibling.
+final sourceSharesComputerProvider = FutureProvider.autoDispose
+    .family<bool, ({String diveId, String sourceId})>(
+      (ref, key) => ref
+          .watch(diveSourceRemovalServiceProvider)
+          .sharesComputer(diveId: key.diveId, sourceId: key.sourceId),
+    );
+
 /// Separate-a-combined-dive service singleton (inverse of combine).
 final diveUncombineServiceProvider = Provider<DiveUncombineService>((ref) {
   return DiveUncombineService(ref.watch(diveRepositoryProvider));
@@ -423,7 +435,7 @@ void mergeIntoBatchProfileCache(
 
 /// Statistics provider (filtered by current diver).
 ///
-/// Feeds the dashboard HeroHeader headline totals (total dives, etc.).
+/// Feeds the Home key numbers and depth panels (total dives, etc.).
 /// Self-invalidates whenever the `dives` table is written -- e.g. a dive
 /// computer import or an iCloud sync applying remote changes directly to the DB
 /// -- so those totals refresh without an app restart, using the same
@@ -1113,8 +1125,23 @@ class PaginatedDiveListNotifier
   /// list reaches the last dive rather than the last loaded one (#3302).
   /// Asks for a page more than the count left; a count lagging rows written
   /// since leaves that read full, and the next one picks up the rest.
-  Future<void> loadRest() => _enqueuePaging(() async {
-    while (mounted) {
+  ///
+  /// The query is the one on screen when this is asked for. A filter, sort or
+  /// diver changed before or while it runs queues its own reload; reading on
+  /// would page the new query from the old one's cursor, so it stops.
+  Future<void> loadRest() {
+    final filterLoads = _filterLoads;
+    final diverSwitches = _diverSwitches;
+    final sort = _ref.read(diveSortProvider);
+    bool queryChanged() =>
+        filterLoads != _filterLoads ||
+        diverSwitches != _diverSwitches ||
+        sort != _ref.read(diveSortProvider);
+    return _enqueuePaging(() => _loadRest(queryChanged));
+  }
+
+  Future<void> _loadRest(bool Function() queryChanged) async {
+    while (mounted && !queryChanged()) {
       final current = state.valueOrNull;
       if (current == null || !current.hasMore) return;
       final missing = current.totalCount - current.dives.length;
@@ -1126,7 +1153,7 @@ class PaginatedDiveListNotifier
       // A failed read raises the flag; the Retry row takes it from there.
       if (state.valueOrNull?.loadMoreFailed ?? true) return;
     }
-  });
+  }
 
   /// A [jump] comes from [loadThrough] or [loadRest]: it keeps the spinner
   /// flag of a page load queued behind it, and preloads profiles around its

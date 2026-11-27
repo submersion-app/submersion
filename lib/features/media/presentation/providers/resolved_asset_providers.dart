@@ -9,6 +9,7 @@ import 'package:submersion/features/media/data/services/linked_gallery_assets.da
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/presentation/providers/media_byte_retention.dart';
+import 'package:submersion/features/media/presentation/providers/network_video_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
@@ -161,6 +162,18 @@ Future<String?> _resolveFilePath(Ref ref, MediaItem item) async {
   final localPath = item.localPath;
   if (localPath != null && await File(localPath).exists()) {
     return localPath;
+  }
+
+  // A network video (a shared album's, a video link): downloaded with the
+  // source's headers and played from disk, since a player sends none. The
+  // diver may switch a conversion to its original.
+  if (isNetworkVideo(item)) {
+    final original = ref.watch(playVideoOriginalProvider(item.id));
+    final url = networkVideoUrl(item, original: original);
+    if (url != null) {
+      final path = await ref.read(networkVideoCacheProvider).fileFor(url);
+      if (path != null) return path;
+    }
   }
 
   // Media store fallback: play from the cached (or freshly downloaded)

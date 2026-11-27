@@ -27,7 +27,10 @@ class _FakeGearPhotos extends GearPhotoRepository {
   Future<List<MediaItem>> galleryLinksFor(String equipmentId) async => links;
 
   @override
-  Future<Set<String>> linkedLocalPathsFor(String equipmentId) async => paths;
+  Future<Set<String>> linkedLocalPathsFor(
+    String equipmentId, {
+    Set<String> ignoring = const {},
+  }) async => paths;
 }
 
 /// Gear photos (issue #3355) link to an item, and to a check-in when added

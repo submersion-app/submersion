@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/insights/domain/logbook_dive_counts.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/submersion_about_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -210,6 +212,40 @@ void main() {
       expect(find.textContaining('Diver'), findsOneWidget);
     });
 
+    testWidgets('the logo opens About Submersion', (tester) async {
+      tester.view.physicalSize = const Size(500, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            divesProvider.overrideWith((ref) async => <Dive>[]),
+            currentDiverProvider.overrideWith((ref) async => null),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
+          ),
+        ),
+      );
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      final logo = find.byTooltip('About Submersion');
+      expect(tester.getSize(logo).height, greaterThanOrEqualTo(44));
+      await tester.tap(logo);
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.byType(SubmersionAboutDialog), findsOneWidget);
+    });
+
     testWidgets('desktop width shows quiet center stats', (tester) async {
       tester.view.physicalSize = const Size(1300, 800);
       tester.view.devicePixelRatio = 1.0;
@@ -230,9 +266,7 @@ void main() {
                 totalSites: 83,
               ),
             ),
-            dashboardQuickStatsProvider.overrideWith(
-              (ref) async => const DashboardQuickStats(countriesVisited: 14),
-            ),
+            homeCountriesVisitedProvider.overrideWith((ref) async => 14),
             currentDiverProvider.overrideWith((ref) async => null),
           ].cast(),
           child: const MaterialApp(
@@ -309,9 +343,7 @@ void main() {
                 totalSites: 83,
               ),
             ),
-            dashboardQuickStatsProvider.overrideWith(
-              (ref) async => const DashboardQuickStats(countriesVisited: 14),
-            ),
+            homeCountriesVisitedProvider.overrideWith((ref) async => 14),
             currentDiverProvider.overrideWith((ref) async => null),
           ].cast(),
           child: const MaterialApp(
@@ -404,9 +436,7 @@ void main() {
                 totalSites: 83,
               ),
             ),
-            dashboardQuickStatsProvider.overrideWith(
-              (ref) async => const DashboardQuickStats(countriesVisited: 14),
-            ),
+            homeCountriesVisitedProvider.overrideWith((ref) async => 14),
             currentDiverProvider.overrideWith(
               (ref) async => Diver(
                 id: '1',
@@ -592,6 +622,208 @@ void main() {
       }
 
       expect(find.text('Ready to explore the depths?'), findsOneWidget);
+    });
+  });
+
+  // Issue #5003: banner mode sits right above the Key numbers tile, which
+  // counts whole hours down; the banner must show the same number.
+  group('hours agree with the Key numbers tile', () {
+    Future<void> pumpWith(WidgetTester tester, double width) async {
+      tester.view.physicalSize = Size(width, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            divesProvider.overrideWith((ref) async => <Dive>[]),
+            diveStatisticsProvider.overrideWith(
+              (ref) async => DiveStatistics(
+                totalDives: 248,
+                // 206.7 hours: Key numbers shows 206.
+                totalTimeSeconds: 744120,
+                maxDepth: 40,
+                avgMaxDepth: 20,
+                totalSites: 63,
+              ),
+            ),
+            homeCountriesVisitedProvider.overrideWith((ref) async => 9),
+            currentDiverProvider.overrideWith((ref) async => null),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
+          ),
+        ),
+      );
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    testWidgets('phone headline counts whole hours down', (tester) async {
+      await pumpWith(tester, 500);
+      expect(find.textContaining('206 hours underwater'), findsOneWidget);
+    });
+
+    testWidgets('desktop quiet stats count whole hours down', (tester) async {
+      await pumpWith(tester, 1300);
+      expect(find.text('206'), findsOneWidget);
+      expect(find.text('207'), findsNothing);
+    });
+  });
+
+  // A pull to refresh reloads the dive statistics, which careerTotalsProvider
+  // depends on: the banner keeps the last totals while the new ones load
+  // rather than blanking them.
+  group('keeps its totals while they reload', () {
+    Future<Completer<DiveStatistics>> pumpThenReload(
+      WidgetTester tester,
+      double width,
+    ) async {
+      tester.view.physicalSize = Size(width, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+      final stats = DiveStatistics(
+        totalDives: 248,
+        totalTimeSeconds: 744120,
+        maxDepth: 40,
+        avgMaxDepth: 20,
+        totalSites: 63,
+      );
+      var builds = 0;
+      final reload = Completer<DiveStatistics>();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            divesProvider.overrideWith((ref) async => <Dive>[]),
+            diveStatisticsProvider.overrideWith(
+              (ref) => builds++ == 0 ? Future.value(stats) : reload.future,
+            ),
+            homeCountriesVisitedProvider.overrideWith((ref) async => 9),
+            currentDiverProvider.overrideWith((ref) async => null),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
+          ),
+        ),
+      );
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      ProviderScope.containerOf(
+        tester.element(find.byType(HeroHeader)),
+      ).invalidate(diveStatisticsProvider);
+      for (int i = 0; i < 3; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      return reload;
+    }
+
+    testWidgets('desktop quiet stats stay during a reload', (tester) async {
+      final reload = await pumpThenReload(tester, 1300);
+      expect(find.text('248'), findsOneWidget);
+      expect(find.text('63'), findsOneWidget);
+      reload.complete(
+        DiveStatistics(
+          totalDives: 249,
+          totalTimeSeconds: 747120,
+          maxDepth: 40,
+          avgMaxDepth: 20,
+          totalSites: 63,
+        ),
+      );
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.text('249'), findsOneWidget);
+    });
+
+    testWidgets('phone headline stays during a reload', (tester) async {
+      await pumpThenReload(tester, 500);
+      expect(find.textContaining('248 dives logged'), findsOneWidget);
+      expect(find.text('Loading your dive stats...'), findsNothing);
+    });
+  });
+
+  group('greeting and layout (issue #5003)', () {
+    Future<void> pumpBanner(
+      WidgetTester tester, {
+      required double width,
+      String name = 'Alex Morgan',
+    }) async {
+      tester.view.physicalSize = Size(width, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            divesProvider.overrideWith((ref) async => <Dive>[]),
+            diveStatisticsProvider.overrideWith(
+              (ref) async => DiveStatistics(
+                totalDives: 15000,
+                totalTimeSeconds: 15000 * 3000,
+                maxDepth: 120,
+                avgMaxDepth: 30,
+                totalSites: 900,
+              ),
+            ),
+            currentDiverProvider.overrideWith(
+              (ref) async => Diver(
+                id: '1',
+                name: name,
+                createdAt: DateTime(2026, 1, 1),
+                updatedAt: DateTime(2026, 1, 1),
+              ),
+            ),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
+          ),
+        ),
+      );
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    for (final (hour, greeting) in [
+      (9, 'Good morning'),
+      (15, 'Good afternoon'),
+      (20, 'Good evening'),
+    ]) {
+      testWidgets('the greeting follows the clock at $hour:00', (tester) async {
+        await withClock(Clock.fixed(DateTime(2026, 11, 25, hour)), () async {
+          await pumpBanner(tester, width: 500);
+        });
+        expect(find.text('$greeting, Alex!'), findsOneWidget);
+      });
+    }
+
+    testWidgets('a long first name and 15,000 dives fit a 320 phone', (
+      tester,
+    ) async {
+      await pumpBanner(
+        tester,
+        width: 320,
+        name: 'Bartholomew-Maximilian Featherstonehaugh-Cholmondeley',
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.textContaining('Bartholomew'), findsOneWidget);
+      expect(find.textContaining('15000 dives logged'), findsOneWidget);
     });
   });
 }

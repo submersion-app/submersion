@@ -479,6 +479,10 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_setpointSwitchDepth,
     FieldKind.depth,
   ),
+  'setpointSwitchOff': ConflictField(
+    (l) => l.settings_conflict_field_setpointSwitchOff,
+    FieldKind.boolean,
+  ),
   // scrInjectionRate shares the logged dive's entry (dive_log_fields.dart):
   // same column name, same volume-rate kind.
   // VO2 reads as the logged dive's assumedVo2 does: at RMV precision in

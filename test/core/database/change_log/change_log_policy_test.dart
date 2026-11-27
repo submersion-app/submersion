@@ -202,6 +202,50 @@ void main() {
     expect(changeLogOptInKeepsDeletes('dives'), isFalse);
   });
 
+  // A re-parse deletes a series and its lineage row, and its revert must
+  // put both back and take the new series away (issue #4848).
+  test('an opted-in operation keeps a series lineage row, and notes the '
+      'series it adds but not their lineage', () {
+    expect(changeLogOptInKeepsDeletes('dive_profile_series_history'), isTrue);
+    expect(changeLogOptInLogsInserts('dive_profile_series'), isTrue);
+    expect(changeLogOptInLogsInserts('tank_pressure_series'), isTrue);
+    expect(changeLogOptInLogsInserts('dive_profile_series_history'), isFalse);
+    expect(changeLogOptInLogsInserts('dive_safety_findings'), isFalse);
+    expect(changeLogOptInLogsInserts('dives'), isFalse);
+  });
+
+  test('every reading column exists on a table whose inserts are noted', () {
+    final columns = _columnsByTable(db);
+    for (final MapEntry(key: table, value: reading)
+        in changeLogReadingColumns.entries) {
+      expect(changeLogOptInLogsInserts(table), isTrue, reason: table);
+      // A row with no source is named by its computer, and only a row
+      // written since a delete supersedes it.
+      for (final column in [...reading, 'computer_id', 'created_at']) {
+        expect(columns[table], contains(column), reason: '$table.$column');
+      }
+      expect(reading.first, 'dive_id', reason: table);
+    }
+  });
+
+  // A gear item's sitting dismisses its condition findings (issue #4527,
+  // phase 3): logged as the dive's safety findings are, under the item.
+  test('equipment findings are delete copy only, under their item', () {
+    expect(
+      changeLogTables['equipment_findings'],
+      ChangeLogClass.deleteCopyOnly,
+    );
+    final parent = changeLogParents['equipment_findings']!;
+    expect(parent.rootTable, 'equipment');
+    expect(parent.column, 'equipment_id');
+    expect(changeLogOptInUpdateTables, contains('equipment_findings'));
+    expect(changeLogOptInUpdateColumns['equipment_findings'], {'dismissed_at'});
+    expect(changeLogShownMachineColumns['equipment_findings'], {
+      'dismissed_at',
+    });
+    expect(changeLogOptInKeepsDeletes('equipment_findings'), isFalse);
+  });
+
   test('a sitting opts in to machine rows; a free manual label does not', () {
     expect(
       changeLogOptsInMachineRows(

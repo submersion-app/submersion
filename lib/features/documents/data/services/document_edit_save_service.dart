@@ -74,6 +74,33 @@ class DocumentEditSaveService {
       );
     },
   );
+
+  /// Creates [record], a new document's sitting (issue #4527, phase 3, plan
+  /// 11), keeping its id: the row, its pages and its tags, then
+  /// [alsoWrite], the sitting's held writes, in one transaction and one
+  /// History entry naming [changedCardIds]. If any of them throws nothing
+  /// is left. Returns the document as stored at the end. Throws
+  /// [StateError] when [record] has no id, or one a stored document has.
+  Future<DocumentRecord> create({
+    required DocumentRecord record,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+  }) => createRecordSitting<DocumentRecord>(
+    table: 'documents',
+    recordId: record.id,
+    changedCardIds: changedCardIds,
+    isStored: () async => await _documents.getById(record.id) != null,
+    insert: () => _documents.save(
+      documentAsSaved(record.document),
+      record.pages,
+      tagIds: record.tagIds,
+      // The sitting tells sync once, after its commit.
+      notify: false,
+    ),
+    alsoWrite: alsoWrite,
+    readBack: () => read(record.id),
+    created: record,
+  );
 }
 
 final documentEditSaveServiceProvider = Provider<DocumentEditSaveService>(

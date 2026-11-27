@@ -55,7 +55,11 @@ Future<void> _pump(WidgetTester tester, {GpsTrack? track}) async {
   await tester.pumpAndSettle();
 }
 
+/// Opens the menu, unlocking first: Split is a whole-record operation,
+/// under the lock (issue #4527). A trim is the Trim card's, not the menu's.
 Future<void> _openMenu(WidgetTester tester) async {
+  await tester.tap(find.byIcon(Icons.lock_outline));
+  await tester.pumpAndSettle();
   await tester.tap(find.byKey(const ValueKey('gps-track-overflow')));
   await tester.pumpAndSettle();
 }
@@ -64,32 +68,6 @@ void main() {
   testWidgets('no edit panel is shown by default', (tester) async {
     await _pump(tester);
     expect(find.byKey(const ValueKey('gps-track-edit-panel')), findsNothing);
-  });
-
-  testWidgets('Trim shows a range scrubber and an Apply action', (
-    tester,
-  ) async {
-    await _pump(tester);
-    await _openMenu(tester);
-    await tester.tap(find.text('Trim...'));
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const ValueKey('gps-track-edit-panel')), findsOneWidget);
-    expect(find.byType(RangeSlider), findsOneWidget);
-    expect(find.text('Apply trim'), findsOneWidget);
-  });
-
-  testWidgets('Trim does not warn, because it is reversible', (tester) async {
-    await _pump(tester);
-    await _openMenu(tester);
-    await tester.tap(find.text('Trim...'));
-    await tester.pumpAndSettle();
-
-    expect(
-      find.textContaining('cannot be undone'),
-      findsNothing,
-      reason: 'trim writes bounds only and is fully reversible',
-    );
   });
 
   testWidgets('Split warns that the operation is destructive', (tester) async {
@@ -109,24 +87,10 @@ void main() {
     expect(find.text('Split here'), findsOneWidget);
   });
 
-  testWidgets('Reset trim is absent when the track has no bounds', (
-    tester,
-  ) async {
+  testWidgets('Cancel leaves split mode without applying', (tester) async {
     await _pump(tester);
     await _openMenu(tester);
-    expect(find.text('Reset trim'), findsNothing);
-  });
-
-  testWidgets('Reset trim appears once the track has bounds', (tester) async {
-    await _pump(tester, track: _track(trimStart: (1700000000 + 3600) * 1000));
-    await _openMenu(tester);
-    expect(find.text('Reset trim'), findsOneWidget);
-  });
-
-  testWidgets('Cancel leaves edit mode without applying', (tester) async {
-    await _pump(tester);
-    await _openMenu(tester);
-    await tester.tap(find.text('Trim...'));
+    await tester.tap(find.text('Split...'));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('gps-track-edit-panel')), findsOneWidget);
 

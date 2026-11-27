@@ -14,9 +14,6 @@ mixin _SpeciesDetailPageEditing
   String recordIdOf(Species record) => record.id;
 
   @override
-  bool get hostsEditing => widget.unlockEditing;
-
-  @override
   bool openUnlockedOf(SpeciesDetailPage widget) => widget.openUnlocked;
 
   /// The species page is never a pane: nothing waits for its sitting's end.
@@ -104,27 +101,20 @@ mixin _SpeciesDetailPageEditing
         controller.addedCardIds.contains(id.name);
   }
 
-  /// [child] as the card [id], framed for editing in place while the page
-  /// offers it; as it is otherwise.
-  Widget _framed(SpeciesCardId id, Widget child) {
-    if (!hostsEditing) return child;
-    return RecordCardFrame<Species>(card: speciesEditCards[id]!, child: child);
-  }
+  /// [child] as the card [id], framed for editing in place.
+  Widget _framed(SpeciesCardId id, Widget child) =>
+      RecordCardFrame<Species>(card: speciesEditCards[id]!, child: child);
 
   /// [child], a section the page calculates, faded and labelled
   /// "Calculated" while unlocked.
-  Widget _calculated(Widget child) {
-    if (!hostsEditing) return child;
-    return RecordCardFade<Species>(
-      reason: RecordCardFadeReason.calculated,
-      child: child,
-    );
-  }
+  Widget _calculated(Widget child) => RecordCardFade<Species>(
+    reason: RecordCardFadeReason.calculated,
+    child: child,
+  );
 
-  /// The Photos card on a page that edits in place: locked it offers
-  /// nothing that writes; unlocked its Tag photos holds the choice for Save,
-  /// and the photos held show ahead of the stored ones, each with a way to
-  /// take it back.
+  /// The Photos card: locked it offers nothing that writes; unlocked its Tag
+  /// photos holds the choice for Save, and the photos held show ahead of the
+  /// stored ones, each with a way to take it back.
   Widget _photosInSitting() {
     final session = maybeEditController?.session;
     final held = session == null
@@ -136,7 +126,6 @@ mixin _SpeciesDetailPageEditing
     final added = session == null
         ? const <String>{}
         : {for (final p in heldSpeciesImports(session)) p.item.id};
-    final settings = ref.watch(unitFormatterProvider).settings;
     final l10n = context.l10n;
     return SpeciesPhotosSection(
       speciesId: widget.speciesId,
@@ -150,35 +139,21 @@ mixin _SpeciesDetailPageEditing
               child: RecordChangedDot(),
             )
           : null,
-      pendingTiles: [
-        for (final item in held)
-          Stack(
-            fit: StackFit.expand,
-            children: [
-              MediaThumbnailTile(
-                item: item,
-                settings: settings,
-                isSelectionMode: false,
-                isSelected: false,
-                semanticsLabel: l10n.marineLife_speciesPhotos_thumbnailLabel,
-              ),
-              Align(
-                alignment: AlignmentDirectional.topEnd,
-                child: IconButton.filledTonal(
-                  key: ValueKey('species_pending_remove_${item.id}'),
-                  visualDensity: VisualDensity.compact,
-                  icon: const Icon(Icons.close, size: 16),
-                  tooltip: l10n.forms_cancel,
-                  onPressed: session == null
-                      ? null
-                      : () => added.contains(item.id)
-                            ? releaseSpeciesImport(session, item.id)
-                            : releaseSpeciesTag(session, item.id),
-                ),
-              ),
-            ],
-          ),
-      ],
+      pendingItems: held,
+      pendingOverlay: (item) => Align(
+        alignment: AlignmentDirectional.topEnd,
+        child: IconButton.filledTonal(
+          key: ValueKey('species_pending_remove_${item.id}'),
+          visualDensity: VisualDensity.compact,
+          icon: const Icon(Icons.close, size: 16),
+          tooltip: l10n.forms_cancel,
+          onPressed: session == null
+              ? null
+              : () => added.contains(item.id)
+                    ? releaseSpeciesImport(session, item.id)
+                    : releaseSpeciesTag(session, item.id),
+        ),
+      ),
     );
   }
 
@@ -202,7 +177,6 @@ mixin _SpeciesDetailPageEditing
         fullscreenDialog: true,
         builder: (_) => SpeciesTagPickerPage(
           speciesId: widget.speciesId,
-          chooseOnly: true,
           alreadyChosen: {for (final m in heldSpeciesTags(session)) m.id},
         ),
       ),
@@ -211,15 +185,14 @@ mixin _SpeciesDetailPageEditing
     holdSpeciesTags(session, choice.items, tagging);
   }
 
-  /// Whether the record's operations may run now, or why not; null where
-  /// the page edits nothing in place.
+  /// Whether the record's operations may run now, or why not.
   RecordOperationBlock? get _speciesOperationBlock =>
-      recordOperationBlockOf(hostsEditing ? editController : null);
+      recordOperationBlockOf(editController);
 
   /// The menu's whole-record operations for [species]: Delete for a custom
   /// species, under the caption that says why it is unavailable.
   List<PopupMenuEntry<String>> _speciesRecordMenuItems(Species species) {
-    if (!hostsEditing || species.isBuiltIn) return const [];
+    if (species.isBuiltIn) return const [];
     final l10n = context.l10n;
     final block = _speciesOperationBlock;
     final reason = recordOperationReason(l10n, block, plural: true);

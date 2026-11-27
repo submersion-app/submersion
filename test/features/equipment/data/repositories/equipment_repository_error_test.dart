@@ -58,10 +58,6 @@ void main() {
         throwsA(anything),
       );
       await expectLater(
-        repository.markEquipmentPurchased('test-id'),
-        throwsA(anything),
-      );
-      await expectLater(
         repository.markAsServiced('test-id'),
         throwsA(anything),
       );

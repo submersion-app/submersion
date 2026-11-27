@@ -397,7 +397,7 @@ void main() {
     final viewer = tester.widget<DocumentViewerPage>(
       find.byType(DocumentViewerPage),
     );
-    expect(viewer.attachmentLock, isTrue);
+    expect(viewer.editableSiteId, isNotNull);
 
     await tester.tap(find.byType(CloseButton));
     await tester.pumpAndSettle();

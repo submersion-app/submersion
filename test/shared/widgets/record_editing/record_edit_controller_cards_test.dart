@@ -209,6 +209,20 @@ void main() {
       expect(told, 1);
     });
 
+    test('other cards open and close while another card is unreadable', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('details')
+        ..setFieldInvalid('details', 'depth', invalid: true)
+        ..openCard('notes');
+
+      expect(controller.openCardIds, {'details', 'notes'});
+
+      controller.closeCard('notes');
+
+      expect(controller.openCardIds, {'details'});
+    });
+
     test('save is refused while a card is invalid', () async {
       var calls = 0;
       final controller = _controller(onSave: (_) async => calls++)

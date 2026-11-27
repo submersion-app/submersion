@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -17,13 +16,20 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_obs
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/safety/presentation/formatters/incident_labels.dart';
+import 'package:submersion/features/safety/presentation/pages/incident_draft.dart';
 import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
 import 'package:submersion/features/safety/presentation/widgets/incident_check_in_picker.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/record_editing/record_editor_host.dart';
+import 'package:submersion/shared/widgets/record_editing/record_sitting_refusal.dart';
 
 /// Create/edit form for a near-miss report. Non-punitive framing: what
 /// happened, what contributed, what would help next time.
+///
+/// Edited on the shared Cancel and Save bar (issue #4527, phase 4): Save is
+/// one transaction and one History entry, Delete is in the bar's menu, and
+/// leaving with unsaved changes asks first.
 class IncidentEditPage extends ConsumerStatefulWidget {
   /// Null for a new incident.
   final String? incidentId;
@@ -46,7 +52,8 @@ class IncidentEditPage extends ConsumerStatefulWidget {
   ConsumerState<IncidentEditPage> createState() => _IncidentEditPageState();
 }
 
-class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
+class _IncidentEditPageState extends ConsumerState<IncidentEditPage>
+    with RecordEditorHost<IncidentEditPage, IncidentDraft> {
   static final _log = LoggerService.forClass(IncidentEditPage);
 
   final _formKey = GlobalKey<FormState>();
@@ -88,9 +95,13 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
   /// Whether the diver has picked a date. A check-in moves only the default.
   var _dateTouched = false;
 
-  /// True from the first Save tap until the write finishes, so a second tap
-  /// cannot write the report twice.
-  var _saving = false;
+  /// The blank form a new report opens its sitting on: what a dive or a
+  /// check-in filled in is a change (a seed). Dated as the form is, before
+  /// anything is awaited.
+  late final IncidentDraft _blank;
+
+  /// The items a committed Save touched, for the findings refresh after it.
+  Set<String> _touched = const {};
   var _loaded = false;
   var _loadFailed = false;
 
@@ -113,12 +124,18 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
   @override
   void initState() {
     super.initState();
+    _blank = blankIncidentDraft(_occurredAt);
+    for (final text in [_narrative, _factors, _lessons]) {
+      text.addListener(editorChanged);
+    }
     _diveId = widget.diveId;
     if (widget.incidentId == null) {
       if (widget.observationId case final id?) {
         _startFromCheckIn(id);
       } else {
         _loaded = true;
+        // A dive the report was opened from is a seed.
+        openEditor(from: _blank);
       }
     } else {
       ref
@@ -143,6 +160,9 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
               }
               _loaded = true;
             });
+            // A report that will not load keeps its error page, with no
+            // sitting.
+            if (incident != null) openEditor();
           })
           .catchError((Object _) {
             if (!mounted) return;
@@ -180,6 +200,9 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
       }
       _loaded = true;
     });
+    // What the check-in filled in is a seed; a check-in that has gone
+    // leaves a plain new form, unchanged.
+    openEditor(from: _blank);
   }
 
   /// [checkIn]'s dive, for this report to fill in. On shared gear the check-in
@@ -209,159 +232,254 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
 
   @override
   void dispose() {
+    disposeEditor();
     _narrative.dispose();
     _factors.dispose();
     _lessons.dispose();
     super.dispose();
   }
 
+  /// Applies a change to the form and hands the form to the sitting.
+  void _change(VoidCallback change) {
+    setState(change);
+    editorChanged();
+  }
+
+  @override
+  String get editorTable => 'incidents';
+
+  @override
+  String? get editorStoredId => widget.incidentId;
+
+  @override
+  String? get editorLeaveLocation => '/incidents';
+
+  @override
+  String editorTitle(BuildContext context) => widget.incidentId == null
+      ? context.l10n.incidentEdit_title_new
+      : context.l10n.incidentEdit_title_edit;
+
+  @override
+  IncidentDraft readEditorDraft() => (
+    category: _category,
+    severity: _severity,
+    occurredAt: _occurredAt,
+    equipmentId: _equipmentId,
+    observationId: _observationId,
+    diveId: _diveId,
+    checkInDiveId: _checkInDiveId,
+    narrative: _narrative.text,
+    factors: _factors.text,
+    lessons: _lessons.text,
+  );
+
+  @override
+  bool validateEditor() => _formKey.currentState?.validate() ?? false;
+
+  @override
+  Future<void> writeEditor(String recordId) async {
+    // Everything from the page before anything slow: the diver can leave
+    // while this runs, and the report still has to land.
+    final repo = ref.read(incidentRepositoryProvider);
+    final checkIns = ref.read(equipmentObservationRepositoryProvider);
+    final draft = readEditorDraft();
+    final start = editorStartDraft;
+    final diverId = editorDiverId;
+    final linkable = await _linkableObservationId(
+      checkIns,
+      draft.observationId,
+    );
+    if (editorCreating) {
+      // The validated diver, as the gear picker and the incident list read
+      // it. None (no diver set up) files a report every diver's log lists.
+      await repo.createIncident(
+        id: recordId,
+        occurredAt: draft.occurredAt,
+        category: draft.category,
+        severity: draft.severity,
+        narrative: draft.narrative.trim(),
+        contributingFactors: incidentOptionalText(draft.factors),
+        lessonsLearned: incidentOptionalText(draft.lessons),
+        diveId: incidentSavedDiveId(draft, linkable),
+        diverId: diverId,
+        equipmentId: draft.equipmentId,
+        observationId: linkable,
+      );
+      _touched = {?draft.equipmentId};
+      return;
+    }
+    final stored = await repo.getIncidentById(recordId);
+    final changes = incidentChanges(
+      draft: draft,
+      start: start!,
+      linkable: linkable,
+    );
+    if (stored == null || !await repo.applyIncidentChanges(recordId, changes)) {
+      throw RecordSittingRefusal((l10n) => l10n.incidents_notFound);
+    }
+    // The incident rule reads each item's incidents, and a moved incident
+    // leaves the item it was on as well.
+    final written = changes.equipmentId == null
+        ? stored.equipmentId
+        : changes.equipmentId!.value;
+    _touched = {?written, ?stored.equipmentId};
+  }
+
+  @override
+  bool editorSaveFailed(Object error) {
+    // The host says so in a snackbar; the log keeps why. A refusal (the
+    // report was deleted elsewhere) is no fault, and the diver is told.
+    if (error is! RecordSittingRefusal) {
+      _log.error('Could not save a near-miss', error: error);
+    }
+    return false;
+  }
+
+  @override
+  void afterEditorSaved(ScaffoldMessengerState messenger) {
+    if (_touched.isNotEmpty) scheduleConditionFindingsRefresh(_touched);
+  }
+
+  @override
+  List<RecordEditorOperation> editorOperations(BuildContext context) => [
+    RecordEditorOperation(
+      key: const ValueKey('incident_delete'),
+      icon: Icons.delete_outline,
+      label: context.l10n.common_action_delete,
+      destructive: true,
+      run: _delete,
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final units = ref.watch(unitFormatterProvider);
+    final Widget body;
     if (!_loaded) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    // Edit route whose record could not be loaded (read error or a
-    // missing/deleted incident). Never fall through to the create form: its
-    // title would read "Edit" while Save silently created a NEW record.
-    if (widget.incidentId != null && _existing == null) {
-      return Scaffold(
-        appBar: AppBar(title: Text(l10n.incidentEdit_title_edit)),
-        body: Center(
-          child: Text(
-            _loadFailed ? l10n.common_error_tryAgain : l10n.incidents_notFound,
-          ),
+      body = const Center(child: CircularProgressIndicator());
+    } else if (widget.incidentId != null && _existing == null) {
+      // Edit route whose record could not be loaded (read error or a
+      // missing/deleted incident). Never fall through to the create form:
+      // its title would read "Edit" while Save silently created a NEW
+      // record.
+      body = Center(
+        child: Text(
+          _loadFailed ? l10n.common_error_tryAgain : l10n.incidents_notFound,
         ),
       );
+    } else {
+      body = _form(context, units);
     }
+    return editorScaffold(context, body: body);
+  }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.incidentId == null
-              ? l10n.incidentEdit_title_new
-              : l10n.incidentEdit_title_edit,
-        ),
-        actions: [
-          if (_existing != null)
-            IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: _delete,
+  Widget _form(BuildContext context, UnitFormatter units) {
+    final l10n = context.l10n;
+    return Form(
+      key: _formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text(
+            l10n.incidentEdit_category,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final category in IncidentCategory.values)
+                ChoiceChip(
+                  label: Text(incidentCategoryLabel(l10n, category)),
+                  selected: _category == category,
+                  onSelected: (_) => _change(() {
+                    _category = category;
+                    _categoryTouched = true;
+                  }),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.incidentEdit_severity,
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+          const SizedBox(height: 8),
+          SegmentedButton<IncidentSeverity>(
+            segments: [
+              for (final severity in IncidentSeverity.values)
+                ButtonSegment(
+                  value: severity,
+                  label: Text(incidentSeverityLabel(l10n, severity)),
+                ),
+            ],
+            selected: {_severity},
+            onSelectionChanged: (selection) =>
+                _change(() => _severity = selection.first),
+          ),
+          const SizedBox(height: 16),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.event),
+            title: Text(l10n.incidentEdit_date),
+            // Format the wall-clock UTC components directly (no toLocal), so
+            // the shown day is identical on every synced device.
+            subtitle: Text(units.formatDate(_occurredAt)),
+            onTap: _pickDate,
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.backpack_outlined),
+            title: Text(l10n.incidentEdit_equipment),
+            subtitle: _EquipmentName(
+              equipmentId: _equipmentId,
+              none: l10n.incidentEdit_equipment_none,
             ),
+            onTap: _pickEquipment,
+          ),
+          if (_equipmentId != null)
+            IncidentCheckInRow(
+              observationId: _observationId,
+              onTap: _pickCheckIn,
+            ),
+          TextFormField(
+            controller: _narrative,
+            decoration: InputDecoration(
+              labelText: l10n.incidentEdit_narrative,
+              hintText: l10n.incidentEdit_narrative_hint,
+            ),
+            maxLines: 5,
+            validator: (v) => (v == null || v.trim().isEmpty)
+                ? l10n.incidentEdit_narrative_required
+                : null,
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _factors,
+            decoration: InputDecoration(
+              labelText: l10n.incidentEdit_contributingFactors,
+            ),
+            maxLines: 3,
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _lessons,
+            decoration: InputDecoration(
+              labelText: l10n.incidentEdit_lessonsLearned,
+            ),
+            maxLines: 3,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l10n.incidentEdit_privacyNote,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
         ],
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Text(
-              l10n.incidentEdit_category,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final category in IncidentCategory.values)
-                  ChoiceChip(
-                    label: Text(incidentCategoryLabel(l10n, category)),
-                    selected: _category == category,
-                    onSelected: (_) => setState(() {
-                      _category = category;
-                      _categoryTouched = true;
-                    }),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.incidentEdit_severity,
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: 8),
-            SegmentedButton<IncidentSeverity>(
-              segments: [
-                for (final severity in IncidentSeverity.values)
-                  ButtonSegment(
-                    value: severity,
-                    label: Text(incidentSeverityLabel(l10n, severity)),
-                  ),
-              ],
-              selected: {_severity},
-              onSelectionChanged: (selection) =>
-                  setState(() => _severity = selection.first),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.event),
-              title: Text(l10n.incidentEdit_date),
-              // Format the wall-clock UTC components directly (no toLocal), so
-              // the shown day is identical on every synced device.
-              subtitle: Text(units.formatDate(_occurredAt)),
-              onTap: _pickDate,
-            ),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.backpack_outlined),
-              title: Text(l10n.incidentEdit_equipment),
-              subtitle: _EquipmentName(
-                equipmentId: _equipmentId,
-                none: l10n.incidentEdit_equipment_none,
-              ),
-              onTap: _pickEquipment,
-            ),
-            if (_equipmentId != null)
-              IncidentCheckInRow(
-                observationId: _observationId,
-                onTap: _pickCheckIn,
-              ),
-            TextFormField(
-              controller: _narrative,
-              decoration: InputDecoration(
-                labelText: l10n.incidentEdit_narrative,
-                hintText: l10n.incidentEdit_narrative_hint,
-              ),
-              maxLines: 5,
-              validator: (v) => (v == null || v.trim().isEmpty)
-                  ? l10n.incidentEdit_narrative_required
-                  : null,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _factors,
-              decoration: InputDecoration(
-                labelText: l10n.incidentEdit_contributingFactors,
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _lessons,
-              decoration: InputDecoration(
-                labelText: l10n.incidentEdit_lessonsLearned,
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.incidentEdit_privacyNote,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: _saving ? null : _save,
-              child: Text(l10n.incidentEdit_save),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -416,7 +534,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
     );
     if (chosen == null || !mounted) return;
     final changed = chosen.equipmentId != _equipmentId;
-    setState(() {
+    _change(() {
       _equipmentId = chosen.equipmentId;
       // A check-in belongs to one item, so it cannot follow the report.
       if (changed) _clearCheckIn();
@@ -440,7 +558,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
     if (issues.length != 1 || !mounted) return;
     // The diver may have moved on while the query ran.
     if (_equipmentId != equipmentId || _observationId != null) return;
-    setState(() => _adoptCheckIn(issues.single, diveId));
+    _change(() => _adoptCheckIn(issues.single, diveId));
   }
 
   Future<List<EquipmentObservation>> _issuesOn(String equipmentId) async {
@@ -465,10 +583,10 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
       case null:
         return;
       case IncidentCheckInNone():
-        setState(_clearCheckIn);
+        _change(_clearCheckIn);
       case IncidentCheckInPicked(:final observation):
         final diveId = await _fillableDiveOf(observation);
-        if (mounted) setState(() => _adoptCheckIn(observation, diveId));
+        if (mounted) _change(() => _adoptCheckIn(observation, diveId));
       case IncidentCheckInAddNew():
         await _addCheckIn(equipmentId, known: issues);
     }
@@ -501,7 +619,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
     ];
     if (added.length != 1 || !mounted) return;
     final addedDiveId = await _fillableDiveOf(added.single);
-    if (mounted) setState(() => _adoptCheckIn(added.single, addedDiveId));
+    if (mounted) _change(() => _adoptCheckIn(added.single, addedDiveId));
   }
 
   /// The dive's gear junction, then the items its cylinders are linked to:
@@ -527,8 +645,8 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
   /// key or link an OK check.
   Future<String?> _linkableObservationId(
     EquipmentObservationRepository checkIns,
+    String? id,
   ) async {
-    final id = _observationId;
     if (id == null) return null;
     final checkIn = await checkIns.getById(id);
     return checkIn != null && checkIn.isIssue ? id : null;
@@ -550,90 +668,17 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
       lastDate: DateTime(now.year, now.month, now.day),
     );
     if (picked != null && mounted) {
-      setState(() {
+      _change(() {
         _occurredAt = DateTime.utc(picked.year, picked.month, picked.day);
         _dateTouched = true;
       });
     }
   }
 
-  Future<void> _save() async {
-    if (_saving) return;
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-    setState(() => _saving = true);
-    try {
-      await _write();
-    } catch (e, stackTrace) {
-      _log.error(
-        'Could not save a near-miss',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n.common_error_tryAgain)),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  Future<void> _write() async {
-    // All through ref before anything slow: a diver can leave while this runs,
-    // and the report still has to land.
-    final repo = ref.read(incidentRepositoryProvider);
-    final checkIns = ref.read(equipmentObservationRepositoryProvider);
-    // The validated id, as the gear picker and the incident list read it: a
-    // stale raw id would file the report where neither looks.
-    final diverId = _existing == null
-        ? await ref.read(validatedCurrentDiverIdProvider.future)
-        : null;
-    final narrative = _narrative.text.trim();
-    final factors = _factors.text.trim();
-    final lessons = _lessons.text.trim();
-    final observationId = await _linkableObservationId(checkIns);
-    // A dive that came only from the check-in goes if the check-in has.
-    final diveId = observationId == null ? _diveId : _effectiveDiveId;
-
-    if (_existing == null) {
-      await repo.createIncident(
-        occurredAt: _occurredAt,
-        category: _category,
-        severity: _severity,
-        narrative: narrative,
-        contributingFactors: factors.isEmpty ? null : factors,
-        lessonsLearned: lessons.isEmpty ? null : lessons,
-        diveId: diveId,
-        diverId: diverId,
-        equipmentId: _equipmentId,
-        observationId: observationId,
-      );
-    } else {
-      await repo.updateIncident(
-        _existing!.copyWith(
-          occurredAt: _occurredAt,
-          category: _category,
-          severity: _severity,
-          narrative: narrative,
-          contributingFactors: factors.isEmpty ? null : factors,
-          lessonsLearned: lessons.isEmpty ? null : lessons,
-          diveId: diveId,
-          equipmentId: _equipmentId,
-          clearEquipmentId: _equipmentId == null,
-          observationId: observationId,
-          clearObservationId: observationId == null,
-        ),
-      );
-    }
-    // The incident rule reads this item's incidents, and a moved incident
-    // leaves the item it was on as well.
-    final touched = {?_equipmentId, ?_existing?.equipmentId};
-    if (touched.isNotEmpty) scheduleConditionFindingsRefresh(touched);
-    if (mounted) context.pop();
-  }
-
-  Future<void> _delete() async {
+  /// The bar menu's Delete: asks, then removes the report in its own
+  /// History entry and refreshes its item's findings. Answers whether it
+  /// deleted, so the page leaves.
+  Future<bool> _delete() async {
     final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
@@ -651,12 +696,15 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
-    await ref.read(incidentRepositoryProvider).deleteIncident(_existing!.id);
-    if (_existing!.equipmentId case final item?) {
+    if (confirmed != true || !mounted) return false;
+    final repo = ref.read(incidentRepositoryProvider);
+    final id = editorRecordId;
+    final stored = await repo.getIncidentById(id);
+    await repo.deleteIncident(id);
+    if ((stored ?? _existing)?.equipmentId case final item?) {
       scheduleConditionFindingsRefresh([item]);
     }
-    if (mounted) context.pop();
+    return true;
   }
 }
 

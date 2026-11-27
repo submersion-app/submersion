@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/courses/data/repositories/course_requirement_repository.dart';
+import 'package:submersion/features/courses/domain/entities/course_requirement.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'child_write_harness.dart';
@@ -135,6 +137,32 @@ void main() {
 
     await h.run([deleteOp('course_requirements', dives)]);
     expect(await h.one('course_requirements', dives), isNull);
+  });
+
+  test('agent writes leave derived requirement conditions read-only', () async {
+    final id = await course();
+    final row = await CourseRequirementRepository().createRequirement(
+      courseId: id,
+      name: 'CCR time',
+      kind: RequirementKind.ccrHours,
+      targetCount: 50,
+      equipmentId: 'rebreather-1',
+    );
+    final document = (await h.one('course_requirements', row.id))!;
+    expect(document['equipment_id'], 'rebreather-1');
+
+    for (final operation in [
+      createOp('course_requirements', {
+        'course_id': id,
+        'name': 'Matching dives',
+        'kind': 'diveQuery',
+      }),
+      updateOp('course_requirements', row.id, {'kind': 'dive'}),
+      updateOp('course_requirements', row.id, {'target_count': 25}),
+    ]) {
+      final plan = await h.preview([operation]);
+      expect(plan.items.single.block?.reason, BlockReason.invalidValue);
+    }
   });
 
   test('a dive credits one requirement per course', () async {

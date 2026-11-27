@@ -2,14 +2,19 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart' show ProviderScope;
+import 'package:flutter_riverpod/flutter_riverpod.dart' show ProviderContainer;
 
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_media_sitting.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_documents_section.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/media_unlink_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/features/media/presentation/providers/equipment_media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/mock_providers.dart' show Override;
 import '../../../media/presentation/support/media_widget_harness.dart';
@@ -21,20 +26,18 @@ class _StubMediaRepository extends MediaRepository {
       const <MediaItem>[];
 }
 
-/// Records the ids the section asks to detach, and can fail on demand.
+/// Records the ids anything asks to detach: a held remove asks none.
 class _RecordingUnlinkService extends MediaUnlinkService {
-  _RecordingUnlinkService({required this.calls, this.failWith})
+  _RecordingUnlinkService({required this.calls})
     : super(repository: _StubMediaRepository(), deleteMedia: (_) async {});
 
   final List<List<String>> calls;
-  final Object? failWith;
 
   @override
   Future<EquipmentUnlinkOutcome> unlinkFromEquipment(
     List<String> mediaIds,
   ) async {
     calls.add(List<String>.of(mediaIds));
-    if (failWith != null) throw failWith!;
     return EquipmentUnlinkOutcome(deleted: mediaIds.length, keptLinked: 0);
   }
 }
@@ -57,6 +60,7 @@ void main() {
     Object? error,
     void Function(MediaItem)? onOpen,
     List<Override> extraOverrides = const [],
+    EditSession<EquipmentItem>? editing,
   }) {
     return mediaTestApp(
       overrides: [
@@ -72,11 +76,27 @@ void main() {
           child: EquipmentDocumentsSection(
             equipmentId: 'e1',
             onOpenDocument: onOpen,
+            editing: editing,
           ),
         ),
       ),
     );
   }
+
+  // Where the item page edits in place and is locked (issue #4527, phase
+  // 3): the files still open, and none can be removed.
+  testWidgets('locked, a file can be opened but not removed', (tester) async {
+    final opened = <MediaItem>[];
+    await tester.pumpWidget(
+      await host(documents: [invoice], onOpen: opened.add),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.close), findsNothing);
+    await tester.tap(find.text('invoice.pdf'));
+    await tester.pumpAndSettle();
+    expect(opened.single.id, 'doc-1');
+  });
 
   testWidgets('nothing linked shows no card at all', (tester) async {
     await tester.pumpWidget(await host());
@@ -204,144 +224,39 @@ void main() {
     expect(find.text('No documents attached yet'), findsNothing);
   });
 
-  group('remove', () {
-    testWidgets('asks first and does nothing when cancelled', (tester) async {
-      final calls = <List<String>>[];
-      await tester.pumpWidget(
-        await host(
-          documents: [invoice],
-          extraOverrides: [
-            mediaUnlinkServiceProvider.overrideWithValue(
-              _RecordingUnlinkService(calls: calls),
-            ),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
+  // The open Legacy files card (issue #4527, phase 3).
+  testWidgets('in a sitting, a remove asks nothing and is held until Save', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final session = EditSession(
+      const EquipmentItem(id: 'e1', name: 'Reg', type: EquipmentType.regulator),
+    );
+    addTearDown(session.dispose);
+    holdLegacyFiles(session, SittingMediaWriters.forEquipment(container.read));
+    final calls = <List<String>>[];
+    await tester.pumpWidget(
+      await host(
+        documents: [invoice, warranty],
+        editing: session,
+        extraOverrides: [
+          mediaUnlinkServiceProvider.overrideWithValue(
+            _RecordingUnlinkService(calls: calls),
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(Icons.close));
-      await tester.pumpAndSettle();
-      expect(find.text('Remove document?'), findsOneWidget);
-      expect(
-        find.textContaining('Your original file is never touched'),
-        findsOneWidget,
-      );
+    await tester.tap(find.byIcon(Icons.close).first);
+    await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
-
-      expect(calls, isEmpty);
-    });
-
-    testWidgets('detaches the document once confirmed', (tester) async {
-      final calls = <List<String>>[];
-      await tester.pumpWidget(
-        await host(
-          documents: [invoice],
-          extraOverrides: [
-            mediaUnlinkServiceProvider.overrideWithValue(
-              _RecordingUnlinkService(calls: calls),
-            ),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.close));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Remove'));
-      await tester.pumpAndSettle();
-
-      expect(calls, [
-        ['doc-1'],
-      ]);
-      expect(find.text('Document removed'), findsOneWidget);
-    });
-
-    testWidgets('leaves other equipment items alone', (tester) async {
-      // The invalidation is scoped to this item's id. Invalidating the family
-      // root would rebuild every other equipment item's list and count, and
-      // each rebuild is a database read.
-      final calls = <List<String>>[];
-      var otherBuilds = 0;
-      await tester.pumpWidget(
-        await host(
-          documents: [invoice],
-          extraOverrides: [
-            mediaForEquipmentProvider('other-equipment').overrideWith((
-              ref,
-            ) async {
-              otherBuilds++;
-              return const <MediaItem>[];
-            }),
-            mediaUnlinkServiceProvider.overrideWithValue(
-              _RecordingUnlinkService(calls: calls),
-            ),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // A LIVE listener, not a one-off read: an invalidated FutureProvider
-      // with nothing listening simply drops its state and rebuilds lazily on
-      // the next read, so a bare read would make this assertion vacuous --
-      // it passes against the family-wide invalidation too. Verified both
-      // directions.
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(EquipmentDocumentsSection)),
-      );
-      final sub = container.listen(
-        mediaForEquipmentProvider('other-equipment'),
-        (_, _) {},
-        fireImmediately: true,
-      );
-      addTearDown(sub.close);
-      await container.read(mediaForEquipmentProvider('other-equipment').future);
-      expect(otherBuilds, 1);
-
-      await tester.tap(find.byIcon(Icons.close));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Remove'));
-      await tester.pumpAndSettle();
-
-      expect(calls, [
-        ['doc-1'],
-      ]);
-      expect(otherBuilds, 1, reason: 'unrelated equipment was rebuilt');
-    });
-
-    testWidgets('surfaces a failure instead of pretending it worked', (
-      tester,
-    ) async {
-      final calls = <List<String>>[];
-      await tester.pumpWidget(
-        await host(
-          documents: [invoice],
-          extraOverrides: [
-            mediaUnlinkServiceProvider.overrideWithValue(
-              _RecordingUnlinkService(
-                calls: calls,
-                failWith: StateError('store offline'),
-              ),
-            ),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.close));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Remove'));
-      await tester.pumpAndSettle();
-
-      expect(calls, [
-        ['doc-1'],
-      ]);
-      expect(
-        find.textContaining('Could not remove the document'),
-        findsOneWidget,
-      );
-      expect(find.text('Document removed'), findsNothing);
-    });
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(calls, isEmpty);
+    expect(heldLegacyFileUnlinks(session), {'doc-1'});
+    expect(session.changedCardIds, {'legacyFiles'});
+    expect(find.text('invoice.pdf'), findsNothing);
+    expect(find.text('warranty.docx'), findsOneWidget);
   });
 }

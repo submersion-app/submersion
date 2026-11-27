@@ -51,6 +51,8 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'course_requirements': {
     'completed_at': 'Unix ms, checklist',
+    'equipment_id': 'the rebreather an hours-on-CCR requirement counts, null for any unit',
+    'query_json': 'the dive query of a dive-query requirement, as queryNodeToJson writes it',
   },
   'courses': {
     'agency': 'CertificationAgency enum',
@@ -218,6 +220,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'series_id': 'The repetitive series this plan is one dive of',
     'series_index': 'This dive\'s 0-based position in its series',
     'setpoint_low': 'CCR setpoints (Phase 4 UI',
+    'setpoint_switch_off': 'No switch by depth on this plan: the low setpoint holds throughout',
     'setting_overrides': 'The setting groups (`PlanSettingGroup` names, comma separated) this dive keeps its own values for rather than its series\'',
     'shallow_ascent_rate': 'Ascent rate between shallow (9 m and above) stops, m per minute',
     'source_dive_id': 'Tissue-seeding source dive (repetitive planning, Phase 6)',
@@ -321,6 +324,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'card_photo_overlay_dark': 'Opacity (0..1) of the black overlay over a dive card\'s photo on the dark theme',
     'card_photo_overlay_light': 'Opacity (0..1) of the white overlay over a dive card\'s photo on the light theme',
     'ccr_setpoint_low': 'CCR ppO2 limits: the diver\'s default setpoints and the ppO2 a diluent may reach on a flush, which sets its MOD',
+    'ccr_setpoint_switch_depth': 'The depth (m) a CCR plan switches from the low to the high setpoint',
     'certification_list_view_mode': 'the certification and course list view modes, which were in-memory only and reset on every restart',
     'cns_calculation_method': 'CNS calculation method: \'classic\' | \'shearwater\' | \'subsurface\'',
     'cold_water_threshold_c': 'exposure thresholds for service clocks',
@@ -448,6 +452,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'gas_switches_edited': 'set once the diver saves a change to the dive\'s gas switches',
     'gradient_factor_high': '0-100',
     'gradient_factor_low': 'Decompression gradient factors',
+    'hand_set_fields': 'computer-written values the diver set by hand, kept on re-parse and resync',
     'humidity': '0-100',
     'import_id': 'Source-specific ID (e.g., HealthKit UUID)',
     'import_source': 'Import source tracking - tracks import source for Apple Watch, Garmin, etc.',
@@ -608,10 +613,12 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'media_identification_runs': {
     'analysed_at': 'Epoch milliseconds',
+    'analysed_by': 'The sync device id of the device that analysed or last renamed it',
     'detection_count': 'How many identifications were stored, possibly zero',
     'detector_id': 'The detector and embedding model that analysed it',
     'image_width': 'The analysed image\'s size after orientation',
     'location_cell': 'The region grid cell naming used, or null when the media had no location',
+    'naming_bars': 'The naming bars of the pack that named it, as JSON (naming_bars.dart), so a device with no pack names at the diver\'s chosen level',
     'pack_version': 'The model pack that analysed or last named this media',
     'scanned_ms': 'Video only: how far the scan has got, in milliseconds from the start',
     'scanned_ranges': 'Video only: the stretches scanned, packed (scanned_ranges_codec.dart)',
@@ -630,6 +637,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'end_ms': 'Video only: when the animal was last seen, in milliseconds from the start',
     'location_limited': 'Whether candidates were limited to species recorded near the media',
     'open_score': 'The best share over every candidate, before place is considered',
+    'run_id': 'The run id of the run that produced or last carried it',
     'specific': 'Whether its open score passed the floor when it was last named: it looks like something in particular, not a hand or open water',
     'start_ms': 'Video only, where one row is one animal followed through the video: when it was first seen, in milliseconds from the start',
     'suggestable': 'Whether it passed the naming bars when last named',
@@ -780,6 +788,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'trip_checklist_items': {
     'due_date': 'Absolute due date, resolved from the template offset at apply time',
+    'is_done': 'The tick, ignored while equipment_id names gear the trip can pack, whose trip_equipment row says instead whether it is packed',
     'section_id': 'The section this item is grouped under, if any',
   },
   'trip_cylinder_events': {
@@ -809,6 +818,10 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'weather_code': 'Raw WMO weather code, kept so the description renders in the diver\'s locale at display time rather than frozen as English prose at fetch time',
     'wind_direction': 'enum: CurrentDirection.name',
     'wind_speed': 'm/s',
+  },
+  'trip_equipment': {
+    'bag_equipment_id': 'The inventory ID of the packed bag on this trip',
+    'bag_hlc': 'The clock of the last bag assignment, apart from hlc so a copy from a peer that does not know bags never outranks one',
   },
   'trip_itinerary_days': {
     'date': 'Unix timestamp',

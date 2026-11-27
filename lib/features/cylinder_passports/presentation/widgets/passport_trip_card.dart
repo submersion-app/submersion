@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_passport_sitting.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_packed_item.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/gear/trip_bag_picker.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_picker.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 const _log = LoggerService('passportTripCard');
 
@@ -18,9 +28,21 @@ const _newTrip = #newTrip;
 /// where the cylinder is only a slot on the trip's cylinder board shows too,
 /// but only a packed trip can be unpacked here.
 class PassportTripCard extends ConsumerStatefulWidget {
-  const PassportTripCard({super.key, required this.equipmentId});
+  const PassportTripCard({
+    super.key,
+    required this.equipmentId,
+    this.isBag = false,
+    this.editing,
+  });
 
   final String equipmentId;
+  final bool isBag;
+
+  /// The open card's sitting (issue #4527, phase 3): packing and unpacking are
+  /// held there until Save. With no sitting given, the card reads only; during
+  /// a sitting every view shows its packing. New trip creates the trip at once,
+  /// as a picker does.
+  final EditSession<EquipmentItem>? editing;
 
   @override
   ConsumerState<PassportTripCard> createState() => _PassportTripCardState();
@@ -49,15 +71,19 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
     // marks them and will not pick them (issue #2654); a slot-only trip stays
     // pickable, since picking it packs the cylinder too. The list is awaited
     // so one still loading does not leave every trip unmarked.
+    final editing = widget.editing;
     final Set<String> packedTripIds;
     try {
       final trips = await ref.read(
         equipmentTripsProvider(widget.equipmentId).future,
       );
-      packedTripIds = {
-        for (final p in trips)
-          if (p.packed) p.trip.id,
-      };
+      final held = editing == null ? null : gearItemTripsList.current(editing);
+      packedTripIds =
+          held?.map((row) => row.tripId).toSet() ??
+          {
+            for (final p in trips)
+              if (p.packed) p.trip.id,
+          };
     } catch (e, stackTrace) {
       // An unknown list is not an empty one: a picker that marked nothing
       // would let a packed trip be picked to no effect, so stay closed.
@@ -101,18 +127,57 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
     };
     if (tripId == null || !mounted) return;
     try {
-      await ref.read(tripEquipmentRepositoryProvider).pack(tripId, [
-        widget.equipmentId,
-      ]);
+      String? bagId;
+      final isBag = widget.isBag || editing?.working.type == EquipmentType.bag;
+      if (picked is Trip && !isBag) {
+        final gear = await _gearOrNone(tripId);
+        if (!mounted || !identical(editing, widget.editing)) return;
+        final bags = tripPackingBags(gear);
+        if (bags.isNotEmpty) {
+          final choice = await pickTripBag(context, bags);
+          if (choice == null || !mounted) return;
+          bagId = choice.bagId;
+        }
+      }
+      if (!identical(editing, widget.editing)) return;
+      if (editing != null) {
+        packForTripInSitting(editing, tripId, bagId: bagId);
+        return;
+      }
+      final packs = ref.read(tripEquipmentRepositoryProvider);
+      if (bagId != null) {
+        await packs.packInBag(tripId, widget.equipmentId, bagId);
+      } else {
+        await packs.pack(tripId, [widget.equipmentId]);
+      }
     } catch (e, stackTrace) {
-      _log.error('Failed to pack a cylinder', error: e, stackTrace: stackTrace);
+      _log.error('Failed to pack gear', error: e, stackTrace: stackTrace);
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.passport_trip_failed)),
       );
     }
   }
 
+  /// The gear packed for [tripId], or none when the read fails: a bag is
+  /// optional, so the item then packs loose.
+  Future<List<EquipmentItem>> _gearOrNone(String tripId) async {
+    try {
+      return await ref.read(tripGearProvider(tripId).future);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to read the bags of a trip',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const [];
+    }
+  }
+
   Future<void> _unpack(Trip trip) async {
+    if (widget.editing case final session?) {
+      unpackFromTripInSitting(session, trip.id);
+      return;
+    }
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     try {
@@ -131,7 +196,7 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
     }
   }
 
-  Widget _chip(PackedTrip p) {
+  Widget _chip(PackedTrip p, {required bool canAct, required bool changed}) {
     final l10n = context.l10n;
     final chip = InputChip(
       key: Key('passport-trip-${p.trip.id}'),
@@ -146,21 +211,61 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
       ),
       visualDensity: VisualDensity.compact,
       onPressed: () => context.push('/trips/${p.trip.id}'),
-      onDeleted: p.packed ? () => _unpack(p.trip) : null,
+      onDeleted: p.packed && canAct ? () => _unpack(p.trip) : null,
       deleteButtonTooltipMessage: l10n.passport_trip_unassign,
     );
+    final shown = changed
+        ? Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              chip,
+              const SizedBox(width: 4),
+              const RecordChangedDot(),
+            ],
+          )
+        : chip;
     return p.packed
-        ? chip
-        : Tooltip(message: l10n.passport_trip_onBoard, child: chip);
+        ? shown
+        : Tooltip(message: l10n.passport_trip_onBoard, child: shown);
   }
 
   @override
   Widget build(BuildContext context) {
+    final scope = RecordEditScope.maybeOf<EquipmentItem>(context);
+    final session = widget.editing ?? scope?.session;
+    final canAct = scope == null || widget.editing != null;
+    if (session == null) return _build(context, null, canAct);
+    return ListenableBuilder(
+      listenable: gearItemTripsList.changes(session),
+      builder: (context, _) => _build(context, session, canAct),
+    );
+  }
+
+  Widget _build(
+    BuildContext context,
+    EditSession<EquipmentItem>? session,
+    bool mayAct,
+  ) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final trips =
+    // The open card acts once its sitting has read the trips.
+    final editing = widget.editing;
+    final canAct =
+        mayAct &&
+        (editing == null || gearItemTripsList.current(editing) != null);
+    final stored =
         ref.watch(equipmentTripsProvider(widget.equipmentId)).value ??
         const <PackedTrip>[];
+    final trips = session == null
+        ? stored
+        : packedTripsInSitting(
+            session,
+            stored,
+            ref.watch(allTripsProvider).value ?? const <Trip>[],
+          );
+    bool changed(PackedTrip p) =>
+        session != null &&
+        !stored.any((s) => s.trip.id == p.trip.id && s.packed == p.packed);
     final shown = _expanded ? trips : trips.take(1);
     return Card(
       child: Padding(
@@ -168,7 +273,17 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(l10n.passport_trip_title, style: theme.textTheme.titleMedium),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.passport_trip_title,
+                    style: theme.textTheme.titleMedium,
+                  ),
+                ),
+                RecordCardPencil(cardTitle: l10n.passport_trip_title),
+              ],
+            ),
             const SizedBox(height: 8),
             if (trips.isEmpty)
               Text(l10n.passport_trip_none)
@@ -177,7 +292,8 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  for (final p in shown) _chip(p),
+                  for (final p in shown)
+                    _chip(p, canAct: canAct, changed: changed(p)),
                   if (!_expanded && trips.length > 1)
                     ActionChip(
                       key: const Key('passport-trip-more'),
@@ -187,16 +303,18 @@ class _PassportTripCardState extends ConsumerState<PassportTripCard> {
                     ),
                 ],
               ),
-            const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: FilledButton.tonalIcon(
-                key: const Key('passport-trip-assign'),
-                onPressed: _assign,
-                icon: const Icon(Icons.add),
-                label: Text(l10n.passport_trip_assign),
+            if (canAct) ...[
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton.tonalIcon(
+                  key: const Key('passport-trip-assign'),
+                  onPressed: _assign,
+                  icon: const Icon(Icons.add),
+                  label: Text(l10n.passport_trip_assign),
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),

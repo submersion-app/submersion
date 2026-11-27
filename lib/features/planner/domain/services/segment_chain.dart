@@ -135,15 +135,45 @@ class SegmentChain {
   }
 
   /// Index of the leg that is "the bottom" of the dive, or null if the diver
-  /// has authored no level leg at all.
+  /// has authored no leg that holds at depth.
   ///
   /// The deepest [SegmentPhase.level] leg; the last one wins on a tie, so a
   /// bottom split into two legs at the same depth extends at its far end.
   /// Replaces the old "first segment whose type is bottom" lookups.
-  int? bottomLegIndex(List<ResolvedLeg> legs) {
+  ///
+  /// A descent flagged [PlanSegment.splitAtConfiguredRate] holds at its
+  /// target for whatever its duration leaves after travel (#3264), so a plan
+  /// authored as that one descent has no level leg at all; without counting
+  /// it the contingency and range-table time deltas had nothing to lengthen
+  /// (#4849). Given the plan's resolved [descentRate], such a descent that
+  /// does hold competes on depth exactly like a descent plus a level leg,
+  /// and one that does not hold is skipped. Without a rate the chain cannot
+  /// tell, so level legs come first. Either way, when no leg holds, the
+  /// deepest rate-split descent is the bottom, so its time can still grow.
+  int? bottomLegIndex(List<ResolvedLeg> legs, {double? descentRate}) {
+    final holding = descentRate == null
+        ? _deepest(legs, (leg) => leg.phase == SegmentPhase.level)
+        : _deepest(
+            legs,
+            (leg) =>
+                leg.phase == SegmentPhase.level ||
+                (_isSplitDescent(leg) &&
+                    leg.durationSeconds >
+                        PlanSegment.travelSeconds(
+                          metres: leg.endDepth - leg.startDepth,
+                          ratePerMinute: descentRate,
+                        )),
+          );
+    return holding ?? _deepest(legs, _isSplitDescent);
+  }
+
+  static bool _isSplitDescent(ResolvedLeg leg) =>
+      leg.phase == SegmentPhase.descent && leg.segment.splitAtConfiguredRate;
+
+  int? _deepest(List<ResolvedLeg> legs, bool Function(ResolvedLeg) accepts) {
     int? best;
     for (var i = 0; i < legs.length; i++) {
-      if (legs[i].phase != SegmentPhase.level) continue;
+      if (!accepts(legs[i])) continue;
       if (best == null || legs[i].endDepth >= legs[best].endDepth) best = i;
     }
     return best;

@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:submersion/core/app/app_exit_guard.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/data/services/dive_mirror_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/domain/entities/new_dive_request.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
@@ -20,7 +21,9 @@ import 'package:submersion/features/media/data/services/media_import_service.dar
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
+import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_database.dart';
 import 'dive_detail_page_new_dive_harness.dart';
 import 'dive_detail_page_unlock_harness.dart';
@@ -162,10 +165,15 @@ void main() {
     await tester.tap(find.text('Discard'));
     await settle(tester);
     expect(await leaving, isTrue);
-    for (var i = 0; i < 5; i++) {
-      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
-      await settle(tester);
-    }
+    // The fresh sitting's seed is read from the database, real IO. While
+    // it loads the page shows a spinner with no sitting scope in the tree.
+    await pumpUntilRealAsync(tester, () {
+      if (find.byType(RecordEditScope<Dive>).evaluate().isEmpty) return false;
+      final controller = newDiveController(tester);
+      return controller.isUnlocked && !controller.isDirty;
+    }, reason: 'the fresh sitting opens');
+    // The sitting can open in the last pump's microtasks, after its frame.
+    await settle(tester);
 
     final controller = newDiveController(tester);
     expect(controller.isUnlocked, isTrue);
@@ -190,7 +198,12 @@ void main() {
     await settle(tester);
     await tester.tap(find.text('Discard'));
     await settle(tester);
-    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    // The page removes the copy fire and forget, real IO.
+    await pumpUntilRealAsync(
+      tester,
+      () => !File(import.copies.single).existsSync(),
+      reason: 'the copy is removed',
+    );
 
     expect(File(import.copies.single).existsSync(), isFalse);
     expect(scan.existsSync(), isTrue);
@@ -245,19 +258,29 @@ void main() {
     await tester.tap(find.text('Discard'));
     await settle(tester);
     expect(await leaving, isTrue);
-    for (var i = 0; i < 5; i++) {
-      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
-      await settle(tester);
-    }
+    // The copies and the page's removal are real IO, which a loaded runner
+    // may not finish in a fixed number of turns (issue #4925): wait on what
+    // each step makes true.
+    await pumpUntilRealAsync(
+      tester,
+      () => import.copies.isNotEmpty,
+      reason: 'the fresh sitting copies the page',
+    );
     // The fresh sitting has copied the page again.
     expect(import.copies, hasLength(1));
     final fresh = import.copies.single;
 
     gate.complete();
-    for (var i = 0; i < 5; i++) {
-      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
-      await settle(tester);
-    }
+    await pumpUntilRealAsync(
+      tester,
+      () => import.copies.length > 1,
+      reason: 'the late copy lands',
+    );
+    await pumpUntilRealAsync(
+      tester,
+      () => !File(import.copies.last).existsSync(),
+      reason: 'the late copy is removed',
+    );
 
     expect(import.copies, hasLength(2));
     expect(File(import.copies.last).existsSync(), isFalse);
@@ -309,10 +332,13 @@ void main() {
     expect(newDiveController(tester).session!.isFrozen, isTrue);
 
     gate.complete();
-    for (var i = 0; i < 5; i++) {
-      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
-      await tester.pump();
-    }
+    // The late copy and its removal are real IO.
+    await pumpUntilRealAsync(
+      tester,
+      () =>
+          import.copies.isNotEmpty && !File(import.copies.single).existsSync(),
+      reason: 'the late copy lands and is removed',
+    );
     hold.complete();
     await settle(tester);
 

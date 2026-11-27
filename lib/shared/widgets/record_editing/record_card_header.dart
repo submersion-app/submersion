@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/core/theme/status_colors.dart';
+import 'package:submersion/core/theme/record_pencil_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 
@@ -47,19 +47,23 @@ class RecordCardFrameScope extends InheritedWidget {
       (data == null) != (oldWidget.data == null);
 }
 
-/// The dot that marks a card with changes not yet saved.
+/// The dot that marks a card with changes not yet saved, in the pencil's
+/// [RecordPencilColors] so the two read as one editing colour wherever a
+/// card is drawn.
 class RecordChangedDot extends StatelessWidget {
   const RecordChangedDot({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final colors = RecordPencilColors.of(context);
     return Semantics(
       label: context.l10n.recordEdit_unsavedChanges,
       child: Container(
         width: 8,
         height: 8,
         decoration: BoxDecoration(
-          color: StatusColors.of(context).warn.accent,
+          color: colors.fill,
+          border: Border.all(color: colors.outline),
           shape: BoxShape.circle,
         ),
       ),

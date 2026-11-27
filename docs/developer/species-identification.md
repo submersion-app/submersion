@@ -8,18 +8,23 @@ photos and videos on the device and suggests what they are (issues #4668,
 (photos) and
 [the second](../design/specs/2026-11-17-marine-life-identification-2-video-design.md)
 (video), with packs of one or two detectors in
-[the two detectors design](../design/specs/2026-11-17-marine-life-two-detectors-design.md).
+[the two detectors design](../design/specs/2026-11-17-marine-life-two-detectors-design.md),
+and Android, Windows and Linux in
+[the third piece](../design/specs/2026-11-19-marine-life-identification-3-other-platforms-design.md).
 
-The feature is on for divers on iPhone, iPad and Mac. This page is for
-working on it.
+The feature is on for divers on iPhone, iPad and Mac, with Core ML, and on
+Android, Windows and Linux, with ONNX Runtime. This page is for working on
+it.
 
 ## Where it is on
 
 The flag is `marineLifeIdEnabled` in `lib/core/constants/feature_flags.dart`.
-It is on by default wherever the engine runs (iPhone, iPad and Mac, asked of
-`visionEngineRuns`) and hidden on the web, Android, Windows and Linux, which
-no build define can turn on until they have an engine. A build turns it off
-everywhere with:
+It is on by default wherever an engine runs (asked of `visionEngineRuns`):
+Core ML on iPhone, iPad and Mac, and the ONNX engine on Android, Windows and
+Linux. A build made with `--dart-define=MARINE_LIFE_ID_ONNX=false` leaves the
+ONNX platforms out; only the exact word `false` does, and any other value
+leaves them on. The web never has it. A build turns it off everywhere
+with:
 
 ```bash
 flutter run -d macos --dart-define=MARINE_LIFE_ID=false
@@ -39,11 +44,21 @@ Phones and tablets need 8 GB of memory at launch: the floor is `MemoryFloor`
 in `MemoryReading.swift`, 6.5 GiB as the device reports it, checked by
 `packages/submersion_vision/tool/check_floor.sh` in the Build iOS job.
 
+The setting is Settings, Data, Photos and videos, Species identification,
+under its own Species header (issue #4773). Where the model can run and none
+is installed, the app also offers the download on a dive's Species card (for
+dives with photos or videos), in the photo and video species sheet, and on
+the Species page: `speciesDownloadPromptProvider` decides, without asking
+the network. Its close button sets `species_id_download_prompt_dismissed` on
+this device, and removing the model sets it too; to see the offer again,
+clear that preference.
+
 ## How it fits together
 
 | Part | Where |
 | --- | --- |
 | Native engine (Core ML) | `packages/submersion_vision/` (video passes in `VideoScanner.swift`) |
+| ONNX engine (Android, Windows, Linux) | `lib/features/species_id/data/engines/onnx/` (pure pipeline in `pipeline/`), ONNX Runtime bindings and build hook in `packages/submersion_vision/` |
 | Pack format, download, install | `lib/features/species_id/data/pack/` |
 | Naming and decision rules (pure Dart) | `lib/features/species_id/domain/services/` |
 | Analysis queue | `lib/features/species_id/data/services/media_identification_service.dart` |
@@ -58,11 +73,99 @@ in `MemoryReading.swift`, 6.5 GiB as the device reports it, checked by
 What is stored:
 
 - Identifications and the diver's decisions: the main database,
-  `media_identification_runs` and `media_identifications`. Never synced.
+  `media_identification_runs` and `media_identifications`. Synced since
+  v381 (see [Sync](#sync)).
+- Crops of named identifications: the main database,
+  `media_identification_crops`, synced. Crops of unnamed ones:
+  `<application support>/species_id/crops/`, this device only.
+- A video keeps only the clearest crops of each species (issue #5032):
+  `videoCropsToDrop` keeps 3 named and 3 unnamed per group
+  (`cropGroupKey`, the best name's GBIF key), named ones ranked accepted,
+  then suggestable, then the rest, by box size; claimed tracks always keep
+  theirs. Rows are never trimmed, only crops. `VideoCropCapper` applies it
+  after each scan chunk, after a scan and after a rename, and
+  `trimVideoCropsAtLaunch` for what is already stored. Readiness counts a
+  track's crop per group, and `identificationCropProvider` shows a dropped
+  one's largest kept crop of the group instead.
 - Crop embeddings: the device-local cache, `identification_embeddings`.
-- Crops: `<application support>/species_id/crops/`.
+  Never synced.
 - The installed pack: `<application support>/species_id/pack/`, excluded
-  from device backups.
+  from device backups (on Android by the backup rules in
+  `android/app/src/main/res/xml/`, since no runtime call can exclude a
+  folder there).
+
+## The ONNX engine
+
+Android, Windows and Linux run the pack's models through ONNX Runtime 1.28
+(`OnnxVisionEngine`). The work around the models (resizing, reading boxes,
+merging, cropping, fitting) is Dart, ported step for step from
+`VisionPipeline.swift` and tested with fake model runners; the merge tests
+mirror species-pack's `merge_check.swift` case for case. The models run in a
+worker isolate; photos are decoded by Flutter's own decoder; video frames
+come from a small native reader on the `submersion_vision/frames` channel
+(Kotlin on Android, Media Foundation on Windows). Linux scans no video, since
+the app has no video player there.
+
+ONNX Runtime ships through `packages/submersion_vision/hook/build.dart`,
+which downloads the pinned official package for the target (Maven for
+Android, NuGet `Microsoft.ML.OnnxRuntime` for Linux, NuGet
+`Microsoft.Windows.AI.MachineLearning`, Windows ML, for Windows), checks it
+and each library against the hashes in `lib/src/ort/ort_release.dart`, and
+ships the libraries as code assets. Apple builds and the web get none. CI
+checks the Android archive (`scripts/check_native_libs_present.py`, ONNX
+Runtime on arm64-v8a and x86_64 only) and the desktop bundles
+(`scripts/check_bundled_native_assets.py`).
+
+On Windows the models open on a hardware engine Windows ML offers (a GPU or
+NPU vendor's, registered from its catalogue in `hardware_engines.dart`),
+then DirectML, then the processor. The session picks the hardware devices
+itself (`chooseHardwareDevices`) and never hands Windows' software renderer,
+the Microsoft Basic Render Driver, to an engine: that ends the process, and
+ONNX Runtime's own prefer-GPU policy does it on a PC without a display driver
+(`docs/design/findings/2026-11-20-windows-ml-unpackaged.md`). A vendor engine
+that is not on the PC is fetched once, as part of the pack's download; an
+installed one is prepared again at each launch, which downloads nothing. A
+device that ends the app twice in a row while a model opens on it or first
+runs there, at the first load or in a fallback after a failed run, is skipped
+from then on (`device_crash_guard.dart`: the worker notes each device before
+opening or first running a model there; one strike is forgiven, since closing
+the app mid-load leaves the same note, and a run that returns on a device clears its strike; never
+the processor), so one bad driver cannot make the app close at every launch.
+
+Devices need 8 GB at launch (`androidMinimumMemoryBytes` and
+`pcMinimumMemoryBytes` in `device_memory.dart`, 6.5 GiB as reported). A build
+for measuring a smaller phone lifts the floor:
+
+```bash
+flutter build apk --dart-define=MARINE_LIFE_ID_IGNORE_FLOOR=true
+```
+
+The package's tests run the real ONNX Runtime. On Linux and Windows they load
+the hook's library (CI runs both, on the processor); on a Mac they need ONNX Runtime's macOS library (from the same NuGet
+package, `runtimes/osx-arm64/native/libonnxruntime.dylib`) named in
+`SUBMERSION_ORT_LIBRARY`, and skip without it:
+
+```bash
+cd packages/submersion_vision && SUBMERSION_ORT_LIBRARY=/path/to/libonnxruntime.dylib flutter test
+```
+
+The pack's scorer measures this engine with the app's own code through a
+scoring runner, `tool/species_vision_onnx/species_vision_onnx_test.dart`,
+which runs under Flutter's test host (so photos are decoded by Flutter's own
+decoder, as in the app) and writes the Swift vision tool's JSON lines. It
+runs only when `SPECIES_VISION_REQUEST` names a request file:
+`{manifest, detectors, classifier, cropFit, detectorBoxes, photos, out,
+ortLibrary}`. species-pack's `score.py --engine onnx` writes the request and
+runs it. `test/features/species_id/data/onnx/onnx_worker_real_test.dart`
+runs the worker isolate end to end through real ONNX Runtime with two
+constant-output models (`tool/species_id/make_fake_onnx_models.py`).
+
+To move to a new ONNX Runtime, replace the headers in
+`packages/submersion_vision/third_party/onnxruntime/`, regenerate the
+bindings (`cd packages/submersion_vision/tool/ffigen && dart pub get && dart
+run ffigen_ort.dart`; a package of its own because ffigen needs a newer
+`code_assets` than the app), and update every URL and hash in
+`ort_release.dart`.
 
 ## Building a pack
 
@@ -170,8 +273,8 @@ The app reads the latest release of
 `releases/latest/download/manifest.json` first, then every file it lists,
 resolved next to the manifest. Each pack is a release of its own, tagged
 with its version. Pack `2026.11.18.0356` (both detectors) is published there.
-It moved from this repository's `species-pack` pre-release, which stays in
-place for beta builds that still read it (#4769).
+It moved from this repository's `species-pack` pre-release, deleted on
+2026-11-19; only development builds from before #4770 read it (#4769).
 
 - **Draft first.** Create the release with `--draft`, upload every file
   and the manifest, check the sizes and digests, then publish it, which
@@ -281,16 +384,17 @@ repository's `contract_test.py` fails while the two copies differ.
 
 ## Naming levels
 
-The diver chooses how sure the app must be before it names a fish (issue
-#4721), in Settings, Data, Photos and videos, Marine life identification.
+The diver chooses how readily the app suggests a species (issue #4721),
+in Settings, Data, Photos and videos, Species identification. Eager is the
+default until the diver picks a level (issue #4789).
 The design is in
 [the naming levels design](../design/specs/2026-11-18-marine-life-naming-levels-design.md).
 
 | Level | Suggest bars |
 | --- | --- |
-| Surer (default) | the pack's own `suggestScore` and `suggestScoreNoLocation` |
+| Surer | the pack's own `suggestScore` and `suggestScoreNoLocation` |
 | Balanced | measured for a 75% precision target |
-| Eager | measured for a 65% precision target |
+| Eager (default) | measured for a 65% precision target |
 
 A level moves only the two suggest bars. The open-score floor, the
 minimum box size and the confident bars are the pack's at every level, so
@@ -353,7 +457,129 @@ diver's choice is kept through a fallback, so it returns with a pack that
 carries it; meanwhile the section selects the level in force and says
 which level is missing. Choosing the level in force replaces the stored
 choice: its tile is `toggleable` only then, because a radio tile reports
-no tap on the selected value otherwise.
+no tap on the selected value otherwise. The default is no choice of the
+diver's (`NamingLevelNotifier.picked` is false until a level is stored), so
+a pack without Eager names at its most eager level with no note and no
+toggleable tile.
+
+## Training the naming layer
+
+A pack's naming rows can be trained on iNaturalist photos instead of read
+from BioCLIP 2's species names (issue #4724,
+[design](../design/specs/2026-11-18-marine-life-naming-layer-design.md),
+[findings](../design/findings/2026-11-20-marine-life-naming-layer.md)).
+The trained pack is the base pack with one file changed:
+`text_embeddings.f16` holds one trained row per candidate, so the app names
+with it unchanged. Every step below runs in the pack repository, with
+`$DATA` a work folder outside the repository and `$BASE` the base pack's
+folder (its release files, downloaded). The fetch resumes where it
+stopped; training reruns from the start in minutes, and the scorer reuses
+its cached vision runs. The
+[runbook](../design/plans/2026-11-18-marine-life-naming-layer-runbook.md)
+says what a good result of each step looks like.
+
+Fetch, select and embed the training photos. The first run took about a
+day: 7 hours of lists (one request per candidate, within iNaturalist's
+limits), then 17 hours for about 225 GB of photos from its AWS Open Data
+bucket, paced by the connection (about 6 MB/s). Each photo is deleted
+once its embedding is taken, so the disk holds one batch at a time:
+
+```bash
+caffeinate -i .venv-species-pack/bin/python -I fetch_training.py all --wait --pack $BASE --set testdata/accuracy_set.csv --work $DATA/training
+```
+
+Train the shipped layer. It chooses the pull, epochs, blend and sharpness
+on the validation photos and writes the trained pack, with provisional
+bars:
+
+```bash
+.venv-species-pack/bin/python -I train_naming.py --base $BASE --training $DATA/training --out $DATA/pack-trained
+```
+
+Train the rare-species check layer, at the shipped layer's settings
+without the test set's held-back species. It is never shipped:
+
+```bash
+.venv-species-pack/bin/python -I train_naming.py --base $BASE --training $DATA/training --out $DATA/pack-check --exclude-held-back testdata/accuracy_set.csv --settings-from $DATA/pack-trained
+```
+
+Score the base pack and the trained pack on the test photos, as in
+"Measuring accuracy". Fetch the photos into the baseline's work folder
+once, and link that folder's `photos` into the others rather than copy
+them:
+
+```bash
+.venv-species-pack/bin/python -I fetch_testset.py photos-from-csv --work $DATA/score-baseline
+```
+
+```bash
+for w in score-trained score-check; do mkdir -p $DATA/$w && ln -sfn $DATA/score-baseline/photos $DATA/$w/photos; done
+```
+
+```bash
+.venv-species-pack/bin/python -I score.py --pack $BASE --work $DATA/score-baseline
+```
+
+```bash
+.venv-species-pack/bin/python -I score.py --pack $DATA/pack-trained --work $DATA/score-trained
+```
+
+Then score the check pack at the trained pack's measured bars.
+`--naming-from` reads a pack folder's `manifest.json`, so write the trained
+pack's manifest into `$DATA/score-trained/bars-pack` with its `naming`
+block replaced by the `naming` of the pair's `measured` entry. The entry's
+`cropFit` must be `centreCrop`, the fitting the packs use; otherwise its
+bars are not the ones the gate or the app would read:
+
+```bash
+python3.14 - <<'EOF'
+import json, os
+d = os.environ["DATA"]
+r = json.load(open(f"{d}/score-trained/results.json"))
+both = [m for m in r["measured"] if len(m["detectorIds"]) == 2][0]
+assert both["cropFit"] == "centreCrop", both["cropFit"]
+m = json.load(open(f"{d}/pack-trained/manifest.json"))
+m["naming"] = both["naming"]
+os.makedirs(f"{d}/score-trained/bars-pack", exist_ok=True)
+json.dump(m, open(f"{d}/score-trained/bars-pack/manifest.json", "w"), indent=1)
+EOF
+```
+
+```bash
+.venv-species-pack/bin/python -I score.py --pack $DATA/pack-check --work $DATA/score-check --naming-from $DATA/score-trained/bars-pack
+```
+
+The gate first checks that each scoring was made on its pack and that the
+three cover the same photos:
+
+```bash
+.venv-species-pack/bin/python -I gate.py --baseline $DATA/score-baseline --trained $DATA/score-trained --check $DATA/score-check --baseline-pack $BASE --trained-pack $DATA/pack-trained --check-pack $DATA/pack-check --set testdata/accuracy_set.csv
+```
+
+It exits 0 when the trained pack may ship:
+
+- significantly more held-out natural photos named right than the base
+  pack (paired test, p < 0.05);
+- a confident bar with a location, chosen on the tune half as proven 95%
+  right, that survives the held-out gate;
+- no animal group named right significantly less often;
+- junk named on at most 2% of the tune half's junk crops;
+- at most 2% of the held-back species' photos named confidently wrong.
+
+Then add the pair's `measured` entry to `NAMING_MEASURED` in
+`manifest.py`, with `findings` naming the findings file in this
+repository's `docs/design/findings/`, and rewrite the trained pack's
+manifest with `manifest.derive_manifest`, which gives it the measured
+bars. The pack repository's `manifest_test.py` checks that the findings
+file exists on this repository's main, so the findings land here before
+the pull request adding the entry there can pass.
+
+The trained file is credited CC BY-NC 4.0, since most of its photos carry
+that licence; `build_pack.py` still builds the untrained pack, the open
+alternative. Publishing a trained pack also uploads `training_photos.csv`
+(each training photo's observation, licence and attribution) to the pack's
+release. The manifest does not list it, but the trained credit links it.
+Only the maintainer publishes a pack.
 
 ## Trying a pack locally
 
@@ -367,7 +593,7 @@ cd ../species-pack/build/species_pack && python3.14 -m http.server 8765
 flutter run -d macos --dart-define=SPECIES_PACK_MANIFEST_URL=http://localhost:8765/manifest.json
 ```
 
-Then open Settings, Data, Photos and videos, Marine life identification,
+Then open Settings, Data, Photos and videos, Species identification,
 and download the model. Opening a photo in the viewer analyses it.
 
 ## Find species, auto-apply and review
@@ -409,6 +635,55 @@ example 0.6) and bump its `packVersion`, serve it as above, install it, and
 turn the setting on. The new version is what makes media already analysed
 be named again, which sets their stored `confident` flags; they are then
 applied the next time they are opened or a run reaches them.
+
+## In the viewer: labels, modes and analysing by hand
+
+Issue #4825, spec
+[2026-11-20-marine-life-viewer-labels-design.md](../design/specs/2026-11-20-marine-life-viewer-labels-design.md).
+
+- **Labels.** Photos and videos share one painter (`IdentificationLabels`).
+  `VideoIdentificationLayer` feeds it `labelsAt` at the playhead;
+  `PhotoIdentificationLayer`, mounted inside the photo's `PhotoView` child,
+  feeds it `photoLabels`. A photo's labels are laid out at the zoomed size
+  and scaled back down, so they keep their size on screen; the zoom comes
+  from a `PhotoViewController` the gallery keeps per page index, as
+  `PhotoView` keeps its own state, while that page shows. The viewer's tap
+  layer lies over the photo, so a photo's labels
+  mark their taps (`LabelTap`) and the tap layer asks
+  `identificationLabelTap` first.
+- **Modes.** `LabelMode` (`names`, `allLife`, `off`) is a device preference,
+  `species_id_label_mode`, read through `labelModeNotifierProvider`. `labelKind`
+  holds the rules: All life dots every stored detection that has no pill;
+  Names keeps the guarded dot (open-score floor, and on video the one-second
+  minimum while paused). A photo's tag fills the pill only on a detection
+  the app could suggest or the diver named (a claim); the stored tag
+  matching is unchanged.
+- **The labels menu** (`showMarineLifeLabelsMenu`, toolbar action
+  `marine_life_labels`) switches the mode and offers Analyse (a request by
+  hand: `request(byHand: true)`, which ignores identify-on-open and carries
+  on a part-scanned video) or, once the item is up to date, Analyse again
+  (`request(fresh: true)`). The dive card's Check again is a fresh run
+  (`DiveSpeciesRun.start(fresh: true)`, `requestFromRun(fresh: true)`); a
+  photo refused for heat or the background is asked fresh again, a video
+  carries on where it stopped. A Lightroom-linked video gets no labels action: only its poster is on the
+  device. The menu's status line says what was found on any item looked
+  at, even in part ("Nothing found" included); "Not analysed yet" is only
+  for one never looked at.
+- **A fresh request** analyses the photo or scans the video from 0
+  whatever the refresh rules say, and reopens the item's dismissals
+  (`reopenDismissed`: undecided, with `decidedAt` set to the time of the
+  reopen, so `reopened` is true): a photo's once its new analysis is in
+  hand, so one whose analysis fails keeps them, and a video's once its file
+  opens. A reopened row is carried through later analyses like a
+  decision, and `identificationsToApply` never takes it; nothing is
+  auto-applied after a fresh request at all. The fresh flag is consumed when
+  the fresh start is stored, so a job put back in the queue resumes.
+- **Progress** is the tint of `ScannedRanges` on the scrub bar
+  (`VideoAnalysedStretches`, while the scan is incomplete) and a ring on the
+  labels icon (`ToolbarRing`) while the item is busy.
+- **The species list** under the viewer is one line (`OneLineOverflowRow`),
+  with a "+N" chip that opens the species sheet, or a read-only list
+  (`showMediaSpeciesListSheet`) on a locked item.
 
 ## Video
 
@@ -507,6 +782,53 @@ What is checked by hand, since no automated test runs the real models:
 labels sit on the fish in a landscape and a portrait clip, and a diver or a
 hand in frame gets no dot.
 
+## Sync
+
+Issue #4876; design in
+[docs/design/specs/2026-11-22-marine-life-identification-sync-design.md](../design/specs/2026-11-22-marine-life-identification-sync-design.md).
+Results travel with the logbook, so a device that cannot run the models
+(below the memory floor, or on a platform with no engine) shows what
+another one found.
+
+- **What syncs.** Runs (`mediaIdentificationRuns`, keyed by media id),
+  identifications (`mediaIdentifications`) and the crops of named
+  identifications (`mediaIdentificationCrops`), all clock-guarded children
+  of media. A crop is synced when its identification is *named*
+  (`isNamed`: specific, suggestable, or said by the diver). Embeddings and
+  unnamed crops never leave the device that analysed.
+- **Decisions.** The diver's fields (`decision`, `decidedSpeciesId`,
+  `decidedAt`, `claimedSpeciesId`) are the `identificationDecision` sync
+  fact group, with their own clock (`decision_hlc`, null meaning unset).
+  A decision or claim stamps only that clock
+  (`IdentificationSyncMarks.decisionsWritten`); an analysis, rename or
+  video chunk stamps only the row clock. Neither can undo the other.
+- **Where a run came from.** `analysed_by` is the sync device id of the
+  device that analysed or last renamed it; a run from before v381 is
+  stamped before it first publishes. `run_id` is minted when an analysis
+  starts and kept by later video chunks and renames; rows carry it, and
+  `visibleRows` hides the undecided rows of a run that lost a sync race.
+- **The trust rule.** For a run made elsewhere, `decideRefresh` and
+  `decideVideoRefresh` analyse again only when the installed pack is
+  later *and* has a new detector, tracker or naming model
+  (`hasNewerModels`). Missing crops, embeddings or another region cell
+  never start an analysis, and a part-scanned video is never resumed.
+  Analyse again always analyses. Only the device that made a run
+  auto-applies from it.
+- **Naming bars.** Each run keeps its pack's bars (`naming_bars`), so a
+  device with no pack, or another one, names its rows at the diver's level
+  (`applyChosenLevel`).
+- **Shown versus analysed.** `marineLifeLabelsShown` gates showing results
+  (labels, modes, review, suggestions) on every platform;
+  `marineLifeIdEnabled` gates analysing and everything that offers it.
+- **Cleanup.** The launch sweep purges results only for media with a
+  `media` tombstone. Clear all tombstones runs, rows and crops, so it
+  holds on every device.
+- **At launch,** `fillIdentificationNamingBarsAtLaunch` gives this
+  device's old runs the installed pack's bars, and
+  `backfillNamedCropsAtLaunch` moves its named crop files into the table,
+  then `trimVideoCropsAtLaunch` caps the crops of each video. Only the
+  device that made a run deletes its synced crops, with tombstones.
+
 ## Memory readout
 
 For measuring memory on a phone, the app logs its memory after each
@@ -531,13 +853,28 @@ Figures are in MiB (1,048,576 bytes), as in the findings.
   (`os_proc_available_memory()`). On a phone, 0 means none is left or the
   app is over its limit. macOS, the iOS Simulator and an iPhone build
   running on a Mac have no such limit, so their lines leave it out.
+- **Available on the device:** Android, Windows and Linux have no per-app
+  limit either, but report how much memory the whole device has available,
+  so their lines say "available on the device" where an iPhone says "left".
+  On Android this is the system's available memory
+  (`ActivityManager.MemoryInfo.availMem`, which counts caches it can still
+  free); on Linux `MemAvailable` of `/proc/meminfo`; on Windows
+  `ullAvailPhys`. It is not how much more the app may use: Android's low
+  memory killer can stop the app well before it reaches 0. A line from a
+  Pixel 6a:
+
+  ```text
+  Memory after pass 1 (0:00 to 0:02): 467 MiB available on the device, footprint 1851 MiB (peak 2595 MiB)
+  ```
 - **Footprint:** the memory iOS compares with that limit, and its highest
   point since the app started. A peak set while the app started up hides a
   smaller one during a scan; the footprint on each line still shows the
   trend.
 - **Left at the peak:** how close the app came to the limit at that peak,
   worked out against the limit as it is now (iOS can change it). With
-  nothing left the limit is unknown, so the line leaves this out.
+  nothing left the limit is unknown, so the line leaves this out. Android,
+  Windows and Linux have no per-app limit to measure it against, so their
+  lines leave it out too.
 - **Neural Engine:** the models' memory on the Neural Engine, split into
   what counts toward the footprint and what the system keeps out of it.
   An iPhone counts it; a Mac keeps it out. The not-counted peak needs iOS

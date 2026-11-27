@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/dive_computer/presentation/editing/dive_computer_settings_sitting.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/domain/entities/clock_sync.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
@@ -10,9 +11,19 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// the switch on the computers list: the values live in SharedPreferences,
 /// never on the synced computer record.
 class DiveComputerClockSyncCard extends ConsumerWidget {
-  const DiveComputerClockSyncCard({super.key, required this.computer});
+  const DiveComputerClockSyncCard({
+    super.key,
+    required this.computer,
+    this.control,
+  });
 
   final DiveComputer computer;
+
+  /// On the computer's gear item page (issue #4527, phase 3): the choice its
+  /// sitting holds, changed only while its card is open and written once its
+  /// Save has committed. "Check again" asks the device afresh and records
+  /// nothing the diver chose, so it is always offered.
+  final DiveComputerSettingsControl? control;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -73,9 +84,23 @@ class DiveComputerClockSyncCard extends ConsumerWidget {
                       label: Text(l10n.diveComputer_clockSync_overrideNever),
                     ),
                   ],
-                  selected: {settings.overrideFor(computer.id)},
-                  onSelectionChanged: (selection) =>
-                      notifier.setOverride(computer.id, selection.first),
+                  selected: {
+                    control?.shown.clockSync ??
+                        settings.overrideFor(computer.id),
+                  },
+                  onSelectionChanged: switch (control) {
+                    null => (selection) => notifier.setOverride(
+                      computer.id,
+                      selection.first,
+                    ),
+                    DiveComputerSettingsControl(:final shown, :final hold?) =>
+                      (selection) => hold((
+                        favourite: shown.favourite,
+                        autoDownloadDisabled: shown.autoDownloadDisabled,
+                        clockSync: selection.first,
+                      )),
+                    _ => null,
+                  },
                 ),
               ),
               const SizedBox(height: 8),

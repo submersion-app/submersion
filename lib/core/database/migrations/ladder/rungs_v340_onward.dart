@@ -302,10 +302,65 @@ extension RungsFromV340 on AppDatabase {
     if (from < 379) await _assertAveloLineColumns();
     if (from < 379) await reportProgress();
 
-    // v380: divers.emergency_tag_share, the diver's emergency tag choices
+    // v380 (issue #4847): a lone download the v356 stamp took for a combined
+    // dive gets its source back as primary with no slot, so a re-parse can
+    // replace the profile again; and a live series duplicating its source's
+    // own under another computer's label (left by the v182 pack) is demoted.
+    // Data only, so the floor does not move. Both rewrite is_primary, which
+    // is never null: declaring it in changeLogRewrittenColumns would refuse
+    // restoring every source row and series deleted before v380, so it is
+    // left out, and both repairs run again after each inbound sync apply.
+    if (from < 380) await repairLoneDownloadSources(this);
+    if (from < 380) await demoteDuplicatePrimarySeries(this);
+    if (from < 380) await reportProgress();
+
+    // v381 (issue #4876): marine life results sync. Clocks on both
+    // identification tables, a run's origin, run id and naming bars, the
+    // decision clock, and the crops table; each run gets a run id shared by
+    // its rows. The floor rises to 381 (see minimumCompatibleSchemaVersion).
+    if (from < 381) await _assertIdentificationSyncSchema();
+    if (from < 381) await reportProgress();
+
+    // v382 (issue #4909): dives.hand_set_fields, the computer-written values
+    // the diver set by hand. Nullable with no backfill, so only edits saved
+    // after the update are marked; re-asserted in beforeOpen. The floor does
+    // not move.
+    if (from < 382) await _assertDiveHandSetFieldsColumn();
+    if (from < 382) await reportProgress();
+
+    // v383 (issue #5027): species_covers and species_practice, a diver's
+    // cover crop and ID practice boxes per species. Additive and re-asserted
+    // in beforeOpen; the floor does not move.
+    if (from < 383) await _assertSpeciesRevampSchema();
+    if (from < 383) await reportProgress();
+
+    // v384 (issue #4934): trip_checklist_items.equipment_id, the inventory
+    // link whose pack state decides a gear item's tick. Nullable, no
+    // backfill. The floor rises to 384 (see minimumCompatibleSchemaVersion).
+    if (from < 384) await _assertTripChecklistEquipmentColumn();
+    if (from < 384) await reportProgress();
+
+    // v385 (issue #4945): trip_equipment.bag_equipment_id, the bag a packed
+    // item rides in, and bag_hlc, that assignment's own clock. Nullable, no
+    // backfill, re-asserted in beforeOpen; the floor does not move.
+    if (from < 385) await _assertTripEquipmentBagColumn();
+    if (from < 385) await reportProgress();
+
+    // v386: the nullable conditions for derived course requirements. The
+    // floor rises to 386 (see minimumCompatibleSchemaVersion).
+    if (from < 386) await _assertCourseRequirementConditionColumns();
+    if (from < 386) await reportProgress();
+
+    // v387 (issue #3793): diver_settings.ccr_setpoint_switch_depth (default
+    // 10 m) and dive_plans.setpoint_switch_off (default off). Columns only,
+    // no backfill; re-asserted in beforeOpen. The floor does not move.
+    if (from < 387) await _assertCcrSetpointSwitchColumns();
+    if (from < 387) await reportProgress();
+
+    // v388: divers.emergency_tag_share, the diver's emergency tag choices
     // as JSON (issue #5060). Nullable, no backfill, so the floor does not
     // move. Re-asserted in beforeOpen.
-    if (from < 380) await _assertEmergencyTagColumn();
-    if (from < 380) await reportProgress();
+    if (from < 388) await _assertEmergencyTagColumn();
+    if (from < 388) await reportProgress();
   }
 }

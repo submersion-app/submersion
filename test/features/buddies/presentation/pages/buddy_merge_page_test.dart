@@ -48,6 +48,7 @@ void main() {
     String? email,
     String? phone,
     String? country,
+    String? socialHandle,
     String notes = '',
     String? linkedDiverId,
   }) => BuddyRepository().createBuddy(
@@ -58,6 +59,7 @@ void main() {
       email: email,
       phone: phone,
       country: country,
+      socialHandle: socialHandle,
       notes: notes,
       linkedDiverId: linkedDiverId,
       createdAt: DateTime(2024),
@@ -195,6 +197,20 @@ void main() {
       await cycle(tester, label);
       expect(textOf(tester, label), second, reason: label);
     }
+  });
+
+  testWidgets('the merge starts with a social handle one of them has', (
+    tester,
+  ) async {
+    final buddies = await tester.runAsync(
+      () async => [
+        await buddy('Alice'),
+        await buddy('Alice', socialHandle: '@alice'),
+      ],
+    );
+    await pumpMerge(tester, buddies!);
+
+    expect(textOf(tester, l.buddyShare_social), '@alice');
   });
 
   testWidgets('merging confirms, merges and pops the result', (tester) async {

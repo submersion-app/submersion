@@ -22,6 +22,7 @@ void main() {
   test('ccrRows then ocStops become one continuous, stepped profile: a flat '
       'hold at each stop, not a smooth diagonal between them', () {
     final bailout = BailoutOutcome(
+      worstCaseCnsEnd: 0,
       points: [_worstCase(ttsSeconds: 420)],
       worstCase: _worstCase(ttsSeconds: 420),
       availableLiters: 1200,
@@ -89,6 +90,7 @@ void main() {
   test('a gas switch on a depth-changing CCR leg marks the leg\'s own start, '
       'not its end depth, so the marker lands on the drawn line', () {
     final bailout = BailoutOutcome(
+      worstCaseCnsEnd: 0,
       points: [_worstCase()],
       worstCase: _worstCase(),
       availableLiters: 1200,
@@ -163,6 +165,7 @@ void main() {
       arrivalRuntimeSeconds: arrival,
     );
     final bailout = BailoutOutcome(
+      worstCaseCnsEnd: 0,
       points: [_worstCase(ttsSeconds: 220)],
       worstCase: _worstCase(ttsSeconds: 220),
       availableLiters: 1200,
@@ -206,8 +209,46 @@ void main() {
     ]);
   });
 
+  test('a bailout stop held only for a gas switch says so on its marker', () {
+    final bailout = BailoutOutcome(
+      worstCaseCnsEnd: 0,
+      points: [_worstCase()],
+      worstCase: _worstCase(),
+      availableLiters: 1200,
+      ccrRows: const [],
+      worstCaseRows: const [],
+      ocStops: const [
+        PlanStop(
+          depthMeters: 21,
+          durationSeconds: 30,
+          gasFO2: 0.50,
+          gasFHe: 0.0,
+          tankId: 'deco',
+          arrivalRuntimeSeconds: 660,
+          isGasSwitchOnly: true,
+        ),
+        PlanStop(
+          depthMeters: 21,
+          durationSeconds: 120,
+          gasFO2: 0.50,
+          gasFHe: 0.0,
+          tankId: 'deco',
+          arrivalRuntimeSeconds: 690,
+        ),
+      ],
+      bailoutTanks: const [],
+      bailoutTankUsages: const [],
+      ceilingTrace: const [],
+    );
+
+    final series = buildBailoutCanvasSeries(bailout);
+
+    expect(series.stopLabels.map((m) => m.isGasSwitchOnly), [true, false]);
+  });
+
   test('no CCR rows and no stops yields a single surface point', () {
     final bailout = BailoutOutcome(
+      worstCaseCnsEnd: 0,
       points: [_worstCase()],
       worstCase: _worstCase(),
       availableLiters: 1200,

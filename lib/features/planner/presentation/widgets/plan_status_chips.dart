@@ -8,6 +8,7 @@ import 'package:submersion/features/planner/domain/entities/mission/mission_outc
 import 'package:submersion/features/planner/presentation/providers/mission_issues_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/mission_outcome_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_headline_figures.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
@@ -105,12 +106,16 @@ class PlanStatusChips extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final outcome = ref.watch(activePlanOutcomeProvider);
+    // The figures follow the Bailout view (#4983); the issues stay the plan's.
+    final figures = ref.watch(planHeadlineFiguresProvider);
     final cnsThreshold = ref.watch(cnsWarningThresholdProvider);
     final theme = Theme.of(context);
 
     String minutes(int seconds) => '${(seconds / 60).ceil()}′';
+    Widget dimmed(Widget child) =>
+        figures.stale ? Opacity(opacity: 0.5, child: child) : child;
 
-    final inDeco = outcome.ndlAtBottom < 0;
+    final inDeco = figures.ndlSeconds < 0;
     final maxSeverity = outcome.issues.isEmpty
         ? null
         : outcome.issues
@@ -121,31 +126,41 @@ class PlanStatusChips extends ConsumerWidget {
       spacing: 6,
       runSpacing: 6,
       children: [
-        PlanChip(
-          label: context.l10n.divePlanner_label_runtime,
-          value: minutes(outcome.runtimeSeconds),
-          emphasized: true,
+        dimmed(
+          PlanChip(
+            label: context.l10n.divePlanner_label_runtime,
+            value: minutes(figures.runtimeSeconds),
+            emphasized: true,
+          ),
         ),
         if (inDeco)
-          PlanChip(
-            label: context.l10n.divePlanner_label_tts,
-            value: minutes(outcome.ttsAtBottom),
+          dimmed(
+            PlanChip(
+              label: context.l10n.divePlanner_label_tts,
+              value: minutes(figures.ttsSeconds),
+            ),
           )
         else
+          dimmed(
+            PlanChip(
+              label: context.l10n.divePlanner_label_ndl,
+              value: minutes(figures.ndlSeconds.clamp(0, 1 << 30)),
+            ),
+          ),
+        if (figures.decoSeconds > 0)
+          dimmed(
+            PlanChip(
+              label: context.l10n.divePlanner_label_deco,
+              value: minutes(figures.decoSeconds),
+            ),
+          ),
+        dimmed(
           PlanChip(
-            label: context.l10n.divePlanner_label_ndl,
-            value: minutes(outcome.ndlAtBottom.clamp(0, 1 << 30)),
+            label: context.l10n.plannerCanvas_chip_cns(
+              figures.cnsEnd.toStringAsFixed(0),
+            ),
+            tint: figures.cnsEnd >= cnsThreshold ? Colors.orange : null,
           ),
-        if (outcome.totalDecoSeconds > 0)
-          PlanChip(
-            label: context.l10n.divePlanner_label_deco,
-            value: minutes(outcome.totalDecoSeconds),
-          ),
-        PlanChip(
-          label: context.l10n.plannerCanvas_chip_cns(
-            outcome.cnsEnd.toStringAsFixed(0),
-          ),
-          tint: outcome.cnsEnd >= cnsThreshold ? Colors.orange : null,
         ),
         if (maxSeverity != null)
           PlanChip(
@@ -169,11 +184,11 @@ class PlanStatusChips extends ConsumerWidget {
 /// the chart ghost -- so this makes clear the numbers are a "what if", not
 /// the live plan.
 ///
-/// Gated on [selectedContingencyProvider], not on the raw selection ids: a
-/// selection can go stale (the tank was removed, or stopped being losable)
-/// while its id lingers, and the stats fall back to the live plan in that
-/// case. Reading the same provider the stats read keeps the chip from
-/// claiming a preview that is not in effect.
+/// Gated on [selectedContingencyProvider], not on the raw selection: a lost
+/// tank can go stale (removed, or no longer losable) while its id lingers,
+/// and only the cylinders actually dropped are named. Reading the same
+/// provider the stats read keeps the chip from claiming a preview that is
+/// not in effect.
 class ContingencyPreviewChip extends ConsumerWidget {
   const ContingencyPreviewChip({super.key});
 
@@ -184,33 +199,27 @@ class ContingencyPreviewChip extends ConsumerWidget {
 
     final units = ref.watch(unitFormatterProvider);
 
-    final lostTank = preview.lostTank;
-    final String label;
-    if (lostTank != null) {
-      label = context.l10n.plannerCanvas_contingency_lostGas(
-        lostTank.gasMix.name,
-      );
-    } else {
-      // The plan's own deviation, else the diver's Settings default (#3552).
-      final resolved = ref.watch(resolvedPlanEngineConfigProvider);
-      final depth =
-          '+${units.formatDepth(resolved.deviationDepthDelta, decimals: 0)}';
-      final time = '+${resolved.deviationTimeMinutes}′';
-      label = switch (ref.watch(selectedDeviationProvider)) {
-        'deeper' => depth,
-        'longer' => time,
-        _ => '$depth $time',
-      };
-    }
+    final selection = ref.watch(contingencySelectionProvider);
+    // The plan's own deviation, else the diver's Settings default (#3552).
+    final resolved = ref.watch(resolvedPlanEngineConfigProvider);
+    final depth =
+        '+${units.formatDepth(resolved.deviationDepthDelta, decimals: 0)}';
+    final time = '+${resolved.deviationTimeMinutes}′';
+    final deviation = [
+      if (selection.deeper) depth,
+      if (selection.longer) time,
+    ].join(' ');
+    final label = [
+      if (deviation.isNotEmpty) deviation,
+      for (final tank in preview.lostTanks)
+        context.l10n.plannerCanvas_contingency_lostGas(tank.gasMix.name),
+    ].join(' · ');
 
     return PlanChip(
       label: context.l10n.plannerCanvas_contingency_previewing(label),
       value: '✕',
       tint: Theme.of(context).colorScheme.tertiary,
-      onTap: () {
-        ref.read(selectedDeviationProvider.notifier).state = null;
-        ref.read(selectedLostGasTankIdProvider.notifier).state = null;
-      },
+      onTap: () => ref.read(contingencySelectionProvider.notifier).clear(),
     );
   }
 }

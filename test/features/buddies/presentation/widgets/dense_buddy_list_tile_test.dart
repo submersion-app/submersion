@@ -150,30 +150,31 @@ void main() {
         expect(find.byIcon(Icons.star_border), findsNothing);
       });
 
-      testWidgets(
-        'tapping the star toggles favorite without triggering onTap',
-        (tester) async {
-          final notifier = FakeBuddyListNotifier();
-          var tapped = false;
-          await tester.pumpWidget(
-            testApp(
-              overrides: [
-                buddyListNotifierProvider.overrideWith((ref) => notifier),
-              ],
-              child: DenseBuddyListTile(
-                buddy: _makeBuddy(id: 'dense-1'),
-                onTap: () => tapped = true,
-              ),
+      testWidgets('tapping the star writes nothing and opens the buddy', (
+        tester,
+      ) async {
+        final notifier = FakeBuddyListNotifier();
+        var tapped = false;
+        await tester.pumpWidget(
+          testApp(
+            overrides: [
+              buddyListNotifierProvider.overrideWith((ref) => notifier),
+            ],
+            child: DenseBuddyListTile(
+              buddy: _makeBuddy(id: 'dense-1'),
+              onTap: () => tapped = true,
             ),
-          );
+          ),
+        );
 
-          await tester.tap(find.byIcon(Icons.star_border));
-          await tester.pump();
+        await tester.tap(find.byIcon(Icons.star_border));
+        await tester.pump();
 
-          expect(notifier.toggledFavoriteIds, ['dense-1']);
-          expect(tapped, isFalse);
-        },
-      );
+        // The star only shows the favourite (issue #4527, plan 12): a
+        // tap on it is the row's.
+        expect(notifier.calls, isEmpty);
+        expect(tapped, isTrue);
+      });
     });
   });
 

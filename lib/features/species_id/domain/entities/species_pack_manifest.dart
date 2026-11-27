@@ -553,16 +553,22 @@ class SpeciesPackManifest extends Equatable {
   /// Whether [published] may replace this installed manifest in place,
   /// with nothing downloaded (issue #4721): the same pack version, and
   /// nothing changed but the naming levels, the precision measured at the
-  /// suggest bars and the credits. Anything else needs a new version.
-  bool adoptableFrom(SpeciesPackManifest published) =>
+  /// suggest bars, the credits and the files of engines other than
+  /// [engine], which this device never downloads. Anything else needs a
+  /// new version.
+  bool adoptableFrom(SpeciesPackManifest published, {required String engine}) =>
       published.packVersion == packVersion &&
       published != this &&
-      _withoutAdoptable == published._withoutAdoptable;
+      _withoutAdoptable(engine) == published._withoutAdoptable(engine);
 
   /// This manifest without what a republish may change, so a manifest
-  /// that adds levels and one that withdraws them compare alike.
-  SpeciesPackManifest get _withoutAdoptable =>
-      copyWith(naming: naming.withoutLevels, credits: const []);
+  /// that adds levels and one that withdraws them compare alike, and one
+  /// that adds another engine's models compares alike too.
+  SpeciesPackManifest _withoutAdoptable(String engine) => copyWith(
+    naming: naming.withoutLevels,
+    credits: const [],
+    files: filesFor(engine),
+  );
 
   SpeciesPackManifest copyWith({
     int? formatVersion,

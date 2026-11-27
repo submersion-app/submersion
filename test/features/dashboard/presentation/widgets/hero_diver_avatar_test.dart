@@ -129,19 +129,23 @@ void main() {
       expect(find.text('Eric Griffin'), findsOneWidget);
     });
 
-    testWidgets('shows nothing while only one profile exists', (tester) async {
+    // Shown with any number of profiles, as Home's diver pill is (#4985):
+    // one tap behaviour, and the sheet's Add new diver row is the way to a
+    // second profile.
+    testWidgets('shows the avatar with only one profile', (tester) async {
       await pumpHeader(tester, diver: () async => _eric, divers: [_eric]);
 
-      expect(find.text('EG'), findsNothing);
-      expect(find.byTooltip('Switch Diver'), findsNothing);
-      expect(find.byIcon(Icons.swap_horiz), findsNothing);
+      expect(find.text('EG'), findsOneWidget);
+      expect(find.byTooltip('Switch Diver'), findsOneWidget);
     });
 
-    testWidgets('single-profile greeting keeps the pre-avatar 18px inset', (
-      tester,
-    ) async {
-      await pumpHeader(tester, diver: () async => _eric, divers: [_eric]);
+    testWidgets('avatar collapses when no diver', (tester) async {
+      await pumpHeader(tester, diver: () async => null, divers: const []);
 
+      expect(find.byTooltip('Switch Diver'), findsNothing);
+      // The original fallback name, as before the banner was removed.
+      expect(find.textContaining(', Diver!'), findsOneWidget);
+      // No avatar and no placeholder: the greeting keeps the 18px inset.
       final headerLeft = tester.getTopLeft(find.byType(HeroHeader)).dx;
       expect(tester.getTopLeft(greeting()).dx - headerLeft, 18);
     });
@@ -189,6 +193,36 @@ void main() {
       }
       expect(find.text('SL'), findsOneWidget);
       expect(find.text('EG'), findsNothing);
+    });
+
+    testWidgets('the greeting keeps the name while the next diver loads', (
+      tester,
+    ) async {
+      final samLoads = Completer<Diver?>();
+      await pumpHeader(
+        tester,
+        diver: () async => _eric,
+        divers: [_eric, _sam],
+        diverForId: (id) => id == '2' ? samLoads.future : Future.value(_eric),
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(HeroHeader)),
+      );
+      await container
+          .read(currentDiverIdProvider.notifier)
+          .setCurrentDiver('2');
+      await tester.pump();
+      await tester.pump();
+
+      // The avatar still shows EG, so the greeting still names Eric.
+      expect(find.text('EG'), findsOneWidget);
+      expect(find.textContaining(', Eric!'), findsOneWidget);
+
+      samLoads.complete(_sam);
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.textContaining(', Sam!'), findsOneWidget);
     });
 
     testWidgets('greeting does not shift when the diver finishes loading', (

@@ -130,6 +130,20 @@ void main() {
   );
 
   test(
+    'a computer\'s dive count reads idx_dive_data_sources_computer_dive',
+    () async {
+      // diveComputerDiveCounts (issue #4846): the computer list reloads on
+      // every dive and source change, so its count must not scan sources.
+      final p = await plan(
+        db,
+        'SELECT computer_id, dive_id FROM dive_data_sources '
+        "WHERE computer_id IN ('a', 'b')",
+      );
+      expect(p, contains('idx_dive_data_sources_computer_dive'));
+    },
+  );
+
+  test(
     'surface interval lookups seek idx_dives_entry_date, never scan',
     () async {
       final p = await plan(
