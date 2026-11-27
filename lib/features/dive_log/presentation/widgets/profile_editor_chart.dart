@@ -255,9 +255,10 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
           minIncluded: false,
           maxIncluded: false,
           getTitlesWidget: (value, meta) {
+            // The padding before the first sample is not dive time. Checked
+            // before truncating, which would turn -0.5 into 0:00.
+            if (value < 0) return const SizedBox.shrink();
             final seconds = value.toInt();
-            // The padding before the first sample is not dive time.
-            if (seconds < 0) return const SizedBox.shrink();
             final minutes = seconds ~/ 60;
             final secs = seconds % 60;
             return SideTitleWidget(

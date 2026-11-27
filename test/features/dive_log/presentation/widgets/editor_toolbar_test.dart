@@ -58,10 +58,12 @@ void main() {
       expect(changes, [EditorMode.draw]);
     });
 
-    testWidgets('a large text size drops the labels on a wide screen too', (
+    testWidgets('a large text size drops labels that fit at the default', (
       tester,
     ) async {
-      await _pump(tester, width: 900, textScale: 2.0);
+      // The same width as 'shows the labels when they fit': only the text
+      // size differs.
+      await _pump(tester, width: 700, textScale: 2.0);
 
       for (final label in _labels) {
         expect(find.text(label), findsNothing);
@@ -71,7 +73,7 @@ void main() {
   });
 
   testWidgets('shows the labels when they fit', (tester) async {
-    await _pump(tester, width: 900);
+    await _pump(tester, width: 700);
 
     for (final label in _labels) {
       expect(find.text(label), findsOneWidget);
