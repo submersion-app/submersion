@@ -75,6 +75,8 @@ Future<void> importDroppedMedia(
     case DiveDropAnswer.hold:
       final session = open!.session;
       open.showMediaCard();
+      // coverage:ignore-start
+      // Ends in showPhotoPicker, like _holdDropped below; see the note there.
       await _holdDropped(
         context,
         ref,
@@ -82,6 +84,7 @@ Future<void> importDroppedMedia(
         paths,
         folderPaths: folderPaths,
       );
+    // coverage:ignore-end
   }
 }
 
