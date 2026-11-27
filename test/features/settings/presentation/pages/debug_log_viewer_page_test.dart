@@ -160,6 +160,9 @@ void main() {
       expect(find.byType(LogEntryTile), findsNWidgets(2));
       expect(find.text('App started'), findsOneWidget);
       expect(find.text('Scanning for devices'), findsOneWidget);
+      // Each row carries its date through the real settings chain, in the
+      // default date format (#4993).
+      expect(find.text('Mar 27, 2026 10:00:00.000'), findsNWidgets(2));
     });
 
     testWidgets('search toggle shows TextField with hint "Search logs..."', (
