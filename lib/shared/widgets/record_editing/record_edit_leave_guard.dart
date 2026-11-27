@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/shared/widgets/forms/discard_dialog.dart';
@@ -34,8 +36,10 @@ Future<bool> cancelSitting<T>(
 ///
 /// The system Back while the on-screen keyboard is up for a field on the
 /// page only closes the keyboard: on Android that Back is the key that
-/// hides it, and was taken for leaving the page (#4961). The app bar's back
-/// arrow is a deliberate leave and still asks.
+/// hides it, and was taken for leaving the page (#4961). Some devices also
+/// send a Back while the keyboard is moving, as a field is tapped and it
+/// opens or as it closes: that Back does nothing at all (#5059). The app
+/// bar's back arrow is a deliberate leave and still asks.
 class RecordEditLeaveGuard<T> extends StatelessWidget {
   const RecordEditLeaveGuard({
     super.key,
@@ -107,7 +111,8 @@ class RecordEditLeaveGuard<T> extends StatelessWidget {
 }
 
 /// Answers the system Back, ahead of every route, by closing the on-screen
-/// keyboard when it is up for a field in [child].
+/// keyboard when it is up for a field in [child], and by doing nothing while
+/// the keyboard is still moving.
 ///
 /// The system Back reaches the router's back button dispatcher before any
 /// [PopScope] hears of it, while the app bar's back arrow goes straight to
@@ -124,7 +129,13 @@ class _SystemBackClosesKeyboard extends StatefulWidget {
       _SystemBackClosesKeyboardState();
 }
 
-class _SystemBackClosesKeyboardState extends State<_SystemBackClosesKeyboard> {
+class _SystemBackClosesKeyboardState extends State<_SystemBackClosesKeyboard>
+    with WidgetsBindingObserver {
+  /// How long after the keyboard last moved, or a field on the page took
+  /// focus, a Back is still taken for the device's own. The keyboard's
+  /// animation takes a few hundred milliseconds.
+  static const _keyboardSettles = Duration(seconds: 1);
+
   /// Has focus whenever something in [_SystemBackClosesKeyboard.child] does;
   /// never takes focus itself.
   final _page = FocusNode(
@@ -133,19 +144,70 @@ class _SystemBackClosesKeyboardState extends State<_SystemBackClosesKeyboard> {
     skipTraversal: true,
   );
 
+  /// Runs while the keyboard is moving or has only just stopped: restarted
+  /// on every change of the window's bottom inset and whenever a field on
+  /// the page takes focus, which is when the keyboard is about to open.
+  Timer? _keyboardMoving;
+
+  /// The window's bottom inset as last seen.
+  double? _inset;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    FocusManager.instance.addListener(_onFocusChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _inset ??= View.of(context).viewInsets.bottom;
+  }
+
   @override
   void dispose() {
+    _keyboardMoving?.cancel();
+    FocusManager.instance.removeListener(_onFocusChanged);
+    WidgetsBinding.instance.removeObserver(this);
     _page.dispose();
     super.dispose();
   }
 
+  @override
+  void didChangeMetrics() {
+    if (!mounted) return;
+    final inset = View.of(context).viewInsets.bottom;
+    if (inset == _inset) return;
+    _inset = inset;
+    _keyboardMoved();
+  }
+
+  void _onFocusChanged() {
+    if (_page.hasFocus && _isField(FocusManager.instance.primaryFocus)) {
+      _keyboardMoved();
+    }
+  }
+
+  void _keyboardMoved() {
+    _keyboardMoving?.cancel();
+    _keyboardMoving = Timer(_keyboardSettles, () => _keyboardMoving = null);
+  }
+
+  static bool _isField(FocusNode? node) =>
+      node?.context?.findAncestorStateOfType<EditableTextState>() != null;
+
   Future<bool> _onSystemBack() async {
+    // The keyboard is opening or closing: the Back came with it, not from
+    // the diver, and the page and the keyboard stay as they are. Only while
+    // this page is on top: a page above answers its own Back.
+    if (_keyboardMoving != null &&
+        (ModalRoute.of(context)?.isCurrent ?? true)) {
+      return true;
+    }
     final field = FocusManager.instance.primaryFocus;
     // A field on another page (one pushed above this) answers its own Back.
-    if (field == null || !_page.hasFocus) return false;
-    if (field.context?.findAncestorStateOfType<EditableTextState>() == null) {
-      return false;
-    }
+    if (field == null || !_page.hasFocus || !_isField(field)) return false;
     // The window, not MediaQuery: a Scaffold body above this page (the
     // shell's) has the keyboard's inset taken out of its MediaQuery.
     if (View.of(context).viewInsets.bottom <= 0) return false;

@@ -10,6 +10,11 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard
 // keyboard. A Back that reaches the page while the keyboard is up closes
 // the keyboard and nothing else: it neither leaves the page nor asks
 // about unsaved changes (#4961).
+//
+// Some devices also send a Back while the keyboard is moving: as a field is
+// tapped and the keyboard opens, or as it closes. That Back is not the
+// diver leaving, and it asks nothing and leaves the keyboard as it is
+// (#5059).
 
 @immutable
 class _Rec {
@@ -105,11 +110,13 @@ Widget _shell(bool inShellBody, Widget page) =>
     inShellBody ? Scaffold(body: page) : page;
 
 /// Puts the caret in [field] and, when [keyboardUp], the on-screen
-/// keyboard over the bottom of the window, as Android does.
+/// keyboard over the bottom of the window, as Android does. With [settle]
+/// the keyboard then stays still long enough that a Back is the diver's.
 Future<void> _typeIn(
   WidgetTester tester,
   Key field, {
   bool keyboardUp = true,
+  bool settle = true,
 }) async {
   await tester.showKeyboard(find.byKey(field));
   if (keyboardUp) {
@@ -118,7 +125,13 @@ Future<void> _typeIn(
   }
   await tester.pump();
   expect(_focused(tester, field), isTrue);
+  if (settle) await _keyboardSettles(tester);
 }
+
+/// Long enough after the keyboard last moved, or a field took focus, that
+/// a Back is the diver's own.
+Future<void> _keyboardSettles(WidgetTester tester) =>
+    tester.pump(const Duration(seconds: 2));
 
 bool _focused(WidgetTester tester, Key field) => tester
     .widget<EditableText>(
@@ -130,10 +143,12 @@ bool _focused(WidgetTester tester, Key field) => tester
     .focusNode
     .hasFocus;
 
-/// What the keyboard closing does to the window.
-Future<void> _keyboardGoes(WidgetTester tester) async {
+/// What the keyboard closing does to the window. With [settle] it has
+/// been gone long enough that a Back is the diver's.
+Future<void> _keyboardGoes(WidgetTester tester, {bool settle = true}) async {
   tester.view.resetViewInsets();
   await tester.pumpAndSettle();
+  if (settle) await _keyboardSettles(tester);
 }
 
 void main() {
@@ -282,5 +297,89 @@ void main() {
     expect(find.text('Record'), findsOneWidget);
     expect(_focused(tester, _field), isFalse);
     expect(controller.isUnlocked, isFalse);
+  });
+  testWidgets('with changes, a Back as a field is tapped and the keyboard '
+      'opens asks nothing and keeps the field (#5059)', (tester) async {
+    final controller = await _open(tester);
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'changed');
+    // The field has focus, the keyboard has not moved the window yet.
+    await _typeIn(tester, _field, keyboardUp: false, settle: false);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Discard changes?'), findsNothing);
+    expect(find.text('Record'), findsOneWidget);
+    expect(_focused(tester, _field), isTrue);
+    expect(controller.isUnlocked, isTrue);
+    expect(controller.isDirty, isTrue);
+  });
+
+  testWidgets('with changes, a Back while the keyboard is still opening '
+      'keeps the field, even part way up (#5059)', (tester) async {
+    final controller = await _open(tester);
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'changed');
+    await _typeIn(tester, _field, keyboardUp: false, settle: false);
+    tester.view.viewInsets = const FakeViewPadding(bottom: 120);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pump();
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Discard changes?'), findsNothing);
+    expect(_focused(tester, _field), isTrue);
+  });
+
+  testWidgets('with changes, a Back while the keyboard is moving and no '
+      'field holds focus for a moment asks nothing (#5059)', (tester) async {
+    final controller = await _open(tester);
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'changed');
+    await _typeIn(tester, _field, keyboardUp: false);
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pump();
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Discard changes?'), findsNothing);
+    expect(find.text('Record'), findsOneWidget);
+  });
+
+  testWidgets('with changes, a Back as the keyboard closes asks nothing '
+      '(#5059)', (tester) async {
+    final controller = await _open(tester);
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'changed');
+    await _typeIn(tester, _field);
+    await _keyboardGoes(tester, settle: false);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Discard changes?'), findsNothing);
+    expect(find.text('Record'), findsOneWidget);
+    expect(controller.isDirty, isTrue);
+  });
+
+  testWidgets('with changes, Back still asks once the keyboard has opened '
+      'and gone again', (tester) async {
+    final controller = await _open(tester);
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'changed');
+    await _typeIn(tester, _field);
+    FocusManager.instance.primaryFocus?.unfocus();
+    await _keyboardGoes(tester);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Discard changes?'), findsOneWidget);
   });
 }
