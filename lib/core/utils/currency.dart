@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/utils/currency_catalog.dart';
+import 'package:submersion/core/utils/latin_fold.dart';
 
 /// The preferred currencies a diver starts with, listed first in every
 /// currency picker until they choose their own in Settings.
@@ -70,12 +71,13 @@ List<String> allCurrencyCodesWith(
 }
 
 /// Whether [code] matches a search for [query]: by code or by English name,
-/// ignoring case. A blank query matches everything.
+/// ignoring case and Latin accents. A blank query matches everything.
 bool currencyMatchesQuery(String code, String query) {
-  final needle = query.trim().toLowerCase();
+  final needle = foldLatinForSearch(query.trim());
   if (needle.isEmpty) return true;
   if (code.toLowerCase().contains(needle)) return true;
-  return isoCurrencyName(code)?.toLowerCase().contains(needle) ?? false;
+  final name = isoCurrencyName(code);
+  return name != null && foldLatinForSearch(name).contains(needle);
 }
 
 /// The symbol for [currencyCode] (e.g. 'EUR' -> '€'), falling back to the

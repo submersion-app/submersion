@@ -238,6 +238,17 @@ void main() {
       expect(currencyMatchesQuery('BRL', 'peso'), isFalse);
     });
 
+    test('ignores Latin accents in the name and in the query', () {
+      expect(currencyMatchesQuery('PLN', 'zloty'), isTrue);
+      expect(currencyMatchesQuery('CRC', 'colon'), isTrue);
+      expect(currencyMatchesQuery('VND', 'dong'), isTrue);
+      expect(currencyMatchesQuery('MNT', 'tugrug'), isFalse);
+      expect(currencyMatchesQuery('MNT', 'togrog'), isTrue);
+      expect(currencyMatchesQuery('TOP', 'paanga'), isTrue);
+      expect(currencyMatchesQuery('ISK', 'KRÓNA'), isTrue);
+      expect(currencyMatchesQuery('PLN', 'Złoty'), isTrue);
+    });
+
     test('a code outside the catalog matches by code only', () {
       expect(currencyMatchesQuery('XAU', 'xa'), isTrue);
       expect(currencyMatchesQuery('XAU', 'gold'), isFalse);
