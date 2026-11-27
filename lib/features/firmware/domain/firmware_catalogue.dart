@@ -110,10 +110,7 @@ class FirmwareCatalogue extends Equatable {
       return FirmwareCatalogue(
         format: knownFormat,
         generatedAt: _date(json['generatedAt']),
-        models: [
-          for (final m in models)
-            if (_model(m as Map<String, dynamic>) case final model?) model,
-        ],
+        models: [for (final m in models) ?_model(m as Map<String, dynamic>)],
       );
     } catch (_) {
       // FormatException from jsonDecode, TypeError from a cast: either way
@@ -127,7 +124,7 @@ class FirmwareCatalogue extends Equatable {
   static FirmwareModel? _model(Map<String, dynamic> m) {
     final types = {
       for (final name in _strings(m['equipmentTypes']))
-        if (EquipmentType.values.asNameMap()[name] case final type?) type,
+        ?EquipmentType.values.asNameMap()[name],
     };
     final releases = [
       for (final r in m['releases'] as List<dynamic>)
