@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
+import 'package:submersion/features/dive_log/domain/services/hydrotank_role_upgrade.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
 import 'package:submersion/features/dive_log/domain/services/source_ownership.dart';
 import 'package:submersion/features/dive_log/data/repositories/stored_tank_serial_fill.dart';
@@ -545,6 +546,13 @@ class DiveReimportService {
       final serial = normalizeTransmitterSerial(
         t['transmitterSerial'] as String?,
       );
+      // The file's role, as a parser writes it (an enum or its name); a name
+      // this build does not know is none.
+      final fileRole = switch (t['role']) {
+        final TankRole role => role.name,
+        final String name => TankRole.values.asNameMap()[name]?.name,
+        _ => null,
+      };
 
       final row = matched[i];
       if (row != null) {
@@ -576,6 +584,18 @@ class DiveReimportService {
               final fill? => Value(fill),
               null => const Value.absent(),
             },
+            // The role stays the diver's, save an Avelo Hydrotank stored as
+            // back gas before the Hydrotank role, the case a Shearwater Cloud
+            // import has no re-parse for (issue #4665). Written before the
+            // transmitter setup below, which fills only a back gas.
+            tankRole:
+                upgradesToHydrotank(
+                  storedRole: row.tankRole,
+                  storedRoleSource: row.roleSource,
+                  parsedRole: fileRole,
+                )
+                ? Value(TankRole.hydrotank.name)
+                : const Value.absent(),
           ),
         );
         await _syncRepository.markRecordPending(
@@ -599,6 +619,9 @@ class DiveReimportService {
                 hePercent: Value(hePercent ?? 0.0),
                 usageDuration: Value(usageSeconds),
                 transmitterSerial: Value(serial),
+                tankRole: fileRole != null
+                    ? Value(fileRole)
+                    : const Value.absent(),
               ),
             );
         await _syncRepository.markRecordPending(
