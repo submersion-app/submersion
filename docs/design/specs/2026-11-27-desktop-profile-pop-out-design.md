@@ -255,6 +255,37 @@ never calls them.
   a spike on macOS. If a second engine cannot use the main window's worker,
   stop and bring it back to the diver before building the rest.
 
+## Spike findings (2026-11-27)
+
+A standalone macOS app (Flutter 3.47, `desktop_multi_window` 0.3.1, drift
+2.35.3, `window_manager` 0.5.2), outside this repo, proved the risky piece:
+
+- A second window's engine found the first engine's Drift worker port
+  through `IsolateNameServer` and connected with `serialize: true` and
+  `singleClientMode: false`. It read the same database.
+- Every table update the main engine announced reached the pop-out within
+  about 2 ms.
+- `WindowMethodChannel` (bidirectional, the default) carried calls both
+  ways.
+- `window_manager` 0.5.2 binds to its own engine's window
+  (`registrar.view?.window`, set lazily), so the pop-out retitled only
+  itself. The patched fork the plugin's README mentions is not needed.
+- The pop-out closing its connection and its window left the worker
+  serving the main engine.
+
+Two build calls followed from reading the plugin:
+
+- **Vendor `desktop_multi_window`** under `packages/`, as the repo already
+  does for `auto_updater_windows`. On macOS it creates each window's engine
+  with a plain `FlutterDartProject()`, which would put the pop-out on
+  Impeller on Intel Macs and bring back the flicker of #3531. The vendored
+  copy adds a hook so the runner supplies the project
+  (`RendererDartProject`).
+- **Register an allowlist of plugins in the pop-out's engine**, not
+  `RegisterGeneratedPlugins`. Some plugins take process-wide hooks when they
+  register (a notification-center delegate, URL handlers, the updater), and
+  a second registration would take them from the main window.
+
 ## Left to the builder
 
 - Message names and payload shapes on the channel.
