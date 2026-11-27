@@ -190,6 +190,10 @@ class DiveDetailProfileSection extends ConsumerWidget {
   }) {
     final scope = RecordEditScope.maybeOf<Dive>(context);
     final session = editing ?? scope?.session;
+    // The full toolbar needs room for the pop-out button where it shows.
+    final fullToolbarMinWidth =
+        _fullToolbarMinWidth +
+        (ref.watch(popOutAvailableProvider) ? _popOutButtonWidth : 0);
     // The profile is changed in the open card only (issue #4527), and its
     // annotations only once the sitting holds them: until then (or after a
     // failed read) a pin, a move or a removal would go nowhere.
@@ -293,12 +297,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
             LayoutBuilder(
               builder: (context, constraints) {
                 final bar = toolbar(
-                  narrow:
-                      constraints.maxWidth <
-                      _fullToolbarMinWidth +
-                          (ref.watch(popOutAvailableProvider)
-                              ? _popOutButtonWidth
-                              : 0),
+                  narrow: constraints.maxWidth < fullToolbarMinWidth,
                 );
                 return editing != null
                     ? Align(

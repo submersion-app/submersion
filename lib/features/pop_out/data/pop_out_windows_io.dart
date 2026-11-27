@@ -72,24 +72,29 @@ class _WindowPopOutChannel implements PopOutChannel {
     }
   }
 
+  /// The last registration or removal, so a removal waits for a pending
+  /// registration: removing before it lands would remove nothing, and the
+  /// registration would then hold the channel.
+  Future<void> _pending = Future<void>.value();
+
   @override
   void setHandler(void Function(PopOutMessage message)? handler) {
-    final Future<void> registered;
-    try {
-      registered = _channel.setMethodCallHandler(
-        handler == null
-            ? null
-            : (call) async {
-                final message = PopOutMessage.fromCall(call);
-                if (message != null) handler(message);
-                return null;
-              },
-      );
-    } on MissingPluginException {
-      return;
-    }
-    registered.catchError((Object e) {
-      _log.warning('Could not register the pop-out channel: $e');
+    _pending = _pending.then((_) async {
+      try {
+        await _channel.setMethodCallHandler(
+          handler == null
+              ? null
+              : (call) async {
+                  final message = PopOutMessage.fromCall(call);
+                  if (message != null) handler(message);
+                  return null;
+                },
+        );
+      } on MissingPluginException {
+        // No multi-window plugin in this engine.
+      } catch (e) {
+        _log.warning('Could not change the pop-out channel handler: $e');
+      }
     });
   }
 }

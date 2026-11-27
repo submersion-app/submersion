@@ -63,7 +63,11 @@ class ReadOnlyQueryInterceptor extends QueryInterceptor {
     'user_version',
   };
 
+  /// A second statement after a `;`, which sqlite runs too.
+  static final _chained = RegExp(r';\s*\S');
+
   static bool _isRead(String statement) {
+    if (_chained.hasMatch(statement)) return false;
     if (_select.hasMatch(statement)) return true;
     if (_with.hasMatch(statement)) return !_writeVerb.hasMatch(statement);
     final pragma = _pragma.firstMatch(statement);

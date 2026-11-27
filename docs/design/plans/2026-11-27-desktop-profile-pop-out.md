@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Desktop only: every entry point checks `!HostPlatform.isWeb && HostPlatform.isDesktop` (through `popOutAvailableProvider` in UI). Never read `dart:io` `Platform` directly (`host_platform_single_source_test`).
+- Desktop only: the UI offers pop-outs through `popOutAvailableProvider`, which checks the target platform (`isDesktopTargetPlatform(defaultTargetPlatform)`, not web), not the host: widget tests run on a Mac host but lay out as Android, and must not gain a button no phone has. Never read `dart:io` `Platform` directly (`host_platform_single_source_test`).
 - `package:drift/isolate.dart` and `desktop_multi_window` are imported only from `*_io.dart` files behind a facade with a web stub (`web_compile_seams_test`).
 - The pop-out writes nothing: no database statement other than reads, no SharedPreferences write that reaches disk, no notification scheduling.
 - Only the main window writes SharedPreferences.

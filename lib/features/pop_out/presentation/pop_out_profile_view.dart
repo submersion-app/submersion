@@ -20,9 +20,10 @@ class PopOutProfileView extends ConsumerWidget {
     final client = ref.watch(popOutClientProvider);
     if (client.locked) {
       // The title shows in the Dock, the taskbar and the window switcher.
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => ref.read(popOutWindowControlProvider).setTitle('Submersion'),
-      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        ref.read(popOutWindowControlProvider).setTitle('Submersion');
+      });
       return _Message(
         icon: Icons.lock_outline,
         text: context.l10n.popOut_lockedPlaceholder,

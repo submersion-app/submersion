@@ -122,4 +122,13 @@ void main() {
     );
     expect(reported, ['DELETE FROM t']);
   });
+
+  test('a write chained after a SELECT is refused', () async {
+    await expectLater(
+      readOnly.customStatement('SELECT 1; DELETE FROM t'),
+      throwsA(isA<ReadOnlyViolation>()),
+    );
+    final rows = await writer.customSelect('SELECT id FROM t').get();
+    expect(rows, hasLength(1));
+  });
 }

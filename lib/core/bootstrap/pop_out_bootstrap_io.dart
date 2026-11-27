@@ -102,11 +102,12 @@ Future<bool> _joinDatabases(PopOutChannel channel) async {
     kLocalCacheDatabasePortName,
     interceptor: ReadOnlyQueryInterceptor(onRefused: reportRefusal),
   );
-  if (cache != null) {
-    LocalCacheDatabaseService.instance.attachSharedDatabase(
-      LocalCacheDatabase(cache),
-    );
-  }
+  // Without the cache, every screen part that reads it would fail; show
+  // the could-not-connect message instead.
+  if (cache == null) return false;
+  LocalCacheDatabaseService.instance.attachSharedDatabase(
+    LocalCacheDatabase(cache),
+  );
   return true;
 }
 
