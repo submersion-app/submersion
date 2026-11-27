@@ -30893,12 +30893,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_units_gasConsumption => 'צריכת גז';
 
   @override
-  String get settings_units_defaultCurrency => 'מטבע ברירת מחדל';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'מטבע ברירת מחדל';
-
-  @override
   String get settings_units_temperature => 'טמפרטורה';
 
   @override
@@ -65496,27 +65490,31 @@ class AppLocalizationsHe extends AppLocalizations {
   String get currencyPicker_noMatches => 'אין מטבע תואם';
 
   @override
-  String get settings_units_preferredCurrencies => 'מטבעות מועדפים';
+  String get settings_currencies_title => 'מטבעות';
 
   @override
-  String get settings_units_preferredCurrencies_subtitle =>
-      'מופיעים ראשונים בכל בורר מטבע';
+  String get settings_currencies_subtitle =>
+      'מטבע ברירת המחדל והמטבעות שמופיעים ראשונים';
 
   @override
-  String settings_units_preferredCurrencies_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count מטבעות',
-      one: 'מטבע אחד',
-      zero: 'אין',
-    );
-    return '$_temp0';
-  }
+  String get settings_currencies_enabled => 'מטבעות מופעלים';
 
   @override
-  String get settings_units_preferredCurrencies_reset => 'איפוס לברירות המחדל';
+  String get settings_currencies_enabledHint =>
+      'מופיעים ראשונים בכל בורר מטבע, בסדר הזה. גררו כדי לשנות את הסדר. הקישו על הכוכב כדי לבחור את ברירת המחדל.';
 
   @override
-  String get settings_conflict_field_preferredCurrencyCodes => 'מטבעות מועדפים';
+  String get settings_currencies_other => 'מטבעות נוספים';
+
+  @override
+  String get settings_currencies_default => 'ברירת מחדל';
+
+  @override
+  String get settings_currencies_setDefault => 'הגדרה כמטבע ברירת המחדל';
+
+  @override
+  String get settings_currencies_reset => 'איפוס לברירות המחדל';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes => 'מטבעות מופעלים';
 }

@@ -69,8 +69,6 @@
   "diveLog_tank_saveAsPreset_nameTitle": "Enregistrer le preset de bloc",
   "diveLog_tank_saveAsPreset_nameHint": "p. ex. Mon AL80",
   "diveLog_tank_saveAsPreset_saved": "Preset \"{name}\" enregistré",
-  "settings_units_defaultCurrency": "Devise par défaut",
-  "settings_units_dialog_defaultCurrency": "Devise par défaut",
   "diveSites_list_menu_fillLocationDetails": "Compléter les informations de lieu manquantes",
   "diveSites_backfill_confirm_title": "Compléter les informations de lieu manquantes ?",
   "diveSites_backfill_confirm_body": "{count, plural, =1{{count} site avec coordonnées n'a pas de pays, de région, de ville ou de plan d'eau.} other{{count} sites avec coordonnées n'ont pas de pays, de région, de ville ou de plan d'eau.}} Submersion recherchera chacun sur OpenStreetMap et ne remplira que les champs vides. Cela prend environ {minutes, plural, =1{{minutes} minute} other{{minutes} minutes}}.",
@@ -19449,9 +19447,13 @@
   "currencyPicker_section_preferred": "Préférées",
   "currencyPicker_section_all": "Toutes les devises",
   "currencyPicker_noMatches": "Aucune devise ne correspond",
-  "settings_units_preferredCurrencies": "Devises préférées",
-  "settings_units_preferredCurrencies_subtitle": "Affichées en premier dans chaque sélecteur de devise",
-  "settings_units_preferredCurrencies_count": "{count, plural, =0{Aucune} =1{{count} devise} other{{count} devises}}",
-  "settings_units_preferredCurrencies_reset": "Rétablir les valeurs par défaut",
-  "settings_conflict_field_preferredCurrencyCodes": "Devises préférées"
+  "settings_currencies_title": "Devises",
+  "settings_currencies_subtitle": "Devise par défaut et celles proposées en premier",
+  "settings_currencies_enabled": "Devises activées",
+  "settings_currencies_enabledHint": "Proposées en premier dans chaque sélecteur de devise, dans cet ordre. Faites glisser pour réordonner. Touchez l'étoile pour choisir la devise par défaut.",
+  "settings_currencies_other": "Autres devises",
+  "settings_currencies_default": "Par défaut",
+  "settings_currencies_setDefault": "Définir comme devise par défaut",
+  "settings_currencies_reset": "Rétablir les valeurs par défaut",
+  "settings_conflict_field_preferredCurrencyCodes": "Devises activées"
 }

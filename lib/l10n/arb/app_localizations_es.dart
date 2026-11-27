@@ -31698,12 +31698,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_units_gasConsumption => 'Consumo de gas';
 
   @override
-  String get settings_units_defaultCurrency => 'Moneda predeterminada';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'Moneda predeterminada';
-
-  @override
   String get settings_units_temperature => 'Temperatura';
 
   @override
@@ -66900,29 +66894,33 @@ class AppLocalizationsEs extends AppLocalizations {
   String get currencyPicker_noMatches => 'Ninguna moneda coincide';
 
   @override
-  String get settings_units_preferredCurrencies => 'Monedas preferidas';
+  String get settings_currencies_title => 'Monedas';
 
   @override
-  String get settings_units_preferredCurrencies_subtitle =>
-      'Aparecen primero en cada selector de moneda';
+  String get settings_currencies_subtitle =>
+      'Moneda predeterminada y las que aparecen primero en los selectores';
 
   @override
-  String settings_units_preferredCurrencies_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count monedas',
-      one: '1 moneda',
-      zero: 'Ninguna',
-    );
-    return '$_temp0';
-  }
+  String get settings_currencies_enabled => 'Monedas activadas';
 
   @override
-  String get settings_units_preferredCurrencies_reset =>
-      'Restablecer valores predeterminados';
+  String get settings_currencies_enabledHint =>
+      'Aparecen primero en cada selector de moneda, en este orden. Arrastra para reordenar. Toca la estrella para elegir la predeterminada.';
+
+  @override
+  String get settings_currencies_other => 'Otras monedas';
+
+  @override
+  String get settings_currencies_default => 'Predeterminada';
+
+  @override
+  String get settings_currencies_setDefault =>
+      'Establecer como moneda predeterminada';
+
+  @override
+  String get settings_currencies_reset => 'Restablecer valores predeterminados';
 
   @override
   String get settings_conflict_field_preferredCurrencyCodes =>
-      'Monedas preferidas';
+      'Monedas activadas';
 }

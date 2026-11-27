@@ -31157,12 +31157,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_units_gasConsumption => 'Gas consumption';
 
   @override
-  String get settings_units_defaultCurrency => 'Default Currency';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'Default Currency';
-
-  @override
   String get settings_units_temperature => 'Temperature';
 
   @override
@@ -65839,28 +65833,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get currencyPicker_noMatches => 'No currency matches';
 
   @override
-  String get settings_units_preferredCurrencies => 'Preferred currencies';
+  String get settings_currencies_title => 'Currencies';
 
   @override
-  String get settings_units_preferredCurrencies_subtitle =>
-      'Listed first in every currency picker';
+  String get settings_currencies_subtitle =>
+      'Default currency and the ones listed first in pickers';
 
   @override
-  String settings_units_preferredCurrencies_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count currencies',
-      one: '1 currency',
-      zero: 'None',
-    );
-    return '$_temp0';
-  }
+  String get settings_currencies_enabled => 'Enabled currencies';
 
   @override
-  String get settings_units_preferredCurrencies_reset => 'Reset to defaults';
+  String get settings_currencies_enabledHint =>
+      'Listed first in every currency picker, in this order. Drag to reorder. Tap the star to choose the default.';
+
+  @override
+  String get settings_currencies_other => 'Other currencies';
+
+  @override
+  String get settings_currencies_default => 'Default';
+
+  @override
+  String get settings_currencies_setDefault => 'Set as default currency';
+
+  @override
+  String get settings_currencies_reset => 'Reset to defaults';
 
   @override
   String get settings_conflict_field_preferredCurrencyCodes =>
-      'Preferred currencies';
+      'Enabled currencies';
 }

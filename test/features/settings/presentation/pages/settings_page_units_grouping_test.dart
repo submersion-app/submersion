@@ -81,7 +81,7 @@ void main() {
     }
     for (final other in [
       'Gas consumption',
-      'Default Currency',
+      'Currencies',
       'Coordinate format',
       'Time Format',
     ]) {
@@ -112,7 +112,7 @@ void main() {
     expect(find.text('Individual Units'), findsNothing);
 
     expect(inCard('Gas consumption', 'Unit follows pressure and volume'), true);
-    expect(inCard('Coordinate format', 'Default Currency'), isTrue);
+    expect(inCard('Coordinate format', 'Currencies'), isTrue);
     expect(inCard('Time Format', 'First day of week'), isTrue);
   });
 

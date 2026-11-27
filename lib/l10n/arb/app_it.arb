@@ -69,8 +69,6 @@
   "diveLog_tank_saveAsPreset_nameTitle": "Salva preset bombola",
   "diveLog_tank_saveAsPreset_nameHint": "es. La mia AL80",
   "diveLog_tank_saveAsPreset_saved": "Preset \"{name}\" salvato",
-  "settings_units_defaultCurrency": "Valuta predefinita",
-  "settings_units_dialog_defaultCurrency": "Valuta predefinita",
   "diveSites_list_menu_fillLocationDetails": "Completa i dettagli di località mancanti",
   "diveSites_backfill_confirm_title": "Completare i dettagli di località mancanti?",
   "diveSites_backfill_confirm_body": "{count, plural, =1{1 sito con coordinate non ha paese, regione, città o specchio d'acqua.} other{{count} siti con coordinate non hanno paese, regione, città o specchio d'acqua.}} Submersion cercherà ciascuno su OpenStreetMap e compilerà solo i campi vuoti. Richiede circa {minutes, plural, =1{1 minuto} other{{minutes} minuti}}.",
@@ -19449,9 +19447,13 @@
   "currencyPicker_section_preferred": "Preferite",
   "currencyPicker_section_all": "Tutte le valute",
   "currencyPicker_noMatches": "Nessuna valuta corrisponde",
-  "settings_units_preferredCurrencies": "Valute preferite",
-  "settings_units_preferredCurrencies_subtitle": "Mostrate per prime in ogni selettore di valuta",
-  "settings_units_preferredCurrencies_count": "{count, plural, =0{Nessuna} =1{1 valuta} other{{count} valute}}",
-  "settings_units_preferredCurrencies_reset": "Ripristina predefinite",
-  "settings_conflict_field_preferredCurrencyCodes": "Valute preferite"
+  "settings_currencies_title": "Valute",
+  "settings_currencies_subtitle": "Valuta predefinita e quelle elencate per prime",
+  "settings_currencies_enabled": "Valute attivate",
+  "settings_currencies_enabledHint": "Elencate per prime in ogni selettore di valuta, in quest'ordine. Trascina per riordinare. Tocca la stella per scegliere quella predefinita.",
+  "settings_currencies_other": "Altre valute",
+  "settings_currencies_default": "Predefinita",
+  "settings_currencies_setDefault": "Imposta come valuta predefinita",
+  "settings_currencies_reset": "Ripristina predefinite",
+  "settings_conflict_field_preferredCurrencyCodes": "Valute attivate"
 }

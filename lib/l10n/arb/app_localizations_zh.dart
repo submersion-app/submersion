@@ -29814,12 +29814,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_units_gasConsumption => '气体消耗';
 
   @override
-  String get settings_units_defaultCurrency => '默认货币';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => '默认货币';
-
-  @override
   String get settings_units_temperature => '温度';
 
   @override
@@ -62646,25 +62640,30 @@ class AppLocalizationsZh extends AppLocalizations {
   String get currencyPicker_noMatches => '没有匹配的货币';
 
   @override
-  String get settings_units_preferredCurrencies => '首选货币';
+  String get settings_currencies_title => '货币';
 
   @override
-  String get settings_units_preferredCurrencies_subtitle => '在每个货币选择器中排在最前';
+  String get settings_currencies_subtitle => '默认货币及在选择器中优先列出的货币';
 
   @override
-  String settings_units_preferredCurrencies_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count 种货币',
-      zero: '无',
-    );
-    return '$_temp0';
-  }
+  String get settings_currencies_enabled => '已启用的货币';
 
   @override
-  String get settings_units_preferredCurrencies_reset => '恢复默认';
+  String get settings_currencies_enabledHint =>
+      '按此顺序列在每个货币选择器的最前面。拖动以重新排序。点按星标即可设为默认货币。';
 
   @override
-  String get settings_conflict_field_preferredCurrencyCodes => '首选货币';
+  String get settings_currencies_other => '其他货币';
+
+  @override
+  String get settings_currencies_default => '默认';
+
+  @override
+  String get settings_currencies_setDefault => '设为默认货币';
+
+  @override
+  String get settings_currencies_reset => '恢复默认';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes => '已启用的货币';
 }

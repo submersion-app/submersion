@@ -31515,12 +31515,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_units_gasConsumption => 'Gázfogyasztás';
 
   @override
-  String get settings_units_defaultCurrency => 'Alapértelmezett pénznem';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'Alapértelmezett pénznem';
-
-  @override
   String get settings_units_temperature => 'Hőmérséklet';
 
   @override
@@ -66466,30 +66460,33 @@ class AppLocalizationsHu extends AppLocalizations {
   String get currencyPicker_noMatches => 'Nincs egyező pénznem';
 
   @override
-  String get settings_units_preferredCurrencies =>
-      'Előnyben részesített pénznemek';
+  String get settings_currencies_title => 'Pénznemek';
 
   @override
-  String get settings_units_preferredCurrencies_subtitle =>
-      'Minden pénznemválasztóban elöl jelennek meg';
+  String get settings_currencies_subtitle =>
+      'Alapértelmezett pénznem és az elsőként felkínáltak';
 
   @override
-  String settings_units_preferredCurrencies_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count pénznem',
-      one: '1 pénznem',
-      zero: 'Nincs',
-    );
-    return '$_temp0';
-  }
+  String get settings_currencies_enabled => 'Engedélyezett pénznemek';
 
   @override
-  String get settings_units_preferredCurrencies_reset =>
-      'Alapértelmezések visszaállítása';
+  String get settings_currencies_enabledHint =>
+      'Minden pénznemválasztóban elsőként, ebben a sorrendben jelennek meg. Húzd az átrendezéshez. Koppints a csillagra az alapértelmezett kiválasztásához.';
+
+  @override
+  String get settings_currencies_other => 'További pénznemek';
+
+  @override
+  String get settings_currencies_default => 'Alapértelmezett';
+
+  @override
+  String get settings_currencies_setDefault =>
+      'Beállítás alapértelmezett pénznemként';
+
+  @override
+  String get settings_currencies_reset => 'Alapértelmezések visszaállítása';
 
   @override
   String get settings_conflict_field_preferredCurrencyCodes =>
-      'Előnyben részesített pénznemek';
+      'Engedélyezett pénznemek';
 }

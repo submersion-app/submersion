@@ -69,8 +69,6 @@
   "diveLog_tank_saveAsPreset_nameTitle": "Flesvoorinstelling opslaan",
   "diveLog_tank_saveAsPreset_nameHint": "bijv. Mijn AL80",
   "diveLog_tank_saveAsPreset_saved": "Voorinstelling \"{name}\" opgeslagen",
-  "settings_units_defaultCurrency": "Standaardvaluta",
-  "settings_units_dialog_defaultCurrency": "Standaardvaluta",
   "diveSites_list_menu_fillLocationDetails": "Ontbrekende locatiegegevens aanvullen",
   "diveSites_backfill_confirm_title": "Ontbrekende locatiegegevens aanvullen?",
   "diveSites_backfill_confirm_body": "{count, plural, =1{1 duikstek met coördinaten heeft geen land, regio, plaats of water.} other{{count} duikstekken met coördinaten hebben geen land, regio, plaats of water.}} Submersion zoekt elke stek op via OpenStreetMap en vult alleen lege velden in. Dit duurt ongeveer {minutes, plural, =1{1 minuut} other{{minutes} minuten}}.",
@@ -19449,9 +19447,13 @@
   "currencyPicker_section_preferred": "Voorkeur",
   "currencyPicker_section_all": "Alle valuta",
   "currencyPicker_noMatches": "Geen valuta gevonden",
-  "settings_units_preferredCurrencies": "Voorkeursvaluta",
-  "settings_units_preferredCurrencies_subtitle": "Staan bovenaan in elke valutakiezer",
-  "settings_units_preferredCurrencies_count": "{count, plural, =0{Geen} =1{1 valuta} other{{count} valuta}}",
-  "settings_units_preferredCurrencies_reset": "Standaardwaarden herstellen",
-  "settings_conflict_field_preferredCurrencyCodes": "Voorkeursvaluta"
+  "settings_currencies_title": "Valuta's",
+  "settings_currencies_subtitle": "Standaardvaluta en de valuta's die bovenaan staan",
+  "settings_currencies_enabled": "Ingeschakelde valuta's",
+  "settings_currencies_enabledHint": "Staan bovenaan in elke valutakeuze, in deze volgorde. Sleep om te herschikken. Tik op de ster om de standaardvaluta te kiezen.",
+  "settings_currencies_other": "Overige valuta's",
+  "settings_currencies_default": "Standaard",
+  "settings_currencies_setDefault": "Als standaardvaluta instellen",
+  "settings_currencies_reset": "Standaardwaarden herstellen",
+  "settings_conflict_field_preferredCurrencyCodes": "Ingeschakelde valuta's"
 }

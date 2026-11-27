@@ -31692,12 +31692,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_units_gasConsumption => 'Consumo di gas';
 
   @override
-  String get settings_units_defaultCurrency => 'Valuta predefinita';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'Valuta predefinita';
-
-  @override
   String get settings_units_temperature => 'Temperatura';
 
   @override
@@ -66863,29 +66857,33 @@ class AppLocalizationsIt extends AppLocalizations {
   String get currencyPicker_noMatches => 'Nessuna valuta corrisponde';
 
   @override
-  String get settings_units_preferredCurrencies => 'Valute preferite';
+  String get settings_currencies_title => 'Valute';
 
   @override
-  String get settings_units_preferredCurrencies_subtitle =>
-      'Mostrate per prime in ogni selettore di valuta';
+  String get settings_currencies_subtitle =>
+      'Valuta predefinita e quelle elencate per prime';
 
   @override
-  String settings_units_preferredCurrencies_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count valute',
-      one: '1 valuta',
-      zero: 'Nessuna',
-    );
-    return '$_temp0';
-  }
+  String get settings_currencies_enabled => 'Valute attivate';
 
   @override
-  String get settings_units_preferredCurrencies_reset =>
-      'Ripristina predefinite';
+  String get settings_currencies_enabledHint =>
+      'Elencate per prime in ogni selettore di valuta, in quest\'ordine. Trascina per riordinare. Tocca la stella per scegliere quella predefinita.';
+
+  @override
+  String get settings_currencies_other => 'Altre valute';
+
+  @override
+  String get settings_currencies_default => 'Predefinita';
+
+  @override
+  String get settings_currencies_setDefault =>
+      'Imposta come valuta predefinita';
+
+  @override
+  String get settings_currencies_reset => 'Ripristina predefinite';
 
   @override
   String get settings_conflict_field_preferredCurrencyCodes =>
-      'Valute preferite';
+      'Valute attivate';
 }

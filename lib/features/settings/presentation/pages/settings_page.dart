@@ -21,8 +21,6 @@ import 'package:submersion/features/settings/presentation/pages/safety_hub_page.
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/widgets/coordinate_format_picker.dart';
-import 'package:submersion/features/settings/presentation/widgets/currency_picker.dart';
-import 'package:submersion/features/settings/presentation/widgets/preferred_currencies_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/first_day_of_week_tile.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
@@ -643,25 +641,10 @@ class _UnitsSectionContent extends ConsumerWidget {
                 const Divider(height: 1),
                 _buildUnitTile(
                   context,
-                  title: context.l10n.settings_units_defaultCurrency,
+                  title: context.l10n.settings_currencies_title,
+                  subtitle: context.l10n.settings_currencies_subtitle,
                   value: settings.defaultCurrency,
-                  onTap: () => _showCurrencyPicker(
-                    context,
-                    ref,
-                    settings.defaultCurrency,
-                  ),
-                ),
-                const Divider(height: 1),
-                _buildUnitTile(
-                  context,
-                  title: context.l10n.settings_units_preferredCurrencies,
-                  subtitle:
-                      context.l10n.settings_units_preferredCurrencies_subtitle,
-                  value: context.l10n.settings_units_preferredCurrencies_count(
-                    settings.preferredCurrencyCodes.length,
-                  ),
-                  onTap: () =>
-                      unawaited(showPreferredCurrenciesDialog(context, ref)),
+                  onTap: () => context.push('/settings/currencies'),
                 ),
               ],
             ),
@@ -1144,22 +1127,6 @@ class _UnitsSectionContent extends ConsumerWidget {
         );
       },
     );
-  }
-
-  Future<void> _showCurrencyPicker(
-    BuildContext context,
-    WidgetRef ref,
-    String currentCode,
-  ) async {
-    final choice = await showCurrencyPicker(
-      context,
-      title: context.l10n.settings_units_dialog_defaultCurrency,
-      current: currentCode,
-      preferred: ref.read(preferredCurrencyCodesProvider),
-    );
-    final code = choice?.code;
-    if (code == null) return;
-    await ref.read(settingsProvider.notifier).setDefaultCurrency(code);
   }
 
   void _showTimeFormatPicker(

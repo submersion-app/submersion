@@ -31478,12 +31478,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_units_gasConsumption => 'Gasverbruik';
 
   @override
-  String get settings_units_defaultCurrency => 'Standaardvaluta';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'Standaardvaluta';
-
-  @override
   String get settings_units_temperature => 'Temperatuur';
 
   @override
@@ -66460,29 +66454,32 @@ class AppLocalizationsNl extends AppLocalizations {
   String get currencyPicker_noMatches => 'Geen valuta gevonden';
 
   @override
-  String get settings_units_preferredCurrencies => 'Voorkeursvaluta';
+  String get settings_currencies_title => 'Valuta\'s';
 
   @override
-  String get settings_units_preferredCurrencies_subtitle =>
-      'Staan bovenaan in elke valutakiezer';
+  String get settings_currencies_subtitle =>
+      'Standaardvaluta en de valuta\'s die bovenaan staan';
 
   @override
-  String settings_units_preferredCurrencies_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count valuta',
-      one: '1 valuta',
-      zero: 'Geen',
-    );
-    return '$_temp0';
-  }
+  String get settings_currencies_enabled => 'Ingeschakelde valuta\'s';
 
   @override
-  String get settings_units_preferredCurrencies_reset =>
-      'Standaardwaarden herstellen';
+  String get settings_currencies_enabledHint =>
+      'Staan bovenaan in elke valutakeuze, in deze volgorde. Sleep om te herschikken. Tik op de ster om de standaardvaluta te kiezen.';
+
+  @override
+  String get settings_currencies_other => 'Overige valuta\'s';
+
+  @override
+  String get settings_currencies_default => 'Standaard';
+
+  @override
+  String get settings_currencies_setDefault => 'Als standaardvaluta instellen';
+
+  @override
+  String get settings_currencies_reset => 'Standaardwaarden herstellen';
 
   @override
   String get settings_conflict_field_preferredCurrencyCodes =>
-      'Voorkeursvaluta';
+      'Ingeschakelde valuta\'s';
 }

@@ -69,8 +69,6 @@
   "diveLog_tank_saveAsPreset_nameTitle": "保存气瓶预设",
   "diveLog_tank_saveAsPreset_nameHint": "例如 我的 AL80",
   "diveLog_tank_saveAsPreset_saved": "已保存预设 \"{name}\"",
-  "settings_units_defaultCurrency": "默认货币",
-  "settings_units_dialog_defaultCurrency": "默认货币",
   "diveSites_list_menu_fillLocationDetails": "补全缺失的地点信息",
   "diveSites_backfill_confirm_title": "补全缺失的地点信息？",
   "diveSites_backfill_confirm_body": "{count, plural, =1{1 个有坐标的潜点缺少国家、地区、城镇或水域。} other{{count} 个有坐标的潜点缺少国家、地区、城镇或水域。}} Submersion 将在 OpenStreetMap 上逐个查找，并仅填写空白字段。大约需要 {minutes} 分钟。",
@@ -19449,9 +19447,13 @@
   "currencyPicker_section_preferred": "首选",
   "currencyPicker_section_all": "所有货币",
   "currencyPicker_noMatches": "没有匹配的货币",
-  "settings_units_preferredCurrencies": "首选货币",
-  "settings_units_preferredCurrencies_subtitle": "在每个货币选择器中排在最前",
-  "settings_units_preferredCurrencies_count": "{count, plural, =0{无} other{{count} 种货币}}",
-  "settings_units_preferredCurrencies_reset": "恢复默认",
-  "settings_conflict_field_preferredCurrencyCodes": "首选货币"
+  "settings_currencies_title": "货币",
+  "settings_currencies_subtitle": "默认货币及在选择器中优先列出的货币",
+  "settings_currencies_enabled": "已启用的货币",
+  "settings_currencies_enabledHint": "按此顺序列在每个货币选择器的最前面。拖动以重新排序。点按星标即可设为默认货币。",
+  "settings_currencies_other": "其他货币",
+  "settings_currencies_default": "默认",
+  "settings_currencies_setDefault": "设为默认货币",
+  "settings_currencies_reset": "恢复默认",
+  "settings_conflict_field_preferredCurrencyCodes": "已启用的货币"
 }

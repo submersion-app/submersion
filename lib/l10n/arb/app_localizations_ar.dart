@@ -32002,12 +32002,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_units_gasConsumption => 'استهلاك الغاز';
 
   @override
-  String get settings_units_defaultCurrency => 'العملة الافتراضية';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'العملة الافتراضية';
-
-  @override
   String get settings_units_temperature => 'درجة الحرارة';
 
   @override
@@ -67888,32 +67882,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String get currencyPicker_noMatches => 'لا توجد عملة مطابقة';
 
   @override
-  String get settings_units_preferredCurrencies => 'العملات المفضلة';
+  String get settings_currencies_title => 'العملات';
 
   @override
-  String get settings_units_preferredCurrencies_subtitle =>
-      'تظهر أولاً في كل أداة لاختيار العملة';
+  String get settings_currencies_subtitle =>
+      'العملة الافتراضية والعملات التي تظهر أولاً في أدوات الاختيار';
 
   @override
-  String settings_units_preferredCurrencies_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count عملة',
-      many: '$count عملة',
-      few: '$count عملات',
-      two: 'عملتان',
-      one: 'عملة واحدة',
-      zero: 'لا شيء',
-    );
-    return '$_temp0';
-  }
+  String get settings_currencies_enabled => 'العملات المفعّلة';
 
   @override
-  String get settings_units_preferredCurrencies_reset =>
-      'استعادة الإعدادات الافتراضية';
+  String get settings_currencies_enabledHint =>
+      'تظهر أولاً في كل أداة لاختيار العملة، بهذا الترتيب. اسحب لإعادة الترتيب. اضغط على النجمة لاختيار العملة الافتراضية.';
+
+  @override
+  String get settings_currencies_other => 'عملات أخرى';
+
+  @override
+  String get settings_currencies_default => 'افتراضية';
+
+  @override
+  String get settings_currencies_setDefault => 'تعيين كعملة افتراضية';
+
+  @override
+  String get settings_currencies_reset => 'استعادة الإعدادات الافتراضية';
 
   @override
   String get settings_conflict_field_preferredCurrencyCodes =>
-      'العملات المفضلة';
+      'العملات المفعّلة';
 }

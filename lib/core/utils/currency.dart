@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/core/utils/currency_catalog.dart';
-import 'package:submersion/core/utils/latin_fold.dart';
 
 /// The preferred currencies a diver starts with, listed first in every
 /// currency picker until they choose their own in Settings.
@@ -71,14 +71,22 @@ List<String> allCurrencyCodesWith(
 }
 
 /// Whether [code] matches a search for [query]: by code or by English name,
-/// ignoring case and Latin accents. A blank query matches everything.
+/// ignoring case, Latin accents and apostrophes. A blank query matches
+/// everything.
 bool currencyMatchesQuery(String code, String query) {
-  final needle = foldLatinForSearch(query.trim());
+  final needle = _foldCurrencySearch(query.trim());
   if (needle.isEmpty) return true;
   if (code.toLowerCase().contains(needle)) return true;
   final name = isoCurrencyName(code);
-  return name != null && foldLatinForSearch(name).contains(needle);
+  return name != null && _foldCurrencySearch(name).contains(needle);
 }
+
+/// [text] folded by [foldForSearch], without apostrophes or the ʻokina, so
+/// "paanga" finds the Tongan paʻanga.
+String _foldCurrencySearch(String text) =>
+    foldForSearch(text).replaceAll(_apostrophes, '');
+
+final _apostrophes = RegExp("['\u2019\u02BB]");
 
 /// The symbol for [currencyCode] (e.g. 'EUR' -> '€'), falling back to the
 /// upper-cased code itself for anything intl doesn't recognise (or an empty

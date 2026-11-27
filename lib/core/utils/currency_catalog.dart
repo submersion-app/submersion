@@ -158,7 +158,7 @@ const List<IsoCurrency> kIsoCurrencies = [
   IsoCurrency('UZS', 'Uzbekistani sum'),
   IsoCurrency('VED', 'Venezuelan bolívar digital'),
   IsoCurrency('VES', 'Venezuelan bolívar soberano'),
-  IsoCurrency('VND', 'Vietnamese đồng'),
+  IsoCurrency('VND', 'Vietnamese dong'),
   IsoCurrency('VUV', 'Vanuatu vatu'),
   IsoCurrency('WST', 'Samoan tālā'),
   IsoCurrency('XAF', 'Central African CFA franc'),

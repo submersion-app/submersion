@@ -69,8 +69,6 @@
   "diveLog_tank_saveAsPreset_nameTitle": "Guardar preajuste de tanque",
   "diveLog_tank_saveAsPreset_nameHint": "p. ej. Mi AL80",
   "diveLog_tank_saveAsPreset_saved": "Preajuste \"{name}\" guardado",
-  "settings_units_defaultCurrency": "Moneda predeterminada",
-  "settings_units_dialog_defaultCurrency": "Moneda predeterminada",
   "diveSites_list_menu_fillLocationDetails": "Completar datos de ubicación que faltan",
   "diveSites_backfill_confirm_title": "¿Completar los datos de ubicación que faltan?",
   "diveSites_backfill_confirm_body": "{count, plural, =1{1 punto de buceo con coordenadas no tiene país, región, localidad o masa de agua.} other{{count} puntos de buceo con coordenadas no tienen país, región, localidad o masa de agua.}} Submersion consultará cada uno en OpenStreetMap y rellenará solo los campos vacíos. Tarda {minutes, plural, =1{alrededor de 1 minuto} other{unos {minutes} minutos}}.",
@@ -19449,9 +19447,13 @@
   "currencyPicker_section_preferred": "Preferidas",
   "currencyPicker_section_all": "Todas las monedas",
   "currencyPicker_noMatches": "Ninguna moneda coincide",
-  "settings_units_preferredCurrencies": "Monedas preferidas",
-  "settings_units_preferredCurrencies_subtitle": "Aparecen primero en cada selector de moneda",
-  "settings_units_preferredCurrencies_count": "{count, plural, =0{Ninguna} =1{1 moneda} other{{count} monedas}}",
-  "settings_units_preferredCurrencies_reset": "Restablecer valores predeterminados",
-  "settings_conflict_field_preferredCurrencyCodes": "Monedas preferidas"
+  "settings_currencies_title": "Monedas",
+  "settings_currencies_subtitle": "Moneda predeterminada y las que aparecen primero en los selectores",
+  "settings_currencies_enabled": "Monedas activadas",
+  "settings_currencies_enabledHint": "Aparecen primero en cada selector de moneda, en este orden. Arrastra para reordenar. Toca la estrella para elegir la predeterminada.",
+  "settings_currencies_other": "Otras monedas",
+  "settings_currencies_default": "Predeterminada",
+  "settings_currencies_setDefault": "Establecer como moneda predeterminada",
+  "settings_currencies_reset": "Restablecer valores predeterminados",
+  "settings_conflict_field_preferredCurrencyCodes": "Monedas activadas"
 }

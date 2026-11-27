@@ -245,6 +245,7 @@ void main() {
       expect(currencyMatchesQuery('MNT', 'tugrug'), isFalse);
       expect(currencyMatchesQuery('MNT', 'togrog'), isTrue);
       expect(currencyMatchesQuery('TOP', 'paanga'), isTrue);
+      expect(currencyMatchesQuery('TOP', "Pa'anga"), isTrue);
       expect(currencyMatchesQuery('ISK', 'KRÓNA'), isTrue);
       expect(currencyMatchesQuery('PLN', 'Złoty'), isTrue);
     });

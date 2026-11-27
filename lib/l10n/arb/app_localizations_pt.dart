@@ -31659,12 +31659,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_units_gasConsumption => 'Consumo de gás';
 
   @override
-  String get settings_units_defaultCurrency => 'Moeda padrão';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'Moeda padrão';
-
-  @override
   String get settings_units_temperature => 'Temperatura';
 
   @override
@@ -66832,28 +66826,32 @@ class AppLocalizationsPt extends AppLocalizations {
   String get currencyPicker_noMatches => 'Nenhuma moeda corresponde';
 
   @override
-  String get settings_units_preferredCurrencies => 'Moedas preferidas';
+  String get settings_currencies_title => 'Moedas';
 
   @override
-  String get settings_units_preferredCurrencies_subtitle =>
-      'Aparecem primeiro em todos os seletores de moeda';
+  String get settings_currencies_subtitle =>
+      'Moeda padrão e as que aparecem primeiro nos seletores';
 
   @override
-  String settings_units_preferredCurrencies_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count moedas',
-      one: '$count moeda',
-      zero: 'Nenhuma',
-    );
-    return '$_temp0';
-  }
+  String get settings_currencies_enabled => 'Moedas ativadas';
 
   @override
-  String get settings_units_preferredCurrencies_reset => 'Restaurar padrões';
+  String get settings_currencies_enabledHint =>
+      'Aparecem primeiro em cada seletor de moeda, nesta ordem. Arraste para reordenar. Toque na estrela para escolher a padrão.';
+
+  @override
+  String get settings_currencies_other => 'Outras moedas';
+
+  @override
+  String get settings_currencies_default => 'Padrão';
+
+  @override
+  String get settings_currencies_setDefault => 'Definir como moeda padrão';
+
+  @override
+  String get settings_currencies_reset => 'Restaurar padrões';
 
   @override
   String get settings_conflict_field_preferredCurrencyCodes =>
-      'Moedas preferidas';
+      'Moedas ativadas';
 }

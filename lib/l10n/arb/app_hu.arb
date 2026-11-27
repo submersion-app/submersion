@@ -69,8 +69,6 @@
   "diveLog_tank_saveAsPreset_nameTitle": "Palack előre beállítás mentése",
   "diveLog_tank_saveAsPreset_nameHint": "pl. Az én AL80-am",
   "diveLog_tank_saveAsPreset_saved": "\"{name}\" előre beállítás mentve",
-  "settings_units_defaultCurrency": "Alapértelmezett pénznem",
-  "settings_units_dialog_defaultCurrency": "Alapértelmezett pénznem",
   "diveSites_list_menu_fillLocationDetails": "Hiányzó helyadatok kitöltése",
   "diveSites_backfill_confirm_title": "Kitölti a hiányzó helyadatokat?",
   "diveSites_backfill_confirm_body": "{count, plural, =1{1 koordinátával rendelkező merülőhelynek üres az országa, régiója, települése vagy víztestje.} other{{count} koordinátával rendelkező merülőhelynek üres az országa, régiója, települése vagy víztestje.}} A Submersion mindegyiket lekérdezi az OpenStreetMapról, és csak az üres mezőket tölti ki. Ez körülbelül {minutes} percet vesz igénybe.",
@@ -19449,9 +19447,13 @@
   "currencyPicker_section_preferred": "Előnyben részesített",
   "currencyPicker_section_all": "Összes pénznem",
   "currencyPicker_noMatches": "Nincs egyező pénznem",
-  "settings_units_preferredCurrencies": "Előnyben részesített pénznemek",
-  "settings_units_preferredCurrencies_subtitle": "Minden pénznemválasztóban elöl jelennek meg",
-  "settings_units_preferredCurrencies_count": "{count, plural, =0{Nincs} =1{1 pénznem} other{{count} pénznem}}",
-  "settings_units_preferredCurrencies_reset": "Alapértelmezések visszaállítása",
-  "settings_conflict_field_preferredCurrencyCodes": "Előnyben részesített pénznemek"
+  "settings_currencies_title": "Pénznemek",
+  "settings_currencies_subtitle": "Alapértelmezett pénznem és az elsőként felkínáltak",
+  "settings_currencies_enabled": "Engedélyezett pénznemek",
+  "settings_currencies_enabledHint": "Minden pénznemválasztóban elsőként, ebben a sorrendben jelennek meg. Húzd az átrendezéshez. Koppints a csillagra az alapértelmezett kiválasztásához.",
+  "settings_currencies_other": "További pénznemek",
+  "settings_currencies_default": "Alapértelmezett",
+  "settings_currencies_setDefault": "Beállítás alapértelmezett pénznemként",
+  "settings_currencies_reset": "Alapértelmezések visszaállítása",
+  "settings_conflict_field_preferredCurrencyCodes": "Engedélyezett pénznemek"
 }

@@ -30301,12 +30301,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_units_gasConsumption => 'ガス消費';
 
   @override
-  String get settings_units_defaultCurrency => 'デフォルトの通貨';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'デフォルトの通貨';
-
-  @override
   String get settings_units_temperature => '温度';
 
   @override
@@ -64157,26 +64151,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String get currencyPicker_noMatches => '一致する通貨はありません';
 
   @override
-  String get settings_units_preferredCurrencies => '優先する通貨';
+  String get settings_currencies_title => '通貨';
 
   @override
-  String get settings_units_preferredCurrencies_subtitle =>
-      'すべての通貨選択で先頭に表示されます';
+  String get settings_currencies_subtitle => '既定の通貨と、選択肢の先頭に表示する通貨';
 
   @override
-  String settings_units_preferredCurrencies_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count 通貨',
-      zero: 'なし',
-    );
-    return '$_temp0';
-  }
+  String get settings_currencies_enabled => '有効な通貨';
 
   @override
-  String get settings_units_preferredCurrencies_reset => 'デフォルトに戻す';
+  String get settings_currencies_enabledHint =>
+      'すべての通貨選択で、この順に先頭に表示されます。ドラッグで並べ替えます。星をタップすると既定の通貨になります。';
 
   @override
-  String get settings_conflict_field_preferredCurrencyCodes => '優先する通貨';
+  String get settings_currencies_other => 'その他の通貨';
+
+  @override
+  String get settings_currencies_default => '既定';
+
+  @override
+  String get settings_currencies_setDefault => '既定の通貨に設定';
+
+  @override
+  String get settings_currencies_reset => 'デフォルトに戻す';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes => '有効な通貨';
 }

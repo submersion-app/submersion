@@ -31614,12 +31614,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_units_gasConsumption => 'Gasverbrauch';
 
   @override
-  String get settings_units_defaultCurrency => 'Standardwährung';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'Standardwährung';
-
-  @override
   String get settings_units_temperature => 'Temperatur';
 
   @override
@@ -66721,29 +66715,32 @@ class AppLocalizationsDe extends AppLocalizations {
   String get currencyPicker_noMatches => 'Keine passende Währung';
 
   @override
-  String get settings_units_preferredCurrencies => 'Bevorzugte Währungen';
+  String get settings_currencies_title => 'Währungen';
 
   @override
-  String get settings_units_preferredCurrencies_subtitle =>
-      'Stehen in jeder Währungsauswahl oben';
+  String get settings_currencies_subtitle =>
+      'Standardwährung und die zuerst gelisteten Währungen';
 
   @override
-  String settings_units_preferredCurrencies_count(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count Währungen',
-      one: '1 Währung',
-      zero: 'Keine',
-    );
-    return '$_temp0';
-  }
+  String get settings_currencies_enabled => 'Aktivierte Währungen';
 
   @override
-  String get settings_units_preferredCurrencies_reset =>
-      'Auf Standard zurücksetzen';
+  String get settings_currencies_enabledHint =>
+      'Stehen in jeder Währungsauswahl oben, in dieser Reihenfolge. Zum Sortieren ziehen. Stern antippen, um die Standardwährung festzulegen.';
+
+  @override
+  String get settings_currencies_other => 'Weitere Währungen';
+
+  @override
+  String get settings_currencies_default => 'Standard';
+
+  @override
+  String get settings_currencies_setDefault => 'Als Standardwährung festlegen';
+
+  @override
+  String get settings_currencies_reset => 'Auf Standard zurücksetzen';
 
   @override
   String get settings_conflict_field_preferredCurrencyCodes =>
-      'Bevorzugte Währungen';
+      'Aktivierte Währungen';
 }

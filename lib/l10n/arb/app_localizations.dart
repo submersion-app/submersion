@@ -50238,18 +50238,6 @@ abstract class AppLocalizations {
   /// **'Gas consumption'**
   String get settings_units_gasConsumption;
 
-  /// No description provided for @settings_units_defaultCurrency.
-  ///
-  /// In en, this message translates to:
-  /// **'Default Currency'**
-  String get settings_units_defaultCurrency;
-
-  /// No description provided for @settings_units_dialog_defaultCurrency.
-  ///
-  /// In en, this message translates to:
-  /// **'Default Currency'**
-  String get settings_units_dialog_defaultCurrency;
-
   /// No description provided for @settings_units_temperature.
   ///
   /// In en, this message translates to:
@@ -104444,34 +104432,58 @@ abstract class AppLocalizations {
   /// **'No currency matches'**
   String get currencyPicker_noMatches;
 
-  /// Settings row and dialog title for choosing the currencies listed first in every currency picker
+  /// Settings row and page title for choosing the default currency and the currencies listed first in every currency picker
   ///
   /// In en, this message translates to:
-  /// **'Preferred currencies'**
-  String get settings_units_preferredCurrencies;
+  /// **'Currencies'**
+  String get settings_currencies_title;
 
-  /// Explains the preferred currencies setting
+  /// Explains the currencies settings row
   ///
   /// In en, this message translates to:
-  /// **'Listed first in every currency picker'**
-  String get settings_units_preferredCurrencies_subtitle;
+  /// **'Default currency and the ones listed first in pickers'**
+  String get settings_currencies_subtitle;
 
-  /// How many preferred currencies the diver chose, shown as the setting's value
+  /// Currencies page: heading over the currencies every picker lists first
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0{None} =1{1 currency} other{{count} currencies}}'**
-  String settings_units_preferredCurrencies_count(int count);
+  /// **'Enabled currencies'**
+  String get settings_currencies_enabled;
 
-  /// Button in the preferred currencies dialog that restores the built-in list
+  /// Currencies page: explains the enabled list, its order and the default star
+  ///
+  /// In en, this message translates to:
+  /// **'Listed first in every currency picker, in this order. Drag to reorder. Tap the star to choose the default.'**
+  String get settings_currencies_enabledHint;
+
+  /// Currencies page: heading over the rest of the ISO 4217 catalog
+  ///
+  /// In en, this message translates to:
+  /// **'Other currencies'**
+  String get settings_currencies_other;
+
+  /// Currencies page: marks the default currency in its row
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get settings_currencies_default;
+
+  /// Currencies page: tooltip of the star that makes a currency the default
+  ///
+  /// In en, this message translates to:
+  /// **'Set as default currency'**
+  String get settings_currencies_setDefault;
+
+  /// Currencies page: app bar button that restores the built-in enabled currencies
   ///
   /// In en, this message translates to:
   /// **'Reset to defaults'**
-  String get settings_units_preferredCurrencies_reset;
+  String get settings_currencies_reset;
 
-  /// Sync conflict dialog label for the currencies a diver lists first in the currency pickers
+  /// Sync conflict dialog label for the enabled currencies a diver lists first in the currency pickers
   ///
   /// In en, this message translates to:
-  /// **'Preferred currencies'**
+  /// **'Enabled currencies'**
   String get settings_conflict_field_preferredCurrencyCodes;
 }
 
