@@ -433,34 +433,44 @@ void main() {
         exitTime: DateTime.utc(2026, 11, 22, 10, 50),
       );
       const matcher = DivePhotoMatcher();
-      // Filmed at 10:05 local, 09:05 UTC.
-      final recordedUtc = DateTime.utc(2026, 11, 22, 9, 5);
+      // Filmed from 10:05 local (09:05 UTC) for 20 minutes. Android stamps
+      // mvhd when it writes the movie header, at the end: 09:25 UTC.
+      final startedUtc = DateTime.utc(2026, 11, 22, 9, 5);
+      const clip = Duration(minutes: 20);
+      final recordedUtc = startedUtc.add(clip);
 
       File androidClip(String name, {String version = '14'}) => write(
         name,
         _movie([
-          ..._mvhd(recordedUtc, duration: const Duration(minutes: 2)),
+          ..._mvhd(recordedUtc, duration: clip),
           ..._keysMetaOf({'com.android.version': version}),
         ]),
       );
 
-      test('reads its mvhd as UTC though the mtime is the pick time', () {
-        // The copy's mtime is "now", which agrees with nothing.
-        final takenAt = readVideoCaptureTime(
-          androidClip('VID_20261122_100500.mp4'),
-          toLocal: utcPlus1,
-        );
+      test(
+        'reads its mvhd as the UTC end, though the mtime is the pick time',
+        () {
+          // The copy's mtime is "now", which agrees with nothing.
+          final takenAt = readVideoCaptureTime(
+            androidClip('VID_20261122_100500.mp4'),
+            toLocal: utcPlus1,
+          );
 
-        expect(takenAt, DateTime.utc(2026, 11, 22, 10, 5));
-        final match = matcher.matchTimestamp(takenAt: takenAt!, dives: [dive]);
-        expect(match.kind, TimestampMatchKind.confident);
-        expect(match.diveId, 'lake');
-      });
+          expect(takenAt, DateTime.utc(2026, 11, 22, 10, 5));
+          final match = matcher.matchTimestamp(
+            takenAt: takenAt!,
+            dives: [dive],
+          );
+          expect(match.kind, TimestampMatchKind.confident);
+          expect(match.diveId, 'lake');
+        },
+      );
 
       test('the UTC digits read as local miss the dive, as reported', () {
-        // 09:05 sits 55 minutes before entry, past the 30-minute window.
+        // The start read as local digits, 09:05, sits 55 minutes before
+        // entry, past the 30-minute window.
         final match = matcher.matchTimestamp(
-          takenAt: recordedUtc,
+          takenAt: startedUtc,
           dives: [dive],
         );
         expect(match.kind, TimestampMatchKind.none);
@@ -469,7 +479,7 @@ void main() {
       test('by default converts through this machine\'s zone', () {
         expect(
           readVideoCaptureTime(androidClip('VID_default.mp4')),
-          asWallClockUtc(recordedUtc.toLocal()),
+          asWallClockUtc(startedUtc.toLocal()),
         );
       });
 

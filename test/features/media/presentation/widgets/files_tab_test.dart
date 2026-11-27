@@ -10,6 +10,7 @@ import 'package:submersion/features/media/domain/value_objects/extracted_file.da
 import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/file_review_pane.dart';
 import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
@@ -359,6 +360,42 @@ void main() {
         find.widgetWithText(FilledButton, 'Link 1 item'),
       );
       expect(button.onPressed, isNotNull);
+    });
+
+    testWidgets('in a sitting, files matched to another dive are not counted', (
+      tester,
+    ) async {
+      final mine = _ef('/mine.jpg');
+      final other = _ef('/other.jpg');
+      final clip = _ef('/clip.mp4');
+      final seed = FilesTabState.initial().copyWith(
+        files: [mine, other, clip],
+        match: MatchedSelection(
+          matched: {
+            'd1': [mine],
+            'd2': [other],
+          },
+          unmatched: [clip],
+        ),
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            filesTabNotifierProvider.overrideWith(
+              (ref) => _SeededFilesTabNotifier(seed),
+            ),
+          ],
+          child: _host(
+            MediaHoldScope.wrap(
+              (_) {},
+              const FilesTab(target: DiveAttachTarget('d1')),
+            ),
+          ),
+        ),
+      );
+
+      // heldRows holds mine.jpg and clip.mp4; other.jpg is left out.
+      expect(find.text('Link 2 items'), findsOneWidget);
     });
 
     testWidgets('a folder scan\'s unmatched files are not counted', (

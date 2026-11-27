@@ -123,8 +123,8 @@ class FilesTabState extends Equatable {
 /// In a dive session, hand-picked files the matcher could not place go to the
 /// session's dive (issue #5063); a folder scan's, and any with no target, are
 /// skipped, and the review pane's assign actions are what move them into a
-/// dive group. A site session has no
-/// unmatched bucket to skip; every staged file belongs to the site.
+/// dive group. A site session has no unmatched bucket to skip; every staged
+/// file belongs to the site.
 ///
 /// [undoCommit] takes the list of IDs returned by [commit] and deletes
 /// each row. The keychain bookmark blob (if any) is intentionally left

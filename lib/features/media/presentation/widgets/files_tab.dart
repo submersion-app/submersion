@@ -213,7 +213,7 @@ class FilesTab extends ConsumerWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: _committableCount(state) == 0
+                  onPressed: _committableCount(context, state) == 0
                       ? null
                       // coverage:ignore-start
                       : () => _commit(context, ref),
@@ -229,18 +229,24 @@ class FilesTab extends ConsumerWidget {
 
   /// How many staged files [FilesTabNotifier.commit] would actually persist.
   ///
-  /// Opened from a dive, that is every hand-picked file: the unmatched ones
-  /// go to the dive (issue #5063).
-  int _committableCount(FilesTabState state) {
+  /// Opened from a dive, the hand-picked files the matcher could not place
+  /// count too: they go to the dive (issue #5063). In a sitting on that dive,
+  /// files matched to another dive do not: [FilesTabNotifier.heldRows] leaves
+  /// them out.
+  int _committableCount(BuildContext context, FilesTabState state) {
     if (_ownsEveryFile) return state.files.length;
-    if (_assignableDiveId != null && state.unmatchedGoToTarget) {
-      return state.match.totalFiles;
+    final diveId = _assignableDiveId;
+    final unplaced = diveId != null && state.unmatchedGoToTarget
+        ? state.match.unmatched.length
+        : 0;
+    if (diveId != null && MediaHoldScope.maybeOf(context) != null) {
+      return (state.match.matched[diveId]?.length ?? 0) + unplaced;
     }
-    return state.match.totalFiles - state.match.unmatched.length;
+    return state.match.totalFiles - state.match.unmatched.length + unplaced;
   }
 
   String _commitLabel(BuildContext context, FilesTabState state) {
-    final count = _committableCount(state);
+    final count = _committableCount(context, state);
     // Only a site session names its destination; a gear session (issue
     // #3355) uses the plain label.
     return target is SiteAttachTarget

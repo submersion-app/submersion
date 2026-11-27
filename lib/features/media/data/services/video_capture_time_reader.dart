@@ -19,9 +19,10 @@ import 'package:submersion/features/media/data/services/quicktime_metadata.dart'
 ///    an iTunes-style `meta > ilst` tag. Same format, when a camera writes it.
 /// 3. `creation_time` in the `moov > mvhd` movie header, which every MP4 has.
 ///    The format defines it as UTC, but GoPro and other cameras write their
-///    local clock there instead. A movie an Android device recorded (it
-///    carries a `com.android.version` key) is read as UTC; for any other,
-///    [resolveMvhdCreationTime] decides which.
+///    local clock there instead. A movie Android's MP4 writer produced (it
+///    carries a `com.android.version` key) is read as UTC, stamped when the
+///    recording stopped; for any other, [resolveMvhdCreationTime] decides
+///    which.
 ///
 /// A creationdate or `©day` value in UTC (`Z`) says nothing about the local
 /// clock, so it is skipped in favour of the next field.
@@ -49,7 +50,8 @@ DateTime? readVideoCaptureTime(
     final header = _readMvhd(raf, moov);
     if (header == null) return null;
     if (_recordedOnAndroid(r, moov)) {
-      return asWallClockUtc(toLocal(header.creation));
+      // Android stamps the header when it writes it, as recording stops.
+      return asWallClockUtc(toLocal(header.creation.subtract(header.duration)));
     }
     return resolveMvhdCreationTime(
       raw: header.creation,
@@ -66,12 +68,14 @@ DateTime? readVideoCaptureTime(
 
 const _creationDateKey = 'com.apple.quicktime.creationdate';
 
-/// The key Android's MP4 writer adds to every camera recording, holding the
-/// OS version.
+/// The key Android's MP4 writer (AOSP `MPEG4Writer`, behind both camera
+/// recording and `MediaMuxer`) adds to every file it writes, holding the OS
+/// version.
 const _androidVersionKey = 'com.android.version';
 
-/// Whether an Android device recorded the movie, whose `mvhd` therefore holds
-/// UTC as the format defines it.
+/// Whether Android's MP4 writer produced the movie. Its `mvhd` then holds
+/// UTC as the format defines it, taken from the clock when the writer wrote
+/// the movie header at the end of the recording.
 ///
 /// The file's modified time cannot say so on Android itself: the picker hands
 /// back a copy in the app's cache, stamped when it was picked (issue #5063).
