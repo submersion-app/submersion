@@ -84,10 +84,8 @@ class _DiveSightingsListState extends State<DiveSightingsList> {
           builder: (context, constraints) {
             final twoColumns =
                 constraints.maxWidth >= kSightingsTwoColumnMinWidth;
-            // Floored, so two rows and the gap never round past the width
-            // and send the second row onto a run of its own.
             final rowWidth = twoColumns
-                ? ((constraints.maxWidth - _columnGap) / 2).floorToDouble()
+                ? (constraints.maxWidth - _columnGap) / 2
                 : constraints.maxWidth;
             return Wrap(
               spacing: _columnGap,

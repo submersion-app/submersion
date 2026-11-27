@@ -179,7 +179,10 @@ void main() {
     tester.view.physicalSize = const Size(400, 2400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final shown = ValueNotifier(dive);
+    final other = Dive(id: 'd2', dateTime: DateTime.utc(2026, 3, 10));
+    // Opens on d2 first, so its sightings are already loaded when the reader
+    // comes back to it: only the key then resets the toggle.
+    final shown = ValueNotifier(other);
     addTearDown(shown.dispose);
     await tester.pumpWidget(
       ProviderScope(
@@ -201,13 +204,16 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    expect(find.text('Show all (11)'), findsOneWidget);
+    shown.value = dive;
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Show all (12)'));
     await tester.pumpAndSettle();
     expect(find.text('Show fewer'), findsOneWidget);
 
-    shown.value = Dive(id: 'd2', dateTime: DateTime.utc(2026, 3, 10));
-    await tester.pumpAndSettle();
+    shown.value = other;
+    await tester.pump();
     expect(find.text('Show all (11)'), findsOneWidget);
     expect(find.text('Show fewer'), findsNothing);
   });

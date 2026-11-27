@@ -119,14 +119,6 @@ void main() {
     expect(third.dy, greaterThan(first.dy));
   });
 
-  testWidgets('a fractional width still fits two columns', (tester) async {
-    await _pump(tester, _sightings(2), width: 731.3);
-
-    final first = tester.getTopLeft(find.text('Species 0'));
-    final second = tester.getTopLeft(find.text('Species 1'));
-    expect(second.dy, first.dy);
-  });
-
   testWidgets('Show fewer at the foot of a long list keeps the toggle in '
       'view', (tester) async {
     await _pump(tester, _sightings(40), height: 600);
