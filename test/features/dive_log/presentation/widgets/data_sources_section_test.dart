@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -635,6 +636,47 @@ void main() {
 
     // The header is the one action per source for a screen reader; the
     // values beneath it are read, not offered as twenty more buttons.
+    // Keyboard users tab through the headers and their menus, not through
+    // every value of every column.
+    testWidgets('Tab moves through headers and menus, never value cells', (
+      tester,
+    ) async {
+      await pumpTwo(tester, viewedSourceId: 'src-2', withMenus: true);
+
+      final headerKeys = {
+        DataSourcesSection.cardKey('src-1'),
+        DataSourcesSection.cardKey('src-2'),
+      };
+      bool inHeader(BuildContext context) {
+        var found = false;
+        context.visitAncestorElements((e) {
+          found = headerKeys.contains(e.widget.key);
+          return !found;
+        });
+        return found;
+      }
+
+      final grid = tester.getRect(
+        find.byKey(DataSourcesSection.comparisonGridKey),
+      );
+      var stopsInGrid = 0;
+      for (var i = 0; i < 12; i++) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.pump();
+        final context = FocusManager.instance.primaryFocus?.context;
+        if (context == null || context.findRenderObject() is! RenderBox) {
+          continue;
+        }
+        final box = context.findRenderObject()! as RenderBox;
+        final centre = box.localToGlobal(box.size.center(Offset.zero));
+        if (!grid.contains(centre)) continue;
+        stopsInGrid++;
+        expect(inHeader(context), isTrue, reason: 'focus left the headers');
+      }
+      // Two headers, each with its menu button.
+      expect(stopsInGrid, greaterThan(0));
+    });
+
     testWidgets('value cells carry no tap action of their own', (tester) async {
       final semantics = tester.ensureSemantics();
       await pumpTwo(tester, viewedSourceId: 'src-2');
@@ -1525,6 +1567,32 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(setPrimaryId, 'src-legacy');
+    });
+
+    // The compact button belongs to the table's column headers; the card
+    // keeps the standard size it always had.
+    testWidgets('the card keeps a standard-size menu button', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              operationReason: null,
+              dataSources: [_makeSource(isPrimary: false)],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+              onSetPrimary: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final button = find.ancestor(
+        of: find.byIcon(Icons.more_vert),
+        matching: find.byWidgetPredicate((w) => w is IconButton),
+      );
+      expect(tester.getSize(button).height, 48);
     });
   });
 

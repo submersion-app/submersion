@@ -51,11 +51,17 @@ class _SourceMenuButton extends StatelessWidget {
     required this.source,
     required this.actions,
     required this.operationReason,
+    this.compact = false,
   });
 
   final DiveDataSource source;
   final _SourceActions actions;
   final String? operationReason;
+
+  /// Compact like the section header menu, so a column header holding it
+  /// still fits two sources across a phone. The card keeps the standard
+  /// size.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -63,12 +69,12 @@ class _SourceMenuButton extends StatelessWidget {
     final enabled = operationReason == null;
     return PopupMenuButton<_SourceMenuAction>(
       icon: const Icon(Icons.more_vert, size: 20),
-      // Compact like the section header menu, so a column header holding
-      // it still fits two sources across a phone.
-      style: IconButton.styleFrom(
-        visualDensity: VisualDensity.compact,
-        padding: EdgeInsets.zero,
-      ),
+      style: compact
+          ? IconButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+            )
+          : null,
       onSelected: (action) {
         switch (action) {
           case _SourceMenuAction.setPrimary:
@@ -172,6 +178,7 @@ class _SourceColumnHeader extends StatelessWidget {
                 source: source,
                 actions: actions,
                 operationReason: operationReason,
+                compact: true,
               ),
           ],
         ),

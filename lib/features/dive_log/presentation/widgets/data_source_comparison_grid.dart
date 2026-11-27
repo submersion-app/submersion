@@ -129,9 +129,11 @@ class _SourceComparisonGrid extends StatelessWidget {
             : Colors.transparent,
         child: InkWell(
           onTap: actions[s.id]!.onTap,
-          // The header is the column's one action for a screen reader;
-          // its values are read, not offered as more buttons.
+          // The header is the column's one action for a screen reader and
+          // for the keyboard; its values are read, not offered as more
+          // buttons or Tab stops.
           excludeFromSemantics: !isHeader,
+          canRequestFocus: isHeader,
           child: Align(
             alignment: alignment,
             widthFactor: 1,
