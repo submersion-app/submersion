@@ -24,6 +24,7 @@ import 'package:submersion/core/database/tables/equipment_set_bundle_tables.dart
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 import 'package:submersion/core/database/tables/identification_tables.dart';
 import 'package:submersion/core/database/tables/marine_life_tables.dart';
+import 'package:submersion/core/database/tables/media_equipment_tables.dart';
 import 'package:submersion/core/database/tables/media_people_tables.dart';
 import 'package:submersion/core/database/tables/media_tables.dart';
 import 'package:submersion/core/database/tables/pre_dive_tables.dart';
@@ -66,6 +67,7 @@ export 'package:submersion/core/database/tables/equipment_set_bundle_tables.dart
 export 'package:submersion/core/database/tables/equipment_tables.dart';
 export 'package:submersion/core/database/tables/identification_tables.dart';
 export 'package:submersion/core/database/tables/marine_life_tables.dart';
+export 'package:submersion/core/database/tables/media_equipment_tables.dart';
 export 'package:submersion/core/database/tables/media_people_tables.dart';
 export 'package:submersion/core/database/tables/media_tables.dart';
 export 'package:submersion/core/database/tables/pre_dive_tables.dart';
@@ -138,6 +140,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     MediaTags,
     // People tagged on photos and videos (v326, issue #1745)
     MediaPeople,
+    // Gear linked to photos and videos (v388, issue #5046)
+    MediaEquipment,
     PendingPhotoSuggestions,
     MediaRepairLog,
     MediaIdentificationRuns,
@@ -338,7 +342,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 387;
+  static const int currentSchemaVersion = 388;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1830,6 +1834,9 @@ class AppDatabase extends _$AppDatabase {
     // depth and a plan's no-switch flag (issue #3793). Additive and
     // defaulted; the floor does not move.
     387,
+    // v388: media_equipment, gear items linked to photos and videos (issue
+    // #5046). A new synced table; the floor does not move.
+    388,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

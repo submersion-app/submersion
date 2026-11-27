@@ -25,6 +25,7 @@ const _linkTables = {
   'dive_tags',
   'document_tags',
   'equipment_tags',
+  'media_equipment',
   'media_people',
   'media_species',
   'media_tags',

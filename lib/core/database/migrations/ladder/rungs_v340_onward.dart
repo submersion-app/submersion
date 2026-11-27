@@ -356,5 +356,11 @@ extension RungsFromV340 on AppDatabase {
     // no backfill; re-asserted in beforeOpen. The floor does not move.
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
+
+    // v388 (issue #5046): media_equipment, gear items linked to photos and
+    // videos. A new synced table, re-asserted in beforeOpen; the floor does
+    // not move.
+    if (from < 388) await _assertMediaEquipmentSchema();
+    if (from < 388) await reportProgress();
   }
 }

@@ -179,5 +179,9 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v383 backstop: species covers and practice (issue #5027; synced,
     // idempotent).
     await _assertSpeciesRevampSchema();
+
+    // v388 backstop: gear linked to photos and videos (issue #5046; synced,
+    // idempotent).
+    await _assertMediaEquipmentSchema();
   }
 }
