@@ -4458,6 +4458,8 @@
   "enum_equipmentType_baselayer": "Basisschicht",
   "enum_equipmentType_firstStage": "Erste Stufe",
   "enum_equipmentType_harness": "Harness",
+  "equipment_searchWords_cylinder": "Tank, Zylinder, Bottle, Stage, Pony",
+  "equipment_searchWords_tankBand": "Tankband, Cam Band",
   "enum_equipmentType_tankBand": "Flaschenband",
   "enum_equipmentType_weightPocket": "Bleitasche",
   "enum_equipmentType_gearPocket": "Ausrüstungstasche",

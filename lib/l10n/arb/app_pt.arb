@@ -4424,6 +4424,8 @@
   "enum_equipmentType_baselayer": "Camada base",
   "enum_equipmentType_firstStage": "Primeiro estágio",
   "enum_equipmentType_harness": "Arnês",
+  "equipment_searchWords_cylinder": "garrafa, tanque, stage, pony",
+  "equipment_searchWords_tankBand": "cinta de garrafa, cam band",
   "enum_equipmentType_tankBand": "Cinta de cilindro",
   "enum_equipmentType_weightPocket": "Bolso de lastro",
   "enum_equipmentType_gearPocket": "Bolso de equipamento",

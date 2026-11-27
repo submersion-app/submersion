@@ -22798,6 +22798,18 @@ abstract class AppLocalizations {
   /// **'Harness'**
   String get enum_equipmentType_harness;
 
+  /// Search words (issue #5106): other words divers use for a cylinder, comma separated. Typing any of them in the equipment search finds cylinders. List this language's own words, including any the app no longer uses as the label.
+  ///
+  /// In en, this message translates to:
+  /// **'tank, bottle, stage, pony'**
+  String get equipment_searchWords_cylinder;
+
+  /// Search words (issue #5106): other names for a cylinder band, comma separated. Typing any of them in the equipment search finds cylinder bands.
+  ///
+  /// In en, this message translates to:
+  /// **'tank band, cam band'**
+  String get equipment_searchWords_tankBand;
+
   /// No description provided for @enum_equipmentType_tankBand.
   ///
   /// In en, this message translates to:

@@ -4299,6 +4299,8 @@
   "enum_equipmentType_baselayer": "Alapréteg",
   "enum_equipmentType_firstStage": "Első fokozat",
   "enum_equipmentType_harness": "Heveder",
+  "equipment_searchWords_cylinder": "tartály, henger, stage, pony",
+  "equipment_searchWords_tankBand": "tartálypánt, cam band",
   "enum_equipmentType_tankBand": "Palackpánt",
   "enum_equipmentType_weightPocket": "Súlyzseb",
   "enum_equipmentType_gearPocket": "Felszerelészseb",

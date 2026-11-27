@@ -14303,6 +14303,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentType_harness => 'Harnas';
 
   @override
+  String get equipment_searchWords_cylinder => 'tank, cilinder, stage, pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'tankband, cam band';
+
+  @override
   String get enum_equipmentType_tankBand => 'Flesband';
 
   @override

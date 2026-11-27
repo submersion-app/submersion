@@ -14615,6 +14615,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentType_harness => 'حزام';
 
   @override
+  String get equipment_searchWords_cylinder => 'خزان, قارورة, ستيج, بوني';
+
+  @override
+  String get equipment_searchWords_tankBand => 'حزام الخزان, cam band';
+
+  @override
   String get enum_equipmentType_tankBand => 'حزام الأسطوانة';
 
   @override

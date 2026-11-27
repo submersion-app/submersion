@@ -4299,6 +4299,8 @@
   "enum_equipmentType_baselayer": "Strato base",
   "enum_equipmentType_firstStage": "Primo stadio",
   "enum_equipmentType_harness": "Imbrago",
+  "equipment_searchWords_cylinder": "serbatoio, cilindro, stage, pony",
+  "equipment_searchWords_tankBand": "cinghia, cam band",
   "enum_equipmentType_tankBand": "Cinghia per bombola",
   "enum_equipmentType_weightPocket": "Tasca porta zavorra",
   "enum_equipmentType_gearPocket": "Tasca porta attrezzatura",

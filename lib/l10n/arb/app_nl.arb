@@ -4424,6 +4424,8 @@
   "enum_equipmentType_baselayer": "Basislaag",
   "enum_equipmentType_firstStage": "Eerste trap",
   "enum_equipmentType_harness": "Harnas",
+  "equipment_searchWords_cylinder": "tank, cilinder, stage, pony",
+  "equipment_searchWords_tankBand": "tankband, cam band",
   "enum_equipmentType_tankBand": "Flesband",
   "enum_equipmentType_weightPocket": "Loodtas",
   "enum_equipmentType_gearPocket": "Uitrustingstas",

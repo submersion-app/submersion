@@ -13875,6 +13875,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get enum_equipmentType_harness => 'ハーネス';
 
   @override
+  String get equipment_searchWords_cylinder => 'ボンベ, シリンダー, ボトル, ステージ, ポニー';
+
+  @override
+  String get equipment_searchWords_tankBand => 'ボンベバンド, カムバンド';
+
+  @override
   String get enum_equipmentType_tankBand => 'タンクバンド';
 
   @override

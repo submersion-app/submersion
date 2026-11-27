@@ -14358,6 +14358,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentType_harness => 'Heveder';
 
   @override
+  String get equipment_searchWords_cylinder => 'tartály, henger, stage, pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'tartálypánt, cam band';
+
+  @override
   String get enum_equipmentType_tankBand => 'Palackpánt';
 
   @override

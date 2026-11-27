@@ -4299,6 +4299,8 @@
   "enum_equipmentType_baselayer": "שכבת בסיס",
   "enum_equipmentType_firstStage": "שלב ראשון",
   "enum_equipmentType_harness": "רתמה",
+  "equipment_searchWords_cylinder": "מיכל, גליל, סטייג', פוני",
+  "equipment_searchWords_tankBand": "רצועת מיכל, cam band",
   "enum_equipmentType_tankBand": "רצועת בלון",
   "enum_equipmentType_weightPocket": "כיס משקולות",
   "enum_equipmentType_gearPocket": "כיס ציוד",

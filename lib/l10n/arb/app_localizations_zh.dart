@@ -13688,6 +13688,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentType_harness => '背带';
 
   @override
+  String get equipment_searchWords_cylinder => '罐, 钢瓶, 气罐, 备用瓶';
+
+  @override
+  String get equipment_searchWords_tankBand => '瓶带, cam band';
+
+  @override
   String get enum_equipmentType_tankBand => '气瓶绑带';
 
   @override

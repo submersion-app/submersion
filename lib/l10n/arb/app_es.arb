@@ -4424,6 +4424,8 @@
   "enum_equipmentType_baselayer": "Capa base",
   "enum_equipmentType_firstStage": "Primera etapa",
   "enum_equipmentType_harness": "Arnés",
+  "equipment_searchWords_cylinder": "tanque, cilindro, stage, pony",
+  "equipment_searchWords_tankBand": "cincha de tanque, cam band",
   "enum_equipmentType_tankBand": "Cincha de tanque",
   "enum_equipmentType_weightPocket": "Bolsillo de lastre",
   "enum_equipmentType_gearPocket": "Bolsillo de equipo",

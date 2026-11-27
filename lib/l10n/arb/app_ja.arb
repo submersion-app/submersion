@@ -4281,6 +4281,8 @@
   "enum_equipmentType_baselayer": "ベースレイヤー",
   "enum_equipmentType_firstStage": "ファーストステージ",
   "enum_equipmentType_harness": "ハーネス",
+  "equipment_searchWords_cylinder": "ボンベ, シリンダー, ボトル, ステージ, ポニー",
+  "equipment_searchWords_tankBand": "ボンベバンド, カムバンド",
   "enum_equipmentType_tankBand": "タンクバンド",
   "enum_equipmentType_weightPocket": "ウェイトポケット",
   "enum_equipmentType_gearPocket": "ギアポケット",

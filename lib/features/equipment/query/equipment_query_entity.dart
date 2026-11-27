@@ -6,6 +6,7 @@ import 'package:submersion/core/query/registry/query_relation.dart';
 import 'package:submersion/features/dive_log/query/dive_aggregate_fields.dart';
 import 'package:submersion/features/equipment/data/equipment_location_sql.dart';
 import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
+import 'package:submersion/features/equipment/query/equipment_type_text_search.dart';
 
 /// Minimal in PR 1 (enough for `gear.type` and the suit-thickness lowering
 /// through `gear[attributes[...]]`); PR 3 of #2365 completes it.
@@ -38,6 +39,8 @@ final equipmentQueryEntity = QueryEntity(
         "AND search_fold(tt.name) LIKE ? ESCAPE '\\')",
   ],
   textSearchTables: const ['equipment_tags', 'tags'],
+  // A word also finds items by type, in any app language (issue #5106).
+  textSearchExpansions: const [kEquipmentTypeTextSearch],
   fields: [
     const QueryField(
       key: 'name',

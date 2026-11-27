@@ -8782,6 +8782,14 @@
   "enum_equipmentType_baselayer": "Base Layer",
   "enum_equipmentType_firstStage": "First Stage",
   "enum_equipmentType_harness": "Harness",
+  "equipment_searchWords_cylinder": "tank, bottle, stage, pony",
+  "@equipment_searchWords_cylinder": {
+    "description": "Search words (issue #5106): other words divers use for a cylinder, comma separated. Typing any of them in the equipment search finds cylinders. List this language's own words, including any the app no longer uses as the label."
+  },
+  "equipment_searchWords_tankBand": "tank band, cam band",
+  "@equipment_searchWords_tankBand": {
+    "description": "Search words (issue #5106): other names for a cylinder band, comma separated. Typing any of them in the equipment search finds cylinder bands."
+  },
   "enum_equipmentType_tankBand": "Tank Band",
   "enum_equipmentType_weightPocket": "Weight Pocket",
   "enum_equipmentType_gearPocket": "Gear Pocket",

@@ -14387,6 +14387,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_equipmentType_harness => 'Harness';
 
   @override
+  String get equipment_searchWords_cylinder =>
+      'Tank, Zylinder, Bottle, Stage, Pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'Tankband, Cam Band';
+
+  @override
   String get enum_equipmentType_tankBand => 'Flaschenband';
 
   @override

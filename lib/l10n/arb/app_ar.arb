@@ -4424,6 +4424,8 @@
   "enum_equipmentType_baselayer": "طبقة أساسية",
   "enum_equipmentType_firstStage": "المرحلة الأولى",
   "enum_equipmentType_harness": "حزام",
+  "equipment_searchWords_cylinder": "خزان, قارورة, ستيج, بوني",
+  "equipment_searchWords_tankBand": "حزام الخزان, cam band",
   "enum_equipmentType_tankBand": "حزام الأسطوانة",
   "enum_equipmentType_weightPocket": "جيب الأثقال",
   "enum_equipmentType_gearPocket": "جيب المعدات",

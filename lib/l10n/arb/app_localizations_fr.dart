@@ -14426,6 +14426,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_equipmentType_harness => 'Harnais';
 
   @override
+  String get equipment_searchWords_cylinder =>
+      'bouteille, cylindre, stage, pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'sangle de bouteille, cam band';
+
+  @override
   String get enum_equipmentType_tankBand => 'Sangle de bloc';
 
   @override

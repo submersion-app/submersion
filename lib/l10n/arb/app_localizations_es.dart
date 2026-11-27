@@ -14391,6 +14391,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_equipmentType_harness => 'Arnés';
 
   @override
+  String get equipment_searchWords_cylinder => 'tanque, cilindro, stage, pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'cincha de tanque, cam band';
+
+  @override
   String get enum_equipmentType_tankBand => 'Cincha de tanque';
 
   @override

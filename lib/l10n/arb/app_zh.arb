@@ -4534,6 +4534,8 @@
   "enum_equipmentType_baselayer": "基础层",
   "enum_equipmentType_firstStage": "一级头",
   "enum_equipmentType_harness": "背带",
+  "equipment_searchWords_cylinder": "罐, 钢瓶, 气罐, 备用瓶",
+  "equipment_searchWords_tankBand": "瓶带, cam band",
   "enum_equipmentType_tankBand": "气瓶绑带",
   "enum_equipmentType_weightPocket": "配重袋",
   "enum_equipmentType_gearPocket": "装备袋",
