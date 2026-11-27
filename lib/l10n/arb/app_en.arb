@@ -7454,6 +7454,66 @@
   "diveSites_hours_note_hint": "Book slots by phone, closed public holidays",
   "diveSites_hours_invalid": "Some hours overlap or close before they open",
   "diveSites_hours_noSchedule": "No weekly hours yet",
+  "diveSites_hours_openUntil": "Open now, closes {time}",
+  "@diveSites_hours_openUntil": {
+    "description": "Status line on a dive site's opening hours card.",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "17:00"
+      }
+    }
+  },
+  "diveSites_hours_openNoClose": "Open now",
+  "diveSites_hours_closedOpensAt": "Closed, opens {when}",
+  "@diveSites_hours_closedOpensAt": {
+    "description": "Status line when a dive site is closed; when is a time, or a weekday and time.",
+    "placeholders": {
+      "when": {
+        "type": "String",
+        "example": "Sat 10:00"
+      }
+    }
+  },
+  "diveSites_hours_closedForSeason": "Closed for the season, opens {date}",
+  "@diveSites_hours_closedForSeason": {
+    "description": "Status line when no seasonal schedule applies today.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Apr 1"
+      }
+    }
+  },
+  "diveSites_hours_closedNow": "Closed",
+  "diveSites_hours_span": "{from} to {to}",
+  "@diveSites_hours_span": {
+    "description": "A run of weekdays or a season, from one end to the other.",
+    "placeholders": {
+      "from": {
+        "type": "String",
+        "example": "Mon"
+      },
+      "to": {
+        "type": "String",
+        "example": "Fri"
+      }
+    }
+  },
+  "diveSites_hours_namedSeason": "{name}, {season}",
+  "@diveSites_hours_namedSeason": {
+    "description": "A named seasonal schedule and its dates.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Summer"
+      },
+      "season": {
+        "type": "String",
+        "example": "Apr 1 to Oct 31"
+      }
+    }
+  },
   "diveSites_detail_section_altitude": "Altitude",
   "diveSites_detail_section_depthRange": "Depth Range",
   "diveSites_detail_section_description": "Description",

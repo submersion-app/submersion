@@ -12159,6 +12159,37 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveSites_hours_noSchedule => 'No weekly hours yet';
 
   @override
+  String diveSites_hours_openUntil(String time) {
+    return 'Open now, closes $time';
+  }
+
+  @override
+  String get diveSites_hours_openNoClose => 'Open now';
+
+  @override
+  String diveSites_hours_closedOpensAt(String when) {
+    return 'Closed, opens $when';
+  }
+
+  @override
+  String diveSites_hours_closedForSeason(String date) {
+    return 'Closed for the season, opens $date';
+  }
+
+  @override
+  String get diveSites_hours_closedNow => 'Closed';
+
+  @override
+  String diveSites_hours_span(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String diveSites_hours_namedSeason(String name, String season) {
+    return '$name, $season';
+  }
+
+  @override
   String get diveSites_detail_section_altitude => 'Altitude';
 
   @override

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/opening_hours/opening_hours.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/opening_day_row.dart';
+import 'package:submersion/features/dive_sites/presentation/opening_hours_summary.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A season a schedule starts with when made seasonal: 1 April to

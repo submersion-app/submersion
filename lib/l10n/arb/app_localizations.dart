@@ -19272,6 +19272,48 @@ abstract class AppLocalizations {
   /// **'No weekly hours yet'**
   String get diveSites_hours_noSchedule;
 
+  /// Status line on a dive site's opening hours card.
+  ///
+  /// In en, this message translates to:
+  /// **'Open now, closes {time}'**
+  String diveSites_hours_openUntil(String time);
+
+  /// No description provided for @diveSites_hours_openNoClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Open now'**
+  String get diveSites_hours_openNoClose;
+
+  /// Status line when a dive site is closed; when is a time, or a weekday and time.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed, opens {when}'**
+  String diveSites_hours_closedOpensAt(String when);
+
+  /// Status line when no seasonal schedule applies today.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed for the season, opens {date}'**
+  String diveSites_hours_closedForSeason(String date);
+
+  /// No description provided for @diveSites_hours_closedNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get diveSites_hours_closedNow;
+
+  /// A run of weekdays or a season, from one end to the other.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String diveSites_hours_span(String from, String to);
+
+  /// A named seasonal schedule and its dates.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, {season}'**
+  String diveSites_hours_namedSeason(String name, String season);
+
   /// No description provided for @diveSites_detail_section_altitude.
   ///
   /// In en, this message translates to:

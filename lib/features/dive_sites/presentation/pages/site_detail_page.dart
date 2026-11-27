@@ -40,6 +40,7 @@ import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/helpers/site_link_launcher.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_contact_card.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_opening_hours_card.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_delete_usage.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_card.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
@@ -555,8 +556,12 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
         site: site,
         build: (context) => SiteContactCard(site: site),
       ),
-      // Placeholder until the hours card lands (issue #5073).
-      SiteDetailSectionId.openingHours: () => null,
+      SiteDetailSectionId.openingHours: () => _shownWhileLaidOut(
+        SiteDetailSectionId.openingHours,
+        laidOut: laidOut,
+        site: site,
+        build: (context) => SiteOpeningHoursCard(site: site),
+      ),
       // The terrain needs coordinates to look up. A site whose bathymetry
       // comes back empty keeps the card and shows the pane's no-data state,
       // so the cards below never jump once the lookup finishes.

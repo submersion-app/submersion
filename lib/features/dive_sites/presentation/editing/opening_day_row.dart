@@ -1,28 +1,12 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/opening_hours/opening_hours.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_sites/presentation/opening_hours_summary.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-
-/// A weekday's name in the app's locale: 1 is Monday, 7 is Sunday.
-String weekdayName(BuildContext context, int weekday, {bool short = false}) {
-  final locale = Localizations.localeOf(context).toLanguageTag();
-  // 1 January 2024 was a Monday.
-  final date = DateTime(2024, 1, weekday);
-  return (short ? DateFormat.E(locale) : DateFormat.EEEE(locale)).format(date);
-}
-
-/// The weekdays in the locale's order, its first day of the week first.
-List<int> localeWeekdays(BuildContext context) {
-  // MaterialLocalizations counts from Sunday = 0.
-  final first = MaterialLocalizations.of(context).firstDayOfWeekIndex;
-  final start = first == 0 ? DateTime.sunday : first;
-  return [for (var i = 0; i < 7; i++) (start - 1 + i) % 7 + 1];
-}
 
 /// The default range for a day just set to hours: 08:00 to 12:00.
 const TimeRange _firstRange = TimeRange(480, 720);
