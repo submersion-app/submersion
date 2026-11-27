@@ -26,18 +26,6 @@ extension DiverMigrations on AppDatabase {
     await _addColumnIfMissing('diver_settings', 'pscr_ratio', 'REAL');
   }
 
-  /// v389: diver_settings.profile_zoom_time_only (issue #5069), the profile
-  /// chart's Time only zoom choice. Nullable with no default, like the v262
-  /// viewport choice it pairs with, so null marks a row that has never held
-  /// a value. Idempotent; called from the rung and the beforeOpen backstop.
-  Future<void> _assertProfileZoomTimeOnlyColumn() async {
-    await _addColumnIfMissing(
-      'diver_settings',
-      'profile_zoom_time_only',
-      'INTEGER',
-    );
-  }
-
   /// v263: diver_settings.distance_unit (issue #2030). Not null, default
   /// 'kilometers'. As the column is added, a diver who logs depth in feet
   /// gets miles, so nobody's site distances change unit on upgrade. The
