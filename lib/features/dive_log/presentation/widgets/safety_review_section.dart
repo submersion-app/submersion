@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/presentation/info/safety_review_info.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/species_profile_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_highlight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_text.dart';
@@ -196,12 +197,7 @@ class _SafetyReviewSectionState extends ConsumerState<SafetyReviewSection> {
   }
 
   void _toggleSelected(SafetyFinding finding) {
-    final notifier = ref.read(
-      selectedSafetyFindingProvider(widget.diveId).notifier,
-    );
-    final wasSelected = notifier.state?.id == finding.id;
-    notifier.state = wasSelected ? null : finding;
-    if (wasSelected) return;
+    if (!toggleSafetyFinding(ref, widget.diveId, finding)) return;
     // Bring the profile chart (fixed near the top of the page) into view so
     // the highlight is visible immediately. Works for both the master-detail
     // retained controller and a standalone page's internal controller.
