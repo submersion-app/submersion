@@ -10,12 +10,14 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/member_removal.dart';
+import 'package:submersion/core/services/shared_library/shared_document_state.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_site_models.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 
 export 'package:submersion/core/services/shared_library/shared_site_models.dart';
 
+part 'shared_library_store_documents.dart';
 part 'shared_library_store_removals.dart';
 
 /// Device-local storage for shared site libraries, their member and role caches,
@@ -90,6 +92,9 @@ class SharedLibraryStore {
     await _db.transaction(() async {
       await (_db.delete(
         _db.sharedSiteStates,
+      )..where((t) => t.libraryId.equals(id))).go();
+      await (_db.delete(
+        _db.sharedDocumentStates,
       )..where((t) => t.libraryId.equals(id))).go();
       await (_db.delete(
         _db.sharedSiteSuggestions,
@@ -706,21 +711,41 @@ class SharedLibraryStore {
 
   /// Forgets when [libraryId]'s documents were last read, so the next
   /// pull reads every one again.
-  Future<void> clearRemoteStamps(String libraryId) =>
-      (_db.update(
-        _db.sharedSiteStates,
-      )..where((t) => t.libraryId.equals(libraryId))).write(
-        const SharedSiteStatesCompanion(remoteModifiedTime: Value(null)),
-      );
+  Future<void> clearRemoteStamps(String libraryId) async {
+    await (_db.update(
+      _db.sharedSiteStates,
+    )..where((t) => t.libraryId.equals(libraryId))).write(
+      const SharedSiteStatesCompanion(remoteModifiedTime: Value(null)),
+    );
+    // Shared documents too (issue #4713).
+    await (_db.update(
+      _db.sharedDocumentStates,
+    )..where((t) => t.libraryId.equals(libraryId))).write(
+      const SharedDocumentStatesCompanion(remoteModifiedTime: Value(null)),
+    );
+  }
 
   Future<void> deleteSiteState(String siteId) => (_db.delete(
     _db.sharedSiteStates,
   )..where((t) => t.siteId.equals(siteId))).go();
 
-  SharedSiteState _stateFromRow(SharedSiteStateRow r) {
+  SharedSiteState _stateFromRow(SharedSiteStateRow r) => SharedSiteState(
+    siteId: r.siteId,
+    libraryId: r.libraryId,
+    clocks: _clocksFromJson(r.clocksJson),
+    remoteModifiedTime: r.remoteModifiedTime,
+    dirty: r.dirty,
+    deleted: r.deleted,
+    lastEditorMemberId: r.lastEditorMemberId,
+    lastEditedAtMs: r.lastEditedAtMs,
+  );
+
+  /// A state row's clock map; a corrupt one reads as no clocks, so every
+  /// field is oldest.
+  Map<String, FieldClock> _clocksFromJson(String json) {
     final clocks = <String, FieldClock>{};
     try {
-      final decoded = jsonDecode(r.clocksJson);
+      final decoded = jsonDecode(json);
       if (decoded is Map) {
         for (final e in decoded.entries) {
           final v = e.value;
@@ -734,16 +759,7 @@ class SharedLibraryStore {
     } on FormatException {
       // A corrupt clock map reads as no clocks: every field is oldest.
     }
-    return SharedSiteState(
-      siteId: r.siteId,
-      libraryId: r.libraryId,
-      clocks: clocks,
-      remoteModifiedTime: r.remoteModifiedTime,
-      dirty: r.dirty,
-      deleted: r.deleted,
-      lastEditorMemberId: r.lastEditorMemberId,
-      lastEditedAtMs: r.lastEditedAtMs,
-    );
+    return clocks;
   }
 
   // Suggestions
