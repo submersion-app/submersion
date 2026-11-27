@@ -1,9 +1,8 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_firmware_version.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_record_repository.dart';
-import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/firmware/domain/firmware_catalogue.dart';
 import 'package:submersion/features/firmware/domain/firmware_status.dart';
@@ -24,8 +23,7 @@ enum FirmwareReportOutcome {
 
 /// Writes firmware history (issue #5104): an update the diver logs, and a
 /// version a dive computer download reports. Each keeps the item's
-/// `firmware_version` attribute and its service history in step, in one
-/// transaction.
+/// `firmware_version` attribute and its service history in step.
 class FirmwareUpdateRecorder {
   FirmwareUpdateRecorder({
     EquipmentRepository? equipment,
@@ -44,11 +42,9 @@ class FirmwareUpdateRecorder {
     required DateTime date,
     String notes = '',
   }) async {
-    final trimmed = version.trim();
-    await DatabaseService.instance.database.transaction(() async {
-      await _log(equipmentId, trimmed, date, notes: notes);
-      await _setVersion(equipmentId, trimmed);
-    });
+    // The repository makes it the recorded version when it is the item's
+    // newest firmware update, so a back-dated entry never overwrites one.
+    await _log(equipmentId, version.trim(), date, notes: notes);
   }
 
   /// Records [reportedVersion], reported by a live download at [at]. A first
@@ -69,7 +65,7 @@ class FirmwareUpdateRecorder {
     }
     final stored = item.firmwareVersion?.trim() ?? '';
     if (stored.isEmpty) {
-      await _setVersion(equipmentId, reported);
+      await setRecordedFirmwareVersion(_equipment, equipmentId, reported);
       return FirmwareReportOutcome.recordedFirst;
     }
     final model = catalogue == null
@@ -83,9 +79,10 @@ class FirmwareUpdateRecorder {
     if (sameFirmwareRelease(stored, reported, model: model)) {
       return FirmwareReportOutcome.unchanged;
     }
+    // What the device reports is what it runs, whatever the history says.
     await DatabaseService.instance.database.transaction(() async {
       await _log(equipmentId, reported, at);
-      await _setVersion(equipmentId, reported);
+      await setRecordedFirmwareVersion(_equipment, equipmentId, reported);
     });
     return FirmwareReportOutcome.logged;
   }
@@ -109,22 +106,6 @@ class FirmwareUpdateRecorder {
         updatedAt: now,
       ),
     );
-  }
-
-  /// Replaces only the curated `firmware_version` row; every other attribute
-  /// is written back as it was.
-  Future<void> _setVersion(String equipmentId, String version) async {
-    final item = await _equipment.getEquipmentById(equipmentId);
-    if (item == null) return;
-    await _equipment.saveAttributes(equipmentId, [
-      for (final a in item.attributes)
-        if (a.isCustom || a.key != EquipmentAttrKeys.firmwareVersion) a,
-      EquipmentAttribute.curated(
-        equipmentId: equipmentId,
-        key: EquipmentAttrKeys.firmwareVersion,
-        valueText: version,
-      ),
-    ]);
   }
 }
 

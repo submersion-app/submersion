@@ -16916,6 +16916,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get firmware_card_title => '固件';
 
   @override
+  String get firmware_badge_updateAvailable => '有可用更新';
+
+  @override
   String get firmware_card_installed => '已安装';
 
   @override

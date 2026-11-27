@@ -101,4 +101,68 @@ void main() {
     final read = await records.getRecordById(created.id);
     expect(read!.serviceCategory, ServiceCategory.other);
   });
+  group('the recorded version follows the newest firmware record', () {
+    Future<String?> version() async =>
+        (await equipment.getEquipmentById('perdix'))!.firmwareVersion;
+
+    test('saving one sets the item version', () async {
+      await records.createRecord(
+        record(
+          ServiceCategory.firmwareUpdate,
+          DateTime(2026, 10, 1),
+          firmwareVersion: 'V95',
+        ),
+      );
+      expect(await version(), 'V95');
+    });
+
+    test('a back-dated one leaves the newer version', () async {
+      await records.createRecord(
+        record(
+          ServiceCategory.firmwareUpdate,
+          DateTime(2026, 10, 1),
+          firmwareVersion: 'V95',
+        ),
+      );
+      await records.createRecord(
+        record(
+          ServiceCategory.firmwareUpdate,
+          DateTime(2026, 6, 1),
+          firmwareVersion: 'V94',
+        ),
+      );
+      expect(await version(), 'V95');
+    });
+
+    test('editing the newest one changes the version', () async {
+      final created = await records.createRecord(
+        record(
+          ServiceCategory.firmwareUpdate,
+          DateTime(2026, 10, 1),
+          firmwareVersion: 'V95',
+        ),
+      );
+      await records.updateRecord(created.copyWith(firmwareVersion: 'V96'));
+      expect(await version(), 'V96');
+    });
+
+    test('deleting one never rolls the version back', () async {
+      final created = await records.createRecord(
+        record(
+          ServiceCategory.firmwareUpdate,
+          DateTime(2026, 10, 1),
+          firmwareVersion: 'V95',
+        ),
+      );
+      await records.deleteRecord(created.id);
+      expect(await version(), 'V95');
+    });
+
+    test('a service record leaves the version alone', () async {
+      await records.createRecord(
+        record(ServiceCategory.annual, DateTime(2026, 11, 1)),
+      );
+      expect(await version(), isNull);
+    });
+  });
 }

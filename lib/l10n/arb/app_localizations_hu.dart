@@ -17709,6 +17709,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get firmware_card_title => 'Firmware';
 
   @override
+  String get firmware_badge_updateAvailable => 'Frissítés érhető el';
+
+  @override
   String get firmware_card_installed => 'Telepítve';
 
   @override

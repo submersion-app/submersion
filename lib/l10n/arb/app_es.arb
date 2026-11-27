@@ -5229,6 +5229,7 @@
   "firmware_history_updatedTo": "Firmware actualizado a {version}",
   "firmware_history_changedTo": "Firmware cambiado a {version}",
   "firmware_card_title": "Firmware",
+  "firmware_badge_updateAvailable": "Actualización disponible",
   "firmware_card_installed": "Instalado",
   "firmware_card_notRecorded": "Sin registrar",
   "firmware_card_updateAvailable": "Actualización disponible: {version}",

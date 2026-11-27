@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/presentation/utils/condition_findi
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/firmware/presentation/widgets/firmware_update_badge.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
@@ -127,7 +128,11 @@ class DenseEquipmentListTile extends ConsumerWidget {
                   width: 80,
                   child: source == BadgeSource.finding
                       ? _buildFindingStatus(context, finding!)
-                      : _buildServiceStatus(context, worstClock),
+                      : _buildServiceStatus(
+                          context,
+                          worstClock,
+                          firmwareUpdate: hasFirmwareUpdate(ref, item.id),
+                        ),
                 ),
                 RecordListChevron(
                   size: RecordListChevron.denseSize,
@@ -157,7 +162,11 @@ class DenseEquipmentListTile extends ConsumerWidget {
     );
   }
 
-  Widget _buildServiceStatus(BuildContext context, RollupClock? worstClock) {
+  Widget _buildServiceStatus(
+    BuildContext context,
+    RollupClock? worstClock, {
+    bool firmwareUpdate = false,
+  }) {
     final theme = Theme.of(context);
 
     if (worstClock != null) {
@@ -168,6 +177,11 @@ class DenseEquipmentListTile extends ConsumerWidget {
         subjectId: item.id,
         textAlign: TextAlign.right,
       );
+    }
+
+    // A newer firmware release (issue #5104), below the clock.
+    if (firmwareUpdate) {
+      return const FirmwareUpdateBadge(textAlign: TextAlign.right);
     }
 
     if (item.status != EquipmentStatus.active) {

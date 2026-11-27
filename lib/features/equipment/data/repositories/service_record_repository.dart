@@ -7,6 +7,8 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_firmware_version.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart'
     as domain;
 
@@ -125,6 +127,7 @@ class ServiceRecordRepository {
     // The newest record's date, so a record back-filled from paper does not
     // move the item's last service date back (issue #4201).
     await _refreshEquipmentLastServiceDate(record.equipmentId);
+    await _followFirmware(record.equipmentId, id);
 
     return record.copyWith(id: id, createdAt: now, updatedAt: now);
   }
@@ -158,6 +161,37 @@ class ServiceRecordRepository {
     SyncEventBus.notifyLocalChange();
 
     await _refreshEquipmentLastServiceDate(record.equipmentId);
+    await _followFirmware(record.equipmentId, record.id);
+  }
+
+  /// When [recordId] is [equipmentId]'s newest firmware update (by date,
+  /// then by when it was entered), its version becomes the item's recorded
+  /// firmware (issue #5104). A back-dated update never overwrites a newer
+  /// version, and deleting one never rolls the version back.
+  Future<void> _followFirmware(String equipmentId, String recordId) async {
+    final newest =
+        await (_db.select(_db.serviceRecords)
+              ..where(
+                (t) =>
+                    t.equipmentId.equals(equipmentId) &
+                    t.serviceCategory.equals(
+                      ServiceCategory.firmwareUpdate.name,
+                    ) &
+                    t.firmwareVersion.isNotNull(),
+              )
+              ..orderBy([
+                (t) => OrderingTerm.desc(t.serviceDate),
+                (t) => OrderingTerm.desc(t.createdAt),
+              ])
+              ..limit(1))
+            .getSingleOrNull();
+    final version = newest?.firmwareVersion?.trim() ?? '';
+    if (newest?.id != recordId || version.isEmpty) return;
+    await setRecordedFirmwareVersion(
+      EquipmentRepository(),
+      equipmentId,
+      version,
+    );
   }
 
   /// Delete a service record

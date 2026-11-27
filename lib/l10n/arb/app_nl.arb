@@ -5229,6 +5229,7 @@
   "firmware_history_updatedTo": "Firmware bijgewerkt naar {version}",
   "firmware_history_changedTo": "Firmware gewijzigd naar {version}",
   "firmware_card_title": "Firmware",
+  "firmware_badge_updateAvailable": "Update beschikbaar",
   "firmware_card_installed": "Geïnstalleerd",
   "firmware_card_notRecorded": "Niet vastgelegd",
   "firmware_card_updateAvailable": "Update beschikbaar: {version}",

@@ -18064,6 +18064,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get firmware_card_title => 'البرنامج الثابت';
 
   @override
+  String get firmware_badge_updateAvailable => 'يتوفر تحديث';
+
+  @override
   String get firmware_card_installed => 'المثبت';
 
   @override

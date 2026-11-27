@@ -28180,6 +28180,12 @@ abstract class AppLocalizations {
   /// **'Firmware'**
   String get firmware_card_title;
 
+  /// No description provided for @firmware_badge_updateAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get firmware_badge_updateAvailable;
+
   /// No description provided for @firmware_card_installed.
   ///
   /// In en, this message translates to:

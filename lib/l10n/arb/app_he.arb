@@ -5104,6 +5104,7 @@
   "firmware_history_updatedTo": "הקושחה עודכנה ל-{version}",
   "firmware_history_changedTo": "הקושחה שונתה ל-{version}",
   "firmware_card_title": "קושחה",
+  "firmware_badge_updateAvailable": "עדכון זמין",
   "firmware_card_installed": "מותקן",
   "firmware_card_notRecorded": "לא נרשם",
   "firmware_card_updateAvailable": "עדכון זמין: {version}",

@@ -17518,6 +17518,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get firmware_card_title => 'Firmware';
 
   @override
+  String get firmware_badge_updateAvailable => 'Update available';
+
+  @override
   String get firmware_card_installed => 'Installed';
 
   @override

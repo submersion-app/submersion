@@ -5104,6 +5104,7 @@
   "firmware_history_updatedTo": "Firmware frissítve: {version}",
   "firmware_history_changedTo": "Firmware módosítva: {version}",
   "firmware_card_title": "Firmware",
+  "firmware_badge_updateAvailable": "Frissítés érhető el",
   "firmware_card_installed": "Telepítve",
   "firmware_card_notRecorded": "Nincs rögzítve",
   "firmware_card_updateAvailable": "Frissítés érhető el: {version}",

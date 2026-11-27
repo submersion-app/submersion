@@ -17806,6 +17806,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get firmware_card_title => 'Firmware';
 
   @override
+  String get firmware_badge_updateAvailable => 'Mise à jour disponible';
+
+  @override
   String get firmware_card_installed => 'Installé';
 
   @override

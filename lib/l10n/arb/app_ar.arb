@@ -5229,6 +5229,7 @@
   "firmware_history_updatedTo": "تم تحديث البرنامج الثابت إلى {version}",
   "firmware_history_changedTo": "تم تغيير البرنامج الثابت إلى {version}",
   "firmware_card_title": "البرنامج الثابت",
+  "firmware_badge_updateAvailable": "يتوفر تحديث",
   "firmware_card_installed": "المثبت",
   "firmware_card_notRecorded": "غير مسجل",
   "firmware_card_updateAvailable": "يتوفر تحديث: {version}",

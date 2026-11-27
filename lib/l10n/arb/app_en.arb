@@ -10652,6 +10652,7 @@
   "firmware_history_changedTo": "Firmware changed to {version}",
   "@firmware_history_changedTo": {"placeholders": {"version": {"type": "String"}}},
   "firmware_card_title": "Firmware",
+  "firmware_badge_updateAvailable": "Update available",
   "firmware_card_installed": "Installed",
   "firmware_card_notRecorded": "Not recorded",
   "firmware_card_updateAvailable": "Update available: {version}",

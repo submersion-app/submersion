@@ -53,6 +53,9 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
   final _costController = TextEditingController();
   final _currencyController = TextEditingController();
   final _notesController = TextEditingController();
+
+  /// The version a firmware update installed (issue #5104).
+  final _firmwareController = TextEditingController();
   DateTime? _nextServiceDue;
   String? _serviceKindId;
 
@@ -102,6 +105,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
       _costController.text = cost == null ? '' : formatDecimalForInput(cost);
       _initialCurrencyCode = record.currency;
       _notesController.text = record.notes;
+      _firmwareController.text = record.firmwareVersion ?? '';
       _nextServiceDue = record.nextServiceDue;
       _serviceKindId = record.serviceKindId;
     } else {
@@ -127,6 +131,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
     _costController.dispose();
     _currencyController.dispose();
     _notesController.dispose();
+    _firmwareController.dispose();
     super.dispose();
   }
 
@@ -380,6 +385,23 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                 ),
                 const SizedBox(height: 16),
 
+                // A firmware update names the version it installed (#5104).
+                if (_serviceCategory == ServiceCategory.firmwareUpdate) ...[
+                  TextFormField(
+                    key: const Key('service-record-firmware-version'),
+                    controller: _firmwareController,
+                    maxLength: 60,
+                    decoration: InputDecoration(
+                      labelText: context.l10n.firmware_log_version,
+                      prefixIcon: const Icon(Icons.memory),
+                    ),
+                    validator: (value) => (value ?? '').trim().isEmpty
+                        ? context.l10n.firmware_log_versionRequired
+                        : null,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
                 // Service date picker
                 Semantics(
                   button: true,
@@ -623,6 +645,9 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
             : _currencyController.text.trim().toUpperCase(),
         nextServiceDue: _nextServiceDue,
         notes: _notesController.text.trim(),
+        firmwareVersion: _serviceCategory == ServiceCategory.firmwareUpdate
+            ? _firmwareController.text.trim()
+            : null,
         createdAt: widget.existingRecord?.createdAt ?? now,
         updatedAt: now,
       );

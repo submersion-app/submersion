@@ -17404,6 +17404,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get firmware_card_title => 'קושחה';
 
   @override
+  String get firmware_badge_updateAvailable => 'עדכון זמין';
+
+  @override
   String get firmware_card_installed => 'מותקן';
 
   @override

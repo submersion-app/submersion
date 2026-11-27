@@ -18,6 +18,10 @@ import 'package:submersion/features/equipment/presentation/widgets/service_histo
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
+import 'package:submersion/features/firmware/domain/firmware_catalogue.dart';
+import 'package:submersion/features/firmware/domain/firmware_status.dart';
+import 'package:submersion/features/firmware/presentation/providers/firmware_status_providers.dart';
+
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/detail_row_finders.dart';
 
@@ -68,6 +72,7 @@ void main() {
     _FakeExportService? exportService,
     EditSession<EquipmentItem>? editing,
     bool settle = true,
+    List<Object> extra = const [],
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = surface;
@@ -100,6 +105,7 @@ void main() {
           exportServiceProvider.overrideWithValue(
             exportService ?? _FakeExportService(),
           ),
+          ...extra,
         ].cast(),
         child: MaterialApp(
           locale: locale,
@@ -153,6 +159,60 @@ void main() {
     );
 
     expect(find.text('Reinigung'), findsOneWidget);
+  });
+
+  // Issue #5104: a firmware record says which version it installed, and a
+  // version the catalogue ranks below the one before it reads as a change.
+  ServiceRecord firmware(String id, String version, DateTime when) =>
+      ServiceRecord(
+        id: id,
+        equipmentId: equipmentId,
+        serviceCategory: ServiceCategory.firmwareUpdate,
+        serviceDate: when,
+        firmwareVersion: version,
+        createdAt: when,
+        updatedAt: when,
+      );
+
+  testWidgets('a firmware record names the version it installed', (
+    tester,
+  ) async {
+    await pumpSection(
+      tester,
+      records: [firmware('f1', 'V95', DateTime(2026, 10, 1))],
+      kinds: const [],
+    );
+    expect(find.text('Firmware updated to V95'), findsOneWidget);
+  });
+
+  testWidgets('a step back down the catalogue reads as a change', (
+    tester,
+  ) async {
+    const model = FirmwareModel(
+      id: 'm',
+      manufacturer: 'Shearwater',
+      model: 'Perdix 2',
+      equipmentTypes: {EquipmentType.rebreather},
+      releases: [
+        FirmwareRelease(version: 'V95'),
+        FirmwareRelease(version: 'V94'),
+      ],
+    );
+    await pumpSection(
+      tester,
+      records: [
+        firmware('f2', 'V94', DateTime(2026, 11, 1)),
+        firmware('f1', 'V95', DateTime(2026, 10, 1)),
+      ],
+      kinds: const [],
+      extra: [
+        firmwareStatusesProvider.overrideWith(
+          (ref) async => {equipmentId: const FirmwareUpToDate(model)},
+        ),
+      ],
+    );
+    expect(find.text('Firmware changed to V94'), findsOneWidget);
+    expect(find.text('Firmware updated to V95'), findsOneWidget);
   });
 
   testWidgets('row renders notes and next due', (tester) async {
