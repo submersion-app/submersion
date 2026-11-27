@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+
 import 'package:submersion/core/opening_hours/opening_hours.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_opening_hours_card_editor.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 import 'site_editor_harness.dart';
 
@@ -166,5 +172,57 @@ void main() {
 
     expect(siteOpeningHoursIsValid(h.session), isFalse);
     expect(find.text(l.diveSites_hours_invalid), findsOneWidget);
+  });
+
+  // A retake after a whole-record operation hands the mounted editor another
+  // sitting; it must show that sitting's hours, not the old one's.
+  testWidgets('a new sitting replaces the note and schedules shown', (
+    tester,
+  ) async {
+    RecordEditController<DiveSite> controllerFor(OpeningHours hours) {
+      final c = RecordEditController<DiveSite>(onSave: (_) async {})
+        ..unlock(site.copyWith(openingHours: hours));
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    final first = controllerFor(
+      const OpeningHours(
+        note: 'Old note',
+        schedules: [OpeningSchedule(name: 'Old')],
+      ),
+    );
+    final second = controllerFor(
+      const OpeningHours(
+        note: 'New note',
+        schedules: [OpeningSchedule(name: 'New')],
+      ),
+    );
+    final overrides = await getBaseOverrides();
+    Widget app(RecordEditController<DiveSite> c) => ProviderScope(
+      overrides: overrides,
+      child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: RecordEditScope<DiveSite>(
+              controller: c,
+              child: SiteOpeningHoursCardEditor(session: c.session!),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(app(first));
+    await tester.pumpAndSettle();
+    expect(find.text('Old note'), findsOneWidget);
+
+    await tester.pumpWidget(app(second));
+    await tester.pumpAndSettle();
+    expect(find.text('New note'), findsOneWidget);
+    expect(find.text('New'), findsOneWidget);
+    expect(find.text('Old'), findsNothing);
   });
 }

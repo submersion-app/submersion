@@ -155,4 +155,16 @@ void main() {
     ]);
     expect(day.ranges.first.opensAt, 480);
   });
+
+  test('copyWith changes only what it is given', () {
+    expect(const MonthDay(4, 1).copyWith(day: 15), const MonthDay(4, 15));
+    expect(const MonthDay(4, 1).copyWith(month: 5), const MonthDay(5, 1));
+    final day = DayHours.ranges(const [TimeRange(480, 720)]);
+    expect(
+      day.copyWith(ranges: const [TimeRange(780, 900), TimeRange(480, 720)]),
+      DayHours.ranges(const [TimeRange(480, 720), TimeRange(780, 900)]),
+    );
+    expect(day.copyWith(kind: DayHoursKind.open24h), const DayHours.open24h());
+    expect(day.copyWith(kind: DayHoursKind.closed), const DayHours.closed());
+  });
 }

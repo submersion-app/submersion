@@ -64,6 +64,10 @@ enum FieldKind {
 
   /// Minutes after local midnight (opening hours).
   timeOfDay,
+
+  /// A dive site's opening hours as stored JSON (issue #5073), shown as a
+  /// summary.
+  openingHours,
   boolean,
   number,
   shortText,

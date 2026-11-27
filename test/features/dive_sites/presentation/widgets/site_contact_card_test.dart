@@ -213,4 +213,15 @@ void main() {
       );
     });
   });
+
+  group('phoneUri', () {
+    test('drops the (0) trunk digit after an international prefix', () {
+      expect(phoneUri('+44 (0)1455 273089').toString(), 'tel:+441455273089');
+    });
+
+    test('stops before an extension', () {
+      expect(phoneUri('01455 273089 ext. 12').toString(), 'tel:01455273089');
+      expect(phoneUri('+1 555-0100 x7').toString(), 'tel:+15550100');
+    });
+  });
 }

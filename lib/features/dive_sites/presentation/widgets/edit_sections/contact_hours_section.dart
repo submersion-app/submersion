@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/opening_hours/opening_hours.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_contact_rules.dart';
+import 'package:submersion/features/dive_sites/presentation/opening_hours_summary.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/merge_field_extras.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
@@ -35,6 +37,7 @@ class ContactHoursSection extends StatelessWidget {
     required TextEditingController controller,
     TextInputType? keyboard,
     int maxLines = 1,
+    String? Function(String?)? validator,
   }) {
     final extras = mergeExtras?.call(key);
     return SuggestionFormRow(
@@ -43,6 +46,7 @@ class ContactHoursSection extends StatelessWidget {
       suggestions: const [],
       maxLines: maxLines,
       keyboardType: keyboard,
+      validator: validator,
       caption: extras?.sourceLabel,
       trailing: extras == null
           ? null
@@ -54,16 +58,9 @@ class ContactHoursSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final hours = openingHours;
-    final names = [
-      for (final s in hours?.schedules ?? const <OpeningSchedule>[])
-        if (s.name?.trim().isNotEmpty ?? false) s.name!.trim(),
-    ];
-    final hoursSummary = switch (hours) {
-      null => l10n.diveSites_hours_noSchedule,
-      OpeningHours(alwaysOpen: true) => l10n.diveSites_hours_alwaysOpen,
-      _ when names.isNotEmpty => names.join(', '),
-      _ => l10n.diveSites_merge_hoursSchedules(hours.schedules.length),
-    };
+    final hoursSummary = hours == null
+        ? l10n.diveSites_hours_noSchedule
+        : openingHoursSummary(l10n, hours);
     final extras = openingHoursExtras;
     return FormSection(
       label: l10n.diveSites_detail_section_contact,
@@ -89,12 +86,19 @@ class ContactHoursSection extends StatelessWidget {
           label: l10n.diveSites_edit_contact_email_label,
           controller: emailController,
           keyboard: TextInputType.emailAddress,
+          // As the Contact card refuses them.
+          validator: (text) => isValidSiteEmail(text)
+              ? null
+              : l10n.diveSites_edit_contact_emailInvalid,
         ),
         _row(
           key: 'website',
           label: l10n.diveSites_edit_contact_website_label,
           controller: websiteController,
           keyboard: TextInputType.url,
+          validator: (text) => isValidSiteWebsite(text)
+              ? null
+              : l10n.diveSites_edit_contact_websiteInvalid,
         ),
         if (extras != null)
           MergeSourceRow(

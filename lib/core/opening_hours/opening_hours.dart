@@ -56,6 +56,15 @@ class DayHours extends Equatable {
 
   bool get isClosed => kind == DayHoursKind.closed;
 
+  /// A day of [kind] (this one's when null); [ranges] apply to a day of
+  /// hours only, and default to this day's.
+  DayHours copyWith({DayHoursKind? kind, List<TimeRange>? ranges}) =>
+      switch (kind ?? this.kind) {
+        DayHoursKind.closed => const DayHours.closed(),
+        DayHoursKind.open24h => const DayHours.open24h(),
+        DayHoursKind.ranges => DayHours.ranges(ranges ?? this.ranges),
+      };
+
   @override
   List<Object?> get props => [kind, ranges];
 }
@@ -73,6 +82,9 @@ class MonthDay extends Equatable implements Comparable<MonthDay> {
       month <= 12 &&
       day >= 1 &&
       day <= DateTime(2000, month + 1, 0).day;
+
+  MonthDay copyWith({int? month, int? day}) =>
+      MonthDay(month ?? this.month, day ?? this.day);
 
   /// This day in [date]'s order of the year.
   static MonthDay of(DateTime date) => MonthDay(date.month, date.day);

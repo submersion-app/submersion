@@ -65,10 +65,14 @@ Future<void> openSiteDirections(
   );
 }
 
-/// A phone number as a `tel:` link: digits, with a leading plus kept.
+/// A phone number as a `tel:` link: digits, with a leading plus kept. A
+/// "(0)" written after the country code is the national trunk digit, not
+/// part of the international number, and anything from the first letter or
+/// `#` on is an extension ("ext. 12", "x7"), which a dialler cannot take.
 Uri phoneUri(String phone) {
-  final trimmed = phone.trim();
-  final digits = trimmed.replaceAll(RegExp(r'[^0-9]'), '');
+  final trimmed = phone.trim().replaceAll(RegExp(r'\(\s*0\s*\)'), '');
+  final number = trimmed.split(RegExp(r'[A-Za-z#]')).first;
+  final digits = number.replaceAll(RegExp(r'[^0-9]'), '');
   return Uri(
     scheme: 'tel',
     path: trimmed.startsWith('+') ? '+$digits' : digits,

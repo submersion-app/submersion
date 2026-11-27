@@ -338,7 +338,7 @@ final Map<String, ConflictField> siteTripFields = {
   // A dive site's opening hours as stored JSON, chosen as a whole.
   'openingHours': ConflictField(
     (l) => l.settings_conflict_field_openingHours,
-    FieldKind.longText,
+    FieldKind.openingHours,
   ),
   'operatorName': ConflictField(
     (l) => l.settings_conflict_field_operatorName,

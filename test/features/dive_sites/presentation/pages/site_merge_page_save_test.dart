@@ -16,6 +16,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/dive_info_section.dart';
+import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/identity_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/life_notes_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/location_section.dart';
@@ -264,6 +265,31 @@ void main() {
     expect(merged.email, 'info@stoneycove.com');
     expect(merged.website, 'stoneycove.com');
     expect(merged.openingHours, hours);
+  });
+
+  testWidgets('a merge refuses a website that will not open', (tester) async {
+    await seedSite(db, 'a', owner: 'd2', name: 'Stoney Cove');
+    await seedSite(db, 'b', owner: 'd2', name: 'Stoney Cove North');
+    await pump(tester, const ['a', 'b'], active: 'd2');
+
+    final website = find.descendant(
+      of: find.widgetWithText(
+        SuggestionFormRow,
+        l.diveSites_edit_contact_website_label,
+      ),
+      matching: find.byType(EditableText),
+    );
+    await tester.ensureVisible(website);
+    await tester.enterText(website, 'mailto:x@y.com');
+    await tester.pump();
+    await tester.tap(find.text(l.forms_save).first);
+    // A save that went on would open the confirmation over a spinner.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.text(l.diveSites_edit_contact_websiteInvalid), findsOneWidget);
+    expect(find.text(l.diveSites_edit_appBar_merge), findsNothing);
+    expect(await stored('b'), isTrue);
   });
 
   // What a merge stores (final review): the chosen candidates, the chosen

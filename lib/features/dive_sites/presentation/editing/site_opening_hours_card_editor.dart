@@ -48,6 +48,16 @@ class _SiteOpeningHoursCardEditorState
     return _ids;
   }
 
+  /// Another sitting (a retake after a whole-record operation): show its
+  /// note, and give its schedules fresh editors.
+  @override
+  void didUpdateWidget(SiteOpeningHoursCardEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session == widget.session) return;
+    _note.text = _hours.note ?? '';
+    _ids = [];
+  }
+
   @override
   void dispose() {
     _note.dispose();
