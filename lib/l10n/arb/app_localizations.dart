@@ -34749,6 +34749,12 @@ abstract class AppLocalizations {
   /// **'Setpoint switch depth'**
   String get plannerCanvas_ccr_switchDepth;
 
+  /// No description provided for @plannerCanvas_ccr_switchDepthOffNote.
+  ///
+  /// In en, this message translates to:
+  /// **'No switch by depth: low setpoint throughout'**
+  String get plannerCanvas_ccr_switchDepthOffNote;
+
   /// No description provided for @plannerCanvas_pscr_ratio.
   ///
   /// In en, this message translates to:
@@ -41094,6 +41100,12 @@ abstract class AppLocalizations {
   /// **'CCR low setpoint'**
   String get settings_conflict_field_ccrSetpointLow;
 
+  /// No description provided for @settings_conflict_field_ccrSetpointSwitchDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint switch depth'**
+  String get settings_conflict_field_ccrSetpointSwitchDepth;
+
   /// No description provided for @settings_conflict_field_channelIndex.
   ///
   /// In en, this message translates to:
@@ -43973,6 +43985,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Setpoint switch depth'**
   String get settings_conflict_field_setpointSwitchDepth;
+
+  /// No description provided for @settings_conflict_field_setpointSwitchOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint switch off'**
+  String get settings_conflict_field_setpointSwitchOff;
 
   /// No description provided for @settings_conflict_field_settings_key.
   ///
@@ -47838,14 +47856,15 @@ abstract class AppLocalizations {
   /// **'ppO2 limits CCR'**
   String get settings_decompression_ccrPpO2LimitsTitle;
 
-  /// No description provided for @settings_decompression_ccrPpO2LimitsSubtitle.
+  /// No description provided for @settings_decompression_ccrPpO2LimitsSubtitleWithSwitch.
   ///
   /// In en, this message translates to:
-  /// **'Setpoint low {low} · high {high} · Dil MOD {dil} bar'**
-  String settings_decompression_ccrPpO2LimitsSubtitle(
+  /// **'Setpoint low {low} · high {high} · Dil MOD {dil} bar · switch {depth}'**
+  String settings_decompression_ccrPpO2LimitsSubtitleWithSwitch(
     String low,
     String high,
     String dil,
+    String depth,
   );
 
   /// No description provided for @settings_decompression_ccrDialog_info.
@@ -47889,6 +47908,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'ppO2 the diluent may reach on a flush; sets its MOD'**
   String get settings_decompression_ccrDialog_diluentModHint;
+
+  /// No description provided for @settings_decompression_ccrDialog_switchDepth.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint switch depth'**
+  String get settings_decompression_ccrDialog_switchDepth;
+
+  /// No description provided for @settings_decompression_ccrDialog_switchDepthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'High setpoint below, low setpoint above'**
+  String get settings_decompression_ccrDialog_switchDepthHint;
 
   /// No description provided for @settings_decompression_ppO2Dialog_info.
   ///

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/planner/presentation/info/plan_results_info.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_headline_figures.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_source_dive_compare_strip.dart';
@@ -30,28 +31,39 @@ class PlanResultsPane extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final outcome = ref.watch(activePlanOutcomeProvider);
+    // The figures follow the Bailout view (#4983); the warnings stay the
+    // plan's.
+    final figures = ref.watch(planHeadlineFiguresProvider);
     final scheme = Theme.of(context).colorScheme;
-    final inDeco = outcome.owesDecompression;
+    final inDeco = figures.owesDecompression;
 
     String minutes(int seconds) => "${(seconds / 60).round()}'";
+    Widget dimmed(Widget child) =>
+        figures.stale ? Opacity(opacity: 0.5, child: child) : child;
 
     final tiles = [
-      PlanStatTile(
-        label: context.l10n.divePlanner_label_runtime,
-        value: minutes(outcome.runtimeSeconds),
+      dimmed(
+        PlanStatTile(
+          label: context.l10n.divePlanner_label_runtime,
+          value: minutes(figures.runtimeSeconds),
+        ),
       ),
       if (inDeco)
-        PlanStatTile(
-          label: context.l10n.divePlanner_label_tts,
-          value: minutes(outcome.ttsAtBottom),
+        dimmed(
+          PlanStatTile(
+            label: context.l10n.divePlanner_label_tts,
+            value: minutes(figures.ttsSeconds),
+          ),
         )
       else
-        PlanStatTile(
-          label: context.l10n.divePlanner_label_ndl,
-          value: minutes(outcome.ndlAtBottom),
+        dimmed(
+          PlanStatTile(
+            label: context.l10n.divePlanner_label_ndl,
+            value: minutes(figures.ndlSeconds),
+          ),
         ),
       // CNS is an untranslatable acronym (same precedent as CCR).
-      PlanStatTile(label: 'CNS', value: '${outcome.cnsEnd.round()}%'),
+      dimmed(PlanStatTile(label: 'CNS', value: '${figures.cnsEnd.round()}%')),
       PlanStatTile(
         label: context.l10n.divePlanner_label_warnings,
         value: '${groupPlanIssues(outcome.issues).length}',

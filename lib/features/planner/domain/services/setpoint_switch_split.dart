@@ -7,8 +7,10 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 
-/// [stretch] of the leg [segment] describes, cut where it crosses [plan]'s
-/// setpoint switch depth: the loop changes setpoint there, so breathing the
+/// [stretch] of the leg [segment] describes, cut where it crosses
+/// [switchDepth], the plan's resolved setpoint switch depth
+/// (`PlanEngineConfig.setpointSwitchDepthFor`; infinity when the switch is
+/// off, so nothing is cut): the loop changes setpoint there, so breathing the
 /// whole stretch on one setpoint would load the tissues and the O2 clocks with
 /// the wrong one for part of it (#4009).
 ///
@@ -27,13 +29,13 @@ import 'package:submersion/features/planner/domain/services/diluent_switch_time.
 List<DecoSegment> splitAtSetpointSwitch(
   domain.DivePlan plan,
   PlanSegment segment,
-  DecoSegment stretch,
-) {
+  DecoSegment stretch, {
+  required double switchDepth,
+}) {
   if (modeFor(plan, segment) != domain.PlanMode.ccr ||
       segment.setpointBar != null) {
     return [stretch];
   }
-  final switchDepth = plan.effectiveSetpointSwitchDepth;
   final start = stretch.startDepth;
   final end = stretch.endDepth;
   if (!CcrLoopAscentGas.crossesSwitch(

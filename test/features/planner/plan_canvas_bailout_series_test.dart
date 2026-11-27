@@ -22,6 +22,7 @@ void main() {
   test('ccrRows then ocStops become one continuous, stepped profile: a flat '
       'hold at each stop, not a smooth diagonal between them', () {
     final bailout = BailoutOutcome(
+      worstCaseCnsEnd: 0,
       points: [_worstCase(ttsSeconds: 420)],
       worstCase: _worstCase(ttsSeconds: 420),
       availableLiters: 1200,
@@ -89,6 +90,7 @@ void main() {
   test('a gas switch on a depth-changing CCR leg marks the leg\'s own start, '
       'not its end depth, so the marker lands on the drawn line', () {
     final bailout = BailoutOutcome(
+      worstCaseCnsEnd: 0,
       points: [_worstCase()],
       worstCase: _worstCase(),
       availableLiters: 1200,
@@ -163,6 +165,7 @@ void main() {
       arrivalRuntimeSeconds: arrival,
     );
     final bailout = BailoutOutcome(
+      worstCaseCnsEnd: 0,
       points: [_worstCase(ttsSeconds: 220)],
       worstCase: _worstCase(ttsSeconds: 220),
       availableLiters: 1200,
@@ -208,6 +211,7 @@ void main() {
 
   test('a bailout stop held only for a gas switch says so on its marker', () {
     final bailout = BailoutOutcome(
+      worstCaseCnsEnd: 0,
       points: [_worstCase()],
       worstCase: _worstCase(),
       availableLiters: 1200,
@@ -244,6 +248,7 @@ void main() {
 
   test('no CCR rows and no stops yields a single surface point', () {
     final bailout = BailoutOutcome(
+      worstCaseCnsEnd: 0,
       points: [_worstCase()],
       worstCase: _worstCase(),
       availableLiters: 1200,

@@ -280,7 +280,7 @@ enum WeightType {
 
 /// Which side of the diver a weight is carried on (issue #5028), for the
 /// trim figure's roll. A weight with no side is carried on both sides,
-/// split evenly, which is how every weight logged before v387 reads.
+/// split evenly, which is how every weight logged before v388 reads.
 enum WeightSide { left, right }
 
 /// The [WeightSide] a stored `dive_weights.side` names, or null for both

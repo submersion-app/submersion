@@ -13959,6 +13959,7 @@
   "plannerCanvas_ccr_setpointHigh": "Setpoint high (bar)",
   "plannerCanvas_ccr_setpointLow": "Setpoint low (bar)",
   "plannerCanvas_ccr_switchDepth": "Setpoint switch depth",
+  "plannerCanvas_ccr_switchDepthOffNote": "No switch by depth: low setpoint throughout",
   "plannerCanvas_pscr_ratio": "pSCR ratio",
   "plannerCanvas_pscr_ratio_hint": "Larger adds more fresh gas and lowers the O₂ drop",
   "plannerCanvas_scr_injectionRate": "Injection rate",
@@ -16173,6 +16174,7 @@
   "settings_conflict_field_ccrDiluentModPpO2": "CCR diluent MOD ppO2",
   "settings_conflict_field_ccrSetpointHigh": "CCR high setpoint",
   "settings_conflict_field_ccrSetpointLow": "CCR low setpoint",
+  "settings_conflict_field_ccrSetpointSwitchDepth": "Setpoint switch depth",
   "settings_conflict_field_channelIndex": "Channel",
   "settings_conflict_field_checklistTemplateItems_category": "Category",
   "settings_conflict_field_city": "City",
@@ -16656,6 +16658,7 @@
   "settings_conflict_field_serviceReminderDays": "Service reminder days",
   "settings_conflict_field_setpointBar": "Setpoint",
   "settings_conflict_field_setpointSwitchDepth": "Setpoint switch depth",
+  "settings_conflict_field_setpointSwitchOff": "Setpoint switch off",
   "settings_conflict_field_settings_key": "Setting",
   "settings_conflict_field_settings_value": "Value",
   "settings_conflict_field_shallowAscentRate": "Ascent rate between shallow stops",
@@ -17520,8 +17523,8 @@
   "settings_decompression_hypercapniaDialog_factorLabel": "RMV factor",
   "settings_decompression_hypercapniaDialog_minutesLabel": "Duration",
   "settings_decompression_ccrPpO2LimitsTitle": "ppO2 limits CCR",
-  "settings_decompression_ccrPpO2LimitsSubtitle": "Setpoint low {low} · high {high} · Dil MOD {dil} bar",
-  "@settings_decompression_ccrPpO2LimitsSubtitle": {
+  "settings_decompression_ccrPpO2LimitsSubtitleWithSwitch": "Setpoint low {low} · high {high} · Dil MOD {dil} bar · switch {depth}",
+  "@settings_decompression_ccrPpO2LimitsSubtitleWithSwitch": {
     "placeholders": {
       "low": {
         "type": "String"
@@ -17530,6 +17533,9 @@
         "type": "String"
       },
       "dil": {
+        "type": "String"
+      },
+      "depth": {
         "type": "String"
       }
     }
@@ -17541,6 +17547,8 @@
   "settings_decompression_ccrDialog_setpointHighHint": "Held at depth",
   "settings_decompression_ccrDialog_diluentMod": "Dil MOD",
   "settings_decompression_ccrDialog_diluentModHint": "ppO2 the diluent may reach on a flush; sets its MOD",
+  "settings_decompression_ccrDialog_switchDepth": "Setpoint switch depth",
+  "settings_decompression_ccrDialog_switchDepthHint": "High setpoint below, low setpoint above",
   "settings_decompression_ppO2Dialog_info": "The ppO2 ceilings used for MOD, gas planning and oxygen toxicity warnings. Set these to match the limits configured on your dive computer.",
   "settings_decompression_ppO2Dialog_working": "Working ppO2",
   "settings_decompression_ppO2Dialog_workingHint": "Bottom gas, active part of the dive",

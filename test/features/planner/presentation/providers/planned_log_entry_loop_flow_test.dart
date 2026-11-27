@@ -51,15 +51,16 @@ DivePlanState _state(
   updatedAt: DateTime(2026, 11, 17),
 );
 
-PlannedLogEntry _entry(DivePlanState state) => PlannedLogEntry.of(
+PlannedLogEntry _entry(
+  DivePlanState state, {
+  PlanEngineConfig config = _config,
+}) => PlannedLogEntry.of(
   SeriesDiveResult(
     state: state,
-    outcome: const PlanEngine(
-      config: _config,
-    ).compute(divePlanFromState(state)),
+    outcome: PlanEngine(config: config).compute(divePlanFromState(state)),
   ),
   name: state.name,
-  config: _config,
+  config: config,
 );
 
 void main() {
@@ -100,6 +101,73 @@ void main() {
     final dive = _entry(state).newDive(state, null);
     expect(dive.scrType, ScrType.cmf);
     expect(dive.diluentGas, _ean50);
+  });
+
+  group('CCR setpoints (#3793)', () {
+    const settings = PlanEngineConfig(
+      ccrSetpointLow: 0.6,
+      ccrSetpointHigh: 1.2,
+    );
+
+    DivePlanState ccrState({double? low, double? high}) {
+      final base = _state(domain.PlanMode.ccr);
+      return base.copyWith(
+        setpointLow: low,
+        setpointHigh: high,
+        tanks: const [
+          DiveTank(
+            id: 't1',
+            volume: 7,
+            startPressure: 200,
+            gasMix: _ean50,
+            role: TankRole.diluent,
+          ),
+          DiveTank(
+            id: 't2',
+            volume: 3,
+            startPressure: 200,
+            gasMix: GasMix(o2: 100),
+            role: TankRole.oxygenSupply,
+          ),
+        ],
+      );
+    }
+
+    test('a plan with no setpoints of its own logs the Settings values', () {
+      final state = ccrState();
+      final dive = _entry(state, config: settings).newDive(state, null);
+      expect(dive.setpointLow, 0.6);
+      expect(dive.setpointHigh, 1.2);
+    });
+
+    test('a plan setpoint wins over the Settings value', () {
+      final state = ccrState(low: 0.8, high: 1.4);
+      final dive = _entry(state, config: settings).newDive(state, null);
+      expect(dive.setpointLow, 0.8);
+      expect(dive.setpointHigh, 1.4);
+    });
+
+    test('a plan with the switch Off logs its low setpoint as the high', () {
+      final state = ccrState().copyWith(setpointSwitchOff: true);
+      final dive = _entry(state, config: settings).newDive(state, null);
+      expect(dive.setpointLow, 0.6);
+      expect(dive.setpointHigh, 0.6);
+    });
+
+    test('an update compares against the resolved values', () {
+      final state = ccrState();
+      final entry = _entry(state, config: settings);
+      final logged = entry.newDive(state, null);
+      expect(logged.setpointLow, 0.6);
+      expect(entry.update(logged, state, null).setpointHigh, 1.2);
+    });
+
+    test('an open-circuit plan logs no setpoints', () {
+      final state = _state(domain.PlanMode.oc);
+      final dive = _entry(state, config: settings).newDive(state, null);
+      expect(dive.setpointLow, isNull);
+      expect(dive.setpointHigh, isNull);
+    });
   });
 
   test('an open-circuit plan logs no loop values', () {

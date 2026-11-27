@@ -338,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 387;
+  static const int currentSchemaVersion = 388;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1825,10 +1825,15 @@ class AppDatabase extends _$AppDatabase {
     // v386: the equipment and dive query for derived course requirements.
     // New kinds require the sync floor to rise to 386.
     386,
-    // v387: dive_weights.side and weight_preset_entries.side, the side a
+    // v387: diver_settings.ccr_setpoint_switch_depth and
+    // dive_plans.setpoint_switch_off, the diver-wide CCR setpoint switch
+    // depth and a plan's no-switch flag (issue #3793). Additive and
+    // defaulted; the floor does not move.
+    387,
+    // v388: dive_weights.side and weight_preset_entries.side, the side a
     // weight is carried on, for the trim figure's roll (issue #5028).
     // Nullable, null meaning both sides; no backfill, the floor does not move.
-    387,
+    388,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

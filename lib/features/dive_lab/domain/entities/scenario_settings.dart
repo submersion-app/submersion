@@ -7,6 +7,7 @@ import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/core/deco/scr_calculator.dart';
+import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
 /// Everything the engine needs from diver settings and the dive, resolved by
@@ -38,6 +39,7 @@ class ScenarioSettings extends Equatable {
     this.reservePressureBar = 50.0,
     this.defaultScrInjectionRateLpm = ScrCalculator.defaultInjectionRateLpm,
     this.defaultScrVo2Lpm = ScrCalculator.defaultVo2,
+    this.ccrSetpointSwitchDepth = DivePlan.specSetpointSwitchDepth,
   });
 
   /// Fractions (0-1).
@@ -75,6 +77,11 @@ class ScenarioSettings extends Equatable {
   final double defaultScrInjectionRateLpm;
   final double defaultScrVo2Lpm;
 
+  /// The diver's CCR setpoint switch depth (m), for a CCR plan that sets none
+  /// of its own (issue #3793), so the lab and the planner switch setpoint at
+  /// the same depth. The setpoints themselves still come from the dive.
+  final double ccrSetpointSwitchDepth;
+
   /// Mirrors profile_analysis_provider: altitude, water type and surface
   /// pressure straight from the dive (PlanEngine applies its own "altitude
   /// <= 0 is unset" rule to the altitude it receives separately).
@@ -107,6 +114,7 @@ class ScenarioSettings extends Equatable {
     gasModel: gasModel,
     scrInjectionRateLpm: scrInjectionRateLpm ?? defaultScrInjectionRateLpm,
     scrVo2Lpm: scrVo2Lpm ?? defaultScrVo2Lpm,
+    ccrSetpointSwitchDepth: ccrSetpointSwitchDepth,
   );
 
   ProfileAnalysisService buildAnalysisService() => ProfileAnalysisService(
@@ -148,6 +156,7 @@ class ScenarioSettings extends Equatable {
     double? reservePressureBar,
     double? defaultScrInjectionRateLpm,
     double? defaultScrVo2Lpm,
+    double? ccrSetpointSwitchDepth,
   }) {
     return ScenarioSettings(
       gfLow: gfLow ?? this.gfLow,
@@ -175,6 +184,8 @@ class ScenarioSettings extends Equatable {
       defaultScrInjectionRateLpm:
           defaultScrInjectionRateLpm ?? this.defaultScrInjectionRateLpm,
       defaultScrVo2Lpm: defaultScrVo2Lpm ?? this.defaultScrVo2Lpm,
+      ccrSetpointSwitchDepth:
+          ccrSetpointSwitchDepth ?? this.ccrSetpointSwitchDepth,
     );
   }
 
@@ -204,5 +215,6 @@ class ScenarioSettings extends Equatable {
     reservePressureBar,
     defaultScrInjectionRateLpm,
     defaultScrVo2Lpm,
+    ccrSetpointSwitchDepth,
   ];
 }

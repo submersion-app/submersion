@@ -193,6 +193,24 @@ void main() {
     expect(restored.setpointSwitchDepth, 12.0);
   });
 
+  test('the switch-off flag round-trips through the state (#3793)', () {
+    final ccrState = state().copyWith(
+      mode: domain.PlanMode.ccr,
+      setpointSwitchDepth: 12.0,
+      setpointSwitchOff: true,
+    );
+    final plan = divePlanFromState(ccrState);
+    expect(plan.setpointSwitchOff, isTrue);
+    // The stored depth is kept so switching back to Custom restores it.
+    expect(plan.setpointSwitchDepth, 12.0);
+
+    final restored = stateFromDivePlan(plan);
+    expect(restored.setpointSwitchOff, isTrue);
+    expect(restored.setpointSwitchDepth, 12.0);
+
+    expect(divePlanFromState(state()).setpointSwitchOff, isFalse);
+  });
+
   test('null state fields clear stale values from the existing plan', () {
     final existing = domain.DivePlan(
       id: 'p1',
