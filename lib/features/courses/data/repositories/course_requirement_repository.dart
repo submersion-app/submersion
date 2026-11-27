@@ -268,6 +268,7 @@ class CourseRequirementRepository {
   static String _loggedDiveScope(String alias) =>
       '$alias.is_planned = 0 AND $alias.is_draft = 0 AND $alias.diver_id = ?';
 
+  // stats-scope-exempt: course credit is operational, not descriptive
   Future<int> _ccrMinutes(String diverId, CourseRequirement requirement) async {
     final equipmentId = requirement.equipmentId;
     final row = await _db
