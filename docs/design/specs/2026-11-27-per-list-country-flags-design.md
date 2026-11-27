@@ -95,12 +95,12 @@ trip flags back on for a diver who had turned them off.
   flags" to one naming sites.
 - All new strings in all 11 languages.
 
-### Schema v388
+### Schema v392
 
 - Three columns on `diver_settings`, each `INTEGER NOT NULL DEFAULT 1
   CHECK (<col> IN (0, 1))`, matching what Drift gives a fresh install's
   boolean column (as the v360 helper does).
-- The v388 rung asserts the columns, then copies the current switch in one
+- The v392 rung asserts the columns, then copies the current switch in one
   statement:
   `UPDATE diver_settings SET show_dive_country_flags = show_country_flags,
   show_buddy_country_flags = show_country_flags, show_trip_country_flags =
@@ -117,7 +117,7 @@ trip flags back on for a diver who had turned them off.
 
 ### Sync with older peers
 
-A peer below v388 sends diver_settings rows without the three new keys.
+A peer below v392 sends diver_settings rows without the three new keys.
 
 - **This device already holds the row:** `_withLocalForOmitted` keeps this
   device's values for the omitted keys (existing behaviour, no change).
@@ -129,7 +129,7 @@ A peer below v388 sends diver_settings rows without the three new keys.
 - `_applyDiverSettingDefaults` gains the three keys with default `true`, for
   records where even `showCountryFlags` is absent.
 - Known limit, accepted: when a diver flips the single switch on a device
-  still below v388, an upgraded device that already holds the row changes
+  still below v392, an upgraded device that already holds the row changes
   only its Sites switch. Overwriting the other three from an older peer
   would undo per-section choices made on the upgraded device every time the
   older device saved any setting.

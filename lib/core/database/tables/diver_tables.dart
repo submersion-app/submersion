@@ -353,21 +353,21 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(false))();
 
   /// A small flag beside site locations (v360, issue #4426). Covered every
-  /// flag until v388; now the Sites switch only (issue #5001).
+  /// flag until v392; now the Sites switch only (issue #5001).
   BoolColumn get showCountryFlags =>
       boolean().withDefault(const Constant(true))();
 
-  /// A small flag beside each dive's site location (v388, issue #5001),
+  /// A small flag beside each dive's site location (v392, issue #5001),
   /// seeded from [showCountryFlags] on upgrade.
   BoolColumn get showDiveCountryFlags =>
       boolean().withDefault(const Constant(true))();
 
-  /// A small flag badge on each buddy's photo (v388, issue #5001), seeded
+  /// A small flag badge on each buddy's photo (v392, issue #5001), seeded
   /// from [showCountryFlags] on upgrade.
   BoolColumn get showBuddyCountryFlags =>
       boolean().withDefault(const Constant(true))();
 
-  /// The flags of each trip's countries (v388, issue #5001), seeded from
+  /// The flags of each trip's countries (v392, issue #5001), seeded from
   /// [showCountryFlags] on upgrade.
   BoolColumn get showTripCountryFlags =>
       boolean().withDefault(const Constant(true))();

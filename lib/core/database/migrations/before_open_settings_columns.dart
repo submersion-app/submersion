@@ -72,7 +72,7 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // dive_plans.setpoint_switch_off (issue #3793).
     await _assertCcrSetpointSwitchColumns();
 
-    // v388 backstop: the Dives, Buddies and Trips country flag switches
+    // v392 backstop: the Dives, Buddies and Trips country flag switches
     // (issue #5001). Columns only; the copy belongs to the rung.
     await _assertCountryFlagSwitchColumns();
 

@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v388 (issue #5001): a country flags switch for dives, buddies and
+/// Schema v392 (issue #5001): a country flags switch for dives, buddies and
 /// trips beside the existing one, which now covers sites only. The rung
 /// copies the existing switch into the new ones, so a diver who turned flags
 /// off keeps them off everywhere. The sync floor holds.
@@ -57,10 +57,10 @@ void main() {
               .getSingle())
           .data;
 
-  test('v388 is in the ladder and keeps the floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(388));
-    expect(AppDatabase.migrationVersions, contains(388));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(388));
+  test('v392 is in the ladder and keeps the floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(392));
+    expect(AppDatabase.migrationVersions, contains(392));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(392));
   });
 
   test('upgrading copies flags off into every new switch', () async {
@@ -99,9 +99,9 @@ void main() {
   test(
     'the beforeOpen backstop adds missing columns without copying',
     () async {
-      // Already at v388, so only the backstop runs: a copy here would rewrite
+      // Already at v392, so only the backstop runs: a copy here would rewrite
       // the section switches from the sites switch on every open.
-      final db = AppDatabase(dbAt(388, flags: false));
+      final db = AppDatabase(dbAt(392, flags: false));
       addTearDown(db.close);
       expect(await stored(db), {for (final c in newColumns) c: 1});
     },

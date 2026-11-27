@@ -4,7 +4,7 @@
 
 **Goal:** Replace the single Country flags switch with one switch per section (Sites, Dives, Buddies, Trips), and draw flags on dive cards and as a badge on buddy avatars (issue #5001).
 
-**Architecture:** Three new boolean columns on `diver_settings` (v388), seeded from the existing switch by the rung and, for rows new to a device, by the sync apply path. A `FlagSection` enum routes every flag through its section's switch in `lib/shared/widgets/country_flag.dart`. Each section's appearance page hosts its own switch tile.
+**Architecture:** Three new boolean columns on `diver_settings` (v392), seeded from the existing switch by the rung and, for rows new to a device, by the sync apply path. A `FlagSection` enum routes every flag through its section's switch in `lib/shared/widgets/country_flag.dart`. Each section's appearance page hosts its own switch tile.
 
 **Tech Stack:** Flutter, Drift, Riverpod, ARB l10n (11 locales).
 
@@ -14,7 +14,7 @@
 
 - The existing column `show_country_flags`, its Dart names (`showCountryFlags`, `setShowCountryFlags`, `showCountryFlagsProvider`) and its sync and conflict key `showCountryFlags` stay as they are and now mean Sites only. Renaming would break every fake `SettingsNotifier` that overrides the setter.
 - New columns: `show_dive_country_flags`, `show_buddy_country_flags`, `show_trip_country_flags`, each `INTEGER NOT NULL DEFAULT 1 CHECK (<col> IN (0, 1))`. Dart: `showDiveCountryFlags`, `showBuddyCountryFlags`, `showTripCountryFlags`.
-- Schema 388; `minimumCompatibleSchemaVersion` does not move.
+- Schema 392; `minimumCompatibleSchemaVersion` does not move.
 - The rung copies, `beforeOpen` only asserts. No `updated_at` or HLC stamp.
 - New rungs and helpers go in `lib/core/database/migrations/`, columns in `lib/core/database/tables/diver_tables.dart`; `database.dart` only gets the version bump and the `migrationVersions` entry.
 - Every new string in all 11 ARB files, then `flutter gen-l10n`.
@@ -36,30 +36,30 @@
 - Modify: `lib/core/database/tables/diver_tables.dart` (after `showCountryFlags`)
 - Create: `lib/core/database/migrations/helpers/country_flag_switches_migrations.dart` (a `part of '../app_database_migrations.dart'`)
 - Modify: `lib/core/database/migrations/app_database_migrations.dart` (add the `part`)
-- Modify: `lib/core/database/migrations/ladder/rungs_v340_onward.dart` (v388 rung)
-- Modify: `lib/core/database/migrations/before_open_settings_columns.dart` (v388 backstop)
-- Modify: `lib/core/database/database.dart` (`currentSchemaVersion = 388`, `migrationVersions` entry 388)
+- Modify: `lib/core/database/migrations/ladder/rungs_v340_onward.dart` (v392 rung)
+- Modify: `lib/core/database/migrations/before_open_settings_columns.dart` (v392 backstop)
+- Modify: `lib/core/database/database.dart` (`currentSchemaVersion = 392`, `migrationVersions` entry 392)
 - Modify: `lib/features/settings/presentation/providers/settings_providers.dart` (fields, constructor, `copyWith`, setters, providers)
 - Modify: `lib/features/settings/data/repositories/diver_settings_repository.dart` (the three companion and row mappings beside `showCountryFlags`)
 - Modify: `lib/features/settings/presentation/conflicts/catalogue/diver_settings_fields.dart`
 - Modify: every ARB file (conflict labels), `test/helpers/mock_providers.dart` and any fake notifier `flutter analyze` flags
-- Test: `test/core/database/migration_v388_country_flag_switches_test.dart` (new), `test/features/settings/data/repositories/diver_settings_repository_country_flags_test.dart`, `test/features/settings/presentation/providers/country_flags_setter_test.dart`, `test/features/settings/presentation/providers/every_setter_waits_for_load_test.dart`, `test/features/settings/presentation/conflicts/profile_color_fields_test.dart`
+- Test: `test/core/database/migration_v392_country_flag_switches_test.dart` (new), `test/features/settings/data/repositories/diver_settings_repository_country_flags_test.dart`, `test/features/settings/presentation/providers/country_flags_setter_test.dart`, `test/features/settings/presentation/providers/every_setter_waits_for_load_test.dart`, `test/features/settings/presentation/conflicts/profile_color_fields_test.dart`
 
 **Interfaces:**
 - Produces: `AppSettings.showDiveCountryFlags`, `.showBuddyCountryFlags`, `.showTripCountryFlags` (bool, default `true`); `SettingsNotifier.setShowDiveCountryFlags(bool)`, `setShowBuddyCountryFlags(bool)`, `setShowTripCountryFlags(bool)` (through `_update`); `showDiveCountryFlagsProvider`, `showBuddyCountryFlagsProvider`, `showTripCountryFlagsProvider` (`Provider<bool>`, selecting from `settingsProvider`); conflict keys `showDiveCountryFlags`, `showBuddyCountryFlags`, `showTripCountryFlags`.
 
 - [ ] **Step 1: Write the failing migration test** modelled on `migration_v387_ccr_setpoint_switch_test.dart`, with a fixture `dbAt(387, {bool? flags, bool withNewColumns = false})` that creates `diver_settings (id, diver_id[, show_country_flags][, the three new columns])`:
-  - `v388 is in the ladder and keeps the floor`: `migrationVersions` contains 388, floor is not 388.
+  - `v392 is in the ladder and keeps the floor`: `migrationVersions` contains 392, floor is not 392.
   - `upgrading copies flags off into every new switch`: `show_country_flags = 0` gives `{0, 0, 0}` for the three new columns.
   - `upgrading copies flags on`: `show_country_flags = 1` gives `{1, 1, 1}`.
   - `a database already carrying a new column keeps its value`: fixture with `show_dive_country_flags = 0` and `show_country_flags = 1` keeps the dive column at 0.
   - `a fixture with no show_country_flags column upgrades without throwing`: new columns read 1.
   - `the new columns are booleans`: `UPDATE ... = 2` throws.
-- [ ] **Step 2: Run it** with `flutter test test/core/database/migration_v388_country_flag_switches_test.dart`; expect FAIL (388 not in ladder).
+- [ ] **Step 2: Run it** with `flutter test test/core/database/migration_v392_country_flag_switches_test.dart`; expect FAIL (392 not in ladder).
 - [ ] **Step 3: Implement** the columns in `diver_tables.dart`, then in the new helper file:
   - `Future<void> _assertCountryFlagSwitchColumns()`: `_addColumnIfMissing` for each column with the DDL above. Called from `beforeOpen` and the rung.
   - `Future<void> _seedCountryFlagSwitches()`, ladder only: read `tableColumnNames(this, 'diver_settings')` once before asserting; return if the table is absent or `show_country_flags` is missing; assert the columns; then one `UPDATE diver_settings SET <col> = show_country_flags, ...` naming only the columns that were missing before the assert.
-  - Rung: `if (from < 388) await _seedCountryFlagSwitches(); if (from < 388) await _assertCountryFlagSwitchColumns(); if (from < 388) await reportProgress();` with a comment in the house style naming issue #5001 and that the floor does not move.
+  - Rung: `if (from < 392) await _seedCountryFlagSwitches(); if (from < 392) await _assertCountryFlagSwitchColumns(); if (from < 392) await reportProgress();` with a comment in the house style naming issue #5001 and that the floor does not move.
 - [ ] **Step 4: Run the migration test**; expect PASS.
 - [ ] **Step 5: Extend the repository, setter, every-setter and conflict tests**: each new field defaults on, round-trips off and on through `updateSettingsForDiver`, survives `copyWith`; each setter waits for load (add the three `n.setShow...(!d.show...)` lines); `diverSettingsFields` has the three keys as `FieldKind.boolean`. Run each changed file; expect FAIL, then implement the model, setters, providers, repository mappings, conflict entries and ARB labels ("Country flags (sites)", "(dives)", "(buddies)", "(trips)" in English; translate the other 10), run `flutter gen-l10n`, and run them again; expect PASS.
 - [ ] **Step 6: `flutter analyze`**, add the three setters to every fake notifier it reports, re-run until clean.

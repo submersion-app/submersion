@@ -5,7 +5,7 @@ import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 
 import '../../../helpers/test_database.dart';
 
-/// Issue #5001. A diver_settings row from a peer older than v388 carries no
+/// Issue #5001. A diver_settings row from a peer older than v392 carries no
 /// Dives, Buddies or Trips flag switch, only the single `showCountryFlags`
 /// that covered every flag. For a row new to this device the column default
 /// would turn flags on that the diver had turned off; each switch takes the
@@ -45,7 +45,7 @@ void main() {
         );
   }
 
-  /// A wire payload for settings row [id] as a pre-v388 peer sends it.
+  /// A wire payload for settings row [id] as a pre-v392 peer sends it.
   Future<Map<String, dynamic>> legacyPayload(
     String id, {
     required bool flags,
