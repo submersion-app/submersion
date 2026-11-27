@@ -66818,4 +66818,30 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compacto é uma barra estreita com luzes de status. Faixa é a faixa de boas-vindas com seus totais de mergulho. Salvo neste dispositivo.';
+
+  @override
+  String get popOut_openProfileWindow => 'Abrir em uma nova janela';
+
+  @override
+  String get popOut_pin => 'Fixar neste mergulho';
+
+  @override
+  String get popOut_unpin => 'Seguir a janela principal';
+
+  @override
+  String get popOut_selectDivePlaceholder =>
+      'Selecione um mergulho na janela principal';
+
+  @override
+  String get popOut_lockedPlaceholder =>
+      'Desbloqueie o Submersion na janela principal';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Perfil: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'Esta janela não conseguiu acessar o logbook. Feche-a e tente novamente.';
 }

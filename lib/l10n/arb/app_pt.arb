@@ -19444,5 +19444,12 @@
   "settings_homeHeader_wide": "Telas mais largas",
   "settings_homeHeader_compact": "Compacto",
   "settings_homeHeader_banner": "Faixa",
-  "settings_homeHeader_description": "Compacto é uma barra estreita com luzes de status. Faixa é a faixa de boas-vindas com seus totais de mergulho. Salvo neste dispositivo."
+  "settings_homeHeader_description": "Compacto é uma barra estreita com luzes de status. Faixa é a faixa de boas-vindas com seus totais de mergulho. Salvo neste dispositivo.",
+  "popOut_openProfileWindow": "Abrir em uma nova janela",
+  "popOut_pin": "Fixar neste mergulho",
+  "popOut_unpin": "Seguir a janela principal",
+  "popOut_selectDivePlaceholder": "Selecione um mergulho na janela principal",
+  "popOut_lockedPlaceholder": "Desbloqueie o Submersion na janela principal",
+  "popOut_windowTitle": "Perfil: {dive}",
+  "popOut_connectFailed": "Esta janela não conseguiu acessar o logbook. Feche-a e tente novamente."
 }

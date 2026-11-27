@@ -66452,4 +66452,29 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'A Kompakt egy keskeny sáv állapotjelzőkkel. A Szalag az üdvözlő szalag a merülési összesítőiddel. Ezen az eszközön mentve.';
+
+  @override
+  String get popOut_openProfileWindow => 'Megnyitás új ablakban';
+
+  @override
+  String get popOut_pin => 'Rögzítés ehhez a merüléshez';
+
+  @override
+  String get popOut_unpin => 'A főablak követése';
+
+  @override
+  String get popOut_selectDivePlaceholder =>
+      'Válassz egy merülést a főablakban';
+
+  @override
+  String get popOut_lockedPlaceholder => 'Oldd fel a Submersiont a főablakban';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Profil: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'Ez az ablak nem érte el a merülési naplót. Zárd be, és próbáld újra.';
 }

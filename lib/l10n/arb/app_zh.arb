@@ -19444,5 +19444,12 @@
   "settings_homeHeader_wide": "更宽的屏幕",
   "settings_homeHeader_compact": "紧凑",
   "settings_homeHeader_banner": "横幅",
-  "settings_homeHeader_description": "紧凑是带状态灯的窄栏。横幅是显示潜水总计的欢迎横幅。保存在此设备上。"
+  "settings_homeHeader_description": "紧凑是带状态灯的窄栏。横幅是显示潜水总计的欢迎横幅。保存在此设备上。",
+  "popOut_openProfileWindow": "在新窗口中打开",
+  "popOut_pin": "固定到此潜水",
+  "popOut_unpin": "跟随主窗口",
+  "popOut_selectDivePlaceholder": "请在主窗口中选择一次潜水",
+  "popOut_lockedPlaceholder": "请在主窗口中解锁 Submersion",
+  "popOut_windowTitle": "剖面图：{dive}",
+  "popOut_connectFailed": "此窗口无法访问日志。请关闭后重试。"
 }

@@ -65482,4 +65482,28 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'דחוס הוא סרגל צר עם נורות מצב. באנר הוא באנר הפתיחה עם סיכומי הצלילות שלך. נשמר במכשיר זה.';
+
+  @override
+  String get popOut_openProfileWindow => 'פתיחה בחלון חדש';
+
+  @override
+  String get popOut_pin => 'הצמדה לצלילה זו';
+
+  @override
+  String get popOut_unpin => 'מעקב אחר החלון הראשי';
+
+  @override
+  String get popOut_selectDivePlaceholder => 'בחרו צלילה בחלון הראשי';
+
+  @override
+  String get popOut_lockedPlaceholder => 'בטלו את נעילת Submersion בחלון הראשי';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'פרופיל: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'החלון הזה לא הצליח לגשת ליומן. סגרו אותו ונסו שוב.';
 }

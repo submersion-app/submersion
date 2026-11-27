@@ -19444,5 +19444,12 @@
   "settings_homeHeader_wide": "Écrans plus larges",
   "settings_homeHeader_compact": "Compact",
   "settings_homeHeader_banner": "Bannière",
-  "settings_homeHeader_description": "Compact est une barre fine avec des voyants d'état. Bannière est la bannière d'accueil avec vos totaux de plongée. Enregistré sur cet appareil."
+  "settings_homeHeader_description": "Compact est une barre fine avec des voyants d'état. Bannière est la bannière d'accueil avec vos totaux de plongée. Enregistré sur cet appareil.",
+  "popOut_openProfileWindow": "Ouvrir dans une nouvelle fenêtre",
+  "popOut_pin": "Épingler à cette plongée",
+  "popOut_unpin": "Suivre la fenêtre principale",
+  "popOut_selectDivePlaceholder": "Sélectionnez une plongée dans la fenêtre principale",
+  "popOut_lockedPlaceholder": "Déverrouillez Submersion dans la fenêtre principale",
+  "popOut_windowTitle": "Profil : {dive}",
+  "popOut_connectFailed": "Cette fenêtre n'a pas pu accéder au carnet de plongée. Fermez-la et réessayez."
 }

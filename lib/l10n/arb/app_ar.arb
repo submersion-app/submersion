@@ -19444,5 +19444,12 @@
   "settings_homeHeader_wide": "الشاشات الأعرض",
   "settings_homeHeader_compact": "مضغوط",
   "settings_homeHeader_banner": "لافتة",
-  "settings_homeHeader_description": "المضغوط شريط رفيع مع مؤشرات الحالة. اللافتة هي لافتة الترحيب مع إجماليات غوصك. يُحفظ على هذا الجهاز."
+  "settings_homeHeader_description": "المضغوط شريط رفيع مع مؤشرات الحالة. اللافتة هي لافتة الترحيب مع إجماليات غوصك. يُحفظ على هذا الجهاز.",
+  "popOut_openProfileWindow": "فتح في نافذة جديدة",
+  "popOut_pin": "التثبيت على هذه الغطسة",
+  "popOut_unpin": "متابعة النافذة الرئيسية",
+  "popOut_selectDivePlaceholder": "اختر غطسة في النافذة الرئيسية",
+  "popOut_lockedPlaceholder": "افتح قفل Submersion في النافذة الرئيسية",
+  "popOut_windowTitle": "المقطع: {dive}",
+  "popOut_connectFailed": "تعذر على هذه النافذة الوصول إلى السجل. أغلقها وحاول مرة أخرى."
 }

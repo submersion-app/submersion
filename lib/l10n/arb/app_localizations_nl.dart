@@ -66446,4 +66446,30 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compact is een smalle balk met statuslampjes. Banner is de welkomstbanner met je duiktotalen. Opgeslagen op dit apparaat.';
+
+  @override
+  String get popOut_openProfileWindow => 'Openen in een nieuw venster';
+
+  @override
+  String get popOut_pin => 'Vastzetten op deze duik';
+
+  @override
+  String get popOut_unpin => 'Het hoofdvenster volgen';
+
+  @override
+  String get popOut_selectDivePlaceholder =>
+      'Selecteer een duik in het hoofdvenster';
+
+  @override
+  String get popOut_lockedPlaceholder =>
+      'Ontgrendel Submersion in het hoofdvenster';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Profiel: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'Dit venster kon het logboek niet bereiken. Sluit het en probeer het opnieuw.';
 }

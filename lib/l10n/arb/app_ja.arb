@@ -19443,5 +19443,12 @@
   "settings_homeHeader_wide": "より広い画面",
   "settings_homeHeader_compact": "コンパクト",
   "settings_homeHeader_banner": "バナー",
-  "settings_homeHeader_description": "コンパクトはステータスランプ付きの細いバーです。バナーはダイブの合計を表示するウェルカムバナーです。この端末に保存されます。"
+  "settings_homeHeader_description": "コンパクトはステータスランプ付きの細いバーです。バナーはダイブの合計を表示するウェルカムバナーです。この端末に保存されます。",
+  "popOut_openProfileWindow": "新しいウィンドウで開く",
+  "popOut_pin": "このダイブに固定",
+  "popOut_unpin": "メインウィンドウに従う",
+  "popOut_selectDivePlaceholder": "メインウィンドウでダイブを選択してください",
+  "popOut_lockedPlaceholder": "メインウィンドウで Submersion のロックを解除してください",
+  "popOut_windowTitle": "プロファイル: {dive}",
+  "popOut_connectFailed": "このウィンドウからログブックにアクセスできませんでした。閉じてからもう一度お試しください。"
 }
