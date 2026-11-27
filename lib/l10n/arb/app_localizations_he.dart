@@ -27556,6 +27556,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'יומן העלאה';
 
   @override
+  String get settings_conflict_field_bagHlc => 'יומן התיק';
+
+  @override
   String get settings_conflict_field_url => 'כתובת';
 
   @override
@@ -28364,6 +28367,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_transmitter => 'משדר';
+
+  @override
+  String get settings_conflict_ref_packedIn => 'ארוז בתוך';
 
   @override
   String get settings_conflict_ref_trip => 'טיול';
@@ -35960,6 +35966,41 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get trips_bags_choose => 'בחירת תיק';
+
+  @override
+  String get trips_bags_none => 'ללא תיק';
+
+  @override
+  String get trips_bags_move => 'העברה לתיק';
+
+  @override
+  String get trips_bags_section => 'תיקים';
+
+  @override
+  String trips_bags_total(String weight) {
+    return 'משקל כולל: $weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return 'סכום משקלים ידועים: $weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return 'חסר משקל: $items';
+  }
+
+  @override
+  String trips_bags_missingMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String get trips_bags_missingSeparator => ', ';
 
   @override
   String get trips_gear_add_action => 'הוספה';

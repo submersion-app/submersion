@@ -28090,6 +28090,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'Uploadlog';
 
   @override
+  String get settings_conflict_field_bagHlc => 'Taslog';
+
+  @override
   String get settings_conflict_field_url => 'Adres';
 
   @override
@@ -28901,6 +28904,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_transmitter => 'Zender';
+
+  @override
+  String get settings_conflict_ref_packedIn => 'Ingepakt in';
 
   @override
   String get settings_conflict_ref_trip => 'Reis';
@@ -36612,6 +36618,41 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get trips_bags_choose => 'Kies een tas';
+
+  @override
+  String get trips_bags_none => 'Zonder tas';
+
+  @override
+  String get trips_bags_move => 'Verplaatsen naar tas';
+
+  @override
+  String get trips_bags_section => 'Tassen';
+
+  @override
+  String trips_bags_total(String weight) {
+    return 'Totaalgewicht: $weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return 'Bekend subtotaal: $weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return 'Gewicht ontbreekt: $items';
+  }
+
+  @override
+  String trips_bags_missingMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String get trips_bags_missingSeparator => ', ';
 
   @override
   String get trips_gear_add_action => 'Toevoegen';

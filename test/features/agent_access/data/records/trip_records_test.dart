@@ -253,6 +253,50 @@ void main() {
       expect(doc['equipment_ids'], ['own-reg']);
     });
 
+    test('bag_contents lists each bag with the visible gear in it', () async {
+      for (final (id, type, owner) in [
+        ('duffel', 'bag', kDiverA),
+        ('fins', 'fins', kDiverA),
+        ('mask', 'mask', kDiverA),
+        ('b-reg', 'regulator', kDiverB),
+      ]) {
+        await db
+            .into(db.equipment)
+            .insert(
+              EquipmentCompanion.insert(
+                id: id,
+                name: id,
+                type: type,
+                createdAt: t,
+                updatedAt: t,
+                diverId: Value(owner),
+              ),
+            );
+      }
+      for (final (id, bag) in [
+        ('duffel', null),
+        ('fins', 'duffel'),
+        ('mask', null),
+        ('b-reg', 'duffel'),
+      ]) {
+        await db
+            .into(db.tripEquipment)
+            .insert(
+              TripEquipmentCompanion.insert(
+                id: 'pack-$id',
+                tripId: 'open',
+                equipmentId: id,
+                createdAt: t,
+                bagEquipmentId: Value(bag),
+              ),
+            );
+      }
+      final doc = (await h.one('trips', 'open', include: ['bag_contents']))!;
+      expect(doc['bag_contents'], {
+        'duffel': ['fins'],
+      });
+    });
+
     test('side_trips names the children of a trip', () async {
       await trip('side', kDiverA, parent: 'mine');
       await (db.update(db.trips)..where((x) => x.id.equals('side'))).write(

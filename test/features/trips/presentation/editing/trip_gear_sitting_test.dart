@@ -22,6 +22,7 @@ import 'package:submersion/features/trips/data/services/trip_edit_save_service.d
 import 'package:submersion/features/trips/data/services/trip_fill_passport_copy.dart';
 import 'package:submersion/features/trips/data/services/trip_set_bundle.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_packed_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_drafts.dart';
 import 'package:submersion/features/trips/presentation/editing/trip_checklists_sitting.dart';
@@ -40,7 +41,7 @@ void main() {
   late TripEquipmentRepository packs;
   late TripCylinderRepository cylinders;
   late TripEditSaveService service;
-  late SittingList<Trip, EquipmentItem> packed;
+  late SittingList<Trip, TripPackedItem> packed;
   late SittingList<Trip, TripCylindersHeld> board;
   final changeLog = ChangeLogRepository();
   final at = DateTime.utc(2026);
@@ -56,8 +57,13 @@ void main() {
     name: 'Steel 12',
     type: EquipmentType.tank,
   );
+  const duffel = EquipmentItem(
+    id: 'duffel',
+    name: 'Duffel',
+    type: EquipmentType.bag,
+  );
   final catalogue = {
-    for (final i in [fins, wing, tank]) i.id: i,
+    for (final i in [fins, wing, tank, duffel]) i.id: i,
   };
 
   Future<List<String>> labels() async {
@@ -163,7 +169,7 @@ void main() {
       ]);
       await writes.unpack('tank');
 
-      expect([for (final i in packed.current(session)!) i.id], ['fins']);
+      expect([for (final i in packed.current(session)!) i.item.id], ['fins']);
       final slot = heldCylindersOf(session, board)!.slots.single;
       expect(slot.equipmentId, 'tank');
       expect(slot.id, isNotEmpty);
@@ -262,6 +268,41 @@ void main() {
     expect(session.changedCardIds, {'checklists'});
   });
 
+  test('Save packs gear loose when its held bag was unpacked meanwhile, '
+      'and still writes the rest', () async {
+    await packs.pack('t1', ['duffel']);
+    final session = await open();
+    final writes = writesOf(session);
+    writes.assignBag('fins', 'duffel');
+    await writes.pack([wing]);
+
+    // Another device unpacks the bag before this one saves.
+    await packs.unpack('t1', 'duffel');
+    await save(session);
+
+    expect(
+      await packs.equipmentIdsForTrip('t1'),
+      unorderedEquals(['fins', 'tank', 'wing']),
+    );
+    expect(await packs.bagAssignmentsForTrip('t1'), isEmpty);
+  });
+
+  test('a failed read of the bags opens the gear loose', () async {
+    await packs.pack('t1', ['duffel']);
+    await packs.assignBag('t1', 'fins', 'duffel');
+    packed = tripPackedGearList(
+      read: (id) async => [
+        for (final i in await packs.equipmentIdsForTrip(id)) catalogue[i]!,
+      ],
+      packs: _UnreadableBags(),
+    );
+    final session = await open();
+    expect(
+      {for (final row in packed.current(session)!) row.item.id: row.bagId},
+      {'fins': null, 'tank': null, 'duffel': null},
+    );
+  });
+
   test('rental slots keep their order and get ids', () async {
     final session = await open();
 
@@ -331,4 +372,10 @@ void main() {
       expect(session.changedCardIds, isEmpty);
     },
   );
+}
+
+class _UnreadableBags extends TripEquipmentRepository {
+  @override
+  Future<Map<String, String>> bagAssignmentsForTrip(String tripId) =>
+      Future.error(StateError('database is locked'));
 }

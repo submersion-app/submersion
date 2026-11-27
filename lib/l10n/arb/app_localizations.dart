@@ -44694,6 +44694,12 @@ abstract class AppLocalizations {
   /// **'Upload record'**
   String get settings_conflict_field_uploadFactsHlc;
 
+  /// No description provided for @settings_conflict_field_bagHlc.
+  ///
+  /// In en, this message translates to:
+  /// **'Bag record'**
+  String get settings_conflict_field_bagHlc;
+
   /// No description provided for @settings_conflict_field_url.
   ///
   /// In en, this message translates to:
@@ -46097,6 +46103,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Transmitter'**
   String get settings_conflict_ref_transmitter;
+
+  /// No description provided for @settings_conflict_ref_packedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Packed in'**
+  String get settings_conflict_ref_packedIn;
 
   /// No description provided for @settings_conflict_ref_trip.
   ///
@@ -57939,6 +57951,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =0{Everything in {name} is already packed} one{Packed {count} item from {name}} other{Packed {count} items from {name}}}'**
   String trips_gear_packedFromSet(int count, String name);
+
+  /// No description provided for @trips_bags_choose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a bag'**
+  String get trips_bags_choose;
+
+  /// No description provided for @trips_bags_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned'**
+  String get trips_bags_none;
+
+  /// No description provided for @trips_bags_move.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to bag'**
+  String get trips_bags_move;
+
+  /// No description provided for @trips_bags_section.
+  ///
+  /// In en, this message translates to:
+  /// **'Bags'**
+  String get trips_bags_section;
+
+  /// No description provided for @trips_bags_total.
+  ///
+  /// In en, this message translates to:
+  /// **'Total weight: {weight}'**
+  String trips_bags_total(String weight);
+
+  /// No description provided for @trips_bags_subtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Known subtotal: {weight}'**
+  String trips_bags_subtotal(String weight);
+
+  /// No description provided for @trips_bags_missing.
+  ///
+  /// In en, this message translates to:
+  /// **'Missing weight: {items}'**
+  String trips_bags_missing(String items);
+
+  /// The first few names of gear with no weight, then how many more there are.
+  ///
+  /// In en, this message translates to:
+  /// **'{names} +{count}'**
+  String trips_bags_missingMore(String names, int count);
+
+  /// Joins the names of gear with no weight under a bag. Include any trailing space your language uses.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get trips_bags_missingSeparator;
 
   /// No description provided for @trips_gear_add_action.
   ///

@@ -33,6 +33,7 @@ class TripUnslottedTankRow extends StatefulWidget {
   /// Takes the tank off the trip; null offers no menu (a trip page that
   /// only reads, issue #4527).
   final Future<void> Function()? onUnpack;
+  final VoidCallback? onMoveToBag;
 
   const TripUnslottedTankRow({
     super.key,
@@ -41,6 +42,7 @@ class TripUnslottedTankRow extends StatefulWidget {
     this.alerts = const [],
     this.onPutOnBoard,
     this.onUnpack,
+    this.onMoveToBag,
   });
 
   @override
@@ -114,8 +116,16 @@ class _TripUnslottedTankRowState extends State<TripUnslottedTankRow> {
       trailing: switch (widget.onUnpack) {
         final unpack? => PopupMenuButton<String>(
           key: Key('trip-gear-menu-${item.id}'),
-          onSelected: (_) => unpack(),
+          onSelected: (action) {
+            if (action == 'move') {
+              widget.onMoveToBag?.call();
+            } else {
+              unpack();
+            }
+          },
           itemBuilder: (_) => [
+            if (widget.onMoveToBag != null)
+              PopupMenuItem(value: 'move', child: Text(l10n.trips_bags_move)),
             PopupMenuItem(value: 'unpack', child: Text(l10n.trips_gear_remove)),
           ],
         ),

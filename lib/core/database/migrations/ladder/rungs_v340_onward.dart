@@ -340,11 +340,17 @@ extension RungsFromV340 on AppDatabase {
     if (from < 384) await _assertTripChecklistEquipmentColumn();
     if (from < 384) await reportProgress();
 
-    // v385 (issue #5028): dive_weights.side and weight_preset_entries.side,
+    // v385 (issue #4945): trip_equipment.bag_equipment_id, the bag a packed
+    // item rides in, and bag_hlc, that assignment's own clock. Nullable, no
+    // backfill, re-asserted in beforeOpen; the floor does not move.
+    if (from < 385) await _assertTripEquipmentBagColumn();
+    if (from < 385) await reportProgress();
+
+    // v386 (issue #5028): dive_weights.side and weight_preset_entries.side,
     // the side a weight is carried on, for the trim figure's roll. Nullable
     // with no backfill, null meaning both sides; re-asserted in beforeOpen.
     // The floor does not move.
-    if (from < 385) await _assertWeightSideColumns();
-    if (from < 385) await reportProgress();
+    if (from < 386) await _assertWeightSideColumns();
+    if (from < 386) await reportProgress();
   }
 }

@@ -28110,6 +28110,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'Feltöltési napló';
 
   @override
+  String get settings_conflict_field_bagHlc => 'Táskanapló';
+
+  @override
   String get settings_conflict_field_url => 'Cím';
 
   @override
@@ -28923,6 +28926,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_ref_transmitter => 'Jeladó';
+
+  @override
+  String get settings_conflict_ref_packedIn => 'Becsomagolva ide';
 
   @override
   String get settings_conflict_ref_trip => 'Utazás';
@@ -36642,6 +36648,41 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get trips_bags_choose => 'Táska kiválasztása';
+
+  @override
+  String get trips_bags_none => 'Táska nélkül';
+
+  @override
+  String get trips_bags_move => 'Áthelyezés táskába';
+
+  @override
+  String get trips_bags_section => 'Táskák';
+
+  @override
+  String trips_bags_total(String weight) {
+    return 'Össztömeg: $weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return 'Ismert részösszeg: $weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return 'Hiányzó tömeg: $items';
+  }
+
+  @override
+  String trips_bags_missingMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String get trips_bags_missingSeparator => ', ';
 
   @override
   String get trips_gear_add_action => 'Hozzáadás';

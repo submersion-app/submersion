@@ -237,7 +237,10 @@ class _GearPassportPageState extends ConsumerState<GearPassportPage>
           const SizedBox(height: 16),
           _framed(
             passportTripCard,
-            PassportTripCard(equipmentId: equipment.id),
+            PassportTripCard(
+              equipmentId: equipment.id,
+              isBag: equipment.type == EquipmentType.bag,
+            ),
           ),
           if (!equipment.isWanted) ...[
             const SizedBox(height: 16),

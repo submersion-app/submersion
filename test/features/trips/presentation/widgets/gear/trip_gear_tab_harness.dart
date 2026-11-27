@@ -27,6 +27,7 @@ import 'package:submersion/features/trips/data/repositories/trip_equipment_repos
 import 'package:submersion/features/trips/data/services/trip_fill_passport_copy.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_packed_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
@@ -184,8 +185,27 @@ class FakeEquipment extends EquipmentRepository {
 }
 
 class FakePacks extends TripEquipmentRepository {
+  FakePacks({this.bags = const {}});
+
+  /// The stored bag of each item in one, item to bag.
+  final Map<String, String> bags;
+  final assigned = <(String, String, String?)>[];
   final packed = <(String, List<String>)>[];
   final unpacked = <(String, String)>[];
+
+  @override
+  Future<Map<String, String>> bagAssignmentsForTrip(String tripId) async =>
+      bags;
+
+  @override
+  Future<void> assignBag(
+    String tripId,
+    String equipmentId,
+    String? bagId, {
+    bool orLoose = false,
+  }) async {
+    assigned.add((tripId, equipmentId, bagId));
+  }
 
   @override
   Future<int> pack(String tripId, Iterable<String> equipmentIds) async {
@@ -233,14 +253,14 @@ typedef Harness = ({
   FakeSlots slots,
   List<String> pushed,
   EditSession<Trip>? session,
-  SittingList<Trip, EquipmentItem> packed,
+  SittingList<Trip, TripPackedItem> packed,
   SittingList<Trip, TripCylindersHeld> board,
 });
 
 extension HarnessHeld on Harness {
   /// The ids of the gear the sitting holds packed, in its order.
   List<String> get heldPacked => [
-    for (final i in packed.current(session!)!) i.id,
+    for (final i in packed.current(session!)!) i.item.id,
   ];
 
   /// The slots the sitting holds on the board, in board order.
@@ -261,12 +281,14 @@ Future<Harness> pumpTab(
   List<EquipmentSet> sets = const [],
   AppSettings settings = const AppSettings(),
   Object? gearError,
+  Object? bagError,
+  Map<String, String> bags = const {},
   List<String>? forecastReads,
   String? scanned,
   ComponentsIndex components = ComponentsIndex.empty,
   bool editing = false,
 }) async {
-  final packs = FakePacks();
+  final packs = FakePacks(bags: bags);
   final slots = FakeSlots([for (final s in states) s.cylinder]);
   final pushed = <String>[];
   final shown = onTrip ?? trip();
@@ -322,6 +344,10 @@ Future<Harness> pumpTab(
         tripGearProvider('t1').overrideWith((ref) async {
           if (gearError != null) throw gearError;
           return gear;
+        }),
+        tripBagAssignmentsProvider('t1').overrideWith((ref) async {
+          if (bagError != null) throw bagError;
+          return bags;
         }),
         tripCylinderStatesProvider('t1').overrideWith((ref) async => states),
         tripCylindersProvider(
