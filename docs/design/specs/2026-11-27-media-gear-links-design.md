@@ -119,12 +119,15 @@ reappear if both ends become visible again.
 
 ### "The dives with this gear"
 
-Both pickers use the gear page's own notion of an item's dives (the union
-`getExposureSamplesForEquipment` computes: the `dive_equipment` junction,
-cylinder and regulator links, transmitter serials, and a parent item's dives
-from a child's install date), so a cylinder, regulator or transmitter opens
-on its dives and agrees with the dive count its page shows. The picker needs
-the dive ids only, not the samples, and must stay fast at 15,000 dives.
+Both pickers use the gear page's own notion of an item's dives: the
+predicate behind its dive count (`_diveOnItemSql` in
+`equipment_repository_impl.dart`: the `dive_equipment` junction, cylinder
+links and regulator links, the active diver's dives only, planned dives
+left out). So a cylinder or regulator opens on its dives and the picker
+agrees with the dive count the page shows. The photo side reads it the other
+way with `gearUsageForDives` (`dive_gear_usage_sql.dart`), which also covers
+transmitters. The picker needs dive ids only and must stay fast at 15,000
+dives.
 
 ## Photo side
 
@@ -228,8 +231,8 @@ Check these ends before calling the UI done:
 - Gear page linking is held in the gear item's sitting, like the Photos card.
 - A link shows only where the active diver can see both the photo and the
   gear; hidden links are kept.
-- "Dives with this gear" uses the gear page's own dive union, not only the
-  `dive_equipment` junction.
+- "Dives with this gear" uses the predicate behind the gear page's dive
+  count, not only the `dive_equipment` junction.
 - The Show all page is read-only.
 
 ## Left to the builder
