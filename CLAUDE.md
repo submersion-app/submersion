@@ -103,6 +103,9 @@ change when it touches `lib/**/presentation/`, `lib/shared/widgets/`,
 - **File naming:** snake_case for files, PascalCase for classes
 - **Provider naming:** `<noun>Provider` for data, `<noun>NotifierProvider` for mutable state
 - **Entity copyWith:** All domain entities should have `copyWith` method
+- **UI styling:** colours, type, spacing and radii come from the APIs in
+  [docs/developer/ui-conventions.md](docs/developer/ui-conventions.md), never
+  from literals; read it before building a widget
 
 ## Claude Specific Instructions
 
