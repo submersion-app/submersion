@@ -54322,6 +54322,9 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get media_species_nextSighting => '次の目撃';
+
+  @override
   String get media_species_openSpeciesPage => '種のページ';
 
   @override

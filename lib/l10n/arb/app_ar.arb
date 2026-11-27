@@ -16653,6 +16653,7 @@
   "media_species_seenAt": "شوهد عند",
   "media_species_seenStretch": "{start} إلى {end}",
   "media_species_playFrom": "تشغيل من {time}",
+  "media_species_nextSighting": "المشاهدة التالية",
   "media_species_openSpeciesPage": "صفحة النوع",
   "media_species_cropThumb": "الصورة {index} من {count}",
   "media_species_taggedOnPhoto": "موسومة في هذه الصورة",
