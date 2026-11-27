@@ -456,6 +456,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.1"
+  desktop_multi_window:
+    dependency: "direct main"
+    description:
+      path: "packages/desktop_multi_window"
+      relative: true
+    source: path
+    version: "0.3.1"
   desktop_webview_window:
     dependency: transitive
     description:
@@ -1971,7 +1978,7 @@ packages:
     source: hosted
     version: "0.28.0"
   screen_retriever:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: screen_retriever
       sha256: ace919117a7520c13a50a6259e60c4a0d4cbe98809468792a91b5c5adada2aa6

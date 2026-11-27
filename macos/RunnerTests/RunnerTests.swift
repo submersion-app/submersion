@@ -1,6 +1,7 @@
 import Cocoa
 import FlutterMacOS
 import XCTest
+import desktop_multi_window
 
 @testable import Submersion
 
@@ -71,4 +72,15 @@ class RendererDartProjectTests: XCTestCase {
     XCTAssertEqual(path, FlutterDartProject().value(forKey: "ICUDataPath") as? String)
   }
 
+}
+
+/// Pop-out windows (issue #5078) get their own engine; each must render
+/// with the same choice as the main window, or Intel Macs flicker (#3531).
+class PopOutWindowTests: XCTestCase {
+
+  func testPopOutWindowsUseTheRendererProject() {
+    MainFlutterWindow.configureMultiWindow()
+    let project = FlutterMultiWindowPlugin.projectFactory?()
+    XCTAssertTrue(project is RendererDartProject)
+  }
 }
