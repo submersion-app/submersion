@@ -22464,6 +22464,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => 'عمق تبديل نقطة الضبط';
 
   @override
+  String get plannerCanvas_ccr_switchDepthOffNote =>
+      'لا تبديل حسب العمق: نقطة الضبط المنخفضة طوال الغوصة';
+
+  @override
   String get plannerCanvas_pscr_ratio => 'نسبة pSCR';
 
   @override
@@ -26242,6 +26246,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_ccrSetpointLow => 'نقطة ضبط CCR الدنيا';
 
   @override
+  String get settings_conflict_field_ccrSetpointSwitchDepth =>
+      'عمق تبديل نقطة الضبط';
+
+  @override
   String get settings_conflict_field_channelIndex => 'القناة';
 
   @override
@@ -27825,6 +27833,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_setpointSwitchDepth =>
       'عمق تبديل نقطة الضبط';
+
+  @override
+  String get settings_conflict_field_setpointSwitchOff =>
+      'تبديل نقطة الضبط متوقف';
 
   @override
   String get settings_conflict_field_settings_key => 'الإعداد';
@@ -30214,12 +30226,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'حدود الضغط الجزئي للأكسجين CCR';
 
   @override
-  String settings_decompression_ccrPpO2LimitsSubtitle(
+  String settings_decompression_ccrPpO2LimitsSubtitleWithSwitch(
     String low,
     String high,
     String dil,
+    String depth,
   ) {
-    return 'نقطة الضبط المنخفضة $low · المرتفعة $high · MOD التخفيف $dil بار';
+    return 'نقطة الضبط المنخفضة $low · المرتفعة $high · MOD التخفيف $dil بار · التبديل $depth';
   }
 
   @override
@@ -30247,6 +30260,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_decompression_ccrDialog_diluentModHint =>
       'ppO2 الذي قد يبلغه غاز التخفيف عند الشطف؛ يحدد الـ MOD الخاص به';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepth =>
+      'عمق تبديل نقطة الضبط';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepthHint =>
+      'نقطة الضبط المرتفعة تحت هذا العمق، والمنخفضة فوقه';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

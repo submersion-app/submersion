@@ -172,13 +172,14 @@ SynthesizedRemainder synthesizeRemainder({
   required double startDepth,
   required AscentGasPlan ascentPlan,
   required SchedulePolicy policy,
+  required double setpointSwitchDepth,
   LoopSetpoints? loop,
   Scr? scr,
   int stepSeconds = 10,
   int extraLastStopSeconds = 0,
 }) {
   assert(
-    loop == null || loop.switchDepth == plan.effectiveSetpointSwitchDepth,
+    loop == null || loop.switchDepth == setpointSwitchDepth,
     'legs are cut at the plan\'s switch, so the loop must change setpoint there',
   );
   final b = _Builder(plan, loop, scr, stepSeconds);
@@ -206,6 +207,7 @@ SynthesizedRemainder synthesizeRemainder({
         endDepth: s.targetDepth,
         durationSeconds: s.durationSeconds,
       ),
+      switchDepth: setpointSwitchDepth,
     )) {
       segmentGas(s, piece.avgDepth);
       // A zero-duration hold (ascend-now anchor) adds no time.

@@ -133,6 +133,14 @@ void main() {
       await tester.pumpWidget(host());
       await tester.pumpAndSettle();
 
+      // Custom opens the number field, seeded with the Settings value.
+      await tester.tap(find.text('Custom').first);
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<TextField>(find.byType(TextField).at(0)).controller!.text,
+        '0,7',
+      );
+
       await tester.enterText(find.byType(TextField).at(0), '1,2');
       await tester.pumpAndSettle();
 
@@ -142,27 +150,15 @@ void main() {
       expect(container.read(divePlanNotifierProvider).setpointLow, 1.2);
     });
 
-    testWidgets('shows the unset setpoints\' hint with the locale separator', (
+    testWidgets('shows the default setpoints with the locale separator', (
       tester,
     ) async {
       Intl.defaultLocale = 'de';
       await tester.pumpWidget(host());
       await tester.pumpAndSettle();
 
-      expect(
-        tester
-            .widget<TextField>(find.byType(TextField).at(0))
-            .decoration
-            ?.hintText,
-        '0,7',
-      );
-      expect(
-        tester
-            .widget<TextField>(find.byType(TextField).at(1))
-            .decoration
-            ?.hintText,
-        '1,3',
-      );
+      expect(find.text('0,7 bar'), findsOneWidget);
+      expect(find.text('1,3 bar'), findsOneWidget);
     });
   });
 
