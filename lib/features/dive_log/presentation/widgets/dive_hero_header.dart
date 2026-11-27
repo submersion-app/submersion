@@ -55,9 +55,11 @@ class DiveHeroHeader extends ConsumerWidget {
   final Widget? trailing;
 
   /// The size [trailing] takes; [Size.zero] while it draws nothing. It is
-  /// laid over the card's corner, so the rating/mode row keeps this much
-  /// room at its end for it, wide enough to clear the rating and mode badge
-  /// and tall enough to clear the type badges under them.
+  /// laid over the card's corner, so the rating/mode row keeps its width at
+  /// its end, clear of the rating and mode badge. Only the width: keeping
+  /// its height as well would make that row taller than its text and the
+  /// card grow on unlock. The type badges start below the row and its gap,
+  /// under the trailing widget, which is no taller than a title's line.
   final Size trailingSize;
 
   const DiveHeroHeader({
@@ -244,8 +246,8 @@ class DiveHeroHeader extends ConsumerWidget {
                           // this row, where it is laid over the card's top
                           // right corner (see below), so the two never
                           // collide and only this row gives up width.
-                          if (trailing != null && !trailingSize.isEmpty)
-                            SizedBox.fromSize(size: trailingSize),
+                          if (trailing != null && trailingSize.width > 0)
+                            SizedBox(width: trailingSize.width),
                         ],
                       ),
                       if (visibleHeaderTypeIds.isNotEmpty) ...[

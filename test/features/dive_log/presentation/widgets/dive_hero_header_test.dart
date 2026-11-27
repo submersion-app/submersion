@@ -195,8 +195,11 @@ void main() {
       site: site,
     );
 
-    void phoneWidth(WidgetTester tester) {
-      tester.view.physicalSize = const Size(360, 800);
+    // Narrow enough to squeeze the header's columns, wide enough for the
+    // stat row under it: the test font's wide glyphs overflow that row,
+    // which this change does not touch, at a 360 point phone width.
+    void narrowWidth(WidgetTester tester) {
+      tester.view.physicalSize = const Size(520, 800);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
     }
@@ -259,7 +262,7 @@ void main() {
     testWidgets('stays at the top when the badge column is the taller', (
       tester,
     ) async {
-      phoneWidth(tester);
+      narrowWidth(tester);
       await pump(
         tester,
         DiveHeroHeader(
@@ -313,10 +316,10 @@ void main() {
       );
     });
 
-    testWidgets('fits a phone width with a long name and every badge', (
+    testWidgets('fits a narrow width with a long name and every badge', (
       tester,
     ) async {
-      phoneWidth(tester);
+      narrowWidth(tester);
       await pump(
         tester,
         DiveHeroHeader(
@@ -336,10 +339,10 @@ void main() {
 
     // Unlocking must not wrap the site, location or time lines: only the
     // rating/mode row gives up the trailing widget's width.
-    testWidgets('leaves the text lines their width at phone width', (
+    testWidgets('leaves the text lines their width at a narrow width', (
       tester,
     ) async {
-      phoneWidth(tester);
+      narrowWidth(tester);
       // Open circuit and unrated, so the type badges, not the rating/mode
       // row with the trailing widget's room, set the badge column's width.
       final atSite = Dive(

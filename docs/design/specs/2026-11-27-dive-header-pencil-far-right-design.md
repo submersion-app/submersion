@@ -15,10 +15,12 @@ else than on the cards below it.
   `PositionedDirectional(top: 0, end: 0)`, so the top left in a
   right-to-left language), not drawn inside the title row.
 - The rating/mode row, the top row of the badge column at the header's end
-  edge, ends with a `SizedBox.fromSize(size: trailingSize)`. That keeps the
-  pencil's room, its width and its height, exactly where it is laid, so it
-  cannot collide with the rating, the mode badge or the type badges below
-  them, at any width.
+  edge, ends with a `SizedBox(width: trailingSize.width)`. That keeps the
+  pencil's width exactly where it is laid, so it cannot collide with the
+  rating or the mode badge at any width. Only the width: reserving the
+  disc's height too made that row taller than its text and the card grow
+  by a few points on unlock. The type badges start below the row and its
+  8 point gap, which is already lower than the disc's 24 points.
 - Only that row gives up width. The text column (name, site, location,
   entry and exit) keeps its width while the type badges are the widest part
   of the badge column. When they are not (no type badges, or a rating and a
