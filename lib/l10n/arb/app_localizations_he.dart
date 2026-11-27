@@ -17401,6 +17401,65 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get firmware_card_title => 'קושחה';
+
+  @override
+  String get firmware_card_installed => 'מותקן';
+
+  @override
+  String get firmware_card_notRecorded => 'לא נרשם';
+
+  @override
+  String firmware_card_updateAvailable(String version) {
+    return 'עדכון זמין: $version';
+  }
+
+  @override
+  String get firmware_card_upToDate => 'מעודכן';
+
+  @override
+  String firmware_card_unknownVersion(String version) {
+    return 'לא ברשימת הקושחה. האחרונה: $version';
+  }
+
+  @override
+  String firmware_card_noVersion(String version) {
+    return 'האחרונה: $version. רשום את שלך כדי להשוות.';
+  }
+
+  @override
+  String get firmware_card_safety => 'בטיחות';
+
+  @override
+  String get firmware_card_releaseNotes => 'הערות גרסה';
+
+  @override
+  String get firmware_card_howToUpdate => 'איך לעדכן';
+
+  @override
+  String firmware_card_showAll(int count) {
+    return 'הצג את כל הגרסאות ($count)';
+  }
+
+  @override
+  String get firmware_card_showFewer => 'הצג פחות';
+
+  @override
+  String get firmware_card_log => 'רישום עדכון קושחה';
+
+  @override
+  String get firmware_log_version => 'גרסה חדשה';
+
+  @override
+  String get firmware_log_versionRequired => 'הזן את הגרסה';
+
+  @override
+  String get firmware_log_date => 'תאריך';
+
+  @override
+  String get firmware_log_notes => 'הערות';
+
+  @override
   String get equipment_serviceCategory_warranty => 'שירות אחריות';
 
   @override

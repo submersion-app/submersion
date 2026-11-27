@@ -16913,6 +16913,65 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get firmware_card_title => '固件';
+
+  @override
+  String get firmware_card_installed => '已安装';
+
+  @override
+  String get firmware_card_notRecorded => '未记录';
+
+  @override
+  String firmware_card_updateAvailable(String version) {
+    return '有可用更新：$version';
+  }
+
+  @override
+  String get firmware_card_upToDate => '已是最新';
+
+  @override
+  String firmware_card_unknownVersion(String version) {
+    return '不在固件列表中。最新：$version';
+  }
+
+  @override
+  String firmware_card_noVersion(String version) {
+    return '最新：$version。记录您的版本以进行比较。';
+  }
+
+  @override
+  String get firmware_card_safety => '安全';
+
+  @override
+  String get firmware_card_releaseNotes => '发行说明';
+
+  @override
+  String get firmware_card_howToUpdate => '如何更新';
+
+  @override
+  String firmware_card_showAll(int count) {
+    return '显示全部版本（$count）';
+  }
+
+  @override
+  String get firmware_card_showFewer => '收起';
+
+  @override
+  String get firmware_card_log => '记录固件更新';
+
+  @override
+  String get firmware_log_version => '新版本';
+
+  @override
+  String get firmware_log_versionRequired => '请输入版本';
+
+  @override
+  String get firmware_log_date => '日期';
+
+  @override
+  String get firmware_log_notes => '备注';
+
+  @override
   String get equipment_serviceCategory_warranty => '保修服务';
 
   @override

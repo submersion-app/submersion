@@ -17152,6 +17152,65 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get firmware_card_title => 'ファームウェア';
+
+  @override
+  String get firmware_card_installed => 'インストール済み';
+
+  @override
+  String get firmware_card_notRecorded => '未記録';
+
+  @override
+  String firmware_card_updateAvailable(String version) {
+    return 'アップデートあり: $version';
+  }
+
+  @override
+  String get firmware_card_upToDate => '最新です';
+
+  @override
+  String firmware_card_unknownVersion(String version) {
+    return 'ファームウェア一覧にありません。最新: $version';
+  }
+
+  @override
+  String firmware_card_noVersion(String version) {
+    return '最新: $version。比較するにはお使いのバージョンを記録してください。';
+  }
+
+  @override
+  String get firmware_card_safety => '安全';
+
+  @override
+  String get firmware_card_releaseNotes => 'リリースノート';
+
+  @override
+  String get firmware_card_howToUpdate => '更新方法';
+
+  @override
+  String firmware_card_showAll(int count) {
+    return 'すべてのリリースを表示 ($count)';
+  }
+
+  @override
+  String get firmware_card_showFewer => '表示を減らす';
+
+  @override
+  String get firmware_card_log => 'ファームウェア更新を記録';
+
+  @override
+  String get firmware_log_version => '新しいバージョン';
+
+  @override
+  String get firmware_log_versionRequired => 'バージョンを入力してください';
+
+  @override
+  String get firmware_log_date => '日付';
+
+  @override
+  String get firmware_log_notes => 'メモ';
+
+  @override
   String get equipment_serviceCategory_warranty => '保証修理';
 
   @override

@@ -17657,6 +17657,65 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get firmware_card_title => 'Firmware';
+
+  @override
+  String get firmware_card_installed => 'Geïnstalleerd';
+
+  @override
+  String get firmware_card_notRecorded => 'Niet vastgelegd';
+
+  @override
+  String firmware_card_updateAvailable(String version) {
+    return 'Update beschikbaar: $version';
+  }
+
+  @override
+  String get firmware_card_upToDate => 'Up-to-date';
+
+  @override
+  String firmware_card_unknownVersion(String version) {
+    return 'Niet in de firmwarelijst. Nieuwste: $version';
+  }
+
+  @override
+  String firmware_card_noVersion(String version) {
+    return 'Nieuwste: $version. Leg de jouwe vast om te vergelijken.';
+  }
+
+  @override
+  String get firmware_card_safety => 'Veiligheid';
+
+  @override
+  String get firmware_card_releaseNotes => 'Release-opmerkingen';
+
+  @override
+  String get firmware_card_howToUpdate => 'Zo werk je bij';
+
+  @override
+  String firmware_card_showAll(int count) {
+    return 'Alle versies tonen ($count)';
+  }
+
+  @override
+  String get firmware_card_showFewer => 'Minder tonen';
+
+  @override
+  String get firmware_card_log => 'Firmware-update vastleggen';
+
+  @override
+  String get firmware_log_version => 'Nieuwe versie';
+
+  @override
+  String get firmware_log_versionRequired => 'Voer de versie in';
+
+  @override
+  String get firmware_log_date => 'Datum';
+
+  @override
+  String get firmware_log_notes => 'Notities';
+
+  @override
   String get equipment_serviceCategory_warranty => 'Garantieservice';
 
   @override

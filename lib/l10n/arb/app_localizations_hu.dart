@@ -17706,6 +17706,65 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get firmware_card_title => 'Firmware';
+
+  @override
+  String get firmware_card_installed => 'Telepítve';
+
+  @override
+  String get firmware_card_notRecorded => 'Nincs rögzítve';
+
+  @override
+  String firmware_card_updateAvailable(String version) {
+    return 'Frissítés érhető el: $version';
+  }
+
+  @override
+  String get firmware_card_upToDate => 'Naprakész';
+
+  @override
+  String firmware_card_unknownVersion(String version) {
+    return 'Nincs a firmware-listában. Legújabb: $version';
+  }
+
+  @override
+  String firmware_card_noVersion(String version) {
+    return 'Legújabb: $version. Rögzítsd a sajátodat az összevetéshez.';
+  }
+
+  @override
+  String get firmware_card_safety => 'Biztonsági';
+
+  @override
+  String get firmware_card_releaseNotes => 'Kiadási megjegyzések';
+
+  @override
+  String get firmware_card_howToUpdate => 'A frissítés módja';
+
+  @override
+  String firmware_card_showAll(int count) {
+    return 'Összes kiadás ($count)';
+  }
+
+  @override
+  String get firmware_card_showFewer => 'Kevesebb';
+
+  @override
+  String get firmware_card_log => 'Firmware-frissítés rögzítése';
+
+  @override
+  String get firmware_log_version => 'Új verzió';
+
+  @override
+  String get firmware_log_versionRequired => 'Add meg a verziót';
+
+  @override
+  String get firmware_log_date => 'Dátum';
+
+  @override
+  String get firmware_log_notes => 'Megjegyzések';
+
+  @override
   String get equipment_serviceCategory_warranty => 'Garanciális szerviz';
 
   @override

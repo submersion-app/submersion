@@ -28174,6 +28174,108 @@ abstract class AppLocalizations {
   /// **'Firmware changed to {version}'**
   String firmware_history_changedTo(String version);
 
+  /// No description provided for @firmware_card_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware'**
+  String get firmware_card_title;
+
+  /// No description provided for @firmware_card_installed.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed'**
+  String get firmware_card_installed;
+
+  /// No description provided for @firmware_card_notRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get firmware_card_notRecorded;
+
+  /// No description provided for @firmware_card_updateAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available: {version}'**
+  String firmware_card_updateAvailable(String version);
+
+  /// No description provided for @firmware_card_upToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get firmware_card_upToDate;
+
+  /// No description provided for @firmware_card_unknownVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in the firmware list. Latest: {version}'**
+  String firmware_card_unknownVersion(String version);
+
+  /// No description provided for @firmware_card_noVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest: {version}. Record yours to compare.'**
+  String firmware_card_noVersion(String version);
+
+  /// No description provided for @firmware_card_safety.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety'**
+  String get firmware_card_safety;
+
+  /// No description provided for @firmware_card_releaseNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Release notes'**
+  String get firmware_card_releaseNotes;
+
+  /// No description provided for @firmware_card_howToUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'How to update'**
+  String get firmware_card_howToUpdate;
+
+  /// No description provided for @firmware_card_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all releases ({count})'**
+  String firmware_card_showAll(int count);
+
+  /// No description provided for @firmware_card_showFewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Show fewer'**
+  String get firmware_card_showFewer;
+
+  /// No description provided for @firmware_card_log.
+  ///
+  /// In en, this message translates to:
+  /// **'Log firmware update'**
+  String get firmware_card_log;
+
+  /// No description provided for @firmware_log_version.
+  ///
+  /// In en, this message translates to:
+  /// **'New version'**
+  String get firmware_log_version;
+
+  /// No description provided for @firmware_log_versionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the version'**
+  String get firmware_log_versionRequired;
+
+  /// No description provided for @firmware_log_date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get firmware_log_date;
+
+  /// No description provided for @firmware_log_notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get firmware_log_notes;
+
   /// No description provided for @equipment_serviceCategory_warranty.
   ///
   /// In en, this message translates to:

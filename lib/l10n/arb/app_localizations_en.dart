@@ -17515,6 +17515,65 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get firmware_card_title => 'Firmware';
+
+  @override
+  String get firmware_card_installed => 'Installed';
+
+  @override
+  String get firmware_card_notRecorded => 'Not recorded';
+
+  @override
+  String firmware_card_updateAvailable(String version) {
+    return 'Update available: $version';
+  }
+
+  @override
+  String get firmware_card_upToDate => 'Up to date';
+
+  @override
+  String firmware_card_unknownVersion(String version) {
+    return 'Not in the firmware list. Latest: $version';
+  }
+
+  @override
+  String firmware_card_noVersion(String version) {
+    return 'Latest: $version. Record yours to compare.';
+  }
+
+  @override
+  String get firmware_card_safety => 'Safety';
+
+  @override
+  String get firmware_card_releaseNotes => 'Release notes';
+
+  @override
+  String get firmware_card_howToUpdate => 'How to update';
+
+  @override
+  String firmware_card_showAll(int count) {
+    return 'Show all releases ($count)';
+  }
+
+  @override
+  String get firmware_card_showFewer => 'Show fewer';
+
+  @override
+  String get firmware_card_log => 'Log firmware update';
+
+  @override
+  String get firmware_log_version => 'New version';
+
+  @override
+  String get firmware_log_versionRequired => 'Enter the version';
+
+  @override
+  String get firmware_log_date => 'Date';
+
+  @override
+  String get firmware_log_notes => 'Notes';
+
+  @override
   String get equipment_serviceCategory_warranty => 'Warranty Service';
 
   @override

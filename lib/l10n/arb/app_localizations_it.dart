@@ -17769,6 +17769,65 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get firmware_card_title => 'Firmware';
+
+  @override
+  String get firmware_card_installed => 'Installato';
+
+  @override
+  String get firmware_card_notRecorded => 'Non registrato';
+
+  @override
+  String firmware_card_updateAvailable(String version) {
+    return 'Aggiornamento disponibile: $version';
+  }
+
+  @override
+  String get firmware_card_upToDate => 'Aggiornato';
+
+  @override
+  String firmware_card_unknownVersion(String version) {
+    return 'Non presente nell\'elenco firmware. Ultimo: $version';
+  }
+
+  @override
+  String firmware_card_noVersion(String version) {
+    return 'Ultimo: $version. Registra il tuo per confrontare.';
+  }
+
+  @override
+  String get firmware_card_safety => 'Sicurezza';
+
+  @override
+  String get firmware_card_releaseNotes => 'Note di rilascio';
+
+  @override
+  String get firmware_card_howToUpdate => 'Come aggiornare';
+
+  @override
+  String firmware_card_showAll(int count) {
+    return 'Mostra tutte le versioni ($count)';
+  }
+
+  @override
+  String get firmware_card_showFewer => 'Mostra meno';
+
+  @override
+  String get firmware_card_log => 'Registra aggiornamento firmware';
+
+  @override
+  String get firmware_log_version => 'Nuova versione';
+
+  @override
+  String get firmware_log_versionRequired => 'Inserisci la versione';
+
+  @override
+  String get firmware_log_date => 'Data';
+
+  @override
+  String get firmware_log_notes => 'Note';
+
+  @override
   String get equipment_serviceCategory_warranty => 'Assistenza in garanzia';
 
   @override

@@ -179,7 +179,7 @@ void main() {
 
   group('firmwareHistoryLabel', () {
     final l10n = AppLocalizationsEn();
-    final perdix = () => catalogue.models.first;
+    FirmwareModel perdix() => catalogue.models.first;
     ServiceRecord rec(String version) => ServiceRecord(
       id: 'r',
       equipmentId: 'perdix',

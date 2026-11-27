@@ -18061,6 +18061,65 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get firmware_card_title => 'البرنامج الثابت';
+
+  @override
+  String get firmware_card_installed => 'المثبت';
+
+  @override
+  String get firmware_card_notRecorded => 'غير مسجل';
+
+  @override
+  String firmware_card_updateAvailable(String version) {
+    return 'يتوفر تحديث: $version';
+  }
+
+  @override
+  String get firmware_card_upToDate => 'محدّث';
+
+  @override
+  String firmware_card_unknownVersion(String version) {
+    return 'ليس في قائمة البرامج الثابتة. الأحدث: $version';
+  }
+
+  @override
+  String firmware_card_noVersion(String version) {
+    return 'الأحدث: $version. سجّل إصدارك للمقارنة.';
+  }
+
+  @override
+  String get firmware_card_safety => 'أمان';
+
+  @override
+  String get firmware_card_releaseNotes => 'ملاحظات الإصدار';
+
+  @override
+  String get firmware_card_howToUpdate => 'طريقة التحديث';
+
+  @override
+  String firmware_card_showAll(int count) {
+    return 'عرض كل الإصدارات ($count)';
+  }
+
+  @override
+  String get firmware_card_showFewer => 'عرض أقل';
+
+  @override
+  String get firmware_card_log => 'تسجيل تحديث البرنامج الثابت';
+
+  @override
+  String get firmware_log_version => 'الإصدار الجديد';
+
+  @override
+  String get firmware_log_versionRequired => 'أدخل الإصدار';
+
+  @override
+  String get firmware_log_date => 'التاريخ';
+
+  @override
+  String get firmware_log_notes => 'ملاحظات';
+
+  @override
   String get equipment_serviceCategory_warranty => 'خدمة الضمان';
 
   @override
