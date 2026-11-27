@@ -111,8 +111,11 @@ build uses it only at those addresses; anywhere else, and in a build
 without it, the connect step asks for a client id of the user's own.
 
 The release build does this: `build-all.yml` passes the repository
-variable `GOOGLE_WEB_CLIENT_ID` with `https://web.submersion.app` as the
-origin, so every release zip carries the client and uses it only there.
+variable `GOOGLE_WEB_CLIENT_ID` with `https://web.submersion.app` and
+`https://beta.web.submersion.app` as the origins, so every release zip
+carries the client and uses it only on Submersion's two sites. Promotion
+copies the beta's bundle unchanged, so a stable bundle lists the beta
+origin too.
 
 To run the app in a browser during development:
 
@@ -144,6 +147,18 @@ an older release than the site serves unless `force` is set, since an
 older release cannot open the newer schema visitors' browsers already
 hold. Setup, the deploy token and rolling back:
 [Submersion's Own Web Site](web-site-setup.md).
+
+Every published beta deploys the same way to
+<https://beta.web.submersion.app> (issue #4481): `beta.yml` calls
+`deploy-web.yml` with `site: beta`, which downloads the bundle from the
+`submersion-app/beta-builds` release and pushes it to the Pages repository
+`submersion-app/web-beta`. The two sites are separate origins, so each
+keeps its own libraries. The app tells them apart by the page's address
+(`lib/features/auto_update/domain/hosted_web_site.dart`), never by a
+build-time value, because promotion re-hosts the beta's files; it spells
+host names only, and `test/architecture/hosted_web_site_literals_test.dart`
+keeps full `https://` addresses out of `lib/` so the staging script's
+origin check stays meaningful.
 
 ## Storage
 

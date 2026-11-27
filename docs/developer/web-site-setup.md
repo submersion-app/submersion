@@ -8,13 +8,18 @@ sync, because only a client from Submersion's Google Cloud project sees
 that project's Drive app folder. Self-hosting is unchanged: the same
 release zip still asks a self-hosted copy for a client id of its own.
 
+Every beta is served the same way at <https://beta.web.submersion.app>
+(issue #4481; design in
+[the beta site spec](../design/specs/2026-11-27-beta-web-site-design.md)).
+[The beta site](#the-beta-site) covers what differs.
+
 ## How it works
 
 - **The build.** `build-all.yml`'s web job passes the repository variable
   `GOOGLE_WEB_CLIENT_ID` to `scripts/build_web.sh`, with
-  `GOOGLE_WEB_CLIENT_ORIGINS=https://web.submersion.app`. The app uses the
-  client only at that address, so one `Submersion-<tag>-Web.zip` serves
-  both the site and self-hosters. The client goes in when the beta is
+  `GOOGLE_WEB_CLIENT_ORIGINS=https://web.submersion.app,https://beta.web.submersion.app`.
+  The app uses the client only at those addresses, so one
+  `Submersion-<tag>-Web.zip` serves both sites and self-hosters. The client goes in when the beta is
   built: promotion copies the beta's files and builds nothing.
 - **The host.** GitHub Pages, from the `main` branch root of
   [submersion-app/web](https://github.com/submersion-app/web), with the
@@ -38,8 +43,9 @@ Cloud project, the domain's DNS and the repositories' settings.
    [Google Cloud console](https://console.cloud.google.com/), in the
    project that holds the installed apps' OAuth clients: APIs & Services,
    Credentials, **Create credentials**, **OAuth client ID**, type **Web
-   application**, with `https://web.submersion.app` under **Authorised
-   JavaScript origins** (no redirect URI). Then set its id as a repository
+   application**, with `https://web.submersion.app` and
+   `https://beta.web.submersion.app` under **Authorised JavaScript
+   origins** (no redirect URI). Then set its id as a repository
    variable (a web client id is public, so not a secret):
 
    ```bash
@@ -63,7 +69,8 @@ Cloud project, the domain's DNS and the repositories' settings.
 4. **The deploy token.** On GitHub: Settings, Developer settings, Personal
    access tokens, **Fine-grained tokens**, **Generate new token**:
    - Resource owner: `submersion-app`.
-   - Repository access: **Only select repositories**, `submersion-app/web`.
+   - Repository access: **Only select repositories**, `submersion-app/web`
+     and `submersion-app/web-beta`.
    - Repository permissions: **Contents: Read and write** (Metadata: Read
      comes with it). Nothing else.
    - Expiration: the longest the organization allows; note the date.
@@ -88,6 +95,36 @@ Cloud project, the domain's DNS and the repositories' settings.
 The Pages repository itself already exists, with Pages turned on from
 `main` and the custom domain set.
 
+## The beta site
+
+<https://beta.web.submersion.app> serves the latest beta from the GitHub
+Pages repository [submersion-app/web-beta](https://github.com/submersion-app/web-beta).
+`beta.yml` deploys each beta after publishing it to `beta-builds`, by
+calling `deploy-web.yml` with `site: beta`: the bundle comes from the
+`beta-builds` release, and the `sqlite3.wasm` lock from the commit its
+`metadata.json` names (beta tags exist only in `beta-builds`). A failed
+deploy raises the beta failure alert; no store lane waits on it.
+
+Its library is separate from the stable site's: each address is its own
+origin. A beta deploy can therefore never move the stable site's visitors
+to a newer schema.
+
+One-time setup, finished **before** the change that added the site merges,
+or every beta deploy fails against a repository the token cannot reach:
+
+1. Google Cloud: `https://beta.web.submersion.app` is among the web
+   client's authorised JavaScript origins (step 1 above).
+2. DNS: a `CNAME` record for `beta.web` pointing at
+   `submersion-app.github.io`. Check it with
+   `dig +short beta.web.submersion.app CNAME`.
+3. The deploy token covers `submersion-app/web-beta` (step 4 above). An
+   existing token is edited in place: Settings, Developer settings,
+   Fine-grained tokens, the token, **Repository access**, add the
+   repository, save. The secret keeps the same value.
+4. In submersion-app/web-beta, Settings, Pages: tick **Enforce HTTPS** once
+   the certificate is issued. The repository's README already makes the
+   site live, so this needs no deploy first.
+
 ## Before the setup is finished
 
 - **No `WEB_DEPLOY_TOKEN`:** the workflow writes a notice, skips the
@@ -108,6 +145,13 @@ gh workflow run deploy-web.yml --repo submersion-app/submersion -f tag=v1.8.4.94
 
 The run refuses a pre-release tag, and a release whose GitHub release has
 no `Web.zip` (those before the web app, PR #4142).
+
+For the beta site, add `site=beta` and name a release in `beta-builds`,
+which keeps only the newest betas:
+
+```bash
+gh workflow run deploy-web.yml --repo submersion-app/submersion -f site=beta -f tag=v1.8.7.9789
+```
 
 **Rolling back** to an older release needs `force`:
 
