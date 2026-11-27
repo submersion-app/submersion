@@ -9248,12 +9248,25 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'Palacknyomások';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'Rétegek nézetben tartása';
-
-  @override
   String get diveLog_chartOption_tooltipFollowsCursor =>
       'A tooltip követi a kurzort';
+
+  @override
+  String get diveLog_chartOption_zoom => 'Nagyítás';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify =>
+      'Mindkét tengely, rétegek nagyítása';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView =>
+      'Mindkét tengely, rétegek nézetben tartása';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => 'Csak idő';
+
+  @override
+  String get diveLog_chartOption_rightAxis => 'Jobb tengely';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(becs.)';
@@ -23861,8 +23874,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Rétegek nézetben tartása nagyításkor';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'Az olyan rétegek, mint az NDL és a ppO2, a látható területhez igazodjanak, ahelyett hogy a mélységtengellyel együtt nagyítódnának';
+  String get settings_appearance_profileZoom => 'Nagyítás';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict =>
+      'Profilnagyítás: csak idő';
 
   @override
   String get settings_appearance_rightYAxisMetric => 'Jobb Y-tengely metrika';

@@ -9065,12 +9065,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'לחצי מיכלים';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'שמירת שכבות העל בתצוגה';
-
-  @override
   String get diveLog_chartOption_tooltipFollowsCursor =>
       'הרמז הצף עוקב אחר הסמן';
+
+  @override
+  String get diveLog_chartOption_zoom => 'זום';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify => 'שני הצירים, הגדלת שכבות העל';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView =>
+      'שני הצירים, שמירת שכבות העל בתצוגה';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => 'זמן בלבד';
+
+  @override
+  String get diveLog_chartOption_rightAxis => 'ציר ימני';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(משוער)';
@@ -23442,8 +23454,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'שמירת שכבות העל בתצוגה בעת זום';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'התאמת שכבות על כגון NDL ו-ppO2 לאזור הנראה במקום להגדיל אותן יחד עם ציר העומק';
+  String get settings_appearance_profileZoom => 'זום';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict =>
+      'זום פרופיל: זמן בלבד';
 
   @override
   String get settings_appearance_rightYAxisMetric => 'מדד ציר Y ימני';

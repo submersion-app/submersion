@@ -9270,12 +9270,25 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'Pressões dos cilindros';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'Manter as sobreposições visíveis';
-
-  @override
   String get diveLog_chartOption_tooltipFollowsCursor =>
       'O tooltip segue o cursor';
+
+  @override
+  String get diveLog_chartOption_zoom => 'Zoom';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify =>
+      'Ambos os eixos, ampliar as sobreposições';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView =>
+      'Ambos os eixos, manter as sobreposições visíveis';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => 'Apenas tempo';
+
+  @override
+  String get diveLog_chartOption_rightAxis => 'Eixo direito';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(est.)';
@@ -23951,8 +23964,11 @@ class AppLocalizationsPt extends AppLocalizations {
       'Manter as sobreposições visíveis ao ampliar';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'Ajustar as sobreposições como NDL e ppO2 à área visível em vez de ampliá-las com o eixo de profundidade';
+  String get settings_appearance_profileZoom => 'Zoom';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict =>
+      'Zoom do perfil: apenas tempo';
 
   @override
   String get settings_appearance_rightYAxisMetric =>

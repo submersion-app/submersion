@@ -170,13 +170,13 @@ void main() {
       final container = containerWith(const AppSettings());
       final notifier = container.read(profileLegendProvider.notifier);
 
-      notifier.toggleMetricsFollowViewport();
+      notifier.setZoomMode(ProfileZoomMode.keepOverlaysInView);
       expect(
         container.read(profileLegendProvider).metricsFollowViewport,
         isTrue,
       );
 
-      notifier.toggleMetricsFollowViewport();
+      notifier.setZoomMode(ProfileZoomMode.magnifyOverlays);
       expect(
         container.read(profileLegendProvider).metricsFollowViewport,
         isFalse,

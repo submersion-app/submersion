@@ -9399,12 +9399,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'ضغوط الأسطوانات';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'إبقاء الطبقات الإضافية ضمن العرض';
-
-  @override
   String get diveLog_chartOption_tooltipFollowsCursor =>
       'تلميح الأداة يتبع المؤشر';
+
+  @override
+  String get diveLog_chartOption_zoom => 'التكبير';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify =>
+      'كلا المحورين، تكبير الطبقات الإضافية';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView =>
+      'كلا المحورين، إبقاء الطبقات الإضافية ضمن العرض';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => 'الوقت فقط';
+
+  @override
+  String get diveLog_chartOption_rightAxis => 'المحور الأيمن';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(تقديري)';
@@ -24367,8 +24380,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'إبقاء الطبقات الإضافية ضمن العرض عند التكبير';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'ملاءمة الطبقات الإضافية مثل NDL وppO2 مع المنطقة المرئية بدلاً من تكبيرها مع محور العمق';
+  String get settings_appearance_profileZoom => 'التكبير';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict =>
+      'تكبير المخطط: الوقت فقط';
 
   @override
   String get settings_appearance_rightYAxisMetric => 'مقياس المحور الأيمن';

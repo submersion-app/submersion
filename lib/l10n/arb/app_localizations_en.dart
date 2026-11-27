@@ -9125,12 +9125,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'Tank Pressures';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'Keep overlays in view';
-
-  @override
   String get diveLog_chartOption_tooltipFollowsCursor =>
       'Tooltip follows cursor';
+
+  @override
+  String get diveLog_chartOption_zoom => 'Zoom';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify => 'Both axes, magnify overlays';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView =>
+      'Both axes, keep overlays in view';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => 'Time only';
+
+  @override
+  String get diveLog_chartOption_rightAxis => 'Right axis';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(est.)';
@@ -23610,8 +23622,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Keep overlays in view when zooming';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'Fit overlays such as NDL and ppO2 to the visible area instead of magnifying them with the depth axis';
+  String get settings_appearance_profileZoom => 'Zoom';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict =>
+      'Profile zoom: time only';
 
   @override
   String get settings_appearance_rightYAxisMetric => 'Right Y-axis metric';

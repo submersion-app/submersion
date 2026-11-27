@@ -655,7 +655,7 @@ final Map<String, ConflictField> diverSettingsFields = {
     FieldKind.boolean,
   ),
   'profileZoomTimeOnly': ConflictField(
-    (l) => l.settings_appearance_metricsFollowViewport,
+    (l) => l.settings_appearance_zoomTimeOnly_conflict,
     FieldKind.boolean,
   ),
   'pscrRatio': ConflictField(

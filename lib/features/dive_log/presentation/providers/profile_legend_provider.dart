@@ -621,12 +621,6 @@ class ProfileLegend extends _$ProfileLegend {
     );
   }
 
-  /// Flip the overlay scaling mode for this chart session only, leaving the
-  /// saved default untouched.
-  void toggleMetricsFollowViewport() {
-    state = state.copyWith(metricsFollowViewport: !state.metricsFollowViewport);
-  }
-
   /// Choose what zooming scales for this chart session only, leaving the
   /// saved default untouched. Time only keeps the viewport flag, so going
   /// back to a both-axes mode restores it.
