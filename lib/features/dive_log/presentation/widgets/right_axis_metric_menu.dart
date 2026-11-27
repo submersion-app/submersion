@@ -30,13 +30,19 @@ Future<void> showRightAxisMetricMenu(
       onTap: onNone,
       child: Row(
         children: [
+          // Checked when the axis shows nothing, like the metric items.
           Icon(
-            Icons.visibility_off,
+            current == null ? Icons.check : Icons.visibility_off,
             size: 16,
             color: colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: 8),
-          Text(l10n.diveLog_profile_rightAxis_none),
+          Text(
+            l10n.diveLog_profile_rightAxis_none,
+            style: TextStyle(
+              fontWeight: current == null ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
         ],
       ),
     ),

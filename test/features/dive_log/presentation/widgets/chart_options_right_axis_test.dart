@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
@@ -97,6 +98,26 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(await _openRow(tester), 'None');
+  });
+
+  testWidgets('the row\'s menu checks None after None is chosen', (
+    tester,
+  ) async {
+    await _pump(tester, _profile());
+    _legend(tester).hideRightAxis();
+    await tester.pumpAndSettle();
+    await _openRow(tester);
+    await tester.tap(find.byKey(_rowKey));
+    await tester.pumpAndSettle();
+
+    final noneItem = find.ancestor(
+      of: find.text('None').last,
+      matching: find.byType(PopupMenuItem<ProfileRightAxisMetric?>),
+    );
+    expect(
+      find.descendant(of: noneItem, matching: find.byIcon(Icons.check)),
+      findsOneWidget,
+    );
   });
 
   testWidgets('picking a metric from the row restores the axis', (
