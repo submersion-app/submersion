@@ -55,6 +55,28 @@ domain.DivePlan _plan({
 );
 
 void main() {
+  group('PlanEngineConfig.setpointHighFor never resolves below the low', () {
+    const config = PlanEngineConfig(ccrSetpointLow: 0.7, ccrSetpointHigh: 0.9);
+
+    test('a custom low above the Settings high lifts the high to it', () {
+      final plan = _plan().copyWith(setpointLow: 1.0);
+      expect(config.setpointLowFor(plan), 1.0);
+      expect(config.setpointHighFor(plan), 1.0);
+    });
+
+    test('a custom high below the Settings low resolves to the low', () {
+      final plan = _plan().copyWith(setpointHigh: 0.6);
+      expect(config.setpointHighFor(plan), 0.7);
+    });
+
+    test('an ordinary pair is untouched', () {
+      final plan = _plan().copyWith(setpointLow: 0.8, setpointHigh: 1.2);
+      expect(config.setpointLowFor(plan), 0.8);
+      expect(config.setpointHighFor(plan), 1.2);
+      expect(config.setpointHighFor(_plan()), 0.9);
+    });
+  });
+
   group('PlanEngineConfig.setpointSwitchDepthFor', () {
     const config = PlanEngineConfig(ccrSetpointSwitchDepth: 6.0);
 

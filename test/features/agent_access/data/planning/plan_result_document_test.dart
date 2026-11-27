@@ -218,6 +218,22 @@ void main() {
       'value': null,
       'source': 'plan',
     });
+    // Off breathes the low setpoint at depth too.
+    expect(effectiveSettings(off, config)['setpoint_high_bar'], {
+      'value': config.ccrSetpointLow,
+      'source': 'plan',
+    });
+
+    // A setpoint the plan sets is reported as the plan's.
+    final custom = built.stored.dives.single.plan.copyWith(setpointLow: 0.9);
+    expect(effectiveSettings(custom, config)['setpoint_low_bar'], {
+      'value': 0.9,
+      'source': 'plan',
+    });
+    expect(effectiveSettings(custom, config)['setpoint_high_bar'], {
+      'value': config.ccrSetpointHigh,
+      'source': 'settings',
+    });
   });
 
   test('an SCR plan reports its loop flow and where it came from (#4660)', () {

@@ -600,9 +600,15 @@ class PlanEngineConfig extends Equatable {
   }
 
   /// [plan]'s high (deep) setpoint: its own value when set, else the
-  /// diver's [ccrSetpointHigh] (issue #2801).
-  double setpointHighFor(domain.DivePlan plan) =>
-      plan.setpointHigh ?? ccrSetpointHigh;
+  /// diver's [ccrSetpointHigh] (issue #2801). Never below
+  /// [setpointLowFor], the same "never inverted" rule the Settings keep:
+  /// each half follows Settings or the plan on its own (issue #3793), so a
+  /// custom low can otherwise land above a Settings high.
+  double setpointHighFor(domain.DivePlan plan) {
+    final high = plan.setpointHigh ?? ccrSetpointHigh;
+    final low = setpointLowFor(plan);
+    return high < low ? low : high;
+  }
 
   /// Depth where the loop changes from the high to the low setpoint for
   /// [plan]: the plan's own value, else the diver's [ccrSetpointSwitchDepth]

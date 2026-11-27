@@ -38,7 +38,7 @@ Settings change, the known limitation documented on that method.
 ### Setting
 
 - New `diver_settings.ccr_setpoint_switch_depth` (REAL NOT NULL DEFAULT 10.0),
-  schema v384, additive: rung in `rungs_v340_onward.dart`, re-asserted in
+  schema v387, additive: rung in `rungs_v340_onward.dart`, re-asserted in
   `before_open_settings_columns.dart`, `migrationVersions` entry, the floor
   does not move. Seeded in `SyncDataSerializer`'s diver-settings fallback so a
   payload predating the column hydrates.
@@ -56,11 +56,12 @@ Settings change, the known limitation documented on that method.
 ### Plan model
 
 - New `dive_plans.setpoint_switch_off` (BOOLEAN NOT NULL DEFAULT 0), same
-  v384 rung and backstop. `DivePlan.setpointSwitchOff`, carried through
+  v387 rung and backstop. `DivePlan.setpointSwitchOff`, carried through
   `copyWith`, `props`, `DivePlanState`, `dive_plan_state_mapper.dart`, the
   repository, `plan_file_codec.dart` (written only when true, read as false
-  when absent), the agent plan document and write family
-  (`setpoint_switch_off`), and the people/planning conflict catalogue.
+  when absent), the agent plan document (`setpoint_switch_off`, read only:
+  the plan write family carries no setpoint fields), and the
+  people/planning conflict catalogue.
 - Off wins over a stored `setpointSwitchDepth`, which is kept so switching
   back to Custom restores it (as `airBreaksExplicitlyOff` does).
 
@@ -89,7 +90,12 @@ Settings change, the known limitation documented on that method.
   `ccrSetpointSwitchDepth`, filled from `planEngineConfigProvider` in
   `lab_request_inputs_provider.dart` and passed in `engineConfigFor`.
 - The agent plan-result document reports the resolved switch depth (null when
-  Off) next to `setpoint_low_bar` / `setpoint_high_bar`.
+  Off) next to `setpoint_low_bar` / `setpoint_high_bar`, each with the source
+  it came from (plan or Settings). With Off, `setpoint_high_bar` reports the
+  low setpoint, the one breathed at depth.
+- Each setpoint now follows Settings or the plan on its own, so a custom low
+  could land above a Settings high. `setpointHighFor` never resolves below
+  `setpointLowFor`, the "never inverted" rule the Settings dialog keeps.
 
 ### Planner CCR section
 
@@ -129,7 +135,7 @@ Settings change, the known limitation documented on that method.
 
 ## Tests
 
-- Migration v384: both columns added at their defaults, existing values kept.
+- Migration v387: both columns added at their defaults, existing values kept.
 - Sync fallback: a payload without the field hydrates to 10.0.
 - Notifier: input range, rounding, single write; repository round trip.
 - `PlanEngineConfig`: equality includes the field, `resolvedFor` keeps it,
