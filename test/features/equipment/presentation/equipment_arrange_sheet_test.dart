@@ -281,4 +281,12 @@ void main() {
 
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('the dive surfaces do not offer the assembly view switch', (
+    tester,
+  ) async {
+    // Issue #5071: the switch acts on the Equipment page alone.
+    await pumpSheet(tester, _FakeSettingsRepository());
+    expect(find.text('Show parts under their assembly'), findsNothing);
+  });
 }
