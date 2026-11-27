@@ -33,12 +33,21 @@ Future<void> suggestEquipmentCategory(
     example: example,
   );
   if (suggestion == null || !context.mounted) return;
-  final info = await ref.read(packageInfoProvider.future);
+  // The language on screen: the stored setting is usually 'system'.
+  final locale = Localizations.localeOf(context).toLanguageTag();
+  // A version that cannot be read (the web build fetches version.json)
+  // must not cost the diver the suggestion they just wrote.
+  String appVersion;
+  try {
+    appVersion = formatAppVersion(await ref.read(packageInfoProvider.future));
+  } catch (_) {
+    appVersion = 'unknown';
+  }
   if (!context.mounted) return;
   final uri = buildEquipmentSuggestionUrl(
     suggestion: suggestion,
-    locale: ref.read(localeProvider),
-    appVersion: formatAppVersion(info),
+    locale: locale,
+    appVersion: appVersion,
   );
   await openLinkOrOfferCopy(
     context,

@@ -33,6 +33,7 @@ Future<List<dynamic>> _overrides(
   Species species,
   List<Uri> launched, {
   bool opens = true,
+  bool versionFails = false,
 }) async {
   final overrides = await getBaseOverrides();
   return [
@@ -43,14 +44,17 @@ Future<List<dynamic>> _overrides(
     ).overrideWith((ref) async => SpeciesInsights.empty),
     speciesSightingsProvider(species.id).overrideWith((ref) async => const []),
     packageInfoProvider.overrideWith(
-      (ref) async => PackageInfo(
-        appName: 'Submersion',
-        packageName: 'app.submersion',
-        version: '1.7.6',
-        buildNumber: '7001',
-      ),
+      (ref) async => versionFails
+          ? throw StateError('no version.json')
+          : PackageInfo(
+              appName: 'Submersion',
+              packageName: 'app.submersion',
+              version: '1.7.6',
+              buildNumber: '7001',
+            ),
     ),
-    localeProvider.overrideWithValue('en'),
+    // The stored setting, not the language on screen.
+    localeProvider.overrideWithValue('system'),
     speciesSuggestionLaunchProvider.overrideWithValue((uri) async {
       launched.add(uri);
       return opens;
@@ -62,12 +66,18 @@ Future<List<Uri>> _pump(
   WidgetTester tester,
   Species species, {
   bool opens = true,
+  bool versionFails = false,
 }) async {
   final launched = <Uri>[];
   await tester.pumpWidget(
     testApp(
       locale: const Locale('en'),
-      overrides: await _overrides(species, launched, opens: opens),
+      overrides: await _overrides(
+        species,
+        launched,
+        opens: opens,
+        versionFails: versionFails,
+      ),
       child: SpeciesDetailPage(speciesId: species.id),
     ),
   );
@@ -96,6 +106,21 @@ void main() {
       launched.single.queryParameters['template'],
       'species-suggestion.yml',
     );
+    expect(launched.single.queryParameters['locale'], 'en');
+  });
+
+  testWidgets('an unreadable app version still opens the suggestion', (
+    tester,
+  ) async {
+    final launched = await _pump(tester, _custom, versionFails: true);
+
+    await tester.tap(find.byKey(const ValueKey('species_detail_menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Suggest for the catalog'));
+    await tester.pumpAndSettle();
+
+    expect(launched, hasLength(1));
+    expect(launched.single.queryParameters['app_version'], 'unknown');
   });
 
   testWidgets('a browser that will not open offers to copy the link', (

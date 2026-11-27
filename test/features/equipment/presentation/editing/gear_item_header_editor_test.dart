@@ -376,20 +376,27 @@ void main() {
     const suggestLink = ValueKey('gear-edit-suggest-category');
 
     /// Overrides that record each launched URL and answer [opens].
-    List<dynamic> launchOverrides(List<Uri> launched, {bool opens = true}) => [
+    List<dynamic> launchOverrides(
+      List<Uri> launched, {
+      bool opens = true,
+      bool versionFails = false,
+    }) => [
       equipmentWebLinkLaunchProvider.overrideWithValue((uri) async {
         launched.add(uri);
         return opens;
       }),
       packageInfoProvider.overrideWith(
-        (ref) async => PackageInfo(
-          appName: 'Submersion',
-          packageName: 'app.submersion',
-          version: '1.8.7',
-          buildNumber: '8001',
-        ),
+        (ref) async => versionFails
+            ? throw StateError('no version.json')
+            : PackageInfo(
+                appName: 'Submersion',
+                packageName: 'app.submersion',
+                version: '1.8.7',
+                buildNumber: '8001',
+              ),
       ),
-      localeProvider.overrideWithValue('en'),
+      // The stored setting, not the language on screen.
+      localeProvider.overrideWithValue('system'),
     ];
 
     Future<void> suggest(WidgetTester tester) async {
@@ -442,7 +449,26 @@ void main() {
       expect(query['kind'], 'Subcategory');
       expect(query['parent'], 'Regulator (regulator)');
       expect(query['app_version'], '1.8.7.8001');
+      expect(query['locale'], 'en');
       expect(query.containsKey('example'), isFalse);
+    });
+
+    testWidgets('an unreadable app version still opens the issue', (
+      tester,
+    ) async {
+      final launched = <Uri>[];
+      await pumpEditor(
+        tester,
+        extra: launchOverrides(launched, versionFails: true),
+      );
+
+      await suggest(tester);
+      await tester.tap(find.byKey(const ValueKey('equipment-suggest-open')));
+      await tester.pumpAndSettle();
+
+      expect(launched, hasLength(1));
+      expect(launched.single.queryParameters['app_version'], 'unknown');
+      expect(launched.single.queryParameters['name'], 'Octopus holder');
     });
 
     testWidgets('offers the working brand and model as the example', (
