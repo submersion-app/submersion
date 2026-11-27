@@ -5,6 +5,7 @@ import contextlib
 import importlib.util
 import io
 import os
+import subprocess
 import tempfile
 import unittest
 
@@ -216,6 +217,42 @@ class WorkflowPathTest(GuardCase):
         self.assertIn("ios/fastlane/Fastfile", joined)
         self.assertIn("scripts/ci/gone.py", joined)
 
+    def test_path_at_start_of_file_is_checked(self):
+        self.index()
+        self.add("hooks/pre-push", "scripts/gone.sh\n")
+        problems = self.problems()
+        self.assertEqual(len(problems), 1)
+        self.assertIn("scripts/gone.sh", problems[0])
+
+    def test_absolute_path_is_ignored_even_at_start_of_file(self):
+        # /scripts/x is some other folder's, wherever it sits in the file.
+        self.index()
+        self.add("hooks/pre-push", "/scripts/gone.sh\nrun /scripts/gone2.sh\n")
+        self.assertEqual(self.problems(), [])
+
+    def test_glob_on_line_marked_legacy_layout_is_ignored(self):
+        self.index()
+        self.add(
+            "hooks/pre-push",
+            "for f in scripts/old/*; do  # scripts-layout: legacy\n",
+        )
+        self.assertEqual(self.problems(), [])
+
+
+class ReadTest(GuardCase):
+    def test_missing_index_reports_every_script(self):
+        self.add("scripts/checks/a.py")
+        problems = self.problems()
+        self.assertEqual(len(problems), 1)
+        self.assertIn("scripts/checks/a.py: not in scripts/README.md", problems[0])
+
+    def test_undecodable_dart_file_is_not_a_script(self):
+        self.index()
+        self.add("tool/broken.dart")
+        with open(os.path.join(self.root, "tool", "broken.dart"), "wb") as fh:
+            fh.write(b"\xff\xfe void main() {}\n")
+        self.assertEqual(self.problems(), [])
+
 
 class MainTest(unittest.TestCase):
     def test_main_returns_one_and_prints_problems(self):
@@ -237,6 +274,24 @@ class MainTest(unittest.TestCase):
             with contextlib.redirect_stdout(out):
                 status = guard.main(["--root", root, "--files", "scripts/README.md"])
         self.assertEqual(status, 0)
+
+    def test_main_reads_tracked_files_from_git(self):
+        with tempfile.TemporaryDirectory() as root:
+            write(root, "scripts/README.md", "# Scripts\n")
+            write(root, "scripts/loose.py")
+            write(root, "scripts/untracked.py")
+            subprocess.run(["git", "init", "-q"], cwd=root, check=True)
+            subprocess.run(
+                ["git", "add", "scripts/README.md", "scripts/loose.py"],
+                cwd=root,
+                check=True,
+            )
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                status = guard.main(["--root", root])
+        self.assertEqual(status, 1)
+        self.assertIn("scripts/loose.py", out.getvalue())
+        self.assertNotIn("scripts/untracked.py", out.getvalue())
 
 
 if __name__ == "__main__":

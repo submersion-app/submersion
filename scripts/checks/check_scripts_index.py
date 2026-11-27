@@ -93,8 +93,8 @@ def _counts_as_path(text, start):
     It is when it starts a word, or follows "./", any run of "../" (a step
     run from ios/, a Fastfile, an Xcode build phase), a shell variable, an
     expression (`${{ ... }}/`), a closing quote (`"$ROOT"/`) or a subshell
-    (`$(pwd)/`). After a path segment (packages/foo/tool/) or `~/` it is
-    some other folder's.
+    (`$(pwd)/`). After a path segment (packages/foo/tool/), `~/` or a bare
+    leading `/` (an absolute path) it is some other folder's.
     """
     if start == 0:
         return True
@@ -103,7 +103,7 @@ def _counts_as_path(text, start):
         return not (before.isalnum() or before in "_.-")
     head = text[: start - 1]
     if not head:
-        return True
+        return False
     if head.endswith("..") or _SHELL_VARIABLE_END.search(head):
         return True
     if head[-1] in "}\"')":
@@ -223,5 +223,5 @@ def main(argv=None):
     return 1 if problems else 0
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     sys.exit(main())
