@@ -91,6 +91,58 @@ void main() {
     expect((await stored()).tankRole, 'pony');
   });
 
+  test(
+    'a cylinder paired only by position must be the same cylinder',
+    () async {
+      // The diver removed the Hydrotank, so the file's Hydrotank (Shearwater
+      // Cloud tanks carry no order) pairs by position with the pony.
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: 'pony',
+              diveId: diveId,
+              tankOrder: const Value(1),
+              startPressure: const Value(150),
+            ),
+          );
+
+      await resync([
+        {'startPressure': 200.0, 'role': 'hydrotank'},
+        {'startPressure': 150.0},
+      ]);
+
+      final pony = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.id.equals('pony'))).getSingle();
+      expect(pony.tankRole, 'backGas');
+    },
+  );
+
+  test('a stored serial names the cylinder whatever its pressure', () async {
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: 'tank-a',
+            diveId: diveId,
+            tankOrder: const Value(0),
+            startPressure: const Value(180),
+            transmitterSerial: const Value('76287'),
+          ),
+        );
+
+    await resync([
+      {
+        'startPressure': 200.0,
+        'transmitterSerial': '76287',
+        'role': 'hydrotank',
+      },
+    ]);
+
+    expect((await stored()).tankRole, 'hydrotank');
+  });
+
   test('a name-derived back gas is left to its own rule', () async {
     await seedTank(role: 'backGas', roleSource: 'transmitterName');
 

@@ -587,13 +587,16 @@ class DiveReimportService {
             // The role stays the diver's, save an Avelo Hydrotank stored as
             // back gas before the Hydrotank role, the case a Shearwater Cloud
             // import has no re-parse for (issue #4665). Written before the
-            // transmitter setup below, which fills only a back gas.
+            // transmitter setup below, which fills only a back gas. Shearwater
+            // Cloud tanks carry no order, so the row must be the same
+            // cylinder, not just the one at that position.
             tankRole:
-                upgradesToHydrotank(
-                  storedRole: row.tankRole,
-                  storedRoleSource: row.roleSource,
-                  parsedRole: fileRole,
-                )
+                _sameCylinder(row, serial, startPressure) &&
+                    upgradesToHydrotank(
+                      storedRole: row.tankRole,
+                      storedRoleSource: row.roleSource,
+                      parsedRole: fileRole,
+                    )
                 ? Value(TankRole.hydrotank.name)
                 : const Value.absent(),
           ),
@@ -633,6 +636,22 @@ class DiveReimportService {
     }
 
     return _ParsedTanks.from(tanksData: tanksData, idsByIndex: idsByIndex);
+  }
+
+  /// Whether stored [row] is the cylinder a file tank with [serial] and
+  /// [startPressure] reads: the same transmitter when both name one, else a
+  /// start pressure that agrees.
+  static bool _sameCylinder(
+    DiveTank row,
+    String? serial,
+    double? startPressure,
+  ) {
+    final storedSerial = normalizeTransmitterSerial(row.transmitterSerial);
+    if (storedSerial != null && serial != null) return storedSerial == serial;
+    final stored = row.startPressure;
+    return stored != null &&
+        startPressure != null &&
+        sameCylinderStartPressure(stored, startPressure);
   }
 
   /// Full replace when `gasSwitches` is present (no stable key to match
