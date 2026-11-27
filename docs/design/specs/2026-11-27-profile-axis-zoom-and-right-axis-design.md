@@ -152,11 +152,15 @@ places divide or scale depth by the time zoom `zoom` and must switch to `zoomY`:
   zoom, -d.dy / plotH / zoom)`): the vertical term divides by `zoomY`.
 - The touch-pinch pan (`vp.pannedBy(... / vp.zoom, ... / vp.zoom)`): same.
 
-Zoom controls when the factors differ (builder's reading of this design):
-`+` is enabled while the factors the current mode scales can still grow (time
-only in Time only; either factor otherwise); `-` while either is above 1; the
-zoom hint and reset show while either is above 1. `_zoomNotifier` reports the
-larger factor.
+Zoom controls when the factors differ: in the profile chart `zoomY <= zoom`
+always holds. Both-axes zooming multiplies both factors (so a ratio below 1
+stays below 1 and both clamp at the same limits), and Time only snaps
+`zoomY` to 1. So the controls keep reading the time zoom, as today
+(`_zoomNotifier.value = value.zoom`): the readout shows it, `-` and reset
+show while it is above 1, and `+` is disabled at the time limit. In the one
+case where time sits at the limit with depth below it (just after leaving
+Time only), the wheel, pinch and trackpad can still zoom depth; only the `+`
+button stops, which is acceptable.
 
 Scope: Time only applies to every chart that reads `profileLegendProvider`
 (the dive detail card, full screen, the pinned copy, the planner's logged-dive
