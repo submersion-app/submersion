@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_signature_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
@@ -148,9 +150,14 @@ void main() {
 
   /// The section in its card's frame, as the dive page draws it, on an
   /// unlocked dive; with [open] the card's editor shows.
+  ///
+  /// [extra] overrides join the base ones; without [settle] the frames are
+  /// pumped a second's worth, for a read that never ends.
   Future<RecordEditController<Dive>> pumpFramed(
     WidgetTester tester, {
     bool open = false,
+    List<Override> extra = const [],
+    bool settle = true,
   }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1;
@@ -167,7 +174,7 @@ void main() {
     if (open) controller.openCard(DiveDetailSectionId.signatures.name);
     await tester.pumpWidget(
       ProviderScope(
-        overrides: await getBaseOverrides(),
+        overrides: [...await getBaseOverrides(), ...extra],
         child: MaterialApp(
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -186,7 +193,13 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
     return controller;
   }
 
@@ -212,6 +225,20 @@ void main() {
       await tester.tap(find.byTooltip('Edit Training Signature'));
       await tester.pumpAndSettle();
       expect(find.text('Capture Instructor Signature'), findsOneWidget);
+    });
+
+    testWidgets('on the buddies\' row while their read is still running', (
+      tester,
+    ) async {
+      final never = Completer<List<BuddyWithRole>>();
+      await pumpFramed(
+        tester,
+        settle: false,
+        extra: [buddiesForDiveProvider('d1').overrideWith((_) => never.future)],
+      );
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(RecordPencilIcon), findsOneWidget);
+      expect(find.byTooltip('Edit Signatures'), findsOneWidget);
     });
 
     testWidgets('and none inside the open card, whose header alone has '
