@@ -44530,6 +44530,86 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get equipmentCondition_exposure_lastDivedLabel => 'Dernière plongée';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => 'Plongées';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => 'Heures';
+
+  @override
+  String get equipmentCondition_exposure_today => 'Aujourd\'hui';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Il y a $count jours',
+      one: 'Il y a $count jour',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Il y a $count mois',
+      one: 'Il y a $count mois',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Il y a $count ans',
+      one: 'Il y a $count an',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return 'Dernière plongée : $ago, le $date';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12 mois';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => 'Toutes les années';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées au cours des 12 derniers mois',
+      one: '$count plongée au cours des 12 derniers mois',
+      zero: 'Aucune plongée au cours des 12 derniers mois',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives, $hours';
+  }
+
+  @override
   String equipmentCondition_finding_cellOutputDeclining(
     int slot,
     String percent,
@@ -66252,7 +66332,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get info_equipment_exposure_summary =>
-      'L\'usage de cet équipement, compté dans chaque unité utilisée par ses compteurs d\'entretien.';
+      'L\'usage de cet équipement, compté dans chaque unité utilisée par ses compteurs d\'entretien. Le graphique compte ses plongées par mois ou par an, jusqu\'à aujourd\'hui.';
 
   @override
   String get info_site_altitude_summary =>

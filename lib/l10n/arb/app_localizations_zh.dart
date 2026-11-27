@@ -41775,6 +41775,82 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get equipmentCondition_exposure_lastDivedLabel => '上次潜水';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => '潜水次数';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => '小时';
+
+  @override
+  String get equipmentCondition_exposure_today => '今天';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 天前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个月前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 年前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return '上次潜水：$ago，$date';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12 个月';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => '全部年份';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '过去 12 个月 $count 次潜水',
+      zero: '过去 12 个月没有潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives，$hours';
+  }
+
+  @override
   String equipmentCondition_finding_cellOutputDeclining(
     int slot,
     String percent,
@@ -61986,7 +62062,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get info_equipment_findings_summary => '状态规则在该装备的潜水和已报告问题中标记出的规律。';
 
   @override
-  String get info_equipment_exposure_summary => '该装备的使用量，按其保养计时使用的各种单位统计。';
+  String get info_equipment_exposure_summary =>
+      '该装备的使用量，按其保养计时使用的各种单位统计。图表按月或按年统计其潜水次数，截至今天。';
 
   @override
   String get info_site_altitude_summary => '潜点的海拔高度及当地气压，减压模型以此为起点。';
