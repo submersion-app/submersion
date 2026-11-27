@@ -528,6 +528,11 @@ class DiveReimportService {
       matched[i] = unclaimed[nextUnclaimed++];
     }
 
+    // The stored cylinders and the file's tanks line up one to one: nothing
+    // was removed or added, so each pairing is the same cylinder even where
+    // the import deglitched a start pressure resync reads raw.
+    final oneToOne = existing.length == tanksData.length;
+
     final idsByIndex = <String>[];
     for (var i = 0; i < tanksData.length; i++) {
       final t = tanksData[i];
@@ -591,7 +596,7 @@ class DiveReimportService {
             // Cloud tanks carry no order, so the row must be the same
             // cylinder, not just the one at that position.
             tankRole:
-                _sameCylinder(row, serial, startPressure) &&
+                (oneToOne || _sameCylinder(row, serial, startPressure)) &&
                     upgradesToHydrotank(
                       storedRole: row.tankRole,
                       storedRoleSource: row.roleSource,

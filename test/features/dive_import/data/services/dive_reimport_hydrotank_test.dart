@@ -119,6 +119,30 @@ void main() {
     },
   );
 
+  test(
+    'cylinders that line up one to one pair whatever the pressure',
+    () async {
+      // The import deglitched the Hydrotank's start pressure when it took the
+      // tank for back gas; resync reads the file's own value.
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: 'tank-a',
+              diveId: diveId,
+              tankOrder: const Value(0),
+              startPressure: const Value(185),
+            ),
+          );
+
+      await resync([
+        {'startPressure': 200.0, 'role': 'hydrotank'},
+      ]);
+
+      expect((await stored()).tankRole, 'hydrotank');
+    },
+  );
+
   test('a stored serial names the cylinder whatever its pressure', () async {
     await db
         .into(db.diveTanks)
