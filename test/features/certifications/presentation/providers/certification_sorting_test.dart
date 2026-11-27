@@ -203,15 +203,31 @@ void main() {
       );
     });
 
+    // Tied titles fall through to agency, then newest first, then id; the
+    // ssi2021 twins tie on all three keys, so only the id orders them.
+    final tiedTitles = [
+      cert('ssi2020', name: 'Nitrox', agency: ssi, issueDate: DateTime(2020)),
+      cert('ssi2021b', name: 'Nitrox', agency: ssi, issueDate: DateTime(2021)),
+      cert('padi2019', name: 'Nitrox', issueDate: DateTime(2019)),
+      cert('ssi2021a', name: 'Nitrox', agency: ssi, issueDate: DateTime(2021)),
+    ];
+    const titleReadingOrder = ['padi2019', 'ssi2021a', 'ssi2021b', 'ssi2020'];
+
     test('title A to Z: agency then newest first', () {
-      final certs = [
-        cert('ssi2020', name: 'Nitrox', agency: ssi, issueDate: DateTime(2020)),
-        cert('padi2019', name: 'Nitrox', issueDate: DateTime(2019)),
-        cert('ssi2021', name: 'Nitrox', agency: ssi, issueDate: DateTime(2021)),
-      ];
       expect(
-        order(certs, CertificationSortField.name, SortDirection.descending),
-        ['padi2019', 'ssi2021', 'ssi2020'],
+        order(
+          tiedTitles,
+          CertificationSortField.name,
+          SortDirection.descending,
+        ),
+        titleReadingOrder,
+      );
+    });
+
+    test('title Z to A reverses the whole chain', () {
+      expect(
+        order(tiedTitles, CertificationSortField.name, SortDirection.ascending),
+        titleReadingOrder.reversed.toList(),
       );
     });
 
