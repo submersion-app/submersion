@@ -7,6 +7,7 @@ import 'package:image/image.dart' as img;
 import 'package:pdfrx/pdfrx.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/media/data/services/pdf_in_memory.dart';
 
 /// Signature of the PDF page-1 render seam, injectable so tests do not need
 /// a pdfium binary. Matches [PdfPageRenderer.renderFirstPageJpeg].
@@ -104,7 +105,7 @@ class PdfPageRenderer {
       }
       document = file != null
           ? await PdfDocument.openFile(file.path)
-          : await PdfDocument.openData(bytes!);
+          : await openInMemoryPdf(bytes!);
       if (document.pages.isEmpty) return null;
       final pageImage = await renderWholePage(document.pages[0], maxDimension);
       if (pageImage == null) return null;

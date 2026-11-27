@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/documents/domain/entities/document_page.dart';
 import 'package:submersion/features/documents/presentation/helpers/document_page_opener.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
+import 'package:submersion/features/media/data/services/pdf_in_memory.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Swipes through a document's pages. Images zoom with a pinch, PDFs render
@@ -139,9 +140,11 @@ class _PdfPageState extends State<_PdfPage> {
         if (snapshot.connectionState != ConnectionState.done) {
           return const Center(child: CircularProgressIndicator());
         }
-        return PdfViewer.data(
-          widget.page.bytes!,
-          sourceName: 'document-page-${widget.page.id}',
+        return PdfViewer(
+          inMemoryPdfDocumentRef(
+            widget.page.bytes!,
+            sourceName: 'document-page-${widget.page.id}',
+          ),
           params: PdfViewerParams(
             // A corrupt file degrades to the placeholder, not a crash.
             errorBannerBuilder: (context, error, stackTrace, _) =>

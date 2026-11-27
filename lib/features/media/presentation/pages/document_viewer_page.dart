@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/media/data/services/pdf_in_memory.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/attachment_details_hold.dart';
@@ -92,9 +93,11 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage>
                 if (snapshot.connectionState != ConnectionState.done) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                return PdfViewer.data(
-                  resolved.bytes!,
-                  sourceName: widget.item.id,
+                return PdfViewer(
+                  inMemoryPdfDocumentRef(
+                    resolved.bytes!,
+                    sourceName: widget.item.id,
+                  ),
                   params: PdfViewerParams(
                     // A corrupt file must degrade to the unavailable state,
                     // not crash the page.
