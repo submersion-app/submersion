@@ -766,6 +766,18 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_showCountryFlags,
     FieldKind.boolean,
   ),
+  'showDiveCountryFlags': ConflictField(
+    (l) => l.settings_conflict_field_showDiveCountryFlags,
+    FieldKind.boolean,
+  ),
+  'showBuddyCountryFlags': ConflictField(
+    (l) => l.settings_conflict_field_showBuddyCountryFlags,
+    FieldKind.boolean,
+  ),
+  'showTripCountryFlags': ConflictField(
+    (l) => l.settings_conflict_field_showTripCountryFlags,
+    FieldKind.boolean,
+  ),
   'showMaxDepthMarker': ConflictField(
     (l) => l.settings_conflict_field_showMaxDepthMarker,
     FieldKind.boolean,

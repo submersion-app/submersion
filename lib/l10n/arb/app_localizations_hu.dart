@@ -27474,7 +27474,20 @@ class AppLocalizationsHu extends AppLocalizations {
       'Térkép a merülőhely-kártyák mögött';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Országzászlók';
+  String get settings_conflict_field_showCountryFlags =>
+      'Országzászlók (merülőhelyek)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Országzászlók (merülések)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Országzászlók (búvártársak)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Országzászlók (utazások)';
 
   @override
   String get settings_conflict_field_countryCode => 'Országkód';

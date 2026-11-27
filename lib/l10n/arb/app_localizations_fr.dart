@@ -27683,7 +27683,20 @@ class AppLocalizationsFr extends AppLocalizations {
       'Carte derrière les cartes de site';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Drapeaux des pays';
+  String get settings_conflict_field_showCountryFlags =>
+      'Drapeaux des pays (sites)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Drapeaux des pays (plongées)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Drapeaux des pays (binômes)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Drapeaux des pays (voyages)';
 
   @override
   String get settings_conflict_field_countryCode => 'Code pays';

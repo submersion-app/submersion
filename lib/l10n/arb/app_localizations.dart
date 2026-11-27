@@ -43575,8 +43575,26 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_field_showCountryFlags.
   ///
   /// In en, this message translates to:
-  /// **'Country flags'**
+  /// **'Country flags (sites)'**
   String get settings_conflict_field_showCountryFlags;
+
+  /// No description provided for @settings_conflict_field_showDiveCountryFlags.
+  ///
+  /// In en, this message translates to:
+  /// **'Country flags (dives)'**
+  String get settings_conflict_field_showDiveCountryFlags;
+
+  /// No description provided for @settings_conflict_field_showBuddyCountryFlags.
+  ///
+  /// In en, this message translates to:
+  /// **'Country flags (buddies)'**
+  String get settings_conflict_field_showBuddyCountryFlags;
+
+  /// No description provided for @settings_conflict_field_showTripCountryFlags.
+  ///
+  /// In en, this message translates to:
+  /// **'Country flags (trips)'**
+  String get settings_conflict_field_showTripCountryFlags;
 
   /// No description provided for @settings_conflict_field_countryCode.
   ///

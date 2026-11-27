@@ -27948,7 +27948,20 @@ class AppLocalizationsAr extends AppLocalizations {
       'خريطة خلف بطاقات المواقع';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'أعلام الدول';
+  String get settings_conflict_field_showCountryFlags =>
+      'أعلام الدول (المواقع)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'أعلام الدول (الغوصات)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'أعلام الدول (الرفاق)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'أعلام الدول (الرحلات)';
 
   @override
   String get settings_conflict_field_countryCode => 'رمز الدولة';

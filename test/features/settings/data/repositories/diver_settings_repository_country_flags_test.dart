@@ -74,4 +74,80 @@ void main() {
       );
     });
   });
+
+  /// The Dives, Buddies and Trips switches (issue #5001) go through the same
+  /// write and read as the Sites one.
+  group('DiverSettingsRepository section flag switches persistence', () {
+    late DiverSettingsRepository repository;
+
+    setUp(() async {
+      final db = await setUpTestDatabase();
+      repository = DiverSettingsRepository();
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: 'd1',
+              name: 'Test Diver',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    });
+
+    tearDown(() {
+      DatabaseService.instance.resetForTesting();
+    });
+
+    final switches = <String, bool Function(AppSettings)>{
+      'dives': (s) => s.showDiveCountryFlags,
+      'buddies': (s) => s.showBuddyCountryFlags,
+      'trips': (s) => s.showTripCountryFlags,
+    };
+    AppSettings withOnly(String name, bool value) => switch (name) {
+      'dives' => AppSettings(showDiveCountryFlags: value),
+      'buddies' => AppSettings(showBuddyCountryFlags: value),
+      _ => AppSettings(showTripCountryFlags: value),
+    };
+
+    for (final entry in switches.entries) {
+      test('${entry.key} defaults to on', () async {
+        expect(entry.value(const AppSettings()), isTrue);
+        await repository.createSettingsForDiver('d1');
+        expect(
+          entry.value((await repository.getSettingsForDiver('d1'))!),
+          isTrue,
+        );
+      });
+
+      test('${entry.key} round-trips off, then back on', () async {
+        await repository.createSettingsForDiver('d1');
+        await repository.updateSettingsForDiver(
+          'd1',
+          withOnly(entry.key, false),
+        );
+        final off = (await repository.getSettingsForDiver('d1'))!;
+        expect(entry.value(off), isFalse);
+        // Only this section's switch moved.
+        for (final other in switches.entries) {
+          if (other.key != entry.key) expect(other.value(off), isTrue);
+        }
+        expect(off.showCountryFlags, isTrue);
+        await repository.updateSettingsForDiver(
+          'd1',
+          withOnly(entry.key, true),
+        );
+        expect(
+          entry.value((await repository.getSettingsForDiver('d1'))!),
+          isTrue,
+        );
+      });
+
+      test('copyWith carries the ${entry.key} switch', () {
+        final off = withOnly(entry.key, false);
+        expect(entry.value(off.copyWith()), isFalse);
+      });
+    }
+  });
 }

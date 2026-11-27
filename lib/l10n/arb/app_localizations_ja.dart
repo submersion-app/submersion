@@ -26435,7 +26435,16 @@ class AppLocalizationsJa extends AppLocalizations {
       'サイトカードの背景に地図';
 
   @override
-  String get settings_conflict_field_showCountryFlags => '国旗';
+  String get settings_conflict_field_showCountryFlags => '国旗（サイト）';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags => '国旗（ダイブ）';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags => '国旗（バディ）';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags => '国旗（トリップ）';
 
   @override
   String get settings_conflict_field_countryCode => '国コード';

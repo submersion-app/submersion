@@ -27161,7 +27161,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Map behind site cards';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Country flags';
+  String get settings_conflict_field_showCountryFlags =>
+      'Country flags (sites)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Country flags (dives)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Country flags (buddies)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Country flags (trips)';
 
   @override
   String get settings_conflict_field_countryCode => 'Country code';

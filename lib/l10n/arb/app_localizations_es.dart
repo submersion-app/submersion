@@ -27628,7 +27628,20 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mapa detrás de las tarjetas de puntos de buceo';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Banderas de países';
+  String get settings_conflict_field_showCountryFlags =>
+      'Banderas de países (puntos de buceo)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Banderas de países (inmersiones)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Banderas de países (compañeros)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Banderas de países (viajes)';
 
   @override
   String get settings_conflict_field_countryCode => 'Código de país';

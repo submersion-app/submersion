@@ -27447,7 +27447,20 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kaart achter stekkaarten';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Landvlaggen';
+  String get settings_conflict_field_showCountryFlags =>
+      'Landvlaggen (duikstekken)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Landvlaggen (duiken)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Landvlaggen (buddies)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Landvlaggen (reizen)';
 
   @override
   String get settings_conflict_field_countryCode => 'Landcode';

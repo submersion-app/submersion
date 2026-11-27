@@ -27564,7 +27564,20 @@ class AppLocalizationsDe extends AppLocalizations {
       'Karte hinter Tauchplatzkarten';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Länderflaggen';
+  String get settings_conflict_field_showCountryFlags =>
+      'Länderflaggen (Tauchplätze)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Länderflaggen (Tauchgänge)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Länderflaggen (Tauchpartner)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Länderflaggen (Reisen)';
 
   @override
   String get settings_conflict_field_countryCode => 'Ländercode';

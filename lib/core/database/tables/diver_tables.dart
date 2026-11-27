@@ -352,8 +352,18 @@ class DiverSettings extends Table {
   BoolColumn get showMapBackgroundOnSiteCards =>
       boolean().withDefault(const Constant(false))();
 
-  /// A small flag beside site locations and trips (v360, issue #4426).
+  /// A small flag beside site locations (v360, issue #4426). Covered every
+  /// flag until v388; now the Sites switch only (issue #5001).
   BoolColumn get showCountryFlags =>
+      boolean().withDefault(const Constant(true))();
+
+  /// The Dives, Buddies and Trips country flag switches (v388, issue
+  /// #5001), seeded from [showCountryFlags] on upgrade.
+  BoolColumn get showDiveCountryFlags =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get showBuddyCountryFlags =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get showTripCountryFlags =>
       boolean().withDefault(const Constant(true))();
   // Dive profile markers
   BoolColumn get showMaxDepthMarker =>

@@ -356,5 +356,12 @@ extension RungsFromV340 on AppDatabase {
     // no backfill; re-asserted in beforeOpen. The floor does not move.
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
+
+    // v388 (issue #5001): a country flags switch for dives, buddies and
+    // trips, each seeded from show_country_flags, which now covers sites
+    // only. The copy runs here and never in beforeOpen, which would undo a
+    // switch changed later. The floor does not move.
+    if (from < 388) await _seedCountryFlagSwitches();
+    if (from < 388) await reportProgress();
   }
 }

@@ -26937,7 +26937,19 @@ class AppLocalizationsHe extends AppLocalizations {
       'מפה מאחורי כרטיסי האתרים';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'דגלי מדינות';
+  String get settings_conflict_field_showCountryFlags => 'דגלי מדינות (אתרים)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'דגלי מדינות (צלילות)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'דגלי מדינות (חברי צלילה)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'דגלי מדינות (טיולים)';
 
   @override
   String get settings_conflict_field_countryCode => 'קוד מדינה';

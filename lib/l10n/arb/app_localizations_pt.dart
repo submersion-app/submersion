@@ -27599,7 +27599,20 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mapa atrás dos cartões de ponto de mergulho';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Bandeiras dos países';
+  String get settings_conflict_field_showCountryFlags =>
+      'Bandeiras dos países (pontos de mergulho)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Bandeiras dos países (mergulhos)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Bandeiras dos países (companheiros)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Bandeiras dos países (viagens)';
 
   @override
   String get settings_conflict_field_countryCode => 'Código do país';

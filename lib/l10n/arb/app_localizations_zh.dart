@@ -26022,7 +26022,16 @@ class AppLocalizationsZh extends AppLocalizations {
       '潜水点卡片背景地图';
 
   @override
-  String get settings_conflict_field_showCountryFlags => '国家/地区旗帜';
+  String get settings_conflict_field_showCountryFlags => '国家/地区旗帜（潜水点）';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags => '国家/地区旗帜（潜水）';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags => '国家/地区旗帜（潜伴）';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags => '国家/地区旗帜（旅行）';
 
   @override
   String get settings_conflict_field_countryCode => '国家/地区代码';

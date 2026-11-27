@@ -27630,7 +27630,20 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mappa dietro le schede sito';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Bandiere dei paesi';
+  String get settings_conflict_field_showCountryFlags =>
+      'Bandiere dei paesi (siti)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Bandiere dei paesi (immersioni)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Bandiere dei paesi (compagni)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Bandiere dei paesi (viaggi)';
 
   @override
   String get settings_conflict_field_countryCode => 'Codice paese';
