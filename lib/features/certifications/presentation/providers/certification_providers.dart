@@ -133,6 +133,14 @@ final certificationSortProvider = Provider<SortState<CertificationSortField>>(
 );
 
 /// Apply sorting to a list of certifications
+///
+/// Ties on the chosen field fall through to the other visible keys, then to
+/// the id, so the order is total (issue #5070): Date Issued orders a day's
+/// certifications by agency then title, Agency orders by newest first then
+/// title, and Title orders by agency then newest first.
+/// [SortDirection.descending] is each field's reading order (newest first;
+/// A to Z for text) and [SortDirection.ascending] reverses the whole chain,
+/// tiebreakers included.
 List<Certification> applyCertificationSorting(
   List<Certification> certifications,
   SortState<CertificationSortField> sort, {
@@ -140,48 +148,47 @@ List<Certification> applyCertificationSorting(
   CertificationCatalog? catalog,
 }) {
   final cat = catalog ?? CertificationCatalog.builtInOnly;
-  final sorted = List<Certification>.from(certifications);
-  // The title sort orders by what the list shows (the localized title), not
-  // the raw stored name, which is blank for a certification saved without a
-  // custom title and "PADI : ..." for legacy rows. Computed once per
-  // certification rather than on every comparison, in an identity map:
-  // Certification's value hashCode walks its photo bytes.
+  // The title key is what the list shows (the localized title), not the raw
+  // stored name, which is blank for a certification saved without a custom
+  // title and "PADI : ..." for legacy rows. Every sort uses it as a
+  // tiebreaker, so it is computed once per certification rather than on
+  // every comparison, in an identity map: Certification's value hashCode
+  // walks its photo bytes.
   final titles = Map<Certification, String>.identity();
-  if (sort.field == CertificationSortField.name) {
-    for (final c in certifications) {
-      titles[c] = certificationTitleL10n(c, l10n, catalog: cat).toLowerCase();
-    }
+  for (final c in certifications) {
+    titles[c] = certificationTitleL10n(c, l10n, catalog: cat).toLowerCase();
   }
 
-  sorted.sort((a, b) {
-    int comparison;
-    // For text fields, invert direction (user expects descending = A→Z)
-    final invertForText =
-        sort.field == CertificationSortField.name ||
-        sort.field == CertificationSortField.agency;
+  // Each key compares in reading order.
+  int byDate(Certification a, Certification b) =>
+      (b.issueDate ?? DateTime(1900)).compareTo(a.issueDate ?? DateTime(1900));
+  int byAgency(Certification a, Certification b) => cat
+      .agency(a.agency)
+      .interchangeName
+      .compareTo(cat.agency(b.agency).interchangeName);
+  int byTitle(Certification a, Certification b) =>
+      titles[a]!.compareTo(titles[b]!);
 
-    switch (sort.field) {
-      case CertificationSortField.name:
-        comparison = titles[a]!.compareTo(titles[b]!);
-      case CertificationSortField.dateIssued:
-        comparison = (a.issueDate ?? DateTime(1900)).compareTo(
-          b.issueDate ?? DateTime(1900),
-        );
-      case CertificationSortField.agency:
-        comparison = cat
-            .agency(a.agency)
-            .interchangeName
-            .compareTo(cat.agency(b.agency).interchangeName);
+  final keys = switch (sort.field) {
+    CertificationSortField.dateIssued => [byDate, byAgency, byTitle],
+    CertificationSortField.agency => [byAgency, byDate, byTitle],
+    CertificationSortField.name => [byTitle, byAgency, byDate],
+  };
+
+  int readingOrder(Certification a, Certification b) {
+    for (final key in keys) {
+      final comparison = key(a, b);
+      if (comparison != 0) return comparison;
     }
+    return a.id.compareTo(b.id);
+  }
 
-    if (invertForText) {
-      return sort.direction == SortDirection.ascending
-          ? -comparison
-          : comparison;
-    }
-    return sort.direction == SortDirection.ascending ? comparison : -comparison;
-  });
-
+  final sorted = List<Certification>.from(certifications);
+  sorted.sort(
+    (a, b) => sort.direction == SortDirection.descending
+        ? readingOrder(a, b)
+        : readingOrder(b, a),
+  );
   return sorted;
 }
 
