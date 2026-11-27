@@ -9614,6 +9614,60 @@ abstract class AppLocalizations {
   /// **'Dive requirement'**
   String get courses_requirement_kind_dive;
 
+  /// No description provided for @courses_requirement_kind_ccrHours.
+  ///
+  /// In en, this message translates to:
+  /// **'CCR hours'**
+  String get courses_requirement_kind_ccrHours;
+
+  /// No description provided for @courses_requirement_kind_diveQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives matching a search'**
+  String get courses_requirement_kind_diveQuery;
+
+  /// No description provided for @courses_requirement_field_targetHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Required hours'**
+  String get courses_requirement_field_targetHours;
+
+  /// No description provided for @courses_requirement_field_rebreather.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebreather'**
+  String get courses_requirement_field_rebreather;
+
+  /// No description provided for @courses_requirement_anyRebreather.
+  ///
+  /// In en, this message translates to:
+  /// **'Any rebreather'**
+  String get courses_requirement_anyRebreather;
+
+  /// No description provided for @courses_requirement_rebreatherRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed rebreather'**
+  String get courses_requirement_rebreatherRemoved;
+
+  /// No description provided for @courses_requirement_field_query.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive search'**
+  String get courses_requirement_field_query;
+
+  /// No description provided for @courses_requirement_hoursProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} of {target} hours'**
+  String courses_requirement_hoursProgress(String hours, int target);
+
+  /// No description provided for @courses_requirement_matchProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {target} matching dives'**
+  String courses_requirement_matchProgress(int count, int target);
+
   /// No description provided for @courses_requirement_suggestions.
   ///
   /// In en, this message translates to:
@@ -45635,6 +45689,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dives'**
   String get enum_requirementKind_dive;
+
+  /// No description provided for @enum_requirementKind_ccrHours.
+  ///
+  /// In en, this message translates to:
+  /// **'CCR hours'**
+  String get enum_requirementKind_ccrHours;
+
+  /// No description provided for @enum_requirementKind_diveQuery.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching dives'**
+  String get enum_requirementKind_diveQuery;
 
   /// No description provided for @enum_preDiveSessionStatus_aborted.
   ///

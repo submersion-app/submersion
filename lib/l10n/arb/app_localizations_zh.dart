@@ -5807,6 +5807,37 @@ class AppLocalizationsZh extends AppLocalizations {
   String get courses_requirement_kind_dive => '潜水要求';
 
   @override
+  String get courses_requirement_kind_ccrHours => 'CCR 时长';
+
+  @override
+  String get courses_requirement_kind_diveQuery => '符合搜索条件的潜水';
+
+  @override
+  String get courses_requirement_field_targetHours => '所需小时数';
+
+  @override
+  String get courses_requirement_field_rebreather => '循环呼吸器';
+
+  @override
+  String get courses_requirement_anyRebreather => '任意循环呼吸器';
+
+  @override
+  String get courses_requirement_rebreatherRemoved => '已移除的循环呼吸器';
+
+  @override
+  String get courses_requirement_field_query => '潜水搜索';
+
+  @override
+  String courses_requirement_hoursProgress(String hours, int target) {
+    return '$hours / $target 小时';
+  }
+
+  @override
+  String courses_requirement_matchProgress(int count, int target) {
+    return '$count / $target 次符合条件的潜水';
+  }
+
+  @override
   String get courses_requirement_suggestions => '建议的潜水';
 
   @override
@@ -27159,6 +27190,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_requirementKind_dive => '潜水';
+
+  @override
+  String get enum_requirementKind_ccrHours => 'CCR 时长';
+
+  @override
+  String get enum_requirementKind_diveQuery => '符合条件的潜水';
 
   @override
   String get enum_preDiveSessionStatus_aborted => '已中止';

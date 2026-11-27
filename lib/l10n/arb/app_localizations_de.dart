@@ -6139,6 +6139,37 @@ class AppLocalizationsDe extends AppLocalizations {
   String get courses_requirement_kind_dive => 'Tauchgangsanforderung';
 
   @override
+  String get courses_requirement_kind_ccrHours => 'CCR-Stunden';
+
+  @override
+  String get courses_requirement_kind_diveQuery => 'Tauchgänge nach Suche';
+
+  @override
+  String get courses_requirement_field_targetHours => 'Erforderliche Stunden';
+
+  @override
+  String get courses_requirement_field_rebreather => 'Rebreather';
+
+  @override
+  String get courses_requirement_anyRebreather => 'Beliebiger Rebreather';
+
+  @override
+  String get courses_requirement_rebreatherRemoved => 'Entfernter Rebreather';
+
+  @override
+  String get courses_requirement_field_query => 'Tauchgangssuche';
+
+  @override
+  String courses_requirement_hoursProgress(String hours, int target) {
+    return '$hours von $target Stunden';
+  }
+
+  @override
+  String courses_requirement_matchProgress(int count, int target) {
+    return '$count von $target passenden Tauchgängen';
+  }
+
+  @override
   String get courses_requirement_suggestions => 'Vorgeschlagene Tauchgänge';
 
   @override
@@ -28763,6 +28794,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_requirementKind_dive => 'Tauchgänge';
+
+  @override
+  String get enum_requirementKind_ccrHours => 'CCR-Stunden';
+
+  @override
+  String get enum_requirementKind_diveQuery => 'Passende Tauchgänge';
 
   @override
   String get enum_preDiveSessionStatus_aborted => 'Abgebrochen';

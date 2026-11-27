@@ -5,14 +5,18 @@ import 'package:submersion/core/database/database.dart';
 
 void main() {
   test('version bookkeeping', () {
-    expect(AppDatabase.currentSchemaVersion, 385);
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(385));
     expect(AppDatabase.migrationVersions, contains(385));
     expect(
       AppDatabase.migrationStepCount(384),
       AppDatabase.migrationStepCount(385) + 1,
     );
-    // An additive column: the floor does not move.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 384);
+    // An additive column: v385 left the floor at 384. v386 (derived course
+    // requirements) raised it later.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(384),
+    );
   });
 
   test('v384 packed gear stays on the trip and starts unassigned', () async {

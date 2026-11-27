@@ -285,6 +285,9 @@ class Courses extends Table {
 /// docs/design/specs/2026-07-16-course-requirement-tracker-design.md).
 /// kind is a RequirementKind enum name: 'dive' rows derive progress from
 /// course_requirement_dives links; 'checklist' rows complete via completedAt.
+/// 'ccrHours' rows (target_count in hours, optionally on equipment_id) and
+/// 'diveQuery' rows (target_count dives matching query_json) derive progress
+/// from the logbook itself; nothing is linked or ticked.
 @DataClassName('CourseRequirementRow')
 class CourseRequirements extends Table {
   TextColumn get id => text()();
@@ -302,6 +305,15 @@ class CourseRequirements extends Table {
   /// Hybrid Logical Clock for cross-device conflict resolution
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
+
+  /// v386: the rebreather an hours-on-CCR requirement counts, null for any
+  /// unit. Deliberately no foreign key: a removed item must leave the
+  /// requirement unmet rather than silently widen it.
+  TextColumn get equipmentId => text().nullable()();
+
+  /// v386: the dive query of a dive-query requirement, as queryNodeToJson
+  /// writes it.
+  TextColumn get queryJson => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

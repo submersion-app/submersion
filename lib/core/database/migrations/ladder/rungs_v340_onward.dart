@@ -345,5 +345,10 @@ extension RungsFromV340 on AppDatabase {
     // backfill, re-asserted in beforeOpen; the floor does not move.
     if (from < 385) await _assertTripEquipmentBagColumn();
     if (from < 385) await reportProgress();
+
+    // v386: the nullable conditions for derived course requirements. The
+    // floor rises to 386 (see minimumCompatibleSchemaVersion).
+    if (from < 386) await _assertCourseRequirementConditionColumns();
+    if (from < 386) await reportProgress();
   }
 }

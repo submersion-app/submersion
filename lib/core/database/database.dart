@@ -338,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 385;
+  static const int currentSchemaVersion = 386;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -531,7 +531,12 @@ class AppDatabase extends _$AppDatabase {
   /// tick there writes is_done without packing anything. Held below the
   /// floor until it updates. Its own payloads still arrive here and decode
   /// cleanly: a missing link is null, a plain item.
-  static const int minimumCompatibleSchemaVersion = 384;
+  ///
+  /// Raised 384 -> 386 for derived course requirements: older readers treat
+  /// the new kinds as manually credited dives and discard the conditions.
+  /// Holding those readers also prevents them from publishing explicit nulls
+  /// for the discarded conditions after they upgrade.
+  static const int minimumCompatibleSchemaVersion = 386;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1817,6 +1822,9 @@ class AppDatabase extends _$AppDatabase {
     // v385: optional bag assignment on packed trip gear, with its own clock
     // (issue #4945). Nullable, no backfill; the floor does not move.
     385,
+    // v386: the equipment and dive query for derived course requirements.
+    // New kinds require the sync floor to rise to 386.
+    386,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
