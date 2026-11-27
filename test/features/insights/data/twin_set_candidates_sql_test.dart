@@ -82,6 +82,17 @@ void main() {
     expect(found.diveIds, ['d3', 'd2', 'd1']);
   });
 
+  test('a 17 L back gas from a custom "D 8.5" preset is a candidate', () async {
+    // Issue #5065: the preset slug is `d_85`, below the 20 L threshold.
+    await insertDive('d1');
+    await insertTank('t1', 'd1', 0, volume: 17, preset: 'd_85');
+
+    final found = await repository.getTwinSetCandidates();
+
+    expect(found.tankIds, ['t1']);
+    expect(found.diveIds, ['d1']);
+  });
+
   test('a 24 L stage and a twin set are not', () async {
     await insertDive('d1');
     await insertTank('t1', 'd1', 0, role: 'stage', volume: 24);

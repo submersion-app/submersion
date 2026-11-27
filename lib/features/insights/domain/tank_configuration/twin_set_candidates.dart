@@ -19,7 +19,12 @@ final RegExp _twinWord = RegExp('twin|double|doppel|manifold');
 final RegExp _valvePhrase = RegExp(r'(twin|double|doppel)\s*(ventil|valve)s?');
 // The 2 must start a number: "12x232" is a 12 L single by its pressure.
 final RegExp _twinCount = RegExp(r'(?<![0-9.,])2\s*[x×]\s*\d');
-final RegExp _twinDCode = RegExp(r'(?<![a-z0-9])d\d{1,2}(?![a-z0-9])');
+// A D code ("D12", "D 12", "D8.5", "D 8,5"). Space may separate the d and
+// the size because a custom preset's slug turns "D 12" into `d_12` and
+// "D 8.5" into `d_85` (issue #5065); a third digit ("D123") is no D code.
+final RegExp _twinDCode = RegExp(
+  r'(?<![a-z0-9])d\s*\d{1,2}(?:[.,]\d)?(?![a-z0-9]|[.,]\d)',
+);
 
 /// Whether [tank] looks like a twin set logged as one cylinder: its name or
 /// preset says so (twin, double, doppel, manifold, 2x12, D12), or it holds

@@ -31,13 +31,20 @@ void main() {
       '2 x 7',
       '2×8.5',
       'Manifold 12',
+      // Issue #5065: a space or a decimal size in the D code.
+      'D 12',
+      'D8.5',
+      'D 8.5',
+      'D 8,5',
     ]) {
       test('name "$name" is a twin set', () {
         expect(looksLikeTwinSet(tank(TankRole.backGas, name: name)), isTrue);
       });
     }
 
-    for (final preset in ['twin_12', 'd12']) {
+    // A custom preset's slug drops the dot and turns spaces into
+    // underscores: "D 12" is stored as `d_12`, "D 8.5" as `d_85` (#5065).
+    for (final preset in ['twin_12', 'd12', 'd_12', 'd_85', 'd85']) {
       test('preset "$preset" with no name is a twin set', () {
         expect(
           looksLikeTwinSet(tank(TankRole.backGas, presetName: preset)),
@@ -54,6 +61,9 @@ void main() {
       'D',
       'D123',
       'ED12',
+      'D 123',
+      'ED 12',
+      'D12.55',
       // Volume by pressure, the usual European single label.
       'Steel 12x232',
       'Faber 12x300',
@@ -91,6 +101,24 @@ void main() {
 
     test('a back gas named D12 is a candidate', () {
       expect(isTwinSetCandidate(tank(TankRole.backGas, name: 'D12')), isTrue);
+    });
+
+    test('a 17 L back gas from a "D 8.5" preset is a candidate', () {
+      expect(
+        isTwinSetCandidate(
+          tank(TankRole.backGas, volume: 17, presetName: 'd_85'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('a diluent from a "D 8.5" preset is not a candidate', () {
+      expect(
+        isTwinSetCandidate(
+          tank(TankRole.diluent, volume: 17, presetName: 'd_85'),
+        ),
+        isFalse,
+      );
     });
   });
 }
