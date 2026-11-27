@@ -1320,10 +1320,21 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
     final anyTypeFolded = rows.any(
       (row) => row is EquipmentTypeHeadingRow && !row.isExpanded,
     );
-    final urgency = anyTypeFolded
+    // In the assembly view a heading's items hold their parts, so a folded
+    // heading reads each item's rollup over both links (issue #5071): a due
+    // cell inside a folded rig still counts.
+    final urgency = !anyTypeFolded
+        ? const <String, ServiceClockStatus>{}
+        : !framed
         ? (ref.watch(equipmentServiceUrgencyProvider).value ??
               const <String, ServiceClockStatus>{})
-        : const <String, ServiceClockStatus>{};
+        : {
+            for (final entry
+                in (ref.watch(equipmentAssemblyRollupClockProvider).value ??
+                        const <String, RollupClock>{})
+                    .entries)
+              entry.key: entry.value.status,
+          };
 
     // Scroll to selected item when data is available but we haven't
     // scrolled yet (e.g., navigated from dive detail or set detail), or when
@@ -1332,9 +1343,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
     // heading rows too, since they take space above the item.
     // Regrouping by location moves rows as much as regrouping by type, so
     // it re-scrolls to the selected item the same way.
+    // Nesting moves rows too: the switch, and the components index landing
+    // after the first frame, re-scroll to the selected item (issue #5071).
     final typeAxis = (
       _typeAxisOf(arrangement, Localizations.localeOf(context)),
       locationSections != null,
+      nest,
+      ref.watch(equipmentComponentsIndexProvider).hasValue,
     );
     _currentTypeAxis = typeAxis;
     if (selectedId != null &&
@@ -1474,7 +1489,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
                     : const [],
                 label: labels[item.id],
                 location: placesById[item.id],
-                partCount: parts == null ? null : row.partCount,
+                partCount: parts == null || row.partCount == 0
+                    ? null
+                    : row.partCount,
                 hideParentId: row.parentId,
                 rollupInstalledParts: parts != null,
                 margin: framed ? kFramedEquipmentTileMargin : null,
@@ -1487,7 +1504,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
                 isSelectionMode: _isSelectionMode,
                 isChecked: isChecked,
                 onCheckChanged: onCheckChanged,
-                partCount: parts == null ? null : row.partCount,
+                partCount: parts == null || row.partCount == 0
+                    ? null
+                    : row.partCount,
                 rollupInstalledParts: parts != null,
               ),
             };

@@ -163,7 +163,10 @@ Nesting is a pass over the already arranged rows, so `arrangeEquipment`
 - Fold key for an assembly: `asm:<equipmentId>`, documented in
   `equipment_fold_keys.dart`. Unlike type and place keys, its presence in
   the stored list means **opened**, because assemblies start folded.
-  Unknown-key preservation means an older build keeps these keys intact.
+  Unknown-key preservation means an older build keeps these keys through
+  a single fold or unfold. Known limitation: an older build's Expand all
+  writes an empty list, which drops every `asm:` key and so folds every
+  assembly on newer builds. Accepted.
 - The fold is per assembly item, not per path: opening a shared
   sub-assembly opens it everywhere it appears.
 - For layout, the effective collapsed set is the stored folded type and

@@ -89,7 +89,10 @@ typedef AssemblyRowInfo = ({
 /// An assembly's parts are on screen only when the assembly is and its key
 /// is not in [collapsed]. [isShown] says whether an item already has a row
 /// on screen, so a repeated part gets [repeatedPartNavKey] and the first
-/// one keeps the item id.
+/// one keeps the item id. [isRecorded] says whether [onItem] has already
+/// seen an item: an item reached again off screen has nothing new below it,
+/// so the walk stops there, which keeps a corrupt dense cycle from being
+/// walked down every one of its paths.
 void walkAssembly(
   EquipmentItem item, {
   required AssemblyUnit unit,
@@ -97,6 +100,7 @@ void walkAssembly(
   required List<String> outerKeys,
   required bool visible,
   required bool Function(String id) isShown,
+  required bool Function(String id) isRecorded,
   required void Function(EquipmentItem item, AssemblyRowInfo info) onRow,
   required void Function(EquipmentItem item, List<String> foldKeys) onItem,
   required void Function(String assemblyId) onAssembly,
@@ -105,6 +109,7 @@ void walkAssembly(
   String? parentNavKey,
   Set<String> path = const {},
 }) {
+  final seenBefore = isRecorded(item.id);
   final below = {...path, item.id};
   final children = unit.childrenOf(item.id, below);
   final foldKey = children.isEmpty ? null : assemblyFoldKey(item.id);
@@ -126,7 +131,7 @@ void walkAssembly(
       partCount: children.length,
     ));
   }
-  if (foldKey == null) return;
+  if (foldKey == null || (!visible && seenBefore)) return;
   for (final child in children) {
     walkAssembly(
       unit.itemsById[child]!,
@@ -135,6 +140,7 @@ void walkAssembly(
       outerKeys: [...outerKeys, foldKey],
       visible: visible && isExpanded,
       isShown: isShown,
+      isRecorded: isRecorded,
       onRow: onRow,
       onItem: onItem,
       onAssembly: onAssembly,

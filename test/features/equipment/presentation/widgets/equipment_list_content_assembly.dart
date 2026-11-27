@@ -33,13 +33,21 @@ void _assemblyViewTests() {
       EquipmentArrangement? arrangement,
       ListViewMode viewMode = ListViewMode.detailed,
       ValueNotifier<String?>? selected,
+      EquipmentArrangement? storedArrangement,
+      Future<ComponentsIndex>? index,
+      List<Override> extra = const [],
     }) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
       settings = MockSettingsNotifier(
         AppSettings(
-          listArrangements: ListArrangements(equipmentCollapsedGroups: saved),
+          listArrangements: ListArrangements(
+            equipmentCollapsedGroups: saved,
+            equipmentArrangement: storedArrangement == null
+                ? null
+                : encodeEquipmentArrangement(storedArrangement),
+          ),
         ),
       );
       final overrides = await _buildPhoneOverrides(
@@ -60,8 +68,9 @@ void _assemblyViewTests() {
               (ref) async => const <String, EquipmentLocation>{},
             ),
             equipmentComponentsIndexProvider.overrideWith(
-              (ref) async => ComponentsIndex.fromRows(edges),
+              (ref) => index ?? Future.value(ComponentsIndex.fromRows(edges)),
             ),
+            ...extra,
           ],
           child: EquipmentListContent(
             showAppBar: false,
@@ -271,6 +280,130 @@ void _assemblyViewTests() {
           .where((t) => t.isSelected)
           .map((t) => t.item.id);
       expect(marked, ['s', 's']);
+    });
+
+    group('review fixes', () {
+      testWidgets('a folded heading counts a due part under an assembly', (
+        tester,
+      ) async {
+        final t0 = DateTime(2026);
+        final due = ServiceClockStatus(
+          schedule: ServiceSchedule(
+            id: 's-c1',
+            equipmentId: 'c1',
+            serviceKindId: 'cell',
+            createdAt: t0,
+            updatedAt: t0,
+          ),
+          kind: ServiceKind(
+            id: 'cell',
+            name: 'Cell replacement',
+            createdAt: t0,
+            updatedAt: t0,
+          ),
+          anchor: t0,
+          dueDate: DateTime.now().subtract(const Duration(days: 5)),
+          severity: ServiceClockSeverity.overdue,
+          now: DateTime.now(),
+        );
+        await pumpList(
+          tester,
+          saved: '["type:rebreather"]',
+          extra: [
+            equipmentAssemblyRollupClockProvider.overrideWith(
+              (ref) async => {
+                'sf2': (ownerId: 'c1', ownerName: 'Cell 1', status: due),
+              },
+            ),
+          ],
+        );
+        expect(rowNames(tester), ['Fins']);
+        expect(find.text('1 service due'), findsOneWidget);
+      });
+
+      testWidgets('turning the view on keeps the open part in sight', (
+        tester,
+      ) async {
+        await pumpList(
+          tester,
+          selectedId: 'c2',
+          storedArrangement: EquipmentArrangement.defaults.copyWith(
+            nestParts: false,
+          ),
+        );
+        expect(rowNames(tester), contains('Cell 2'));
+
+        settings.state = settings.state.copyWith(
+          listArrangements: settings.state.listArrangements.copyWith(
+            equipmentArrangement: encodeEquipmentArrangement(
+              EquipmentArrangement.defaults,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byTooltip('Hide parts'), findsOneWidget);
+        expect(rowNames(tester), contains('Cell 2'));
+        expect(stored(), isNull);
+      });
+
+      testWidgets('the open part stays in sight when the index arrives', (
+        tester,
+      ) async {
+        final travel = item('travel', 'Travel reg', EquipmentType.regulator);
+        final first = item('fs', 'First stage', EquipmentType.firstStage);
+        final index = Completer<ComponentsIndex>();
+        await pumpList(
+          tester,
+          items: [travel, first],
+          selectedId: 'fs',
+          index: index.future,
+        );
+        expect(rowNames(tester), contains('First stage'));
+
+        index.complete(ComponentsIndex.fromRows([edge('travel', 'fs')]));
+        await tester.pumpAndSettle();
+        expect(find.byTooltip('Hide parts'), findsOneWidget);
+        expect(rowNames(tester), ['Travel reg', 'First stage']);
+      });
+
+      testWidgets('the list scrolls back to the open part when it moves', (
+        tester,
+      ) async {
+        final rigItem = item('rig', 'Rig', EquipmentType.backplate);
+        final part = item('part', 'Part', EquipmentType.wing);
+        final filler = [
+          for (var i = 0; i < 40; i++)
+            item(
+              'f$i',
+              'Fin ${i.toString().padLeft(2, '0')}',
+              EquipmentType.fins,
+            ),
+        ];
+        final index = Completer<ComponentsIndex>();
+        await pumpList(
+          tester,
+          items: [rigItem, ...filler, part],
+          selectedId: 'part',
+          index: index.future,
+        );
+        expect(find.text('Part').hitTestable(), findsOneWidget);
+
+        index.complete(ComponentsIndex.fromRows([edge('rig', 'part')]));
+        await tester.pumpAndSettle();
+        expect(find.text('Part').hitTestable(), findsOneWidget);
+      });
+
+      testWidgets('an assembly with no parts on the list keeps its count', (
+        tester,
+      ) async {
+        final travel = item('travel', 'Travel reg', EquipmentType.regulator);
+        await pumpList(
+          tester,
+          items: [travel],
+          edges: [edge('travel', 'fs'), edge('travel', 'ss')],
+        );
+        expect(find.text('2 components'), findsOneWidget);
+      });
     });
   });
 }

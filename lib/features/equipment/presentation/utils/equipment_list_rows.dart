@@ -197,6 +197,7 @@ EquipmentRowLayout layoutEquipmentRows({
       outerKeys: keys,
       visible: visible,
       isShown: shownIds.contains,
+      isRecorded: foldKeysByItem.containsKey,
       onItem: (item, foldKeys) => foldKeysByItem.putIfAbsent(
         item.id,
         () => List.unmodifiable(foldKeys),

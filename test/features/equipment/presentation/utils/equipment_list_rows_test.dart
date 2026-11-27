@@ -485,5 +485,26 @@ void main() {
       ]);
       expect(layout.assemblyIds, {'sf2'});
     });
+
+    test('a dense corrupt cycle lays out quickly while folded', () {
+      final ids = [for (var i = 0; i < 11; i++) 'n$i'];
+      final nodes = [for (final id in ids) item(id, EquipmentType.other)];
+      var order = 0;
+      final parts = tree(nodes, [
+        for (final a in ids)
+          for (final b in ids)
+            if (a != b) edge(a, b, order++),
+      ]);
+      // Synchronous work outruns a test timeout, so time it instead.
+      final clock = Stopwatch()..start();
+      final layout = layoutEquipmentRows(
+        groups: [EquipmentGroup(type: EquipmentType.other, items: nodes)],
+        collapsed: {for (final id in ids) 'asm:$id'},
+        parts: parts,
+      );
+      expect(clock.elapsed, lessThan(const Duration(seconds: 2)));
+      expect(nested(layout), ['T type:other', 'A n0-']);
+      expect(layout.foldKeysByItem.keys.toSet(), ids.toSet());
+    });
   });
 }
