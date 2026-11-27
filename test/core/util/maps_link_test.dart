@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/util/maps_link.dart';
@@ -112,5 +113,20 @@ void main() {
   test('parseWebLink is reachable from core', () {
     expect(parseWebLink('stoneycove.com').toString(), 'https://stoneycove.com');
     expect(parseWebLink('javascript:alert(1)'), isNull);
+  });
+
+  testWidgets('each platform gets its own maps app', (tester) async {
+    final expected = {
+      TargetPlatform.android: MapsPlatform.android,
+      TargetPlatform.iOS: MapsPlatform.apple,
+      TargetPlatform.macOS: MapsPlatform.apple,
+      TargetPlatform.windows: MapsPlatform.other,
+      TargetPlatform.linux: MapsPlatform.other,
+    };
+    for (final MapEntry(key: target, value: maps) in expected.entries) {
+      debugDefaultTargetPlatformOverride = target;
+      expect(currentMapsPlatform(), maps, reason: '$target');
+    }
+    debugDefaultTargetPlatformOverride = null;
   });
 }

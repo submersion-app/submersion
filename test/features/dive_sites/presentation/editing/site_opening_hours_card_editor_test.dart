@@ -174,6 +174,141 @@ void main() {
     expect(find.text(l.diveSites_hours_invalid), findsOneWidget);
   });
 
+  testWidgets('a schedule name writes through, and clearing it clears it', (
+    tester,
+  ) async {
+    final h = await pump(tester);
+    await tapKey(tester, 'hours_add_schedule');
+    final name = find.descendant(
+      of: find.byKey(const ValueKey('hours_schedule_0_name')),
+      matching: find.byType(EditableText),
+    );
+
+    await tester.enterText(name, 'Summer');
+    await tester.pump();
+    expect(hoursOf(h)!.schedules.single.name, 'Summer');
+
+    await tester.enterText(name, '  ');
+    await tester.pump();
+    expect(hoursOf(h)!.schedules.single.name, isNull);
+  });
+
+  testWidgets('a season end picked in a shorter month keeps a real day', (
+    tester,
+  ) async {
+    final h = await pump(tester);
+    await tapKey(tester, 'hours_add_schedule');
+    await tapKey(tester, 'hours_schedule_0_seasonal');
+
+    // 31 Oct, then February: the day falls back to 29.
+    await tapKey(tester, 'hours_schedule_0_season_end');
+    await tapKey(tester, 'hours_season_month');
+    await tester.tap(find.text('February').last);
+    await tester.pumpAndSettle();
+    await tapKey(tester, 'hours_season_confirm');
+
+    expect(
+      hoursOf(h)!.schedules.single.season,
+      const YearlyDateRange(start: MonthDay(4, 1), end: MonthDay(2, 29)),
+    );
+  });
+
+  testWidgets('a season start picks a day, and cancel changes nothing', (
+    tester,
+  ) async {
+    final h = await pump(tester);
+    await tapKey(tester, 'hours_add_schedule');
+    await tapKey(tester, 'hours_schedule_0_seasonal');
+
+    await tapKey(tester, 'hours_schedule_0_season_start');
+    await tapKey(tester, 'hours_season_day');
+    await tester.tap(find.text('15').last);
+    await tester.pumpAndSettle();
+    await tapKey(tester, 'hours_season_confirm');
+    expect(hoursOf(h)!.schedules.single.season!.start, const MonthDay(4, 15));
+
+    await tapKey(tester, 'hours_schedule_0_season_start');
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(hoursOf(h)!.schedules.single.season!.start, const MonthDay(4, 15));
+
+    await tapKey(tester, 'hours_schedule_0_seasonal');
+    expect(hoursOf(h)!.schedules.single.season, isNull);
+  });
+
+  testWidgets('a close picked at midnight is the end of the day', (
+    tester,
+  ) async {
+    final h = await pump(tester);
+    h.session.set(
+      siteOpeningHoursField,
+      OpeningHours(
+        schedules: [
+          OpeningSchedule(
+            days: {
+              DateTime.saturday: DayHours.ranges(const [TimeRange(1200, 1440)]),
+            },
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // The picker opens at 00:00; keeping it stays midnight, not 00:00.
+    await tapKey(tester, 'hours_day_0_6_closes_0');
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(
+      hoursOf(h)!.schedules.single.dayHours(DateTime.saturday).ranges,
+      const [TimeRange(1200, 1440)],
+    );
+
+    await tapKey(tester, 'hours_day_0_6_opens_0');
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    await tapKey(tester, 'hours_day_0_6_opens_0');
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(
+      hoursOf(h)!.schedules.single.dayHours(DateTime.saturday).ranges,
+      const [TimeRange(1200, 1440)],
+    );
+  });
+
+  testWidgets('copy to all days, and a cancelled copy changes nothing', (
+    tester,
+  ) async {
+    final h = await pump(tester);
+    await tapKey(tester, 'hours_add_schedule');
+    await tapKey(tester, 'hours_day_0_6_24h');
+
+    await tapKey(tester, 'hours_day_0_6_copy');
+    await tapKey(tester, 'hours_copy_all');
+    await tapKey(tester, 'hours_copy_all');
+    await tapKey(tester, 'hours_copy_day_1');
+    await tapKey(tester, 'hours_copy_day_1');
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(
+      hoursOf(h)!.schedules.single.dayHours(DateTime.monday).isClosed,
+      isTrue,
+    );
+
+    await tapKey(tester, 'hours_day_0_6_copy');
+    await tapKey(tester, 'hours_copy_all');
+    await tapKey(tester, 'hours_copy_confirm');
+    final schedule = hoursOf(h)!.schedules.single;
+    for (var d = DateTime.monday; d <= DateTime.sunday; d++) {
+      expect(schedule.dayHours(d), const DayHours.open24h());
+    }
+
+    await tapKey(tester, 'hours_day_0_6_closed');
+    expect(
+      hoursOf(h)!.schedules.single.dayHours(DateTime.saturday).isClosed,
+      isTrue,
+    );
+  });
+
   // A retake after a whole-record operation hands the mounted editor another
   // sitting; it must show that sitting's hours, not the old one's.
   testWidgets('a new sitting replaces the note and schedules shown', (
