@@ -512,6 +512,7 @@ void main() {
       WidgetTester tester, {
       String? viewedSourceId,
       void Function(String id)? onTapSource,
+      bool withMenus = false,
     }) async {
       await tester.pumpWidget(
         testApp(
@@ -533,6 +534,8 @@ void main() {
               units: _units,
               viewedSourceId: viewedSourceId,
               onTapSource: onTapSource ?? (_) {},
+              onSetPrimary: withMenus ? (_) {} : null,
+              onSplit: withMenus ? (_) {} : null,
             ),
           ),
         ),
@@ -609,15 +612,36 @@ void main() {
       tester,
     ) async {
       final semantics = tester.ensureSemantics();
-      await pumpTwo(tester, viewedSourceId: 'src-2');
+      // The page always gives the headers a menu, so the header node is
+      // checked with its menu button inside it.
+      await pumpTwo(tester, viewedSourceId: 'src-2', withMenus: true);
 
-      expect(
-        tester.getSemantics(find.byKey(DataSourcesSection.cardKey('src-2'))),
-        isSemantics(isButton: true, isSelected: true),
-      );
+      final header = find.byKey(DataSourcesSection.cardKey('src-2'));
+      final headerNode = tester.getSemantics(header);
+      expect(headerNode, isSemantics(isButton: true, isSelected: true));
       expect(
         tester.getSemantics(find.byKey(DataSourcesSection.cardKey('src-1'))),
         isSemantics(isButton: true, isSelected: false),
+      );
+      // The menu button keeps a node of its own rather than merging its
+      // tap into the header's.
+      final menuNode = tester.getSemantics(
+        find.descendant(of: header, matching: find.byIcon(Icons.more_vert)),
+      );
+      expect(menuNode.id, isNot(headerNode.id));
+      expect(menuNode, isSemantics(isButton: true, hasTapAction: true));
+      semantics.dispose();
+    });
+
+    // The header is the one action per source for a screen reader; the
+    // values beneath it are read, not offered as twenty more buttons.
+    testWidgets('value cells carry no tap action of their own', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpTwo(tester, viewedSourceId: 'src-2');
+
+      expect(
+        tester.getSemantics(find.text('31.0m')),
+        isSemantics(hasTapAction: false),
       );
       semantics.dispose();
     });

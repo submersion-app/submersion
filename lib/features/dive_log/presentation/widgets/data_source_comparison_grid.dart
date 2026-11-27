@@ -121,6 +121,7 @@ class _SourceComparisonGrid extends StatelessWidget {
       Widget child, {
       AlignmentGeometry alignment = AlignmentDirectional.centerStart,
       Widget Function(Widget body)? wrap,
+      bool isHeader = false,
     }) {
       final body = Material(
         color: s.id == viewedSourceId
@@ -128,6 +129,9 @@ class _SourceComparisonGrid extends StatelessWidget {
             : Colors.transparent,
         child: InkWell(
           onTap: actions[s.id]!.onTap,
+          // The header is the column's one action for a screen reader;
+          // its values are read, not offered as more buttons.
+          excludeFromSemantics: !isHeader,
           child: Align(
             alignment: alignment,
             widthFactor: 1,
@@ -166,6 +170,7 @@ class _SourceComparisonGrid extends StatelessWidget {
             for (final s in sources)
               columnCell(
                 s,
+                isHeader: true,
                 alignment: AlignmentDirectional.topStart,
                 // One node per source for screen readers: its name and
                 // chips, read as a button that is selected while viewed.
