@@ -11974,7 +11974,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count schedules',
-      one: '1 schedule',
+      one: '$count schedule',
     );
     return '$_temp0';
   }

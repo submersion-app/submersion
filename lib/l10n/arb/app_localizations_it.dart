@@ -12160,7 +12160,7 @@ class AppLocalizationsIt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count orari',
-      one: '1 orario',
+      one: '$count orario',
     );
     return '$_temp0';
   }

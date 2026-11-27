@@ -3865,7 +3865,7 @@
   "diveSites_hours_closedNow": "Gesloten",
   "diveSites_hours_span": "{from} tot {to}",
   "diveSites_hours_namedSeason": "{name}, {season}",
-  "diveSites_merge_hoursSchedules": "{count, plural, =1{1 schema} other{{count} schema's}}",
+  "diveSites_merge_hoursSchedules": "{count, plural, =1{{count} schema} other{{count} schema's}}",
   "diveSites_detail_section_altitude": "Hoogte",
   "diveSites_detail_section_depthRange": "Dieptebereik",
   "diveSites_detail_section_description": "Beschrijving",

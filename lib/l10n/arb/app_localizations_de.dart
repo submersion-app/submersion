@@ -12150,7 +12150,7 @@ class AppLocalizationsDe extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count Zeitpläne',
-      one: '1 Zeitplan',
+      one: '$count Zeitplan',
     );
     return '$_temp0';
   }

@@ -12135,7 +12135,7 @@ class AppLocalizationsHu extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count ütemezés',
-      one: '1 ütemezés',
+      one: '$count ütemezés',
     );
     return '$_temp0';
   }

@@ -3865,7 +3865,7 @@
   "diveSites_hours_closedNow": "مغلق",
   "diveSites_hours_span": "{from} إلى {to}",
   "diveSites_hours_namedSeason": "{name}، {season}",
-  "diveSites_merge_hoursSchedules": "{count, plural, =1{جدول واحد} other{{count} جداول}}",
+  "diveSites_merge_hoursSchedules": "{count, plural, =1{جدول واحد} two{جدولان} few{{count} جداول} many{{count} جدولًا} other{{count} جدول}}",
   "diveSites_detail_section_altitude": "الارتفاع",
   "diveSites_detail_section_depthRange": "نطاق العمق",
   "diveSites_detail_section_description": "الوصف",

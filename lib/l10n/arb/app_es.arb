@@ -3865,7 +3865,7 @@
   "diveSites_hours_closedNow": "Cerrado",
   "diveSites_hours_span": "{from} a {to}",
   "diveSites_hours_namedSeason": "{name}, {season}",
-  "diveSites_merge_hoursSchedules": "{count, plural, =1{1 horario} other{{count} horarios}}",
+  "diveSites_merge_hoursSchedules": "{count, plural, =1{{count} horario} other{{count} horarios}}",
   "diveSites_detail_section_altitude": "Altitud",
   "diveSites_detail_section_depthRange": "Rango de profundidad",
   "diveSites_detail_section_description": "Descripción",

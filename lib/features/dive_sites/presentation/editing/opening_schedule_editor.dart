@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/opening_hours/opening_hours.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/opening_day_row.dart';
 import 'package:submersion/features/dive_sites/presentation/opening_hours_summary.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -13,14 +15,14 @@ const YearlyDateRange defaultSeason = YearlyDateRange(
   end: MonthDay(10, 31),
 );
 
-/// A day of the year as the locale writes it, without a year ("Apr 1").
-String monthDayLabel(BuildContext context, MonthDay day) => DateFormat.MMMd(
-  Localizations.localeOf(context).toLanguageTag(),
-).format(DateTime(2000, day.month, day.day));
+/// A day of the year in the diver's date format, without a year ("Apr 1"
+/// or "1 Apr").
+String monthDayLabel(UnitFormatter units, MonthDay day) =>
+    units.formatMonthDay(DateTime(2000, day.month, day.day));
 
 /// One schedule in the hours editor (issue #5073): its name, an optional
 /// yearly season and its seven days. Keys are `hours_schedule_<index>_*`.
-class OpeningScheduleEditor extends StatefulWidget {
+class OpeningScheduleEditor extends ConsumerStatefulWidget {
   const OpeningScheduleEditor({
     super.key,
     required this.index,
@@ -39,10 +41,11 @@ class OpeningScheduleEditor extends StatefulWidget {
   final VoidCallback onDelete;
 
   @override
-  State<OpeningScheduleEditor> createState() => _OpeningScheduleEditorState();
+  ConsumerState<OpeningScheduleEditor> createState() =>
+      _OpeningScheduleEditorState();
 }
 
-class _OpeningScheduleEditorState extends State<OpeningScheduleEditor> {
+class _OpeningScheduleEditorState extends ConsumerState<OpeningScheduleEditor> {
   late final TextEditingController _name = TextEditingController(
     text: widget.schedule.name ?? '',
   );
@@ -81,6 +84,7 @@ class _OpeningScheduleEditorState extends State<OpeningScheduleEditor> {
     final l10n = context.l10n;
     final schedule = widget.schedule;
     final season = schedule.season;
+    final units = ref.watch(unitFormatterProvider);
     return Card.outlined(
       margin: const EdgeInsets.symmetric(vertical: 6),
       child: Padding(
@@ -134,13 +138,13 @@ class _OpeningScheduleEditorState extends State<OpeningScheduleEditor> {
                   OutlinedButton(
                     key: ValueKey('${_key}_season_start'),
                     onPressed: () => _pickSeasonEnd(start: true),
-                    child: Text(monthDayLabel(context, season.start)),
+                    child: Text(monthDayLabel(units, season.start)),
                   ),
                   Text(l10n.diveSites_hours_seasonTo),
                   OutlinedButton(
                     key: ValueKey('${_key}_season_end'),
                     onPressed: () => _pickSeasonEnd(start: false),
-                    child: Text(monthDayLabel(context, season.end)),
+                    child: Text(monthDayLabel(units, season.end)),
                   ),
                 ],
               ),

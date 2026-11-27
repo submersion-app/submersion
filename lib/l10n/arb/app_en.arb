@@ -7514,7 +7514,7 @@
       }
     }
   },
-  "diveSites_merge_hoursSchedules": "{count, plural, =1{1 schedule} other{{count} schedules}}",
+  "diveSites_merge_hoursSchedules": "{count, plural, =1{{count} schedule} other{{count} schedules}}",
   "@diveSites_merge_hoursSchedules": {
     "description": "Opening hours on the merge page, as a count of weekly schedules.",
     "placeholders": {

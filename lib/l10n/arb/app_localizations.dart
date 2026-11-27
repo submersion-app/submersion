@@ -19317,7 +19317,7 @@ abstract class AppLocalizations {
   /// Opening hours on the merge page, as a count of weekly schedules.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 schedule} other{{count} schedules}}'**
+  /// **'{count, plural, =1{{count} schedule} other{{count} schedules}}'**
   String diveSites_merge_hoursSchedules(int count);
 
   /// No description provided for @diveSites_detail_section_altitude.

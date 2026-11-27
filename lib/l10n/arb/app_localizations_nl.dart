@@ -12085,7 +12085,7 @@ class AppLocalizationsNl extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count schema\'s',
-      one: '1 schema',
+      one: '$count schema',
     );
     return '$_temp0';
   }

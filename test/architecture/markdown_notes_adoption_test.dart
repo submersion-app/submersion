@@ -124,7 +124,7 @@ void main() {
     'lib/features/certifications/domain/constants/certification_field.dart',
     'lib/features/courses/domain/constants/course_field.dart',
     'lib/features/dive_centers/domain/constants/dive_center_field.dart',
-    'lib/features/dive_sites/domain/constants/site_field.dart',
+    'lib/features/dive_sites/domain/constants/site_field_adapter.dart',
     'lib/features/documents/domain/document_manifest.dart',
     'lib/features/equipment/domain/constants/equipment_field.dart',
     'lib/features/equipment/presentation/pages/equipment_location_list_page.dart',

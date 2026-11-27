@@ -70,7 +70,7 @@ class SiteOpeningHoursCard extends ConsumerWidget {
             ? l10n.diveSites_hours_closedNow
             : outOfSeason
             ? l10n.diveSites_hours_closedForSeason(
-                monthDayLabel(context, MonthDay.of(nextOpen)),
+                monthDayLabel(units, MonthDay.of(nextOpen)),
               )
             : l10n.diveSites_hours_closedOpensAt(at(nextOpen)),
     };
@@ -97,8 +97,8 @@ class SiteOpeningHoursCard extends ConsumerWidget {
       final dates = season == null
           ? null
           : l10n.diveSites_hours_span(
-              monthDayLabel(context, season.start),
-              monthDayLabel(context, season.end),
+              monthDayLabel(units, season.start),
+              monthDayLabel(units, season.end),
             );
       if (name != null && name.isNotEmpty && dates != null) {
         return l10n.diveSites_hours_namedSeason(name, dates);

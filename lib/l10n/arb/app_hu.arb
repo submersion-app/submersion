@@ -3738,7 +3738,7 @@
   "diveSites_hours_closedNow": "Zárva",
   "diveSites_hours_span": "{from}–{to}",
   "diveSites_hours_namedSeason": "{name}, {season}",
-  "diveSites_merge_hoursSchedules": "{count, plural, =1{1 ütemezés} other{{count} ütemezés}}",
+  "diveSites_merge_hoursSchedules": "{count, plural, =1{{count} ütemezés} other{{count} ütemezés}}",
   "diveSites_detail_section_altitude": "Tengerszint feletti magasság",
   "diveSites_detail_section_depthRange": "Mélység tartomány",
   "diveSites_detail_section_description": "Leírás",
