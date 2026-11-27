@@ -29,6 +29,8 @@ import 'package:submersion/features/transmitters/presentation/providers/transmit
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/firmware/presentation/providers/firmware_catalogue_providers.dart';
+import 'package:submersion/features/firmware/presentation/providers/firmware_recorder_provider.dart';
 
 /// Provider for the dive computer repository.
 final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {
@@ -330,16 +332,20 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   /// the next one without rebuilding the notifier. Null means never
   /// (issue #1216).
   final bool Function(String? computerId)? _resolveClockSync;
+  final Future<void> Function(String equipmentId, String version)?
+  _reportFirmware;
 
   DownloadNotifier({
     required pigeon.DiveComputerService service,
     required DiveComputerRepository repository,
     bool Function()? trimTankPressureAtSurfacing,
     bool Function(String? computerId)? resolveClockSync,
+    Future<void> Function(String equipmentId, String version)? reportFirmware,
   }) : _service = service,
        _repository = repository,
        _trimTankPressureAtSurfacing = trimTankPressureAtSurfacing,
        _resolveClockSync = resolveClockSync,
+       _reportFirmware = reportFirmware,
        super(const DownloadState());
 
   /// Set whether to download new dives only.
@@ -585,9 +591,32 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       // onto the wrong one. Only the call that still owns the field may
       // refresh it.
       if (identical(_computer, computer)) _computer = updated;
+      await _reportFirmwareFor(updated, firmwareVersion);
     } catch (e, stackTrace) {
       _log.error(
         'Device info persist failed for ${computer.displayName}',
+        category: LogCategory.database,
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
+  /// Hands a reported firmware version to the firmware history (issue
+  /// #5104), for the gear twin this computer stands for. A failure there is
+  /// logged and never undoes the registration's own update.
+  Future<void> _reportFirmwareFor(
+    DiveComputer computer,
+    String? version,
+  ) async {
+    final report = _reportFirmware;
+    final equipmentId = computer.equipmentId;
+    if (report == null || version == null || equipmentId == null) return;
+    try {
+      await report(equipmentId, version);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Firmware history update failed for ${computer.displayName}',
         category: LogCategory.database,
         error: e,
         stackTrace: stackTrace,
@@ -690,6 +719,16 @@ final downloadNotifierProvider =
         // on the computers list applies to the very next download.
         resolveClockSync: (computerId) =>
             ref.read(clockSyncSettingsNotifierProvider).resolve(computerId),
+        // The cached catalogue tells two spellings of one release apart from
+        // a real change (issue #5104).
+        reportFirmware: (equipmentId, version) => ref
+            .read(firmwareUpdateRecorderProvider)
+            .recordReported(
+              equipmentId: equipmentId,
+              reportedVersion: version,
+              at: DateTime.now(),
+              catalogue: ref.read(firmwareCatalogueProvider).value,
+            ),
       );
     });
 
