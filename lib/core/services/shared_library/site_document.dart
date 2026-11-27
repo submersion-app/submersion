@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:submersion/core/services/shared_library/clocked_record.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 
 /// One site as stored in `sites/<id>.json` of a shared site library (issue #2567).
@@ -11,7 +12,7 @@ import 'package:submersion/core/services/shared_library/shared_library_models.da
 /// [deleted] is clocked under [deletedField]. Keys this build does not know
 /// are kept in [extra] and written back, so a newer app's additions survive
 /// an older app's upload.
-class SiteDocument {
+class SiteDocument extends ClockedRecord {
   const SiteDocument({
     required this.id,
     this.deleted = false,
@@ -20,13 +21,38 @@ class SiteDocument {
     this.extra = const {},
   });
 
+  @override
   final String id;
+  @override
   final bool deleted;
+  @override
   final Map<String, Object?> fields;
+  @override
   final Map<String, FieldClock> clocks;
+  @override
   final Map<String, Object?> extra;
 
-  static const String deletedField = 'deleted';
+  static const String deletedField = ClockedRecord.deletedField;
+
+  /// What a site field signature starts with (issue #2567).
+  static const String signatureTag = 'ssl-field:v1';
+
+  @override
+  String get signatureDomain => signatureTag;
+
+  @override
+  SiteDocument withContent({
+    required bool deleted,
+    required Map<String, Object?> fields,
+    required Map<String, FieldClock> clocks,
+    required Map<String, Object?> extra,
+  }) => SiteDocument(
+    id: id,
+    deleted: deleted,
+    fields: fields,
+    clocks: clocks,
+    extra: extra,
+  );
 
   /// Every field a document may carry, in a stable order.
   static const List<String> fieldNames = [
