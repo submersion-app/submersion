@@ -17,5 +17,16 @@ factory; `CreateWindow` uses it when set and falls back to
 `FlutterDartProject()` otherwise. `projectFactory` is readable so the runner's
 tests can check the wiring.
 
-When updating the package, re-apply this patch and keep the RunnerTests case
+## macOS: a closed window's engine shuts down
+
+A closed window was never freed: the plugins registered on its engine
+(`window_manager` among them) hold the window, the window holds its view
+controller, and that holds the engine. Every closed pop-out left an engine
+running, with its Dart isolate, its database connection and its window-channel
+registration, which also blocked a reopened window from pairing on the
+channel. On `willClose` the observer now shuts the engine down and clears the
+window's content view controller, on the next main-queue turn so the close
+itself completes first.
+
+When updating the package, re-apply these patches and keep the RunnerTests case
 `PopOutWindowTests.testPopOutWindowsUseTheRendererProject` passing.

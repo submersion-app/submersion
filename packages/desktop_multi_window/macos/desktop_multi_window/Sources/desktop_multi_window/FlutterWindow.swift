@@ -61,8 +61,19 @@ class FlutterWindow: NSObject {
 
         closeObserver = NotificationCenter.default.addObserver(
             forName: NSWindow.willCloseNotification, object: window, queue: .main
-        ) { [windowId] _ in
+        ) { [windowId, weak window] _ in
             MultiWindowManager.shared.removeWindow(windowId: windowId)
+            // Submersion patch (see PATCHES.md): a closed window's engine
+            // kept running, Dart isolate and plugins included, because the
+            // plugins it registered hold the window. Shut the engine down
+            // and let go of its view once the close has finished.
+            DispatchQueue.main.async {
+                guard let window = window,
+                      let controller = window.contentViewController as? FlutterViewController
+                else { return }
+                controller.engine.shutDownEngine()
+                window.contentViewController = nil
+            }
         }
     }
 
