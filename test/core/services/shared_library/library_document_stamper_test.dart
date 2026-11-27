@@ -228,7 +228,9 @@ void main() {
         documentId: id,
         libraryId: 'L',
         siteId: 's',
-        clocks: {'title': const FieldClock(hlc: const Hlc(9, 0, 'm2'), memberId: 'm2')},
+        clocks: {
+          'title': const FieldClock(hlc: Hlc(9, 0, 'm2'), memberId: 'm2'),
+        },
       ),
     );
     await stamper.share(id, libraryId: 'L', actingDiverId: 'd1');
