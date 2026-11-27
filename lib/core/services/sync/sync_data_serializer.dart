@@ -23,6 +23,7 @@ import 'package:submersion/core/database/tag_scope_tables.dart';
 import 'package:submersion/core/database/trip_checklist_default.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
+import 'package:submersion/core/services/sync/library_document_guards.dart';
 import 'package:submersion/core/services/sync/held_reference_schema.dart';
 import 'package:submersion/core/services/sync/held_reference_store.dart';
 import 'package:submersion/core/services/sync/held_references.dart';
@@ -1886,8 +1887,10 @@ class SyncDataSerializer {
       // ---- data object (hashed) ----
       await writeData('{');
       final tables = _baseTables;
-      // Library sites and their children stay out of the base (issue #2567).
+      // Library sites and their children stay out of the base (issue #2567),
+      // and so do library documents (issue #4713).
       final librarySites = await librarySiteIds();
+      final libraryDocuments = await libraryDocumentIds(_db);
       // A link this device still holds goes out as the value it held (issue
       // #4954), never as the repair's null.
       final heldLinks = await HeldReferenceStore(
@@ -1912,6 +1915,7 @@ class SyncDataSerializer {
         final heldTable = heldLinks.isEmpty ? null : _tableNameFor(spec.key);
 
         Future<void> emit(Map<String, dynamic> row) async {
+          if (isLibraryDocumentRow(spec.key, row, libraryDocuments)) return;
           if (librarySites.isNotEmpty) {
             if (spec.key == 'diveSites' && row['sharedLibraryId'] != null) {
               return;
@@ -2582,6 +2586,13 @@ class SyncDataSerializer {
     var extra = (await fetchRecords(entityType, missing)).values.toList();
     if (librarySiteChildEntities.contains(entityType)) {
       extra = await _withoutLibrarySiteRows(entityType, extra);
+    }
+    if (libraryDocumentChildEntities.contains(entityType)) {
+      extra = withoutLibraryDocumentRows(
+        entityType,
+        extra,
+        await libraryDocumentIds(_db),
+      );
     }
     return extra.isEmpty ? rows : [...rows, ...extra];
   }
@@ -11025,11 +11036,15 @@ class SyncDataSerializer {
   }
 
   Future<List<Map<String, dynamic>>> _exportDocuments(String? hlcSince) async {
-    final query = _db.select(_db.documents);
+    final query = _db.select(_db.documents)
+      // Library documents never enter the personal sync (issue #4713).
+      ..where((t) => t.sharedLibraryId.isNull());
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
-    return (await query.get()).map((r) => r.toJson()).toList();
+    return (await query.get())
+        .map((r) => withoutDeviceLocalColumns('documents', r.toJson()))
+        .toList();
   }
 
   /// Pages carry their file as a BLOB; base64-encode it. Selected on the
@@ -11042,7 +11057,13 @@ class SyncDataSerializer {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }
     final rows = await query.get();
-    return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
+    return withoutLibraryDocumentRows('documentPages', [
+      for (final r in rows)
+        withoutDeviceLocalColumns(
+          'documentPages',
+          r.toJson(serializer: _syncBlobSerializer),
+        ),
+    ], await libraryDocumentIds(_db));
   }
 
   Future<List<Map<String, dynamic>>> _exportCourses(String? hlcSince) async {
@@ -12308,6 +12329,14 @@ class SyncDataSerializer {
   /// Document tag links (v309, issue #1970), gated on the parent document's
   /// clock like [_exportEquipmentTags].
   Future<List<Map<String, dynamic>>> _exportDocumentTags(
+    String? hlcSince,
+  ) async => withoutLibraryDocumentRows(
+    'documentTags',
+    await _exportDocumentTagRows(hlcSince),
+    await libraryDocumentIds(_db),
+  );
+
+  Future<List<Map<String, dynamic>>> _exportDocumentTagRows(
     String? hlcSince,
   ) async {
     if (hlcSince != null) {

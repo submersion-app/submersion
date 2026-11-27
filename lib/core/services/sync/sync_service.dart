@@ -27,6 +27,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
+import 'package:submersion/core/services/sync/library_document_guards.dart';
 import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/peer_sync_snapshot.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
@@ -2962,8 +2963,12 @@ class SyncService {
     var applied = 0;
     var conflicts = 0;
     var failed = 0;
-    // A library site ignores a personal tombstone (issue #2567).
+    // A library site ignores a personal tombstone (issue #2567), and so
+    // does a library document (issue #4713).
     final librarySites = await _serializer.librarySiteIds();
+    final libraryDocuments = await libraryDocumentIds(
+      DatabaseService.instance.database,
+    );
 
     for (final entry in deletions.entries) {
       final entityType = entry.key;
@@ -2995,6 +3000,18 @@ class SyncService {
           if (isDeviceLocalRecord(entityType, recordId)) continue;
           if (entityType == 'diveSites' && librarySites.contains(recordId)) {
             continue;
+          }
+          if (entityType == 'documents' &&
+              libraryDocuments.contains(recordId)) {
+            continue;
+          }
+          if (libraryDocuments.isNotEmpty &&
+              libraryDocumentChildEntities.contains(entityType)) {
+            final local = await _serializer.fetchRecord(entityType, recordId);
+            if (local != null &&
+                libraryDocuments.contains(local['documentId'])) {
+              continue;
+            }
           }
           // A child row of a library site (its types, tags, species, hides
           // or features) is just as much outside the personal sync.
@@ -4030,6 +4047,17 @@ class SyncService {
         if (records.isEmpty) {
           return const _MergeResult(recordsApplied: 0, conflictsFound: 0);
         }
+      }
+    }
+    // Nor a row of a shared library document (issue #4713).
+    if (entityType == 'documents' ||
+        libraryDocumentChildEntities.contains(entityType)) {
+      final guarded = await libraryDocumentIds(
+        DatabaseService.instance.database,
+      );
+      records = withoutLibraryDocumentRows(entityType, records, guarded);
+      if (records.isEmpty) {
+        return const _MergeResult(recordsApplied: 0, conflictsFound: 0);
       }
     }
     // Before anything fills a key the peer left out (issue #4954).
