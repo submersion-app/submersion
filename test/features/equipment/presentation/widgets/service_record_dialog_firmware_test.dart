@@ -27,10 +27,6 @@ void main() {
     updatedAt: t0,
   );
 
-  ServiceCategory categoryValue(WidgetTester tester) => tester
-      .widget<DropdownButtonFormField<ServiceCategory>>(find.byKey(categoryKey))
-      .initialValue!;
-
   Future<void> pumpDialog(
     WidgetTester tester, {
     String? serviceKindId,
