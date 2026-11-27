@@ -46,6 +46,30 @@ void main() {
       );
     });
 
+    test('a short word does not reach every type through a foreign label', () {
+      // "al" is how a diver starts typing AL80; it must not turn the list
+      // into most of the gear through words they never see (fins, wing).
+      for (final term in ['a', 'al', 'st', 're']) {
+        expect(equipmentTypeNamesMatching(term), isEmpty, reason: term);
+      }
+    });
+
+    test('a word matches from its start, so a partial word still finds', () {
+      expect(equipmentTypeNamesMatching('cyl'), contains('tank'));
+      expect(equipmentTypeNamesMatching('regul'), contains('regulator'));
+      // Not from the middle of a word: "ulator" is in no word's start.
+      expect(equipmentTypeNamesMatching('ulator'), isEmpty);
+    });
+
+    test('a single CJK character still finds its type', () {
+      expect(equipmentTypeNamesMatching('罐'), contains('tank'));
+      expect(equipmentTypeNamesMatching('瓶'), contains('tank'));
+    });
+
+    test('a Hebrew short spelling finds cylinders', () {
+      expect(equipmentTypeNamesMatching('מכל'), contains('tank'));
+    });
+
     test('a blank or unknown term matches nothing', () {
       expect(equipmentTypeNamesMatching(''), isEmpty);
       expect(equipmentTypeNamesMatching('   '), isEmpty);

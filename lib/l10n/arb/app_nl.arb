@@ -3534,7 +3534,7 @@
   "diveLog_tank_label_o2": "O2",
   "diveLog_tank_label_role": "Rol",
   "diveLog_tank_label_startPressure": "Begindruk",
-  "diveLog_tank_managePresets": "Instellingen beheren",
+  "diveLog_tank_managePresets": "Voorinstellingen beheren",
   "diveLog_tank_label_tankPreset": "Flesvoorinstelling",
   "diveLog_tank_label_volume": "Volume",
   "diveLog_tank_label_workingPressure": "Werkdruk",

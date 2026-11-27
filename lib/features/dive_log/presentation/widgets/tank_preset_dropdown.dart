@@ -76,92 +76,98 @@ class _TankPresetDropdownState extends ConsumerState<TankPresetDropdown> {
         ? null
         : presets.where((p) => p.name == presetName).firstOrNull;
 
-    return DropdownButtonFormField<_PresetChoice?>(
-      key: ValueKey((matchingPreset?.id ?? 'no-preset', _generation)),
-      initialValue: matchingPreset == null
-          ? null
-          : _PresetEntry(matchingPreset),
-      // Each dropdown here is one Expanded of a shared Row, so it is narrow.
-      // Without this a long label (a custom preset name, "Carbon Fiber")
-      // overflows instead of ellipsizing.
-      isExpanded: true,
-      decoration: InputDecoration(
-        labelText: context.l10n.diveLog_tank_label_tankPreset,
-        isDense: true,
-      ),
-      items: [
-        DropdownMenuItem<_PresetChoice?>(
-          value: null,
-          child: Text(context.l10n.diveLog_tank_selectPreset),
+    // A form of its own: a FormField reports every pick to the nearest
+    // Form, and the bulk edit page's Form marks the page edited on any
+    // report, so "Manage presets" (which picks nothing) would read as an
+    // edit there. Real choices reach the host through the callbacks.
+    return Form(
+      child: DropdownButtonFormField<_PresetChoice?>(
+        key: ValueKey((matchingPreset?.id ?? 'no-preset', _generation)),
+        initialValue: matchingPreset == null
+            ? null
+            : _PresetEntry(matchingPreset),
+        // Each dropdown here is one Expanded of a shared Row, so it is narrow.
+        // Without this a long label (a custom preset name, "Carbon Fiber")
+        // overflows instead of ellipsizing.
+        isExpanded: true,
+        decoration: InputDecoration(
+          labelText: context.l10n.diveLog_tank_label_tankPreset,
+          isDense: true,
         ),
-        // The diver's own cylinders first, marked like the "My cylinders"
-        // button (issue #2599).
-        for (final cylinder in widget.cylinders)
-          DropdownMenuItem(
-            value: _CylinderEntry(cylinder),
-            child: _IconLabel(
-              key: Key('tank-preset-cylinder-${cylinder.id}'),
-              icon: Icons.inventory_2_outlined,
-              // Choosing a cylinder also adds it to the dive's gear, so a
-              // screen reader must tell it apart from a preset of the same
-              // name.
-              iconSemanticLabel: context.l10n.diveLog_tank_ownCylinderTitle,
-              label: cylinder.name,
-            ),
+        items: [
+          DropdownMenuItem<_PresetChoice?>(
+            value: null,
+            child: Text(context.l10n.diveLog_tank_selectPreset),
           ),
-        // Custom presets (shown with a star icon)
-        for (final preset in customPresets)
-          DropdownMenuItem(
-            value: _PresetEntry(preset),
-            child: _IconLabel(icon: Icons.star, label: preset.displayName),
-          ),
-        // Built-in presets. Their stored displayName is the stable English
-        // identifier that exports and sync carry, so the localized label is
-        // resolved here at render time.
-        for (final preset in builtInPresets)
-          DropdownMenuItem(
-            value: _PresetEntry(preset),
-            child: Text(
-              builtInTankPresetName(context.l10n, preset.name) ??
-                  preset.displayName,
-            ),
-          ),
-        // Set apart by a rule: an action, not a preset (issue #800).
-        DropdownMenuItem<_PresetChoice?>(
-          value: const _ManageEntry(),
-          child: DecoratedBox(
-            key: const Key('tank-preset-manage'),
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(color: Theme.of(context).dividerColor),
-              ),
-            ),
-            child: SizedBox(
-              height: kMinInteractiveDimension,
+          // The diver's own cylinders first, marked like the "My cylinders"
+          // button (issue #2599).
+          for (final cylinder in widget.cylinders)
+            DropdownMenuItem(
+              value: _CylinderEntry(cylinder),
               child: _IconLabel(
-                icon: Icons.settings_outlined,
-                label: context.l10n.diveLog_tank_managePresets,
+                key: Key('tank-preset-cylinder-${cylinder.id}'),
+                icon: Icons.inventory_2_outlined,
+                // Choosing a cylinder also adds it to the dive's gear, so a
+                // screen reader must tell it apart from a preset of the same
+                // name.
+                iconSemanticLabel: context.l10n.diveLog_tank_ownCylinderTitle,
+                label: cylinder.name,
+              ),
+            ),
+          // Custom presets (shown with a star icon)
+          for (final preset in customPresets)
+            DropdownMenuItem(
+              value: _PresetEntry(preset),
+              child: _IconLabel(icon: Icons.star, label: preset.displayName),
+            ),
+          // Built-in presets. Their stored displayName is the stable English
+          // identifier that exports and sync carry, so the localized label is
+          // resolved here at render time.
+          for (final preset in builtInPresets)
+            DropdownMenuItem(
+              value: _PresetEntry(preset),
+              child: Text(
+                builtInTankPresetName(context.l10n, preset.name) ??
+                    preset.displayName,
+              ),
+            ),
+          // Set apart by a rule: an action, not a preset (issue #800).
+          DropdownMenuItem<_PresetChoice?>(
+            value: const _ManageEntry(),
+            child: DecoratedBox(
+              key: const Key('tank-preset-manage'),
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: Theme.of(context).dividerColor),
+                ),
+              ),
+              child: SizedBox(
+                height: kMinInteractiveDimension,
+                child: _IconLabel(
+                  icon: Icons.settings_outlined,
+                  label: context.l10n.diveLog_tank_managePresets,
+                ),
               ),
             ),
           ),
-        ),
-      ],
-      onChanged: (choice) {
-        switch (choice) {
-          case null:
-            widget.onPresetChanged(null);
-          case _PresetEntry(:final preset):
-            widget.onPresetChanged(preset);
-          case _CylinderEntry(:final cylinder):
-            setState(() => _generation++);
-            widget.onCylinderChosen(cylinder);
-          case _ManageEntry():
-            // The editor stays mounted under the pushed page, so the dive
-            // being edited survives; presets changed there show on return.
-            setState(() => _generation++);
-            context.push('/tank-presets');
-        }
-      },
+        ],
+        onChanged: (choice) {
+          switch (choice) {
+            case null:
+              widget.onPresetChanged(null);
+            case _PresetEntry(:final preset):
+              widget.onPresetChanged(preset);
+            case _CylinderEntry(:final cylinder):
+              setState(() => _generation++);
+              widget.onCylinderChosen(cylinder);
+            case _ManageEntry():
+              // The editor stays mounted under the pushed page, so the dive
+              // being edited survives; presets changed there show on return.
+              setState(() => _generation++);
+              context.push('/tank-presets');
+          }
+        },
+      ),
     );
   }
 }

@@ -36169,8 +36169,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count cylinders on dives are not linked to a cylinder here',
-      one: '$count cylinder on a dive is not linked to a cylinder here',
+      other: '$count dive cylinders not linked to one on this board',
+      one: '$count dive cylinder not linked to one on this board',
     );
     return '$_temp0';
   }

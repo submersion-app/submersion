@@ -336,7 +336,7 @@ void main() {
     expect(l10n.trips_cylinders_record_packageFills(2), '2 package fills');
     expect(
       l10n.trips_cylinders_record_unlinked(3),
-      '3 cylinders on dives are not linked to a cylinder here',
+      '3 dive cylinders not linked to one on this board',
     );
     expect(l10n.trips_cylinders_record_tank(2), 'Cylinder 2');
     expect(l10n.trips_cylinders_record_filled('200 bar'), 'Filled to 200 bar');

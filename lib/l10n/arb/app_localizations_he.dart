@@ -14091,7 +14091,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentType_harness => 'רתמה';
 
   @override
-  String get equipment_searchWords_cylinder => 'מיכל, גליל, סטייג\', פוני';
+  String get equipment_searchWords_cylinder => 'מיכל, מכל, גליל, סטייג\', פוני';
 
   @override
   String get equipment_searchWords_tankBand => 'רצועת מיכל, cam band';

@@ -166,7 +166,7 @@ void main() {
     expect(find.textContaining('estimated from BMI'), findsNothing);
   });
 
-  testWidgets('a cylinder with no preset name reads as Cylinders (#5106)', (
+  testWidgets('a cylinder with no preset name reads as Cylinder (#5106)', (
     tester,
   ) async {
     const unnamed = WeightPrediction(
@@ -189,7 +189,7 @@ void main() {
     await tester.tap(find.text('How this was calculated'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Cylinders (physics)'), findsOneWidget);
+    expect(find.text('Cylinder (physics)'), findsOneWidget);
     expect(find.textContaining('tank'), findsNothing);
   });
 }

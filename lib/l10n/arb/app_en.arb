@@ -21402,7 +21402,7 @@
       }
     }
   },
-  "trips_cylinders_record_unlinked": "{count, plural, one{{count} cylinder on a dive is not linked to a cylinder here} other{{count} cylinders on dives are not linked to a cylinder here}}",
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} dive cylinder not linked to one on this board} other{{count} dive cylinders not linked to one on this board}}",
   "@trips_cylinders_record_unlinked": {
     "placeholders": {
       "count": {

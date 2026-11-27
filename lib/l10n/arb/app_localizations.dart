@@ -57727,7 +57727,7 @@ abstract class AppLocalizations {
   /// No description provided for @trips_cylinders_record_unlinked.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} cylinder on a dive is not linked to a cylinder here} other{{count} cylinders on dives are not linked to a cylinder here}}'**
+  /// **'{count, plural, one{{count} dive cylinder not linked to one on this board} other{{count} dive cylinders not linked to one on this board}}'**
   String trips_cylinders_record_unlinked(int count);
 
   /// No description provided for @trips_cylinders_record_unlinkedTitle.

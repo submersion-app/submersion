@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/tank_preset_display.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -226,7 +227,7 @@ void main() {
       expect(find.textContaining('207 bar'), findsOneWidget);
 
       // Verify the Tank Specifications header is present
-      expect(find.text('Tank Specifications'), findsOneWidget);
+      expect(find.text('Cylinder Specifications'), findsOneWidget);
 
       // Line 335 is exercised in _savePreset below.
     });
@@ -332,6 +333,7 @@ void main() {
       bool onlyPage = false,
       String? duplicateFromId,
       TankPresetEntity? repoPreset,
+      Locale? locale,
     }) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
@@ -385,6 +387,7 @@ void main() {
             tankPresetListNotifierProvider.overrideWith((ref) => list),
           ].cast(),
           child: MaterialApp.router(
+            locale: locale,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             routerConfig: router,
@@ -534,14 +537,20 @@ void main() {
       await tester.tap(saveAction());
       await tester.pumpAndSettle();
       expect(repo.updated, isEmpty);
-      expect(find.text('This tank preset no longer exists.'), findsOneWidget);
+      expect(
+        find.text('This cylinder preset no longer exists.'),
+        findsOneWidget,
+      );
       expect(find.byType(TankPresetEditPage), findsOneWidget);
     });
 
     testWidgets('a preset that cannot open, with no page under it, goes to '
         'the preset list', (tester) async {
       await pumpEditor(tester, presetId: 'gone', onlyPage: true);
-      expect(find.text('This tank preset no longer exists.'), findsOneWidget);
+      expect(
+        find.text('This cylinder preset no longer exists.'),
+        findsOneWidget,
+      );
       expect(find.text('preset list'), findsOneWidget);
     });
 
@@ -572,7 +581,10 @@ void main() {
       tester,
     ) async {
       await pumpEditor(tester, presetId: 'gone');
-      expect(find.text('This tank preset no longer exists.'), findsOneWidget);
+      expect(
+        find.text('This cylinder preset no longer exists.'),
+        findsOneWidget,
+      );
       expect(find.byType(TankPresetEditPage), findsNothing);
       expect(find.text('list'), findsOneWidget);
     });
@@ -610,6 +622,34 @@ void main() {
       expect(created.volumeLiters, closeTo(11.1, 0.01));
       expect(created.workingPressureBar, closeTo(207, 0.5));
       expect(created.material, al80.material);
+    });
+
+    testWidgets('a duplicate left alone in psi and cuft keeps the built-in '
+        'values exactly (#800)', (tester) async {
+      final al80 = TankPresetEntity.fromBuiltIn(TankPresets.byName('al80')!);
+      await pumpEditor(tester, duplicateFromId: 'al80', repoPreset: al80);
+      await tester.tap(saveAction());
+      await tester.pumpAndSettle();
+      final created = repo.created.single;
+      expect(created.workingPressureBar, al80.workingPressureBar);
+      expect(created.volumeLiters, al80.volumeLiters);
+    });
+
+    testWidgets('a duplicate takes the built-in description in the app '
+        'language (#800)', (tester) async {
+      final al80 = TankPresetEntity.fromBuiltIn(TankPresets.byName('al80')!);
+      await pumpEditor(
+        tester,
+        duplicateFromId: 'al80',
+        repoPreset: al80,
+        locale: const Locale('de'),
+      );
+      final german = builtInTankPresetDescription(
+        lookupAppLocalizations(const Locale('de')),
+        'al80',
+      )!;
+      expect(german, isNot(al80.description));
+      expect(find.widgetWithText(TextFormField, german), findsOneWidget);
     });
 
     testWidgets('a new preset opens on the tinted bar from its first frame', (

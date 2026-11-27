@@ -18413,7 +18413,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_consumption_semanticsExceeds =>
-      'Warnung: übersteigt das Flaschenvolumen';
+      'Warnung: übersteigt die Flaschenkapazität';
 
   @override
   String gasCalculators_consumption_exceedsTank(

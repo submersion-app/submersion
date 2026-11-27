@@ -57,6 +57,12 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
   bool _isLoading = false;
   TankPresetEntity? _existingPreset;
 
+  /// The preset a duplicate was filled from, and the form as filled: a field
+  /// the diver leaves alone keeps the source's value, not its rounded text
+  /// converted back (issue #800).
+  TankPresetEntity? _duplicateSource;
+  TankPresetDraft? _duplicateFilled;
+
   @override
   void initState() {
     super.initState();
@@ -100,6 +106,15 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
       setState(() {
         _fillFrom(source);
         _displayNameController.text = l10n.tankPresets_duplicateName(shownName);
+        // A built-in's stored description is English; the diver reads it
+        // translated, so the copy starts from what they read.
+        if (source.isBuiltIn) {
+          _descriptionController.text =
+              builtInTankPresetDescription(l10n, source.name) ??
+              source.description;
+        }
+        _duplicateSource = source;
+        _duplicateFilled = readEditorDraft();
       });
     } catch (e) {
       // The empty new-preset form stays: the diver can still type one in.
@@ -448,7 +463,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
     // in a field the diver did not touch is not written back over.
     final existing = _existingPreset;
     final editing = widget.isEditing && existing != null;
-    final start = editing ? editorStartDraft : null;
+    final start = editing ? editorStartDraft : _duplicateFilled;
     final material = _material;
     final nameText = _displayNameController.text;
     final descriptionText = _descriptionController.text;
@@ -472,12 +487,16 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
       }
     }
 
+    // What an untouched field keeps: the stored preset, or a duplicate's
+    // source.
+    final kept = stored ?? (editing ? null : _duplicateSource);
+
     // Convert to storage units (metric)
-    final workingPressureBar = pressureChanged || stored == null
+    final workingPressureBar = pressureChanged || kept == null
         ? units.pressureToBar(pressureDisplay)
-        : stored.workingPressureBar;
-    final volumeLiters = !volumeChanged && stored != null
-        ? stored.volumeLiters
+        : kept.workingPressureBar;
+    final volumeLiters = !volumeChanged && kept != null
+        ? kept.volumeLiters
         : inCuft
         // liters = (cuft * 28.3168) / pressure_bar
         ? (volumeDisplay * 28.3168) / workingPressureBar

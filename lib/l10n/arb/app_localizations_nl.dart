@@ -10924,7 +10924,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Begindruk';
 
   @override
-  String get diveLog_tank_managePresets => 'Instellingen beheren';
+  String get diveLog_tank_managePresets => 'Voorinstellingen beheren';
 
   @override
   String get diveLog_tank_label_tankPreset => 'Flesvoorinstelling';

@@ -27,17 +27,23 @@ void main() {
     final presets = TankPresets.all.map(TankPresetEntity.fromBuiltIn).toList();
     var presetChanges = 0;
     var cylinderChoices = 0;
+    // The bulk dive edit page wraps the editor in a Form whose onChanged
+    // marks the page edited.
+    var formChanges = 0;
 
     final router = GoRouter(
       routes: [
         GoRoute(
           path: '/',
           builder: (context, state) => Scaffold(
-            body: TankPresetDropdown(
-              presetName: 'al80',
-              cylinders: const [],
-              onPresetChanged: (_) => presetChanges++,
-              onCylinderChosen: (_) => cylinderChoices++,
+            body: Form(
+              onChanged: () => formChanges++,
+              child: TankPresetDropdown(
+                presetName: 'al80',
+                cylinders: const [],
+                onPresetChanged: (_) => presetChanges++,
+                onCylinderChosen: (_) => cylinderChoices++,
+              ),
             ),
           ),
         ),
@@ -76,6 +82,7 @@ void main() {
     expect(find.text('presets-page'), findsOneWidget);
     expect(presetChanges, 0);
     expect(cylinderChoices, 0);
+    expect(formChanges, 0, reason: 'a form around it is not edited');
 
     router.pop();
     await tester.pumpAndSettle();

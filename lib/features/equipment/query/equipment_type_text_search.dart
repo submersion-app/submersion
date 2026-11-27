@@ -31,15 +31,41 @@ final Map<String, List<String>> _typeWords = Map.unmodifiable({
     }),
 });
 
+/// Scripts written without spaces between words (Chinese, Japanese,
+/// Korean): a term there may sit anywhere in a label.
+final _unspacedScript = RegExp(r'[\u3040-\u30ff\u3400-\u9fff\uac00-\ud7af]');
+
+final _letterOrDigit = RegExp(r'[\p{L}\p{N}]', unicode: true);
+
+/// Shorter terms would reach most types through words of other languages
+/// the diver never sees ("al" is in a dozen labels); the item's own name,
+/// brand and model still match them.
+const _minimumTermLength = 3;
+
+/// Whether [needle] starts a word of [label]. In an unspaced script it may
+/// sit anywhere.
+bool _startsAWord(String label, String needle) {
+  if (_unspacedScript.hasMatch(needle)) return label.contains(needle);
+  if (needle.length < _minimumTermLength) return false;
+  for (
+    var i = label.indexOf(needle);
+    i >= 0;
+    i = label.indexOf(needle, i + 1)
+  ) {
+    if (i == 0 || !_letterOrDigit.hasMatch(label[i - 1])) return true;
+  }
+  return false;
+}
+
 /// The stored names of the equipment types whose label in any app language,
-/// or one of whose search words, contains [term], ignoring case, accents and
-/// surrounding whitespace.
+/// or one of whose search words, has a word starting with [term], ignoring
+/// case, accents and surrounding whitespace.
 Set<String> equipmentTypeNamesMatching(String term) {
   final needle = foldForSearch(term.trim());
   if (needle.isEmpty) return const {};
   return {
     for (final MapEntry(key: name, value: words) in _typeWords.entries)
-      if (words.any((w) => w.contains(needle))) name,
+      if (words.any((w) => _startsAWord(w, needle))) name,
   };
 }
 
