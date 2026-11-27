@@ -356,5 +356,11 @@ extension RungsFromV340 on AppDatabase {
     // no backfill; re-asserted in beforeOpen. The floor does not move.
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
+
+    // v393 (issue #5110): the built-in BCD/wing inspection applies to wings.
+    // A one-time UPDATE of one built-in row; not in the backstop, as the
+    // v239 built-in backfill is not. The floor does not move.
+    if (from < 393) await _backfillWingInspectionServiceKind();
+    if (from < 393) await reportProgress();
   }
 }
