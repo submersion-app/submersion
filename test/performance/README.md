@@ -88,7 +88,7 @@ a real development database rather than generated data. Build the fixture
 once (never point the tool at a live database; it copies the source first):
 
 ```bash
-dart run tools/synth_fixture.dart <source.db> <out.db> --replicas 25
+dart run tool/perf/synth_fixture.dart <source.db> <out.db> --replicas 25
 ```
 
 Then run the gate:

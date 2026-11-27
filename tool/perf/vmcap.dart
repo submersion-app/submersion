@@ -7,11 +7,11 @@ import 'dart:io';
 /// Usage:
 ///
 ///     flutter run --profile -d macos   # note the ws://127.0.0.1:PORT/TOKEN=/ws URI
-///     dart run tools/vmcap.dart <ws-uri> probe
-///     dart run tools/vmcap.dart <ws-uri> clear     # right BEFORE interacting
+///     dart run tool/perf/vmcap.dart <ws-uri> probe
+///     dart run tool/perf/vmcap.dart <ws-uri> clear     # right BEFORE interacting
 ///     (interact with the app)
-///     dart run tools/vmcap.dart <ws-uri> read      # right AFTER interacting
-///     dart run tools/vmcap.dart <ws-uri> frames 10 # frame events for 10 s
+///     dart run tool/perf/vmcap.dart <ws-uri> read      # right AFTER interacting
+///     dart run tool/perf/vmcap.dart <ws-uri> frames 10 # frame events for 10 s
 ///
 /// Gotchas (learned in the June 2026 Phase 1 effort):
 /// - Always `clear` immediately before the window; otherwise the VM service's
@@ -21,7 +21,7 @@ import 'dart:io';
 Future<void> main(List<String> args) async {
   if (args.length < 2) {
     stderr.writeln(
-      'Usage: dart run tools/vmcap.dart <ws-uri> <probe|clear|read|frames> '
+      'Usage: dart run tool/perf/vmcap.dart <ws-uri> <probe|clear|read|frames> '
       '[seconds]',
     );
     exit(64);

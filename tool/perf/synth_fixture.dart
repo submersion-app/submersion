@@ -3,14 +3,14 @@ import 'dart:io';
 import 'package:sqlite3/sqlite3.dart';
 
 const String _usage =
-    'Usage: dart run tools/synth_fixture.dart <source.db> <out.db> '
+    'Usage: dart run tool/perf/synth_fixture.dart <source.db> <out.db> '
     '[--replicas N]';
 
 /// Replicates every dive of a plaintext Submersion database N times under
 /// fresh ids so a small development library becomes a large benchmark
 /// fixture. Usage:
 ///
-///     dart run tools/synth_fixture.dart <source.db> <out.db> --replicas 25
+///     dart run tool/perf/synth_fixture.dart <source.db> <out.db> --replicas 25
 ///
 /// Never points at a live database: it copies the source file first, and
 /// refuses to run when the source and the output resolve to the same file.

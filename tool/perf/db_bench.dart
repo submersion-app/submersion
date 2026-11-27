@@ -9,9 +9,9 @@ import 'package:submersion/core/database/performance_indexes.dart';
 /// Runs the app's real hot-query shapes against a database COPY (never the
 /// live file). Usage:
 ///
-///     dart run tools/db_bench.dart bench <db-path> [--json] [--term blue]
-///     dart run tools/db_bench.dart plans <db-path>
-///     dart run tools/db_bench.dart create-indexes <db-path>
+///     dart run tool/perf/db_bench.dart bench <db-path> [--json] [--term blue]
+///     dart run tool/perf/db_bench.dart plans <db-path>
+///     dart run tool/perf/db_bench.dart create-indexes <db-path>
 ///
 /// Query shapes are copied from dive_repository_impl.dart (getDiveSummaries,
 /// getDiveCount, searchDives, _mapRowToDive, getPreviousDive) and the Data
@@ -21,7 +21,7 @@ import 'package:submersion/core/database/performance_indexes.dart';
 void main(List<String> args) {
   if (args.length < 2) {
     stderr.writeln(
-      'Usage: dart run tools/db_bench.dart <bench|plans|create-indexes> '
+      'Usage: dart run tool/perf/db_bench.dart <bench|plans|create-indexes> '
       '<db-path> [--json] [--term <search-term>]',
     );
     exit(64);
