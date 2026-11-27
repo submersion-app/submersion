@@ -5256,6 +5256,7 @@
   "equipment_list_collapseAllGroups": "全部折叠",
   "equipment_list_showParts": "显示部件",
   "equipment_list_hideParts": "隐藏部件",
+  "equipment_list_partCount": "{count, plural, =1{1 个部件} other{{count} 个部件}}",
   "equipment_location_activeFilter": "位置",
   "equipment_location_tileSemantics": "位置：{name}",
   "equipment_filter_section_location": "位置",

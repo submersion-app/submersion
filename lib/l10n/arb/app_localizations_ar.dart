@@ -17701,6 +17701,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_list_hideParts => 'إخفاء الأجزاء';
 
   @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count جزء',
+      many: '$count جزءًا',
+      few: '$count أجزاء',
+      two: 'جزآن',
+      one: 'جزء واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'الموقع';
 
   @override

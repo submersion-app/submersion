@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_fold_keys.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_fold_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
@@ -195,6 +196,17 @@ void main() {
       notifier.collapseAll(const [], assemblyIds: ['a']);
       expect(container.read(equipmentFoldsProvider), ['asm:a']);
       expect(stored(), isNull);
+    });
+
+    test('expand all keeps to the key cap', () {
+      container = build();
+      final notifier = container.read(equipmentFoldsProvider.notifier);
+      notifier.expandAll(
+        assemblyIds: [for (var i = 0; i <= kMaxStoredFoldKeys; i++) 'a$i'],
+      );
+      final keys = container.read(equipmentFoldsProvider);
+      expect(keys, hasLength(kMaxStoredFoldKeys));
+      expect(keys.last, 'asm:a$kMaxStoredFoldKeys');
     });
   });
 }

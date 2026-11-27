@@ -17308,6 +17308,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_list_hideParts => 'Onderdelen verbergen';
 
   @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count onderdelen',
+      one: '1 onderdeel',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Locatie';
 
   @override

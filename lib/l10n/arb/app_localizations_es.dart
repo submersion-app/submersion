@@ -17411,6 +17411,17 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_list_hideParts => 'Ocultar piezas';
 
   @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count piezas',
+      one: '1 pieza',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Ubicación';
 
   @override

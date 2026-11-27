@@ -17396,6 +17396,17 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_list_hideParts => 'Teile ausblenden';
 
   @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Teile',
+      one: '1 Teil',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Standort';
 
   @override

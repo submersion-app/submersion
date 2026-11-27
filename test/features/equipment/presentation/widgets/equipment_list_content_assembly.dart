@@ -36,6 +36,7 @@ void _assemblyViewTests() {
       EquipmentArrangement? storedArrangement,
       Future<ComponentsIndex>? index,
       List<Override> extra = const [],
+      SelectionController? selection,
     }) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
@@ -75,6 +76,7 @@ void _assemblyViewTests() {
           child: EquipmentListContent(
             showAppBar: false,
             selectedId: selectedId,
+            selectionController: selection,
             onItemSelected: selected == null
                 ? null
                 : (next) => selected.value = next,
@@ -391,6 +393,22 @@ void _assemblyViewTests() {
         index.complete(ComponentsIndex.fromRows([edge('rig', 'part')]));
         await tester.pumpAndSettle();
         expect(find.text('Part').hitTestable(), findsOneWidget);
+      });
+
+      testWidgets('a folded heading counts a ticked part nested in it', (
+        tester,
+      ) async {
+        final selection = SelectionController();
+        addTearDown(selection.dispose);
+        await pumpList(tester, saved: '["asm:sf2"]', selection: selection);
+        selection.selectAll(['c1']);
+        await tester.pumpAndSettle();
+
+        await tester.tap(
+          find.byKey(const ValueKey('equipment-type-fold-type:rebreather')),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('1 of 4 selected'), findsOneWidget);
       });
 
       testWidgets('an assembly with no parts on the list keeps its count', (

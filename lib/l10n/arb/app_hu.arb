@@ -5013,6 +5013,7 @@
   "equipment_list_collapseAllGroups": "Összes összecsukása",
   "equipment_list_showParts": "Részek megjelenítése",
   "equipment_list_hideParts": "Részek elrejtése",
+  "equipment_list_partCount": "{count, plural, =1{1 rész} other{{count} rész}}",
   "equipment_location_activeFilter": "Hely",
   "equipment_location_tileSemantics": "Hely: {name}",
   "equipment_filter_section_location": "Hely",

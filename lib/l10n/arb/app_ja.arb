@@ -5141,6 +5141,7 @@
   "equipment_list_collapseAllGroups": "すべて折りたたむ",
   "equipment_list_showParts": "パーツを表示",
   "equipment_list_hideParts": "パーツを隠す",
+  "equipment_list_partCount": "{count, plural, =1{パーツ1個} other{パーツ{count}個}}",
   "equipment_location_activeFilter": "場所",
   "equipment_location_tileSemantics": "場所：{name}",
   "equipment_filter_section_location": "場所",

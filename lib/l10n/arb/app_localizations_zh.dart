@@ -16587,6 +16587,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_list_hideParts => '隐藏部件';
 
   @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个部件',
+      one: '1 个部件',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => '位置';
 
   @override

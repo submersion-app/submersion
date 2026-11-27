@@ -5013,6 +5013,7 @@
   "equipment_list_collapseAllGroups": "כווץ הכול",
   "equipment_list_showParts": "הצגת החלקים",
   "equipment_list_hideParts": "הסתרת החלקים",
+  "equipment_list_partCount": "{count, plural, =1{חלק אחד} other{{count} חלקים}}",
   "equipment_location_activeFilter": "מיקום",
   "equipment_location_tileSemantics": "מיקום: {name}",
   "equipment_filter_section_location": "מיקום",

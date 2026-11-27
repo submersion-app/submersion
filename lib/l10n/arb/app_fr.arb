@@ -5013,6 +5013,7 @@
   "equipment_list_collapseAllGroups": "Tout replier",
   "equipment_list_showParts": "Afficher les pièces",
   "equipment_list_hideParts": "Masquer les pièces",
+  "equipment_list_partCount": "{count, plural, =1{{count} pièce} other{{count} pièces}}",
   "equipment_location_activeFilter": "Emplacement",
   "equipment_location_tileSemantics": "Emplacement : {name}",
   "equipment_filter_section_location": "Emplacement",

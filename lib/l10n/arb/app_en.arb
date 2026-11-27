@@ -10471,6 +10471,8 @@
   "@equipment_list_showParts": {"description": "Equipment list: tooltip and screen reader label of the chevron that opens a folded assembly to show its parts"},
   "equipment_list_hideParts": "Hide parts",
   "@equipment_list_hideParts": {"description": "Equipment list: tooltip and screen reader label of the chevron that folds an open assembly's parts away"},
+  "equipment_list_partCount": "{count, plural, =1{1 part} other{{count} parts}}",
+  "@equipment_list_partCount": {"description": "Equipment list assembly view: chip on an assembly row counting the parts listed under it, components and installed parts alike", "placeholders": {"count": {"type": "int"}}},
   "equipment_location_activeFilter": "Location",
   "@equipment_location_activeFilter": {"description": "Chip in the active filters bar when the list is filtered by location"},
   "equipment_location_tileSemantics": "Location: {name}",

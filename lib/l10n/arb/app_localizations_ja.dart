@@ -16815,6 +16815,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get equipment_list_hideParts => 'パーツを隠す';
 
   @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'パーツ$count個',
+      one: 'パーツ1個',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => '場所';
 
   @override

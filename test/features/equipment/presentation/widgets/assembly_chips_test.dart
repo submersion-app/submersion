@@ -95,7 +95,7 @@ void main() {
         build('reg', [edge('reg', 'hose'), edge('reg', 'yoke')], partCount: 5),
       );
       await tester.pumpAndSettle();
-      expect(find.text('5 components'), findsOneWidget);
+      expect(find.text('5 parts'), findsOneWidget);
     });
 
     testWidgets('the chip naming the row above is left out', (tester) async {

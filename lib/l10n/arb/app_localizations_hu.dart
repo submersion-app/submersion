@@ -17358,6 +17358,17 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_list_hideParts => 'Részek elrejtése';
 
   @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rész',
+      one: '1 rész',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Hely';
 
   @override

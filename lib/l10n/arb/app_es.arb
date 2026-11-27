@@ -5138,6 +5138,7 @@
   "equipment_list_collapseAllGroups": "Contraer todo",
   "equipment_list_showParts": "Mostrar piezas",
   "equipment_list_hideParts": "Ocultar piezas",
+  "equipment_list_partCount": "{count, plural, =1{1 pieza} other{{count} piezas}}",
   "equipment_location_activeFilter": "Ubicación",
   "equipment_location_tileSemantics": "Ubicación: {name}",
   "equipment_filter_section_location": "Ubicación",

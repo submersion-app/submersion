@@ -27637,6 +27637,12 @@ abstract class AppLocalizations {
   /// **'Hide parts'**
   String get equipment_list_hideParts;
 
+  /// Equipment list assembly view: chip on an assembly row counting the parts listed under it, components and installed parts alike
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 part} other{{count} parts}}'**
+  String equipment_list_partCount(int count);
+
   /// Chip in the active filters bar when the list is filtered by location
   ///
   /// In en, this message translates to:

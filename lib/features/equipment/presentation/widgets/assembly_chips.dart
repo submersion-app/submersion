@@ -53,17 +53,24 @@ class AssemblyChips extends ConsumerWidget {
     final l10n = context.l10n;
     final labels = <String>[];
 
-    final count = partCount ?? index.componentCount(itemId);
-    if (count > 0) labels.add(l10n.equipment_components_count(count));
+    // The assembly view's count spans components and installed parts, so
+    // it says "parts" rather than "components".
+    final parts = partCount;
+    if (parts != null) {
+      if (parts > 0) labels.add(l10n.equipment_list_partCount(parts));
+    } else {
+      final count = index.componentCount(itemId);
+      if (count > 0) labels.add(l10n.equipment_components_count(count));
+    }
 
-    final parents = _parentsShown(index, itemId, hideParentId);
-    if (parents.length == 1) {
+    final shownParents = _parentsShown(index, itemId, hideParentId);
+    if (shownParents.length == 1) {
       // Active gear is what the list already holds; a retired parent falls
       // back to the count form rather than costing a query.
       final active = ref.watch(activeEquipmentProvider).value ?? const [];
       String? name;
       for (final item in active) {
-        if (item.id == parents.single) {
+        if (item.id == shownParents.single) {
           name = item.name;
           break;
         }
@@ -73,8 +80,8 @@ class AssemblyChips extends ConsumerWidget {
             ? l10n.equipment_components_partOf(name)
             : l10n.equipment_components_partOfCount(1),
       );
-    } else if (parents.length > 1) {
-      labels.add(l10n.equipment_components_partOfCount(parents.length));
+    } else if (shownParents.length > 1) {
+      labels.add(l10n.equipment_components_partOfCount(shownParents.length));
     }
 
     if (labels.isEmpty) return const SizedBox.shrink();

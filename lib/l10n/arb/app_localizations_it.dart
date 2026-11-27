@@ -17414,6 +17414,17 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_list_hideParts => 'Nascondi parti';
 
   @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count parti',
+      one: '1 parte',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Posizione';
 
   @override

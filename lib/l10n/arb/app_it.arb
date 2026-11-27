@@ -5013,6 +5013,7 @@
   "equipment_list_collapseAllGroups": "Comprimi tutto",
   "equipment_list_showParts": "Mostra parti",
   "equipment_list_hideParts": "Nascondi parti",
+  "equipment_list_partCount": "{count, plural, =1{1 parte} other{{count} parti}}",
   "equipment_location_activeFilter": "Posizione",
   "equipment_location_tileSemantics": "Posizione: {name}",
   "equipment_filter_section_location": "Posizione",

@@ -69,6 +69,17 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
     return currentId;
   }
 
+  /// The fold keys over each item this build, from the layout: what a
+  /// folded heading's tick summary counts, nested parts included.
+  Map<String, List<String>> _foldKeysByItem = const {};
+
+  /// Every item [foldKey] hides when folded, parts under its assemblies
+  /// included (issue #5071).
+  List<String> _idsUnder(String foldKey) => [
+    for (final entry in _foldKeysByItem.entries)
+      if (entry.value.contains(foldKey)) entry.key,
+  ];
+
   /// Clears what the fold menu acts on, for a body with no rows.
   void _clearFoldTargets() {
     _outerKeys = const [];
@@ -140,6 +151,7 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
         if (row is EquipmentItemRow) row.item.id,
     }.toList();
     _assemblyIds = layout.assemblyIds;
+    _foldKeysByItem = layout.foldKeysByItem;
     return layout;
   }
 
@@ -147,9 +159,9 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
   Set<String> get _selectedIds;
 
   /// A folded group's "N of M selected" in selection mode, or null.
-  String? _selectionSummary(BuildContext context, List<EquipmentItem> items) =>
+  String? _selectionSummary(BuildContext context, String foldKey) =>
       _isSelectionMode
-      ? foldedTickSummary(context.l10n, items.map((e) => e.id), _selectedIds)
+      ? foldedTickSummary(context.l10n, _idsUnder(foldKey), _selectedIds)
       : null;
 
   /// A place's heading (issue #4184), with a divider above every place but
@@ -172,7 +184,7 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
           onTap: () => _toggleFold(row.foldKey, folds),
           summary: row.isExpanded
               ? null
-              : (_selectionSummary(context, row.items) ??
+              : (_selectionSummary(context, row.foldKey) ??
                     foldedLocationSummary(context.l10n, row.typeCounts)),
         ),
       ],
@@ -197,7 +209,7 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
       onTap: () => _toggleFold(row.foldKey, folds),
       summary: row.isExpanded
           ? null
-          : (_selectionSummary(context, row.items) ??
+          : (_selectionSummary(context, row.foldKey) ??
                 foldedTypeSummary(
                   context.l10n,
                   serviceDueCount: row.items

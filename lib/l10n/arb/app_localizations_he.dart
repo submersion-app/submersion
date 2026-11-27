@@ -17061,6 +17061,17 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_list_hideParts => 'הסתרת החלקים';
 
   @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count חלקים',
+      one: 'חלק אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'מיקום';
 
   @override

@@ -5138,6 +5138,7 @@
   "equipment_list_collapseAllGroups": "Alles inklappen",
   "equipment_list_showParts": "Onderdelen tonen",
   "equipment_list_hideParts": "Onderdelen verbergen",
+  "equipment_list_partCount": "{count, plural, =1{1 onderdeel} other{{count} onderdelen}}",
   "equipment_location_activeFilter": "Locatie",
   "equipment_location_tileSemantics": "Locatie: {name}",
   "equipment_filter_section_location": "Locatie",

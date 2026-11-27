@@ -5138,6 +5138,7 @@
   "equipment_list_collapseAllGroups": "طي الكل",
   "equipment_list_showParts": "إظهار الأجزاء",
   "equipment_list_hideParts": "إخفاء الأجزاء",
+  "equipment_list_partCount": "{count, plural, =1{جزء واحد} two{جزآن} few{{count} أجزاء} many{{count} جزءًا} other{{count} جزء}}",
   "equipment_location_activeFilter": "الموقع",
   "equipment_location_tileSemantics": "الموقع: {name}",
   "equipment_filter_section_location": "الموقع",

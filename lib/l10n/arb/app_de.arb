@@ -5263,6 +5263,7 @@
   "equipment_list_collapseAllGroups": "Alle einklappen",
   "equipment_list_showParts": "Teile anzeigen",
   "equipment_list_hideParts": "Teile ausblenden",
+  "equipment_list_partCount": "{count, plural, =1{1 Teil} other{{count} Teile}}",
   "equipment_location_activeFilter": "Standort",
   "equipment_location_tileSemantics": "Standort: {name}",
   "equipment_filter_section_location": "Standort",

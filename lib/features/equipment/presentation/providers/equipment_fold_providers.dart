@@ -62,7 +62,12 @@ class EquipmentFoldsNotifier extends Notifier<List<String>> {
     final opened = assembliesStartOpen
         ? const <String>[]
         : [for (final id in assemblyIds) assemblyFoldKey(id)];
-    _apply((_) => List.unmodifiable(opened));
+    // Kept to the cap like every other write, so the next toggle trims
+    // nothing the diver just opened.
+    final overflow = opened.length - kMaxStoredFoldKeys;
+    _apply(
+      (_) => List.unmodifiable(overflow > 0 ? opened.skip(overflow) : opened),
+    );
   }
 
   /// Folds [outer], the outermost groups on screen (the places when the
