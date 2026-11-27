@@ -78,6 +78,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_event_labels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_highlight_range.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/species_profile_overlay.dart';
+import 'package:submersion/features/dive_log/presentation/providers/species_profile_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/counterdiffusion_overlay.dart';
 import 'package:submersion/features/dive_log/domain/entities/counterdiffusion_analysis.dart';
 import 'package:submersion/core/ui/trackpad_zoom_recognizer.dart';
@@ -480,6 +482,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Renders as a translucent vertical band with edge lines; short and
   /// instant ranges inflate to a minimum on-screen width.
   final ProfileHighlightRange? highlightRange;
+
+  /// The species selected in the Marine life card (issue #5092): bands for
+  /// the stretches it was in view and dots for its moments, in its colour.
+  final SpeciesProfileHighlight? speciesHighlight;
 
   /// Ranges drawn as plain bands behind [highlightRange], without edge
   /// lines, and only while the O2 cell overlay is on: the cell divergence
@@ -903,6 +909,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.highlightedTimestamp,
     this.playbackIsPlaying = false,
     this.highlightRange,
+    this.speciesHighlight,
     this.secondaryRanges = const [],
     this.safetyFindings,
     this.selectedSafetyFindingId,
@@ -4123,6 +4130,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       commonSig,
       identityHashCode(widget.markers),
       identityHashCode(widget.tankPressures),
+      identityHashCode(widget.speciesHighlight),
     ]);
     _overlaysSig = _sigOf([commonSig, identityHashCode(widget.overlays)]);
   }
@@ -4487,7 +4495,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             minPressure: minPressure,
             maxPressure: maxPressure,
           );
-          return _tagAll(markerLines, null);
+          // The selected species' moments (issue #5092), dots like these.
+          final speciesDots = speciesMomentDots(
+            widget.speciesHighlight,
+            y: (meters) => -units.convertDepth(meters),
+            ring: backdropColorOf(context),
+          );
+          return _tagAll([...markerLines, ?speciesDots], null);
         }),
         ..._barsCache.series('overlays', _overlaysSig, () {
           // Overlaid comparison sources — LAST, so depth bars keep
@@ -4842,6 +4856,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 ...buildHighlightRangeLines(
                   highlightSpan,
                   widget.highlightRange?.color,
+                ),
+                ...speciesMomentLines(
+                  widget.speciesHighlight,
+                  visibleMinX: visibleMinX,
+                  visibleMaxX: visibleMaxX,
                 ),
                 if (_showCounterdiffusion)
                   ...icdSwitchMarkerLines(
@@ -7719,6 +7738,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         );
       }
     }
+    // The selected species (issue #5092), under a selected finding.
+    annotations.addAll(
+      speciesHighlightBands(
+        widget.speciesHighlight,
+        visibleMinX: visibleMinX,
+        visibleMaxX: visibleMaxX,
+      ),
+    );
     final range = widget.highlightRange;
     if (range != null && span != null) {
       annotations.add(

@@ -534,6 +534,11 @@ class DiveProfileChartHost extends ConsumerWidget {
           visibleSelectedFinding,
           Theme.of(context).colorScheme,
         ),
+        speciesHighlight: watchSpeciesHighlight(
+          ref,
+          dive,
+          brightness: Theme.of(context).brightness,
+        ),
         secondaryRanges: cellDivergenceHighlightRanges(
           sensorSummary,
           Theme.of(context).colorScheme,
