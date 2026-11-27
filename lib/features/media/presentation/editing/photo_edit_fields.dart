@@ -22,6 +22,7 @@ const photoColorCardId = 'color';
 const photoDetailsCardId = 'details';
 const photoFileCardId = 'file';
 const photoTagsCardId = 'tags';
+const photoGearCardId = 'gear';
 
 /// The species tagged and untagged, as edits on the stored tags.
 final photoSpeciesField = EditField<PhotoRecord, SpeciesTagEdits>(
@@ -49,6 +50,15 @@ final photoTagsField = EditField<PhotoRecord, MediaTagEdits>(
   write: (record, edits) => record.copyWith(tags: edits.applyTo(record.tags)),
 );
 
+/// The gear linked to the photo (#5046), as edits.
+final photoGearField = EditField<PhotoRecord, MediaGearEdits>(
+  id: 'photoGear',
+  cardId: photoGearCardId,
+  read: (_) => MediaGearEdits.none,
+  write: (record, edits) =>
+      record.copyWith(gearIds: edits.applyTo(record.gearIds)),
+);
+
 /// The moment in the dive the diver pinned the photo to.
 final photoPinField = EditField<PhotoRecord, int?>(
   id: 'photoPin',
@@ -70,6 +80,7 @@ final photoDiveShiftField = EditField<PhotoRecord, int?>(
     people: record.people,
     diveShiftSeconds: seconds,
     tags: record.tags,
+    gearIds: record.gearIds,
   ),
 );
 

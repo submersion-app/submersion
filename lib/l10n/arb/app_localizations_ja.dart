@@ -60435,6 +60435,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_info_noTags => 'タグはまだありません';
 
   @override
+  String get media_info_gear => '器材';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'タグ「$tagName」のメディアを表示';
   }

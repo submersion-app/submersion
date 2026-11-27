@@ -98596,6 +98596,12 @@ abstract class AppLocalizations {
   /// **'No tags yet'**
   String get media_info_noTags;
 
+  /// No description provided for @media_info_gear.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear'**
+  String get media_info_gear;
+
   /// No description provided for @media_info_showWithTag.
   ///
   /// In en, this message translates to:

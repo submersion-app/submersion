@@ -314,6 +314,62 @@ class MediaTagEdits extends Equatable {
   List<Object?> get props => [added, removed];
 }
 
+/// The gear a photo's sitting linked and unlinked (issue #5046), by
+/// equipment id, held as edits for the reason [SpeciesTagEdits] is: a link
+/// made on another device during the sitting, which the edits never name,
+/// is kept at Save.
+@immutable
+class MediaGearEdits extends Equatable {
+  const MediaGearEdits({this.added = const {}, this.removed = const {}});
+
+  static const none = MediaGearEdits();
+
+  /// Gear linked in the sitting.
+  final Set<String> added;
+
+  /// Stored links removed in the sitting.
+  final Set<String> removed;
+
+  bool get isEmpty => added.isEmpty && removed.isEmpty;
+
+  /// The edits that turn [stored] into [chosen], as the gear sheet hands
+  /// back the whole set.
+  factory MediaGearEdits.between(List<String> stored, List<String> chosen) {
+    final had = stored.toSet();
+    final has = chosen.toSet();
+    return MediaGearEdits(
+      added: has.difference(had),
+      removed: had.difference(has),
+    );
+  }
+
+  /// [stored] without the removed links, then the added ones it does not
+  /// have already.
+  List<String> applyTo(List<String> stored) {
+    final kept = [
+      for (final id in stored)
+        if (!removed.contains(id)) id,
+    ];
+    return [
+      ...kept,
+      for (final id in added)
+        if (!kept.contains(id)) id,
+    ];
+  }
+
+  /// These edits less the ones [stored] has made moot.
+  MediaGearEdits prunedTo(List<String> stored) {
+    final ids = stored.toSet();
+    return MediaGearEdits(
+      added: added.difference(ids),
+      removed: removed.intersection(ids),
+    );
+  }
+
+  @override
+  List<Object?> get props => [added, removed];
+}
+
 /// Whether [a] and [b] name the same person at the same spot and moment;
 /// their ids and timestamps aside.
 bool samePersonTag(MediaPersonTag a, MediaPersonTag b) =>

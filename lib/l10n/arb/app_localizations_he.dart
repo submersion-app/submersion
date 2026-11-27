@@ -61697,6 +61697,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_info_noTags => 'אין תגיות עדיין';
 
   @override
+  String get media_info_gear => 'ציוד';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'הצג מדיה עם התגית $tagName';
   }

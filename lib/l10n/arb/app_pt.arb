@@ -18368,6 +18368,7 @@
   "tags_action_edit": "Editar etiquetas",
   "media_info_tags": "Etiquetas",
   "media_info_noTags": "Ainda sem etiquetas",
+  "media_info_gear": "Equipamento",
   "media_info_showWithTag": "Mostrar mídia com a etiqueta {tagName}",
   "media_library_filter_tags": "Etiquetas",
   "media_library_filter_attachedTo": "Vinculado a",

@@ -1,5 +1,6 @@
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/media/data/repositories/media_gear_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
@@ -14,7 +15,9 @@ class PhotoRecordReader {
     required MediaSpeciesRepository species,
     required MediaPeopleRepository people,
     required TagLinkRepository tags,
+    MediaGearRepository? gear,
   }) : _media = media,
+       _gear = gear ?? MediaGearRepository(),
        _species = species,
        _people = people,
        _tags = tags;
@@ -23,6 +26,7 @@ class PhotoRecordReader {
   final MediaSpeciesRepository _species;
   final MediaPeopleRepository _people;
   final TagLinkRepository _tags;
+  final MediaGearRepository _gear;
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -34,9 +38,11 @@ class PhotoRecordReader {
     final species = await _species.getTagChipsForMedia(mediaId);
     final people = await _people.getChipsForMedia(mediaId, diverId: diverId);
     final tags = await _tags.getTagsFor(mediaId);
+    final gearIds = await _gear.gearIdsFor(mediaId);
     final diveId = item.diveId;
     return PhotoRecord(
       tags: tags,
+      gearIds: gearIds,
       item: item,
       species: species,
       people: people,

@@ -18368,6 +18368,7 @@
   "tags_action_edit": "Modifier les étiquettes",
   "media_info_tags": "Étiquettes",
   "media_info_noTags": "Aucune étiquette pour l'instant",
+  "media_info_gear": "Équipement",
   "media_info_showWithTag": "Afficher les médias avec l'étiquette {tagName}",
   "media_library_filter_tags": "Étiquettes",
   "media_library_filter_attachedTo": "Rattaché à",

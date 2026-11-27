@@ -18368,6 +18368,7 @@
   "tags_action_edit": "Modifica tag",
   "media_info_tags": "Tag",
   "media_info_noTags": "Ancora nessun tag",
+  "media_info_gear": "Attrezzatura",
   "media_info_showWithTag": "Mostra i media con il tag {tagName}",
   "media_library_filter_tags": "Tag",
   "media_library_filter_attachedTo": "Collegato a",

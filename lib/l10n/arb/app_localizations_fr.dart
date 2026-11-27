@@ -63128,6 +63128,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_info_noTags => 'Aucune étiquette pour l\'instant';
 
   @override
+  String get media_info_gear => 'Équipement';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Afficher les médias avec l\'étiquette $tagName';
   }

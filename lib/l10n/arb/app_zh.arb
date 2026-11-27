@@ -18368,6 +18368,7 @@
   "tags_action_edit": "编辑标签",
   "media_info_tags": "标签",
   "media_info_noTags": "暂无标签",
+  "media_info_gear": "装备",
   "media_info_showWithTag": "显示带有标签 {tagName} 的媒体",
   "media_library_filter_tags": "标签",
   "media_library_filter_attachedTo": "关联到",

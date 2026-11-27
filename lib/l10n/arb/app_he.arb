@@ -18368,6 +18368,7 @@
   "tags_action_edit": "עריכת תגיות",
   "media_info_tags": "תגיות",
   "media_info_noTags": "אין תגיות עדיין",
+  "media_info_gear": "ציוד",
   "media_info_showWithTag": "הצג מדיה עם התגית {tagName}",
   "media_library_filter_tags": "תגיות",
   "media_library_filter_attachedTo": "מקושר אל",

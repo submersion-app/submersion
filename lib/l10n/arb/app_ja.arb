@@ -18478,6 +18478,7 @@
   "tags_action_edit": "タグを編集",
   "media_info_tags": "タグ",
   "media_info_noTags": "タグはまだありません",
+  "media_info_gear": "器材",
   "media_info_showWithTag": "タグ「{tagName}」のメディアを表示",
   "media_library_filter_tags": "タグ",
   "media_library_filter_attachedTo": "添付先",

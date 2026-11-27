@@ -144,6 +144,10 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
       photoTagsField,
       session.valueOf(photoTagsField).prunedTo(stored.tags),
     );
+    prune(
+      photoGearField,
+      session.valueOf(photoGearField).prunedTo(stored.gearIds),
+    );
   }
 
   /// Whether this page edits a document's details: the PDF viewer and the

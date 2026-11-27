@@ -63980,6 +63980,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_info_noTags => 'لا توجد وسوم بعد';
 
   @override
+  String get media_info_gear => 'المعدات';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'عرض الوسائط الموسومة بـ $tagName';
   }

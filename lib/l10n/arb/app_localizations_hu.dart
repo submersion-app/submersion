@@ -62633,6 +62633,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_info_noTags => 'Még nincsenek címkék';
 
   @override
+  String get media_info_gear => 'Felszerelés';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return '$tagName címkéjű média megjelenítése';
   }

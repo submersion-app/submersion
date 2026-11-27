@@ -62873,6 +62873,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_info_noTags => 'Noch keine Tags';
 
   @override
+  String get media_info_gear => 'Ausrüstung';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Mit $tagName getaggte Medien anzeigen';
   }

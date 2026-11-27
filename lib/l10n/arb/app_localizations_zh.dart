@@ -59118,6 +59118,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_info_noTags => '暂无标签';
 
   @override
+  String get media_info_gear => '装备';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return '显示带有标签 $tagName 的媒体';
   }

@@ -62019,6 +62019,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_info_noTags => 'No tags yet';
 
   @override
+  String get media_info_gear => 'Gear';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Show media tagged $tagName';
   }

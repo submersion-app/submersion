@@ -63047,6 +63047,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_info_noTags => 'Aún no hay etiquetas';
 
   @override
+  String get media_info_gear => 'Equipo';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Mostrar multimedia con la etiqueta $tagName';
   }

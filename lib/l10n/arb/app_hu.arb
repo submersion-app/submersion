@@ -18368,6 +18368,7 @@
   "tags_action_edit": "Címkék szerkesztése",
   "media_info_tags": "Címkék",
   "media_info_noTags": "Még nincsenek címkék",
+  "media_info_gear": "Felszerelés",
   "media_info_showWithTag": "{tagName} címkéjű média megjelenítése",
   "media_library_filter_tags": "Címkék",
   "media_library_filter_attachedTo": "Csatolva ehhez",

@@ -62621,6 +62621,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_info_noTags => 'Nog geen tags';
 
   @override
+  String get media_info_gear => 'Uitrusting';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Media met tag $tagName tonen';
   }

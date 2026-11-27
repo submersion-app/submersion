@@ -18493,6 +18493,7 @@
   "tags_action_edit": "Tags bearbeiten",
   "media_info_tags": "Tags",
   "media_info_noTags": "Noch keine Tags",
+  "media_info_gear": "Ausrüstung",
   "media_info_showWithTag": "Mit {tagName} getaggte Medien anzeigen",
   "media_library_filter_tags": "Tags",
   "media_library_filter_attachedTo": "Verknüpft mit",
