@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
 
@@ -27,6 +28,9 @@ class ReadOnlyQueryInterceptor extends QueryInterceptor {
         ? '${statement.substring(0, 80)}...'
         : statement;
     _log.warning('pop-out refused a write: $shown');
+    // Also on the console in debug builds, where a missed writer shows up
+    // while the pop-out is being tried by hand.
+    if (kDebugMode) debugPrint('pop-out refused a write: $shown');
     throw ReadOnlyViolation(shown);
   }
 
