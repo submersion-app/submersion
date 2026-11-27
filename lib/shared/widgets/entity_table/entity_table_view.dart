@@ -520,7 +520,10 @@ class _EntityTableViewState<T, F extends EntityField>
                     const SizedBox(width: Spacing.s6),
                     ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: math.max(0, (_widthOf(column) - 16 - 6) / 2),
+                        maxWidth: math.max(
+                          0,
+                          (_widthOf(column) - 2 * Spacing.s8 - Spacing.s6) / 2,
+                        ),
                       ),
                       child: trailing,
                     ),

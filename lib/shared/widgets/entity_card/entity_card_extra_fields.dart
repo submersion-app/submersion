@@ -48,7 +48,7 @@ class EntityCardExtraFields<T, F extends EntityField> extends StatelessWidget {
         final useOneColumn = constraints.maxWidth < 250;
         final width = useOneColumn
             ? constraints.maxWidth
-            : (constraints.maxWidth - 16) / 2;
+            : (constraints.maxWidth - Spacing.s16) / 2;
         return Wrap(
           spacing: Spacing.s16,
           runSpacing: Spacing.s4,
