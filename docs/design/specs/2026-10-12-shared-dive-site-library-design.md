@@ -333,6 +333,7 @@ writes to a library site always succeed offline; the dirty flag carries them.
 ## Out of scope
 
 Encryption of the library folder (the existing decorator can wrap the provider
-later), media in the library, Dropbox, Google Drive and iCloud as library
+later), media in the library (documents on library sites came later, see
+[shared site library documents](2026-11-27-shared-library-site-documents-design.md)), Dropbox, Google Drive and iCloud as library
 backends (their folders are private to one account), standalone comments,
 conflict cards, and the public community backend of roadmap 14.2 and 14.3.

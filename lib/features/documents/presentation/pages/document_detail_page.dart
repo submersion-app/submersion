@@ -392,7 +392,11 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
         return Column(
           children: [
             Expanded(child: viewer),
-            _libraryCard(doc),
+            // In line with the details panel below it.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: _libraryCard(doc),
+            ),
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: constraints.maxHeight / 2),
               child: DocumentDetailsPanel(
