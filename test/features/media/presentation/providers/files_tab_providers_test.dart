@@ -991,7 +991,7 @@ void main() {
           },
           unmatched: [b],
         ),
-        fromFolder: true,
+        folderPaths: {'/b.jpg'},
       );
 
       when(
@@ -1009,18 +1009,47 @@ void main() {
       expect(captured.map((m) => m.originalFilename), ['a.jpg']);
     });
 
-    test('clearStagedFiles forgets that the set came from a folder', () {
+    // One drop can hold a folder and loose files: only the loose ones were
+    // chosen for the dive.
+    test('takes a loose file to the dive but not a folder\'s', () async {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      final scanned = _ef('/card/scanned.jpg');
+      final loose = _ef('/loose.mp4');
+      notifier.setFiles(
+        [scanned, loose],
+        match: MatchedSelection(matched: const {}, unmatched: [scanned, loose]),
+        folderPaths: {'/card/scanned.jpg'},
+      );
+
+      when(
+        mockPlatform.createBookmark(any),
+      ).thenAnswer((_) async => Uint8List.fromList([1, 2, 3]));
+      when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
+      final captured = <MediaItem>[];
+      when(mockRepo.createMedia(any)).thenAnswer((invocation) async {
+        captured.add(invocation.positionalArguments.first as MediaItem);
+        return _saved('saved-${captured.length}');
+      });
+
+      await notifier.commit(target: const DiveAttachTarget('dive-a'));
+
+      expect(captured.map((m) => (m.originalFilename, m.diveId)), [
+        ('loose.mp4', 'dive-a'),
+      ]);
+    });
+
+    test('clearStagedFiles forgets which files a folder scan found', () {
       final notifier = container.read(filesTabNotifierProvider.notifier);
       notifier.setFiles(
         [_ef('/a.jpg')],
         match: MatchedSelection.empty(),
-        fromFolder: true,
+        folderPaths: {'/a.jpg'},
       );
-      expect(notifier.state.fromFolder, isTrue);
+      expect(notifier.state.folderPaths, {'/a.jpg'});
 
       notifier.clearStagedFiles();
 
-      expect(notifier.state.fromFolder, isFalse);
+      expect(notifier.state.folderPaths, isEmpty);
     });
   });
 

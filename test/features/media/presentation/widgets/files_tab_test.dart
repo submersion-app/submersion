@@ -405,7 +405,7 @@ void main() {
       final seed = FilesTabState.initial().copyWith(
         files: files,
         match: MatchedSelection(matched: const {}, unmatched: files),
-        fromFolder: true,
+        folderPaths: {'/a.jpg'},
       );
       await tester.pumpWidget(wrap(seed, diveId: 'd1'));
 

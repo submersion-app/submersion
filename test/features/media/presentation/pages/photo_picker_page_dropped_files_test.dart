@@ -126,7 +126,7 @@ class _Harness {
   void open({
     List<String>? initialFilePaths,
     MediaAttachTarget? target,
-    bool initialFilesFromFolder = false,
+    Set<String> initialFolderPaths = const {},
   }) {
     navigatorKey.currentState!.push(
       MaterialPageRoute<void>(
@@ -135,7 +135,7 @@ class _Harness {
           endTime: DateTime.utc(2024, 1, 1, 11),
           target: target,
           initialFilePaths: initialFilePaths,
-          initialFilesFromFolder: initialFilesFromFolder,
+          initialFolderPaths: initialFolderPaths,
         ),
       ),
     );
@@ -183,11 +183,11 @@ void main() {
     h.open(
       initialFilePaths: _dropped,
       target: const SiteAttachTarget('site-1'),
-      initialFilesFromFolder: true,
+      initialFolderPaths: _dropped.toSet(),
     );
     await _settle(tester);
 
-    expect(h.filesTab.state.fromFolder, isTrue);
+    expect(h.filesTab.state.folderPaths, _dropped.toSet());
   });
 
   testWidgets(

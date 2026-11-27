@@ -24,8 +24,8 @@ import 'package:submersion/features/media/presentation/providers/media_resolver_
 /// - Otherwise [DivePhotoMatcher] assigns each file to the dive whose window
 ///   holds its capture time.
 ///
-/// [fromFolder] marks a folder scan, whose unmatched files a dive does not
-/// take on commit (see [FilesTabState.fromFolder]).
+/// [folderPaths] names the paths a folder scan found, whose unmatched files a
+/// dive does not take on commit (see [FilesTabState.folderPaths]).
 ///
 /// Takes the [ProviderContainer] rather than a widget's ref because the
 /// metadata reads outlive a frame: the picker that started them may close
@@ -38,7 +38,7 @@ Future<void> stageFilesForReview(
   List<String> paths, {
   MediaAttachTarget? target,
   bool Function()? isActive,
-  bool fromFolder = false,
+  Set<String> folderPaths = const {},
 }) async {
   bool active() => isActive?.call() ?? true;
 
@@ -68,7 +68,7 @@ Future<void> stageFilesForReview(
     notifier.setFiles(
       extracted,
       match: MatchedSelection.empty(),
-      fromFolder: fromFolder,
+      folderPaths: folderPaths,
     );
     return;
   }
@@ -84,7 +84,7 @@ Future<void> stageFilesForReview(
         ),
         _ => MatchedSelection(matched: const {}, unmatched: extracted),
       },
-      fromFolder: fromFolder,
+      folderPaths: folderPaths,
     );
     return;
   }
@@ -96,5 +96,5 @@ Future<void> stageFilesForReview(
     dives: bounds,
     offset: state.captureTimeOffset,
   );
-  notifier.setFiles(extracted, match: result, fromFolder: fromFolder);
+  notifier.setFiles(extracted, match: result, folderPaths: folderPaths);
 }

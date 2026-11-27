@@ -48,7 +48,7 @@ class FilesTab extends ConsumerWidget {
   /// A [DiveAttachTarget] backs the review pane's "add all to this dive"
   /// action, and makes the commit button take the hand-picked files the date
   /// matcher rejected to that dive: the user picked them on it (a folder
-  /// scan's stay out, see [FilesTabState.fromFolder]). Counting only the
+  /// scan's stay out, see [FilesTabState.folderPaths]). Counting only the
   /// matched files left an Android video whose time could not be placed
   /// under a disabled "Link 0", seen but never saved (issue #5063).
   ///
@@ -122,7 +122,7 @@ class FilesTab extends ConsumerWidget {
       paths,
       target: target,
       isActive: () => context.mounted,
-      fromFolder: true,
+      folderPaths: paths.toSet(),
     );
   }
   // coverage:ignore-end
@@ -236,9 +236,7 @@ class FilesTab extends ConsumerWidget {
   int _committableCount(BuildContext context, FilesTabState state) {
     if (_ownsEveryFile) return state.files.length;
     final diveId = _assignableDiveId;
-    final unplaced = diveId != null && state.unmatchedGoToTarget
-        ? state.match.unmatched.length
-        : 0;
+    final unplaced = diveId != null ? state.unmatchedForTarget.length : 0;
     if (diveId != null && MediaHoldScope.maybeOf(context) != null) {
       return (state.match.matched[diveId]?.length ?? 0) + unplaced;
     }
@@ -320,9 +318,7 @@ class FilesTab extends ConsumerWidget {
     final staged = ref.read(filesTabNotifierProvider);
     final diveIds = {
       ...staged.match.matched.keys,
-      if (dive is DiveAttachTarget &&
-          staged.unmatchedGoToTarget &&
-          staged.match.unmatched.isNotEmpty)
+      if (dive is DiveAttachTarget && staged.unmatchedForTarget.isNotEmpty)
         dive.diveId,
     }.toList();
     final created = await notifier.commit(target: target);

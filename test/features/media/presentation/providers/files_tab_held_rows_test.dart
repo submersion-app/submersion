@@ -118,7 +118,7 @@ void main() {
         },
         unmatched: [b],
       ),
-      fromFolder: true,
+      folderPaths: {'/b.jpg'},
     );
 
     final held = await notifier.heldRows('d1');

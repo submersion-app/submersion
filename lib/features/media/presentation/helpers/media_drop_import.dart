@@ -15,16 +15,16 @@ import 'package:submersion/features/media/presentation/pages/media_import_view.d
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
-/// Imports photos and videos dropped onto the app window. [fromFolder] says
-/// the drop held a folder, whose files a dive takes only once they are placed
-/// (see `FilesTabState.fromFolder`).
+/// Imports photos and videos dropped onto the app window. [folderPaths] names
+/// the paths found in dropped folders, whose files a dive takes only once they
+/// are placed (see `FilesTabState.folderPaths`).
 typedef MediaDropHandler =
     Future<void> Function(
       BuildContext context,
       WidgetRef ref,
       MediaDropDestination destination,
       List<String> paths, {
-      bool fromFolder,
+      Set<String> folderPaths,
     });
 
 /// Opens the importer [destination] names, with the dropped [paths] staged
@@ -44,7 +44,7 @@ Future<void> importDroppedMedia(
   WidgetRef ref,
   MediaDropDestination destination,
   List<String> paths, {
-  bool fromFolder = false,
+  Set<String> folderPaths = const {},
 }) async {
   final target = destination.target;
   if (target is SiteAttachTarget) {
@@ -75,7 +75,13 @@ Future<void> importDroppedMedia(
     case DiveDropAnswer.hold:
       final session = open!.session;
       open.showMediaCard();
-      await _holdDropped(context, ref, session, paths, fromFolder: fromFolder);
+      await _holdDropped(
+        context,
+        ref,
+        session,
+        paths,
+        folderPaths: folderPaths,
+      );
   }
 }
 
@@ -91,14 +97,14 @@ Future<void> _holdDropped(
   WidgetRef ref,
   EditSession<Dive> session,
   List<String> paths, {
-  required bool fromFolder,
+  required Set<String> folderPaths,
 }) async {
   await PhotoImportHelper.importPhotosForDive(
     context: context,
     ref: ref,
     dive: session.working,
     initialFilePaths: paths,
-    initialFilesFromFolder: fromFolder,
+    initialFolderPaths: folderPaths,
     onHold: (adds) => addMediaToSitting(session, adds),
   );
 }

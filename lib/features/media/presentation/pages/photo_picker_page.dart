@@ -62,10 +62,10 @@ class PhotoPickerPage extends ConsumerStatefulWidget {
   /// dropped.
   final List<String>? initialFilePaths;
 
-  /// Whether [initialFilePaths] came from a dropped folder rather than being
+  /// Those of [initialFilePaths] found in a dropped folder rather than
   /// dropped one by one: a dive does not take a folder's unplaced files
-  /// (issue #5063, see [FilesTabState.fromFolder]).
-  final bool initialFilesFromFolder;
+  /// (issue #5063, see [FilesTabState.folderPaths]).
+  final Set<String> initialFolderPaths;
 
   /// Replaces the Gallery tab's search of [startTime] to [endTime] on a
   /// platform with a photo library, for a caller that knows better than a
@@ -86,7 +86,7 @@ class PhotoPickerPage extends ConsumerStatefulWidget {
     this.onSelectionConfirmed,
     this.target,
     this.initialFilePaths,
-    this.initialFilesFromFolder = false,
+    this.initialFolderPaths = const {},
     this.loadAssets,
     this.galleryOnly = false,
   }) : assert(!galleryOnly || initialFilePaths == null);
@@ -160,7 +160,7 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage>
       paths,
       target: widget.target,
       isActive: () => mounted,
-      fromFolder: widget.initialFilesFromFolder,
+      folderPaths: widget.initialFolderPaths,
     );
   }
 

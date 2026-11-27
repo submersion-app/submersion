@@ -93,11 +93,17 @@ void main() {
     test('marks a folder scan, and a hand pick as not one', () async {
       final container = _container();
 
-      await stageFilesForReview(container, [_path('10.jpg')], fromFolder: true);
-      expect(container.read(filesTabNotifierProvider).fromFolder, isTrue);
+      await stageFilesForReview(
+        container,
+        [_path('10.jpg')],
+        folderPaths: {_path('10.jpg')},
+      );
+      expect(container.read(filesTabNotifierProvider).folderPaths, {
+        _path('10.jpg'),
+      });
 
       await stageFilesForReview(container, [_path('10.jpg')]);
-      expect(container.read(filesTabNotifierProvider).fromFolder, isFalse);
+      expect(container.read(filesTabNotifierProvider).folderPaths, isEmpty);
     });
 
     test('a site session stages every file flat, with no matching', () async {

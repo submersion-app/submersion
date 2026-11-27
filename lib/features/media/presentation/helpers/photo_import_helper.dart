@@ -28,8 +28,8 @@ class PhotoImportHelper {
   /// [dive] - The dive to associate photos with.
   /// [initialFilePaths] - Files already in hand (a desktop drop), opened in
   /// the picker's Files tab for review.
-  /// [initialFilesFromFolder] - Whether those files came from a dropped
-  /// folder (see [PhotoPickerPage.initialFilesFromFolder]).
+  /// [initialFolderPaths] - Those of them found in a dropped folder (see
+  /// [PhotoPickerPage.initialFolderPaths]).
   ///
   /// Returns true if photos were imported, false if cancelled or failed.
   static Future<bool> importPhotosForDive({
@@ -37,7 +37,7 @@ class PhotoImportHelper {
     required WidgetRef ref,
     required Dive dive,
     List<String>? initialFilePaths,
-    bool initialFilesFromFolder = false,
+    Set<String> initialFolderPaths = const {},
     MediaHoldSink? onHold,
   }) async {
     // Calculate time window with 30-minute buffer
@@ -91,7 +91,7 @@ class PhotoImportHelper {
       // Lets the Files tab link photos this dive's date window rejected.
       target: DiveAttachTarget(dive.id),
       initialFilePaths: initialFilePaths,
-      initialFilesFromFolder: initialFilesFromFolder,
+      initialFolderPaths: initialFolderPaths,
       onHold: onHold,
       loadAssets: (isActive) => DiveGalleryLookup.find(
         windowStart: windowStart,

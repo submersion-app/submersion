@@ -42,13 +42,14 @@ class FilesTabState extends Equatable {
   /// offset left set would silently follow the user into their next import.
   final Duration captureTimeOffset;
 
-  /// Whether the staged files came from a folder scan rather than being
-  /// picked one by one.
+  /// The staged paths a folder scan found, rather than the user picking or
+  /// dropping each one.
   ///
   /// Picked on a dive, a file the matcher could not place is that dive's
   /// (issue #5063). A folder scan chose no file for the dive, so what it
-  /// could not place stays out unless the user assigns it.
-  final bool fromFolder;
+  /// could not place stays out unless the user assigns it. Kept per path,
+  /// since one drop can hold a folder and loose files.
+  final Set<String> folderPaths;
 
   const FilesTabState({
     required this.files,
@@ -58,7 +59,7 @@ class FilesTabState extends Equatable {
     required this.totalToExtract,
     required this.match,
     required this.captureTimeOffset,
-    this.fromFolder = false,
+    this.folderPaths = const {},
   });
 
   factory FilesTabState.initial() => FilesTabState(
@@ -79,7 +80,7 @@ class FilesTabState extends Equatable {
     int? totalToExtract,
     MatchedSelection? match,
     Duration? captureTimeOffset,
-    bool? fromFolder,
+    Set<String>? folderPaths,
   }) => FilesTabState(
     files: files ?? this.files,
     autoMatchByDate: autoMatchByDate ?? this.autoMatchByDate,
@@ -88,11 +89,15 @@ class FilesTabState extends Equatable {
     totalToExtract: totalToExtract ?? this.totalToExtract,
     match: match ?? this.match,
     captureTimeOffset: captureTimeOffset ?? this.captureTimeOffset,
-    fromFolder: fromFolder ?? this.fromFolder,
+    folderPaths: folderPaths ?? this.folderPaths,
   );
 
-  /// Whether a commit on a dive takes the unmatched files to that dive.
-  bool get unmatchedGoToTarget => !fromFolder;
+  /// The unmatched files a commit on a dive takes to that dive: every one
+  /// the user picked rather than a folder scan found.
+  List<ExtractedFile> get unmatchedForTarget => [
+    for (final file in match.unmatched)
+      if (!folderPaths.contains(file.sourcePath)) file,
+  ];
 
   @override
   List<Object?> get props => [
@@ -103,7 +108,7 @@ class FilesTabState extends Equatable {
     totalToExtract,
     match,
     captureTimeOffset,
-    fromFolder,
+    folderPaths,
   ];
 }
 
@@ -187,18 +192,22 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
       extractedCount: 0,
       totalToExtract: 0,
       captureTimeOffset: Duration.zero,
-      fromFolder: false,
+      folderPaths: const {},
     );
   }
 
-  /// Stages [files] with their [match]; [fromFolder] says whether a folder
-  /// scan found them (see [FilesTabState.fromFolder]).
+  /// Stages [files] with their [match]; [folderPaths] names those a folder
+  /// scan found (see [FilesTabState.folderPaths]).
   void setFiles(
     List<ExtractedFile> files, {
     required MatchedSelection match,
-    bool fromFolder = false,
+    Set<String> folderPaths = const {},
   }) {
-    state = state.copyWith(files: files, match: match, fromFolder: fromFolder);
+    state = state.copyWith(
+      files: files,
+      match: match,
+      folderPaths: folderPaths,
+    );
   }
 
   /// Applies a new capture-time [offset] together with the [match] it produced.
@@ -318,7 +327,7 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
   ///   review pane lets the user correct first, and every unmatched file on
   ///   the target dive: the user picked it on that dive (issue #5063). A
   ///   folder scan's unmatched files are skipped (see
-  ///   [FilesTabState.fromFolder]).
+  ///   [FilesTabState.folderPaths]).
   /// - No target at all: the matcher's per-dive assignment. Unmatched files
   ///   are skipped; the pane's assign actions are how they get out of that
   ///   bucket.
@@ -351,10 +360,8 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
             created.add(await _persistOne(file, diveId: entry.key));
           }
         }
-        if (state.unmatchedGoToTarget) {
-          for (final file in state.match.unmatched) {
-            created.add(await _persistOne(file, diveId: diveId));
-          }
+        for (final file in state.unmatchedForTarget) {
+          created.add(await _persistOne(file, diveId: diveId));
         }
       case null:
         for (final entry in state.match.matched.entries) {
@@ -385,10 +392,8 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
         rows.add(await _itemFor(file, id: const Uuid().v4(), diveId: diveId));
       }
     }
-    if (state.unmatchedGoToTarget) {
-      for (final file in state.match.unmatched) {
-        rows.add(await _itemFor(file, id: const Uuid().v4(), diveId: diveId));
-      }
+    for (final file in state.unmatchedForTarget) {
+      rows.add(await _itemFor(file, id: const Uuid().v4(), diveId: diveId));
     }
     clear();
     return (rows: rows, leftOut: leftOut);

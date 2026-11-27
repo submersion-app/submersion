@@ -30,7 +30,7 @@ const _macOS = TargetPlatformVariant({TargetPlatform.macOS});
 typedef _MediaDrop = ({
   MediaDropDestination destination,
   List<String> paths,
-  bool fromFolder,
+  Set<String> folderPaths,
 });
 
 /// Build a test app that places [GlobalDropTarget] inside a GoRouter.
@@ -55,12 +55,12 @@ Widget _buildTestApp({
                   ref,
                   destination,
                   paths, {
-                  bool fromFolder = false,
+                  Set<String> folderPaths = const {},
                 }) async {
                   mediaDrops?.add((
                     destination: destination,
                     paths: paths,
-                    fromFolder: fromFolder,
+                    folderPaths: folderPaths,
                   ));
                 },
             child: child,
@@ -613,7 +613,7 @@ void main() {
         );
         expect(drops.single.paths, [photo.path, video.path]);
         // Files dropped one by one are a choice of these files for the dive.
-        expect(drops.single.fromFolder, isFalse);
+        expect(drops.single.folderPaths, isEmpty);
       },
     );
 
@@ -657,8 +657,32 @@ void main() {
         expect(drops.single.paths, [photo.path]);
         // Issue #5063: a dive takes the files of a folder only once the
         // matcher or the user places them.
-        expect(drops.single.fromFolder, isTrue);
+        expect(drops.single.folderPaths, {photo.path});
         expect(find.text('Import Wizard'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'a drop of a folder and a loose file marks only the folder\'s files',
+      variant: _macOS,
+      (tester) async {
+        final drops = <_MediaDrop>[];
+        await tester.pumpWidget(
+          _buildTestApp(initialLocation: '/media', mediaDrops: drops),
+        );
+        await tester.pumpAndSettle();
+
+        final card = Directory(p.join(_tempDir.path, 'card'))..createSync();
+        final scanned = File(p.join(card.path, 'P4204060.jpg'))
+          ..writeAsBytesSync(_pngBytes);
+        final loose = _dropItemFromBytes(_pngBytes, 'GX010100.MP4');
+        await _triggerDrop(
+          tester,
+          drop([DropItemDirectory(card.path, []), loose]),
+        );
+
+        expect(drops.single.paths, unorderedEquals([scanned.path, loose.path]));
+        expect(drops.single.folderPaths, {scanned.path});
       },
     );
 

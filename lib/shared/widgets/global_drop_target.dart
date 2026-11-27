@@ -122,13 +122,14 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
     // dropped there earns the hint rather than ending in silence.
     final mediaPaths = <String>[];
     final diveLogPaths = <String>[];
-    var fromFolder = false;
+    final folderPaths = <String>{};
     for (final xFile in details.files) {
       final path = xFile.path;
       if (path.isEmpty) continue;
       if (FileSystemEntity.isDirectorySync(path)) {
-        fromFolder = true;
-        mediaPaths.addAll(await compute(scanFolderForMediaFiles, path));
+        final found = await compute(scanFolderForMediaFiles, path);
+        mediaPaths.addAll(found);
+        folderPaths.addAll(found);
         diveLogPaths.addAll(await scanFolderForImportableFiles(path));
       } else if (isLinkableMediaPath(path)) {
         mediaPaths.add(path);
@@ -153,7 +154,7 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
           ref,
           mediaDestination,
           mediaPaths,
-          fromFolder: fromFolder,
+          folderPaths: folderPaths,
         );
         if (!mounted) return;
       }
