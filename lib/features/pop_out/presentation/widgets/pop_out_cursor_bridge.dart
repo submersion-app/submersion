@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/pop_out/domain/pop_out_messages.dart';
 import 'package:submersion/features/pop_out/presentation/providers/pop_out_host.dart';
@@ -35,7 +36,19 @@ class PopOutCursorBridge extends ConsumerWidget {
     });
     ref.listen<CursorMessage?>(popOutInboundCursorProvider, (_, message) {
       if (message == null || message.diveId != diveId) return;
-      setProfileCursorSeconds(ref, diveId, chartProfile, message.seconds);
+      final seconds = message.seconds;
+      // The cursor lands on this chart's nearest sample, which is rarely the
+      // exact second sent; that landing must not be sent back as a move.
+      final index = seconds == null
+          ? null
+          : indexForTimestamp(chartProfile, seconds);
+      ref
+          .read(popOutHostProvider.notifier)
+          .noteInboundApplied(
+            diveId,
+            index == null ? null : chartProfile[index].timestamp,
+          );
+      setProfileCursorSeconds(ref, diveId, chartProfile, seconds);
     });
     return child;
   }

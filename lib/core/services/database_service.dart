@@ -160,10 +160,15 @@ class DatabaseService {
     return () => _beforeCloseHooks.remove(hook);
   }
 
+  /// How long [close] waits for each before-close hook. A pop-out window
+  /// mid-teardown may never answer, and a restore or a quit must not hang on
+  /// it.
+  Duration beforeCloseHookTimeout = const Duration(seconds: 3);
+
   Future<void> _runBeforeCloseHooks() async {
     for (final hook in List.of(_beforeCloseHooks)) {
       try {
-        await hook();
+        await hook().timeout(beforeCloseHookTimeout);
       } catch (e, stackTrace) {
         _log.error(
           'A before-close hook failed',
@@ -209,6 +214,8 @@ class DatabaseService {
     debugClock = null;
     compactFileOverride = null;
     _beforeCloseHooks.clear();
+    beforeCloseHookTimeout = const Duration(seconds: 3);
+    unpublishDatabase(kMainDatabasePortName);
   }
 
   /// Registers [locationService] without opening anything.

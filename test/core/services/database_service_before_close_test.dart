@@ -1,4 +1,9 @@
+import 'dart:async';
+import 'dart:isolate';
+import 'dart:ui' show IsolateNameServer;
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/shared_database_ports.dart';
 import 'package:submersion/core/services/database_service.dart';
 
 import '../../helpers/test_database.dart';
@@ -58,5 +63,37 @@ void main() {
     await service.close();
 
     expect(ran, isFalse);
+  });
+
+  test('a hook that never finishes is given up on', () async {
+    service.setTestDatabase(createTestDatabase());
+    service.beforeCloseHookTimeout = const Duration(milliseconds: 50);
+    service.addBeforeCloseHook(() => Completer<void>().future);
+
+    await service.close().timeout(const Duration(seconds: 5));
+
+    expect(service.databaseOrNull, isNull);
+  });
+
+  test('resetForTesting restores the hook limit', () async {
+    service.beforeCloseHookTimeout = const Duration(milliseconds: 1);
+    service.resetForTesting();
+    expect(service.beforeCloseHookTimeout, const Duration(seconds: 3));
+  });
+
+  test('resetForTesting withdraws the published database', () async {
+    final port = ReceivePort();
+    addTearDown(port.close);
+    addTearDown(
+      () => IsolateNameServer.removePortNameMapping(kMainDatabasePortName),
+    );
+    IsolateNameServer.registerPortWithName(
+      port.sendPort,
+      kMainDatabasePortName,
+    );
+
+    service.resetForTesting();
+
+    expect(IsolateNameServer.lookupPortByName(kMainDatabasePortName), isNull);
   });
 }

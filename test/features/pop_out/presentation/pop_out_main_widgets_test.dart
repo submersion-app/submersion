@@ -137,4 +137,42 @@ void main() {
       },
     );
   });
+
+  group('PopOutCursorBridge snapping', () {
+    final tenSecondSamples = [
+      for (var t = 0; t <= 300; t += 10)
+        DiveProfilePoint(timestamp: t, depth: 10),
+    ];
+
+    testWidgets('an inbound position snapped to a sample is not sent back', (
+      tester,
+    ) async {
+      late WidgetRef capturedRef;
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides(),
+          child: Consumer(
+            builder: (context, ref, _) {
+              capturedRef = ref;
+              return PopOutCursorBridge(
+                diveId: 'dive-1',
+                chartProfile: tenSecondSamples,
+                child: const SizedBox(),
+              );
+            },
+          ),
+        ),
+      );
+      await capturedRef.read(popOutHostProvider.notifier).openOrFocus();
+      await tester.pump();
+
+      windows.channel.deliver(const CursorMessage('dive-1', 125));
+      await tester.pump(const Duration(milliseconds: 50));
+
+      // The main window snapped to a sample of its own...
+      expect(capturedRef.read(profileTrackingIndexProvider('dive-1')), 12);
+      // ...and keeps that to itself.
+      expect(windows.channel.sentOf<CursorMessage>(), isEmpty);
+    });
+  });
 }

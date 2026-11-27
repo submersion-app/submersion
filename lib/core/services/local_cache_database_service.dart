@@ -64,6 +64,7 @@ class LocalCacheDatabaseService {
   void resetForTesting() {
     _database = null;
     _background = null;
+    unpublishDatabase(kLocalCacheDatabasePortName);
   }
 
   Future<void> initialize() async {
