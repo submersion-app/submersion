@@ -2540,6 +2540,8 @@
   "diveLog_diveMode_ocDescription": "タンクを使う標準的なオープンサーキット・スクーバ",
   "diveLog_diveMode_scrDescription": "ppO₂が変動するセミクローズド・リブリーザー",
   "diveLog_diveMode_title": "ダイブモード",
+  "diveLog_editSighting_seenAt": "見た時点",
+  "diveLog_editSighting_seenAtClear": "時間を消去",
   "diveLog_editSighting_notes": "メモ",
   "diveLog_editSighting_notesHint": "大きさ、行動、場所など",
   "diveLog_editSighting_remove": "削除",

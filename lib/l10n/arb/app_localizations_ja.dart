@@ -7797,6 +7797,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_diveMode_title => 'ダイブモード';
 
   @override
+  String get diveLog_editSighting_seenAt => '見た時点';
+
+  @override
+  String get diveLog_editSighting_seenAtClear => '時間を消去';
+
+  @override
   String get diveLog_editSighting_notes => 'メモ';
 
   @override

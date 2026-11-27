@@ -8099,6 +8099,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_diveMode_title => 'Modo de buceo';
 
   @override
+  String get diveLog_editSighting_seenAt => 'Visto a los';
+
+  @override
+  String get diveLog_editSighting_seenAtClear => 'Borrar la hora';
+
+  @override
   String get diveLog_editSighting_notes => 'Notas';
 
   @override

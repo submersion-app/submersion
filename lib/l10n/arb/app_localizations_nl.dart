@@ -8050,6 +8050,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_diveMode_title => 'Duikmodus';
 
   @override
+  String get diveLog_editSighting_seenAt => 'Gezien om';
+
+  @override
+  String get diveLog_editSighting_seenAtClear => 'Tijd wissen';
+
+  @override
   String get diveLog_editSighting_notes => 'Notities';
 
   @override

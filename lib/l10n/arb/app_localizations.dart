@@ -12656,6 +12656,18 @@ abstract class AppLocalizations {
   /// **'Dive Mode'**
   String get diveLog_diveMode_title;
 
+  /// No description provided for @diveLog_editSighting_seenAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Seen at'**
+  String get diveLog_editSighting_seenAt;
+
+  /// No description provided for @diveLog_editSighting_seenAtClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear time'**
+  String get diveLog_editSighting_seenAtClear;
+
   /// No description provided for @diveLog_editSighting_notes.
   ///
   /// In en, this message translates to:

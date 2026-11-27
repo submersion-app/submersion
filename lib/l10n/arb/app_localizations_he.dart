@@ -7926,6 +7926,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_diveMode_title => 'מצב צלילה';
 
   @override
+  String get diveLog_editSighting_seenAt => 'נצפה ב-';
+
+  @override
+  String get diveLog_editSighting_seenAtClear => 'ניקוי הזמן';
+
+  @override
   String get diveLog_editSighting_notes => 'הערות';
 
   @override

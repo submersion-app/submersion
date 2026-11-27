@@ -163,6 +163,22 @@ void main() {
     expect(find.text('Green turtle'), findsOneWidget);
   });
 
+  testWidgets('the editor sets a time bounded by the dive (issue #5092)', (
+    tester,
+  ) async {
+    final profiled = Dive(
+      id: 'd1',
+      dateTime: DateTime.utc(2026, 3, 9),
+      profile: const [
+        DiveProfilePoint(timestamp: 0, depth: 0),
+        DiveProfilePoint(timestamp: 2400, depth: 0),
+      ],
+    );
+    await pump(tester, profiled);
+    expect(editor(tester).time?.maxSeconds, 2400);
+    expect(editor(tester).time?.profile, hasLength(2));
+  });
+
   group('where on the dive each species was seen (issue #5092)', () {
     final profiled = Dive(
       id: 'd1',

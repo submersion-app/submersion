@@ -8094,6 +8094,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_diveMode_title => 'Tauchmodus';
 
   @override
+  String get diveLog_editSighting_seenAt => 'Gesehen bei';
+
+  @override
+  String get diveLog_editSighting_seenAtClear => 'Zeit löschen';
+
+  @override
   String get diveLog_editSighting_notes => 'Notizen';
 
   @override

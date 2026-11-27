@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/mini_profile_picker.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_sighting_sheet.dart';
@@ -146,5 +150,122 @@ void main() {
     await tester.tap(find.text('Remove'));
     await tester.pumpAndSettle();
     expect(deleted, 1);
+  });
+
+  group('Seen at (issue #5092)', () {
+    final profile = [
+      for (var t = 0; t <= 3000; t += 10)
+        DiveProfilePoint(timestamp: t, depth: t <= 600 ? t / 20 : 30),
+    ];
+    const units = UnitFormatter(AppSettings());
+
+    Future<void> pumpTimed(
+      WidgetTester tester, {
+      Sighting sighting = _sighting,
+      required void Function(Sighting) onSave,
+      List<DiveProfilePoint>? onProfile,
+    }) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: EditSightingSheet(
+                sighting: sighting,
+                onSave: onSave,
+                onDelete: () {},
+                time: SightingTimeContext(
+                  profile: onProfile ?? profile,
+                  maxSeconds: 3000,
+                  units: units,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    Finder seenAtField() => find.widgetWithText(TextFormField, 'Seen at');
+
+    testWidgets('saves a typed time and shows its depth', (tester) async {
+      Sighting? saved;
+      await pumpTimed(tester, onSave: (s) => saved = s);
+      await tester.enterText(seenAtField(), '12:30');
+      await tester.pump();
+      expect(find.text(units.formatDepth(30)), findsOneWidget);
+
+      await tester.tap(find.text('Save Changes'));
+      await tester.pump();
+      expect(saved?.seenAtSeconds, 750);
+    });
+
+    testWidgets('picking on the profile fills the time', (tester) async {
+      Sighting? saved;
+      await pumpTimed(tester, onSave: (s) => saved = s);
+      await tester.tap(find.byType(MiniProfilePicker));
+      await tester.pump();
+
+      await tester.tap(find.text('Save Changes'));
+      await tester.pump();
+      expect(saved?.seenAtSeconds, inInclusiveRange(1200, 1800));
+    });
+
+    testWidgets('clearing saves no time', (tester) async {
+      Sighting? saved;
+      await pumpTimed(
+        tester,
+        sighting: _sighting.copyWith(seenAtSeconds: 300),
+        onSave: (s) => saved = s,
+      );
+      expect(find.text('5:00'), findsOneWidget);
+      await tester.tap(find.byKey(const ValueKey('sighting_seen_at_clear')));
+      await tester.pump();
+
+      await tester.tap(find.text('Save Changes'));
+      await tester.pump();
+      expect(saved, isNotNull);
+      expect(saved!.seenAtSeconds, isNull);
+    });
+
+    testWidgets('an empty time saves no time', (tester) async {
+      Sighting? saved;
+      await pumpTimed(tester, onSave: (s) => saved = s);
+      await tester.tap(find.text('Save Changes'));
+      await tester.pump();
+      expect(saved, isNotNull);
+      expect(saved!.seenAtSeconds, isNull);
+    });
+
+    testWidgets('a time past the dive shows the error and does not save', (
+      tester,
+    ) async {
+      Sighting? saved;
+      await pumpTimed(tester, onSave: (s) => saved = s);
+      await tester.enterText(seenAtField(), '99:00');
+      await tester.tap(find.text('Save Changes'));
+      await tester.pump();
+      expect(saved, isNull);
+      expect(find.text('Must be within the dive'), findsOneWidget);
+    });
+
+    testWidgets('a dive with no profile has the time box and no picker', (
+      tester,
+    ) async {
+      await pumpTimed(tester, onSave: (_) {}, onProfile: const []);
+      expect(seenAtField(), findsOneWidget);
+      expect(find.byType(MiniProfilePicker), findsNothing);
+    });
+
+    testWidgets('without a time context there is no Seen at field', (
+      tester,
+    ) async {
+      await _pump(tester, onSave: (_) {}, onDelete: () {});
+      expect(find.text('Seen at'), findsNothing);
+    });
   });
 }

@@ -7682,6 +7682,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_diveMode_title => '潜水模式';
 
   @override
+  String get diveLog_editSighting_seenAt => '看见于';
+
+  @override
+  String get diveLog_editSighting_seenAtClear => '清除时间';
+
+  @override
   String get diveLog_editSighting_notes => '备注';
 
   @override

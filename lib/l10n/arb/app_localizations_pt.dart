@@ -8098,6 +8098,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_diveMode_title => 'Modo de Mergulho';
 
   @override
+  String get diveLog_editSighting_seenAt => 'Visto aos';
+
+  @override
+  String get diveLog_editSighting_seenAtClear => 'Limpar o tempo';
+
+  @override
   String get diveLog_editSighting_notes => 'Anotações';
 
   @override

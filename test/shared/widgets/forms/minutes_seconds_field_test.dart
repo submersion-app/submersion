@@ -124,4 +124,27 @@ void main() {
 
     expect(find.byIcon(Icons.show_chart), findsOneWidget);
   });
+
+  testWidgets('an optional field accepts empty text, still rejects junk', (
+    tester,
+  ) async {
+    // Issue #5092: a sighting's time is optional.
+    final formKey = GlobalKey<FormState>();
+    await tester.pumpWidget(
+      host(
+        MinutesSecondsField(
+          seconds: null,
+          onChanged: (_) {},
+          label: 'Seen at',
+          formatErrorText: 'Use minutes:seconds',
+          allowEmpty: true,
+        ),
+        formKey,
+      ),
+    );
+    expect(formKey.currentState!.validate(), isTrue);
+
+    await tester.enterText(find.byType(TextFormField), 'soon');
+    expect(formKey.currentState!.validate(), isFalse);
+  });
 }

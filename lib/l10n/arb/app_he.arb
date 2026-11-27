@@ -2666,6 +2666,8 @@
   "diveLog_diveMode_ocDescription": "סקובה מעגל פתוח סטנדרטי עם בלונים",
   "diveLog_diveMode_scrDescription": "ריברידר חצי סגור עם ppO₂ משתנה",
   "diveLog_diveMode_title": "מצב צלילה",
+  "diveLog_editSighting_seenAt": "נצפה ב-",
+  "diveLog_editSighting_seenAtClear": "ניקוי הזמן",
   "diveLog_editSighting_notes": "הערות",
   "diveLog_editSighting_notesHint": "גודל, התנהגות, מיקום...",
   "diveLog_editSighting_remove": "הסרה",

@@ -8077,6 +8077,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_diveMode_title => 'Merülési mód';
 
   @override
+  String get diveLog_editSighting_seenAt => 'Látva ekkor';
+
+  @override
+  String get diveLog_editSighting_seenAtClear => 'Idő törlése';
+
+  @override
   String get diveLog_editSighting_notes => 'Jegyzetek';
 
   @override

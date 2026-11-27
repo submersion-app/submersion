@@ -8112,6 +8112,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_diveMode_title => 'Mode de plongée';
 
   @override
+  String get diveLog_editSighting_seenAt => 'Vu à';
+
+  @override
+  String get diveLog_editSighting_seenAtClear => 'Effacer l\'heure';
+
+  @override
   String get diveLog_editSighting_notes => 'Notes';
 
   @override
