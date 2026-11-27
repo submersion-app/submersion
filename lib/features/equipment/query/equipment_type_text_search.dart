@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/text/fuzzy_match.dart' show foldForSearch;
@@ -8,10 +10,22 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// words divers use for a cylinder ("tank", "bottle") and for its band.
 List<String> _searchWords(AppLocalizations l10n, EquipmentType type) =>
     switch (type) {
-      EquipmentType.tank => l10n.equipment_searchWords_cylinder.split(','),
-      EquipmentType.tankBand => l10n.equipment_searchWords_tankBand.split(','),
+      EquipmentType.tank => splitSearchWords(
+        l10n.equipment_searchWords_cylinder,
+      ),
+      EquipmentType.tankBand => splitSearchWords(
+        l10n.equipment_searchWords_tankBand,
+      ),
       _ => const [],
     };
+
+/// A translator's comma list of search words, split on the comma of any app
+/// language (`,` `،` `、` `，`), trimmed, empty pieces dropped.
+@visibleForTesting
+List<String> splitSearchWords(String list) => [
+  for (final word in list.split(RegExp('[,\u060C\u3001\uFF0C]')))
+    if (word.trim().isNotEmpty) word.trim(),
+];
 
 /// Every equipment type's words, folded by [foldForSearch], across all of the
 /// app's languages, keyed on the type's stored name (issue #5106).

@@ -81,4 +81,17 @@ void main() {
       expect(equipmentTypeNamesMatching('_'), isEmpty);
     });
   });
+
+  group('splitSearchWords', () {
+    test("splits on each language's comma and trims", () {
+      expect(splitSearchWords('tank, bottle'), ['tank', 'bottle']);
+      expect(splitSearchWords('ボンベ、シリンダー'), ['ボンベ', 'シリンダー']);
+      expect(splitSearchWords('罐，钢瓶'), ['罐', '钢瓶']);
+      expect(splitSearchWords('خزان، قارورة'), ['خزان', 'قارورة']);
+    });
+
+    test('drops empty pieces', () {
+      expect(splitSearchWords(' a , , b ,'), ['a', 'b']);
+    });
+  });
 }

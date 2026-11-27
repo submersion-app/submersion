@@ -46,6 +46,12 @@ cylinder, save a tank as a preset) shipped earlier.
    user-visible literals in Dart (planner warnings, the "Tank N" fallback
    name, `DiveField.tankCount`'s labels, a bulk-edit error) become ARB keys,
    translated into every language, so they follow the same rule.
+   *Amended at plan review:* reading the code showed most of them never reach
+   the screen untranslated (the planner shows each warning through its own
+   localized text) or are built where no app language is known (the data
+   layer's "Cylinder N" fallbacks). Those swap the word in place; only the
+   weight planner's unnamed-cylinder term and the gas calculator's
+   screen-reader result go through ARB.
 
 ## Goals
 
@@ -129,6 +135,13 @@ languages. Where the literal is built in a domain or data layer with no
 `BuildContext`, it carries a code and its arguments and the presentation layer
 localizes it, the way the codebase already handles domain messages; the plan
 picks the pattern each site uses.
+
+**As built (decision 7 as amended):** the planner messages, the `'Cylinder N'`
+fallbacks, `DiveField.tankCount` and the settings subtitle fallback swap the
+word in place. The weight planner's unnamed-cylinder term reads
+`enum_equipmentType_tank`, and the gas calculator's screen-reader result is one
+key, `gasCalculators_consumption_semantics`, whose `exceeds` select adds the
+warning sentence so each language punctuates it.
 
 The `@key` descriptions for translators are updated where they define the word.
 
