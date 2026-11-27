@@ -384,6 +384,11 @@ class AppSettings implements UnitFormatterSettings {
   /// CCR default high setpoint in bar, the one held at depth.
   final double ccrSetpointHigh;
 
+  /// Depth in meters at which a CCR plan switches from the low to the high
+  /// setpoint, unless the plan sets its own or turns the switch off (issue
+  /// #3793).
+  final double ccrSetpointSwitchDepth;
+
   /// ppO2 a CCR diluent may reach on a flush, which sets its MOD.
   @override
   final double ccrDiluentModPpO2;
@@ -934,6 +939,7 @@ class AppSettings implements UnitFormatterSettings {
     this.maxO2DepthMeters = 6.0,
     this.ccrSetpointLow = 0.7,
     this.ccrSetpointHigh = 1.3,
+    this.ccrSetpointSwitchDepth = 10.0,
     this.ccrDiluentModPpO2 = 1.6,
     this.cnsWarningThreshold = 80,
     this.ascentRateWarning = 9.0,
@@ -1184,6 +1190,7 @@ class AppSettings implements UnitFormatterSettings {
     double? maxO2DepthMeters,
     double? ccrSetpointLow,
     double? ccrSetpointHigh,
+    double? ccrSetpointSwitchDepth,
     double? ccrDiluentModPpO2,
     int? cnsWarningThreshold,
     double? ascentRateWarning,
@@ -1409,6 +1416,8 @@ class AppSettings implements UnitFormatterSettings {
       maxO2DepthMeters: maxO2DepthMeters ?? this.maxO2DepthMeters,
       ccrSetpointLow: ccrSetpointLow ?? this.ccrSetpointLow,
       ccrSetpointHigh: ccrSetpointHigh ?? this.ccrSetpointHigh,
+      ccrSetpointSwitchDepth:
+          ccrSetpointSwitchDepth ?? this.ccrSetpointSwitchDepth,
       ccrDiluentModPpO2: ccrDiluentModPpO2 ?? this.ccrDiluentModPpO2,
       cnsWarningThreshold: cnsWarningThreshold ?? this.cnsWarningThreshold,
       ascentRateWarning: ascentRateWarning ?? this.ascentRateWarning,
@@ -2748,14 +2757,33 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   static double ccrPpO2OnGrid(double value) =>
       (value.clamp(ccrPpO2Min, ccrPpO2Max) * 10).round() / 10;
 
+  /// Range of the setpoint switch depth slider (issue #3793), in meters. A
+  /// value outside it is typed into the number field.
+  static const double ccrSwitchDepthSliderMin = 3.0;
+  static const double ccrSwitchDepthSliderMax = 30.0;
+
+  /// Range of the setpoint switch depth the number field accepts, in meters.
+  static const double ccrSwitchDepthInputMin = 0.0;
+  static const double ccrSwitchDepthInputMax = 100.0;
+
+  /// [value] clamped to the input range and rounded to the millimeter. Not
+  /// to 0.1 m: a depth typed in feet must survive the round trip (30 ft is
+  /// 9.144 m, which a 0.1 m grid turns into 29.9 ft).
+  static double ccrSwitchDepthOnGrid(double value) =>
+      (value.clamp(ccrSwitchDepthInputMin, ccrSwitchDepthInputMax) * 1000)
+          .round() /
+      1000;
+
   /// Set the CCR ppO2 limits in one persisted write. Each is put on the
   /// [ccrPpO2Min]..[ccrPpO2Max] 0.1 bar grid, and the high setpoint is held
   /// at or above the low one, the same "never inverted" rule
-  /// [setPpO2Limits] keeps.
+  /// [setPpO2Limits] keeps. A [setpointSwitchDepth] of null keeps the stored
+  /// switch depth; otherwise it goes through [ccrSwitchDepthOnGrid].
   Future<void> setCcrPpO2Limits({
     required double setpointLow,
     required double setpointHigh,
     required double diluentModPpO2,
+    double? setpointSwitchDepth,
   }) async {
     final low = ccrPpO2OnGrid(setpointLow);
     final high = ccrPpO2OnGrid(setpointHigh);
@@ -2763,6 +2791,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       (s) => s.copyWith(
         ccrSetpointLow: low,
         ccrSetpointHigh: high < low ? low : high,
+        ccrSetpointSwitchDepth: setpointSwitchDepth == null
+            ? null
+            : ccrSwitchDepthOnGrid(setpointSwitchDepth),
         ccrDiluentModPpO2: ccrPpO2OnGrid(diluentModPpO2),
       ),
     );
@@ -3780,6 +3811,10 @@ final ccrSetpointLowProvider = Provider<double>((ref) {
 
 final ccrSetpointHighProvider = Provider<double>((ref) {
   return ref.watch(settingsProvider.select((s) => s.ccrSetpointHigh));
+});
+
+final ccrSetpointSwitchDepthProvider = Provider<double>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.ccrSetpointSwitchDepth));
 });
 
 final ccrDiluentModPpO2Provider = Provider<double>((ref) {

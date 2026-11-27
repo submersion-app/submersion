@@ -20977,6 +20977,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_ccr_switchDepth => '设定点切换深度';
 
   @override
+  String get plannerCanvas_ccr_switchDepthOffNote => '不按深度切换：全程使用低设定点';
+
+  @override
   String get plannerCanvas_pscr_ratio => 'pSCR 比率';
 
   @override
@@ -24470,6 +24473,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_ccrSetpointLow => 'CCR 低设定点';
 
   @override
+  String get settings_conflict_field_ccrSetpointSwitchDepth => '设定点切换深度';
+
+  @override
   String get settings_conflict_field_channelIndex => '通道';
 
   @override
@@ -25933,6 +25939,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_setpointSwitchDepth => '设定点切换深度';
+
+  @override
+  String get settings_conflict_field_setpointSwitchOff => '设定点切换已关闭';
 
   @override
   String get settings_conflict_field_settings_key => '设置项';
@@ -28155,12 +28164,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_decompression_ccrPpO2LimitsTitle => '氧分压上限 CCR';
 
   @override
-  String settings_decompression_ccrPpO2LimitsSubtitle(
+  String settings_decompression_ccrPpO2LimitsSubtitleWithSwitch(
     String low,
     String high,
     String dil,
+    String depth,
   ) {
-    return '低设定点 $low · 高设定点 $high · 稀释气 MOD $dil bar';
+    return '低设定点 $low · 高设定点 $high · 稀释气 MOD $dil bar · 切换深度 $depth';
   }
 
   @override
@@ -28186,6 +28196,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_decompression_ccrDialog_diluentModHint =>
       '冲洗时稀释气可达到的 ppO2；决定其 MOD';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepth => '设定点切换深度';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepthHint =>
+      '更深处用高设定点，较浅处用低设定点';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

@@ -36,12 +36,14 @@ List<(double, double, int)> _pieces(
   PlanSegment segment,
   double start,
   double end,
-  int seconds,
-) => [
+  int seconds, {
+  double switchDepth = 10,
+}) => [
   for (final piece in splitAtSetpointSwitch(
     plan,
     segment,
     DecoSegment(startDepth: start, endDepth: end, durationSeconds: seconds),
+    switchDepth: switchDepth,
   ))
     (piece.startDepth, piece.endDepth, piece.durationSeconds),
 ];
@@ -69,11 +71,18 @@ void main() {
       ]);
     });
 
-    test('uses the default switch depth when the plan sets none', () {
-      expect(_pieces(_plan(switchDepth: null), _segment(), 0, 20, 120), [
-        (0.0, 10.0, 60),
-        (10.0, 20.0, 60),
+    test('cuts at the switch depth it is given, not a fixed one', () {
+      expect(_pieces(_plan(), _segment(), 0, 20, 200, switchDepth: 5), [
+        (0.0, 5.0, 50),
+        (5.0, 20.0, 150),
       ]);
+    });
+
+    test('an infinite switch depth (switch off) cuts nothing', () {
+      expect(
+        _pieces(_plan(), _segment(), 0, 30, 100, switchDepth: double.infinity),
+        [(0.0, 30.0, 100)],
+      );
     });
 
     test('leaves a ramp that only touches the switch alone', () {

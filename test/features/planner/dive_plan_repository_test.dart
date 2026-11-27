@@ -144,6 +144,27 @@ void main() {
       expect(loaded.segments.last.durationSeconds, 25 * 60);
     });
 
+    test(
+      'the switch-off flag round-trips and defaults to off (#3793)',
+      () async {
+        await repository.savePlan(_fullPlan());
+        expect(
+          (await repository.getPlan('plan-1'))!.setpointSwitchOff,
+          isFalse,
+        );
+
+        await repository.savePlan(
+          _fullPlan().copyWith(
+            setpointSwitchDepth: 12.0,
+            setpointSwitchOff: true,
+          ),
+        );
+        final loaded = await repository.getPlan('plan-1');
+        expect(loaded!.setpointSwitchOff, isTrue);
+        expect(loaded.setpointSwitchDepth, 12.0);
+      },
+    );
+
     test('summaries return saved numbers without children', () async {
       await repository.savePlan(
         _fullPlan(),

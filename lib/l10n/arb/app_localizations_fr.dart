@@ -22139,6 +22139,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Profondeur de bascule du setpoint';
 
   @override
+  String get plannerCanvas_ccr_switchDepthOffNote =>
+      'Pas de bascule selon la profondeur : setpoint bas en permanence';
+
+  @override
   String get plannerCanvas_pscr_ratio => 'Ratio pSCR';
 
   @override
@@ -25908,6 +25912,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Point de consigne CCR bas';
 
   @override
+  String get settings_conflict_field_ccrSetpointSwitchDepth =>
+      'Profondeur de bascule du setpoint';
+
+  @override
   String get settings_conflict_field_channelIndex => 'Canal';
 
   @override
@@ -27571,6 +27579,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_setpointSwitchDepth =>
       'Profondeur de changement de consigne';
+
+  @override
+  String get settings_conflict_field_setpointSwitchOff =>
+      'Bascule du setpoint désactivée';
 
   @override
   String get settings_conflict_field_settings_key => 'Réglage';
@@ -29955,12 +29967,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_decompression_ccrPpO2LimitsTitle => 'Limites de ppO2 CCR';
 
   @override
-  String settings_decompression_ccrPpO2LimitsSubtitle(
+  String settings_decompression_ccrPpO2LimitsSubtitleWithSwitch(
     String low,
     String high,
     String dil,
+    String depth,
   ) {
-    return 'Setpoint bas $low · haut $high · MOD Dil $dil bar';
+    return 'Setpoint bas $low · haut $high · MOD Dil $dil bar · bascule $depth';
   }
 
   @override
@@ -29987,6 +30000,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_decompression_ccrDialog_diluentModHint =>
       'ppO2 que le diluant peut atteindre lors d\'un rinçage ; fixe sa MOD';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepth =>
+      'Profondeur de bascule du setpoint';
+
+  @override
+  String get settings_decompression_ccrDialog_switchDepthHint =>
+      'Setpoint haut en dessous, setpoint bas au-dessus';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

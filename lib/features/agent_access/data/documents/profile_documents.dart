@@ -57,6 +57,7 @@ const kSettingUnitKeys = <String, String>{
   'max_o2_depth_meters': 'max_o2_depth_m',
   'ccr_setpoint_low': 'ccr_setpoint_low_bar',
   'ccr_setpoint_high': 'ccr_setpoint_high_bar',
+  'ccr_setpoint_switch_depth': 'ccr_setpoint_switch_depth_m',
   'ccr_diluent_mod_pp_o2': 'ccr_diluent_mod_pp_o2_bar',
   'ascent_rate_warning': 'ascent_rate_warning_m_min',
   'ascent_rate_critical': 'ascent_rate_critical_m_min',

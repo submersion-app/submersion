@@ -1825,9 +1825,14 @@ class AppDatabase extends _$AppDatabase {
     // v386: the equipment and dive query for derived course requirements.
     // New kinds require the sync floor to rise to 386.
     386,
+    // v387: diver_settings.ccr_setpoint_switch_depth and
+    // dive_plans.setpoint_switch_off, the diver-wide CCR setpoint switch
+    // depth and a plan's no-switch flag (issue #3793). Additive and
+    // defaulted; the floor does not move.
+    387,
     // v389: diver_settings.profile_zoom_time_only, the profile chart's Time
     // only zoom choice (issue #5069). Nullable, no backfill; the floor does
-    // not move. Numbered 389 because open work claims 387 and 388.
+    // not move. Numbered 389 because open work claims 388.
     389,
   ];
 

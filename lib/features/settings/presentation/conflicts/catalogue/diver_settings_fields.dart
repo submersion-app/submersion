@@ -81,6 +81,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_ccrSetpointLow,
     FieldKind.partialPressure,
   ),
+  'ccrSetpointSwitchDepth': ConflictField(
+    (l) => l.settings_conflict_field_ccrSetpointSwitchDepth,
+    FieldKind.depth,
+  ),
   'certificationListViewMode': ConflictField(
     (l) => l.settings_appearance_listView_certifications,
     FieldKind.enumValue,

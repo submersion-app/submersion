@@ -144,6 +144,7 @@ final labRequestInputsProvider = FutureProvider.autoDispose
         buddyFactor: engineConfig.buddyFactor,
         defaultScrInjectionRateLpm: engineConfig.scrInjectionRateLpm,
         defaultScrVo2Lpm: engineConfig.scrVo2Lpm,
+        ccrSetpointSwitchDepth: engineConfig.ccrSetpointSwitchDepth,
       );
 
       final timestamps = [for (final p in profile) p.timestamp];
