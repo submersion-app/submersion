@@ -361,6 +361,20 @@ void main() {
       expect(button.onPressed, isNotNull);
     });
 
+    testWidgets('a folder scan\'s unmatched files are not counted', (
+      tester,
+    ) async {
+      final files = [_ef('/a.jpg')];
+      final seed = FilesTabState.initial().copyWith(
+        files: files,
+        match: MatchedSelection(matched: const {}, unmatched: files),
+        fromFolder: true,
+      );
+      await tester.pumpWidget(wrap(seed, diveId: 'd1'));
+
+      expect(find.text('Link 0 items'), findsOneWidget);
+    });
+
     testWidgets('turning auto-match off still leaves files linkable', (
       tester,
     ) async {

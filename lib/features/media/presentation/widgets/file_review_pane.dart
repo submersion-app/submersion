@@ -121,10 +121,10 @@ class FileReviewPane extends ConsumerWidget {
                   ),
                   initiallyExpanded: true,
                   // The bulk action files the rejected photos under this
-                  // dive's group before Link, which also takes them to the
-                  // dive (issue #5063), so the list shows where they go. It
-                  // sits under
-                  // the count rather than in trailing: trailing replaces the
+                  // dive's group, so the list shows where they go: Link takes
+                  // hand-picked ones to the dive anyway (issue #5063), but a
+                  // folder scan's only once assigned. It sits under the
+                  // count rather than in trailing: trailing replaces the
                   // expand chevron, and the header measures it before the
                   // title, so the label squeezed "Unmatched" to one fragment
                   // per line in German (issue #2717).

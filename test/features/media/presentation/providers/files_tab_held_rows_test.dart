@@ -104,6 +104,28 @@ void main() {
     verifyNever(repo.createMedia(any));
   });
 
+  // A folder scan is not a choice of these files for this dive: what the
+  // matcher could not place there stays out.
+  test('heldRows leaves out the unmatched files of a folder scan', () async {
+    final notifier = container.read(filesTabNotifierProvider.notifier);
+    final a = _ef('/a.jpg');
+    final b = _ef('/b.jpg');
+    notifier.setFiles(
+      [a, b],
+      match: MatchedSelection(
+        matched: {
+          'd1': [a],
+        },
+        unmatched: [b],
+      ),
+      fromFolder: true,
+    );
+
+    final held = await notifier.heldRows('d1');
+
+    expect(held.rows.map((r) => r.originalFilename), ['a.jpg']);
+  });
+
   test(
     "heldSiteRows builds every staged file as the site's, writes none",
     () async {

@@ -46,8 +46,9 @@ class FilesTab extends ConsumerWidget {
   /// What this picker session attaches its files to, when it has an owner.
   ///
   /// A [DiveAttachTarget] backs the review pane's "add all to this dive"
-  /// action, and makes the commit button take the files the date matcher
-  /// rejected to that dive: the user picked them on it. Counting only the
+  /// action, and makes the commit button take the hand-picked files the date
+  /// matcher rejected to that dive: the user picked them on it (a folder
+  /// scan's stay out, see [FilesTabState.fromFolder]). Counting only the
   /// matched files left an Android video whose time could not be placed
   /// under a disabled "Link 0", seen but never saved (issue #5063).
   ///
@@ -121,6 +122,7 @@ class FilesTab extends ConsumerWidget {
       paths,
       target: target,
       isActive: () => context.mounted,
+      fromFolder: true,
     );
   }
   // coverage:ignore-end
@@ -227,11 +229,13 @@ class FilesTab extends ConsumerWidget {
 
   /// How many staged files [FilesTabNotifier.commit] would actually persist.
   ///
-  /// Opened from a dive, that is every file: the unmatched ones go to the
-  /// dive (issue #5063).
+  /// Opened from a dive, that is every hand-picked file: the unmatched ones
+  /// go to the dive (issue #5063).
   int _committableCount(FilesTabState state) {
     if (_ownsEveryFile) return state.files.length;
-    if (_assignableDiveId != null) return state.match.totalFiles;
+    if (_assignableDiveId != null && state.unmatchedGoToTarget) {
+      return state.match.totalFiles;
+    }
     return state.match.totalFiles - state.match.unmatched.length;
   }
 
@@ -305,13 +309,16 @@ class FilesTab extends ConsumerWidget {
       navigator.pop();
       return;
     }
-    // commit() clears the staged state, so snapshot the dives first.
-    final diveIds = ref
-        .read(filesTabNotifierProvider)
-        .match
-        .matched
-        .keys
-        .toList();
+    // commit() clears the staged state, so snapshot the dives first,
+    // including the target dive when it takes the unmatched files.
+    final staged = ref.read(filesTabNotifierProvider);
+    final diveIds = {
+      ...staged.match.matched.keys,
+      if (dive is DiveAttachTarget &&
+          staged.unmatchedGoToTarget &&
+          staged.match.unmatched.isNotEmpty)
+        dive.diveId,
+    }.toList();
     final created = await notifier.commit(target: target);
     if (!context.mounted) return;
     // Both snackbars go to the root messenger and so are enqueued before the

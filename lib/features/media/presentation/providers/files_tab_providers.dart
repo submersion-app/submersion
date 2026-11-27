@@ -42,6 +42,14 @@ class FilesTabState extends Equatable {
   /// offset left set would silently follow the user into their next import.
   final Duration captureTimeOffset;
 
+  /// Whether the staged files came from a folder scan rather than being
+  /// picked one by one.
+  ///
+  /// Picked on a dive, a file the matcher could not place is that dive's
+  /// (issue #5063). A folder scan chose no file for the dive, so what it
+  /// could not place stays out unless the user assigns it.
+  final bool fromFolder;
+
   const FilesTabState({
     required this.files,
     required this.autoMatchByDate,
@@ -50,6 +58,7 @@ class FilesTabState extends Equatable {
     required this.totalToExtract,
     required this.match,
     required this.captureTimeOffset,
+    this.fromFolder = false,
   });
 
   factory FilesTabState.initial() => FilesTabState(
@@ -70,6 +79,7 @@ class FilesTabState extends Equatable {
     int? totalToExtract,
     MatchedSelection? match,
     Duration? captureTimeOffset,
+    bool? fromFolder,
   }) => FilesTabState(
     files: files ?? this.files,
     autoMatchByDate: autoMatchByDate ?? this.autoMatchByDate,
@@ -78,7 +88,11 @@ class FilesTabState extends Equatable {
     totalToExtract: totalToExtract ?? this.totalToExtract,
     match: match ?? this.match,
     captureTimeOffset: captureTimeOffset ?? this.captureTimeOffset,
+    fromFolder: fromFolder ?? this.fromFolder,
   );
+
+  /// Whether a commit on a dive takes the unmatched files to that dive.
+  bool get unmatchedGoToTarget => !fromFolder;
 
   @override
   List<Object?> get props => [
@@ -89,6 +103,7 @@ class FilesTabState extends Equatable {
     totalToExtract,
     match,
     captureTimeOffset,
+    fromFolder,
   ];
 }
 
@@ -105,8 +120,10 @@ class FilesTabState extends Equatable {
 /// which the import wizard's photo attachment shares so both paths store a
 /// file exactly the same way.
 ///
-/// In a dive session, unmatched files are skipped; the review pane's assign
-/// actions are what move them into a dive group. A site session has no
+/// In a dive session, hand-picked files the matcher could not place go to the
+/// session's dive (issue #5063); a folder scan's, and any with no target, are
+/// skipped, and the review pane's assign actions are what move them into a
+/// dive group. A site session has no
 /// unmatched bucket to skip; every staged file belongs to the site.
 ///
 /// [undoCommit] takes the list of IDs returned by [commit] and deletes
@@ -170,11 +187,18 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
       extractedCount: 0,
       totalToExtract: 0,
       captureTimeOffset: Duration.zero,
+      fromFolder: false,
     );
   }
 
-  void setFiles(List<ExtractedFile> files, {required MatchedSelection match}) {
-    state = state.copyWith(files: files, match: match);
+  /// Stages [files] with their [match]; [fromFolder] says whether a folder
+  /// scan found them (see [FilesTabState.fromFolder]).
+  void setFiles(
+    List<ExtractedFile> files, {
+    required MatchedSelection match,
+    bool fromFolder = false,
+  }) {
+    state = state.copyWith(files: files, match: match, fromFolder: fromFolder);
   }
 
   /// Applies a new capture-time [offset] together with the [match] it produced.
@@ -292,7 +316,9 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
   ///   timestamps happened to fall inside.
   /// - [DiveAttachTarget]: the matcher's per-dive assignment, which the
   ///   review pane lets the user correct first, and every unmatched file on
-  ///   the target dive: the user picked it on that dive (issue #5063).
+  ///   the target dive: the user picked it on that dive (issue #5063). A
+  ///   folder scan's unmatched files are skipped (see
+  ///   [FilesTabState.fromFolder]).
   /// - No target at all: the matcher's per-dive assignment. Unmatched files
   ///   are skipped; the pane's assign actions are how they get out of that
   ///   bucket.
@@ -325,8 +351,10 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
             created.add(await _persistOne(file, diveId: entry.key));
           }
         }
-        for (final file in state.match.unmatched) {
-          created.add(await _persistOne(file, diveId: diveId));
+        if (state.unmatchedGoToTarget) {
+          for (final file in state.match.unmatched) {
+            created.add(await _persistOne(file, diveId: diveId));
+          }
         }
       case null:
         for (final entry in state.match.matched.entries) {
@@ -344,7 +372,7 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
   /// and were left out: a sitting on [diveId] holds its own photos until
   /// Save, and changes no other dive (issue #4527). The files the matcher
   /// could not place are [diveId]'s too, since the user picked them on it
-  /// (issue #5063). Clears the staged files.
+  /// (issue #5063), unless a folder scan found them. Clears the staged files.
   Future<({List<MediaItem> rows, int leftOut})> heldRows(String diveId) async {
     final rows = <MediaItem>[];
     var leftOut = 0;
@@ -357,8 +385,10 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
         rows.add(await _itemFor(file, id: const Uuid().v4(), diveId: diveId));
       }
     }
-    for (final file in state.match.unmatched) {
-      rows.add(await _itemFor(file, id: const Uuid().v4(), diveId: diveId));
+    if (state.unmatchedGoToTarget) {
+      for (final file in state.match.unmatched) {
+        rows.add(await _itemFor(file, id: const Uuid().v4(), diveId: diveId));
+      }
     }
     clear();
     return (rows: rows, leftOut: leftOut);

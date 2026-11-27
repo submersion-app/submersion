@@ -978,6 +978,50 @@ void main() {
         ('b.jpg', 'dive-a'),
       ]);
     });
+
+    test('skips the unmatched files of a folder scan', () async {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      final a = _ef('/a.jpg');
+      final b = _ef('/b.jpg');
+      notifier.setFiles(
+        [a, b],
+        match: MatchedSelection(
+          matched: {
+            'dive-a': [a],
+          },
+          unmatched: [b],
+        ),
+        fromFolder: true,
+      );
+
+      when(
+        mockPlatform.createBookmark(any),
+      ).thenAnswer((_) async => Uint8List.fromList([1, 2, 3]));
+      when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
+      final captured = <MediaItem>[];
+      when(mockRepo.createMedia(any)).thenAnswer((invocation) async {
+        captured.add(invocation.positionalArguments.first as MediaItem);
+        return _saved('saved-${captured.length}');
+      });
+
+      await notifier.commit(target: const DiveAttachTarget('dive-a'));
+
+      expect(captured.map((m) => m.originalFilename), ['a.jpg']);
+    });
+
+    test('clearStagedFiles forgets that the set came from a folder', () {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      notifier.setFiles(
+        [_ef('/a.jpg')],
+        match: MatchedSelection.empty(),
+        fromFolder: true,
+      );
+      expect(notifier.state.fromFolder, isTrue);
+
+      notifier.clearStagedFiles();
+
+      expect(notifier.state.fromFolder, isFalse);
+    });
   });
 
   group('diveBoundsProvider', () {
