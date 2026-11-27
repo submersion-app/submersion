@@ -146,6 +146,27 @@ void main() {
       expect(suggestedCountryNames(const [], language: 'ja'), contains('フランス'));
     });
 
+    test('every suggestion names its own country, in every place-name '
+        'language (issue #5019)', () {
+      for (final language in PlaceNameLanguage.supportedCodes) {
+        final codes = [
+          for (final name in suggestedCountryNames(
+            const [],
+            language: language,
+          ))
+            countryCodeFor(name),
+        ];
+        expect(codes, isNot(contains(null)), reason: language);
+        expect(codes.toSet().length, codes.length, reason: language);
+      }
+      // CLDR's Spanish name for the Republic, plain "Congo", could be either
+      // Congo, so the English name is offered in its place.
+      expect(
+        suggestedCountryNames(const [], language: 'es'),
+        contains('Republic of the Congo'),
+      );
+    });
+
     test('an unknown language falls back to the English names', () {
       expect(
         suggestedCountryNames(const [], language: 'xx'),

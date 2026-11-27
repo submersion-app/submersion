@@ -22,10 +22,11 @@ final usedBuddyCountriesProvider = FutureProvider<List<String>>((ref) async {
 final buddyCountrySuggestionsProvider = FutureProvider<List<String>>((
   ref,
 ) async {
+  final language = ref.watch(placeNameLanguageProvider);
   final buddies = await ref.watch(usedBuddyCountriesProvider.future);
   final sites = await ref.watch(sitesProvider.future);
   return suggestedCountryNames([
     ...buddies,
     for (final site in sites) site.country,
-  ], language: ref.watch(placeNameLanguageProvider));
+  ], language: language);
 });

@@ -61,19 +61,27 @@ List<String> suggestedCountryNames(
 
 /// [isoCountryNames] with each country's code, named in [language] and
 /// sorted: the generated CLDR name, or the English one for English, for a
-/// language the table lacks, and for a country it has no name for. Built
-/// once per language.
+/// language the table lacks, for a country it has no name for, and for a
+/// CLDR name the lookup does not read back as that country (Spanish
+/// "Congo", which could be either Congo). Built once per language.
 List<({String code, String name})> _isoCountriesIn(String language) =>
     _isoCountriesByLanguage[language] ??= () {
       final names = cldrCountryDisplayNames[language];
       final countries = [
         for (final english in isoCountryNames)
           if (countryCodeFor(english) case final code?)
-            (code: code, name: names?[code] ?? english),
+            (code: code, name: _nameIn(names, code) ?? english),
       ];
       countries.sort((a, b) => compareTextForSort(a.name, b.name));
       return List<({String code, String name})>.unmodifiable(countries);
     }();
+
+/// The CLDR name for [code] in [names], when it reads back as [code]: a
+/// picked suggestion must keep its flag.
+String? _nameIn(Map<String, String>? names, String code) {
+  final name = names?[code];
+  return name != null && countryCodeFor(name) == code ? name : null;
+}
 
 final Map<String, List<({String code, String name})>> _isoCountriesByLanguage =
     {};
