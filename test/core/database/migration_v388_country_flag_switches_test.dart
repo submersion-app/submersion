@@ -96,6 +96,17 @@ void main() {
     },
   );
 
+  test(
+    'the beforeOpen backstop adds missing columns without copying',
+    () async {
+      // Already at v388, so only the backstop runs: a copy here would rewrite
+      // the section switches from the sites switch on every open.
+      final db = AppDatabase(dbAt(388, flags: false));
+      addTearDown(db.close);
+      expect(await stored(db), {for (final c in newColumns) c: 1});
+    },
+  );
+
   test('the new columns are booleans', () async {
     final db = AppDatabase(dbAt(387, flags: true));
     addTearDown(db.close);

@@ -147,6 +147,22 @@ void main() {
     handle.dispose();
   });
 
+  testWidgets("compact card's label trims the country it names", (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await _pump(
+      tester,
+      ListViewMode.compact,
+      summary: _summary(country: ' Belize '),
+    );
+    expect(
+      find.bySemanticsLabel(RegExp('Blue Hole, Belize(?! )')),
+      findsOneWidget,
+    );
+    handle.dispose();
+  });
+
   testWidgets("compact card's label leaves the country out with flags off", (
     tester,
   ) async {

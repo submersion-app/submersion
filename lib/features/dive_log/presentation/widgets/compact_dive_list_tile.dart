@@ -404,7 +404,7 @@ class CompactDiveListTile extends ConsumerWidget {
             unfilledState,
             diveNumber,
             siteName,
-            country: flagCode == null ? null : siteCountry,
+            country: flagCode == null ? null : siteCountry?.trim(),
           ),
           child: InkWell(
             onTap: onTap,
