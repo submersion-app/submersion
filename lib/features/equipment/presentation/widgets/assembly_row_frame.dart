@@ -7,6 +7,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// How far each level of the assembly view indents a row (issue #5071).
 const double kAssemblyIndentStep = 20;
 
+/// The width of the fold chevron's gutter: its 48 dp hit box.
+const double kAssemblyChevronWidth = 48;
+
 /// The deepest level that still indents further: deeper rigs stay at this
 /// indent so a row keeps its width on a phone.
 const int kAssemblyMaxIndentLevels = 4;
@@ -23,10 +26,15 @@ class AssemblyRowFrame extends StatelessWidget {
     required this.depth,
     this.isExpanded,
     this.onToggle,
+    this.reserveChevron = false,
     required this.child,
   });
 
   final int depth;
+
+  /// Keeps the chevron's width free on a row with nothing to fold, so its
+  /// card lines up with an assembly's beside it.
+  final bool reserveChevron;
   final bool? isExpanded;
   final VoidCallback? onToggle;
   final Widget child;
@@ -40,9 +48,11 @@ class AssemblyRowFrame extends StatelessWidget {
       padding: EdgeInsetsDirectional.only(start: indent),
       child: Row(
         children: [
+          if (expanded == null && reserveChevron)
+            const SizedBox(width: kAssemblyChevronWidth),
           if (expanded != null)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(start: 4),
+            SizedBox(
+              width: kAssemblyChevronWidth,
               child: Semantics(
                 expanded: expanded,
                 child: IconButton(

@@ -44,6 +44,37 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
   /// the previous diver's places. Read when the menu opens.
   List<String> _outerKeys = const [];
 
+  /// The assemblies that fold on screen this build (issue #5071), shown or
+  /// folded away: what Expand all opens and Collapse all folds. Empty
+  /// whenever [_outerKeys] is, and in the individual view.
+  Set<String> _assemblyIds = const {};
+
+  /// The keys folded this build before any reveal: the saved place and type
+  /// folds plus every folded assembly, as `resolveCollapsedKeys` reads them.
+  Set<String> _collapsed = const {};
+
+  /// The row stop the keyboard cursor or a tap last rested on. A part shown
+  /// under two assemblies has two rows for one item id, so the cursor keeps
+  /// to the row it is on rather than jumping to the item's first row.
+  String? _cursorNavKey;
+
+  /// The cursor's row for [currentId]: the row the cursor or a tap last
+  /// rested on when it shows that item, so a part listed under two
+  /// assemblies keeps its place, else the item's first row.
+  String? _currentNavKey(EquipmentRowLayout layout, String? currentId) {
+    final cursor = _cursorNavKey;
+    if (cursor != null && layout.itemIdByNavKey[cursor] == currentId) {
+      return cursor;
+    }
+    return currentId;
+  }
+
+  /// Clears what the fold menu acts on, for a body with no rows.
+  void _clearFoldTargets() {
+    _outerKeys = const [];
+    _assemblyIds = const {};
+  }
+
   /// The rows for this build, with the folds hiding [_revealTarget] opened.
   ///
   /// [selectedId] is the selection the page rests on. A new one that did
@@ -54,6 +85,7 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
     required List<EquipmentGroup> groups,
     required List<EquipmentLocationSection>? sections,
     required Set<String> folds,
+    EquipmentPartTree? parts,
   }) {
     if (selectedId != _seenSelection) {
       _seenSelection = selectedId;
@@ -79,23 +111,35 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
       _dismissed = const {};
     }
     _wasFiltered = filtered;
+    // Saved assembly keys mean opened, except during a filter (#5071).
+    final collapsed = resolveCollapsedKeys(
+      folds,
+      parts?.assemblyIds ?? const <String>{},
+      assembliesStartOpen: ref
+          .read(equipmentFoldsProvider.notifier)
+          .assembliesStartOpen,
+    );
+    _collapsed = collapsed;
     EquipmentRowLayout layOut(Set<String> revealed) => layoutEquipmentRows(
       groups: groups,
       sections: sections,
-      collapsed: folds.difference(revealed),
+      collapsed: collapsed.difference(revealed),
+      parts: parts,
     );
     var layout = layOut(const {});
     // The target's path does not depend on the folds, so the first layout
     // finds it; a second opens whatever on it is folded now.
     _revealed = {
       for (final key in layout.foldKeysByItem[_revealTarget] ?? const [])
-        if (folds.contains(key) && !_dismissed.contains(key)) key,
+        if (collapsed.contains(key) && !_dismissed.contains(key)) key,
     };
     if (_revealed.isNotEmpty) layout = layOut(_revealed);
-    _visibleItemIds = [
+    // A part shown under two assemblies is one item to a Shift range.
+    _visibleItemIds = {
       for (final row in layout.rows)
         if (row is EquipmentItemRow) row.item.id,
-    ];
+    }.toList();
+    _assemblyIds = layout.assemblyIds;
     return layout;
   }
 
@@ -194,9 +238,10 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
   static const _collapseAllValue = 'fold_collapse_all';
 
   /// Expand all and Collapse all (issue #4184), offered while the list shows
-  /// headings. Read as the menu opens, like the view mode.
+  /// headings or an assembly that folds (issue #5071). Read as the menu
+  /// opens, like the view mode.
   List<PopupMenuEntry<String>> _foldMenuEntries(BuildContext context) {
-    if (_outerKeys.isEmpty) return const [];
+    if (_outerKeys.isEmpty && _assemblyIds.isEmpty) return const [];
     PopupMenuItem<String> entry(String value, IconData icon, String label) =>
         PopupMenuItem<String>(
           value: value,
@@ -230,11 +275,11 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
     switch (value) {
       case _expandAllValue:
         _endReveal();
-        folds.expandAll();
+        folds.expandAll(assemblyIds: _assemblyIds);
         return true;
       case _collapseAllValue:
         _endReveal();
-        folds.collapseAll(_outerKeys);
+        folds.collapseAll(_outerKeys, assemblyIds: _assemblyIds);
         return true;
     }
     return false;

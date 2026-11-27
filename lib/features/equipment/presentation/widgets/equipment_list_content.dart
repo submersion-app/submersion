@@ -56,6 +56,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_finding.
 import 'package:submersion/features/equipment/presentation/providers/condition_badge_providers.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_fold_keys.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_part_tree.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -68,6 +70,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
+import 'package:submersion/features/equipment/presentation/widgets/assembly_row_frame.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_type_fold_header.dart';
@@ -405,7 +408,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
     // Table mode uses a dedicated scaffold with column configuration support.
     if (viewMode == ListViewMode.table) {
       // Table mode is flat: no groups to fold.
-      _outerKeys = const [];
+      _clearFoldTargets();
       final sortedAsync = equipmentAsync.whenData(
         (equipment) => applyEquipmentSorting(
           equipment,
@@ -498,11 +501,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
                 locationSections: locationSections,
               ),
         loading: () {
-          _outerKeys = const [];
+          _clearFoldTargets();
           return const Center(child: CircularProgressIndicator());
         },
         error: (error, stack) {
-          _outerKeys = const [];
+          _clearFoldTargets();
           return _buildErrorState(context, error);
         },
       );
@@ -1285,14 +1288,32 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
         : const <String, EquipmentLocation>{};
 
     final folds = ref.watch(equipmentFoldsProvider).toSet();
+    // The assembly view (issue #5071): parts fold under their assembly in
+    // the card modes, unless the diver turned it off. The table never nests.
+    final nest =
+        ref.watch(equipmentListViewModeProvider) != ListViewMode.table &&
+        ref.watch(equipmentArrangementProvider).nestParts;
+    final parts = nest
+        ? EquipmentPartTree.build(
+            components:
+                ref.watch(equipmentComponentsIndexProvider).value ??
+                ComponentsIndex.empty,
+            items: [for (final group in groups) ...group.items],
+          )
+        : null;
     final layout = _foldedLayout(
       selectedId: selectedId,
       groups: groups,
       sections: locationSections,
       folds: folds,
+      parts: parts,
     );
     final rows = layout.rows;
     _outerKeys = layout.outerKeys;
+    final collapsed = _collapsed;
+    // Every row keeps the chevron's gutter once anything folds, so cards
+    // line up and parts indent from their assembly's card.
+    final framed = layout.assemblyIds.isNotEmpty;
 
     // A folded type group says how much in it needs service. The urgency
     // map evaluates every clock, so it is only watched while one is folded.
@@ -1353,38 +1374,58 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
         // toggles one, Right opens it, Left closes it, and Left on an item
         // closes the group it sits in, as on the site list.
         keys: layout.navStops.keys,
-        currentKey:
-            widget.selectedId ?? ref.watch(highlightedEquipmentIdProvider),
+        currentKey: _currentNavKey(
+          layout,
+          widget.selectedId ?? ref.watch(highlightedEquipmentIdProvider),
+        ),
         onMove: (key) {
           if (layout.navStops.groupOfHeader(key) != null) return;
+          final id = layout.itemIdByNavKey[key]!;
+          _cursorNavKey = key;
           moveListCursor(
             context,
             canOpen: !_isSelectionMode && widget.onItemSelected != null,
-            open: () => _handleRowTap(itemsById[key]!),
+            open: () => _handleRowTap(itemsById[id]!),
             highlight: () =>
-                ref.read(highlightedEquipmentIdProvider.notifier).state = key,
+                ref.read(highlightedEquipmentIdProvider.notifier).state = id,
           );
         },
         onActivate: (key) {
           final foldKey = layout.navStops.groupOfHeader(key);
           if (foldKey != null) {
-            _toggleFold(foldKey, folds);
+            _toggleFold(foldKey, collapsed);
           } else {
-            _handleRowTap(itemsById[key]!);
+            _handleRowTap(itemsById[layout.itemIdByNavKey[key]!]!);
           }
         },
         onExpand: (key) {
-          final foldKey = layout.navStops.groupOfHeader(key);
-          if (foldKey != null && !_isOpen(foldKey, folds)) {
-            _toggleFold(foldKey, folds);
+          final foldKey =
+              layout.navStops.groupOfHeader(key) ??
+              layout.assemblyFoldByNavKey[key];
+          if (foldKey != null && !_isOpen(foldKey, collapsed)) {
+            _toggleFold(foldKey, collapsed);
           }
         },
         onCollapse: (key) {
+          // An open assembly folds; a part climbs to its assembly's row and
+          // folds it, as an item under a heading does (issue #5071).
+          final own = layout.assemblyFoldByNavKey[key];
+          if (own != null && _isOpen(own, collapsed)) {
+            _toggleFold(own, collapsed);
+            return key;
+          }
+          final above = layout.parentNavKeyOf[key];
+          if (above != null) {
+            final fold = layout.assemblyFoldByNavKey[above]!;
+            if (_isOpen(fold, collapsed)) _toggleFold(fold, collapsed);
+            _cursorNavKey = above;
+            return above;
+          }
           final header = layout.navStops.headerFor(key);
           if (header == null) return null;
           final foldKey = layout.navStops.groupOfHeader(header)!;
-          if (_isOpen(foldKey, folds)) {
-            _toggleFold(foldKey, folds);
+          if (_isOpen(foldKey, collapsed)) {
+            _toggleFold(foldKey, collapsed);
             return header;
           }
           // Already folded: Left climbs from a type heading to the place it
@@ -1400,12 +1441,18 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
             final EquipmentItem item;
             switch (rows[index]) {
               case final EquipmentLocationHeadingRow row:
-                return _locationHeading(context, row, folds);
+                return _locationHeading(context, row, collapsed);
               case final EquipmentTypeHeadingRow row:
-                return _typeHeading(context, row, folds, urgency);
+                return _typeHeading(context, row, collapsed, urgency);
               case EquipmentItemRow(item: final rowItem):
                 item = rowItem;
             }
+            final row = rows[index] as EquipmentItemRow;
+            void onRowTap() {
+              _cursorNavKey = row.navKey;
+              _handleRowTap(item);
+            }
+
             final isSelected =
                 widget.selectedId == item.id ||
                 ref.watch(highlightedEquipmentIdProvider) == item.id;
@@ -1417,7 +1464,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
               ListViewMode.compact => EquipmentListTile(
                 item: item,
                 isSelected: isSelected,
-                onTap: () => _handleRowTap(item),
+                onTap: onRowTap,
                 isSelectionMode: _isSelectionMode,
                 isChecked: isChecked,
                 onCheckChanged: onCheckChanged,
@@ -1427,18 +1474,37 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
                     : const [],
                 label: labels[item.id],
                 location: placesById[item.id],
+                partCount: parts == null ? null : row.partCount,
+                hideParentId: row.parentId,
+                rollupInstalledParts: parts != null,
+                margin: framed ? kFramedEquipmentTileMargin : null,
               ),
               ListViewMode.dense ||
               ListViewMode.table => DenseEquipmentListTile(
                 item: item,
                 isSelected: isSelected,
-                onTap: () => _handleRowTap(item),
+                onTap: onRowTap,
                 isSelectionMode: _isSelectionMode,
                 isChecked: isChecked,
                 onCheckChanged: onCheckChanged,
+                partCount: parts == null ? null : row.partCount,
+                rollupInstalledParts: parts != null,
               ),
             };
-            return KeyboardListItem(navigationKey: item.id, child: tile);
+            return KeyboardListItem(
+              navigationKey: row.navKey,
+              child: framed
+                  ? AssemblyRowFrame(
+                      depth: row.depth,
+                      reserveChevron: true,
+                      isExpanded: row.foldKey == null ? null : row.isExpanded,
+                      onToggle: row.foldKey == null
+                          ? null
+                          : () => _toggleFold(row.foldKey!, collapsed),
+                      child: tile,
+                    )
+                  : tile,
+            );
           },
         ),
       ),
@@ -1450,7 +1516,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
     WidgetRef ref, {
     required bool tagsEmptied,
   }) {
-    _outerKeys = const [];
+    _clearFoldTargets();
     final filter = ref.watch(effectiveEquipmentFilterProvider);
 
     // The default view is the diver's choice (#2628) and can hide all they
@@ -1587,6 +1653,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
   }
 }
 
+/// An [EquipmentListTile]'s card margin in the assembly view (issue #5071):
+/// the row's chevron gutter stands in for the start side.
+const EdgeInsetsGeometry kFramedEquipmentTileMargin =
+    EdgeInsetsDirectional.only(end: 16, top: 4, bottom: 4);
+
 /// List item widget for displaying equipment
 class EquipmentListTile extends ConsumerWidget {
   final EquipmentItem item;
@@ -1624,6 +1695,11 @@ class EquipmentListTile extends ConsumerWidget {
   /// the item, which fold under its row there.
   final bool rollupInstalledParts;
 
+  /// The card's margin; null keeps the list's usual 16 dp sides. The
+  /// assembly view passes [kFramedEquipmentTileMargin], its chevron gutter
+  /// taking the start side's place.
+  final EdgeInsetsGeometry? margin;
+
   const EquipmentListTile({
     super.key,
     required this.item,
@@ -1638,6 +1714,7 @@ class EquipmentListTile extends ConsumerWidget {
     this.partCount,
     this.hideParentId,
     this.rollupInstalledParts = false,
+    this.margin,
   });
 
   @override
@@ -1694,7 +1771,7 @@ class EquipmentListTile extends ConsumerWidget {
     );
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       color: isSelected
           ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
           : null,
