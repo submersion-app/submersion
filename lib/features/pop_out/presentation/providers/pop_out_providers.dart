@@ -55,6 +55,10 @@ final popOutPrefsTriggerProvider = Provider<Object?>(
 final mainWindowFrameProvider = Provider<Future<PopOutFrame> Function()>(
   (ref) => () async {
     try {
+      // The main window initializes window_manager only when something
+      // first needs it (fullscreen); asking an uninitialized plugin for its
+      // window is a native crash no try can catch. Idempotent.
+      await windowManager.ensureInitialized();
       final bounds = await windowManager.getBounds();
       return PopOutFrame(
         x: bounds.left,
