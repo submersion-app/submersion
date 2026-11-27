@@ -573,6 +573,26 @@ void main() {
       expect(tapped, ['src-2', 'src-2', 'src-1']);
     });
 
+    // The cells fill their column, so blank space beside a short value
+    // views the source too.
+    testWidgets('tapping blank space beside a value views that source', (
+      tester,
+    ) async {
+      final tapped = <String>[];
+      await pumpTwo(tester, onTapSource: tapped.add);
+
+      final column = tester.getRect(
+        find.byKey(DataSourcesSection.cardKey('src-2')),
+      );
+      final value = tester.getRect(find.text('31.0m'));
+      // Well clear of the text, inside the column's right edge.
+      expect(column.right - value.right, greaterThan(20));
+      await tester.tapAt(Offset(column.right - 4, value.center.dy));
+      await tester.pumpAndSettle();
+
+      expect(tapped, ['src-2']);
+    });
+
     testWidgets('the viewed column is tinted top to bottom', (tester) async {
       await pumpTwo(tester, viewedSourceId: 'src-2');
 
