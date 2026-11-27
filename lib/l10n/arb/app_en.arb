@@ -8794,7 +8794,7 @@
   "@equipment_searchWords_tankBand": {
     "description": "Search words (issue #5106): other names for a cylinder band, comma separated. Typing any of them in the equipment search finds cylinder bands."
   },
-  "enum_equipmentType_tankBand": "Tank Band",
+  "enum_equipmentType_tankBand": "Cylinder Band",
   "enum_equipmentType_weightPocket": "Weight Pocket",
   "enum_equipmentType_gearPocket": "Gear Pocket",
   "enum_equipmentType_bag": "Bag",
@@ -8819,7 +8819,7 @@
   "enum_equipmentType_reel": "Reel",
   "enum_equipmentType_regulator": "Regulator",
   "enum_equipmentType_smb": "SMB",
-  "enum_equipmentType_tank": "Tank",
+  "enum_equipmentType_tank": "Cylinder",
   "enum_equipmentType_weights": "Weights",
   "enum_equipmentType_wetsuit": "Wetsuit",
   "enum_equipmentType_snorkel": "Snorkel",
@@ -8961,7 +8961,7 @@
   "enum_tankRole_deco": "Deco",
   "enum_tankRole_diluent": "Diluent",
   "enum_tankRole_oxygenSupply": "O₂ Supply",
-  "enum_tankRole_pony": "Pony Bottle",
+  "enum_tankRole_pony": "Pony",
   "enum_tankRole_sidemountLeft": "Sidemount Left",
   "enum_tankRole_sidemountRight": "Sidemount Right",
   "enum_tankRole_stage": "Stage",

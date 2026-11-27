@@ -5,6 +5,11 @@ import 'package:submersion/features/equipment/query/equipment_type_text_search.d
 /// any app language, and for cylinders also the other words divers use.
 void main() {
   group('equipmentTypeNamesMatching', () {
+    test('the cylinder label finds cylinders, ignoring case', () {
+      expect(equipmentTypeNamesMatching('cylinder'), contains('tank'));
+      expect(equipmentTypeNamesMatching('Cylinder'), contains('tank'));
+    });
+
     test('the other English words for a cylinder find cylinders', () {
       for (final word in ['tank', 'bottle', 'stage', 'pony']) {
         expect(

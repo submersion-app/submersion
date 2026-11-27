@@ -14188,7 +14188,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_searchWords_tankBand => 'tank band, cam band';
 
   @override
-  String get enum_equipmentType_tankBand => 'Tank Band';
+  String get enum_equipmentType_tankBand => 'Cylinder Band';
 
   @override
   String get enum_equipmentType_weightPocket => 'Weight Pocket';
@@ -14263,7 +14263,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentType_smb => 'SMB';
 
   @override
-  String get enum_equipmentType_tank => 'Tank';
+  String get enum_equipmentType_tank => 'Cylinder';
 
   @override
   String get enum_equipmentType_weights => 'Weights';
@@ -14694,7 +14694,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_tankRole_oxygenSupply => 'O₂ Supply';
 
   @override
-  String get enum_tankRole_pony => 'Pony Bottle';
+  String get enum_tankRole_pony => 'Pony';
 
   @override
   String get enum_tankRole_sidemountLeft => 'Sidemount Left';

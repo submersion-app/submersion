@@ -22819,7 +22819,7 @@ abstract class AppLocalizations {
   /// No description provided for @enum_equipmentType_tankBand.
   ///
   /// In en, this message translates to:
-  /// **'Tank Band'**
+  /// **'Cylinder Band'**
   String get enum_equipmentType_tankBand;
 
   /// No description provided for @enum_equipmentType_weightPocket.
@@ -22969,7 +22969,7 @@ abstract class AppLocalizations {
   /// No description provided for @enum_equipmentType_tank.
   ///
   /// In en, this message translates to:
-  /// **'Tank'**
+  /// **'Cylinder'**
   String get enum_equipmentType_tank;
 
   /// No description provided for @enum_equipmentType_weights.
@@ -23821,7 +23821,7 @@ abstract class AppLocalizations {
   /// No description provided for @enum_tankRole_pony.
   ///
   /// In en, this message translates to:
-  /// **'Pony Bottle'**
+  /// **'Pony'**
   String get enum_tankRole_pony;
 
   /// No description provided for @enum_tankRole_sidemountLeft.
