@@ -10,12 +10,15 @@ import 'package:submersion/features/buddies/presentation/widgets/compact_buddy_l
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/providers/entity_card_config_providers.dart';
 import 'package:submersion/shared/widgets/country_flag.dart';
+import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
-/// A buddy row whose subtitle slot shows the country draws its flag, as a
-/// site row does (issue #4457).
+/// A standard buddy row draws the buddy's flag as a badge on the avatar
+/// (issue #5001); a compact row, with no avatar, draws it beside a Country
+/// subtitle (issue #4457).
 void main() {
   EntityCardViewConfig<BuddyField> config(
     BuddyField subtitle,
@@ -57,29 +60,87 @@ void main() {
     ),
   ];
 
-  testWidgets('a row showing the country draws its flag', (tester) async {
+  Future<void> pumpStandard(
+    WidgetTester tester, {
+    BuddyField subtitle = BuddyField.email,
+    BuddyWithDiveCount? buddy,
+    bool flags = true,
+  }) async {
     await tester.pumpWidget(
       testApp(
-        overrides: await overrides(BuddyField.country),
+        overrides: [
+          ...await overrides(subtitle),
+          showBuddyCountryFlagsProvider.overrideWithValue(flags),
+        ],
         locale: const Locale('en'),
-        child: BuddyListTile(entry: entry, onTap: () {}),
+        child: BuddyListTile(entry: buddy ?? entry, onTap: () {}),
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Italy'), findsOneWidget);
+  }
+
+  // A standard row shows the buddy's flag as a badge on the avatar, whatever
+  // its subtitle shows (issue #5001).
+  testWidgets('a row with an email subtitle draws one flag on the avatar', (
+    tester,
+  ) async {
+    await pumpStandard(tester);
     expect(find.byType(CountryFlag), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey('buddy-avatar-flag')),
+        matching: find.byType(CountryFlag),
+      ),
+      findsOneWidget,
+    );
+    final avatar = tester.getRect(find.byType(ProfileAvatar));
+    final flag = tester.getRect(find.byType(CountryFlag));
+    expect(flag.overlaps(avatar), isTrue);
+    expect(flag.center.dx, greaterThan(avatar.center.dx));
+    expect(flag.center.dy, greaterThan(avatar.center.dy));
   });
 
-  testWidgets('a row showing the email draws no flag', (tester) async {
-    await tester.pumpWidget(
-      testApp(
-        overrides: await overrides(BuddyField.email),
-        locale: const Locale('en'),
-        child: BuddyListTile(entry: entry, onTap: () {}),
+  testWidgets('a row with a Country subtitle still draws exactly one flag', (
+    tester,
+  ) async {
+    await pumpStandard(tester, subtitle: BuddyField.country);
+    expect(find.text('Italy'), findsOneWidget);
+    expect(find.byType(CountryFlag), findsOneWidget);
+    expect(find.byKey(const ValueKey('buddy-avatar-flag')), findsOneWidget);
+  });
+
+  testWidgets('a buddy with no country draws no badge', (tester) async {
+    await pumpStandard(
+      tester,
+      buddy: BuddyWithDiveCount(
+        buddy: Buddy(
+          id: 'b2',
+          name: 'Ana',
+          email: 'ana@example.com',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+        diveCount: 1,
       ),
     );
-    await tester.pumpAndSettle();
     expect(find.byType(CountryFlag), findsNothing);
+    expect(find.byKey(const ValueKey('buddy-avatar-flag')), findsNothing);
+  });
+
+  testWidgets('the Buddies switch off hides the badge', (tester) async {
+    await pumpStandard(tester, flags: false);
+    expect(find.byType(CountryFlag), findsNothing);
+  });
+
+  testWidgets("the row's label names the country when the badge draws", (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await pumpStandard(tester);
+    expect(find.bySemanticsLabel(RegExp('^Marco, Italy')), findsOneWidget);
+    await pumpStandard(tester, flags: false);
+    expect(find.bySemanticsLabel(RegExp('Italy')), findsNothing);
+    handle.dispose();
   });
 
   testWidgets('a compact row showing the country draws its flag', (

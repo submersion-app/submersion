@@ -1044,6 +1044,7 @@
   "buddies_linkText_undone": "バディのリンクを解除しました",
   "buddies_linkText_useSuggestion": "使用",
   "buddies_linkedProfile_chip": "プロフィール",
+  "buddies_listTile_semanticsWithCountry": "{name}、{country}",
   "buddies_linkedProfile_link": "リンク",
   "buddies_linkedProfile_notNow": "後で",
   "buddies_linkedProfile_pickerTitle": "プロフィールにリンク",

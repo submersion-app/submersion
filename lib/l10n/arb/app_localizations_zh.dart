@@ -3496,6 +3496,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_linkedProfile_chip => '个人资料';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name、$country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => '关联';
 
   @override

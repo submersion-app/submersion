@@ -955,6 +955,7 @@
   "buddies_field_linkedProfile": "Gekoppeld profiel",
   "buddies_field_linkedProfileNone": "Niet gekoppeld",
   "buddies_linkedProfile_chip": "Profiel",
+  "buddies_listTile_semanticsWithCountry": "{name}, {country}",
   "buddies_linkedProfile_link": "Koppelen",
   "buddies_linkedProfile_notNow": "Niet nu",
   "buddies_linkedProfile_pickerTitle": "Koppelen aan een profiel",

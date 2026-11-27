@@ -3803,6 +3803,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_linkedProfile_chip => 'ملف شخصي';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name، $country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => 'ربط';
 
   @override

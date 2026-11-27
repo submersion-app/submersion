@@ -955,6 +955,7 @@
   "buddies_field_linkedProfile": "Perfil vinculado",
   "buddies_field_linkedProfileNone": "Não vinculado",
   "buddies_linkedProfile_chip": "Perfil",
+  "buddies_listTile_semanticsWithCountry": "{name}, {country}",
   "buddies_linkedProfile_link": "Vincular",
   "buddies_linkedProfile_notNow": "Agora não",
   "buddies_linkedProfile_pickerTitle": "Vincular a um perfil",

@@ -955,6 +955,7 @@
   "buddies_field_linkedProfile": "פרופיל מקושר",
   "buddies_field_linkedProfileNone": "לא מקושר",
   "buddies_linkedProfile_chip": "פרופיל",
+  "buddies_listTile_semanticsWithCountry": "{name}, {country}",
   "buddies_linkedProfile_link": "קישור",
   "buddies_linkedProfile_notNow": "לא עכשיו",
   "buddies_linkedProfile_pickerTitle": "קישור לפרופיל",

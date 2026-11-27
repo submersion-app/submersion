@@ -3702,6 +3702,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get buddies_linkedProfile_chip => 'Perfil';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name, $country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => 'Vincular';
 
   @override

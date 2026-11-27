@@ -955,6 +955,7 @@
   "buddies_field_linkedProfile": "الملف الشخصي المرتبط",
   "buddies_field_linkedProfileNone": "غير مرتبط",
   "buddies_linkedProfile_chip": "ملف شخصي",
+  "buddies_listTile_semanticsWithCountry": "{name}، {country}",
   "buddies_linkedProfile_link": "ربط",
   "buddies_linkedProfile_notNow": "ليس الآن",
   "buddies_linkedProfile_pickerTitle": "الربط بملف شخصي",

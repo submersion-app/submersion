@@ -955,6 +955,7 @@
   "buddies_field_linkedProfile": "Kapcsolt profil",
   "buddies_field_linkedProfileNone": "Nincs kapcsolva",
   "buddies_linkedProfile_chip": "Profil",
+  "buddies_listTile_semanticsWithCountry": "{name}, {country}",
   "buddies_linkedProfile_link": "Kapcsolás",
   "buddies_linkedProfile_notNow": "Most nem",
   "buddies_linkedProfile_pickerTitle": "Kapcsolás profilhoz",

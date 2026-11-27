@@ -1044,6 +1044,7 @@
   "buddies_field_linkedProfile": "关联的个人资料",
   "buddies_field_linkedProfileNone": "未关联",
   "buddies_linkedProfile_chip": "个人资料",
+  "buddies_listTile_semanticsWithCountry": "{name}、{country}",
   "buddies_linkedProfile_link": "关联",
   "buddies_linkedProfile_notNow": "暂不",
   "buddies_linkedProfile_pickerTitle": "关联到个人资料",

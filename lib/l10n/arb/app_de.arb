@@ -981,6 +981,7 @@
   "buddies_field_linkedProfile": "Verknüpftes Profil",
   "buddies_field_linkedProfileNone": "Nicht verknüpft",
   "buddies_linkedProfile_chip": "Profil",
+  "buddies_listTile_semanticsWithCountry": "{name}, {country}",
   "buddies_linkedProfile_link": "Verknüpfen",
   "buddies_linkedProfile_notNow": "Später",
   "buddies_linkedProfile_pickerTitle": "Mit einem Profil verknüpfen",

@@ -5622,6 +5622,12 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get buddies_linkedProfile_chip;
 
+  /// Screen-reader label for a buddy row whose country shows only as a flag on the photo (issue #5001).
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, {country}'**
+  String buddies_listTile_semanticsWithCountry(String name, String country);
+
   /// No description provided for @buddies_linkedProfile_link.
   ///
   /// In en, this message translates to:

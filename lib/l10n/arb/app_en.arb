@@ -2145,6 +2145,8 @@
   "buddies_linkText_undone": "Buddy links removed",
   "buddies_linkText_useSuggestion": "Use",
   "buddies_linkedProfile_chip": "Profile",
+  "buddies_listTile_semanticsWithCountry": "{name}, {country}",
+  "@buddies_listTile_semanticsWithCountry": {"description": "Screen-reader label for a buddy row whose country shows only as a flag on the photo (issue #5001).", "placeholders": {"name": {"type": "String"}, "country": {"type": "String"}}},
   "buddies_linkedProfile_link": "Link",
   "buddies_linkedProfile_notNow": "Not now",
   "buddies_linkedProfile_pickerTitle": "Link to a profile",
