@@ -22,7 +22,10 @@ const _ean50 = DiveTank(
 );
 
 void main() {
-  Future<ProviderContainer> mount(WidgetTester tester) async {
+  Future<ProviderContainer> mount(
+    WidgetTester tester, {
+    int bottomMinutes = 25,
+  }) async {
     tester.view.physicalSize = const Size(800, 600);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
@@ -45,11 +48,18 @@ void main() {
       tester.element(find.byType(PlanProfileChart)),
     );
     container.read(divePlanNotifierProvider.notifier)
-      ..addSimplePlan(maxDepth: 40, bottomTimeMinutes: 25)
+      ..addSimplePlan(maxDepth: 40, bottomTimeMinutes: bottomMinutes)
       ..addTank(_ean50);
     await tester.pumpAndSettle();
     return container;
   }
+
+  List<CanvasMarker> flags(WidgetTester tester) =>
+      (tester
+                  .widget<CustomPaint>(find.byKey(const Key('planChartSeries')))
+                  .painter
+              as PlanChartSeriesPainter)
+          .flaggedGasSwitches;
 
   List<String> flagLabels(WidgetTester tester) => [
     for (final marker
@@ -80,5 +90,18 @@ void main() {
 
     expect(container.read(contingencyGhostSeriesProvider), isNotNull);
     expect(flagLabels(tester), isNot(contains('EAN50')));
+  });
+
+  testWidgets('+5 min flags the deco gas where the longer dive switches', (
+    tester,
+  ) async {
+    final container = await mount(tester, bottomMinutes: 45);
+    final planSwitch = flags(tester).single.timeSeconds;
+
+    container.read(contingencySelectionProvider.notifier).toggleLonger();
+    await tester.pumpAndSettle();
+
+    expect(flags(tester).single.label, 'EAN50');
+    expect(flags(tester).single.timeSeconds, greaterThan(planSwitch + 4 * 60));
   });
 }
