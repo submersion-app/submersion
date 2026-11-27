@@ -24,7 +24,7 @@ legal boundary of a sea and dive-site coordinates are routinely recorded
 from a beach or a moored boat.
 
 Usage:
-    python scripts/sea_area_harvester.py
+    python scripts/datasets/sea_areas/sea_area_harvester.py
 
 Output:
     assets/data/sea_areas.json
@@ -47,7 +47,7 @@ from typing import Any
 from shapely.geometry import Polygon, shape
 
 SCRIPT_DIR = Path(__file__).parent.resolve()
-PROJECT_ROOT = SCRIPT_DIR.parent
+PROJECT_ROOT = SCRIPT_DIR.parents[2]
 OUTPUT_FILE = PROJECT_ROOT / "assets" / "data" / "sea_areas.json"
 
 WFS_URL = (

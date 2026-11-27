@@ -16,7 +16,7 @@ a number to the facility it belongs to. A trial parser attached the national
 Diver Emergency Service hotline to a named hospital unit and a clinician's name
 to another unit's switchboard. Wrong numbers in an emergency directory are
 worse than missing ones, so those twelve units are hand-curated in
-scripts/data/chambers_overlay.json instead.
+scripts/datasets/chambers/chambers_overlay.json instead.
 """
 
 import html

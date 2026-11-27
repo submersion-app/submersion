@@ -20,7 +20,7 @@ digest of each file's decoded bytes.
     K1 amplitude = 50 mm, phase 0
 
 Usage (from the repo root, in a venv with numpy):
-    python3 scripts/tide/write_fes_grid_test_fixtures.py
+    python3 scripts/datasets/tide/write_fes_grid_test_fixtures.py
 """
 
 import hashlib

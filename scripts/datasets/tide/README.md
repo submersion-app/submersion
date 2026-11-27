@@ -19,9 +19,9 @@ which `fes_grid_packing_test.dart` checks the Dart unpacker against.
 
     python3.14 -m venv ~/.venvs/submersion-tide
     ~/.venvs/submersion-tide/bin/pip install numpy netCDF4
-    ~/.venvs/submersion-tide/bin/python scripts/tide/extract_fes_grid.py \
+    ~/.venvs/submersion-tide/bin/python scripts/datasets/tide/extract_fes_grid.py \
         --fes-dir ~/repos/fes2022b/ocean_tide_extrapolated
-    ~/.venvs/submersion-tide/bin/python scripts/tide/extract_fes_grid.py \
+    ~/.venvs/submersion-tide/bin/python scripts/datasets/tide/extract_fes_grid.py \
         --fes-dir ~/repos/fes2022b/ocean_tide_extrapolated --verify
 
 It needs about 3 GB of RAM. `write_fes_grid_test_fixtures.py` regenerates

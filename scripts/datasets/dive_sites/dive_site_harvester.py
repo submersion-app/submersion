@@ -10,7 +10,7 @@ built from several sources in https://github.com/submersion-app/site-catalogue,
 and each of its releases reaches assets/data/site_catalogue.json by a PR.
 
 Usage:
-    python scripts/dive_site_harvester.py
+    python scripts/datasets/dive_sites/dive_site_harvester.py
 
 Output files are written to assets/data/:
     - dive_centers.json: Dive shops, clubs, and centers
@@ -37,7 +37,7 @@ from tqdm import tqdm
 
 # Path configuration - resolve relative to project root
 SCRIPT_DIR = Path(__file__).parent.resolve()
-PROJECT_ROOT = SCRIPT_DIR.parent
+PROJECT_ROOT = SCRIPT_DIR.parents[2]
 OUTPUT_DIR = PROJECT_ROOT / "assets" / "data"
 CHECKPOINT_FILE = SCRIPT_DIR / ".divesiteharvester_checkpoint.json"
 

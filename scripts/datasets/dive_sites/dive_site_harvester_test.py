@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for dive_site_harvester.py.
 
-Run: python3 scripts/dive_site_harvester_test.py
+Run: python3 scripts/datasets/dive_sites/dive_site_harvester_test.py
 
 These cover the metadata build stamp. The harvester writes `generated_at`
 into two shipped assets, and the conventional-looking `isoformat() + "Z"`

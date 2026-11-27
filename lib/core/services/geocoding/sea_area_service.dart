@@ -87,7 +87,7 @@ Available online at https://www.marineregions.org/
 https://doi.org/10.14284/323
 
 The bundled copy is simplified for size; see
-scripts/sea_area_harvester.py for exactly how it was derived.''',
+scripts/datasets/sea_areas/sea_area_harvester.py for exactly how it was derived.''',
       );
     });
   }

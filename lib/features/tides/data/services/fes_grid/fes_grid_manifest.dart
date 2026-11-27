@@ -34,7 +34,7 @@ class FesLayerGeometry {
   double get resolutionKm => resolution * kmPerDegree;
 }
 
-/// The grid's `manifest.json`, written by `scripts/tide/extract_fes_grid.py`.
+/// The grid's `manifest.json`, written by `scripts/datasets/tide/extract_fes_grid.py`.
 class FesGridManifest {
   static const formatName = 'submersion-fes-grid';
 

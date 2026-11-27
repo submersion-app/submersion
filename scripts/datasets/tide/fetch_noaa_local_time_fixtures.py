@@ -7,7 +7,7 @@ in the station's local standard or daylight time (time_zone=lst_ldt). NOAA
 performs the local-time conversion, independently of Submersion's code.
 
 Usage (from the repo root):
-    python3.14 scripts/tide/fetch_noaa_local_time_fixtures.py
+    python3.14 scripts/datasets/tide/fetch_noaa_local_time_fixtures.py
 """
 
 import json

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for chamber_harvester.py.
 
-Run: python3 scripts/chamber_harvester_test.py
+Run: python3 scripts/datasets/chambers/chamber_harvester_test.py
 
 These cover the validation gates, which are the only thing standing between a
 broken parser and a safety-critical dataset shipping with blank phone numbers.

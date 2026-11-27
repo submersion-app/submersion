@@ -5,7 +5,7 @@ constituents (type=harcon; ~1,365 stations) and writes a compact JSON
 array of [id, name, lat, lng] rows to assets/data/tide/noaa_stations.json.
 
 Usage (from the repo root):
-    python3 scripts/tide/generate_noaa_station_index.py
+    python3 scripts/datasets/tide/generate_noaa_station_index.py
 """
 
 import json

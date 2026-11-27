@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Tests for taking a site catalogue release into the app.
 
-Run: python3.14 scripts/site_catalogue_intake_test.py
+Run: python3.14 scripts/datasets/site_catalogue/site_catalogue_intake_test.py
 """
 
 import io

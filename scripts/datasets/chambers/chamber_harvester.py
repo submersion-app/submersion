@@ -11,8 +11,8 @@ every row is verified against the facility's own website and cites that URL.
 Treat registry listings as leads to confirm, never as data to copy.
 
 Usage:
-    python3 scripts/chamber_harvester.py --leads     # refresh scripts/chamber_leads.json
-    python3 scripts/chamber_harvester.py --build     # merge + validate + write the asset
+    python3 scripts/datasets/chambers/chamber_harvester.py --leads     # refresh scripts/datasets/chambers/chamber_leads.json
+    python3 scripts/datasets/chambers/chamber_harvester.py --build     # merge + validate + write the asset
 """
 
 import argparse
@@ -22,12 +22,12 @@ import re
 from datetime import datetime, timezone
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 OUTPUT_PATH = os.path.join(PROJECT_ROOT, "assets", "data", "chambers.json")
 LEADS_PATH = os.path.join(SCRIPT_DIR, "chamber_leads.json")
-OVERLAY_PATH = os.path.join(SCRIPT_DIR, "data", "chambers_overlay.json")
-OVERLAY_PARTS_DIR = os.path.join(SCRIPT_DIR, "data", "overlay_parts")
-FIXTURE_DIR = os.path.join(SCRIPT_DIR, "fixtures", "chambers")
+OVERLAY_PATH = os.path.join(SCRIPT_DIR, "chambers_overlay.json")
+OVERLAY_PARTS_DIR = os.path.join(SCRIPT_DIR, "overlay_parts")
+FIXTURE_DIR = os.path.join(SCRIPT_DIR, "fixtures")
 
 MIN_CHAMBERS = 100
 

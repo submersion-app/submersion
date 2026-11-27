@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Takes a site catalogue release into the app.
 
-    python3.14 scripts/site_catalogue_intake.py RELEASE_DIR [--tag TAG]
+    python3.14 scripts/datasets/site_catalogue/site_catalogue_intake.py RELEASE_DIR [--tag TAG]
         [--notes PATH] [--body PATH]
 
 The built-in dive site catalogue is built and released by
@@ -22,7 +22,7 @@ import shutil
 import sys
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parent.parent
+REPO = Path(__file__).resolve().parents[3]
 
 # Release file name to its place in the repository.
 INTAKE_FILES = {

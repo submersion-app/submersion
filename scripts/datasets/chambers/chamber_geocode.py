@@ -79,7 +79,7 @@ class Geocoder:
         return (lat, lon)
 
 
-MANUAL_PATH = os.path.join(SCRIPT_DIR, "data", "chamber_coordinates.json")
+MANUAL_PATH = os.path.join(SCRIPT_DIR, "chamber_coordinates.json")
 
 
 def load_manual_coordinates():

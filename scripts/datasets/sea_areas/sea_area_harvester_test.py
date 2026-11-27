@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for sea_area_harvester.py.
 
-Run: python3 scripts/sea_area_harvester_test.py
+Run: python3 scripts/datasets/sea_areas/sea_area_harvester_test.py
 
 These cover the ring encoder and the per-feature builder. The runtime
 resolver trusts three things about the shipped table -- rings are closed,
@@ -190,7 +190,7 @@ class TranslationTest(unittest.TestCase):
         # must all be translatable. Catches an IHO name that reaches the
         # asset without ever passing through NAME_OVERRIDES.
         asset = os.path.join(
-            os.path.dirname(_HERE), "assets", "data", "sea_areas.json"
+            os.path.dirname(os.path.dirname(os.path.dirname(_HERE))), "assets", "data", "sea_areas.json"
         )
         if not os.path.exists(asset):  # pragma: no cover - asset is committed
             self.skipTest("shipped asset not present")
@@ -207,7 +207,7 @@ class TranslationTest(unittest.TestCase):
 
     def test_the_shipped_asset_is_translated(self):
         asset = os.path.join(
-            os.path.dirname(_HERE), "assets", "data", "sea_areas.json"
+            os.path.dirname(os.path.dirname(os.path.dirname(_HERE))), "assets", "data", "sea_areas.json"
         )
         if not os.path.exists(asset):  # pragma: no cover - asset is committed
             self.skipTest("shipped asset not present")

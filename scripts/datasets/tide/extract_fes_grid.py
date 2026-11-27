@@ -12,9 +12,9 @@ Needs about 3 GB of RAM and a venv with numpy and netCDF4:
     ~/.venvs/submersion-tide/bin/pip install numpy netCDF4
 
 Usage (from the repo root):
-    ~/.venvs/submersion-tide/bin/python scripts/tide/extract_fes_grid.py \\
+    ~/.venvs/submersion-tide/bin/python scripts/datasets/tide/extract_fes_grid.py \\
         --fes-dir ~/repos/fes2022b/ocean_tide_extrapolated
-    ~/.venvs/submersion-tide/bin/python scripts/tide/extract_fes_grid.py \\
+    ~/.venvs/submersion-tide/bin/python scripts/datasets/tide/extract_fes_grid.py \\
         --fes-dir ~/repos/fes2022b/ocean_tide_extrapolated --verify
 """
 

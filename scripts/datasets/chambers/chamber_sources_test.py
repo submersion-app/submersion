@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for chamber_sources.py.
 
-Run: python3 scripts/chamber_sources_test.py
+Run: python3 scripts/datasets/chambers/chamber_sources_test.py
 
 Parsers run against committed fixtures rather than the live pages, so the suite
 is hermetic and a registry going offline does not turn the build red. The
@@ -20,7 +20,7 @@ _spec = importlib.util.spec_from_file_location(
 chamber_sources = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(chamber_sources)
 
-FIXTURES = os.path.join(_HERE, "fixtures", "chambers")
+FIXTURES = os.path.join(_HERE, "fixtures")
 RETRIEVED = "2026-08-26"
 
 

@@ -763,7 +763,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/checks/check_proguard_serial_keep.py,scripts/checks/check_apk_signing_cert.py,scripts/checks/check_native_libs_present.py,scripts/checks/check_bundled_native_assets.py,scripts/checks/check_glibc_floor.py,scripts/checks/check_jni_local_refs.py,scripts/checks/check_dc_process_isolation.py,scripts/checks/check_ci_success_gate.py,scripts/checks/check_flutter_setup_retried.py,scripts/checks/check_pr_issue_link.py,scripts/ci/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/testing/bundle_tests.py,scripts/testing/filter_trivial_coverage.py,scripts/bots/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/testing/report_inherited_failures.py,scripts/bots/export_support_matrix_catalog.py,scripts/checks/check_no_skipped_tests.py,scripts/checks/check_docs_links.py,scripts/checks/check_dependabot_gemfiles.py,scripts/bots/dependabot_failure_alert.py,scripts/checks/check_ruby_versions.py,scripts/checks/check_apt_mirror.py,scripts/ci/apt_mirror.py,scripts/demo_data/fetch_demo_db.py,scripts/bots/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/bots/snapshot_downloads.py,scripts/checks/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/check_junit_ran.py,scripts/web/serve_bundle.py,scripts/web/stage_hosted_site.py,scripts/bots/wiki_howto_index.py,scripts/geography/generate_country_names.py,scripts/site_catalogue_intake.py'
+          guards='scripts/checks/check_proguard_serial_keep.py,scripts/checks/check_apk_signing_cert.py,scripts/checks/check_native_libs_present.py,scripts/checks/check_bundled_native_assets.py,scripts/checks/check_glibc_floor.py,scripts/checks/check_jni_local_refs.py,scripts/checks/check_dc_process_isolation.py,scripts/checks/check_ci_success_gate.py,scripts/checks/check_flutter_setup_retried.py,scripts/checks/check_pr_issue_link.py,scripts/ci/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/testing/bundle_tests.py,scripts/testing/filter_trivial_coverage.py,scripts/bots/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/testing/report_inherited_failures.py,scripts/bots/export_support_matrix_catalog.py,scripts/checks/check_no_skipped_tests.py,scripts/checks/check_docs_links.py,scripts/checks/check_dependabot_gemfiles.py,scripts/bots/dependabot_failure_alert.py,scripts/checks/check_ruby_versions.py,scripts/checks/check_apt_mirror.py,scripts/ci/apt_mirror.py,scripts/demo_data/fetch_demo_db.py,scripts/bots/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/bots/snapshot_downloads.py,scripts/checks/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/check_junit_ran.py,scripts/web/serve_bundle.py,scripts/web/stage_hosted_site.py,scripts/bots/wiki_howto_index.py,scripts/datasets/geography/generate_country_names.py,scripts/datasets/site_catalogue/site_catalogue_intake.py'
           python3 -m coverage run --include="$guards" \
             scripts/checks/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -837,9 +837,9 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             scripts/bots/wiki_howto_index_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/geography/generate_country_names_test.py
+            scripts/datasets/geography/generate_country_names_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/site_catalogue_intake_test.py
+            scripts/datasets/site_catalogue/site_catalogue_intake_test.py
           python3 -m coverage report -m --include="$guards"
           python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml
@@ -852,8 +852,8 @@ jobs:
         # registry is a PDF (the test skips itself without it).
         run: |
           python3 -m pip install pypdf
-          python3 scripts/chamber_harvester_test.py
-          python3 scripts/chamber_sources_test.py
+          python3 scripts/datasets/chambers/chamber_harvester_test.py
+          python3 scripts/datasets/chambers/chamber_sources_test.py
 
       - name: Run sea area table generator tests
         # The generator builds the offline body-of-water table. The runtime
@@ -863,7 +863,7 @@ jobs:
         # skips itself.
         run: |
           python3 -m pip install shapely
-          python3 scripts/sea_area_harvester_test.py
+          python3 scripts/datasets/sea_areas/sea_area_harvester_test.py
 
       - name: Run brand asset generator tests
         # The generator draws the social card, banners, lockups and logo mark
@@ -902,7 +902,7 @@ jobs:
         # source scan runs.
         run: |
           python3 -m pip install -r scripts/requirements.txt
-          python3 scripts/dive_site_harvester_test.py
+          python3 scripts/datasets/dive_sites/dive_site_harvester_test.py
 
       - name: Run appcast beta feed test
         run: ./scripts/release/generate_appcast_beta_test.sh
