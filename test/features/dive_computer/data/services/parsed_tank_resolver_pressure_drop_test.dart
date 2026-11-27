@@ -136,6 +136,64 @@ void main() {
     });
   });
 
+  group('OC dive, after surfacing', () {
+    test('a back-gas regulator purged after surfacing does not credit the '
+        'deco gas', () {
+      // The diver ends on EAN50, surfaces, closes the back-gas valve and
+      // purges its regulator while the computer still logs: that fall to
+      // zero is no breathing, so the trimix stays on the transmitter.
+      pigeon.ProfileSample at(int m, double depth, double bar, int gas) =>
+          pigeon.ProfileSample(
+            timeSeconds: m * 60,
+            depthMeters: depth,
+            pressureBar: bar,
+            tankIndex: 0,
+            tankPressuresBar: [bar],
+            gasMixIndex: gas,
+          );
+      final resolved = resolveParsedTanks(
+        dive(
+          gasMixes: [
+            pigeon.GasMix(index: 0, o2Percent: 18.0, hePercent: 45.0),
+            pigeon.GasMix(index: 1, o2Percent: 50.0, hePercent: 0.0),
+          ],
+          tanks: [pigeon.TankInfo(index: 0, gasMixIndex: unknownGasMixIndex)],
+          samples: [
+            for (var m = 0; m < 10; m++) at(m, 40.0, 220.0 - m * 5.0, 0),
+            for (var m = 10; m < 40; m++) at(m, 6.0, 170.0, 1),
+            at(40, 0.0, 170.0, 1),
+            at(41, 0.0, 60.0, 1),
+            at(42, 0.0, 0.0, 1),
+            at(43, 0.0, 0.0, 1),
+          ],
+        ),
+      );
+
+      expect(tankAt(resolved, 0).o2Percent, 18.0);
+    });
+  });
+
+  group('two gases with the same fall', () {
+    test('the gas breathed first wins the tie', () {
+      final resolved = resolveParsedTanks(
+        dive(
+          gasMixes: [
+            pigeon.GasMix(index: 0, o2Percent: 99.0, hePercent: 0.0),
+            pigeon.GasMix(index: 1, o2Percent: 32.0, hePercent: 0.0),
+          ],
+          tanks: [pigeon.TankInfo(index: 0, gasMixIndex: unknownGasMixIndex)],
+          samples: [
+            minute(0, 200.0, 1),
+            minute(1, 190.0, 0),
+            minute(2, 180.0, 0),
+          ],
+        ),
+      );
+
+      expect(tankAt(resolved, 0).o2Percent, 32.0);
+    });
+  });
+
   group('OC dive, transmitter on the deco cylinder only', () {
     const air = 0; // back gas, no transmitter
     const ean50 = 1; // deco gas, on the transmitter

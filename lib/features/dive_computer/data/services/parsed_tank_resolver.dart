@@ -197,6 +197,11 @@ _ResolvedCylinders _resolveCylinders(
   final consumed = <int>{};
   final timeline = breathedGasSequence(parsed);
   final drainable = _drainableGasTest(parsed);
+  // A fall after surfacing is no breathing: a regulator purged once its
+  // valve is closed, or a bleed-down (#1092), would credit the last gas.
+  final surfacedAt = lastTimeBelowSurfaceThreshold([
+    for (final p in points) (t: p.timeSeconds, depth: p.depthMeters),
+  ]);
 
   for (final tank in parsed.tanks) {
     final gasIndex = _resolveTankGasIndex(
@@ -206,6 +211,7 @@ _ResolvedCylinders _resolveCylinders(
       readings: tankReadings[tank.index],
       timeline: timeline,
       drainable: drainable,
+      surfacedAt: surfacedAt,
     );
     final gas = gasIndex != null ? gasMixes[gasIndex] : null;
     if (gasIndex != null) {
@@ -493,7 +499,8 @@ bool _nearlyEqualPercent(double a, double b) => (a - b).abs() < 1e-6;
 ///
 /// [readings] are the tank's pressure readings, [timeline] the dive's
 /// [breathedGasSequence], and [drainable] says which gases may be credited
-/// from them (see [_drainableGasTest]).
+/// from them (see [_drainableGasTest]). Readings after [surfacedAt], the
+/// last time below the surface, are left out.
 int? _resolveTankGasIndex(
   pigeon.TankInfo tank,
   List<pigeon.ProfileSample> samples,
@@ -501,6 +508,7 @@ int? _resolveTankGasIndex(
   required TankReadings? readings,
   required List<BreathedGas> timeline,
   required bool Function(int gasIndex) drainable,
+  required int? surfacedAt,
 }) {
   if (gasMixes.isEmpty) {
     return null;
@@ -535,7 +543,7 @@ int? _resolveTankGasIndex(
   if (linked != null) {
     return linked;
   }
-  final clean = _cleanReadings(readings);
+  final clean = _cleanReadings(readings, until: surfacedAt);
   // 2. The gas breathed from this cylinder: the one during whose stretches
   //    its pressure fell the most (issue #5057). A transmitter reports all
   //    dive long, also after a switch to a gas it does not hold, so how long
@@ -577,13 +585,16 @@ bool Function(int gasIndex) _drainableGasTest(pigeon.ParsedDive parsed) {
 }
 
 /// [readings] in time order without the dropouts and misreads their scan
-/// found (issue #2441), so a glitch never reads as a fall or a rise.
-List<PressureReading> _cleanReadings(TankReadings? readings) {
+/// found (issue #2441), so a glitch never reads as a fall or a rise, and
+/// without those after [until] when it is set.
+List<PressureReading> _cleanReadings(TankReadings? readings, {int? until}) {
   if (readings == null) return const [];
   final glitches = readings.scan.glitchIndices;
   return [
     for (var i = 0; i < readings.readings.length; i++)
-      if (!glitches.contains(i)) readings.readings[i],
+      if (!glitches.contains(i) &&
+          (until == null || readings.readings[i].t <= until))
+        readings.readings[i],
   ];
 }
 
