@@ -485,12 +485,16 @@ class ProfileLegendState {
     cnsSource,
     decoStopSource,
     gtrSource,
-    for (final e in showTankPressure.entries) ...[e.key, e.value],
+    Object.hashAllUnordered(
+      showTankPressure.entries.map((e) => Object.hash(e.key, e.value)),
+    ),
     showGas,
     metricsFollowViewport,
     zoomTimeOnly,
     tooltipFollowsCursor,
-    for (final e in sectionExpanded.entries) ...[e.key, e.value],
+    Object.hashAllUnordered(
+      sectionExpanded.entries.map((e) => Object.hash(e.key, e.value)),
+    ),
   ]);
 }
 

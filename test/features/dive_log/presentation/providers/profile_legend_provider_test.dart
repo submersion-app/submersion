@@ -234,6 +234,14 @@ void main() {
       expect(state.metricsFollowViewport, isFalse);
     });
 
+    test('equal states share a hash whatever order their maps were filled', () {
+      const base = ProfileLegendState();
+      final ab = base.copyWith(showTankPressure: {'a': true, 'b': false});
+      final ba = base.copyWith(showTankPressure: {'b': false, 'a': true});
+      expect(ab, ba);
+      expect(ab.hashCode, ba.hashCode);
+    });
+
     test('equality sees zoomTimeOnly', () {
       const a = ProfileLegendState();
       final b = a.copyWith(zoomTimeOnly: true);
