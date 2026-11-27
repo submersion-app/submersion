@@ -148,6 +148,7 @@ void main() {
         depthMeters: 40.0,
         minutes: 90,
         sacLpm: 25.0,
+        locale: const Locale('en'),
       ),
     );
     await tester.pumpAndSettle();

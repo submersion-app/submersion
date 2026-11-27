@@ -606,6 +606,7 @@ void main() {
         duplicateFromId: 'al80',
         repoPreset: al80,
         metric: true,
+        locale: const Locale('en'),
       );
       expect(find.widgetWithText(TextFormField, 'AL80 (copy)'), findsOneWidget);
       expect(find.widgetWithText(TextFormField, '11.1'), findsOneWidget);
