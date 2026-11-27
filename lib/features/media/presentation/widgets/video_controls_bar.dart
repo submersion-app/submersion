@@ -553,8 +553,8 @@ class _VideoControlsBarState extends State<VideoControlsBar>
         )),
       );
       // Its place is held while they load, so the track does not shrink
-      // under the playhead when they arrive.
-      if (!sightings.hasValue) {
+      // under the playhead when they arrive; a failed read holds nothing.
+      if (sightings.isLoading && !sightings.hasValue) {
         return const SizedBox.square(dimension: _nextSightingSize);
       }
       final stretches = sightings.value ?? const <VideoStretch>[];

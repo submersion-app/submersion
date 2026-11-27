@@ -293,4 +293,40 @@ void main() {
     expect(diverMoved(controller), isTrue);
     await finishBar(tester, controller);
   });
+
+  testWidgets('a failed lookup leaves no gap where the button would be', (
+    tester,
+  ) async {
+    useBarPlatform();
+    final controller = await readyController();
+    final failing = [
+      videoSpeciesSightingsProvider(
+        key,
+      ).overrideWith((ref) async => throw StateError('read failed')),
+    ];
+    await tester.pumpWidget(
+      barApp(
+        VideoControlsBar(controller: controller, mediaId: 'm1'),
+        overrides: failing,
+      ),
+    );
+    final plain = tester.getRect(find.byKey(VideoControlsBar.trackKey));
+
+    await tester.pumpWidget(
+      barApp(
+        VideoControlsBar(
+          controller: controller,
+          mediaId: 'm1',
+          speciesId: 's1',
+        ),
+        overrides: failing,
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(next, findsNothing);
+    expect(tester.getRect(find.byKey(VideoControlsBar.trackKey)), plain);
+    await finishBar(tester, controller);
+  });
 }

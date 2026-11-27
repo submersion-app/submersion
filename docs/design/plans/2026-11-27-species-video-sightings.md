@@ -58,7 +58,7 @@
 **Files:**
 - Create: `lib/features/species_id/presentation/widgets/video_sighting_marks.dart`
 - Modify: `lib/features/media/presentation/widgets/video_controls_bar.dart`
-- Modify: every `lib/l10n/arb/app_*.arb` (key `media_video_nextSighting`), then `flutter gen-l10n`
+- Modify: every `lib/l10n/arb/app_*.arb` (key `media_species_nextSighting`), then `flutter gen-l10n`
 - Test: `test/features/media/presentation/widgets/video_controls_bar_sightings_test.dart`
 
 **Interfaces:**
@@ -73,7 +73,7 @@
   - playing video: after a tap, `platform.playing` is still true; paused video stays paused.
   - empty stretches (hand tag): no bands, no button.
 - [ ] **Step 2: Run** `flutter test test/features/media/presentation/widgets/video_controls_bar_sightings_test.dart`; expect failures.
-- [ ] **Step 3: Implement.** `VideoSightingMarks` is a `ConsumerWidget` in an `IgnorePointer`, one `Positioned` per stretch from `start/duration` to `end/duration` of `width`, `max(3, ...)` wide, 4 px tall on the track, colour `Colors.tealAccent` (legible on the black bar). In the bar's track `Stack`, place it after the progress track and before `tagMarks` (built once, outside the glide builder, like `analysed`). After the total time `SizedBox`, when `speciesId != null` and stretches length >= 2, an `IconButton` (`Icons.skip_next`, white, `visualDensity: compact`, tooltip `l10n.media_video_nextSighting`) whose press calls `_seekTo(Duration(milliseconds: nextStretchStart(stretches, _heading.inMilliseconds)!))`. Add the ARB key with `@media_video_nextSighting` description "Button on a video's controls that jumps to the next time the species was seen" in `app_en.arb` and a translation in every other locale.
+- [ ] **Step 3: Implement.** `VideoSightingMarks` is a `ConsumerWidget` in an `IgnorePointer`, one `Positioned` per stretch from `start/duration` to `end/duration` of `width`, `max(3, ...)` wide, 4 px tall on the track, colour `Colors.tealAccent` (legible on the black bar). In the bar's track `Stack`, place it after the progress track and before `tagMarks` (built once, outside the glide builder, like `analysed`). After the total time `SizedBox`, when `speciesId != null` and stretches length >= 2, an `IconButton` (`Icons.skip_next`, white, `visualDensity: compact`, tooltip `l10n.media_species_nextSighting`) whose press calls `_seekTo(Duration(milliseconds: nextStretchStart(stretches, _heading.inMilliseconds)!))`. Add the ARB key with `@media_species_nextSighting` description "Button on a video's controls that jumps to the next time the species was seen" in `app_en.arb` and a translation in every other locale.
 - [ ] **Step 4: Run** the test file plus `test/features/media/presentation/widgets/video_controls_bar_test.dart`; expect all pass.
 - [ ] **Step 5: Commit** `feat(media): sighting bands and Next sighting on the video bar`.
 
