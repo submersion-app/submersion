@@ -31,6 +31,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart'
     show TankPressureSample;
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
+import 'package:submersion/features/dive_log/domain/services/hydrotank_role_upgrade.dart';
 import 'package:submersion/features/dive_log/domain/services/source_ownership.dart';
 import 'package:submersion/features/dive_log/domain/services/series_source_owner.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
@@ -1167,24 +1168,18 @@ class ReparseService {
     // has been registered since.
     //
     // An Avelo Hydrotank (issue #4657) the computer tagged replaces a stored
-    // back gas: before the Hydrotank role every Avelo import stored its
-    // Hydrotank as back gas, and nothing tells that default from a diver's
-    // choice. Any other stored role is the diver's and stays. A diver who
-    // sets the Hydrotank back to back gas sees it turned again by the next
-    // re-parse, a limit the design accepts: in Avelo mode the T1 cylinder is
-    // the Hydrotank.
-    final hydrotanks = {
-      for (final t in resolvedTanks)
-        if (t.role == TankRole.hydrotank.name) t.index,
-    };
+    // back gas, by the rule resync shares (see [upgradesToHydrotank]).
+    final computerRoles = {for (final t in resolvedTanks) t.index: t.role};
     bool roleIsComputers(DiveTank existing, int index) =>
         TankRoleSource.fromName(existing.roleSource) ==
             TankRoleSource.transmitterName ||
         (existing.roleSource == null &&
             existing.tankRole == nameDerivedRoles[index]) ||
-        (existing.roleSource == null &&
-            existing.tankRole == TankRole.backGas.name &&
-            hydrotanks.contains(index));
+        upgradesToHydrotank(
+          storedRole: existing.tankRole,
+          storedRoleSource: existing.roleSource,
+          parsedRole: computerRoles[index],
+        );
 
     // With the diver's switch on, sort the stored rows of unused open-circuit
     // gases before the claim (issue #3668), judged against this parse rather
