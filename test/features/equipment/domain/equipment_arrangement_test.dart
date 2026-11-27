@@ -116,4 +116,42 @@ void main() {
       ),
     );
   });
+
+  group('nestParts (#5071)', () {
+    test('defaults to on', () {
+      expect(EquipmentArrangement.defaults.nestParts, isTrue);
+    });
+
+    test('an absent or non-bool value reads as on', () {
+      expect(EquipmentArrangement.fromJson(const {}).nestParts, isTrue);
+      expect(
+        EquipmentArrangement.fromJson(const {'nestParts': 'no'}).nestParts,
+        isTrue,
+      );
+      expect(
+        EquipmentArrangement.fromJson(const {'nestParts': false}).nestParts,
+        isFalse,
+      );
+    });
+
+    test('is written to JSON', () {
+      final off = EquipmentArrangement.defaults.copyWith(nestParts: false);
+      expect(off.toJson()['nestParts'], isFalse);
+    });
+
+    test('takes part in equality', () {
+      final off = EquipmentArrangement.defaults.copyWith(nestParts: false);
+      expect(off, isNot(EquipmentArrangement.defaults));
+      expect(off.hashCode, isNot(EquipmentArrangement.defaults.hashCode));
+    });
+
+    test('keys this build does not know survive a round trip', () {
+      final read = EquipmentArrangement.fromJson(const {
+        'futureAxis': 3,
+        'groupByType': false,
+      });
+      expect(read.toJson()['futureAxis'], 3);
+      expect(read.copyWith(groupByType: true).toJson()['futureAxis'], 3);
+    });
+  });
 }
