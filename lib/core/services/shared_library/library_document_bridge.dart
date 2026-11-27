@@ -196,9 +196,29 @@ class LibraryDocumentBridge {
     return out;
   }
 
-  Future<Uint8List?> _heldBytes(String fileId) async => (await (_db.select(
+  Future<Uint8List?> _heldBytes(String fileId) => heldPageBytes(fileId);
+
+  /// The bytes of library file [fileId] as a local page holds them, or null.
+  Future<Uint8List?> heldPageBytes(String fileId) async => (await (_db.select(
     _db.documentPages,
   )..where((t) => t.libraryFileId.equals(fileId))).get()).firstOrNull?.bytes;
+
+  /// Every library file whose bytes a local page of a shared document holds
+  /// (of [libraryId] only, when given).
+  Future<Set<String>> heldPageFileIds({String? libraryId}) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT p.library_file_id AS f FROM document_pages p '
+          'JOIN documents d ON d.id = p.document_id '
+          'WHERE p.library_file_id IS NOT NULL '
+          'AND d.shared_library_id IS NOT NULL'
+          '${libraryId == null ? '' : ' AND d.shared_library_id = ?'}',
+          variables: [if (libraryId != null) Variable.withString(libraryId)],
+          readsFrom: {_db.documentPages, _db.documents},
+        )
+        .get();
+    return {for (final r in rows) r.read<String>('f')};
+  }
 
   Future<void> _replacePages(
     String documentId,

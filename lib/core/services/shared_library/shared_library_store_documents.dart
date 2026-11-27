@@ -66,6 +66,22 @@ extension SharedLibraryStoreDocuments on SharedLibraryStore {
         ),
       );
 
+  /// Whether any connected library has something of this device's to
+  /// upload: a site or shared document edit, or a pending suggestion.
+  Future<bool> hasLocalLibraryWork() async {
+    for (final library in await getLibraries()) {
+      if ((await dirtySites(library.id)).isNotEmpty) return true;
+      if ((await dirtyDocuments(library.id)).isNotEmpty) return true;
+      final pending = await suggestions(
+        library.id,
+        direction: SharedSiteSuggestion.outgoing,
+        status: SharedSiteSuggestion.pending,
+      );
+      if (pending.isNotEmpty) return true;
+    }
+    return false;
+  }
+
   Stream<void> watchDocumentStates() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.sharedDocumentStates));
 

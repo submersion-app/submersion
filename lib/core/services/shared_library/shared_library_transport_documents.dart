@@ -61,6 +61,11 @@ extension SharedLibraryTransportDocuments on SharedLibraryTransport {
     return [
       for (final f in files)
         if (f.name.endsWith(SharedLibraryTransport._pageSuffix) &&
+            // Never a key file, whatever a provider lists with the folder.
+            !f.name
+                .split('/')
+                .last
+                .startsWith(SharedLibraryLayout.previousKeysPrefix) &&
             SharedLibraryTransport._directlyIn(folder, f) &&
             SharedLibraryTransport.isSafeFileId(
               SharedLibraryTransport._pageIdOf(f.name),
