@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -804,15 +806,19 @@ class DiveConsolidationService {
         for (final row in snapshot.sightingRows.where(
           (r) => r.diveId == secondary.id,
         )) {
+          // A time moves onto the target's timeline with the secondary's
+          // samples, never before the start (issue #5092).
+          final seenAt = row.seenAtSeconds == null
+              ? null
+              : math.max(0, row.seenAtSeconds! + offset);
           if (!targetSpeciesIds.add(row.speciesId)) {
             // Same species on both: a time from the secondary fills the
-            // target's sighting when it has none; one computer's timeline,
-            // so no shift (issue #5092).
-            if (row.seenAtSeconds != null) {
+            // target's sighting when it has none.
+            if (seenAt != null) {
               await _fillSightingTime(
                 targetDiveId: targetDiveId,
                 speciesId: row.speciesId,
-                seconds: row.seenAtSeconds!,
+                seconds: seenAt,
                 now: now,
               );
             }
@@ -824,7 +830,11 @@ class DiveConsolidationService {
               .insert(
                 row
                     .toCompanion(false)
-                    .copyWith(id: Value(rowId), diveId: Value(targetDiveId)),
+                    .copyWith(
+                      id: Value(rowId),
+                      diveId: Value(targetDiveId),
+                      seenAtSeconds: Value(seenAt),
+                    ),
               );
           await _sync.markRecordPending(
             entityType: 'sightings',
@@ -1046,7 +1056,6 @@ class DiveConsolidationService {
     );
   }
 
-  /// Moves the newest tide record among [secondaryDiveIds] to
   /// Gives the target's sighting of [speciesId] the secondary's time
   /// [seconds] when it has none (issue #5092). Undo restores the target's
   /// sighting rows from the snapshot.
@@ -1075,6 +1084,7 @@ class DiveConsolidationService {
     }
   }
 
+  /// Moves the newest tide record among [secondaryDiveIds] to
   /// [targetDiveId] when the target has none, as [_moveHealthRecord] does:
   /// a draft's tide, recorded from where the diver went in, survives its
   /// fill (issue #637).

@@ -1559,7 +1559,9 @@ void main() {
           seenAt: 600,
         );
         await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
-        expect(await timeOn('t', 'fish'), 600);
+        // The secondary starts 60 s after the target: its time moves with
+        // its samples onto the target's timeline.
+        expect(await timeOn('t', 'fish'), 660);
       });
 
       test('undo takes a filled time back off the target', () async {
@@ -1607,7 +1609,7 @@ void main() {
           seenAt: 900,
         );
         await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
-        expect(await timeOn('t', 'turtle'), 900);
+        expect(await timeOn('t', 'turtle'), 960);
       });
     });
 

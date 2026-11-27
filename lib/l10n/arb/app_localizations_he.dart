@@ -7804,7 +7804,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String diveLog_detail_sightingSeenAt(String time) {
-    return 'ב-$time';
+    return '$time מתחילת הצלילה';
   }
 
   @override

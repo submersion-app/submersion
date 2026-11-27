@@ -1,9 +1,9 @@
-import 'package:submersion/features/dive_log/domain/services/sighting_time_bound.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
+import 'package:submersion/features/dive_log/domain/services/sighting_time_bound.dart';
 import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
@@ -96,11 +96,27 @@ class SightingWrites extends WritableEntry {
         abundance: amount.abundance,
         count: amount.count,
         notes: v.containsKey('notes') ? v['notes']! as String : current.notes,
-        seenAtSeconds: v.containsKey('seen_at_seconds')
-            ? await _withinDive(current.diveId, v['seen_at_seconds'] as int?)
-            : current.seenAtSeconds,
+        seenAtSeconds: await _updatedTime(
+          v,
+          diveId: current.diveId,
+          stored: current.seenAtSeconds,
+        ),
       ),
     );
+  }
+
+  /// The time an update leaves: the one it names (null clears it), or the
+  /// [stored] one when it names none, or one past the end of the dive,
+  /// which is dropped rather than wiping the diver's time.
+  Future<int?> _updatedTime(
+    Map<String, Object?> values, {
+    required String diveId,
+    required int? stored,
+  }) async {
+    if (!values.containsKey('seen_at_seconds')) return stored;
+    final named = values['seen_at_seconds'] as int?;
+    if (named == null) return null;
+    return await _withinDive(diveId, named) ?? stored;
   }
 
   /// [seconds] when it falls inside [diveId] ([sightingTimeMaxSeconds]),

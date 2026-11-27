@@ -7970,7 +7970,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String diveLog_detail_sightingSeenAt(String time) {
-    return 'a $time';
+    return '$time dall\'inizio dell\'immersione';
   }
 
   @override

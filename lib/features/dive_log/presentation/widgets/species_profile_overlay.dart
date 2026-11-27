@@ -36,18 +36,24 @@ List<VerticalRangeAnnotation> speciesHighlightBands(
   ];
 }
 
-/// A thin line at each of [highlight]'s moments inside the visible window.
+/// A thin line at each of [highlight]'s moments, and at the start of each
+/// span, inside the visible window: the start edge is drawn as a finding's
+/// window and the strip's band are, so a pale category colour still reads.
 List<VerticalLine> speciesMomentLines(
   SpeciesProfileHighlight? highlight, {
   required double visibleMinX,
   required double visibleMaxX,
 }) {
   if (highlight == null) return const [];
+  final positions = highlight.positions;
   return [
-    for (final moment in highlight.positions.moments)
-      if (moment.seconds >= visibleMinX && moment.seconds <= visibleMaxX)
+    for (final x in [
+      for (final m in positions.moments) m.seconds,
+      for (final s in positions.spans) s.start,
+    ])
+      if (x >= visibleMinX && x <= visibleMaxX)
         VerticalLine(
-          x: moment.seconds.toDouble(),
+          x: x.toDouble(),
           color: highlight.color.withValues(alpha: 0.7),
           strokeWidth: 1,
         ),

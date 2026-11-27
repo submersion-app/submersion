@@ -2850,7 +2850,7 @@
   "diveLog_detail_section_equipment": "装备",
   "diveLog_detail_section_marineLife": "物种",
   "diveLog_detail_sightingDepthRange": "{from} 至 {to}",
-  "diveLog_detail_sightingSeenAt": "于 {time}",
+  "diveLog_detail_sightingSeenAt": "下潜后 {time}",
   "diveLog_detail_semantics_showOnProfile": "在剖面图上显示{name}，{depth}",
   "diveLog_detail_sightingPhotos": "{count, plural, =1{1 张照片} other{{count} 张照片}}",
   "diveLog_detail_section_notes": "备注",

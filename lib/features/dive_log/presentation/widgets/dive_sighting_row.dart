@@ -76,9 +76,13 @@ class DiveSightingRow extends StatelessWidget {
     final chips = <Widget>[
       if (depthLabel != null)
         if (onToggleDepth != null)
+          // Its own node: a screen reader reaches it apart from the row,
+          // and activating it toggles rather than opening the species.
           Semantics(
+            container: true,
             button: true,
             selected: depthSelected,
+            onTap: onToggleDepth,
             label: l10n.diveLog_detail_semantics_showOnProfile(
               name,
               depthLabel,

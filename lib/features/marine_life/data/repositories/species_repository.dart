@@ -523,6 +523,8 @@ class SpeciesRepository {
                   diveId: Value(diveId),
                   speciesId: Value(sighting.speciesId),
                   notes: Value(sighting.notes),
+                  // A template has none; an undo's rows keep theirs.
+                  seenAtSeconds: Value(sighting.seenAtSeconds),
                 ),
                 sighting,
               ),
@@ -568,6 +570,8 @@ class SpeciesRepository {
                   diveId: Value(diveId),
                   speciesId: Value(sighting.speciesId),
                   notes: Value(sighting.notes),
+                  // A template has none; an undo's rows keep theirs.
+                  seenAtSeconds: Value(sighting.seenAtSeconds),
                 ),
                 sighting,
               ),

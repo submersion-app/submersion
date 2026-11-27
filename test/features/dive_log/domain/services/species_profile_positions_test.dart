@@ -112,9 +112,28 @@ void main() {
     expect(positions['shark']!.spans, isEmpty);
   });
 
-  test('a time past the profile end is clamped to the end', () {
-    final positions = place(sightings: [sighting('shark', seenAt: 9000)]);
-    expect(positions['shark']!.moments.single.seconds, 3000);
+  test('two sightings of one species keep both times, and media once', () {
+    final positions = place(
+      sightings: [
+        sighting('shark', seenAt: 300),
+        sighting('shark', seenAt: 900).copyWith(id: 's_shark_2'),
+      ],
+      media: [item('p1', elapsed: 2100, depth: 12.5)],
+      tags: [tag('p1', 'shark')],
+    )['shark']!;
+    expect([for (final m in positions.moments) m.seconds], [300, 900, 2100]);
+  });
+
+  test('a time past the profile end is not placed', () {
+    // A split or a shorter source can leave a typed time beyond the
+    // profile; a clamped one would show a depth the diver cannot trace.
+    expect(place(sightings: [sighting('shark', seenAt: 9000)]), isEmpty);
+    expect(
+      place(
+        sightings: [sighting('shark', seenAt: 3000)],
+      )['shark']!.moments.single.seconds,
+      3000,
+    );
   });
 
   test('a sighting without a time and without media has no positions', () {

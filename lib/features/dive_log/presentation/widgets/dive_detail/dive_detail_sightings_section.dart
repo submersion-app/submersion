@@ -7,7 +7,6 @@ import 'package:submersion/features/dive_log/presentation/providers/species_prof
 import 'package:submersion/features/dive_log/presentation/widgets/sighting_depth_label.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_sightings_sitting.dart';
@@ -15,6 +14,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_sighting_
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/presentation/pages/dive_species_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/dive_find_species_panel.dart';
 import 'package:submersion/features/species_id/presentation/widgets/species_download_prompt.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -69,7 +69,7 @@ class DiveSightingsSection extends ConsumerWidget {
         );
     final selected = ref.watch(selectedProfileSpeciesProvider(dive.id));
     final units = ref.watch(unitFormatterProvider);
-    _dropStaleSelection(ref, stored.value, selected);
+    _dropStaleSelection(context, ref, stored.value, selected);
 
     return sightingsAsync.when(
       data: (sightings) {
@@ -161,6 +161,7 @@ class DiveSightingsSection extends ConsumerWidget {
   /// species added back later does not come back highlighted. After the
   /// frame: a provider is never written during build.
   void _dropStaleSelection(
+    BuildContext context,
     WidgetRef ref,
     List<Sighting>? stored,
     String? selected,
@@ -168,6 +169,8 @@ class DiveSightingsSection extends ConsumerWidget {
     if (selected == null || stored == null) return;
     if (stored.any((s) => s.speciesId == selected)) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // The card may be gone by then: a ref of an unmounted widget throws.
+      if (!context.mounted) return;
       final notifier = ref.read(
         selectedProfileSpeciesProvider(dive.id).notifier,
       );

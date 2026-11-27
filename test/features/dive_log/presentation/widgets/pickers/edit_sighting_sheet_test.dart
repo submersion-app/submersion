@@ -3,11 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/mini_profile_picker.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_sighting_sheet.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 const _sighting = Sighting(
@@ -251,6 +251,26 @@ void main() {
       await tester.pump();
       expect(saved, isNull);
       expect(find.text('Must be within the dive'), findsOneWidget);
+    });
+
+    testWidgets('a stored time past the dive does not block other edits', (
+      tester,
+    ) async {
+      // A profile replaced after the time was typed can end before it.
+      Sighting? saved;
+      await pumpTimed(
+        tester,
+        sighting: _sighting.copyWith(seenAtSeconds: 4000),
+        onSave: (s) => saved = s,
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'pair near the wall'),
+        'Cleaning station',
+      );
+      await tester.tap(find.text('Save Changes'));
+      await tester.pump();
+      expect(saved?.notes, 'Cleaning station');
+      expect(saved?.seenAtSeconds, 4000);
     });
 
     testWidgets('a dive with no profile has the time box and no picker', (

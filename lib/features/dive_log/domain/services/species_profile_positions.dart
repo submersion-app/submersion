@@ -48,7 +48,7 @@ class SpeciesProfilePositions {
 /// species id, for the species that have any position.
 ///
 /// The positions are, all together: the sighting's own time (a moment at
-/// the profile depth then); each photo tagged with the species (a moment
+/// the profile depth then, when it falls on the profile); each photo tagged with the species (a moment
 /// where its camera chip sits); each video tagged with it (a span per
 /// stretch its accepted tracks were in view, or the whole clip when it has
 /// none). Tags the app applied and the diver has not confirmed count like
@@ -68,18 +68,21 @@ Map<String, SpeciesProfilePositions> speciesProfilePositions({
   ];
 
   final result = <String, SpeciesProfilePositions>{};
-  for (final sighting in sightings) {
-    final speciesId = sighting.speciesId;
-    if (result.containsKey(speciesId)) continue;
+  // One pass per species: a dive can hold two sightings of one species,
+  // and every typed time counts while its media count once.
+  for (final speciesId in {for (final s in sightings) s.speciesId}) {
     final moments = <SpeciesMoment>[];
     final spans = <(int, int)>[];
 
-    final typed = sighting.seenAtSeconds;
-    if (typed != null) {
-      final seconds = typed.clamp(0, last);
+    for (final sighting in sightings) {
+      if (sighting.speciesId != speciesId) continue;
+      final typed = sighting.seenAtSeconds;
+      // Past the profile (a split, a shorter source) it has no place: a
+      // clamped time would show a depth the diver cannot trace.
+      if (typed == null || typed < 0 || typed > last) continue;
       moments.add((
-        seconds: seconds,
-        depthMeters: profileDepthAt(profile, seconds) ?? 0,
+        seconds: typed,
+        depthMeters: profileDepthAt(profile, typed) ?? 0,
       ));
     }
 

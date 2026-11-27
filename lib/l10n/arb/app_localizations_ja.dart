@@ -7679,7 +7679,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String diveLog_detail_sightingSeenAt(String time) {
-    return '$time 時点';
+    return '潜水開始から $time';
   }
 
   @override

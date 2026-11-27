@@ -219,6 +219,36 @@ void main() {
     expect((await sightingsOf('d1')).single, 'origFish');
   });
 
+  test(
+    'undoing a sightings edit keeps each sighting\'s time (#5092)',
+    () async {
+      await seed('d1');
+      await speciesRepo.addSighting(
+        diveId: 'd1',
+        speciesId: 'origFish',
+        seenAtSeconds: 720,
+      );
+
+      for (final mode in [BulkCollectionMode.add, BulkCollectionMode.replace]) {
+        final snap = await service.apply(
+          BulkEditRequest(
+            diveIds: const ['d1'],
+            ops: [
+              SightingsOp(mode: mode, sightings: [sighting('newFish')]),
+            ],
+          ),
+        );
+        await service.undo(snap);
+
+        final restored = await (db.select(
+          db.sightings,
+        )..where((t) => t.diveId.equals('d1'))).get();
+        expect(restored.single.speciesId, 'origFish', reason: mode.name);
+        expect(restored.single.seenAtSeconds, 720, reason: mode.name);
+      }
+    },
+  );
+
   test('undo restores each weight\'s name', () async {
     await seed('d1');
     await diveRepo.bulkAddWeights(

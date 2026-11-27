@@ -2634,7 +2634,7 @@
   "diveLog_detail_section_equipment": "Équipement",
   "diveLog_detail_section_marineLife": "Espèces",
   "diveLog_detail_sightingDepthRange": "{from} à {to}",
-  "diveLog_detail_sightingSeenAt": "à {time}",
+  "diveLog_detail_sightingSeenAt": "{time} après le début de la plongée",
   "diveLog_detail_semantics_showOnProfile": "Afficher {name} sur le profil, {depth}",
   "diveLog_detail_sightingPhotos": "{count, plural, =1{{count} photo} other{{count} photos}}",
   "diveLog_detail_section_notes": "Notes",

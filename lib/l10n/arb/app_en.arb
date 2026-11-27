@@ -4778,7 +4778,7 @@
       }
     }
   },
-  "diveLog_detail_sightingSeenAt": "at {time}",
+  "diveLog_detail_sightingSeenAt": "{time} into the dive",
   "@diveLog_detail_sightingSeenAt": {
     "placeholders": {
       "time": {

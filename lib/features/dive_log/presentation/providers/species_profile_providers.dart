@@ -101,9 +101,11 @@ Map<String, SpeciesProfilePositions> watchSpeciesPositions(
   Dive dive,
 ) {
   final sightings = ref.watch(diveSightingsProvider(dive.id)).value;
+  // A dive with no sightings has nothing to place: its media are not read.
+  if (sightings == null || sightings.isEmpty) return const {};
   final inputs = ref.watch(diveSpeciesMediaInputsProvider(dive.id)).value;
   final profile = watchChartProfile(ref, dive);
-  if (sightings == null || inputs == null) return const {};
+  if (inputs == null) return const {};
   final cached = _positionsMemo[sightings];
   if (cached != null &&
       identical(cached.inputs, inputs) &&
@@ -153,8 +155,18 @@ SpeciesProfileHighlight? watchSpeciesHighlight(
       .where((s) => s.speciesId == speciesId)
       .firstOrNull
       ?.speciesCategory;
-  return SpeciesProfileHighlight(
+  final color = colorForSpeciesCategory(category, brightness);
+  // The same object while its positions and colour are: the pinned strip
+  // rebuilds its layers only for inputs that are not identical, and it
+  // builds on every scroll frame.
+  final cached = _highlightMemo[positions];
+  if (cached != null && cached.color == color) return cached;
+  return _highlightMemo[positions] = SpeciesProfileHighlight(
     positions: positions,
-    color: colorForSpeciesCategory(category, brightness),
+    color: color,
   );
 }
+
+final Expando<SpeciesProfileHighlight> _highlightMemo = Expando(
+  'speciesProfileHighlight',
+);

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:intl/intl.dart';
 
 import 'package:submersion/core/constants/units.dart';
@@ -15,10 +17,12 @@ String sightingDepthLabel(
   AppLocalizations l10n,
 ) {
   final unit = units.settings.depthUnit;
-  int whole(double meters) => DepthUnit.meters.convert(meters, unit).round();
+  // A sensor that reads a little above the surface reads as 0.
+  int whole(double meters) =>
+      DepthUnit.meters.convert(math.max(meters, 0), unit).round();
   final shallow = whole(positions.minDepthMeters);
   final deep = whole(positions.maxDepthMeters);
-  final deepest = units.formatDepthWhole(positions.maxDepthMeters);
+  final deepest = units.formatDepthWhole(math.max(positions.maxDepthMeters, 0));
   if (shallow == deep) return deepest;
   return l10n.diveLog_detail_sightingDepthRange(
     NumberFormat('#,##0').format(shallow),

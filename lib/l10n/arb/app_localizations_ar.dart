@@ -8105,7 +8105,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String diveLog_detail_sightingSeenAt(String time) {
-    return 'عند $time';
+    return '$time من بداية الغوصة';
   }
 
   @override

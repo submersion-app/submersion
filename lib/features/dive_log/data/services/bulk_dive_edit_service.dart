@@ -589,6 +589,8 @@ class BulkDiveEditService {
         abundance: SightingAbundance.fromStorage(r.abundance),
         count: r.count,
         notes: r.notes,
+        // Undo puts back the diver's times too (issue #5092).
+        seenAtSeconds: r.seenAtSeconds,
       ),
   ];
 }

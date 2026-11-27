@@ -131,8 +131,9 @@ chart's cursor uses).
   check applies to agent (MCP) writes and the UDDF import, which drop an out
   of range time rather than fail the write. *(Designer's call.)*
 - A stored time that a later profile (added or replaced after the time was
-  typed) ends before is clamped to the profile's end for display, never
-  rewritten. *(Designer's call.)*
+  typed, or cut by a split) ends before is not placed and never rewritten;
+  the sheet keeps it unless the diver changes it. *(Designer's call,
+  changed in review: clamping showed a depth the diver could not trace.)*
 - The bulk dive editor's shared `SightingsEditor` does not show the field.
 - Adding a species (the species picker sheet) does not ask for a time; the
   diver sets it from the edit sheet. *(Designer's call: keeps the add flow as
@@ -173,8 +174,10 @@ null when it creates one:
   exists. *(Designer's call.)*
 - Consolidation (`dive_consolidation_service.dart`, target wins): a time on
   the secondary computer's sighting fills the target's sighting when the
-  target has none; a target time is never replaced. Both computers share one
-  timeline, so no shift. *(Designer's call.)*
+  target has none; a target time is never replaced. Consolidation re-bases
+  a secondary's samples by its offset from the target, so its sighting times
+  move by the same offset, never below 0. *(Designer's call, corrected in
+  review: the secondaries do not share the target's timeline.)*
 - Bulk dive edit: carried through unchanged.
 - Agent access (MCP): sighting writes accept the new field (seconds, with the
   same range check as the editor), and the dive document and record family

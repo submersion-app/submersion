@@ -12467,7 +12467,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_detail_sightingSeenAt.
   ///
   /// In en, this message translates to:
-  /// **'at {time}'**
+  /// **'{time} into the dive'**
   String diveLog_detail_sightingSeenAt(String time);
 
   /// No description provided for @diveLog_detail_semantics_showOnProfile.

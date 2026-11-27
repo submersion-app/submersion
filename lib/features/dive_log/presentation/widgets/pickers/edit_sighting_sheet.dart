@@ -4,12 +4,12 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_depth_at.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/mini_profile_picker.dart';
-import 'package:submersion/shared/widgets/forms/minutes_seconds_field.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/sighting_abundance_picker.dart';
 import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/minutes_seconds_field.dart';
 
 /// What the sheet needs to set when in the dive a sighting was seen
 /// (issue #5092): the profile the chart draws (empty for none), the latest
@@ -208,7 +208,10 @@ class _EditSightingSheetState extends State<EditSightingSheet> {
                   onChanged: (s) => setState(() => _seenAt = s),
                   label: l10n.diveLog_editSighting_seenAt,
                   formatErrorText: l10n.diveLog_annotation_time_invalid,
-                  validator: (s) => s > time.maxSeconds
+                  // A stored time the profile now ends before is kept until
+                  // the diver changes it: it never blocks another edit.
+                  validator: (s) =>
+                      s > time.maxSeconds && s != widget.sighting.seenAtSeconds
                       ? l10n.diveLog_annotation_time_outsideDive
                       : null,
                   allowEmpty: true,

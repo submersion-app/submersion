@@ -7951,7 +7951,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String diveLog_detail_sightingSeenAt(String time) {
-    return 'időpont: $time';
+    return '$time a merülés kezdete után';
   }
 
   @override

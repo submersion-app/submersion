@@ -1,3 +1,5 @@
+import 'dart:ui' show Tristate;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -122,6 +124,32 @@ void main() {
         find.bySemanticsLabel(RegExp('Show Grouper on the profile, 27 m')),
         findsOneWidget,
       );
+      handle.dispose();
+    });
+
+    testWidgets('to a screen reader the chip is its own control that '
+        'toggles, apart from the row', (tester) async {
+      final handle = tester.ensureSemantics();
+      var toggled = 0;
+      var opened = 0;
+      await _pump(
+        tester,
+        depthLabel: '27 m',
+        depthSelected: true,
+        onToggleDepth: () => toggled++,
+        onOpen: () => opened++,
+      );
+      final node = tester.getSemantics(
+        find.bySemanticsLabel(RegExp('Show Grouper on the profile')),
+      );
+      expect(node.label, 'Show Grouper on the profile, 27 m');
+      expect(node.flagsCollection.isSelected, Tristate.isTrue);
+
+      tester.semantics.tap(
+        find.semantics.byLabel(RegExp('Show Grouper on the profile')),
+      );
+      await tester.pump();
+      expect((toggled, opened), (1, 0));
       handle.dispose();
     });
 

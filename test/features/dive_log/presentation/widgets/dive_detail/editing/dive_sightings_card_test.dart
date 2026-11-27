@@ -222,7 +222,7 @@ void main() {
       );
       await pump(tester, dive, open: false);
 
-      expect(find.text('at 12:30'), findsOneWidget);
+      expect(find.text('12:30 into the dive'), findsOneWidget);
       expect(find.byKey(const ValueKey('sighting_depth')), findsNothing);
     });
 

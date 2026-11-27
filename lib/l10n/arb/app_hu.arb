@@ -2634,7 +2634,7 @@
   "diveLog_detail_section_equipment": "Felszerelés",
   "diveLog_detail_section_marineLife": "Fajok",
   "diveLog_detail_sightingDepthRange": "{from} és {to} között",
-  "diveLog_detail_sightingSeenAt": "időpont: {time}",
+  "diveLog_detail_sightingSeenAt": "{time} a merülés kezdete után",
   "diveLog_detail_semantics_showOnProfile": "{name} megjelenítése a profilon, {depth}",
   "diveLog_detail_sightingPhotos": "{count, plural, =1{1 fotó} other{{count} fotó}}",
   "diveLog_detail_section_notes": "Jegyzetek",

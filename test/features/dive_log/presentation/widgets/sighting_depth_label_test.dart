@@ -37,6 +37,10 @@ void main() {
     );
   });
 
+  test('a sensor reading above the surface reads as 0', () {
+    expect(sightingDepthLabel(between(-0.6, 18.4), metric, l10n), '0 to 18 m');
+  });
+
   test('a span counts its own shallowest and deepest', () {
     const positions = SpeciesProfilePositions(
       moments: [],

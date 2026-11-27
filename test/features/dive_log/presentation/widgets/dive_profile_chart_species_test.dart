@@ -86,6 +86,12 @@ void main() {
     expect(band, hasLength(1));
     expect((band.single.x1, band.single.x2), (60.0, 120.0));
     expect(band.single.color!.toARGB32() & 0x00FFFFFF, 0x009688);
+    // A solid edge where it starts, as a finding's window and the strip
+    // draw, so a pale category colour still reads.
+    expect(
+      chartData(tester).extraLinesData.verticalLines.map((l) => l.x),
+      contains(60.0),
+    );
   });
 
   testWidgets('a moment draws a line and a dot on the depth line', (

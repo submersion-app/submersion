@@ -7565,7 +7565,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String diveLog_detail_sightingSeenAt(String time) {
-    return '于 $time';
+    return '下潜后 $time';
   }
 
   @override

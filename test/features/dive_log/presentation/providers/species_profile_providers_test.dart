@@ -123,6 +123,25 @@ void main() {
     expect(lastHighlight!.color, isNot(Colors.transparent));
   });
 
+  testWidgets('the highlight is the same object while nothing changed', (
+    tester,
+  ) async {
+    // The pinned strip reuses its layer data only for identical inputs, and
+    // it rebuilds on every scroll frame.
+    final container = await pump(tester);
+    container.read(selectedProfileSpeciesProvider('d1').notifier).state =
+        'shark';
+    await tester.pumpAndSettle();
+    final first = lastHighlight;
+    expect(
+      identical(
+        watchSpeciesHighlight(capturedRef, dive, brightness: Brightness.light),
+        first,
+      ),
+      isTrue,
+    );
+  });
+
   testWidgets('the highlight uses the active source profile', (tester) async {
     final other = ramp(0.05);
     final container = await pump(
@@ -154,5 +173,33 @@ void main() {
         'shark';
     await tester.pumpAndSettle();
     expect(lastHighlight, isNull);
+  });
+
+  testWidgets('a dive with no sightings never loads its media inputs', (
+    tester,
+  ) async {
+    var reads = 0;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          diveSightingsProvider('d1').overrideWith((ref) async => []),
+          diveSpeciesMediaInputsProvider('d1').overrideWith((ref) async {
+            reads++;
+            return noMedia;
+          }),
+          activeSourceProfileProvider('d1').overrideWith((ref) => null),
+        ],
+        child: MaterialApp(
+          home: Consumer(
+            builder: (context, ref, _) {
+              expect(watchSpeciesPositions(ref, dive), isEmpty);
+              return const SizedBox();
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(reads, 0);
   });
 }
