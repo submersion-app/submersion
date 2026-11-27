@@ -852,7 +852,10 @@ class DiveImportService {
     // preset when the diver opted in (computers report pressure, not size).
     // Registry first so a matched entry claims its tank; the default preset
     // then fills only the back-gas tanks nobody claimed.
-    final parsedTanks = _parser.parseTanks(dive);
+    final parsedTanks = _parser.parseTanks(
+      dive,
+      trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
+    );
     final matchedTanks = transmitterMatcher == null
         ? parsedTanks
         : applyTransmitterRegistry(
@@ -1046,7 +1049,10 @@ class DiveImportService {
     // importProfile keeps the stored cylinders, which may be the diver's
     // edits, and adds only those this parse reports at an index none of them
     // holds, such as a sidemount pair's second transmitter (#2517).
-    var tanks = _parser.parseTanks(dive);
+    var tanks = _parser.parseTanks(
+      dive,
+      trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
+    );
     // With the unused-gas switch on, a gas the diver never carried is not
     // re-added (issue #3668). A bailout transmitter this download adds as a
     // new cylinder takes its gas first, as on a new dive; a stored cylinder
@@ -1154,7 +1160,13 @@ class DiveImportService {
     final profilePoints = _parser.parseProfile(dive);
     final events = _convertEvents(dive.events);
     final gasSwitches = _parser.parseGasSwitches(dive);
-    final tanks = _parser.parseTanks(dive);
+    final trimTankPressureAtSurfacing = await _loadTrimTankPressureAtSurfacing(
+      null,
+    );
+    final tanks = _parser.parseTanks(
+      dive,
+      trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
+    );
     final attachedTo = await _repository.importProfile(
       computerId: computerId,
       profileStartTime: dive.startTime,
@@ -1191,7 +1203,7 @@ class DiveImportService {
       cnsEnd: dive.cnsEnd,
       otu: dive.otu,
       targetDiveId: targetDiveId,
-      trimTankPressureAtSurfacing: await _loadTrimTankPressureAtSurfacing(null),
+      trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
     );
     if (attachedTo != targetDiveId) {
       throw StateError(

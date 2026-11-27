@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 
 import 'dive_import_service_test.mocks.dart';
@@ -176,5 +177,114 @@ void main() {
     );
 
     expect(handedOver(), [false]);
+  });
+
+  // A live download is parsed with the active diver's switch before the
+  // diver it is filed under is known, so the import re-reads a reported end
+  // pressure with that diver's switch (issue #5000, review of PR #5087).
+  group('a reported end pressure follows the owning diver', () {
+    DownloadedDive parsedWith({required double endPressure}) => DownloadedDive(
+      fingerprint: 'fp-ccr',
+      startTime: DateTime(2026, 11, 20, 10, 0),
+      durationSeconds: 4140,
+      maxDepth: 51.0,
+      profile: const [],
+      tanks: [
+        DownloadedTank(
+          index: 0,
+          o2Percent: 100.0,
+          startPressure: 200.0,
+          endPressure: endPressure,
+          surfacingEnd: const SurfacingEndPressure(
+            asLogged: 4.0,
+            atSurfacing: 41.0,
+          ),
+        ),
+      ],
+    );
+
+    List<TankData> writtenTanks() =>
+        verify(
+              repo.importProfile(
+                computerId: anyNamed('computerId'),
+                profileStartTime: anyNamed('profileStartTime'),
+                points: anyNamed('points'),
+                durationSeconds: anyNamed('durationSeconds'),
+                maxDepth: anyNamed('maxDepth'),
+                avgDepth: anyNamed('avgDepth'),
+                isPrimary: anyNamed('isPrimary'),
+                diverId: anyNamed('diverId'),
+                tanks: captureAnyNamed('tanks'),
+                diveMode: anyNamed('diveMode'),
+                events: anyNamed('events'),
+                gasSwitches: anyNamed('gasSwitches'),
+                diveNumber: anyNamed('diveNumber'),
+                forceNew: anyNamed('forceNew'),
+                addMissingTanks: anyNamed('addMissingTanks'),
+                targetDiveId: anyNamed('targetDiveId'),
+                trimTankPressureAtSurfacing: anyNamed(
+                  'trimTankPressureAtSurfacing',
+                ),
+              ),
+            ).captured.single
+            as List<TankData>;
+
+    test('switch off: the logged value, though parsed at surfacing', () async {
+      await serviceWith((_) async => false).importSingleDiveAsNew(
+        parsedWith(endPressure: 41.0),
+        computerId: computer.id,
+        diverId: 'owner-2',
+      );
+
+      expect(writtenTanks().single.endPressure, 4.0);
+    });
+
+    test('switch on: the surfacing value, though parsed as logged', () async {
+      await serviceWith((_) async => true).importSingleDiveAsNew(
+        parsedWith(endPressure: 4.0),
+        computerId: computer.id,
+        diverId: 'owner-2',
+      );
+
+      expect(writtenTanks().single.endPressure, 41.0);
+    });
+
+    test('replacing a source follows the owner too', () async {
+      final conflict = ImportConflict(
+        downloaded: parsedWith(endPressure: 41.0),
+        existingDiveId: 'existing-dive-1',
+        duplicateResult: const DuplicateResult(
+          matchingDiveId: 'existing-dive-1',
+          confidence: DuplicateConfidence.exact,
+          score: 0.95,
+        ),
+      );
+
+      await serviceWith((_) async => false).resolveConflict(
+        conflict,
+        ConflictResolution.replaceSource,
+        computer.id,
+        diverId: 'owner-2',
+      );
+
+      expect(writtenTanks().single.endPressure, 4.0);
+    });
+
+    test('filling a planned dive follows the switch too', () async {
+      await serviceWith((_) async => false).attachToPlannedDive(
+        parsedWith(endPressure: 41.0),
+        'dive-id',
+        computer.id,
+        settled: (
+          gfLow: null,
+          gfHigh: null,
+          decoAlgorithm: null,
+          decoConservatism: null,
+          computerTissue: null,
+        ),
+      );
+
+      expect(writtenTanks().single.endPressure, 4.0);
+    });
   });
 }
