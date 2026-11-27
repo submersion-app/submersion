@@ -19449,5 +19449,18 @@
   "settings_homeHeader_wide": "מסכים רחבים יותר",
   "settings_homeHeader_compact": "דחוס",
   "settings_homeHeader_banner": "באנר",
-  "settings_homeHeader_description": "דחוס הוא סרגל צר עם נורות מצב. באנר הוא באנר הפתיחה עם סיכומי הצלילות שלך. נשמר במכשיר זה."
+  "settings_homeHeader_description": "דחוס הוא סרגל צר עם נורות מצב. באנר הוא באנר הפתיחה עם סיכומי הצלילות שלך. נשמר במכשיר זה.",
+  "documents_libraryShare_switch": "שיתוף עם {library}",
+  "documents_libraryShare_hint": "כל חברי הספרייה יכולים לפתוח אותו",
+  "documents_libraryShare_sharedWith": "משותף עם {library}",
+  "documents_libraryShare_onlyYou": "רק את/ה",
+  "documents_libraryShare_removeFromLibrary": "הסרה מהספרייה",
+  "documents_libraryShare_unshareTitle": "להפסיק לשתף עם {library}?",
+  "documents_libraryShare_unshareBody": "שאר החברים יאבדו את המסמך בסנכרון הבא שלהם. נשאר אצלך עותק פרטי.",
+  "documents_libraryShare_unshareConfirm": "הפסקת שיתוף",
+  "documents_libraryShare_removeTitle": "להסיר מ-{library}?",
+  "documents_libraryShare_removeBody": "כל החברים יאבדו את המסמך בסנכרון הבא שלהם.",
+  "documents_libraryShare_removed": "הוסר מהספרייה",
+  "documents_libraryShare_lastEdited": "נערך לאחרונה על ידי {name}, {date}",
+  "documents_filter_sharedLibraries": "ספריות משותפות"
 }

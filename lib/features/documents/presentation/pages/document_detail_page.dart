@@ -8,8 +8,10 @@ import 'package:submersion/features/change_log/presentation/widgets/change_log_h
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/document_l10n.dart';
+import 'package:submersion/features/documents/presentation/providers/document_library_providers.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_details_panel.dart';
+import 'package:submersion/features/documents/presentation/widgets/document_library_card.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_page_viewer.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -194,11 +196,14 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
           ownerDate: sameOwner ? named.ownerDate : null,
           certification: sameOwner ? named.certification : null,
         );
+        // A shared library document only its library's editors and owners
+        // change (issue #4713): a reader's page has no lock and no delete.
+        final readOnly = doc.isShared && !_libraryEditable(doc);
         return editScaffold(
           record: record,
           shown: shown,
-          lockedBar: _bar(entry, doc, shown),
-          unlockedActions: [_menu(doc)],
+          lockedBar: _bar(entry, doc, shown, readOnly: readOnly),
+          unlockedActions: [_menu(doc, readOnly: readOnly)],
           // The sitting's pages, which may hold pages not yet saved.
           content: _body(
             entry,
@@ -237,21 +242,50 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
   PreferredSizeWidget _bar(
     DocumentListEntry entry,
     Document doc,
-    DocumentRecord shown,
-  ) {
+    DocumentRecord shown, {
+    bool readOnly = false,
+  }) {
     final l10n = context.l10n;
     return AppBar(
       automaticallyImplyLeading: !widget.embedded,
       title: Text(
         documentDisplayTitle(l10n, doc, ownerLabel: entry.ownerLabel),
       ),
-      actions: [lockButton(shown), _menu(doc)],
+      actions: [
+        if (!readOnly) lockButton(shown),
+        _menu(doc, readOnly: readOnly),
+      ],
     );
   }
 
+  /// Whether the active profile may change [doc]'s library (issue #4713);
+  /// true for a document on no library site.
+  bool _libraryEditable(Document doc) {
+    final siteId = doc.owner.id;
+    if (doc.owner.kind != DocumentOwnerKind.site || siteId == null) {
+      return true;
+    }
+    final view = ref.watch(siteLibraryViewProvider(siteId)).value;
+    return view?.canEdit ?? false;
+  }
+
+  /// The library card of [doc], above its details.
+  Widget _libraryCard(Document doc) => DocumentLibraryCard(
+    document: doc,
+    enabled: !isSittingOpen,
+    onUnshared: (copyId) {
+      if (!mounted) return;
+      if (widget.embedded) {
+        context.go(documentPaneLocation(copyId, openUnlocked: false));
+      } else {
+        context.pushReplacement('/documents/$copyId');
+      }
+    },
+  );
+
   /// The menu: History, and Delete behind the overflow, as on the other
   /// detail pages, not one tap away beside Edit (#3384).
-  Widget _menu(Document doc) {
+  Widget _menu(Document doc, {bool readOnly = false}) {
     final l10n = context.l10n;
     return PopupMenuButton<String>(
       onSelected: (value) {
@@ -266,17 +300,21 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
             rootId: doc.id,
           ),
           ..._documentRecordCaption(),
-          PopupMenuItem(
-            value: 'delete',
-            enabled: _documentOperationsAvailable,
-            child: Row(
-              children: [
-                Icon(Icons.delete, color: error),
-                const SizedBox(width: 8),
-                Text(l10n.common_action_delete, style: TextStyle(color: error)),
-              ],
+          if (!readOnly)
+            PopupMenuItem(
+              value: 'delete',
+              enabled: _documentOperationsAvailable,
+              child: Row(
+                children: [
+                  Icon(Icons.delete, color: error),
+                  const SizedBox(width: 8),
+                  Text(
+                    l10n.common_action_delete,
+                    style: TextStyle(color: error),
+                  ),
+                ],
+              ),
             ),
-          ),
         ];
       },
     );
@@ -354,6 +392,7 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
         return Column(
           children: [
             Expanded(child: viewer),
+            _libraryCard(doc),
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: constraints.maxHeight / 2),
               child: DocumentDetailsPanel(
@@ -379,7 +418,11 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
       pencil: _detailsPencil(),
       tags: _heldTags(),
     );
-    return _framedDetails(card);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [_libraryCard(doc), _framedDetails(card)],
+    );
   }
 
   /// Deletes [doc] after asking, and leaves the page. Answers whether it
@@ -388,11 +431,23 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
   Future<bool> _delete(Document doc) async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
+    // A shared library document leaves its library for every member.
+    final library = doc.isShared && doc.owner.id != null
+        ? ref.read(siteLibraryViewProvider(doc.owner.id!)).value
+        : null;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(l10n.documents_delete_title),
-        content: Text(l10n.documents_delete_content),
+        title: Text(
+          library == null
+              ? l10n.documents_delete_title
+              : l10n.documents_libraryShare_removeTitle(library.libraryName),
+        ),
+        content: Text(
+          library == null
+              ? l10n.documents_delete_content
+              : l10n.documents_libraryShare_removeBody,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -406,8 +461,18 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
       ),
     );
     if (confirmed != true || !mounted) return false;
-    await ref.read(documentMutationsProvider).delete(doc.id);
-    messenger.showSnackBar(SnackBar(content: Text(l10n.documents_deleted)));
+    if (doc.isShared) {
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      await ref
+          .read(libraryDocumentStamperProvider)
+          .removeFromLibrary(doc.id, actingDiverId: diverId);
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.documents_libraryShare_removed)),
+      );
+    } else {
+      await ref.read(documentMutationsProvider).delete(doc.id);
+      messenger.showSnackBar(SnackBar(content: Text(l10n.documents_deleted)));
+    }
     if (!mounted) return true;
     if (widget.onDeleted != null) {
       widget.onDeleted!();

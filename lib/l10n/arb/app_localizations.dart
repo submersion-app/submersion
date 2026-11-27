@@ -104450,6 +104450,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Compact is a slim bar with status lights. Banner is the welcome banner with your dive totals. Saved on this device.'**
   String get settings_homeHeader_description;
+
+  /// Document details: switch that shares a document filed on a shared site library site with the library (issue #4713)
+  ///
+  /// In en, this message translates to:
+  /// **'Share with {library}'**
+  String documents_libraryShare_switch(String library);
+
+  /// Document details: subtitle of the share switch
+  ///
+  /// In en, this message translates to:
+  /// **'Every member of the library can open it'**
+  String get documents_libraryShare_hint;
+
+  /// Document details: line shown to a reader for a document shared with a library
+  ///
+  /// In en, this message translates to:
+  /// **'Shared with {library}'**
+  String documents_libraryShare_sharedWith(String library);
+
+  /// Documents card: subtitle of a private document on a shared library site
+  ///
+  /// In en, this message translates to:
+  /// **'Only you'**
+  String get documents_libraryShare_onlyYou;
+
+  /// Documents card / document menu: removes a shared document from its library for every member
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from library'**
+  String get documents_libraryShare_removeFromLibrary;
+
+  /// Dialog title when turning off the share switch
+  ///
+  /// In en, this message translates to:
+  /// **'Stop sharing with {library}?'**
+  String documents_libraryShare_unshareTitle(String library);
+
+  /// Dialog body when turning off the share switch
+  ///
+  /// In en, this message translates to:
+  /// **'Other members lose this document on their next sync. You keep a private copy.'**
+  String get documents_libraryShare_unshareBody;
+
+  /// Dialog button that stops sharing a document
+  ///
+  /// In en, this message translates to:
+  /// **'Stop sharing'**
+  String get documents_libraryShare_unshareConfirm;
+
+  /// Dialog title when removing a shared document from its library
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from {library}?'**
+  String documents_libraryShare_removeTitle(String library);
+
+  /// Dialog body when removing a shared document from its library
+  ///
+  /// In en, this message translates to:
+  /// **'Every member loses this document on their next sync.'**
+  String get documents_libraryShare_removeBody;
+
+  /// Snackbar after a shared document is removed from its library
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from the library'**
+  String get documents_libraryShare_removed;
+
+  /// Document details: who last edited a shared document and when
+  ///
+  /// In en, this message translates to:
+  /// **'Last edited by {name}, {date}'**
+  String documents_libraryShare_lastEdited(String name, String date);
+
+  /// Documents page: filter chip listing documents shared with the diver's site libraries
+  ///
+  /// In en, this message translates to:
+  /// **'Shared libraries'**
+  String get documents_filter_sharedLibraries;
 }
 
 class _AppLocalizationsDelegate

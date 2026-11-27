@@ -66870,4 +66870,57 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compatta è una barra sottile con le spie di stato. Banner è il banner di benvenuto con i totali delle tue immersioni. Salvato su questo dispositivo.';
+
+  @override
+  String documents_libraryShare_switch(String library) {
+    return 'Condividi con $library';
+  }
+
+  @override
+  String get documents_libraryShare_hint =>
+      'Ogni membro della biblioteca può aprirlo';
+
+  @override
+  String documents_libraryShare_sharedWith(String library) {
+    return 'Condiviso con $library';
+  }
+
+  @override
+  String get documents_libraryShare_onlyYou => 'Solo tu';
+
+  @override
+  String get documents_libraryShare_removeFromLibrary =>
+      'Rimuovi dalla biblioteca';
+
+  @override
+  String documents_libraryShare_unshareTitle(String library) {
+    return 'Smettere di condividere con $library?';
+  }
+
+  @override
+  String get documents_libraryShare_unshareBody =>
+      'Gli altri membri perderanno questo documento alla prossima sincronizzazione. Tu ne conservi una copia privata.';
+
+  @override
+  String get documents_libraryShare_unshareConfirm => 'Smetti di condividere';
+
+  @override
+  String documents_libraryShare_removeTitle(String library) {
+    return 'Rimuovere da $library?';
+  }
+
+  @override
+  String get documents_libraryShare_removeBody =>
+      'Tutti i membri perderanno questo documento alla prossima sincronizzazione.';
+
+  @override
+  String get documents_libraryShare_removed => 'Rimosso dalla biblioteca';
+
+  @override
+  String documents_libraryShare_lastEdited(String name, String date) {
+    return 'Ultima modifica di $name, $date';
+  }
+
+  @override
+  String get documents_filter_sharedLibraries => 'Biblioteche condivise';
 }

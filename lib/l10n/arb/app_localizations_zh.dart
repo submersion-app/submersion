@@ -62649,4 +62649,54 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       '紧凑是带状态灯的窄栏。横幅是显示潜水总计的欢迎横幅。保存在此设备上。';
+
+  @override
+  String documents_libraryShare_switch(String library) {
+    return '与$library共享';
+  }
+
+  @override
+  String get documents_libraryShare_hint => '资料库的每位成员都可以打开';
+
+  @override
+  String documents_libraryShare_sharedWith(String library) {
+    return '已与$library共享';
+  }
+
+  @override
+  String get documents_libraryShare_onlyYou => '仅自己';
+
+  @override
+  String get documents_libraryShare_removeFromLibrary => '从资料库中移除';
+
+  @override
+  String documents_libraryShare_unshareTitle(String library) {
+    return '停止与$library共享？';
+  }
+
+  @override
+  String get documents_libraryShare_unshareBody =>
+      '其他成员将在下次同步时失去此文档。你会保留一份私人副本。';
+
+  @override
+  String get documents_libraryShare_unshareConfirm => '停止共享';
+
+  @override
+  String documents_libraryShare_removeTitle(String library) {
+    return '从$library中移除？';
+  }
+
+  @override
+  String get documents_libraryShare_removeBody => '所有成员将在下次同步时失去此文档。';
+
+  @override
+  String get documents_libraryShare_removed => '已从资料库中移除';
+
+  @override
+  String documents_libraryShare_lastEdited(String name, String date) {
+    return '最后编辑：$name，$date';
+  }
+
+  @override
+  String get documents_filter_sharedLibraries => '共享资料库';
 }

@@ -19449,5 +19449,18 @@
   "settings_homeHeader_wide": "Telas mais largas",
   "settings_homeHeader_compact": "Compacto",
   "settings_homeHeader_banner": "Faixa",
-  "settings_homeHeader_description": "Compacto é uma barra estreita com luzes de status. Faixa é a faixa de boas-vindas com seus totais de mergulho. Salvo neste dispositivo."
+  "settings_homeHeader_description": "Compacto é uma barra estreita com luzes de status. Faixa é a faixa de boas-vindas com seus totais de mergulho. Salvo neste dispositivo.",
+  "documents_libraryShare_switch": "Partilhar com {library}",
+  "documents_libraryShare_hint": "Qualquer membro da biblioteca pode abri-lo",
+  "documents_libraryShare_sharedWith": "Partilhado com {library}",
+  "documents_libraryShare_onlyYou": "Só tu",
+  "documents_libraryShare_removeFromLibrary": "Remover da biblioteca",
+  "documents_libraryShare_unshareTitle": "Deixar de partilhar com {library}?",
+  "documents_libraryShare_unshareBody": "Os outros membros perdem este documento na próxima sincronização. Ficas com uma cópia privada.",
+  "documents_libraryShare_unshareConfirm": "Deixar de partilhar",
+  "documents_libraryShare_removeTitle": "Remover de {library}?",
+  "documents_libraryShare_removeBody": "Todos os membros perdem este documento na próxima sincronização.",
+  "documents_libraryShare_removed": "Removido da biblioteca",
+  "documents_libraryShare_lastEdited": "Última edição por {name}, {date}",
+  "documents_filter_sharedLibraries": "Bibliotecas partilhadas"
 }

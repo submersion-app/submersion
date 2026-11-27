@@ -26,6 +26,10 @@ class DocumentTile extends StatelessWidget {
   /// Defaults to the document's first page; tests pass a plain widget.
   final Widget? thumbnail;
 
+  /// On a shared site library site (issue #4713): the library's name for
+  /// a shared document, "Only you" for the diver's own. Null elsewhere.
+  final String? libraryLabel;
+
   const DocumentTile({
     super.key,
     required this.document,
@@ -34,6 +38,7 @@ class DocumentTile extends StatelessWidget {
     this.selected = false,
     this.tags = const [],
     this.thumbnail,
+    this.libraryLabel,
   });
 
   @override
@@ -57,7 +62,11 @@ class DocumentTile extends StatelessWidget {
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       ),
-      subtitle: details.isEmpty && !status.needsAttention && tags.isEmpty
+      subtitle:
+          details.isEmpty &&
+              !status.needsAttention &&
+              tags.isEmpty &&
+              libraryLabel == null
           ? null
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,6 +74,25 @@ class DocumentTile extends StatelessWidget {
               children: [
                 if (details.isNotEmpty)
                   Text(details, maxLines: 1, overflow: TextOverflow.ellipsis),
+                if (libraryLabel case final label?)
+                  Row(
+                    children: [
+                      Icon(
+                        document.isShared
+                            ? Icons.groups_outlined
+                            : Icons.lock_outline,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 if (status.needsAttention) ...[
                   const SizedBox(height: 4),
                   DocumentExpiryBadge(status: status),

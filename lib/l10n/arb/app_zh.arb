@@ -19449,5 +19449,18 @@
   "settings_homeHeader_wide": "更宽的屏幕",
   "settings_homeHeader_compact": "紧凑",
   "settings_homeHeader_banner": "横幅",
-  "settings_homeHeader_description": "紧凑是带状态灯的窄栏。横幅是显示潜水总计的欢迎横幅。保存在此设备上。"
+  "settings_homeHeader_description": "紧凑是带状态灯的窄栏。横幅是显示潜水总计的欢迎横幅。保存在此设备上。",
+  "documents_libraryShare_switch": "与{library}共享",
+  "documents_libraryShare_hint": "资料库的每位成员都可以打开",
+  "documents_libraryShare_sharedWith": "已与{library}共享",
+  "documents_libraryShare_onlyYou": "仅自己",
+  "documents_libraryShare_removeFromLibrary": "从资料库中移除",
+  "documents_libraryShare_unshareTitle": "停止与{library}共享？",
+  "documents_libraryShare_unshareBody": "其他成员将在下次同步时失去此文档。你会保留一份私人副本。",
+  "documents_libraryShare_unshareConfirm": "停止共享",
+  "documents_libraryShare_removeTitle": "从{library}中移除？",
+  "documents_libraryShare_removeBody": "所有成员将在下次同步时失去此文档。",
+  "documents_libraryShare_removed": "已从资料库中移除",
+  "documents_libraryShare_lastEdited": "最后编辑：{name}，{date}",
+  "documents_filter_sharedLibraries": "共享资料库"
 }

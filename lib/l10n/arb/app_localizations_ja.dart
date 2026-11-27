@@ -64160,4 +64160,55 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'コンパクトはステータスランプ付きの細いバーです。バナーはダイブの合計を表示するウェルカムバナーです。この端末に保存されます。';
+
+  @override
+  String documents_libraryShare_switch(String library) {
+    return '$libraryと共有';
+  }
+
+  @override
+  String get documents_libraryShare_hint => 'ライブラリのメンバー全員が開けます';
+
+  @override
+  String documents_libraryShare_sharedWith(String library) {
+    return '$libraryと共有中';
+  }
+
+  @override
+  String get documents_libraryShare_onlyYou => '自分のみ';
+
+  @override
+  String get documents_libraryShare_removeFromLibrary => 'ライブラリから削除';
+
+  @override
+  String documents_libraryShare_unshareTitle(String library) {
+    return '$libraryとの共有を停止しますか？';
+  }
+
+  @override
+  String get documents_libraryShare_unshareBody =>
+      '他のメンバーは次回の同期でこのドキュメントを失います。あなたには非公開のコピーが残ります。';
+
+  @override
+  String get documents_libraryShare_unshareConfirm => '共有を停止';
+
+  @override
+  String documents_libraryShare_removeTitle(String library) {
+    return '$libraryから削除しますか？';
+  }
+
+  @override
+  String get documents_libraryShare_removeBody =>
+      'すべてのメンバーが次回の同期でこのドキュメントを失います。';
+
+  @override
+  String get documents_libraryShare_removed => 'ライブラリから削除しました';
+
+  @override
+  String documents_libraryShare_lastEdited(String name, String date) {
+    return '最終編集: $name、$date';
+  }
+
+  @override
+  String get documents_filter_sharedLibraries => '共有ライブラリ';
 }

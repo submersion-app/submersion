@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/documents/presentation/providers/document_library_providers.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/documents/presentation/widgets/document_tile.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -84,6 +85,15 @@ class DocumentsSection<T> extends ConsumerWidget {
     final tagsByDocument =
         ref.watch(tagsByItemProvider(TagScope.documents)).value ??
         const <String, List<Tag>>{};
+    // A shared site library's site (issue #4713): each tile says whose it is.
+    final library = owner.kind == DocumentOwnerKind.site && owner.id != null
+        ? ref.watch(siteLibraryViewProvider(owner.id!)).value
+        : null;
+    String? libraryLabel(Document d) => library == null
+        ? null
+        : d.isShared
+        ? library.libraryName
+        : l10n.documents_libraryShare_onlyYou;
     return Card(
       key: ValueKey('documents-section-${owner.kind.name}'),
       child: Padding(
@@ -185,10 +195,26 @@ class DocumentsSection<T> extends ConsumerWidget {
                               key: ValueKey('document-${d.id}'),
                               document: d,
                               tags: tagsByDocument[d.id] ?? const [],
+                              libraryLabel: libraryLabel(d),
                               onTap: () => context.push('/documents/${d.id}'),
                             ),
                           ),
-                          if (editing != null)
+                          // A shared document leaves the library for every
+                          // member, and only an editor or owner may do it.
+                          if (editing != null && d.isShared)
+                            if (library?.canEdit ?? false)
+                              IconButton(
+                                key: ValueKey(
+                                  'document-remove-library-${d.id}',
+                                ),
+                                icon: const Icon(Icons.cloud_off_outlined),
+                                tooltip: l10n
+                                    .documents_libraryShare_removeFromLibrary,
+                                onPressed: () => detachDocument(editing, d.id),
+                              )
+                            else
+                              const SizedBox.shrink()
+                          else if (editing != null)
                             IconButton(
                               key: ValueKey('document-remove-${d.id}'),
                               icon: const Icon(Icons.link_off),

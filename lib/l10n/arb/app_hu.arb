@@ -19449,5 +19449,18 @@
   "settings_homeHeader_wide": "Szélesebb képernyők",
   "settings_homeHeader_compact": "Kompakt",
   "settings_homeHeader_banner": "Szalag",
-  "settings_homeHeader_description": "A Kompakt egy keskeny sáv állapotjelzőkkel. A Szalag az üdvözlő szalag a merülési összesítőiddel. Ezen az eszközön mentve."
+  "settings_homeHeader_description": "A Kompakt egy keskeny sáv állapotjelzőkkel. A Szalag az üdvözlő szalag a merülési összesítőiddel. Ezen az eszközön mentve.",
+  "documents_libraryShare_switch": "Megosztás ezzel: {library}",
+  "documents_libraryShare_hint": "A könyvtár minden tagja megnyithatja",
+  "documents_libraryShare_sharedWith": "Megosztva ezzel: {library}",
+  "documents_libraryShare_onlyYou": "Csak te",
+  "documents_libraryShare_removeFromLibrary": "Eltávolítás a könyvtárból",
+  "documents_libraryShare_unshareTitle": "Megszünteted a megosztást ezzel: {library}?",
+  "documents_libraryShare_unshareBody": "A többi tag a következő szinkronizáláskor elveszíti ezt a dokumentumot. Te megtartasz egy privát másolatot.",
+  "documents_libraryShare_unshareConfirm": "Megosztás megszüntetése",
+  "documents_libraryShare_removeTitle": "Eltávolítod innen: {library}?",
+  "documents_libraryShare_removeBody": "Minden tag a következő szinkronizáláskor elveszíti ezt a dokumentumot.",
+  "documents_libraryShare_removed": "Eltávolítva a könyvtárból",
+  "documents_libraryShare_lastEdited": "Utoljára szerkesztette: {name}, {date}",
+  "documents_filter_sharedLibraries": "Megosztott könyvtárak"
 }

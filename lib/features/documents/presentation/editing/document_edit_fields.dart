@@ -12,9 +12,10 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 final String _details = DocumentCardId.details.name;
 
-/// A certification card is filed under its certification and stays there.
+/// A certification card is filed under its certification and stays there,
+/// and a shared library document on its library site (issue #4713).
 bool documentOwnerLocked(Document d) =>
-    d.type == DocumentType.certificationCard;
+    d.type == DocumentType.certificationCard || d.isShared;
 
 /// A certification card stays one, and nothing else becomes one.
 bool documentTypeLocked(Document d) => d.type == DocumentType.certificationCard;

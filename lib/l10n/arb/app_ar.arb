@@ -19449,5 +19449,18 @@
   "settings_homeHeader_wide": "الشاشات الأعرض",
   "settings_homeHeader_compact": "مضغوط",
   "settings_homeHeader_banner": "لافتة",
-  "settings_homeHeader_description": "المضغوط شريط رفيع مع مؤشرات الحالة. اللافتة هي لافتة الترحيب مع إجماليات غوصك. يُحفظ على هذا الجهاز."
+  "settings_homeHeader_description": "المضغوط شريط رفيع مع مؤشرات الحالة. اللافتة هي لافتة الترحيب مع إجماليات غوصك. يُحفظ على هذا الجهاز.",
+  "documents_libraryShare_switch": "المشاركة مع {library}",
+  "documents_libraryShare_hint": "يمكن لكل أعضاء المكتبة فتحه",
+  "documents_libraryShare_sharedWith": "تمت مشاركته مع {library}",
+  "documents_libraryShare_onlyYou": "أنت فقط",
+  "documents_libraryShare_removeFromLibrary": "إزالة من المكتبة",
+  "documents_libraryShare_unshareTitle": "إيقاف المشاركة مع {library}؟",
+  "documents_libraryShare_unshareBody": "سيفقد الأعضاء الآخرون هذا المستند في المزامنة التالية. ستحتفظ بنسخة خاصة.",
+  "documents_libraryShare_unshareConfirm": "إيقاف المشاركة",
+  "documents_libraryShare_removeTitle": "إزالة من {library}؟",
+  "documents_libraryShare_removeBody": "سيفقد كل الأعضاء هذا المستند في المزامنة التالية.",
+  "documents_libraryShare_removed": "تمت الإزالة من المكتبة",
+  "documents_libraryShare_lastEdited": "آخر تعديل بواسطة {name}، {date}",
+  "documents_filter_sharedLibraries": "المكتبات المشتركة"
 }

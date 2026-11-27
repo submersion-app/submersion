@@ -19449,5 +19449,18 @@
   "settings_homeHeader_wide": "Pantallas más anchas",
   "settings_homeHeader_compact": "Compacto",
   "settings_homeHeader_banner": "Banner",
-  "settings_homeHeader_description": "Compacto es una barra estrecha con luces de estado. Banner es el banner de bienvenida con tus totales de inmersión. Se guarda en este dispositivo."
+  "settings_homeHeader_description": "Compacto es una barra estrecha con luces de estado. Banner es el banner de bienvenida con tus totales de inmersión. Se guarda en este dispositivo.",
+  "documents_libraryShare_switch": "Compartir con {library}",
+  "documents_libraryShare_hint": "Cualquier miembro de la biblioteca puede abrirlo",
+  "documents_libraryShare_sharedWith": "Compartido con {library}",
+  "documents_libraryShare_onlyYou": "Solo tú",
+  "documents_libraryShare_removeFromLibrary": "Quitar de la biblioteca",
+  "documents_libraryShare_unshareTitle": "¿Dejar de compartir con {library}?",
+  "documents_libraryShare_unshareBody": "Los demás miembros perderán este documento en su próxima sincronización. Tú conservas una copia privada.",
+  "documents_libraryShare_unshareConfirm": "Dejar de compartir",
+  "documents_libraryShare_removeTitle": "¿Quitar de {library}?",
+  "documents_libraryShare_removeBody": "Todos los miembros perderán este documento en su próxima sincronización.",
+  "documents_libraryShare_removed": "Quitado de la biblioteca",
+  "documents_libraryShare_lastEdited": "Última edición de {name}, {date}",
+  "documents_filter_sharedLibraries": "Bibliotecas compartidas"
 }

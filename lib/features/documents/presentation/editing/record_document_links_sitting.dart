@@ -1,3 +1,4 @@
+import 'package:submersion/core/services/shared_library/library_document_stamper.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
@@ -95,12 +96,29 @@ void _set<T>(EditSession<T> session, _Held next) {
       // Only ones still filed under this record: a document a sync moved
       // to another owner since the sitting read it stays there.
       final onRecord = {
-        for (final d in await repository.getForOwner(owner)) d.id,
+        for (final d in await repository.getForOwner(owner)) d.id: d,
       };
+      final library = LibraryDocumentStamper(documents: repository);
       await repository.setOwner(owner.kind, [
         for (final id in held.detach)
-          if (onRecord.contains(id)) id,
+          if (onRecord[id] case final d? when !d.isShared) id,
       ], null);
+      // A shared library document is removed from its library instead: it
+      // never moves to another owner (issue #4713).
+      for (final id in held.detach) {
+        if (onRecord[id]?.isShared ?? false) {
+          await library.removeFromLibrary(id);
+        }
+      }
+      // A new document on a library site starts shared, unless its type is
+      // a diver's own papers or the diver only reads the library.
+      if (owner.kind == DocumentOwnerKind.site) {
+        for (final d in held.attach) {
+          final diverId = d.diverId;
+          if (diverId == null) continue;
+          await library.shareIfDefault(d.id, actingDiverId: diverId);
+        }
+      }
     },
   );
 }

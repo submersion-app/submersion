@@ -65845,4 +65845,56 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compact is a slim bar with status lights. Banner is the welcome banner with your dive totals. Saved on this device.';
+
+  @override
+  String documents_libraryShare_switch(String library) {
+    return 'Share with $library';
+  }
+
+  @override
+  String get documents_libraryShare_hint =>
+      'Every member of the library can open it';
+
+  @override
+  String documents_libraryShare_sharedWith(String library) {
+    return 'Shared with $library';
+  }
+
+  @override
+  String get documents_libraryShare_onlyYou => 'Only you';
+
+  @override
+  String get documents_libraryShare_removeFromLibrary => 'Remove from library';
+
+  @override
+  String documents_libraryShare_unshareTitle(String library) {
+    return 'Stop sharing with $library?';
+  }
+
+  @override
+  String get documents_libraryShare_unshareBody =>
+      'Other members lose this document on their next sync. You keep a private copy.';
+
+  @override
+  String get documents_libraryShare_unshareConfirm => 'Stop sharing';
+
+  @override
+  String documents_libraryShare_removeTitle(String library) {
+    return 'Remove from $library?';
+  }
+
+  @override
+  String get documents_libraryShare_removeBody =>
+      'Every member loses this document on their next sync.';
+
+  @override
+  String get documents_libraryShare_removed => 'Removed from the library';
+
+  @override
+  String documents_libraryShare_lastEdited(String name, String date) {
+    return 'Last edited by $name, $date';
+  }
+
+  @override
+  String get documents_filter_sharedLibraries => 'Shared libraries';
 }

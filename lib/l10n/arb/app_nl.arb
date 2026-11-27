@@ -19449,5 +19449,18 @@
   "settings_homeHeader_wide": "Bredere schermen",
   "settings_homeHeader_compact": "Compact",
   "settings_homeHeader_banner": "Banner",
-  "settings_homeHeader_description": "Compact is een smalle balk met statuslampjes. Banner is de welkomstbanner met je duiktotalen. Opgeslagen op dit apparaat."
+  "settings_homeHeader_description": "Compact is een smalle balk met statuslampjes. Banner is de welkomstbanner met je duiktotalen. Opgeslagen op dit apparaat.",
+  "documents_libraryShare_switch": "Delen met {library}",
+  "documents_libraryShare_hint": "Elk lid van de bibliotheek kan het openen",
+  "documents_libraryShare_sharedWith": "Gedeeld met {library}",
+  "documents_libraryShare_onlyYou": "Alleen jij",
+  "documents_libraryShare_removeFromLibrary": "Uit de bibliotheek verwijderen",
+  "documents_libraryShare_unshareTitle": "Niet meer delen met {library}?",
+  "documents_libraryShare_unshareBody": "Andere leden verliezen dit document bij hun volgende synchronisatie. Jij houdt een privékopie.",
+  "documents_libraryShare_unshareConfirm": "Niet meer delen",
+  "documents_libraryShare_removeTitle": "Verwijderen uit {library}?",
+  "documents_libraryShare_removeBody": "Alle leden verliezen dit document bij hun volgende synchronisatie.",
+  "documents_libraryShare_removed": "Uit de bibliotheek verwijderd",
+  "documents_libraryShare_lastEdited": "Laatst bewerkt door {name}, {date}",
+  "documents_filter_sharedLibraries": "Gedeelde bibliotheken"
 }

@@ -19448,5 +19448,18 @@
   "settings_homeHeader_wide": "より広い画面",
   "settings_homeHeader_compact": "コンパクト",
   "settings_homeHeader_banner": "バナー",
-  "settings_homeHeader_description": "コンパクトはステータスランプ付きの細いバーです。バナーはダイブの合計を表示するウェルカムバナーです。この端末に保存されます。"
+  "settings_homeHeader_description": "コンパクトはステータスランプ付きの細いバーです。バナーはダイブの合計を表示するウェルカムバナーです。この端末に保存されます。",
+  "documents_libraryShare_switch": "{library}と共有",
+  "documents_libraryShare_hint": "ライブラリのメンバー全員が開けます",
+  "documents_libraryShare_sharedWith": "{library}と共有中",
+  "documents_libraryShare_onlyYou": "自分のみ",
+  "documents_libraryShare_removeFromLibrary": "ライブラリから削除",
+  "documents_libraryShare_unshareTitle": "{library}との共有を停止しますか？",
+  "documents_libraryShare_unshareBody": "他のメンバーは次回の同期でこのドキュメントを失います。あなたには非公開のコピーが残ります。",
+  "documents_libraryShare_unshareConfirm": "共有を停止",
+  "documents_libraryShare_removeTitle": "{library}から削除しますか？",
+  "documents_libraryShare_removeBody": "すべてのメンバーが次回の同期でこのドキュメントを失います。",
+  "documents_libraryShare_removed": "ライブラリから削除しました",
+  "documents_libraryShare_lastEdited": "最終編集: {name}、{date}",
+  "documents_filter_sharedLibraries": "共有ライブラリ"
 }

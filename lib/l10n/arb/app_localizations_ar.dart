@@ -67895,4 +67895,55 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'المضغوط شريط رفيع مع مؤشرات الحالة. اللافتة هي لافتة الترحيب مع إجماليات غوصك. يُحفظ على هذا الجهاز.';
+
+  @override
+  String documents_libraryShare_switch(String library) {
+    return 'المشاركة مع $library';
+  }
+
+  @override
+  String get documents_libraryShare_hint => 'يمكن لكل أعضاء المكتبة فتحه';
+
+  @override
+  String documents_libraryShare_sharedWith(String library) {
+    return 'تمت مشاركته مع $library';
+  }
+
+  @override
+  String get documents_libraryShare_onlyYou => 'أنت فقط';
+
+  @override
+  String get documents_libraryShare_removeFromLibrary => 'إزالة من المكتبة';
+
+  @override
+  String documents_libraryShare_unshareTitle(String library) {
+    return 'إيقاف المشاركة مع $library؟';
+  }
+
+  @override
+  String get documents_libraryShare_unshareBody =>
+      'سيفقد الأعضاء الآخرون هذا المستند في المزامنة التالية. ستحتفظ بنسخة خاصة.';
+
+  @override
+  String get documents_libraryShare_unshareConfirm => 'إيقاف المشاركة';
+
+  @override
+  String documents_libraryShare_removeTitle(String library) {
+    return 'إزالة من $library؟';
+  }
+
+  @override
+  String get documents_libraryShare_removeBody =>
+      'سيفقد كل الأعضاء هذا المستند في المزامنة التالية.';
+
+  @override
+  String get documents_libraryShare_removed => 'تمت الإزالة من المكتبة';
+
+  @override
+  String documents_libraryShare_lastEdited(String name, String date) {
+    return 'آخر تعديل بواسطة $name، $date';
+  }
+
+  @override
+  String get documents_filter_sharedLibraries => 'المكتبات المشتركة';
 }

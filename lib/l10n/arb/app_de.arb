@@ -19574,5 +19574,18 @@
   "settings_homeHeader_wide": "Breitere Bildschirme",
   "settings_homeHeader_compact": "Kompakt",
   "settings_homeHeader_banner": "Banner",
-  "settings_homeHeader_description": "Kompakt ist eine schmale Leiste mit Statusanzeigen. Banner ist das Begrüßungsbanner mit deinen Tauchsummen. Wird auf diesem Gerät gespeichert."
+  "settings_homeHeader_description": "Kompakt ist eine schmale Leiste mit Statusanzeigen. Banner ist das Begrüßungsbanner mit deinen Tauchsummen. Wird auf diesem Gerät gespeichert.",
+  "documents_libraryShare_switch": "Mit {library} teilen",
+  "documents_libraryShare_hint": "Jedes Mitglied der Bibliothek kann es öffnen",
+  "documents_libraryShare_sharedWith": "Geteilt mit {library}",
+  "documents_libraryShare_onlyYou": "Nur du",
+  "documents_libraryShare_removeFromLibrary": "Aus der Bibliothek entfernen",
+  "documents_libraryShare_unshareTitle": "Nicht mehr mit {library} teilen?",
+  "documents_libraryShare_unshareBody": "Andere Mitglieder verlieren dieses Dokument bei ihrer nächsten Synchronisierung. Du behältst eine private Kopie.",
+  "documents_libraryShare_unshareConfirm": "Nicht mehr teilen",
+  "documents_libraryShare_removeTitle": "Aus {library} entfernen?",
+  "documents_libraryShare_removeBody": "Alle Mitglieder verlieren dieses Dokument bei ihrer nächsten Synchronisierung.",
+  "documents_libraryShare_removed": "Aus der Bibliothek entfernt",
+  "documents_libraryShare_lastEdited": "Zuletzt bearbeitet von {name}, {date}",
+  "documents_filter_sharedLibraries": "Geteilte Bibliotheken"
 }
