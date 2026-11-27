@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Verify every workflow job runs scripts/apt_mirror.py before it installs.
+"""Verify every workflow job runs scripts/ci/apt_mirror.py before it installs.
 
 A hosted Ubuntu runner can come up pointed at a regional EC2 mirror that
 served packages at about 75 kB/s from 2026-11-18. Every job that installs
 from apt then ran past its time limit, and with Web Smoke and the beta's
-Linux build among them no beta shipped (issue #4722). scripts/apt_mirror.py
+Linux build among them no beta shipped (issue #4722). scripts/ci/apt_mirror.py
 repoints the sources; this guard keeps a new job, or a step moved above the
 call, from bringing the slow mirror back.
 
@@ -12,7 +12,7 @@ A job installs from apt when a line runs `apt-get install` or `apt install`
 (with or without options such as `-y` before `install`), or
 `playwright install --with-deps` (which runs apt-get itself). Comments and
 step names are prose, not commands, and are skipped. The first such line in
-a job must come after a line that runs scripts/apt_mirror.py.
+a job must come after a line that runs scripts/ci/apt_mirror.py.
 The rewrite persists on the runner for the rest of the job, so later steps
 in that job are covered by the one call.
 
@@ -39,7 +39,7 @@ _INSTALL = re.compile(
     r"\bapt(?:-get)?" + _APT_OPTIONS + r"\s+install\b"
     r"|playwright\s+install\s+--with-deps"
 )
-_MIRROR = re.compile(r"scripts/apt_mirror\.py\b")
+_MIRROR = re.compile(r"scripts/ci/apt_mirror\.py\b")
 # A step name is prose, not a command: "Check every apt install ..." is not one.
 _NAME = re.compile(r"^\s*(?:-\s+)?name:")
 
@@ -94,7 +94,7 @@ def main(root="."):
     if failures:
         print(
             "These jobs install from apt without first running "
-            "`sudo python3 scripts/apt_mirror.py` (issue #4722):"
+            "`sudo python3 scripts/ci/apt_mirror.py` (issue #4722):"
         )
         for failure in failures:
             print(f"  {failure}")

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Checks a built web bundle before it is zipped, served or shipped.
 
-`scripts/build_web.sh` ends with this check, and the release job zips what
+`scripts/web/build_web.sh` ends with this check, and the release job zips what
 passes it. It fails when a file the browser app needs is missing (the
 workers, the SQLite module, the hosting files the guide refers to), when
 `sqlite3.wasm` is not the build the lock pins (a module from another

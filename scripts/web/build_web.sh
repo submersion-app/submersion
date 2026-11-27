@@ -23,11 +23,11 @@
 # of the user's own. Unset, every site asks.
 #
 # Usage:
-#   scripts/build_web.sh [flutter build web options...]
+#   scripts/web/build_web.sh [flutter build web options...]
 
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$REPO_ROOT"
 
 scripts/web/fetch_sqlite3_wasm.sh

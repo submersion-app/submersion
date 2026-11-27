@@ -107,7 +107,7 @@ jobs:
       # sets up is for db_security_test; this check stores no secrets.
       - name: Install Linux dependencies
         run: |
-          sudo python3 scripts/apt_mirror.py
+          sudo python3 scripts/ci/apt_mirror.py
           sudo apt-get update
           sudo apt-get install -y \
             clang \

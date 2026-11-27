@@ -45,7 +45,7 @@ seams".
 - [ ] No plugin call without a web implementation, and no `dart:io` file or `path_provider` use that a browser reaches
 - [ ] Media writes check `mediaAttach`
 - [ ] A swap or wipe of the database runs under `SyncCoordinator.joinAcrossTabs`
-- [ ] Opened in a browser (`scripts/build_web.sh`, then `scripts/web/serve_bundle.py`)
+- [ ] Opened in a browser (`scripts/web/build_web.sh`, then `scripts/web/serve_bundle.py`)
 
 ## Screenshots
 

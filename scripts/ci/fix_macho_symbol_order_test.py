@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for fix_macho_symbol_order.py.
 
-Run: python3 scripts/fix_macho_symbol_order_test.py
+Run: python3 scripts/ci/fix_macho_symbol_order_test.py
 
 These build synthetic Mach-O objects in memory rather than shelling out to a
 linker, so the suite runs identically on Linux CI and macOS without Xcode. The

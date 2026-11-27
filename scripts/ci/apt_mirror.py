@@ -19,7 +19,7 @@ either fleet, and leaves every other host alone. On an Azure runner it
 changes nothing. Package signatures are still checked against the Ubuntu
 archive keys, so the mirror choice cannot change what gets installed.
 
-Usage: sudo python3 scripts/apt_mirror.py [root]
+Usage: sudo python3 scripts/ci/apt_mirror.py [root]
 """
 
 import glob

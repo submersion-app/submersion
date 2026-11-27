@@ -647,7 +647,7 @@ jobs:
       # is named here so a future image change cannot remove it silently.
       - name: Install Linux dependencies
         run: |
-          sudo python3 scripts/apt_mirror.py
+          sudo python3 scripts/ci/apt_mirror.py
           sudo apt-get update -y
           sudo apt-get install -y \
             clang cmake ninja-build pkg-config \
@@ -770,7 +770,7 @@ jobs:
             Submersion-*.rpm
           retention-days: 5
 
-  # The browser app (issue #4121): scripts/build_web.sh, then the bundle
+  # The browser app (issue #4121): scripts/web/build_web.sh, then the bundle
   # zipped with its hosting files for the release page. No image is
   # published; the zip carries a Dockerfile for anyone who wants one.
   build-web:
@@ -841,7 +841,7 @@ jobs:
         env:
           GOOGLE_WEB_CLIENT_ID: ${{ vars.GOOGLE_WEB_CLIENT_ID }}
           GOOGLE_WEB_CLIENT_ORIGINS: https://web.submersion.app
-        run: scripts/build_web.sh
+        run: scripts/web/build_web.sh
 
       - name: Zip the bundle
         env:

@@ -755,7 +755,7 @@ jobs:
 
       - name: Check every apt install repoints the mirror first
         # Fails if a job installs from apt before running
-        # scripts/apt_mirror.py. A slow regional EC2 mirror ran Web Smoke and
+        # scripts/ci/apt_mirror.py. A slow regional EC2 mirror ran Web Smoke and
         # the beta's Linux build past their limits and stopped every beta
         # (#4722).
         run: python3 scripts/checks/check_apt_mirror.py
@@ -763,7 +763,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/checks/check_proguard_serial_keep.py,scripts/checks/check_apk_signing_cert.py,scripts/checks/check_native_libs_present.py,scripts/checks/check_bundled_native_assets.py,scripts/checks/check_glibc_floor.py,scripts/checks/check_jni_local_refs.py,scripts/checks/check_dc_process_isolation.py,scripts/checks/check_ci_success_gate.py,scripts/checks/check_flutter_setup_retried.py,scripts/checks/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/testing/bundle_tests.py,scripts/testing/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/testing/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/checks/check_no_skipped_tests.py,scripts/checks/check_docs_links.py,scripts/checks/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/checks/check_ruby_versions.py,scripts/checks/check_apt_mirror.py,scripts/apt_mirror.py,scripts/demo_data/fetch_demo_db.py,scripts/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/snapshot_downloads.py,scripts/checks/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/check_junit_ran.py,scripts/web/serve_bundle.py,scripts/web/stage_hosted_site.py,scripts/wiki_howto_index.py,scripts/geography/generate_country_names.py,scripts/site_catalogue_intake.py'
+          guards='scripts/checks/check_proguard_serial_keep.py,scripts/checks/check_apk_signing_cert.py,scripts/checks/check_native_libs_present.py,scripts/checks/check_bundled_native_assets.py,scripts/checks/check_glibc_floor.py,scripts/checks/check_jni_local_refs.py,scripts/checks/check_dc_process_isolation.py,scripts/checks/check_ci_success_gate.py,scripts/checks/check_flutter_setup_retried.py,scripts/checks/check_pr_issue_link.py,scripts/ci/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/testing/bundle_tests.py,scripts/testing/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/testing/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/checks/check_no_skipped_tests.py,scripts/checks/check_docs_links.py,scripts/checks/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/checks/check_ruby_versions.py,scripts/checks/check_apt_mirror.py,scripts/ci/apt_mirror.py,scripts/demo_data/fetch_demo_db.py,scripts/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/snapshot_downloads.py,scripts/checks/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/check_junit_ran.py,scripts/web/serve_bundle.py,scripts/web/stage_hosted_site.py,scripts/wiki_howto_index.py,scripts/geography/generate_country_names.py,scripts/site_catalogue_intake.py'
           python3 -m coverage run --include="$guards" \
             scripts/checks/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -785,7 +785,7 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             scripts/checks/check_pr_issue_link_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/fix_macho_symbol_order_test.py
+            scripts/ci/fix_macho_symbol_order_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/release/sanitize_apple_store_notes_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -813,7 +813,7 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             scripts/checks/check_apt_mirror_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/apt_mirror_test.py
+            scripts/ci/apt_mirror_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/dependabot_failure_alert_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -888,7 +888,7 @@ jobs:
             fi
           done
           if ! python3 -c "from PIL import features; raise SystemExit(not features.check('raqm'))"; then
-            sudo python3 scripts/apt_mirror.py
+            sudo python3 scripts/ci/apt_mirror.py
             sudo apt-get update
             sudo apt-get install -y libfribidi0
           fi
@@ -1031,7 +1031,7 @@ jobs:
         run: tar -xzf generated-code.tar.gz
 
       - name: Build the web bundle
-        run: scripts/build_web.sh
+        run: scripts/web/build_web.sh
 
       - name: Build the hosting image (never pushed)
         run: docker build -f build/web/Dockerfile -t submersion-web:ci build/web
@@ -1280,7 +1280,7 @@ jobs:
           python3 -m pip install -r scripts/web/requirements-smoke.txt
           # Chromium only for the stream worker test below; the smoke itself
           # runs in Firefox and WebKit.
-          sudo python3 scripts/apt_mirror.py
+          sudo python3 scripts/ci/apt_mirror.py
           python3 -m playwright install --with-deps firefox webkit chromium
 
       - name: Serve the bundle with the hosting headers
@@ -1380,7 +1380,7 @@ jobs:
       # libsecret-tools supplies secret-tool for the keyring check below.
       - name: Install Linux dependencies
         run: |
-          sudo python3 scripts/apt_mirror.py
+          sudo python3 scripts/ci/apt_mirror.py
           sudo apt-get update
           sudo apt-get install -y \
             clang \
@@ -1845,7 +1845,7 @@ jobs:
       # asserts the phase actually ran, since the failure is invisible on macOS 12+.
       - name: Verify App.framework symbol order
         run: |
-          python3 scripts/fix_macho_symbol_order.py --check \
+          python3 scripts/ci/fix_macho_symbol_order.py --check \
             build/macos/Build/Products/Release/submersion.app/Contents/Frameworks/App.framework/Versions/A/App
 
       # Zip with ditto before upload: upload-artifact would otherwise root the
@@ -2038,7 +2038,7 @@ jobs:
       # reasoning.
       - name: Install Linux dependencies
         run: |
-          sudo python3 scripts/apt_mirror.py
+          sudo python3 scripts/ci/apt_mirror.py
           sudo apt-get update
           sudo apt-get install -y \
             clang \

@@ -24,7 +24,7 @@ def _load(name):
 
 guard = _load("check_apt_mirror")
 
-MIRROR = "          sudo python3 scripts/apt_mirror.py\n"
+MIRROR = "          sudo python3 scripts/ci/apt_mirror.py\n"
 UPDATE = "          sudo apt-get update\n"
 INSTALL = "          sudo apt-get install -y clang\n"
 PLAYWRIGHT = "          python3 -m playwright install --with-deps firefox\n"
@@ -145,7 +145,7 @@ class GuardTest(unittest.TestCase):
             _job("docs", _step("Note", "          # sudo apt-get install -y clang\n")),
             _job(
                 "linux",
-                _step("Deps", "          # sudo python3 scripts/apt_mirror.py\n", INSTALL),
+                _step("Deps", "          # sudo python3 scripts/ci/apt_mirror.py\n", INSTALL),
             ),
         )
         code, out = self.run_main()
