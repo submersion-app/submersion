@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/app.dart';
 import 'package:submersion/core/bootstrap/app_bootstrap.dart';
 import 'package:submersion/core/bootstrap/bootstrap_shared.dart';
+import 'package:submersion/core/bootstrap/pop_out_bootstrap.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/providers/root_overrides.dart';
 import 'package:submersion/core/services/global_error_handler.dart';
@@ -21,7 +22,13 @@ void main() {
   // Run startup inside a guarded zone so an uncaught async error during
   // initialization is logged instead of vanishing silently (issue #318
   // hardening: the app previously installed no global error capture at all).
-  runZonedGuarded(bootstrapApp, logUncaughtZoneError);
+  runZonedGuarded(() async {
+    // A desktop pop-out window (issue #5078) is another engine running this
+    // same entry point; it starts its own viewer instead of the app.
+    final popOut = await readPopOutLaunch();
+    if (popOut != null) return runPopOutApp(popOut);
+    return bootstrapApp();
+  }, logUncaughtZoneError);
 }
 // coverage:ignore-end
 

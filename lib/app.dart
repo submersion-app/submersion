@@ -122,6 +122,13 @@ bool _isUsableSystemLocale(Locale locale) {
       !_invalidSystemLocaleLanguageCodes.contains(languageCode);
 }
 
+/// The app's locale for the diver's language setting: null follows the
+/// system. Shared with the desktop pop-out window (issue #5078).
+Locale? resolveLocaleSetting(String localeSetting) {
+  if (localeSetting == 'system') return null;
+  return Locale(localeSetting);
+}
+
 class SubmersionApp extends ConsumerStatefulWidget {
   const SubmersionApp({super.key});
 
@@ -794,10 +801,8 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     return true;
   }
 
-  Locale? _resolveLocale(String localeSetting) {
-    if (localeSetting == 'system') return null;
-    return Locale(localeSetting);
-  }
+  Locale? _resolveLocale(String localeSetting) =>
+      resolveLocaleSetting(localeSetting);
 
   @override
   Widget build(BuildContext context) {

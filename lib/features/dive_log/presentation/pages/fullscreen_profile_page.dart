@@ -71,11 +71,17 @@ class FullscreenProfilePage extends ConsumerStatefulWidget {
   /// Profile card, the dashboard) the page shows no control that writes.
   final EditSession<Dive>? session;
 
+  /// Takes the close button's place, and turns off Escape's pop: in a
+  /// desktop pop-out window (issue #5078) the page is the whole window, so
+  /// there is nothing to go back to. Null keeps the close button.
+  final Widget? leading;
+
   const FullscreenProfilePage({
     super.key,
     required this.diveId,
     this.onOpenInNotes,
     this.session,
+    this.leading,
   });
 
   @override
@@ -317,13 +323,17 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
               Positioned(
                 top: 8,
                 left: 8,
-                child: IconButton(
-                  icon: const Icon(Icons.close),
-                  style: IconButton.styleFrom(
-                    backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
-                  ),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
+                child:
+                    widget.leading ??
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      style: IconButton.styleFrom(
+                        backgroundColor: colorScheme.surface.withValues(
+                          alpha: 0.8,
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
               ),
             ],
           ),
@@ -482,8 +492,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                   notifier.stepBackward,
               const SingleActivator(LogicalKeyboardKey.arrowRight):
                   notifier.stepForward,
-              const SingleActivator(LogicalKeyboardKey.escape): () =>
-                  Navigator.of(context).pop(),
+              const SingleActivator(LogicalKeyboardKey.escape): () {
+                if (widget.leading == null) Navigator.of(context).pop();
+              },
             },
             child: Focus(
               autofocus: true,
@@ -535,15 +546,16 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.close),
-                                    tooltip: context
-                                        .l10n
-                                        .diveLog_fullscreenProfile_close,
-                                    visualDensity: VisualDensity.compact,
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                  ),
+                                  widget.leading ??
+                                      IconButton(
+                                        icon: const Icon(Icons.close),
+                                        tooltip: context
+                                            .l10n
+                                            .diveLog_fullscreenProfile_close,
+                                        visualDensity: VisualDensity.compact,
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(),
+                                      ),
                                   Flexible(
                                     child: Padding(
                                       padding: const EdgeInsets.only(right: 4),

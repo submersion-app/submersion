@@ -117,6 +117,9 @@ dependencies:
 
   # Storage
   shared_preferences: ^2.3.2
+  # The pop-out window's in-memory prefs (#5078): it never writes the main
+  # window's store.
+  shared_preferences_platform_interface: ^2.4.1
   # v11 removed the legacy Android ciphers (RSA_ECB_PKCS1Padding,
   # AES_CBC_PKCS7Padding). v10 rewrites existing entries to the new ciphers on
   # first access (migrateOnAlgorithmChange defaults to true, and we pass no
