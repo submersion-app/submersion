@@ -1798,14 +1798,34 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     this._ref, {
     required AppSettings settings,
     required String? diverId,
-  }) : super(settings) {
+  }) : _readOnly = false,
+       super(settings) {
     _validatedDiverId = diverId;
     _persisted = diverId == null ? null : settings;
     _initialLoad = Future<void>.value();
     _currentLoad = _initialLoad;
   }
 
-  SettingsNotifier(this._repository, this._ref) : super(const AppSettings()) {
+  SettingsNotifier(this._repository, this._ref)
+    : _readOnly = false,
+      super(const AppSettings()) {
+    _start();
+  }
+
+  /// Settings that are read and never written: a desktop pop-out window's
+  /// view of the main window's (issue #5078). It loads the diver's row and
+  /// this device's prefs as [SettingsNotifier] does, but creates no row,
+  /// adopts nothing into one, writes no prefs, schedules no notifications,
+  /// and its setters change [state] without saving it.
+  SettingsNotifier.readOnly(this._repository, this._ref)
+    : _readOnly = true,
+      super(const AppSettings()) {
+    _start();
+  }
+
+  final bool _readOnly;
+
+  void _start() {
     logFailure(_startLoad(), SettingsNotifier, 'load diver settings');
     // Not the first load itself: a diver-id change while it is out (the
     // active id realigned after a restore, say) supersedes it, and it then
@@ -2010,7 +2030,31 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       );
       _prefsAreStore = true;
       _landedGeneration = generation;
-      await _writeCachedTheme(prefs);
+      if (!_readOnly) await _writeCachedTheme(prefs);
+      return;
+    }
+
+    if (_readOnly) {
+      // Read the row as it is: no adoption, no creation, no pref retired.
+      final settings =
+          await _repository.getSettingsForDiver(diverId) ?? const AppSettings();
+      if (!_isCurrentLoad(generation)) return;
+      _replaceBase(settings);
+      state = settings.copyWith(
+        hiddenHomeChips: hiddenHomeChips,
+        hiddenHomeCards: hiddenHomeCards,
+        homePanelOrder: homePanelOrder,
+        hiddenHomePanels: hiddenHomePanels,
+        hiddenHomeKeyNumbers: hiddenHomeKeyNumbers,
+        homeHeaderStylePhone: homeHeaderStylePhone,
+        homeHeaderStyleWide: homeHeaderStyleWide,
+        o2CellUnit: o2CellUnit,
+        counterdiffusionShowAll: counterdiffusionShowAll,
+        perdixOverlayEnabled: perdixOverlayEnabled,
+        perdixOverlayX: perdixOverlayX,
+        perdixOverlayY: perdixOverlayY,
+      );
+      _landedGeneration = generation;
       return;
     }
 
@@ -2131,6 +2175,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// [devicePrefs] false skips the preferences for a change that has none,
   /// such as how a list was left (issue #3748), saved on most list taps.
   Future<void> _saveSettings({bool devicePrefs = true}) async {
+    if (_readOnly) return;
     // Taken before the first await: [state] can move on, and a diver switch
     // can start, while the writes below are out. The row write carries
     // exactly this change, to the diver it was made for.
