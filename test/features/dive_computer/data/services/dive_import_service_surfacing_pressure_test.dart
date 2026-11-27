@@ -72,6 +72,7 @@ void main() {
         diveNumber: anyNamed('diveNumber'),
         forceNew: anyNamed('forceNew'),
         addMissingTanks: anyNamed('addMissingTanks'),
+        targetDiveId: anyNamed('targetDiveId'),
         trimTankPressureAtSurfacing: anyNamed('trimTankPressureAtSurfacing'),
       ),
     ).thenAnswer((_) async => 'dive-id');
@@ -95,6 +96,7 @@ void main() {
       diveNumber: anyNamed('diveNumber'),
       forceNew: anyNamed('forceNew'),
       addMissingTanks: anyNamed('addMissingTanks'),
+      targetDiveId: anyNamed('targetDiveId'),
       trimTankPressureAtSurfacing: captureAnyNamed(
         'trimTankPressureAtSurfacing',
       ),
@@ -155,6 +157,23 @@ void main() {
     await serviceWith(
       (_) async => false,
     ).resolveConflict(conflict, ConflictResolution.replaceSource, computer.id);
+
+    expect(handedOver(), [false]);
+  });
+
+  test('filling a planned dive hands the switch over too', () async {
+    await serviceWith((_) async => false).attachToPlannedDive(
+      dive,
+      'dive-id',
+      computer.id,
+      settled: (
+        gfLow: null,
+        gfHigh: null,
+        decoAlgorithm: null,
+        decoConservatism: null,
+        computerTissue: null,
+      ),
+    );
 
     expect(handedOver(), [false]);
   });
