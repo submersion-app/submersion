@@ -12004,6 +12004,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_detail_section_access => 'Megközelítés és logisztika';
 
   @override
+  String get diveSites_detail_section_contact => 'Contact';
+
+  @override
+  String get diveSites_detail_section_openingHours => 'Opening Hours';
+
+  @override
   String get diveSites_detail_section_altitude =>
       'Tengerszint feletti magasság';
 
@@ -23678,6 +23684,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get siteDetailSection_access_description =>
       'Be- és kiszállás, parkolás, kikötés, megközelítési megjegyzések';
+
+  @override
+  String get siteDetailSection_contact_description =>
+      'Address, phone, email and website';
+
+  @override
+  String get siteDetailSection_openingHours_description =>
+      'Opening days and hours, by season';
 
   @override
   String get siteDetailSection_notes_description =>

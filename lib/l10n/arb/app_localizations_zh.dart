@@ -11440,6 +11440,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_detail_section_access => '到达与后勤';
 
   @override
+  String get diveSites_detail_section_contact => 'Contact';
+
+  @override
+  String get diveSites_detail_section_openingHours => 'Opening Hours';
+
+  @override
   String get diveSites_detail_section_altitude => '高海拔';
 
   @override
@@ -22557,6 +22563,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get siteDetailSection_access_description => '入水与出水、停车、系泊、到达说明';
+
+  @override
+  String get siteDetailSection_contact_description =>
+      'Address, phone, email and website';
+
+  @override
+  String get siteDetailSection_openingHours_description =>
+      'Opening days and hours, by season';
 
   @override
   String get siteDetailSection_notes_description => '你对潜水点的备注';

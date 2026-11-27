@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/opening_hours/opening_hours.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' hide DiveSite;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
@@ -82,6 +83,11 @@ void main() {
       accessNotes: 'Boat only',
       mooringNumber: 'M12',
       parkingInfo: 'None',
+      address: 'Main Road 1',
+      phone: '+501 555 0100',
+      email: 'dive@bluehole.bz',
+      website: 'bluehole.bz',
+      openingHours: OpeningHours(alwaysOpen: true),
       altitude: 3,
       entryMethods: [EntryMethod.backRoll],
       exitMethods: [EntryMethod.ladder],
@@ -108,6 +114,11 @@ void main() {
       accessNotes: 'Shore',
       mooringNumber: 'M13',
       parkingInfo: 'Lot',
+      address: 'Coast Road 2',
+      phone: '+52 984 555 0100',
+      email: 'info@cenote.mx',
+      website: 'cenote.mx',
+      openingHours: const OpeningHours(note: 'Mornings only'),
       altitude: 4,
       entryMethods: [EntryMethod.shore],
       exitMethods: [EntryMethod.shore],

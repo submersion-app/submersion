@@ -19092,6 +19092,18 @@ abstract class AppLocalizations {
   /// **'Access & Logistics'**
   String get diveSites_detail_section_access;
 
+  /// No description provided for @diveSites_detail_section_contact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get diveSites_detail_section_contact;
+
+  /// No description provided for @diveSites_detail_section_openingHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening Hours'**
+  String get diveSites_detail_section_openingHours;
+
   /// No description provided for @diveSites_detail_section_altitude.
   ///
   /// In en, this message translates to:
@@ -37340,6 +37352,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Entry and exit, parking, mooring, access notes'**
   String get siteDetailSection_access_description;
+
+  /// No description provided for @siteDetailSection_contact_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Address, phone, email and website'**
+  String get siteDetailSection_contact_description;
+
+  /// No description provided for @siteDetailSection_openingHours_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening days and hours, by season'**
+  String get siteDetailSection_openingHours_description;
 
   /// No description provided for @siteDetailSection_notes_description.
   ///

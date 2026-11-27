@@ -11591,6 +11591,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveSites_detail_section_access => 'アクセスと手配';
 
   @override
+  String get diveSites_detail_section_contact => 'Contact';
+
+  @override
+  String get diveSites_detail_section_openingHours => 'Opening Hours';
+
+  @override
   String get diveSites_detail_section_altitude => '標高';
 
   @override
@@ -22898,6 +22904,14 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get siteDetailSection_access_description =>
       'エントリーとエキジット、駐車場、係留、アクセスに関するメモ';
+
+  @override
+  String get siteDetailSection_contact_description =>
+      'Address, phone, email and website';
+
+  @override
+  String get siteDetailSection_openingHours_description =>
+      'Opening days and hours, by season';
 
   @override
   String get siteDetailSection_notes_description => 'サイトについてのあなたのメモ';

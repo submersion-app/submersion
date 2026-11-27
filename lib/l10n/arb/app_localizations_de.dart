@@ -12018,6 +12018,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_detail_section_access => 'Zugang & Logistik';
 
   @override
+  String get diveSites_detail_section_contact => 'Contact';
+
+  @override
+  String get diveSites_detail_section_openingHours => 'Opening Hours';
+
+  @override
   String get diveSites_detail_section_altitude => 'Höhenlage';
 
   @override
@@ -23745,6 +23751,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get siteDetailSection_access_description =>
       'Ein- und Ausstieg, Parken, Boje, Zugangshinweise';
+
+  @override
+  String get siteDetailSection_contact_description =>
+      'Address, phone, email and website';
+
+  @override
+  String get siteDetailSection_openingHours_description =>
+      'Opening days and hours, by season';
 
   @override
   String get siteDetailSection_notes_description => 'Notizen zum Tauchplatz';

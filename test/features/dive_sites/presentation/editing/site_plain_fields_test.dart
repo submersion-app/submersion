@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
+import 'package:submersion/core/opening_hours/opening_hours.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_plain_fields.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
@@ -28,6 +29,16 @@ void main() {
     accessNotes: 'Boat only',
     mooringNumber: 'M12',
     parkingInfo: 'None',
+    address: 'Main Road 1',
+    phone: '+501 555 0100',
+    email: 'dive@bluehole.bz',
+    website: 'bluehole.bz',
+    openingHours: OpeningHours(
+      note: 'Call first',
+      schedules: [
+        OpeningSchedule(days: {DateTime.saturday: DayHours.open24h()}),
+      ],
+    ),
     altitude: 3,
     entryMethods: [EntryMethod.backRoll],
     exitMethods: [EntryMethod.ladder],
@@ -63,6 +74,11 @@ void main() {
     roundTrip(siteMooringNumberField);
     roundTrip(siteEntryMethodsField);
     roundTrip(siteExitMethodsField);
+    roundTrip(siteAddressField);
+    roundTrip(sitePhoneField);
+    roundTrip(siteEmailField);
+    roundTrip(siteWebsiteField);
+    roundTrip(siteOpeningHoursField);
   });
 
   test('a nullable field cleared reads back null', () {
@@ -83,6 +99,30 @@ void main() {
     clears(siteParkingInfoField);
     clears(siteAccessNotesField);
     clears(siteMooringNumberField);
+    clears(siteAddressField);
+    clears(sitePhoneField);
+    clears(siteEmailField);
+    clears(siteWebsiteField);
+    clears(siteOpeningHoursField);
+  });
+
+  test('empty opening hours write as none', () {
+    expect(
+      siteOpeningHoursField.write(full, const OpeningHours()).openingHours,
+      isNull,
+    );
+  });
+
+  test('contact and hours fields sit on their own cards', () {
+    for (final field in [
+      siteAddressField,
+      sitePhoneField,
+      siteEmailField,
+      siteWebsiteField,
+    ]) {
+      expect(field.cardId, SiteDetailSectionId.contact.name);
+    }
+    expect(siteOpeningHoursField.cardId, SiteDetailSectionId.openingHours.name);
   });
 
   test('clearAltitude clears the altitude', () {

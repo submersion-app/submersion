@@ -12025,6 +12025,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_detail_section_access => 'Acesso e Logística';
 
   @override
+  String get diveSites_detail_section_contact => 'Contact';
+
+  @override
+  String get diveSites_detail_section_openingHours => 'Opening Hours';
+
+  @override
   String get diveSites_detail_section_altitude => 'Altitude';
 
   @override
@@ -23768,6 +23774,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get siteDetailSection_access_description =>
       'Entrada e saída, estacionamento, amarração, notas de acesso';
+
+  @override
+  String get siteDetailSection_contact_description =>
+      'Address, phone, email and website';
+
+  @override
+  String get siteDetailSection_openingHours_description =>
+      'Opening days and hours, by season';
 
   @override
   String get siteDetailSection_notes_description =>

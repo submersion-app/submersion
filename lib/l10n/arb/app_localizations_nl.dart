@@ -11954,6 +11954,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_detail_section_access => 'Toegang & logistiek';
 
   @override
+  String get diveSites_detail_section_contact => 'Contact';
+
+  @override
+  String get diveSites_detail_section_openingHours => 'Opening Hours';
+
+  @override
   String get diveSites_detail_section_altitude => 'Hoogte';
 
   @override
@@ -23632,6 +23638,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get siteDetailSection_access_description =>
       'In- en uitstap, parkeren, meerboei, toegangsnotities';
+
+  @override
+  String get siteDetailSection_contact_description =>
+      'Address, phone, email and website';
+
+  @override
+  String get siteDetailSection_openingHours_description =>
+      'Opening days and hours, by season';
 
   @override
   String get siteDetailSection_notes_description =>
