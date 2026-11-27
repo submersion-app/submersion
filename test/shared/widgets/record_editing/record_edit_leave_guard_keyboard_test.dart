@@ -43,53 +43,59 @@ const _otherField = ValueKey('a field on a page above');
 /// button dispatcher before any route hears of it. Home pushes the guarded
 /// record page, which can push a page of its own above it. With
 /// [inShellBody] the page sits in another Scaffold's body, as the shell's
-/// pages do, where MediaQuery has the keyboard's inset taken out.
+/// pages do, where MediaQuery has the keyboard's inset taken out. With
+/// [inNestedNavigator] the pages sit in a shell route's navigator, as the
+/// app's do, below the root navigator that dialogs open in.
 Future<RecordEditController<_Rec>> _open(
   WidgetTester tester, {
   bool inShellBody = false,
+  bool inNestedNavigator = false,
 }) async {
   final controller = RecordEditController<_Rec>(onSave: (_) async {});
   addTearDown(controller.dispose);
-  final router = GoRouter(
-    routes: [
-      GoRoute(
-        path: '/',
-        builder: (context, _) => Scaffold(
-          body: TextButton(
-            onPressed: () => context.push('/record'),
-            child: const Text('open'),
-          ),
+  final pages = <RouteBase>[
+    GoRoute(
+      path: '/',
+      builder: (context, _) => Scaffold(
+        body: TextButton(
+          onPressed: () => context.push('/record'),
+          child: const Text('open'),
         ),
       ),
-      GoRoute(
-        path: '/record',
-        builder: (context, _) => _shell(
-          inShellBody,
-          RecordEditLeaveGuard<_Rec>(
-            controller: controller,
-            child: Scaffold(
-              appBar: AppBar(title: const Text('Record')),
-              body: Column(
-                children: [
-                  const TextField(key: _field),
-                  TextButton(
-                    onPressed: () => Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => Scaffold(
-                          appBar: AppBar(title: const Text('Above')),
-                          body: const TextField(key: _otherField),
-                        ),
+    ),
+    GoRoute(
+      path: '/record',
+      builder: (context, _) => _shell(
+        inShellBody,
+        RecordEditLeaveGuard<_Rec>(
+          controller: controller,
+          child: Scaffold(
+            appBar: AppBar(title: const Text('Record')),
+            body: Column(
+              children: [
+                const TextField(key: _field),
+                TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => Scaffold(
+                        appBar: AppBar(title: const Text('Above')),
+                        body: const TextField(key: _otherField),
                       ),
                     ),
-                    child: const Text('push a page'),
                   ),
-                ],
-              ),
+                  child: const Text('push a page'),
+                ),
+              ],
             ),
           ),
         ),
       ),
-    ],
+    ),
+  ];
+  final router = GoRouter(
+    routes: inNestedNavigator
+        ? [ShellRoute(builder: (_, _, child) => child, routes: pages)]
+        : pages,
   );
   addTearDown(router.dispose);
   await tester.pumpWidget(
@@ -298,6 +304,7 @@ void main() {
     expect(_focused(tester, _field), isFalse);
     expect(controller.isUnlocked, isFalse);
   });
+
   testWidgets('with changes, a Back as a field is tapped and the keyboard '
       'opens asks nothing and keeps the field (#5059)', (tester) async {
     final controller = await _open(tester);
@@ -381,5 +388,44 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Discard changes?'), findsOneWidget);
+  });
+
+  testWidgets('a page above whose keyboard is still moving gets its own '
+      'Back', (tester) async {
+    final controller = await _open(tester);
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'changed');
+    await tester.tap(find.text('push a page'));
+    await tester.pumpAndSettle();
+    await _typeIn(tester, _otherField, settle: false);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Above'), findsNothing);
+    expect(find.text('Record'), findsOneWidget);
+    expect(find.text('Discard changes?'), findsNothing);
+  });
+
+  testWidgets('a dialog over the page whose keyboard is still moving gets '
+      'its own Back, in a navigator of its own', (tester) async {
+    final controller = await _open(tester, inNestedNavigator: true);
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'changed');
+    showDialog<void>(
+      context: tester.element(find.byKey(_field)),
+      builder: (_) => const AlertDialog(
+        title: Text('Dialog'),
+        content: TextField(key: _otherField),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _typeIn(tester, _otherField, settle: false);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dialog'), findsNothing);
+    expect(find.text('Record'), findsOneWidget);
   });
 }

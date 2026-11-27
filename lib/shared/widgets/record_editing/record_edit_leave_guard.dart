@@ -198,14 +198,18 @@ class _SystemBackClosesKeyboardState extends State<_SystemBackClosesKeyboard>
       node?.context?.findAncestorStateOfType<EditableTextState>() != null;
 
   Future<bool> _onSystemBack() async {
+    final field = FocusManager.instance.primaryFocus;
     // The keyboard is opening or closing: the Back came with it, not from
     // the diver, and the page and the keyboard stay as they are. Only while
-    // this page is on top: a page above answers its own Back.
+    // the keyboard can be this page's: a page above it in its navigator, or
+    // a field outside it (a dialog, which sits in the root navigator above
+    // the shell's), answers its own Back.
+    final fieldElsewhere = !_page.hasFocus && _isField(field);
     if (_keyboardMoving != null &&
+        !fieldElsewhere &&
         (ModalRoute.of(context)?.isCurrent ?? true)) {
       return true;
     }
-    final field = FocusManager.instance.primaryFocus;
     // A field on another page (one pushed above this) answers its own Back.
     if (field == null || !_page.hasFocus || !_isField(field)) return false;
     // The window, not MediaQuery: a Scaffold body above this page (the
