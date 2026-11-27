@@ -12356,6 +12356,8 @@
   "attrHelper_sku": "Von Quittung oder Etikett, nicht die Seriennummer",
   "attrLabel_retailer": "Händler",
   "attrLabel_product_url": "Weblink",
+  "attrLabel_firmware_version": "Firmware-Version",
+  "attrLabel_firmware_page_url": "Firmware-Seite",
   "attrLabel_color": "Farbe",
   "attrLabel_figure_position": "Position an der Taucherfigur",
   "attrLabel_sleeve_length": "Ärmel",

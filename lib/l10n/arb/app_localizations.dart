@@ -66702,6 +66702,18 @@ abstract class AppLocalizations {
   /// **'Web link'**
   String get attrLabel_product_url;
 
+  /// No description provided for @attrLabel_firmware_version.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware version'**
+  String get attrLabel_firmware_version;
+
+  /// No description provided for @attrLabel_firmware_page_url.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware page'**
+  String get attrLabel_firmware_page_url;
+
   /// No description provided for @attrLabel_color.
   ///
   /// In en, this message translates to:

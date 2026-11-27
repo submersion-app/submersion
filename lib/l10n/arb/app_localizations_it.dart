@@ -42742,6 +42742,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_product_url => 'Link web';
 
   @override
+  String get attrLabel_firmware_version => 'Versione firmware';
+
+  @override
+  String get attrLabel_firmware_page_url => 'Pagina firmware';
+
+  @override
   String get attrLabel_color => 'Colore';
 
   @override

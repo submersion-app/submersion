@@ -26118,6 +26118,8 @@
   "attrHelper_sku": "From the receipt or product label, not the serial number",
   "attrLabel_retailer": "Retailer",
   "attrLabel_product_url": "Web link",
+  "attrLabel_firmware_version": "Firmware version",
+  "attrLabel_firmware_page_url": "Firmware page",
   "attrLabel_color": "Color",
   "attrLabel_figure_position": "Position on figure",
   "attrLabel_sleeve_length": "Sleeves",

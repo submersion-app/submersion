@@ -42022,6 +42022,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_product_url => 'Web link';
 
   @override
+  String get attrLabel_firmware_version => 'Firmware version';
+
+  @override
+  String get attrLabel_firmware_page_url => 'Firmware page';
+
+  @override
   String get attrLabel_color => 'Color';
 
   @override

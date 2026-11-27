@@ -86,6 +86,12 @@ class EquipmentItem extends Equatable {
   double? get buoyancyKg => attrNum(EquipmentAttrKeys.buoyancyKg);
   double? get weightKg => attrNum(EquipmentAttrKeys.dryWeightKg);
 
+  /// The installed firmware version as recorded on the item (issue #5104).
+  String? get firmwareVersion => attrText(EquipmentAttrKeys.firmwareVersion);
+
+  /// The maker's firmware page the diver saved for this item.
+  String? get firmwarePageUrl => attrText(EquipmentAttrKeys.firmwarePageUrl);
+
   /// The O2 cell slot this item sits in, 1 to 6 (the `o2Sensor1` to
   /// `o2Sensor6` a dive computer reports), or null when unset or out of that
   /// range. The form takes any number, and a slot no reading can match must

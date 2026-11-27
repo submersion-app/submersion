@@ -244,6 +244,11 @@ class _GearItemDetailsEditorState extends ConsumerState<GearItemDetailsEditor> {
                   prefixIcon: const Icon(Icons.numbers),
                 ),
               ),
+            // The firmware it runs and its maker's firmware page (#5104).
+            if (EquipmentAttributeCatalog.hasFirmware(type)) ...[
+              const SizedBox(height: 16),
+              attributeSection(AttributeGroup.firmware),
+            ],
             const SizedBox(height: 24),
             Text(
               l10n.equipment_edit_purchaseInfoTitle,

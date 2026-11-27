@@ -41690,6 +41690,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_product_url => 'קישור אינטרנט';
 
   @override
+  String get attrLabel_firmware_version => 'גרסת קושחה';
+
+  @override
+  String get attrLabel_firmware_page_url => 'דף הקושחה';
+
+  @override
   String get attrLabel_color => 'צבע';
 
   @override

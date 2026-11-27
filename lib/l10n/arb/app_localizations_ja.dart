@@ -40898,6 +40898,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get attrLabel_product_url => 'ウェブリンク';
 
   @override
+  String get attrLabel_firmware_version => 'ファームウェアバージョン';
+
+  @override
+  String get attrLabel_firmware_page_url => 'ファームウェアページ';
+
+  @override
   String get attrLabel_color => '色';
 
   @override

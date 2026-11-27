@@ -42456,6 +42456,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_product_url => 'Weblink';
 
   @override
+  String get attrLabel_firmware_version => 'Firmwareversie';
+
+  @override
+  String get attrLabel_firmware_page_url => 'Firmwarepagina';
+
+  @override
   String get attrLabel_color => 'Kleur';
 
   @override

@@ -43327,6 +43327,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_product_url => 'رابط الويب';
 
   @override
+  String get attrLabel_firmware_version => 'إصدار البرنامج الثابت';
+
+  @override
+  String get attrLabel_firmware_page_url => 'صفحة البرنامج الثابت';
+
+  @override
   String get attrLabel_color => 'اللون';
 
   @override

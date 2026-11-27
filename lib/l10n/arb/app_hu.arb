@@ -12211,6 +12211,8 @@
   "attrHelper_sku": "A blokkon vagy a címkén található, nem a sorozatszám",
   "attrLabel_retailer": "Forgalmazó",
   "attrLabel_product_url": "Webhivatkozás",
+  "attrLabel_firmware_version": "Firmware-verzió",
+  "attrLabel_firmware_page_url": "Firmware-oldal",
   "attrLabel_color": "Szín",
   "attrLabel_figure_position": "Hely a búváralakon",
   "attrLabel_sleeve_length": "Ujjak",

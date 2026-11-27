@@ -12211,6 +12211,8 @@
   "attrHelper_sku": "מהקבלה או מהתווית, לא המספר הסידורי",
   "attrLabel_retailer": "קמעונאי",
   "attrLabel_product_url": "קישור אינטרנט",
+  "attrLabel_firmware_version": "גרסת קושחה",
+  "attrLabel_firmware_page_url": "דף הקושחה",
   "attrLabel_color": "צבע",
   "attrLabel_figure_position": "מיקום על דמות הצולל",
   "attrLabel_sleeve_length": "שרוולים",

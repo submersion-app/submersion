@@ -42763,6 +42763,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrLabel_product_url => 'Enlace web';
 
   @override
+  String get attrLabel_firmware_version => 'Versión de firmware';
+
+  @override
+  String get attrLabel_firmware_page_url => 'Página de firmware';
+
+  @override
   String get attrLabel_color => 'Color';
 
   @override

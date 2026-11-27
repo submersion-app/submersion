@@ -40143,6 +40143,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_product_url => '网页链接';
 
   @override
+  String get attrLabel_firmware_version => '固件版本';
+
+  @override
+  String get attrLabel_firmware_page_url => '固件页面';
+
+  @override
   String get attrLabel_color => '颜色';
 
   @override

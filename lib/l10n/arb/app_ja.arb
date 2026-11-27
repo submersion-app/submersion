@@ -12655,6 +12655,8 @@
   "attrHelper_sku": "シリアル番号ではなく、レシートや製品ラベルに記載の番号",
   "attrLabel_retailer": "販売店",
   "attrLabel_product_url": "ウェブリンク",
+  "attrLabel_firmware_version": "ファームウェアバージョン",
+  "attrLabel_firmware_page_url": "ファームウェアページ",
   "attrLabel_color": "色",
   "attrLabel_figure_position": "図上の位置",
   "attrLabel_sleeve_length": "袖",

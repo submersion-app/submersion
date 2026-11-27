@@ -12211,6 +12211,8 @@
   "attrHelper_sku": "Do recibo ou da etiqueta, não o número de série",
   "attrLabel_retailer": "Revendedor",
   "attrLabel_product_url": "Link web",
+  "attrLabel_firmware_version": "Versão do firmware",
+  "attrLabel_firmware_page_url": "Página do firmware",
   "attrLabel_color": "Cor",
   "attrLabel_figure_position": "Posição na figura",
   "attrLabel_sleeve_length": "Mangas",

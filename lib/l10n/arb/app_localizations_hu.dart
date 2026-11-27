@@ -42474,6 +42474,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_product_url => 'Webhivatkozás';
 
   @override
+  String get attrLabel_firmware_version => 'Firmware-verzió';
+
+  @override
+  String get attrLabel_firmware_page_url => 'Firmware-oldal';
+
+  @override
   String get attrLabel_color => 'Szín';
 
   @override

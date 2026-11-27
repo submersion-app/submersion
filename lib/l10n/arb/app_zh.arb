@@ -12211,6 +12211,8 @@
   "attrHelper_sku": "见收据或标签，并非序列编号",
   "attrLabel_retailer": "零售商",
   "attrLabel_product_url": "网页链接",
+  "attrLabel_firmware_version": "固件版本",
+  "attrLabel_firmware_page_url": "固件页面",
   "attrLabel_color": "颜色",
   "attrLabel_figure_position": "在潜水员图示上的位置",
   "attrLabel_sleeve_length": "袖长",
