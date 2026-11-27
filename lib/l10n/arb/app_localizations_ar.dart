@@ -12198,128 +12198,128 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_detail_section_access => 'الوصول والخدمات اللوجستية';
 
   @override
-  String get diveSites_detail_section_contact => 'Contact';
+  String get diveSites_detail_section_contact => 'معلومات الاتصال';
 
   @override
-  String get diveSites_detail_section_openingHours => 'Opening Hours';
+  String get diveSites_detail_section_openingHours => 'ساعات العمل';
 
   @override
-  String get diveSites_contact_mapsFailed => 'Could not open maps';
+  String get diveSites_contact_mapsFailed => 'تعذّر فتح الخرائط';
 
   @override
-  String get diveSites_contact_linkFailed => 'Could not open the link';
+  String get diveSites_contact_linkFailed => 'تعذّر فتح الرابط';
 
   @override
-  String get diveSites_contact_directions => 'Directions';
+  String get diveSites_contact_directions => 'الاتجاهات';
 
   @override
-  String get diveSites_contact_address => 'Address';
+  String get diveSites_contact_address => 'العنوان';
 
   @override
-  String get diveSites_contact_phone => 'Phone';
+  String get diveSites_contact_phone => 'الهاتف';
 
   @override
-  String get diveSites_contact_email => 'Email';
+  String get diveSites_contact_email => 'البريد الإلكتروني';
 
   @override
-  String get diveSites_contact_website => 'Website';
+  String get diveSites_contact_website => 'الموقع الإلكتروني';
 
   @override
-  String get diveSites_hours_alwaysOpen => 'Open 24/7';
+  String get diveSites_hours_alwaysOpen => 'مفتوح على مدار الساعة طوال الأسبوع';
 
   @override
-  String get diveSites_hours_addSchedule => 'Add schedule';
+  String get diveSites_hours_addSchedule => 'إضافة جدول';
 
   @override
-  String get diveSites_hours_scheduleName => 'Name';
+  String get diveSites_hours_scheduleName => 'الاسم';
 
   @override
-  String get diveSites_hours_scheduleName_hint => 'Summer';
+  String get diveSites_hours_scheduleName_hint => 'الصيف';
 
   @override
-  String get diveSites_hours_seasonal => 'Seasonal';
+  String get diveSites_hours_seasonal => 'موسمي';
 
   @override
-  String get diveSites_hours_seasonFrom => 'From';
+  String get diveSites_hours_seasonFrom => 'من';
 
   @override
-  String get diveSites_hours_seasonTo => 'To';
+  String get diveSites_hours_seasonTo => 'إلى';
 
   @override
-  String get diveSites_hours_deleteSchedule => 'Delete schedule';
+  String get diveSites_hours_deleteSchedule => 'حذف الجدول';
 
   @override
-  String get diveSites_hours_closed => 'Closed';
+  String get diveSites_hours_closed => 'مغلق';
 
   @override
-  String get diveSites_hours_open24h => 'Open 24 hours';
+  String get diveSites_hours_open24h => 'مفتوح 24 ساعة';
 
   @override
-  String get diveSites_hours_kindHours => 'Hours';
+  String get diveSites_hours_kindHours => 'الساعات';
 
   @override
-  String get diveSites_hours_addRange => 'Add hours';
+  String get diveSites_hours_addRange => 'إضافة ساعات';
 
   @override
-  String get diveSites_hours_removeRange => 'Remove hours';
+  String get diveSites_hours_removeRange => 'إزالة ساعات';
 
   @override
-  String get diveSites_hours_copyDay => 'Copy to other days';
+  String get diveSites_hours_copyDay => 'النسخ إلى أيام أخرى';
 
   @override
   String diveSites_hours_copyTitle(String day) {
-    return 'Copy $day to';
+    return 'نسخ $day إلى';
   }
 
   @override
-  String get diveSites_hours_selectAll => 'Select all';
+  String get diveSites_hours_selectAll => 'تحديد الكل';
 
   @override
-  String get diveSites_hours_copy => 'Copy';
+  String get diveSites_hours_copy => 'نسخ';
 
   @override
-  String get diveSites_hours_note => 'Note';
+  String get diveSites_hours_note => 'ملاحظة';
 
   @override
   String get diveSites_hours_note_hint =>
-      'Book slots by phone, closed public holidays';
+      'احجز المواعيد بالهاتف، مغلق في العطل الرسمية';
 
   @override
   String get diveSites_hours_invalid =>
-      'Some hours overlap or close before they open';
+      'بعض الساعات متداخلة أو تنتهي قبل أن تبدأ';
 
   @override
-  String get diveSites_hours_noSchedule => 'No weekly hours yet';
+  String get diveSites_hours_noSchedule => 'لا توجد ساعات أسبوعية بعد';
 
   @override
   String diveSites_hours_openUntil(String time) {
-    return 'Open now, closes $time';
+    return 'مفتوح الآن، يغلق $time';
   }
 
   @override
-  String get diveSites_hours_openNoClose => 'Open now';
+  String get diveSites_hours_openNoClose => 'مفتوح الآن';
 
   @override
   String diveSites_hours_closedOpensAt(String when) {
-    return 'Closed, opens $when';
+    return 'مغلق، يفتح $when';
   }
 
   @override
   String diveSites_hours_closedForSeason(String date) {
-    return 'Closed for the season, opens $date';
+    return 'مغلق لانتهاء الموسم، يفتح $date';
   }
 
   @override
-  String get diveSites_hours_closedNow => 'Closed';
+  String get diveSites_hours_closedNow => 'مغلق';
 
   @override
   String diveSites_hours_span(String from, String to) {
-    return '$from to $to';
+    return '$from إلى $to';
   }
 
   @override
   String diveSites_hours_namedSeason(String name, String season) {
-    return '$name, $season';
+    return '$name، $season';
   }
 
   @override
@@ -12327,8 +12327,8 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count schedules',
-      one: '1 schedule',
+      other: '$count جداول',
+      one: 'جدول واحد',
     );
     return '$_temp0';
   }
@@ -12451,36 +12451,37 @@ class AppLocalizationsAr extends AppLocalizations {
       'توفر مواقف السيارات، الرسوم، النصائح';
 
   @override
-  String get diveSites_edit_contact_address_label => 'Address';
+  String get diveSites_edit_contact_address_label => 'العنوان';
 
   @override
-  String get diveSites_edit_contact_address_hint => 'Street, town and postcode';
+  String get diveSites_edit_contact_address_hint =>
+      'الشارع والمدينة والرمز البريدي';
 
   @override
-  String get diveSites_edit_contact_phone_label => 'Phone';
+  String get diveSites_edit_contact_phone_label => 'الهاتف';
 
   @override
-  String get diveSites_edit_contact_phone_hint => 'Booking or owner number';
+  String get diveSites_edit_contact_phone_hint => 'رقم الحجز أو المالك';
 
   @override
-  String get diveSites_edit_contact_email_label => 'Email';
+  String get diveSites_edit_contact_email_label => 'البريد الإلكتروني';
 
   @override
   String get diveSites_edit_contact_email_hint => 'name@example.com';
 
   @override
-  String get diveSites_edit_contact_website_label => 'Website';
+  String get diveSites_edit_contact_website_label => 'الموقع الإلكتروني';
 
   @override
   String get diveSites_edit_contact_website_hint => 'example.com';
 
   @override
   String get diveSites_edit_contact_emailInvalid =>
-      'Enter an email address like name@example.com';
+      'أدخل بريدًا إلكترونيًا مثل name@example.com';
 
   @override
   String get diveSites_edit_contact_websiteInvalid =>
-      'Enter a web address like example.com';
+      'أدخل عنوان ويب مثل example.com';
 
   @override
   String get diveSites_edit_access_parkingInfo_label => 'معلومات موقف السيارات';
@@ -24357,11 +24358,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get siteDetailSection_contact_description =>
-      'Address, phone, email and website';
+      'العنوان والهاتف والبريد الإلكتروني والموقع الإلكتروني';
 
   @override
   String get siteDetailSection_openingHours_description =>
-      'Opening days and hours, by season';
+      'أيام وساعات العمل حسب الموسم';
 
   @override
   String get siteDetailSection_notes_description => 'ملاحظاتك عن الموقع';
@@ -27642,10 +27643,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_parkingInfo => 'موقف السيارات';
 
   @override
-  String get settings_conflict_field_address => 'Address';
+  String get settings_conflict_field_address => 'العنوان';
 
   @override
-  String get settings_conflict_field_openingHours => 'Opening hours';
+  String get settings_conflict_field_openingHours => 'ساعات العمل';
 
   @override
   String get settings_conflict_field_passportId => 'جواز الأسطوانة';
@@ -47913,16 +47914,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_siteField_mooringNumber => 'رقم المرسى';
 
   @override
-  String get enum_siteField_address => 'Address';
+  String get enum_siteField_address => 'العنوان';
 
   @override
-  String get enum_siteField_phone => 'Phone';
+  String get enum_siteField_phone => 'الهاتف';
 
   @override
-  String get enum_siteField_email => 'Email';
+  String get enum_siteField_email => 'البريد الإلكتروني';
 
   @override
-  String get enum_siteField_website => 'Website';
+  String get enum_siteField_website => 'الموقع الإلكتروني';
 
   @override
   String get enum_siteField_hazards => 'المخاطر';
@@ -48000,16 +48001,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_siteField_mooringNumber_short => 'المرسى';
 
   @override
-  String get enum_siteField_address_short => 'Address';
+  String get enum_siteField_address_short => 'العنوان';
 
   @override
-  String get enum_siteField_phone_short => 'Phone';
+  String get enum_siteField_phone_short => 'الهاتف';
 
   @override
-  String get enum_siteField_email_short => 'Email';
+  String get enum_siteField_email_short => 'البريد';
 
   @override
-  String get enum_siteField_website_short => 'Web';
+  String get enum_siteField_website_short => 'الموقع';
 
   @override
   String get enum_siteField_hazards_short => 'المخاطر';

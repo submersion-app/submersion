@@ -12004,123 +12004,124 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_detail_section_access => 'Megközelítés és logisztika';
 
   @override
-  String get diveSites_detail_section_contact => 'Contact';
+  String get diveSites_detail_section_contact => 'Kapcsolat';
 
   @override
-  String get diveSites_detail_section_openingHours => 'Opening Hours';
+  String get diveSites_detail_section_openingHours => 'Nyitvatartás';
 
   @override
-  String get diveSites_contact_mapsFailed => 'Could not open maps';
+  String get diveSites_contact_mapsFailed =>
+      'Nem sikerült megnyitni a térképet';
 
   @override
-  String get diveSites_contact_linkFailed => 'Could not open the link';
+  String get diveSites_contact_linkFailed => 'Nem sikerült megnyitni a linket';
 
   @override
-  String get diveSites_contact_directions => 'Directions';
+  String get diveSites_contact_directions => 'Útvonal';
 
   @override
-  String get diveSites_contact_address => 'Address';
+  String get diveSites_contact_address => 'Cím';
 
   @override
-  String get diveSites_contact_phone => 'Phone';
+  String get diveSites_contact_phone => 'Telefon';
 
   @override
-  String get diveSites_contact_email => 'Email';
+  String get diveSites_contact_email => 'E-mail';
 
   @override
-  String get diveSites_contact_website => 'Website';
+  String get diveSites_contact_website => 'Weboldal';
 
   @override
-  String get diveSites_hours_alwaysOpen => 'Open 24/7';
+  String get diveSites_hours_alwaysOpen => 'Éjjel-nappal nyitva';
 
   @override
-  String get diveSites_hours_addSchedule => 'Add schedule';
+  String get diveSites_hours_addSchedule => 'Ütemezés hozzáadása';
 
   @override
-  String get diveSites_hours_scheduleName => 'Name';
+  String get diveSites_hours_scheduleName => 'Név';
 
   @override
-  String get diveSites_hours_scheduleName_hint => 'Summer';
+  String get diveSites_hours_scheduleName_hint => 'Nyár';
 
   @override
-  String get diveSites_hours_seasonal => 'Seasonal';
+  String get diveSites_hours_seasonal => 'Szezonális';
 
   @override
-  String get diveSites_hours_seasonFrom => 'From';
+  String get diveSites_hours_seasonFrom => 'Ettől';
 
   @override
-  String get diveSites_hours_seasonTo => 'To';
+  String get diveSites_hours_seasonTo => 'Eddig';
 
   @override
-  String get diveSites_hours_deleteSchedule => 'Delete schedule';
+  String get diveSites_hours_deleteSchedule => 'Ütemezés törlése';
 
   @override
-  String get diveSites_hours_closed => 'Closed';
+  String get diveSites_hours_closed => 'Zárva';
 
   @override
-  String get diveSites_hours_open24h => 'Open 24 hours';
+  String get diveSites_hours_open24h => '24 órában nyitva';
 
   @override
-  String get diveSites_hours_kindHours => 'Hours';
+  String get diveSites_hours_kindHours => 'Órák';
 
   @override
-  String get diveSites_hours_addRange => 'Add hours';
+  String get diveSites_hours_addRange => 'Időszak hozzáadása';
 
   @override
-  String get diveSites_hours_removeRange => 'Remove hours';
+  String get diveSites_hours_removeRange => 'Időszak eltávolítása';
 
   @override
-  String get diveSites_hours_copyDay => 'Copy to other days';
+  String get diveSites_hours_copyDay => 'Másolás más napokra';
 
   @override
   String diveSites_hours_copyTitle(String day) {
-    return 'Copy $day to';
+    return '$day másolása ide';
   }
 
   @override
-  String get diveSites_hours_selectAll => 'Select all';
+  String get diveSites_hours_selectAll => 'Összes kijelölése';
 
   @override
-  String get diveSites_hours_copy => 'Copy';
+  String get diveSites_hours_copy => 'Másolás';
 
   @override
-  String get diveSites_hours_note => 'Note';
+  String get diveSites_hours_note => 'Megjegyzés';
 
   @override
   String get diveSites_hours_note_hint =>
-      'Book slots by phone, closed public holidays';
+      'Időpontfoglalás telefonon, ünnepnapokon zárva';
 
   @override
   String get diveSites_hours_invalid =>
-      'Some hours overlap or close before they open';
+      'Egyes időszakok átfedik egymást, vagy előbb zárnak, mint nyitnak';
 
   @override
-  String get diveSites_hours_noSchedule => 'No weekly hours yet';
+  String get diveSites_hours_noSchedule => 'Még nincs heti nyitvatartás';
 
   @override
   String diveSites_hours_openUntil(String time) {
-    return 'Open now, closes $time';
+    return 'Most nyitva, $time-kor zár';
   }
 
   @override
-  String get diveSites_hours_openNoClose => 'Open now';
+  String get diveSites_hours_openNoClose => 'Most nyitva';
 
   @override
   String diveSites_hours_closedOpensAt(String when) {
-    return 'Closed, opens $when';
+    return 'Zárva, nyit: $when';
   }
 
   @override
   String diveSites_hours_closedForSeason(String date) {
-    return 'Closed for the season, opens $date';
+    return 'Szezonon kívül zárva, nyit: $date';
   }
 
   @override
-  String get diveSites_hours_closedNow => 'Closed';
+  String get diveSites_hours_closedNow => 'Zárva';
 
   @override
   String diveSites_hours_span(String from, String to) {
-    return '$from to $to';
+    return '$from–$to';
   }
 
   @override
@@ -12133,8 +12134,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count schedules',
-      one: '1 schedule',
+      other: '$count ütemezés',
+      one: '1 ütemezés',
     );
     return '$_temp0';
   }
@@ -12258,36 +12259,38 @@ class AppLocalizationsHu extends AppLocalizations {
       'Parkolás elérhető, díjak, tippek';
 
   @override
-  String get diveSites_edit_contact_address_label => 'Address';
+  String get diveSites_edit_contact_address_label => 'Cím';
 
   @override
-  String get diveSites_edit_contact_address_hint => 'Street, town and postcode';
+  String get diveSites_edit_contact_address_hint =>
+      'Utca, település és irányítószám';
 
   @override
-  String get diveSites_edit_contact_phone_label => 'Phone';
+  String get diveSites_edit_contact_phone_label => 'Telefon';
 
   @override
-  String get diveSites_edit_contact_phone_hint => 'Booking or owner number';
+  String get diveSites_edit_contact_phone_hint =>
+      'Foglalási vagy tulajdonosi szám';
 
   @override
-  String get diveSites_edit_contact_email_label => 'Email';
+  String get diveSites_edit_contact_email_label => 'E-mail';
 
   @override
   String get diveSites_edit_contact_email_hint => 'name@example.com';
 
   @override
-  String get diveSites_edit_contact_website_label => 'Website';
+  String get diveSites_edit_contact_website_label => 'Weboldal';
 
   @override
   String get diveSites_edit_contact_website_hint => 'example.com';
 
   @override
   String get diveSites_edit_contact_emailInvalid =>
-      'Enter an email address like name@example.com';
+      'Adj meg egy e-mail-címet, például name@example.com';
 
   @override
   String get diveSites_edit_contact_websiteInvalid =>
-      'Enter a web address like example.com';
+      'Adj meg egy webcímet, például example.com';
 
   @override
   String get diveSites_edit_access_parkingInfo_label => 'Parkolási információk';
@@ -23849,11 +23852,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get siteDetailSection_contact_description =>
-      'Address, phone, email and website';
+      'Cím, telefon, e-mail és weboldal';
 
   @override
   String get siteDetailSection_openingHours_description =>
-      'Opening days and hours, by season';
+      'Nyitvatartási napok és órák, szezononként';
 
   @override
   String get siteDetailSection_notes_description =>
@@ -27160,10 +27163,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_parkingInfo => 'Parkolás';
 
   @override
-  String get settings_conflict_field_address => 'Address';
+  String get settings_conflict_field_address => 'Cím';
 
   @override
-  String get settings_conflict_field_openingHours => 'Opening hours';
+  String get settings_conflict_field_openingHours => 'Nyitvatartás';
 
   @override
   String get settings_conflict_field_passportId => 'Palackútlevél';
@@ -46939,16 +46942,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_siteField_mooringNumber => 'Kikötőszám';
 
   @override
-  String get enum_siteField_address => 'Address';
+  String get enum_siteField_address => 'Cím';
 
   @override
-  String get enum_siteField_phone => 'Phone';
+  String get enum_siteField_phone => 'Telefon';
 
   @override
-  String get enum_siteField_email => 'Email';
+  String get enum_siteField_email => 'E-mail';
 
   @override
-  String get enum_siteField_website => 'Website';
+  String get enum_siteField_website => 'Weboldal';
 
   @override
   String get enum_siteField_hazards => 'Veszélyek';
@@ -47026,16 +47029,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_siteField_mooringNumber_short => 'Kikötő';
 
   @override
-  String get enum_siteField_address_short => 'Address';
+  String get enum_siteField_address_short => 'Cím';
 
   @override
-  String get enum_siteField_phone_short => 'Phone';
+  String get enum_siteField_phone_short => 'Tel.';
 
   @override
-  String get enum_siteField_email_short => 'Email';
+  String get enum_siteField_email_short => 'E-mail';
 
   @override
-  String get enum_siteField_website_short => 'Web';
+  String get enum_siteField_website_short => 'Weboldal';
 
   @override
   String get enum_siteField_hazards_short => 'Veszély';

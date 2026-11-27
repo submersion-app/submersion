@@ -11954,123 +11954,124 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_detail_section_access => 'Toegang & logistiek';
 
   @override
-  String get diveSites_detail_section_contact => 'Contact';
+  String get diveSites_detail_section_contact => 'Contactgegevens';
 
   @override
-  String get diveSites_detail_section_openingHours => 'Opening Hours';
+  String get diveSites_detail_section_openingHours => 'Openingstijden';
 
   @override
-  String get diveSites_contact_mapsFailed => 'Could not open maps';
+  String get diveSites_contact_mapsFailed =>
+      'Kaarten konden niet worden geopend';
 
   @override
-  String get diveSites_contact_linkFailed => 'Could not open the link';
+  String get diveSites_contact_linkFailed => 'De link kon niet worden geopend';
 
   @override
-  String get diveSites_contact_directions => 'Directions';
+  String get diveSites_contact_directions => 'Route';
 
   @override
-  String get diveSites_contact_address => 'Address';
+  String get diveSites_contact_address => 'Adres';
 
   @override
-  String get diveSites_contact_phone => 'Phone';
+  String get diveSites_contact_phone => 'Telefoon';
 
   @override
-  String get diveSites_contact_email => 'Email';
+  String get diveSites_contact_email => 'E-mail';
 
   @override
   String get diveSites_contact_website => 'Website';
 
   @override
-  String get diveSites_hours_alwaysOpen => 'Open 24/7';
+  String get diveSites_hours_alwaysOpen => '24/7 geopend';
 
   @override
-  String get diveSites_hours_addSchedule => 'Add schedule';
+  String get diveSites_hours_addSchedule => 'Schema toevoegen';
 
   @override
-  String get diveSites_hours_scheduleName => 'Name';
+  String get diveSites_hours_scheduleName => 'Naam';
 
   @override
-  String get diveSites_hours_scheduleName_hint => 'Summer';
+  String get diveSites_hours_scheduleName_hint => 'Zomer';
 
   @override
-  String get diveSites_hours_seasonal => 'Seasonal';
+  String get diveSites_hours_seasonal => 'Seizoensgebonden';
 
   @override
-  String get diveSites_hours_seasonFrom => 'From';
+  String get diveSites_hours_seasonFrom => 'Van';
 
   @override
-  String get diveSites_hours_seasonTo => 'To';
+  String get diveSites_hours_seasonTo => 'Tot';
 
   @override
-  String get diveSites_hours_deleteSchedule => 'Delete schedule';
+  String get diveSites_hours_deleteSchedule => 'Schema verwijderen';
 
   @override
-  String get diveSites_hours_closed => 'Closed';
+  String get diveSites_hours_closed => 'Gesloten';
 
   @override
-  String get diveSites_hours_open24h => 'Open 24 hours';
+  String get diveSites_hours_open24h => '24 uur geopend';
 
   @override
-  String get diveSites_hours_kindHours => 'Hours';
+  String get diveSites_hours_kindHours => 'Tijden';
 
   @override
-  String get diveSites_hours_addRange => 'Add hours';
+  String get diveSites_hours_addRange => 'Tijden toevoegen';
 
   @override
-  String get diveSites_hours_removeRange => 'Remove hours';
+  String get diveSites_hours_removeRange => 'Tijden verwijderen';
 
   @override
-  String get diveSites_hours_copyDay => 'Copy to other days';
+  String get diveSites_hours_copyDay => 'Naar andere dagen kopiëren';
 
   @override
   String diveSites_hours_copyTitle(String day) {
-    return 'Copy $day to';
+    return '$day kopiëren naar';
   }
 
   @override
-  String get diveSites_hours_selectAll => 'Select all';
+  String get diveSites_hours_selectAll => 'Alles selecteren';
 
   @override
-  String get diveSites_hours_copy => 'Copy';
+  String get diveSites_hours_copy => 'Kopiëren';
 
   @override
-  String get diveSites_hours_note => 'Note';
+  String get diveSites_hours_note => 'Opmerking';
 
   @override
   String get diveSites_hours_note_hint =>
-      'Book slots by phone, closed public holidays';
+      'Tijdsloten telefonisch boeken, gesloten op feestdagen';
 
   @override
   String get diveSites_hours_invalid =>
-      'Some hours overlap or close before they open';
+      'Sommige tijden overlappen of sluiten voordat ze openen';
 
   @override
-  String get diveSites_hours_noSchedule => 'No weekly hours yet';
+  String get diveSites_hours_noSchedule => 'Nog geen weektijden';
 
   @override
   String diveSites_hours_openUntil(String time) {
-    return 'Open now, closes $time';
+    return 'Nu geopend, sluit om $time';
   }
 
   @override
-  String get diveSites_hours_openNoClose => 'Open now';
+  String get diveSites_hours_openNoClose => 'Nu geopend';
 
   @override
   String diveSites_hours_closedOpensAt(String when) {
-    return 'Closed, opens $when';
+    return 'Gesloten, opent $when';
   }
 
   @override
   String diveSites_hours_closedForSeason(String date) {
-    return 'Closed for the season, opens $date';
+    return 'Gesloten voor het seizoen, opent $date';
   }
 
   @override
-  String get diveSites_hours_closedNow => 'Closed';
+  String get diveSites_hours_closedNow => 'Gesloten';
 
   @override
   String diveSites_hours_span(String from, String to) {
-    return '$from to $to';
+    return '$from tot $to';
   }
 
   @override
@@ -12083,8 +12084,8 @@ class AppLocalizationsNl extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count schedules',
-      one: '1 schedule',
+      other: '$count schema\'s',
+      one: '1 schema',
     );
     return '$_temp0';
   }
@@ -12205,19 +12206,21 @@ class AppLocalizationsNl extends AppLocalizations {
       'Parkeergelegenheid, kosten, tips';
 
   @override
-  String get diveSites_edit_contact_address_label => 'Address';
+  String get diveSites_edit_contact_address_label => 'Adres';
 
   @override
-  String get diveSites_edit_contact_address_hint => 'Street, town and postcode';
+  String get diveSites_edit_contact_address_hint =>
+      'Straat, plaats en postcode';
 
   @override
-  String get diveSites_edit_contact_phone_label => 'Phone';
+  String get diveSites_edit_contact_phone_label => 'Telefoon';
 
   @override
-  String get diveSites_edit_contact_phone_hint => 'Booking or owner number';
+  String get diveSites_edit_contact_phone_hint =>
+      'Reserverings- of eigenaarsnummer';
 
   @override
-  String get diveSites_edit_contact_email_label => 'Email';
+  String get diveSites_edit_contact_email_label => 'E-mail';
 
   @override
   String get diveSites_edit_contact_email_hint => 'name@example.com';
@@ -12230,11 +12233,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_edit_contact_emailInvalid =>
-      'Enter an email address like name@example.com';
+      'Voer een e-mailadres in zoals name@example.com';
 
   @override
   String get diveSites_edit_contact_websiteInvalid =>
-      'Enter a web address like example.com';
+      'Voer een webadres in zoals example.com';
 
   @override
   String get diveSites_edit_access_parkingInfo_label => 'Parkeerinformatie';
@@ -23803,11 +23806,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get siteDetailSection_contact_description =>
-      'Address, phone, email and website';
+      'Adres, telefoon, e-mail en website';
 
   @override
   String get siteDetailSection_openingHours_description =>
-      'Opening days and hours, by season';
+      'Openingsdagen en -tijden, per seizoen';
 
   @override
   String get siteDetailSection_notes_description =>
@@ -27132,10 +27135,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_parkingInfo => 'Parkeren';
 
   @override
-  String get settings_conflict_field_address => 'Address';
+  String get settings_conflict_field_address => 'Adres';
 
   @override
-  String get settings_conflict_field_openingHours => 'Opening hours';
+  String get settings_conflict_field_openingHours => 'Openingstijden';
 
   @override
   String get settings_conflict_field_passportId => 'Flespaspoort';
@@ -46912,13 +46915,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_siteField_mooringNumber => 'Boeinummer';
 
   @override
-  String get enum_siteField_address => 'Address';
+  String get enum_siteField_address => 'Adres';
 
   @override
-  String get enum_siteField_phone => 'Phone';
+  String get enum_siteField_phone => 'Telefoon';
 
   @override
-  String get enum_siteField_email => 'Email';
+  String get enum_siteField_email => 'E-mail';
 
   @override
   String get enum_siteField_website => 'Website';
@@ -46999,16 +47002,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_siteField_mooringNumber_short => 'Boei';
 
   @override
-  String get enum_siteField_address_short => 'Address';
+  String get enum_siteField_address_short => 'Adres';
 
   @override
-  String get enum_siteField_phone_short => 'Phone';
+  String get enum_siteField_phone_short => 'Tel.';
 
   @override
-  String get enum_siteField_email_short => 'Email';
+  String get enum_siteField_email_short => 'E-mail';
 
   @override
-  String get enum_siteField_website_short => 'Web';
+  String get enum_siteField_website_short => 'Site';
 
   @override
   String get enum_siteField_hazards_short => 'Gevaren';

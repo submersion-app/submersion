@@ -11440,128 +11440,126 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_detail_section_access => '到达与后勤';
 
   @override
-  String get diveSites_detail_section_contact => 'Contact';
+  String get diveSites_detail_section_contact => '联系方式';
 
   @override
-  String get diveSites_detail_section_openingHours => 'Opening Hours';
+  String get diveSites_detail_section_openingHours => '营业时间';
 
   @override
-  String get diveSites_contact_mapsFailed => 'Could not open maps';
+  String get diveSites_contact_mapsFailed => '无法打开地图';
 
   @override
-  String get diveSites_contact_linkFailed => 'Could not open the link';
+  String get diveSites_contact_linkFailed => '无法打开链接';
 
   @override
-  String get diveSites_contact_directions => 'Directions';
+  String get diveSites_contact_directions => '路线';
 
   @override
-  String get diveSites_contact_address => 'Address';
+  String get diveSites_contact_address => '地址';
 
   @override
-  String get diveSites_contact_phone => 'Phone';
+  String get diveSites_contact_phone => '电话';
 
   @override
-  String get diveSites_contact_email => 'Email';
+  String get diveSites_contact_email => '电子邮件';
 
   @override
-  String get diveSites_contact_website => 'Website';
+  String get diveSites_contact_website => '网站';
 
   @override
-  String get diveSites_hours_alwaysOpen => 'Open 24/7';
+  String get diveSites_hours_alwaysOpen => '全天候营业';
 
   @override
-  String get diveSites_hours_addSchedule => 'Add schedule';
+  String get diveSites_hours_addSchedule => '添加时间表';
 
   @override
-  String get diveSites_hours_scheduleName => 'Name';
+  String get diveSites_hours_scheduleName => '名称';
 
   @override
-  String get diveSites_hours_scheduleName_hint => 'Summer';
+  String get diveSites_hours_scheduleName_hint => '夏季';
 
   @override
-  String get diveSites_hours_seasonal => 'Seasonal';
+  String get diveSites_hours_seasonal => '季节性';
 
   @override
-  String get diveSites_hours_seasonFrom => 'From';
+  String get diveSites_hours_seasonFrom => '从';
 
   @override
-  String get diveSites_hours_seasonTo => 'To';
+  String get diveSites_hours_seasonTo => '到';
 
   @override
-  String get diveSites_hours_deleteSchedule => 'Delete schedule';
+  String get diveSites_hours_deleteSchedule => '删除时间表';
 
   @override
-  String get diveSites_hours_closed => 'Closed';
+  String get diveSites_hours_closed => '关闭';
 
   @override
-  String get diveSites_hours_open24h => 'Open 24 hours';
+  String get diveSites_hours_open24h => '24 小时营业';
 
   @override
-  String get diveSites_hours_kindHours => 'Hours';
+  String get diveSites_hours_kindHours => '时段';
 
   @override
-  String get diveSites_hours_addRange => 'Add hours';
+  String get diveSites_hours_addRange => '添加时段';
 
   @override
-  String get diveSites_hours_removeRange => 'Remove hours';
+  String get diveSites_hours_removeRange => '移除时段';
 
   @override
-  String get diveSites_hours_copyDay => 'Copy to other days';
+  String get diveSites_hours_copyDay => '复制到其他日期';
 
   @override
   String diveSites_hours_copyTitle(String day) {
-    return 'Copy $day to';
+    return '将$day复制到';
   }
 
   @override
-  String get diveSites_hours_selectAll => 'Select all';
+  String get diveSites_hours_selectAll => '全选';
 
   @override
-  String get diveSites_hours_copy => 'Copy';
+  String get diveSites_hours_copy => '复制';
 
   @override
-  String get diveSites_hours_note => 'Note';
+  String get diveSites_hours_note => '备注';
 
   @override
-  String get diveSites_hours_note_hint =>
-      'Book slots by phone, closed public holidays';
+  String get diveSites_hours_note_hint => '请电话预约时段，法定节假日休息';
 
   @override
-  String get diveSites_hours_invalid =>
-      'Some hours overlap or close before they open';
+  String get diveSites_hours_invalid => '部分时段重叠，或在开始前就结束';
 
   @override
-  String get diveSites_hours_noSchedule => 'No weekly hours yet';
+  String get diveSites_hours_noSchedule => '尚无每周营业时间';
 
   @override
   String diveSites_hours_openUntil(String time) {
-    return 'Open now, closes $time';
+    return '营业中，$time关闭';
   }
 
   @override
-  String get diveSites_hours_openNoClose => 'Open now';
+  String get diveSites_hours_openNoClose => '营业中';
 
   @override
   String diveSites_hours_closedOpensAt(String when) {
-    return 'Closed, opens $when';
+    return '已关闭，$when开放';
   }
 
   @override
   String diveSites_hours_closedForSeason(String date) {
-    return 'Closed for the season, opens $date';
+    return '季节性关闭，$date开放';
   }
 
   @override
-  String get diveSites_hours_closedNow => 'Closed';
+  String get diveSites_hours_closedNow => '已关闭';
 
   @override
   String diveSites_hours_span(String from, String to) {
-    return '$from to $to';
+    return '$from至$to';
   }
 
   @override
   String diveSites_hours_namedSeason(String name, String season) {
-    return '$name, $season';
+    return '$name，$season';
   }
 
   @override
@@ -11569,8 +11567,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count schedules',
-      one: '1 schedule',
+      other: '$count 个时间表',
     );
     return '$_temp0';
   }
@@ -11687,36 +11684,35 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_access_parkingInfo_hint => '停车位、费用、提示';
 
   @override
-  String get diveSites_edit_contact_address_label => 'Address';
+  String get diveSites_edit_contact_address_label => '地址';
 
   @override
-  String get diveSites_edit_contact_address_hint => 'Street, town and postcode';
+  String get diveSites_edit_contact_address_hint => '街道、城镇和邮政编码';
 
   @override
-  String get diveSites_edit_contact_phone_label => 'Phone';
+  String get diveSites_edit_contact_phone_label => '电话';
 
   @override
-  String get diveSites_edit_contact_phone_hint => 'Booking or owner number';
+  String get diveSites_edit_contact_phone_hint => '预订或业主电话';
 
   @override
-  String get diveSites_edit_contact_email_label => 'Email';
+  String get diveSites_edit_contact_email_label => '电子邮件';
 
   @override
   String get diveSites_edit_contact_email_hint => 'name@example.com';
 
   @override
-  String get diveSites_edit_contact_website_label => 'Website';
+  String get diveSites_edit_contact_website_label => '网站';
 
   @override
   String get diveSites_edit_contact_website_hint => 'example.com';
 
   @override
   String get diveSites_edit_contact_emailInvalid =>
-      'Enter an email address like name@example.com';
+      '请输入电子邮件地址，例如 name@example.com';
 
   @override
-  String get diveSites_edit_contact_websiteInvalid =>
-      'Enter a web address like example.com';
+  String get diveSites_edit_contact_websiteInvalid => '请输入网址，例如 example.com';
 
   @override
   String get diveSites_edit_access_parkingInfo_label => '停车信息';
@@ -22727,12 +22723,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get siteDetailSection_access_description => '入水与出水、停车、系泊、到达说明';
 
   @override
-  String get siteDetailSection_contact_description =>
-      'Address, phone, email and website';
+  String get siteDetailSection_contact_description => '地址、电话、电子邮件和网站';
 
   @override
-  String get siteDetailSection_openingHours_description =>
-      'Opening days and hours, by season';
+  String get siteDetailSection_openingHours_description => '按季节的营业日和营业时间';
 
   @override
   String get siteDetailSection_notes_description => '你对潜水点的备注';
@@ -25757,10 +25751,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_parkingInfo => '停车';
 
   @override
-  String get settings_conflict_field_address => 'Address';
+  String get settings_conflict_field_address => '地址';
 
   @override
-  String get settings_conflict_field_openingHours => 'Opening hours';
+  String get settings_conflict_field_openingHours => '营业时间';
 
   @override
   String get settings_conflict_field_passportId => '气瓶护照';
@@ -44457,16 +44451,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_siteField_mooringNumber => '系泊编号';
 
   @override
-  String get enum_siteField_address => 'Address';
+  String get enum_siteField_address => '地址';
 
   @override
-  String get enum_siteField_phone => 'Phone';
+  String get enum_siteField_phone => '电话';
 
   @override
-  String get enum_siteField_email => 'Email';
+  String get enum_siteField_email => '电子邮件';
 
   @override
-  String get enum_siteField_website => 'Website';
+  String get enum_siteField_website => '网站';
 
   @override
   String get enum_siteField_hazards => '危险';
@@ -44544,16 +44538,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_siteField_mooringNumber_short => '系泊';
 
   @override
-  String get enum_siteField_address_short => 'Address';
+  String get enum_siteField_address_short => '地址';
 
   @override
-  String get enum_siteField_phone_short => 'Phone';
+  String get enum_siteField_phone_short => '电话';
 
   @override
-  String get enum_siteField_email_short => 'Email';
+  String get enum_siteField_email_short => '邮件';
 
   @override
-  String get enum_siteField_website_short => 'Web';
+  String get enum_siteField_website_short => '网站';
 
   @override
   String get enum_siteField_hazards_short => '危险';
