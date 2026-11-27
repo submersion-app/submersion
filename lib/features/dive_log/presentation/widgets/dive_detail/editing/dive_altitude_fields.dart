@@ -75,17 +75,30 @@ Dive withLookedUpSiteAltitude(EditSession<Dive>? session, Dive dive) {
   return dive.copyWith(site: site.copyWith(altitude: found.meters));
 }
 
+/// Drops what a lookup found for [siteId] in [session], once its write is
+/// released: a site picked again shows nothing until a new lookup answers.
+void forgetSiteAltitudeLookup(EditSession<Dive> session, String siteId) {
+  if (session.isDisposed) return;
+  final found = session.recall<({String siteId, double meters})>(
+    _siteAltitudeLookupNoteKey,
+  );
+  if (found?.siteId == siteId) {
+    session.remember(_siteAltitudeLookupNoteKey, null);
+  }
+}
+
 /// The altitude the dive in [session] is at: its own, else its site's.
 double? effectiveAltitudeOf(EditSession<Dive> session) =>
     session.valueOf(diveAltitudeField) ?? siteAltitudeOf(session);
 
 /// Looks the altitude up when the sitting has none.
 ///
-/// The dive's own GPS comes first, then its site's stored altitude, then a
-/// lookup of the site's coordinates ([AltitudeResolver]). Only the first is
-/// the dive's own, and set on it. A site's altitude is read through, not
-/// copied (issue #5040): one the site has needs nothing, and one a lookup
-/// of its coordinates found belongs on the site. That write is held on
+/// The site answers first: its stored altitude, then a lookup of its
+/// coordinates, and only then a lookup of the dive's own GPS
+/// ([AltitudeResolver]). Only that last is the dive's own, and set on it. A
+/// site's altitude is read through, not copied (issue #5040): one the site
+/// has needs nothing, and one a lookup of its coordinates found belongs on
+/// the site. That write is held on
 /// [session] as a change of the Altitude card and made by
 /// [writeSiteAltitude] when the sitting is saved, so cancelling leaves the
 /// site as it was; until then [siteAltitudeOf] shows it. It is made only if

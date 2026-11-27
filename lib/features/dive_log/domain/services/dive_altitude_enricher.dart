@@ -9,9 +9,10 @@ import 'package:submersion/features/weather/domain/services/altitude_resolver.da
 /// Fills a newly imported or downloaded dive's altitude from its GPS fixes
 /// or linked site. A dive reads its site's altitude rather than storing a
 /// copy (issue #5040), so an altitude found for the site goes to the site,
-/// and only one from the dive's own GPS is written to the dive. Best-effort like `DiveEquipmentDefaulter`: any failure is
-/// swallowed so enrichment can never abort an import that has already
-/// persisted the dive. Create ONE instance per import run -- the resolver
+/// and only one from the dive's own GPS is written to the dive.
+/// Best-effort like `DiveEquipmentDefaulter`: any failure is swallowed so
+/// enrichment can never abort an import that has already persisted the
+/// dive. Create ONE instance per import run -- the resolver
 /// cache dedupes lookups for a batch of dives at the same location.
 class DiveAltitudeEnricher {
   DiveAltitudeEnricher({

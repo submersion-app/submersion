@@ -2858,7 +2858,6 @@ class UddfEntityImporter {
     // One instance for the run: its lookup cache collapses a batch of dives
     // at the same location into a single elevation request.
     final altitudeEnricher = DiveAltitudeEnricher();
-
     final additionalComputers = AdditionalComputerWriter(
       diveRepository: repos.diveRepository,
     );

@@ -281,6 +281,24 @@ void main() {
       expect(session.valueOf(diveAltitudeField), 600);
     });
 
+    test("a site picked back shows none of its released lookup until a "
+        'new one answers', () async {
+      final session = EditSession(bare);
+      assign(session, _highA);
+      await answer(session);
+      assign(session, _withAltitude);
+      await answer(session);
+
+      final gate = elevation.gates[46] = Completer<void>();
+      assign(session, _highA);
+      expect(siteAltitudeOf(session), isNull);
+
+      gate.complete();
+      await answer(session);
+      expect(siteAltitudeOf(session), 512);
+      expect(session.isHeld(siteAltitudeWriteKey('a')), isTrue);
+    });
+
     test('A\'s lookup answering after B was picked sets nothing', () async {
       final session = EditSession(bare);
       final gate = elevation.gates[46] = Completer<void>();
