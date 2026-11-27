@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/pop_out/domain/pop_out_messages.dart';
 import 'package:submersion/features/pop_out/presentation/pop_out_profile_view.dart';
 import 'package:submersion/features/pop_out/presentation/providers/pop_out_client.dart';
@@ -25,8 +26,9 @@ class _FakeSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Dive _dive(String id, {int number = 142}) => Dive(
+Dive _dive(String id, {int number = 142, String? diverId}) => Dive(
   id: id,
+  diverId: diverId,
   dateTime: DateTime(2026, 1, 1, 10),
   diveNumber: number,
   site: const DiveSite(id: 's', name: 'Salt Pier'),
@@ -45,7 +47,7 @@ void main() {
     PopOutLaunch launch, {
     Map<String, Dive?> dives = const {},
   }) async {
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({currentDiverIdKey: 'diver-1'});
     final prefs = await SharedPreferences.getInstance();
     channel = FakePopOutChannel();
     control = FakeWindowControl();
@@ -57,6 +59,12 @@ void main() {
           popOutLaunchProvider.overrideWithValue(launch),
           popOutChannelProvider.overrideWithValue(channel),
           popOutWindowControlProvider.overrideWithValue(control),
+          currentDiverIdProvider.overrideWith(
+            (ref) => CurrentDiverIdNotifier.readOnly(
+              ref.watch(sharedPreferencesProvider),
+              ref.watch(diverRepositoryProvider),
+            ),
+          ),
           for (final entry in dives.entries) ...[
             diveProvider(entry.key).overrideWith((ref) async => entry.value),
             profileAnalysisProvider(
@@ -96,6 +104,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Unlock Submersion in the main window'), findsOneWidget);
     expect(find.byType(FullscreenProfilePage), findsNothing);
+    // Nor in the window's title, which the Dock and taskbar show.
+    expect(control.calls.last, 'title:Submersion');
   });
 
   testWidgets('shows the dive with a pin and names the window after it', (
@@ -127,5 +137,26 @@ void main() {
   ) async {
     await pump(tester, launchOn('gone'), dives: {'gone': null});
     expect(find.text('Select a dive in the main window'), findsOneWidget);
+  });
+
+  testWidgets("another diver's dive is not shown", (tester) async {
+    // The main window switched diver; the pop-out still followed a dive of
+    // the previous one, which would be drawn in the new diver's settings.
+    await pump(
+      tester,
+      launchOn('a'),
+      dives: {'a': _dive('a', diverId: 'diver-0')},
+    );
+    expect(find.byType(FullscreenProfilePage), findsNothing);
+    expect(find.text('Select a dive in the main window'), findsOneWidget);
+  });
+
+  testWidgets("the active diver's dive is shown", (tester) async {
+    await pump(
+      tester,
+      launchOn('a'),
+      dives: {'a': _dive('a', diverId: 'diver-1')},
+    );
+    expect(find.byType(FullscreenProfilePage), findsOneWidget);
   });
 }

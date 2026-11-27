@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profi
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -93,5 +94,49 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byIcon(Icons.close), findsOneWidget);
+  });
+
+  testWidgets('playback can keep going when the window loses focus', (
+    tester,
+  ) async {
+    // A pop-out playing on the second monitor while the diver works in the
+    // main window (#5078).
+    addTearDown(
+      () => tester.binding.handleAppLifecycleStateChanged(
+        AppLifecycleState.resumed,
+      ),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: _overrides().cast(),
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: MediaQuery(
+            data: MediaQueryData(size: Size(1200, 900)),
+            child: FullscreenProfilePage(
+              diveId: 'd1',
+              pauseWhenInactive: false,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(FullscreenProfilePage)),
+    );
+    final playback = container.read(playbackProvider('d1').notifier);
+    if (!container.read(playbackProvider('d1')).isActive) {
+      playback.togglePlaybackMode();
+    }
+    playback.play();
+    expect(container.read(playbackProvider('d1')).isPlaying, isTrue);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    await tester.pump();
+
+    expect(container.read(playbackProvider('d1')).isPlaying, isTrue);
+    playback.pause();
   });
 }

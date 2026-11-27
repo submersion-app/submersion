@@ -76,12 +76,18 @@ class FullscreenProfilePage extends ConsumerStatefulWidget {
   /// there is nothing to go back to. Null keeps the close button.
   final Widget? leading;
 
+  /// Whether playback pauses when the app's window loses focus. A desktop
+  /// pop-out (issue #5078) keeps playing on its monitor while the diver
+  /// works in the main window.
+  final bool pauseWhenInactive;
+
   const FullscreenProfilePage({
     super.key,
     required this.diveId,
     this.onOpenInNotes,
     this.session,
     this.leading,
+    this.pauseWhenInactive = true,
   });
 
   @override
@@ -150,7 +156,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     _windowFullscreen = ref.read(viewerWindowFullscreenProvider);
     _windowFullscreen.enter(this);
     _lifecycleListener = AppLifecycleListener(
-      onInactive: () => _playbackNotifier.pause(),
+      onInactive: () {
+        if (widget.pauseWhenInactive) _playbackNotifier.pause();
+      },
     );
   }
 

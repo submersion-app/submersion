@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_review_provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/pop_out/presentation/providers/pop_out_client.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -18,6 +19,10 @@ class PopOutProfileView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final client = ref.watch(popOutClientProvider);
     if (client.locked) {
+      // The title shows in the Dock, the taskbar and the window switcher.
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => ref.read(popOutWindowControlProvider).setTitle('Submersion'),
+      );
       return _Message(
         icon: Icons.lock_outline,
         text: context.l10n.popOut_lockedPlaceholder,
@@ -68,7 +73,13 @@ class _ShownDiveState extends ConsumerState<_ShownDive> {
     );
 
     final dive = ref.watch(diveProvider(diveId));
-    if (dive.hasValue && dive.value == null) {
+    final activeDiver = ref.watch(currentDiverIdProvider);
+    final diveDiver = dive.value?.diverId;
+    // The main window switched diver: this dive is the previous diver's,
+    // and would be drawn in the new diver's units and gradient factors.
+    final otherDivers =
+        activeDiver != null && diveDiver != null && diveDiver != activeDiver;
+    if ((dive.hasValue && dive.value == null) || otherDivers) {
       // Deleted, or gone in a sync: stop showing it.
       _afterFrame(() => client.diveMissing(diveId));
       return const SizedBox.shrink();
@@ -87,6 +98,7 @@ class _ShownDiveState extends ConsumerState<_ShownDive> {
     return FullscreenProfilePage(
       key: ValueKey(diveId),
       diveId: diveId,
+      pauseWhenInactive: false,
       leading: IconButton(
         icon: Icon(widget.pinned ? Icons.push_pin : Icons.push_pin_outlined),
         tooltip: widget.pinned

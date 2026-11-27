@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/providers/root_overrides.dart';
 import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/core/services/window_fullscreen.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_data_retention.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/pop_out/domain/pop_out_messages.dart';
 import 'package:submersion/features/pop_out/presentation/providers/pop_out_client.dart';
 import 'package:submersion/features/pop_out/presentation/providers/pop_out_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
 
 /// The provider overrides of a profile pop-out window's root (issue #5078).
 ///
@@ -41,6 +43,15 @@ List<dynamic> popOutProviderOverrides({
       (ref) => SettingsNotifier.readOnly(
         ref.watch(diverSettingsRepositoryProvider),
         ref,
+      ),
+    ),
+    // The pop-out is its own window: the diver's "viewers go OS fullscreen"
+    // choice is about the main window, and a pop-out taken fullscreen would
+    // leave the second monitor it was put on.
+    viewerWindowFullscreenProvider.overrideWith(
+      (ref) => ViewerWindowFullscreen(
+        controller: ref.watch(windowFullscreenControllerProvider),
+        mode: () => ViewerFullscreenMode.fullWindow,
       ),
     ),
     // The main window computes and saves reviews; this one shows them.
