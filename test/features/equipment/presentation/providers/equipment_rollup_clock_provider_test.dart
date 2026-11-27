@@ -298,4 +298,21 @@ void main() {
     final components = await c.read(equipmentRollupClockProvider.future);
     expect(components.containsKey('host'), isFalse);
   });
+
+  test('the assembly rollup also follows components (#5071)', () async {
+    final c = container(
+      clocks: [
+        (item: item('host'), statuses: const []),
+        (
+          item: item('part'),
+          statuses: [
+            clock('part', 'svc', ServiceClockSeverity.overdue, due: t0),
+          ],
+        ),
+      ],
+      edges: [edge('host', 'part')],
+    );
+    final assembly = await c.read(equipmentAssemblyRollupClockProvider.future);
+    expect(assembly['host']?.ownerId, 'part');
+  });
 }

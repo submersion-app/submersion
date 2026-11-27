@@ -443,6 +443,40 @@ void _assemblyViewTests() {
         expect(selection.value.checkedIds, {'fins', 'mask', 'sf2'});
       });
 
+      testWidgets('dense mode nests parts too', (tester) async {
+        await pumpList(
+          tester,
+          viewMode: ListViewMode.dense,
+          saved: '["asm:sf2"]',
+        );
+        final tiles = tester
+            .widgetList<DenseEquipmentListTile>(
+              find.byType(DenseEquipmentListTile),
+            )
+            .toList();
+        expect(tiles.map((t) => t.item.id), ['fins', 'sf2', 'c1', 'c2', 'c3']);
+        final sf2Tile = tiles.firstWhere((t) => t.item.id == 'sf2');
+        expect(sf2Tile.partCount, 3);
+        expect(sf2Tile.rollupInstalledParts, isTrue);
+      });
+
+      testWidgets('a failed load offers no fold menu entries', (tester) async {
+        await pumpList(
+          tester,
+          extra: [
+            filteredEquipmentProvider.overrideWith(
+              (ref) => AsyncValue<List<EquipmentItem>>.error(
+                StateError('locked'),
+                StackTrace.empty,
+              ),
+            ),
+          ],
+        );
+        expect(find.textContaining('locked'), findsOneWidget);
+        await openMenu(tester);
+        expect(find.text('Expand all'), findsNothing);
+      });
+
       testWidgets('an assembly with no parts on the list keeps its count', (
         tester,
       ) async {
