@@ -292,17 +292,17 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
     final yAxisLabel = widget.yAxisLabel;
     final compactXLabelFormatter = widget.compactXLabelFormatter;
     final marked = _marked;
-    // Whole-number steps shared by the grid and the labels: the left titles
-    // render nothing for a fractional value, so a 2.5 step would otherwise
-    // leave unlabelled lines (issue #219).
-    // The steps are chosen in axis units and scaled back to counts, so an
-    // hour-scaled axis over minute bars still ticks in whole hours.
     // A rod never fills its slot: 20 px, 12 px once crowded, and never
     // wider than 70 percent of the slot, so decades of yearly bars at
     // phone width keep a gap between them (issue #5074).
     final slot = _slotWidth(chartWidth);
     final rodCap = data.length > 12 ? 12.0 : 20.0;
     final rodWidth = slot > 0 && slot * 0.7 < rodCap ? slot * 0.7 : rodCap;
+    // Whole-number steps shared by the grid and the labels: the left titles
+    // render nothing for a fractional value, so a 2.5 step would otherwise
+    // leave unlabelled lines (issue #219).
+    // The steps are chosen in axis units and scaled back to counts, so an
+    // hour-scaled axis over minute bars still ticks in whole hours.
     final scale = widget.yAxisScale;
     final unitAxis = ChartAxis.forCounts(maxCount / scale);
     final axis = ChartAxis(

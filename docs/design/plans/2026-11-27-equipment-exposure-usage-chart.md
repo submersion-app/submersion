@@ -15,7 +15,7 @@
 - No schema, storage or sync change. Read only `equipmentExposureInputsProvider`.
 - Dive dates are wall-clock-as-UTC (`DateTime.utc` whose fields are the dive's local calendar). "Today" is `clock.now()`'s local date rebuilt as `DateTime.utc(y, m, d)`; bucket on `.year` / `.month` of both.
 - Dives and hours per bucket come from `ExposureClassifier.contribution(sample, ExposureUnit.dives | hours)`, so a rebreather's loop-only hours match the Hours tile and the service clocks.
-- Every new string goes in `app_en.arb` and all 10 locale ARBs (ar de es fr he hu it nl pt zh), inserted by anchor line, never by JSON round-trip. Arabic plurals carry `zero`/`two`/`few`/`many` as the guard requires. `=1` branches print `{count}`, never a literal 1. Run `flutter gen-l10n` only after every ARB is filled.
+- Every new string goes in `app_en.arb` and all 11 locale ARBs (ar de es fr he hu it ja nl pt zh), inserted by anchor line, never by JSON round-trip. Arabic plurals carry `zero`/`two`/`few`/`many` as the guard requires. `=1` branches print `{count}`, never a literal 1. Run `flutter gen-l10n` only after every ARB is filled.
 - No em-dashes anywhere. No emojis.
 - Theme colours only (`colorScheme`), so light and dark both read.
 
@@ -157,7 +157,7 @@ testWidgets('labels that fit are all drawn even with thinning on', ...);
 
 **Files:**
 - Modify: `lib/features/equipment/presentation/widgets/exposure_card.dart` (split the tiles and the chart into `exposure_usage_section.dart` beside it if the card passes ~250 lines)
-- Modify: `lib/l10n/arb/app_*.arb` (11 files) and generated `app_localizations*.dart`
+- Modify: `lib/l10n/arb/app_*.arb` (12 files) and generated `app_localizations*.dart`
 - Test: `test/features/equipment/presentation/widgets/exposure_card_test.dart` (update), new `test/features/equipment/presentation/widgets/exposure_usage_section_test.dart`
 
 **Interfaces:**
@@ -197,6 +197,6 @@ Keep the existing card tests that still hold (info icon, error line, decimal sep
 - [ ] **Step 2: Run to verify they fail.** Run: `flutter test test/features/equipment/presentation/widgets/exposure_card_test.dart test/features/equipment/presentation/widgets/exposure_usage_section_test.dart`. Expected: FAIL.
 - [ ] **Step 3: Add the en strings by anchor line**, then implement the card.
 - [ ] **Step 4: Run** the two widget tests plus `test/features/gear_passports/` files that pump `ExposureCard` (find them with `grep -rl ExposureCard test/`). Expected: PASS.
-- [ ] **Step 5: Translate** the new keys into all 10 locale ARBs by anchor line, run `flutter gen-l10n`, and confirm with `grep -A1 "lastDivedLabel" lib/l10n/arb/app_localizations_de.dart` that German is not English. Run `test/l10n/arabic_plural_categories_test.dart` and the info-sheet sentence-cap test (`grep -rl "info_.*summary" test/l10n`).
+- [ ] **Step 5: Translate** the new keys into all 11 locale ARBs by anchor line, run `flutter gen-l10n`, and confirm with `grep -A1 "lastDivedLabel" lib/l10n/arb/app_localizations_de.dart` that German is not English. Run `test/l10n/arabic_plural_categories_test.dart` and the info-sheet sentence-cap test (`grep -rl "info_.*summary" test/l10n`).
 - [ ] **Step 6:** `dart format .`, `flutter analyze`.
 - [ ] **Step 7: Commit** `feat(equipment): exposure card shows recency, totals and a usage chart` and, separately, `i18n(equipment): translate the exposure usage strings`.
