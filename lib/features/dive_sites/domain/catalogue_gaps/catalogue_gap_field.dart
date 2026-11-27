@@ -16,7 +16,10 @@ enum CatalogueGapField {
   entry,
   difficulty,
   hazards,
-  description;
+  description,
+
+  /// The record's website (issue #5073). Appended: names are stored.
+  website;
 
   /// The fields that say where the site is. They are offered only to a
   /// site that is at the record's place.

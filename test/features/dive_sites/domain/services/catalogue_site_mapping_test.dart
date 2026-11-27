@@ -52,6 +52,7 @@ void main() {
         bodyOfWater: 'Caribbean Sea',
         hazards: 'boat traffic',
         entryMethods: [EntryMethod.shore],
+        website: 'https://example.org',
         catalogueId: 'osm_node_1',
       ),
     );
@@ -107,5 +108,25 @@ void main() {
     expect(site.location, isNull);
     expect(site.country, 'Curaçao');
     expect(site.catalogueId, 'osm_way_3');
+  });
+
+  test('the record\'s web address comes along; anything else does not', () {
+    const withWebsite = CatalogueSite(
+      id: 'osm_node_9',
+      name: 'Stoney Cove',
+      website: 'https://stoneycove.com',
+      source: 'osm',
+    );
+    expect(
+      catalogueSiteToDiveSite(withWebsite).website,
+      'https://stoneycove.com',
+    );
+    const withPhone = CatalogueSite(
+      id: 'osm_node_10',
+      name: 'Stoney Cove',
+      website: 'tel:123',
+      source: 'osm',
+    );
+    expect(catalogueSiteToDiveSite(withPhone).website, isNull);
   });
 }

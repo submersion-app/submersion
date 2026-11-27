@@ -9,11 +9,7 @@ void main() {
   final weekday = DayHours.ranges(const [TimeRange(540, 1020)]);
   final weekend = DayHours.ranges(const [TimeRange(480, 960)]);
   final week = OpeningSchedule(
-    days: {
-      for (var d = 1; d <= 5; d++) d: weekday,
-      6: weekend,
-      7: weekend,
-    },
+    days: {for (var d = 1; d <= 5; d++) d: weekday, 6: weekend, 7: weekend},
   );
 
   test('weekdays and the weekend collapse into two groups', () {
