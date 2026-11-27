@@ -273,7 +273,7 @@ void main() {
 
   test('the assembly rollup also reaches installed parts (#5071)', () async {
     final host = item('host');
-    final cell = EquipmentItem(
+    const cell = EquipmentItem(
       id: 'cell',
       name: 'Name cell',
       type: EquipmentType.o2Cell,
