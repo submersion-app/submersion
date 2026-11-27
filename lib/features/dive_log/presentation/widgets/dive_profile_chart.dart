@@ -1018,6 +1018,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// instead of the full depth axis. Mirrors the legend session state; read by
   /// [_metricBand] from both build() and _buildChart().
   bool _metricsFollowViewport = false;
+
+  /// Whether zooming scales the time axis alone, keeping the whole depth range
+  /// (issue #5069). Mirrors the legend session state; read by [_zoomBy] from
+  /// gesture callbacks as well as build().
+  bool _zoomTimeOnly = false;
   bool _showPpO2 = false;
   bool _showPpN2 = false;
   bool _showPpHe = false;
@@ -3169,13 +3174,22 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     widget.onTimeSelected?.call(seconds);
   }
 
+  /// [vp] zoomed by [factor] about the focal fractions: time alone in Time
+  /// only (issue #5069), else both axes.
+  ChartViewport _zoomBy(
+    ChartViewport vp,
+    double focalX,
+    double focalY,
+    double factor,
+  ) => vp.zoomedAt(focalX, focalY, factor, timeOnly: _zoomTimeOnly);
+
   // Buttons have no cursor, so they zoom about the visible center.
   void _zoomIn() {
-    _viewport = _viewport.zoomedAt(0.5, 0.5, 1.5);
+    _viewport = _zoomBy(_viewport, 0.5, 0.5, 1.5);
   }
 
   void _zoomOut() {
-    _viewport = _viewport.zoomedAt(0.5, 0.5, 1 / 1.5);
+    _viewport = _zoomBy(_viewport, 0.5, 0.5, 1 / 1.5);
   }
 
   @override
@@ -3211,6 +3225,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     // Watch legend state from provider
     final legendState = ref.watch(profileLegendProvider);
+    // Turning Time only on while zoomed keeps the time window and gives depth
+    // its whole range back (issue #5069).
+    ref.listen(profileLegendProvider.select((s) => s.zoomTimeOnly), (
+      previous,
+      timeOnly,
+    ) {
+      if (timeOnly && previous != true) {
+        _viewport = _viewport.withFullDepth();
+      }
+    });
 
     // Sync local state with provider for backward compatibility
     // This allows the chart rendering logic to continue using local state
@@ -3243,6 +3267,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // (see _syncBarSignatures), or a mode flip would key bars on the outgoing
     // band.
     _metricsFollowViewport = legendState.metricsFollowViewport;
+    _zoomTimeOnly = legendState.zoomTimeOnly;
     // Sync advanced deco/gas toggles
     _showNdl = legendState.showNdl;
     _showPpO2 = legendState.showPpO2;
@@ -3509,7 +3534,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             top: insets.top,
             bottom: insets.bottom,
           );
-          _viewport = _viewport.zoomedAt(
+          _viewport = _zoomBy(
+            _viewport,
             focal.fx,
             focal.fy,
             math.pow(2, zoomDelta).toDouble(),
@@ -3623,7 +3649,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 final d = event.localPosition - prev;
                 _viewport = _viewport.pannedBy(
                   -d.dx / plotW / _viewport.zoom,
-                  -d.dy / plotH / _viewport.zoom,
+                  -d.dy / plotH / _viewport.zoomY,
                 );
               },
               onPointerUp: (event) {
@@ -3724,7 +3750,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     bottom: insets.bottom,
                   );
                   final factor = event.scrollDelta.dy < 0 ? 1.1 : 1 / 1.1;
-                  _viewport = _viewport.zoomedAt(focal.fx, focal.fy, factor);
+                  _viewport = _zoomBy(_viewport, focal.fx, focal.fy, factor);
                 }
               },
               onPointerHover: (event) {
@@ -3853,9 +3879,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
     final scale =
         (p0 - p1).distance.clamp(1.0, double.infinity) / _pinchStartDistance;
-    var vp = _gestureStartViewport.zoomedAt(focal.fx, focal.fy, scale);
+    var vp = _zoomBy(_gestureStartViewport, focal.fx, focal.fy, scale);
     final panPx = (p0 + p1) / 2 - _pinchStartFocal;
-    vp = vp.pannedBy(-panPx.dx / plotW / vp.zoom, -panPx.dy / plotH / vp.zoom);
+    vp = vp.pannedBy(-panPx.dx / plotW / vp.zoom, -panPx.dy / plotH / vp.zoomY);
     _viewport = vp;
   }
 
@@ -3881,7 +3907,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       top: insets.top,
       bottom: insets.bottom,
     );
-    _viewport = _viewport.zoomedAt(focal.fx, focal.fy, 2.0);
+    _viewport = _zoomBy(_viewport, focal.fx, focal.fy, 2.0);
   }
 
   Widget _buildEmptyState(BuildContext context) {
