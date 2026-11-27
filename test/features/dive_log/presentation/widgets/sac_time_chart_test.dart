@@ -312,7 +312,28 @@ void main() {
       expect(find.text('+0.5'), findsOneWidget);
     });
 
-    testWidgets('the average tag makes way for a label at its end', (
+    testWidgets('the average tag makes way for a short bar\'s label', (
+      tester,
+    ) async {
+      // The first stretch is the highest, by a sliver next to the last one's
+      // dip, so its label sits right on the line at the left end.
+      await pumpSacSegmentsView(
+        tester,
+        time: [
+          sacSegment(0, 5, sacRate: 1.02),
+          for (var i = 1; i < 7; i++) sacSegment(i * 5, (i + 1) * 5),
+          sacSegment(35, 40, sacRate: 0.4),
+        ],
+      );
+      final plot = tester.getRect(find.byKey(SacTimeColumns.plotKey));
+      final tag = tester.getRect(find.textContaining('avg'));
+      final label = tester.getRect(find.textContaining('+'));
+
+      expect(tag.right, closeTo(plot.right - 4, 1));
+      expect(tag.overlaps(label), isFalse);
+    });
+
+    testWidgets('a tall bar\'s label leaves the tag at the left end', (
       tester,
     ) async {
       await pumpSacSegmentsView(
@@ -326,10 +347,31 @@ void main() {
       );
       final plot = tester.getRect(find.byKey(SacTimeColumns.plotKey));
       final tag = tester.getRect(find.text('avg 10.5'));
-      final label = tester.getRect(find.text('+1.5'));
 
-      expect(tag.right, closeTo(plot.right - 4, 1));
-      expect(tag.overlaps(label), isFalse);
+      expect(tag.left, closeTo(plot.left + 4, 1));
+      expect(tag.overlaps(tester.getRect(find.text('+1.5'))), isFalse);
+    });
+
+    testWidgets('drops the average tag when labels meet it at both ends', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(2400, 4800);
+      addTearDown(tester.view.resetPhysicalSize);
+      // At large text neither end bar lifts its label clear of the line.
+      await pumpSacSegmentsView(
+        tester,
+        time: [
+          sacSegment(0, 5, sacRate: 2.0),
+          sacSegment(5, 10),
+          sacSegment(10, 15),
+          sacSegment(15, 20, sacRate: 0.5),
+        ],
+        textScaler: const TextScaler.linear(3),
+      );
+
+      expect(find.textContaining('avg'), findsNothing);
+      expect(find.text('+8.8'), findsOneWidget);
+      expect(find.text('\u22126.3'), findsOneWidget);
     });
 
     testWidgets('the average tag sits at the left end by default', (

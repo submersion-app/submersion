@@ -337,28 +337,40 @@ class SacTimeColumns extends StatelessWidget {
     );
   }
 
-  /// Whether a bar label sits within the average tag's reach of the left
-  /// end of a plot [width] wide, or of the right end with [fromRight].
-  bool _labelNearEnd(double width, {required bool fromRight}) =>
-      barLabels.any((label) {
-        if (label.index < 0 || label.index >= columns.length) return false;
-        final column = columns[label.index];
-        final x = _xAt(width, column.startSeconds + column.durationSeconds / 2);
-        return fromRight ? x > width - _averageTagReach : x < _averageTagReach;
-      });
+  /// Whether a bar label would meet the average tag at the left end of a
+  /// plot [width] wide, or at the right end with [fromRight]: its column is
+  /// within the tag's reach of that end, and its bar is too short to lift the
+  /// label of [lineHeight] clear of the line the tag sits on.
+  bool _labelBlocksEnd(
+    double width,
+    double lineHeight, {
+    required bool fromRight,
+  }) => barLabels.any((label) {
+    if (label.index < 0 || label.index >= columns.length) return false;
+    final column = columns[label.index];
+    final x = _xAt(width, column.startSeconds + column.durationSeconds / 2);
+    final nearEnd = fromRight
+        ? x > width - _averageTagReach
+        : x < _averageTagReach;
+    return nearEnd && _barLength(label.index) + _labelGap < lineHeight;
+  });
 
-  /// The average tag, at the left end of the line unless a bar's label sits
-  /// there and the right end is clear.
-  Widget _averageTag(
+  /// The average tag, at the left end of the line unless a bar's label meets
+  /// it there, then at the right end. With labels at both ends it is left
+  /// out, since the summary above the chart gives the average too.
+  Widget? _averageTag(
     ThemeData theme,
     TextStyle? style,
     String label,
     double width,
+    double band,
     TextDirection textDirection,
   ) {
-    final right =
-        _labelNearEnd(width, fromRight: false) &&
-        !_labelNearEnd(width, fromRight: true);
+    final lineHeight = band - _labelGap;
+    final leftBlocked = _labelBlocksEnd(width, lineHeight, fromRight: false);
+    final rightBlocked = _labelBlocksEnd(width, lineHeight, fromRight: true);
+    if (leftBlocked && rightBlocked) return null;
+    final right = leftBlocked;
     return CustomSingleChildLayout(
       delegate: SacPinLayout(
         anchor: Offset(right ? width : 0, _baselineY),
@@ -468,11 +480,12 @@ class SacTimeColumns extends StatelessWidget {
                         if (label.index >= 0 && label.index < columns.length)
                           _barLabel(label, valueStyle, width),
                       if (averageLabel != null)
-                        _averageTag(
+                        ?_averageTag(
                           theme,
                           labelStyle,
                           averageLabel!,
                           width,
+                          band,
                           textDirection,
                         ),
                     ],
@@ -606,8 +619,12 @@ class _TimeAxisState extends State<_TimeAxis> {
   }
 }
 
-/// The average line, the zero of the chart, which every bar starts from.
+/// The dashed average line, the zero of the chart, which every bar starts
+/// from.
 class _BaselinePainter extends CustomPainter {
+  static const double _dash = 4;
+  static const double _gap = 3;
+
   final double y;
   final Color color;
 
@@ -618,7 +635,13 @@ class _BaselinePainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..strokeWidth = 1;
-    canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    for (double x = 0; x < size.width; x += _dash + _gap) {
+      canvas.drawLine(
+        Offset(x, y),
+        Offset(math.min(x + _dash, size.width), y),
+        paint,
+      );
+    }
   }
 
   @override
