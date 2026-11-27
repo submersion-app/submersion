@@ -62,8 +62,10 @@ chart's cursor uses).
 - A sighting with at least one position gets a **depth chip** beside the
   existing photo chip: `27 m` when every position gives the same depth after
   rounding, `16 to 18 m` otherwise (shallowest to deepest over all of them).
-  Depth is in the active diver's depth unit and rounded the way the profile's
-  readouts round. The words "to" and the unit come from l10n.
+  Depth is in the active diver's depth unit, in whole units like the
+  profile's depth axis, so the chip stays short on a phone; a range whose
+  ends round to the same value shows as one value. *(Designer's call, made
+  while planning.)* The words "to" and the unit come from l10n.
 - **Tapping the chip highlights that species on the profile**; tapping it again
   clears the highlight. Tapping another species' chip moves the highlight to
   that species. One species at a time. The selected chip shows the selected
