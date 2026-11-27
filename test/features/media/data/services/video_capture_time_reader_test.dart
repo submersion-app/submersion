@@ -417,6 +417,91 @@ void main() {
       });
     });
 
+    // Issue #5063: on Android the picker's Files tab hands back a copy of
+    // the chosen video in the app's cache, so its mtime is the moment it was
+    // picked and witnesses nothing. A phone clip's mvhd holds UTC, as every
+    // Android camera writes it, and its `com.android.version` key says an
+    // Android device recorded it. Read as local digits, a clip from a dive in
+    // Germany landed an hour early, outside the dive, and could not be linked.
+    group('issue #5063: an Android clip copied by the file picker', () {
+      DateTime utcPlus1(DateTime utc) => utc.add(const Duration(hours: 1));
+
+      // A dive in Germany in November (CET, UTC+1), wall clock.
+      final dive = DiveBounds(
+        diveId: 'lake',
+        entryTime: DateTime.utc(2026, 11, 22, 10),
+        exitTime: DateTime.utc(2026, 11, 22, 10, 50),
+      );
+      const matcher = DivePhotoMatcher();
+      // Filmed at 10:05 local, 09:05 UTC.
+      final recordedUtc = DateTime.utc(2026, 11, 22, 9, 5);
+
+      File androidClip(String name, {String version = '14'}) => write(
+        name,
+        _movie([
+          ..._mvhd(recordedUtc, duration: const Duration(minutes: 2)),
+          ..._keysMetaOf({'com.android.version': version}),
+        ]),
+      );
+
+      test('reads its mvhd as UTC though the mtime is the pick time', () {
+        // The copy's mtime is "now", which agrees with nothing.
+        final takenAt = readVideoCaptureTime(
+          androidClip('VID_20261122_100500.mp4'),
+          toLocal: utcPlus1,
+        );
+
+        expect(takenAt, DateTime.utc(2026, 11, 22, 10, 5));
+        final match = matcher.matchTimestamp(takenAt: takenAt!, dives: [dive]);
+        expect(match.kind, TimestampMatchKind.confident);
+        expect(match.diveId, 'lake');
+      });
+
+      test('the UTC digits read as local miss the dive, as reported', () {
+        // 09:05 sits 55 minutes before entry, past the 30-minute window.
+        final match = matcher.matchTimestamp(
+          takenAt: recordedUtc,
+          dives: [dive],
+        );
+        expect(match.kind, TimestampMatchKind.none);
+      });
+
+      test('by default converts through this machine\'s zone', () {
+        expect(
+          readVideoCaptureTime(androidClip('VID_default.mp4')),
+          asWallClockUtc(recordedUtc.toLocal()),
+        );
+      });
+
+      test('a creationdate tag still wins over the Android mvhd', () {
+        final f = write(
+          'tagged.mp4',
+          _movie([
+            ..._mvhd(recordedUtc),
+            ..._keysMetaOf({
+              'com.android.version': '14',
+              'com.apple.quicktime.creationdate': '2026-11-22T10:07:00+0100',
+            }),
+          ]),
+        );
+        expect(
+          readVideoCaptureTime(f, toLocal: utcPlus1),
+          DateTime.utc(2026, 11, 22, 10, 7),
+        );
+      });
+
+      test('another writer\'s keys leave the mvhd as local digits', () {
+        final f = write(
+          'other.mp4',
+          _movie([
+            ..._mvhd(recordedUtc),
+            ..._keysMetaOf({'com.example.camera.model': 'X1'}),
+          ]),
+        );
+        expect(readVideoCaptureTime(f, toLocal: utcPlus1), recordedUtc);
+      });
+    });
+
     test('returns null for a file with no moov or no usable date', () {
       expect(readVideoCaptureTime(write('junk.mp4', [0, 1, 2, 3])), isNull);
       expect(

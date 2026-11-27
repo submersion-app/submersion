@@ -19,7 +19,9 @@ import 'package:submersion/features/media/data/services/quicktime_metadata.dart'
 ///    an iTunes-style `meta > ilst` tag. Same format, when a camera writes it.
 /// 3. `creation_time` in the `moov > mvhd` movie header, which every MP4 has.
 ///    The format defines it as UTC, but GoPro and other cameras write their
-///    local clock there instead; [resolveMvhdCreationTime] decides which.
+///    local clock there instead. A movie an Android device recorded (it
+///    carries a `com.android.version` key) is read as UTC; for any other,
+///    [resolveMvhdCreationTime] decides which.
 ///
 /// A creationdate or `©day` value in UTC (`Z`) says nothing about the local
 /// clock, so it is skipped in favour of the next field.
@@ -46,6 +48,9 @@ DateTime? readVideoCaptureTime(
 
     final header = _readMvhd(raf, moov);
     if (header == null) return null;
+    if (_recordedOnAndroid(r, moov)) {
+      return asWallClockUtc(toLocal(header.creation));
+    }
     return resolveMvhdCreationTime(
       raw: header.creation,
       duration: header.duration,
@@ -60,6 +65,24 @@ DateTime? readVideoCaptureTime(
 }
 
 const _creationDateKey = 'com.apple.quicktime.creationdate';
+
+/// The key Android's MP4 writer adds to every camera recording, holding the
+/// OS version.
+const _androidVersionKey = 'com.android.version';
+
+/// Whether an Android device recorded the movie, whose `mvhd` therefore holds
+/// UTC as the format defines it.
+///
+/// The file's modified time cannot say so on Android itself: the picker hands
+/// back a copy in the app's cache, stamped when it was picked (issue #5063).
+/// A corrupt key table counts as no marker.
+bool _recordedOnAndroid(RandomAccessFile raf, BoxRange moov) {
+  try {
+    return readQuickTimeKeyText(raf, moov, _androidVersionKey) != null;
+  } on Object {
+    return false;
+  }
+}
 
 /// The copyright sign is byte 0xA9 in the box header.
 const _dayType = '©day';

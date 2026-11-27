@@ -76,6 +76,34 @@ void main() {
     verifyNever(repo.createMedia(any));
   });
 
+  // Issue #5063: a file the date matcher could not place was dropped here,
+  // and the Link button counting only matched files read "Link 0", so a
+  // video picked on a dive could be seen and never saved. Picked on this
+  // dive, an unplaced file is this dive's.
+  test("heldRows takes the unmatched files as this dive's", () async {
+    final notifier = container.read(filesTabNotifierProvider.notifier);
+    final a = _ef('/a.jpg');
+    final b = _ef('/b.mp4');
+    final c = _ef('/c.jpg');
+    notifier.setFiles(
+      [a, b, c],
+      match: MatchedSelection(
+        matched: {
+          'd1': [a],
+          'd2': [c],
+        },
+        unmatched: [b],
+      ),
+    );
+
+    final held = await notifier.heldRows('d1');
+
+    expect(held.rows.map((r) => r.originalFilename), ['a.jpg', 'b.mp4']);
+    expect(held.rows.every((r) => r.diveId == 'd1'), isTrue);
+    expect(held.leftOut, 1);
+    verifyNever(repo.createMedia(any));
+  });
+
   test(
     "heldSiteRows builds every staged file as the site's, writes none",
     () async {

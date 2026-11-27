@@ -120,9 +120,10 @@ class FileReviewPane extends ConsumerWidget {
                     context.l10n.media_photoPicker_files_unmatchedGroupTitle,
                   ),
                   initiallyExpanded: true,
-                  // Without the bulk action the only thing a user could do
-                  // with a photo the matcher rejected was remove it, since
-                  // commit() never sees the unmatched bucket. It sits under
+                  // The bulk action files the rejected photos under this
+                  // dive's group before Link, which also takes them to the
+                  // dive (issue #5063), so the list shows where they go. It
+                  // sits under
                   // the count rather than in trailing: trailing replaces the
                   // expand chevron, and the header measures it before the
                   // title, so the label squeezed "Unmatched" to one fragment

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/media/data/services/media_file_types.dart';
-import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/file_review_pane.dart';
@@ -47,10 +46,10 @@ class FilesTab extends ConsumerWidget {
   /// What this picker session attaches its files to, when it has an owner.
   ///
   /// A [DiveAttachTarget] backs the review pane's "add all to this dive"
-  /// action and makes turning auto-match off produce a usable selection
-  /// instead of an inert one: [FilesTabNotifier.commit] only persists files
-  /// sitting in [MatchedSelection.matched], so without a manual target a
-  /// photo the date matcher rejected had no route into the database.
+  /// action, and makes the commit button take the files the date matcher
+  /// rejected to that dive: the user picked them on it. Counting only the
+  /// matched files left an Android video whose time could not be placed
+  /// under a disabled "Link 0", seen but never saved (issue #5063).
   ///
   /// A [SiteAttachTarget] switches the tab out of dive mode entirely; see
   /// [_ownsEveryFile]. Null when the picker was opened with no owning entity
@@ -227,9 +226,14 @@ class FilesTab extends ConsumerWidget {
   }
 
   /// How many staged files [FilesTabNotifier.commit] would actually persist.
-  int _committableCount(FilesTabState state) => _ownsEveryFile
-      ? state.files.length
-      : state.match.totalFiles - state.match.unmatched.length;
+  ///
+  /// Opened from a dive, that is every file: the unmatched ones go to the
+  /// dive (issue #5063).
+  int _committableCount(FilesTabState state) {
+    if (_ownsEveryFile) return state.files.length;
+    if (_assignableDiveId != null) return state.match.totalFiles;
+    return state.match.totalFiles - state.match.unmatched.length;
+  }
 
   String _commitLabel(BuildContext context, FilesTabState state) {
     final count = _committableCount(state);

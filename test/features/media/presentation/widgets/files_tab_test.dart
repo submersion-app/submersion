@@ -284,10 +284,9 @@ void main() {
     expect(progress.value, isNull); // indeterminate
   });
 
-  // commit() only persists files in match.matched, and the Link button is
-  // gated on matched being non-empty, so a photo the date matcher rejected
-  // could never be linked. When the picker was opened from a dive, that dive
-  // is an obvious manual target.
+  // With no target, commit() only persists files in match.matched, so a
+  // photo the date matcher rejected could never be linked. When the picker
+  // was opened from a dive, that dive is an obvious manual target.
   group('manual assignment to the picker\'s dive', () {
     Widget wrap(FilesTabState seed, {String? diveId}) => ProviderScope(
       overrides: [
@@ -343,6 +342,23 @@ void main() {
       expect(notifier.state.match.unmatched, isEmpty);
       // The Link button was previously unreachable in this state.
       expect(find.text('Link 2 items'), findsOneWidget);
+    });
+
+    // Issue #5063: an Android video the matcher could not place showed in
+    // the review list under a disabled "Link 0", so it could not be saved.
+    // Opened from a dive, Link takes the unplaced files to that dive.
+    testWidgets('Link counts and enables unmatched files on a dive', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        wrap(withUnmatched([_ef('/clip.mp4')]), diveId: 'd1'),
+      );
+
+      expect(find.text('Link 1 item'), findsOneWidget);
+      final button = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Link 1 item'),
+      );
+      expect(button.onPressed, isNotNull);
     });
 
     testWidgets('turning auto-match off still leaves files linkable', (

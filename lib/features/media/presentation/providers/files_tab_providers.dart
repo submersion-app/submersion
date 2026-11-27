@@ -223,9 +223,10 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
   /// Routes the staged file at [sourcePath] to [diveId], removing it from
   /// whichever bucket currently holds it (unmatched, or another dive).
   ///
-  /// [commit] only persists files sitting in [MatchedSelection.matched], so
-  /// without this a file the date matcher rejected had no route into the
-  /// database at all. Unknown paths are ignored.
+  /// With no target, [commit] only persists files sitting in
+  /// [MatchedSelection.matched], so without this a file the date matcher
+  /// rejected had no route into the database at all. It also moves a file
+  /// between dives. Unknown paths are ignored.
   void assignToDive(String sourcePath, String diveId) {
     final file = state.files
         .where((f) => f.sourcePath == sourcePath)
@@ -289,10 +290,12 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
   ///   on, so honouring it would either persist nothing (the issue #1098
   ///   symptom) or scatter the user's photos across whatever dives their
   ///   timestamps happened to fall inside.
-  /// - [DiveAttachTarget], or no target at all: the matcher's per-dive
-  ///   assignment, which the review pane lets the user correct first.
-  ///   Unmatched files are skipped; the pane's assign actions are how they
-  ///   get out of that bucket.
+  /// - [DiveAttachTarget]: the matcher's per-dive assignment, which the
+  ///   review pane lets the user correct first, and every unmatched file on
+  ///   the target dive: the user picked it on that dive (issue #5063).
+  /// - No target at all: the matcher's per-dive assignment. Unmatched files
+  ///   are skipped; the pane's assign actions are how they get out of that
+  ///   bucket.
   ///
   /// Both photos and videos are persisted; [_persistOne] tags each row with
   /// the right [MediaType] from its MIME. On desktop a local-file video
@@ -316,7 +319,16 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
             ),
           );
         }
-      case DiveAttachTarget() || null:
+      case DiveAttachTarget(:final diveId):
+        for (final entry in state.match.matched.entries) {
+          for (final file in entry.value) {
+            created.add(await _persistOne(file, diveId: entry.key));
+          }
+        }
+        for (final file in state.match.unmatched) {
+          created.add(await _persistOne(file, diveId: diveId));
+        }
+      case null:
         for (final entry in state.match.matched.entries) {
           for (final file in entry.value) {
             created.add(await _persistOne(file, diveId: entry.key));
@@ -330,7 +342,9 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
   /// The rows [commit] would write for [diveId], each under a fresh id,
   /// built and not written, and how many staged files matched another dive
   /// and were left out: a sitting on [diveId] holds its own photos until
-  /// Save, and changes no other dive (issue #4527). Clears the staged files.
+  /// Save, and changes no other dive (issue #4527). The files the matcher
+  /// could not place are [diveId]'s too, since the user picked them on it
+  /// (issue #5063). Clears the staged files.
   Future<({List<MediaItem> rows, int leftOut})> heldRows(String diveId) async {
     final rows = <MediaItem>[];
     var leftOut = 0;
@@ -342,6 +356,9 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
       for (final file in entry.value) {
         rows.add(await _itemFor(file, id: const Uuid().v4(), diveId: diveId));
       }
+    }
+    for (final file in state.match.unmatched) {
+      rows.add(await _itemFor(file, id: const Uuid().v4(), diveId: diveId));
     }
     clear();
     return (rows: rows, leftOut: leftOut);

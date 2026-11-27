@@ -942,6 +942,42 @@ void main() {
       expect(captured.map((m) => m.diveId), ['dive-a', 'dive-b']);
       expect(captured.map((m) => m.siteId), [null, null]);
     });
+
+    // Issue #5063: picked on a dive, a file the matcher could not place is
+    // that dive's, instead of being skipped.
+    test('persists unmatched files against the opening dive', () async {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      final a = _ef('/a.jpg');
+      final b = _ef('/b.jpg');
+      notifier.setFiles(
+        [a, b],
+        match: MatchedSelection(
+          matched: {
+            'dive-b': [a],
+          },
+          unmatched: [b],
+        ),
+      );
+
+      when(
+        mockPlatform.createBookmark(any),
+      ).thenAnswer((_) async => Uint8List.fromList([1, 2, 3]));
+      when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
+      final captured = <MediaItem>[];
+      var counter = 0;
+      when(mockRepo.createMedia(any)).thenAnswer((invocation) async {
+        captured.add(invocation.positionalArguments.first as MediaItem);
+        counter += 1;
+        return _saved('saved-$counter');
+      });
+
+      await notifier.commit(target: const DiveAttachTarget('dive-a'));
+
+      expect(captured.map((m) => (m.originalFilename, m.diveId)), [
+        ('a.jpg', 'dive-b'),
+        ('b.jpg', 'dive-a'),
+      ]);
+    });
   });
 
   group('diveBoundsProvider', () {
