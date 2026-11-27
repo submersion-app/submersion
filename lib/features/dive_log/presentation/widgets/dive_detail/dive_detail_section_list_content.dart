@@ -83,7 +83,7 @@ extension _DiveDetailSectionContent on DiveDetailSectionList {
           // altitude-adjusted: surface an informational note instead of
           // silently hiding the section.
           if (needsAltitudeAdjustmentFlag(
-            diveAltitude: presence.altitude,
+            diveAltitude: presence.effectiveAltitude,
             siteAltitude: presence.site?.altitude,
           )) {
             return const DiveAltitudeMismatchNote();

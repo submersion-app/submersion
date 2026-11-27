@@ -331,6 +331,56 @@ void main() {
       expect(await environmentOf('d1'), DiveEnvironment.standard);
     });
 
+    // Issue #5040: a site's altitude is read through, not copied.
+    Future<void> insertSiteAt(String id, double altitude) => db
+        .into(db.diveSites)
+        .insert(
+          DiveSitesCompanion(
+            id: Value(id),
+            name: const Value('Lake'),
+            altitude: Value(altitude),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+
+    test('falls back to the site altitude', () async {
+      await insertSiteAt('s1', 2000);
+      await insertConditions('d1', siteId: 's1');
+
+      expect(
+        await environmentOf('d1'),
+        DiveEnvironment.forConditions(altitudeMeters: 2000),
+      );
+    });
+
+    test('a site altitude edit makes the dives taking it stale', () async {
+      await insertSiteAt('s1', 2000);
+      await insertConditions('d1', siteId: 's1');
+      final r = repo();
+      await r.ensureCurrent('d1');
+      expect(await r.staleDiveIds(), isEmpty);
+
+      await (db.update(db.diveSites)..where((t) => t.id.equals('s1'))).write(
+        const DiveSitesCompanion(altitude: Value(2400)),
+      );
+
+      expect(await r.staleDiveIds(), ['d1']);
+    });
+
+    test('a site altitude edit leaves a dive with its own alone', () async {
+      await insertSiteAt('s1', 2000);
+      await insertConditions('d1', altitude: 300, siteId: 's1');
+      final r = repo();
+      await r.ensureCurrent('d1');
+
+      await (db.update(db.diveSites)..where((t) => t.id.equals('s1'))).write(
+        const DiveSitesCompanion(altitude: Value(2400)),
+      );
+
+      expect(await r.staleDiveIds(), isEmpty);
+    });
+
     test('the dive\'s water type wins over its site\'s', () async {
       await insertFreshSite('s1');
       await insertConditions('d1', waterType: 'salt', siteId: 's1');

@@ -79,23 +79,28 @@ void main() {
     }
   }
 
+  // Issue #5040: a site's water type is read through, not copied.
   group('water type', () {
-    test('takes the site water type', () async {
+    test('reads the site water type without copying it', () async {
       await insertDive('d1');
       await insertSite('s1', waterType: 'salt');
 
       await repo.setSite('d1', 's1');
 
-      expect((await repo.getDiveById('d1'))!.waterType, WaterType.salt);
+      final dive = (await repo.getDiveById('d1'))!;
+      expect(dive.waterType, isNull);
+      expect(dive.effectiveWaterType, WaterType.salt);
     });
 
-    test('replaces the dive value with the new site value', () async {
+    test('gives way to the new site value', () async {
       await insertDive('d1', waterType: 'fresh');
       await insertSite('s1', waterType: 'brackish');
 
       await repo.setSite('d1', 's1');
 
-      expect((await repo.getDiveById('d1'))!.waterType, WaterType.brackish);
+      final dive = (await repo.getDiveById('d1'))!;
+      expect(dive.waterType, isNull);
+      expect(dive.effectiveWaterType, WaterType.brackish);
     });
 
     test('keeps the dive value when the site has none', () async {
@@ -122,14 +127,24 @@ void main() {
 
     test('keeps the dive value when the site is cleared', () async {
       await insertDive('d1', waterType: 'fresh');
-      await insertSite('s1', waterType: 'salt');
+      await insertSite('s1');
       await repo.setSite('d1', 's1');
 
       await repo.setSite('d1', null);
 
       final dive = (await repo.getDiveById('d1'))!;
       expect(dive.site, isNull);
-      expect(dive.waterType, WaterType.salt);
+      expect(dive.waterType, WaterType.fresh);
+    });
+
+    test("clearing the site takes the site's water type with it", () async {
+      await insertDive('d1');
+      await insertSite('s1', waterType: 'salt');
+      await repo.setSite('d1', 's1');
+
+      await repo.setSite('d1', null);
+
+      expect((await repo.getDiveById('d1'))!.effectiveWaterType, isNull);
     });
   });
 

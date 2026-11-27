@@ -169,7 +169,9 @@ void main() {
     for (final id in ['d1', 'd2']) {
       final dive = (await repository.getDiveById(id))!;
       expect(dive.site?.id, 's1');
-      expect(dive.waterType, WaterType.salt);
+      // Read through from the site, not copied (issue #5040).
+      expect(dive.waterType, isNull);
+      expect(dive.effectiveWaterType, WaterType.salt);
     }
   });
 

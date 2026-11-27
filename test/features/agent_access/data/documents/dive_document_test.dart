@@ -174,6 +174,8 @@ void main() {
           name: 'Blue Hole',
           country: 'Belize',
           location: GeoPoint(17.3, -87.5),
+          altitude: 450,
+          waterType: WaterType.fresh,
         ),
         trip: Trip(
           id: 'trip-1',
@@ -207,7 +209,13 @@ void main() {
         'region': null,
         'latitude': 17.3,
         'longitude': -87.5,
+        'altitude_m': 450.0,
+        'water_type': 'fresh',
       });
+      // The dive's own keys stay its own values (issue #5040): the site's
+      // are read through, and an agent writing them back would pin them.
+      expect(doc['altitude_m'], isNull);
+      expect(doc['water_type'], isNull);
       expect(doc['trip'], {'id': 'trip-1', 'name': 'Belize 2024'});
       expect(doc['dive_center'], {'id': 'c1', 'name': 'Reef Divers'});
       final weight = diveWeightDocument(linked.weights.single);

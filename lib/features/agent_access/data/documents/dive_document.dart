@@ -58,6 +58,11 @@ Map<String, Object?> diveDocument(Dive dive) {
             'region': site.region,
             'latitude': site.location?.latitude,
             'longitude': site.location?.longitude,
+            // What the dive reads when its own altitude_m or water_type is
+            // null (issue #5040). The dive's keys stay its own values, so
+            // writing them back never pins the site's.
+            'altitude_m': site.altitude,
+            'water_type': site.waterType?.name,
           },
     'trip': dive.tripId == null
         ? null

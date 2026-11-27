@@ -527,8 +527,8 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         _Field(l10n.pdf_entry, dive.effectiveEntryMethod!.localizedName(l10n)),
       if (dive.exitMethod != null)
         _Field(l10n.pdf_exit, dive.exitMethod!.localizedName(l10n)),
-      if (dive.altitude != null)
-        _Field(l10n.pdf_altitude, units.formatAltitude(dive.altitude)),
+      if (dive.effectiveAltitude != null)
+        _Field(l10n.pdf_altitude, units.formatAltitude(dive.effectiveAltitude)),
     ];
   }
 

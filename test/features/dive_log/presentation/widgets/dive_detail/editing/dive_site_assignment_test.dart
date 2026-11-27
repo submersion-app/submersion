@@ -100,10 +100,13 @@ void main() {
   }
 
   group('water type', () {
-    test('a site with a water type sets it', () async {
+    // Issue #5040: the site's water type is read through, not copied.
+    test('a site with a water type is read, not copied', () async {
       final session = EditSession(bare);
       assign(session, _salt);
-      expect(session.valueOf(diveWaterTypeField), WaterType.salt);
+      expect(session.valueOf(diveWaterTypeField), isNull);
+      expect(session.working.effectiveWaterType, WaterType.salt);
+      expect(session.changedCardIds, isNot(contains('details')));
     });
 
     test('a site with none keeps the dive\'s', () {
@@ -112,11 +115,12 @@ void main() {
       expect(session.valueOf(diveWaterTypeField), WaterType.fresh);
     });
 
-    test('one the diver picked is replaced by a site that has one', () {
+    test('one the diver picked gives way to a site that has one', () {
       final session = EditSession(bare)
         ..set(diveWaterTypeField, WaterType.fresh);
       assign(session, _salt);
-      expect(session.valueOf(diveWaterTypeField), WaterType.salt);
+      expect(session.valueOf(diveWaterTypeField), isNull);
+      expect(session.working.effectiveWaterType, WaterType.salt);
     });
 
     test('site A then site B with none gives back the dive\'s own', () {

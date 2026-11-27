@@ -31,6 +31,7 @@ void main() {
     bool planned = false,
     bool excludedFromGas = false,
     String? diveMode,
+    String? siteId,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
@@ -46,6 +47,7 @@ void main() {
             airTemp: Value(airTemp),
             visibilityMeters: Value(visibilityMeters),
             altitude: Value(altitude),
+            siteId: Value(siteId),
             cnsEnd: Value(cnsEnd),
             otu: Value(otu),
             excludedFromStats: Value(excluded),
@@ -181,5 +183,30 @@ void main() {
     expect(await repository.getAvgDepthPerDive(), isEmpty);
     expect(await repository.getCnsPerDive(), isEmpty);
     expect(await repository.getGasUsedPerDive(), isEmpty);
+  });
+
+  // Issue #5040: the altitude series reads a dive's site when it has none.
+  test("altitude falls back to the dive's site", () async {
+    await db
+        .into(db.diveSites)
+        .insert(
+          DiveSitesCompanion.insert(
+            id: 'lake',
+            name: 'Lake',
+            altitude: const Value(450),
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+    await dive('at-lake', day: 1, siteId: 'lake');
+    await dive('own', day: 2, siteId: 'lake', altitude: 1200);
+    await dive('none', day: 3);
+
+    final points = await repository.getAltitudePerDive();
+
+    expect(
+      {for (final p in points) p.diveId: p.value},
+      {'at-lake': 450, 'own': 1200},
+    );
   });
 }

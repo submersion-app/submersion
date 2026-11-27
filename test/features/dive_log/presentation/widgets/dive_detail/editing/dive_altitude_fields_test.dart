@@ -66,6 +66,12 @@ void main() {
       expect(card.isEmpty(bare.copyWith(altitude: 1)), isFalse);
     });
 
+    // Issue #5040: the site's altitude is read through.
+    test("the card is on the page for a dive at its site's altitude", () {
+      expect(card.isEmpty(bare.copyWith(site: lakeAt900)), isFalse);
+      expect(card.isEmpty(bare.copyWith(altitude: 0, site: lakeAt900)), isTrue);
+    });
+
     test('both fields belong to the Altitude card', () {
       expect(diveAltitudeField.cardId, _cardId);
       expect(diveSurfacePressureField.cardId, _cardId);
@@ -137,11 +143,12 @@ void main() {
       expect(session.isDirty, isFalse);
     });
 
+    // A site with neither altitude nor coordinates cannot answer.
     test('sets it from the dive GPS and holds no site write', () async {
       final session = sessionOver(
         bare.copyWith(
           entryLocation: const GeoPoint(46.5, 8.6),
-          site: lakeNoAltitude,
+          site: const DiveSite(id: 'site-1', name: 'Lake'),
         ),
       );
 
@@ -158,7 +165,8 @@ void main() {
       expect(session.hasHeldWrites, isFalse);
     });
 
-    test('uses the site altitude without a lookup', () async {
+    // Issue #5040: a site's altitude is read through, not copied.
+    test("a site with an altitude needs no lookup and sets nothing", () async {
       final elevation = _FakeElevation(result: 512);
       final session = sessionOver(bare.copyWith(site: lakeAt900));
 
@@ -168,14 +176,45 @@ void main() {
         writeSiteAltitude: writeSite,
       );
 
-      expect(session.valueOf(diveAltitudeField), 900);
+      expect(session.valueOf(diveAltitudeField), isNull);
+      expect(siteAltitudeOf(session), 900);
       expect(elevation.calls, 0);
+      expect(session.isDirty, isFalse);
       expect(session.hasHeldWrites, isFalse);
     });
 
-    test('a site coordinate lookup sets it and holds the site write', () async {
-      final session = sessionOver(bare.copyWith(site: lakeNoAltitude));
+    test(
+      'a site coordinate lookup is held for the site, not the dive',
+      () async {
+        final session = sessionOver(bare.copyWith(site: lakeNoAltitude));
 
+        await fillAltitudeIfEmpty(
+          session,
+          resolver: AltitudeResolver(
+            elevationService: _FakeElevation(result: 512),
+          ),
+          writeSiteAltitude: writeSite,
+        );
+
+        expect(session.valueOf(diveAltitudeField), isNull);
+        // Shown as the site's until the save gives it to the site.
+        expect(siteAltitudeOf(session), 512);
+        expect(session.changedCardIds, {_cardId});
+        expect(session.hasHeldWrites, isTrue);
+        // Held, not written: the site changes only when the sitting is saved.
+        expect(wrote, isEmpty);
+
+        await session.runHeldWrites();
+
+        expect(wrote, [('site-1', 512.0)]);
+      },
+    );
+
+    // A diver who types an altitude of their own over the looked-up one
+    // has not accepted it, and the site is not given it.
+    test('a looked-up site altitude the diver typed over is not written to '
+        'the site', () async {
+      final session = sessionOver(bare.copyWith(site: lakeNoAltitude));
       await fillAltitudeIfEmpty(
         session,
         resolver: AltitudeResolver(
@@ -184,38 +223,30 @@ void main() {
         writeSiteAltitude: writeSite,
       );
 
-      expect(session.valueOf(diveAltitudeField), 512);
-      expect(session.hasHeldWrites, isTrue);
-      // Held, not written: the site changes only when the sitting is saved.
-      expect(wrote, isEmpty);
-
+      session.set(diveAltitudeField, 600.0);
       await session.runHeldWrites();
 
-      expect(wrote, [('site-1', 512.0)]);
+      expect(wrote, isEmpty);
     });
 
-    // The site is given the altitude that was looked up for the dive. A
-    // diver who then types another, or takes it out, has not accepted it.
-    for (final (name, typed) in [('typed over', 600.0), ('cleared', null)]) {
-      test(
-        'a looked-up altitude the diver $name is not written to the site',
-        () async {
-          final session = sessionOver(bare.copyWith(site: lakeNoAltitude));
-          await fillAltitudeIfEmpty(
-            session,
-            resolver: AltitudeResolver(
-              elevationService: _FakeElevation(result: 512),
-            ),
-            writeSiteAltitude: writeSite,
-          );
-
-          session.set(diveAltitudeField, typed);
-          await session.runHeldWrites();
-
-          expect(wrote, isEmpty);
-        },
+    test('a looked-up site altitude is not shown for another site', () async {
+      final session = sessionOver(bare.copyWith(site: lakeNoAltitude));
+      await fillAltitudeIfEmpty(
+        session,
+        resolver: AltitudeResolver(
+          elevationService: _FakeElevation(result: 512),
+        ),
+        writeSiteAltitude: writeSite,
       );
-    }
+
+      session.rebase(
+        bare.copyWith(
+          site: const DiveSite(id: 'site-2', name: 'Quarry'),
+        ),
+      );
+
+      expect(siteAltitudeOf(session), isNull);
+    });
 
     test('a diver who typed a value while the lookup ran keeps it', () async {
       final gate = Completer<void>();

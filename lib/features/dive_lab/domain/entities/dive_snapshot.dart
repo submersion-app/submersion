@@ -80,8 +80,9 @@ class DiveSnapshot extends Equatable {
       diveMode: dive.diveMode,
       gfLow: dive.gradientFactorLow,
       gfHigh: dive.gradientFactorHigh,
-      altitudeMeters: dive.altitude,
-      waterType: dive.waterType,
+      // The dive's own conditions, else its site's (issues #1427, #5040).
+      altitudeMeters: dive.effectiveAltitude,
+      waterType: dive.effectiveWaterType,
       surfacePressureBar: dive.surfacePressure,
       setpointHigh: dive.setpointHigh,
       setpointLow: dive.setpointLow,

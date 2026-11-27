@@ -7,9 +7,10 @@ extension InsightsRepositoryConditions on InsightsRepository {
   /// One row per in-scope dive, recorded or not, ordered by date.
   ///
   /// Every dive is returned so the row count is the "of N dives" denominator
-  /// of each chart's coverage line. Altitude and exit method are the dive's
-  /// stored values: neither has a site fallback that decompression or the
-  /// detail page would agree with.
+  /// of each chart's coverage line. Altitude is the dive's effective one, its
+  /// own else its site's, as decompression and the detail page read it (issue
+  /// #5040). Exit method is the dive's stored value: it has no site fallback
+  /// the detail page would agree with.
   Future<List<ConditionsRow>> getConditionsRows({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
@@ -23,8 +24,8 @@ extension InsightsRepositoryConditions on InsightsRepository {
         SELECT
           id, dive_date_time, air_temp, cloud_cover, precipitation,
           wind_speed, wind_direction, humidity, surface_pressure,
-          current_strength, current_direction, swell_height, altitude,
-          exit_method
+          current_strength, current_direction, swell_height,
+          ${diveEffectiveAltitudeSql('dives')} AS altitude, exit_method
         FROM dives
         WHERE 1 = 1 $diverFilter ${df.clause}
         ORDER BY dive_date_time

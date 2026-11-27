@@ -428,7 +428,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'social_handle': 'buddy card swap: a handle shared on the diver\'s card, and which fields the diver shares, as JSON (null = defaults)',
   },
   'dives': {
-    'altitude': 'Altitude for altitude diving',
+    'altitude': 'The dive\'s own altitude in meters',
     'assumed_vo2': 'Assumed O2 consumption L per minute',
     'bottom_time': 'seconds (bottom time)',
     'cns_end': 'CNS% at dive end',
@@ -486,6 +486,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'visibility_max_meters': 'high end of a visibility range in meters, exclusive',
     'visibility_meters': 'measured horizontal visibility in meters, canonical from v144 on',
     'visibility_min_meters': 'low end of a visibility range in meters, inclusive',
+    'water_type': 'The dive\'s own water type',
     'weather_code': 'Raw WMO weather code from the forecast provider',
     'weather_fetched_at': 'Unix seconds',
     'weather_source': 'enum: WeatherSource.name',

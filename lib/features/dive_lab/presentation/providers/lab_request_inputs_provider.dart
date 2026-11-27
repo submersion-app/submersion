@@ -135,8 +135,9 @@ final labRequestInputsProvider = FutureProvider.autoDispose
         ascentRateCritical: ref.watch(ascentRateCriticalProvider),
         lastStopDepth: ref.watch(lastStopDepthProvider),
         stopIncrement: ref.watch(decoStopIncrementProvider),
-        altitudeMeters: dive.altitude,
-        waterType: dive.waterType,
+        // The dive's own conditions, else its site's (issues #1427, #5040).
+        altitudeMeters: dive.effectiveAltitude,
+        waterType: dive.effectiveWaterType,
         surfacePressureBar: dive.surfacePressure,
         cnsMethod: ref.watch(cnsCalculationMethodProvider),
         gasModel: ref.watch(gasModelProvider),

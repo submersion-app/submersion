@@ -313,17 +313,21 @@ void main() {
       tester.element(find.byType(DiveDetailHeroSection)),
     );
 
-    // Each of the two others sets its own values, and its looked-up
-    // altitude is held for its site.
+    // Each of the two others is read for its water and altitude, not
+    // copied (issue #5040): its looked-up altitude is held for its site and
+    // shown as the site's. Its entry method is set on the dive.
     assign(session, wreck);
     await settle(tester);
-    expect(session.working.waterType, WaterType.salt);
-    expect(session.working.altitude, 512);
+    expect(session.working.waterType, isNull);
+    expect(session.working.effectiveWaterType, WaterType.salt);
+    expect(session.working.altitude, isNull);
+    expect(siteAltitudeOf(session), 512);
     assign(session, quarry);
     await settle(tester);
-    expect(session.working.waterType, WaterType.brackish);
+    expect(session.working.effectiveWaterType, WaterType.brackish);
     expect(session.working.entryMethod, EntryMethod.giantStride);
-    expect(session.working.altitude, 1300);
+    expect(session.working.altitude, isNull);
+    expect(siteAltitudeOf(session), 1300);
     expect(session.heldKeys, contains(siteAltitudeWriteKey('quarry')));
     expect(session.isDirty, isTrue);
 

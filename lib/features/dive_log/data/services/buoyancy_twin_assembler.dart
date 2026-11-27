@@ -117,7 +117,7 @@ class BuoyancyTwinAssembler {
       leadKg: _carriedLead(dive),
       droppableLeadKg: droppableLeadKg(dive),
       environment: DiveEnvironment.forConditions(
-        altitudeMeters: dive.altitude,
+        altitudeMeters: dive.effectiveAltitude,
         waterType: dive.effectiveWaterType,
       ),
       totalMassKg: rig.totalMassKg,

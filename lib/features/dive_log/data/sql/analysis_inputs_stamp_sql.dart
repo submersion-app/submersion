@@ -6,10 +6,14 @@ import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dar
 
 /// The terms a cache built from a dive's profile analysis adds to
 /// `diveSourceStampSql`, as one SQL expression over the dive alias [dive]:
-/// the dive's effective water type (issue #3958), its gas switches, and its
-/// primary computer (issue #2930). None of a site's water, a synced switch
-/// or a synced source flag re-stamps the dive, so a cache keyed on the
-/// source stamp alone keeps a result built from the old inputs current.
+/// the dive's effective water type (issue #3958), the altitude it reads from
+/// its site when it has none of its own (issue #5040), its gas switches, and
+/// its primary computer (issue #2930). None of a site's water or altitude, a
+/// synced switch or a synced source flag re-stamps the dive, so a cache keyed
+/// on the source stamp alone keeps a result built from the old inputs
+/// current. The dive's own altitude needs no term: editing it re-stamps the
+/// dive. The site's is counted in decimetres, rounded, so the integer sum
+/// moves on any change a diver can make.
 ///
 /// The primary term is the source row's local rowid, which differs for each
 /// source of a dive. Like the source stamp it is a version token, not a
@@ -22,6 +26,9 @@ String diveAnalysisInputsStampSql(String dive) {
       "WHEN '${type.name}' THEN ${type.index + 1}",
   ].join(' ');
   return '((CASE ${diveEffectiveWaterTypeSql(dive)} $whens ELSE 0 END) + '
+      'COALESCE((SELECT CAST(ROUND(stamp_a.altitude * 10) AS INTEGER) '
+      'FROM dive_sites stamp_a WHERE stamp_a.id = $dive.site_id '
+      'AND $dive.altitude IS NULL), 0) + '
       'COALESCE((SELECT COUNT(*) + SUM(stamp_g.timestamp) + '
       'SUM(COALESCE(CAST(substr(stamp_g.hlc, 1, 15) AS INTEGER), 0)) '
       'FROM gas_switches stamp_g WHERE stamp_g.dive_id = $dive.id), 0) + '

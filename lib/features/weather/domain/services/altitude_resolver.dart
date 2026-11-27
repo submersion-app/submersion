@@ -10,16 +10,44 @@ import 'package:submersion/features/weather/data/services/elevation_service.dart
 /// the altitude column alone, because writing a whole entity that was
 /// hydrated partially wipes every column it did not carry (issue #1187).
 class AltitudeResolution {
-  const AltitudeResolution({this.altitudeMeters, this.siteAltitudeWriteBack});
+  const AltitudeResolution({
+    this.altitudeMeters,
+    this.siteAltitudeWriteBack,
+    this.source,
+  });
 
   final double? altitudeMeters;
   final ({String siteId, double altitudeMeters})? siteAltitudeWriteBack;
+
+  /// Where [altitudeMeters] came from; null when nothing was found.
+  final AltitudeSource? source;
+
+  /// Whether the altitude is the dive's own, found from its GPS fixes.
+  /// Any other is the site's, which a dive reads through rather than
+  /// storing (issue #5040).
+  bool get isDiveOwn => source == AltitudeSource.diveLocation;
 }
 
-/// Encodes the altitude precedence rule from the 2026-08-06 conditions spec:
-/// dive GPS lookup, then the site's stored altitude, then a site-coordinates
-/// lookup with write-back. Auto-fill callers must only apply the result to an
-/// empty field; manual entry always wins.
+/// Where an [AltitudeResolution] found its altitude.
+enum AltitudeSource {
+  /// A lookup of the dive's own GPS fixes.
+  diveLocation,
+
+  /// The site's stored altitude.
+  siteStored,
+
+  /// A lookup of the site's coordinates, to be written back to the site.
+  siteLookup,
+}
+
+/// Encodes the altitude precedence rule. The 2026-08-06 conditions spec put
+/// the dive's GPS first; since a dive reads its site's altitude rather than
+/// storing a copy (issue #5040), the site answers first: its stored
+/// altitude, then a lookup of its coordinates with write-back. The dive's GPS
+/// is looked up only when there is no site, or the site has neither, so a
+/// dive at a site is never given an altitude of its own that would hide a
+/// later correction to the site's. Auto-fill callers must only apply the
+/// result to an empty field; manual entry always wins.
 class AltitudeResolver {
   AltitudeResolver({
     required ElevationService elevationService,
@@ -38,24 +66,33 @@ class AltitudeResolver {
     GeoPoint? exitLocation,
     DiveSite? site,
   }) async {
+    if (site != null) {
+      if (site.altitude != null) {
+        return AltitudeResolution(
+          altitudeMeters: site.altitude,
+          source: AltitudeSource.siteStored,
+        );
+      }
+      final siteLocation = site.location;
+      if (siteLocation != null) {
+        final meters = await _lookup(siteLocation);
+        if (meters != null) {
+          return AltitudeResolution(
+            altitudeMeters: meters,
+            siteAltitudeWriteBack: (siteId: site.id, altitudeMeters: meters),
+            source: AltitudeSource.siteLookup,
+          );
+        }
+      }
+    }
+
     final divePoint = entryLocation ?? exitLocation;
     if (divePoint != null) {
       final meters = await _lookup(divePoint);
-      if (meters != null) return AltitudeResolution(altitudeMeters: meters);
-    }
-
-    if (site == null) return const AltitudeResolution();
-    if (site.altitude != null) {
-      return AltitudeResolution(altitudeMeters: site.altitude);
-    }
-
-    final siteLocation = site.location;
-    if (siteLocation != null) {
-      final meters = await _lookup(siteLocation);
       if (meters != null) {
         return AltitudeResolution(
           altitudeMeters: meters,
-          siteAltitudeWriteBack: (siteId: site.id, altitudeMeters: meters),
+          source: AltitudeSource.diveLocation,
         );
       }
     }

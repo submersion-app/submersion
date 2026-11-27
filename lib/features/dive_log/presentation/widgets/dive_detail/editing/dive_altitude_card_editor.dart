@@ -19,6 +19,11 @@ import 'package:submersion/shared/widgets/record_editing/record_number_row.dart'
 /// The Altitude card's editor: the dive's altitude and surface pressure, in
 /// the diver's units, with the altitude group the read card shows.
 ///
+/// A dive with no altitude of its own reads its site's (issue #5040), shown
+/// as the altitude field's placeholder, as the Details card shows the site's
+/// water type: typing a value makes it the dive's own, and clearing it goes
+/// back to the site's.
+///
 /// The first time it is opened in a sitting, on a dive with no altitude, it
 /// looks one up ([fillAltitudeIfEmpty]). What it finds is a change like any
 /// other: the card is marked, and Cancel undoes it.
@@ -79,7 +84,8 @@ class _DiveAltitudeCardEditorState
     return ListenableBuilder(
       listenable: session,
       builder: (context, _) {
-        final altitude = session.valueOf(diveAltitudeField);
+        final altitude = effectiveAltitudeOf(session);
+        final siteAltitude = siteAltitudeOf(session);
         final group = AltitudeGroup.fromAltitude(
           _altitudeUnreadable ? null : altitude,
         );
@@ -94,6 +100,9 @@ class _DiveAltitudeCardEditorState
               suffixText: units.altitudeSymbol,
               toDisplay: units.convertAltitude,
               fromDisplay: units.altitudeToMeters,
+              placeholder: siteAltitude == null
+                  ? null
+                  : formatFixedForInput(units.convertAltitude(siteAltitude), 0),
               onUnreadableChanged: (unreadable) {
                 if (mounted) setState(() => _altitudeUnreadable = unreadable);
               },

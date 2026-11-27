@@ -337,7 +337,8 @@ void main() {
       expect(tester.getSize(find.byType(AltitudeGroupBanner)).height, 0);
     });
 
-    testWidgets('opening an empty altitude fills it from the site', (
+    // Issue #5040: the site's altitude is read through, not copied.
+    testWidgets("an empty altitude shows the site's as its placeholder", (
       tester,
     ) async {
       final elevation = _FakeElevation(result: 512);
@@ -347,10 +348,12 @@ void main() {
         elevation: elevation,
       );
 
-      expect(find.text('900 m'), findsOneWidget);
-      expect(controller.session!.valueOf(diveAltitudeField), 900);
-      expect(controller.session!.changedCardIds, {_cardId});
+      expect(find.text('900'), findsOneWidget);
+      expect(controller.session!.valueOf(diveAltitudeField), isNull);
+      expect(controller.isDirty, isFalse);
       expect(elevation.calls, 0);
+      // The group follows the altitude the dive is at.
+      expect(find.byType(AltitudeGroupBanner), findsOneWidget);
     });
 
     testWidgets('a looked-up altitude is copied to the site with the sitting', (
@@ -364,7 +367,10 @@ void main() {
         sites: sites,
       );
 
-      expect(find.text('512 m'), findsOneWidget);
+      // Held for the site and shown as the site's, not set on the dive.
+      expect(find.text('512'), findsOneWidget);
+      expect(controller.session!.valueOf(diveAltitudeField), isNull);
+      expect(controller.session!.changedCardIds, {_cardId});
       expect(controller.session!.hasHeldWrites, isTrue);
       expect(sites.wrote, isEmpty);
 
@@ -430,13 +436,17 @@ void main() {
     testWidgets('a looked-up altitude the diver cleared is not looked up '
         'again', (tester) async {
       final elevation = _FakeElevation(result: 512);
-      final dive = bare.copyWith(site: lakeNoAltitude);
+      final dive = bare.copyWith(
+        entryLocation: const GeoPoint(46.5, 8.6),
+        site: const DiveSite(id: 'site-1', name: 'Lake'),
+      );
       final controller = await pumpEditor(
         tester,
         dive,
         elevation: elevation,
         sites: _FakeSites(),
       );
+      // The dive's own, from its GPS: the site can answer neither way.
       expect(controller.session!.valueOf(diveAltitudeField), 512);
 
       controller.session!.set(diveAltitudeField, null);

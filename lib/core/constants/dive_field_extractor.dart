@@ -74,7 +74,7 @@ extension DiveFieldExtractor on DiveField {
       case DiveField.waterType:
         return dive.effectiveWaterType?.displayName;
       case DiveField.altitude:
-        return dive.altitude;
+        return dive.effectiveAltitude;
       case DiveField.surfacePressure:
         return dive.surfacePressure;
       case DiveField.windSpeed:

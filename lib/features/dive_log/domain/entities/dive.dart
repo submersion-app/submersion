@@ -417,11 +417,23 @@ class Dive extends Equatable {
   /// only its own value.
   WaterType? get effectiveWaterType => waterType ?? site?.waterType;
 
+  /// Altitude of the dive in metres, falling back to the assigned site's
+  /// (issue #5040).
+  ///
+  /// A site's altitude is a property of the place, so it is read from the
+  /// site rather than copied onto the dive: an altitude the site gains or
+  /// corrects later reaches every dive made there. [altitude] holds only a
+  /// value of the dive's own (one from its GPS fixes, a computer, an import,
+  /// or typed by the diver), and it always wins.
+  ///
+  /// Requires [site] to be hydrated, as [effectiveWaterType] does.
+  double? get effectiveAltitude => altitude ?? site?.altitude;
+
   /// The water and surface pressure this dive happened in: what its deco
   /// replay runs in and what every pressure read from its depth uses
   /// (issue #3958).
   DiveEnvironment get environment => DiveEnvironment.forConditions(
-    altitudeMeters: altitude,
+    altitudeMeters: effectiveAltitude,
     waterType: effectiveWaterType,
     surfacePressureBar: surfacePressure,
   );
