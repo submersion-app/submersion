@@ -7514,6 +7514,15 @@
       }
     }
   },
+  "diveSites_merge_hoursSchedules": "{count, plural, =1{1 schedule} other{{count} schedules}}",
+  "@diveSites_merge_hoursSchedules": {
+    "description": "Opening hours on the merge page, as a count of weekly schedules.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveSites_detail_section_altitude": "Altitude",
   "diveSites_detail_section_depthRange": "Depth Range",
   "diveSites_detail_section_description": "Description",
@@ -29057,6 +29066,10 @@
   "enum_siteField_entryType": "Entry Type",
   "enum_siteField_bestSeason": "Best Season",
   "enum_siteField_mooringNumber": "Mooring Number",
+  "enum_siteField_address": "Address",
+  "enum_siteField_phone": "Phone",
+  "enum_siteField_email": "Email",
+  "enum_siteField_website": "Website",
   "enum_siteField_hazards": "Hazards",
   "enum_siteField_rating": "Rating",
   "enum_siteField_notes": "Notes",
@@ -29088,6 +29101,10 @@
   },
   "enum_siteField_bestSeason_short": "Season",
   "enum_siteField_mooringNumber_short": "Mooring",
+  "enum_siteField_address_short": "Address",
+  "enum_siteField_phone_short": "Phone",
+  "enum_siteField_email_short": "Email",
+  "enum_siteField_website_short": "Web",
   "enum_siteField_hazards_short": "Hazards",
   "enum_siteField_rating_short": "Rating",
   "enum_siteField_notes_short": "Notes",

@@ -83,7 +83,13 @@ enum SiteField implements EntityField {
 
   // Classification (issue #1765). Appended, never reordered or renamed.
   siteTypes,
-  tags;
+  tags,
+
+  // Contact details (issue #5073). Appended, never reordered or renamed.
+  address,
+  phone,
+  email,
+  website;
 
   @override
   String get name => toString().split('.').last;
@@ -127,6 +133,14 @@ enum SiteField implements EntityField {
         return 'Exit Method';
       case SiteField.bestSeason:
         return 'Best Season';
+      case SiteField.address:
+        return 'Address';
+      case SiteField.phone:
+        return 'Phone';
+      case SiteField.email:
+        return 'Email';
+      case SiteField.website:
+        return 'Website';
       case SiteField.mooringNumber:
         return 'Mooring Number';
       case SiteField.hazards:
@@ -199,6 +213,14 @@ enum SiteField implements EntityField {
         return 'Exit';
       case SiteField.bestSeason:
         return 'Season';
+      case SiteField.address:
+        return 'Address';
+      case SiteField.phone:
+        return 'Phone';
+      case SiteField.email:
+        return 'Email';
+      case SiteField.website:
+        return 'Web';
       case SiteField.mooringNumber:
         return 'Mooring';
       case SiteField.hazards:
@@ -252,6 +274,10 @@ enum SiteField implements EntityField {
     SiteField.entryType => l10n.enum_siteField_entryType,
     SiteField.exitMethod => l10n.enum_siteField_exitMethod,
     SiteField.bestSeason => l10n.enum_siteField_bestSeason,
+    SiteField.address => l10n.enum_siteField_address,
+    SiteField.phone => l10n.enum_siteField_phone,
+    SiteField.email => l10n.enum_siteField_email,
+    SiteField.website => l10n.enum_siteField_website,
     SiteField.mooringNumber => l10n.enum_siteField_mooringNumber,
     SiteField.hazards => l10n.enum_siteField_hazards,
     SiteField.rating => l10n.enum_siteField_rating,
@@ -289,6 +315,10 @@ enum SiteField implements EntityField {
     SiteField.entryType => l10n.enum_siteField_entryType_short,
     SiteField.exitMethod => l10n.enum_siteField_exitMethod_short,
     SiteField.bestSeason => l10n.enum_siteField_bestSeason_short,
+    SiteField.address => l10n.enum_siteField_address_short,
+    SiteField.phone => l10n.enum_siteField_phone_short,
+    SiteField.email => l10n.enum_siteField_email_short,
+    SiteField.website => l10n.enum_siteField_website_short,
     SiteField.mooringNumber => l10n.enum_siteField_mooringNumber_short,
     SiteField.hazards => l10n.enum_siteField_hazards_short,
     SiteField.rating => l10n.enum_siteField_rating_short,
@@ -346,6 +376,14 @@ enum SiteField implements EntityField {
         return Icons.logout;
       case SiteField.bestSeason:
         return Icons.calendar_month;
+      case SiteField.address:
+        return Icons.place_outlined;
+      case SiteField.phone:
+        return Icons.phone_outlined;
+      case SiteField.email:
+        return Icons.email_outlined;
+      case SiteField.website:
+        return Icons.language_outlined;
       case SiteField.mooringNumber:
         return Icons.anchor;
       case SiteField.hazards:
@@ -418,6 +456,12 @@ enum SiteField implements EntityField {
         return 90;
       case SiteField.bestSeason:
         return 100;
+      case SiteField.address:
+        return 200;
+      case SiteField.phone:
+      case SiteField.email:
+      case SiteField.website:
+        return 160;
       case SiteField.mooringNumber:
         return 100;
       case SiteField.hazards:
@@ -489,6 +533,10 @@ enum SiteField implements EntityField {
         return 60;
       case SiteField.bestSeason:
         return 60;
+      case SiteField.address:
+      case SiteField.phone:
+      case SiteField.email:
+      case SiteField.website:
       case SiteField.mooringNumber:
         return 60;
       case SiteField.hazards:
@@ -554,6 +602,10 @@ enum SiteField implements EntityField {
       case SiteField.entryType:
       case SiteField.exitMethod:
       case SiteField.bestSeason:
+      case SiteField.address:
+      case SiteField.phone:
+      case SiteField.email:
+      case SiteField.website:
       case SiteField.mooringNumber:
       case SiteField.hazards:
       case SiteField.notes:
@@ -586,6 +638,10 @@ enum SiteField implements EntityField {
       case SiteField.exitMethod:
       case SiteField.bestSeason:
         return SiteFieldCategory.conditions.name;
+      case SiteField.address:
+      case SiteField.phone:
+      case SiteField.email:
+      case SiteField.website:
       case SiteField.mooringNumber:
       case SiteField.hazards:
       case SiteField.rating:
@@ -639,6 +695,10 @@ enum SiteField implements EntityField {
       case SiteField.entryType:
       case SiteField.exitMethod:
       case SiteField.bestSeason:
+      case SiteField.address:
+      case SiteField.phone:
+      case SiteField.email:
+      case SiteField.website:
       case SiteField.mooringNumber:
       case SiteField.hazards:
       case SiteField.notes:

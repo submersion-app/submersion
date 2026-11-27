@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/database.dart' hide Diver, DiveSite;
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/opening_hours/opening_hours.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
@@ -228,6 +229,41 @@ void main() {
     expect((merged! as SiteMergeResult).survivorId, 'a');
     expect(await stored('a'), isTrue);
     expect(await stored('b'), isFalse);
+  });
+
+  // Contact details and opening hours (issue #5073): a merge keeps the ones
+  // only one site has.
+  testWidgets('a merge keeps contact details and hours from either site', (
+    tester,
+  ) async {
+    const hours = OpeningHours(alwaysOpen: true, note: 'Gate code 1234');
+    final sites = SiteRepository();
+    await sites.createSite(
+      const DiveSite(id: 'a', name: 'Stoney Cove', diverId: 'd2'),
+    );
+    await sites.createSite(
+      const DiveSite(
+        id: 'b',
+        name: 'Stoney Cove North',
+        diverId: 'd2',
+        address: 'LE9 4DW',
+        phone: '+44 1455 273089',
+        email: 'info@stoneycove.com',
+        website: 'stoneycove.com',
+        openingHours: hours,
+      ),
+    );
+    final result = await pump(tester, const ['a', 'b'], active: 'd2');
+
+    await saveAndMerge(tester);
+
+    expect(await result, isA<SiteMergeResult>());
+    final merged = (await sites.getSiteById('a'))!;
+    expect(merged.address, 'LE9 4DW');
+    expect(merged.phone, '+44 1455 273089');
+    expect(merged.email, 'info@stoneycove.com');
+    expect(merged.website, 'stoneycove.com');
+    expect(merged.openingHours, hours);
   });
 
   // What a merge stores (final review): the chosen candidates, the chosen

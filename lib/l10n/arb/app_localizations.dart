@@ -19314,6 +19314,12 @@ abstract class AppLocalizations {
   /// **'{name}, {season}'**
   String diveSites_hours_namedSeason(String name, String season);
 
+  /// Opening hours on the merge page, as a count of weekly schedules.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 schedule} other{{count} schedules}}'**
+  String diveSites_merge_hoursSchedules(int count);
+
   /// No description provided for @diveSites_detail_section_altitude.
   ///
   /// In en, this message translates to:
@@ -73685,6 +73691,30 @@ abstract class AppLocalizations {
   /// **'Mooring Number'**
   String get enum_siteField_mooringNumber;
 
+  /// No description provided for @enum_siteField_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get enum_siteField_address;
+
+  /// No description provided for @enum_siteField_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get enum_siteField_phone;
+
+  /// No description provided for @enum_siteField_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get enum_siteField_email;
+
+  /// No description provided for @enum_siteField_website.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get enum_siteField_website;
+
   /// No description provided for @enum_siteField_hazards.
   ///
   /// In en, this message translates to:
@@ -73834,6 +73864,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mooring'**
   String get enum_siteField_mooringNumber_short;
+
+  /// No description provided for @enum_siteField_address_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get enum_siteField_address_short;
+
+  /// No description provided for @enum_siteField_phone_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get enum_siteField_phone_short;
+
+  /// No description provided for @enum_siteField_email_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get enum_siteField_email_short;
+
+  /// No description provided for @enum_siteField_website_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Web'**
+  String get enum_siteField_website_short;
 
   /// No description provided for @enum_siteField_hazards_short.
   ///

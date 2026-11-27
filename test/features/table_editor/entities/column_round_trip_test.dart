@@ -173,8 +173,21 @@ void main() {
       hazards: 'Boats',
       rating: 4,
       notes: 'Nice',
+      address: 'Coast Road 1',
+      phone: '+52 984 555 0100',
+      email: 'info@cenote.mx',
+      website: 'cenote.mx',
     );
     checkColumns(entity, const SiteWithDiveCount(site: site, diveCount: 2));
+    expect(
+      entity.columns.map((c) => c.field),
+      containsAll([
+        SiteField.address,
+        SiteField.phone,
+        SiteField.email,
+        SiteField.website,
+      ]),
+    );
     expect(entity.keyField, SiteField.siteName);
     expect(
       entity.nameOf(const SiteWithDiveCount(site: site, diveCount: 0)),

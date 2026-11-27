@@ -11895,6 +11895,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveSites_merge_hoursSchedules(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count schedules',
+      one: '1 schedule',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_detail_section_altitude => 'גובה';
 
   @override
@@ -46083,6 +46094,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_siteField_mooringNumber => 'מספר עגינה';
 
   @override
+  String get enum_siteField_address => 'Address';
+
+  @override
+  String get enum_siteField_phone => 'Phone';
+
+  @override
+  String get enum_siteField_email => 'Email';
+
+  @override
+  String get enum_siteField_website => 'Website';
+
+  @override
   String get enum_siteField_hazards => 'סכנות';
 
   @override
@@ -46156,6 +46179,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_siteField_mooringNumber_short => 'עגינה';
+
+  @override
+  String get enum_siteField_address_short => 'Address';
+
+  @override
+  String get enum_siteField_phone_short => 'Phone';
+
+  @override
+  String get enum_siteField_email_short => 'Email';
+
+  @override
+  String get enum_siteField_website_short => 'Web';
 
   @override
   String get enum_siteField_hazards_short => 'סכנות';

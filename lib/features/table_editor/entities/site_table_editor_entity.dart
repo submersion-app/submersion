@@ -243,6 +243,12 @@ class SiteTableEditorEntity
       accessNotes: s.accessNotes,
       mooringNumber: pick<String?>(SiteField.mooringNumber, s.mooringNumber),
       parkingInfo: s.parkingInfo,
+      address: pick<String?>(SiteField.address, s.address),
+      phone: pick<String?>(SiteField.phone, s.phone),
+      email: pick<String?>(SiteField.email, s.email),
+      website: pick<String?>(SiteField.website, s.website),
+      // Not a column: kept as it is (issue #5073).
+      openingHours: s.openingHours,
       altitude: pick<double?>(SiteField.altitude, s.altitude),
       entryMethods: methods(SiteField.entryType, s.entryMethods),
       exitMethods: methods(SiteField.exitMethod, s.exitMethods),
@@ -348,6 +354,10 @@ List<SiteEditorColumn> _columns(Map<String, bool> editableLibrarySites) {
       readOnlyReason: reason,
     ),
     text(SiteField.mooringNumber, (s) => s.mooringNumber),
+    text(SiteField.address, (s) => s.address),
+    text(SiteField.phone, (s) => s.phone),
+    text(SiteField.email, (s) => s.email),
+    text(SiteField.website, (s) => s.website),
     text(SiteField.hazards, (s) => s.hazards),
     // Private to the profile, so a library site keeps them editable.
     plainNumberColumn(SiteField.rating, (e) => e.site.rating, min: 0, max: 5),

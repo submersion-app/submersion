@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/opening_hours/opening_hours.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -282,5 +283,36 @@ void main() {
 
       expect(out, isEmpty);
     });
+  });
+
+  // Issue #5073: the contact columns edit, and a save keeps what the table
+  // does not show.
+  test('editing the phone keeps the address, website and hours', () async {
+    const hours = OpeningHours(alwaysOpen: true);
+    await repo.createSite(
+      const DiveSite(
+        id: 'c1',
+        name: 'Stoney Cove',
+        address: 'LE9 4DW',
+        website: 'stoneycove.com',
+        openingHours: hours,
+      ),
+    );
+    final e = entity();
+    final r = await row('c1');
+    expect(e.columnFor(SiteField.phone)!.isEditable(r), isTrue);
+
+    await e.save(
+      {
+        'c1': [draft('c1', SiteField.phone, null, '+44 1455 273089')],
+      },
+      {'c1': r},
+    );
+
+    final saved = (await repo.getSiteById('c1'))!;
+    expect(saved.phone, '+44 1455 273089');
+    expect(saved.address, 'LE9 4DW');
+    expect(saved.website, 'stoneycove.com');
+    expect(saved.openingHours, hours);
   });
 }

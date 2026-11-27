@@ -86,6 +86,14 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
       case SiteField.bestSeason:
         // No backing column; retained for saved-layout compatibility.
         return null;
+      case SiteField.address:
+        return site.address;
+      case SiteField.phone:
+        return site.phone;
+      case SiteField.email:
+        return site.email;
+      case SiteField.website:
+        return site.website;
       case SiteField.mooringNumber:
         return site.mooringNumber;
       case SiteField.hazards:
@@ -143,6 +151,10 @@ class SiteFieldAdapter extends EntityFieldAdapter<SiteWithCount, SiteField> {
       case SiteField.entryType:
       case SiteField.exitMethod:
       case SiteField.bestSeason:
+      case SiteField.address:
+      case SiteField.phone:
+      case SiteField.email:
+      case SiteField.website:
       case SiteField.mooringNumber:
       case SiteField.hazards:
       case SiteField.notes:
