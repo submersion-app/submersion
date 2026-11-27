@@ -102,7 +102,8 @@ add_header Vary Origin always;
 ```
 
 ```apache
-SetEnvIf Origin "^https://(beta\.)?web\.submersion\.app$" SUBMERSION_ORIGIN=$0
+# In place of the Allow-Origin line in the <Location> block below:
+SetEnvIf Origin "^(https://(beta\.)?web\.submersion\.app)$" SUBMERSION_ORIGIN=$1
 Header always set Access-Control-Allow-Origin "%{SUBMERSION_ORIGIN}e" env=SUBMERSION_ORIGIN
 Header always merge Vary Origin
 ```
