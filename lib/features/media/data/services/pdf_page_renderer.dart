@@ -38,8 +38,9 @@ class PdfPageRenderer {
   /// substitute [pdfrxInitialize] (which fetches a host pdfium build).
   static Future<void> Function() initializer = pdfrxFlutterInitialize;
 
-  /// Opens a bytes source. In memory, so pdfium never waits on the main
-  /// isolate for a block (issue #4785); readable so a test can pin it.
+  /// Opens a bytes source, in memory up to [inMemoryPdfLimitBytes], so
+  /// pdfium does not wait on the main isolate for each block (issue #4785);
+  /// readable so a test can pin it.
   @visibleForTesting
   static const Future<PdfDocument> Function(Uint8List bytes) openBytes =
       openInMemoryPdf;

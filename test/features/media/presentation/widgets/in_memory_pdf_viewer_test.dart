@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:submersion/features/media/data/services/pdf_in_memory.dart';
 import 'package:submersion/features/media/presentation/widgets/in_memory_pdf_viewer.dart';
 
 /// Issue #4785. Building the widget loads nothing, so this runs without a
@@ -13,7 +14,7 @@ void main() {
     final viewer = inMemoryPdfViewer(large, sourceName: 'doc-1');
 
     final ref = viewer.documentRef as PdfDocumentRefData;
-    expect(ref.maxSizeToCacheOnMemory, large.length);
+    expect(ref.maxSizeToCacheOnMemory, inMemoryPdfLimitBytes);
     expect(ref.key, PdfDocumentRefKey('doc-1'));
   });
 
