@@ -5,12 +5,23 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/feature_flags.dart';
+import 'package:submersion/features/media/domain/entities/species_tag_chip.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
+import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
+import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
+import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
 import 'package:submersion/features/species_id/domain/services/species_crops.dart';
+import 'package:submersion/features/species_id/presentation/providers/recorded_nearby_providers.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/video_sighting_providers.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../species_id/domain/identification_rules_fixtures.dart'
+    show ruleId;
+import '../../../species_id/presentation/species_id_fakes.dart';
 import 'video_viewer_test_harness.dart';
 
 /// Records every seek, so a test can tell where the viewer started a clip.
@@ -300,4 +311,92 @@ void main() {
 
     expect(player.seeks, isEmpty);
   });
+  testWidgets('a failed lookup leaves the video at its start', (tester) async {
+    final player = _SeekRecorder();
+    await pumpVideoViewer(
+      tester,
+      prefs,
+      platform: player,
+      focusSpeciesId: 's1',
+      overrides: [
+        videoSpeciesSightingsProvider((
+          mediaId: 'v1',
+          speciesId: 's1',
+        )).overrideWith((ref) async => throw StateError('no database')),
+      ],
+    );
+    await settle(tester);
+
+    expect(player.seeks, isEmpty);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'a time picked on the species sheet is kept when the lookup lands',
+    (tester) async {
+      // Picked within the first 250 ms, where only the diver's mark tells
+      // it from a player that was never moved.
+      marineLifeIdEnabled = true;
+      addTearDown(resetMarineLifeIdEnabled);
+      final player = _SeekRecorder();
+      final lookup = Completer<List<VideoStretch>>();
+      await pumpVideoViewer(
+        tester,
+        prefs,
+        platform: player,
+        focusSpeciesId: 's1',
+        overrides: [
+          videoSpeciesSightingsProvider((
+            mediaId: 'v1',
+            speciesId: 's1',
+          )).overrideWith((ref) => lookup.future),
+          mediaTagChipsProvider('v1').overrideWith(
+            (ref) async => const [
+              SpeciesTagChip(
+                speciesId: 's1',
+                storedName: 'French Grunt',
+                category: SpeciesCategory.fish,
+                isBuiltIn: false,
+              ),
+            ],
+          ),
+          mediaSuggestionsProvider('v1').overrideWith((ref) async => const []),
+          recordedNearbyListProvider.overrideWith(
+            (ref, request) async => const NearbySpecies(speciesKeys: {}),
+          ),
+          mediaIdentificationRepositoryProvider.overrideWithValue(
+            FixedIdentifications([
+              ruleId(
+                'a',
+                decision: IdentificationDecision.accepted,
+                decidedSpeciesId: 's1',
+              ).copyWith(
+                startMs: () => 100,
+                endMs: () => 3000,
+                bestMs: () => 1000,
+              ),
+            ]),
+          ),
+          identificationCropProvider.overrideWith((ref, key) async => null),
+          presentCropIdsProvider.overrideWith((ref, _) async => const {}),
+        ],
+      );
+
+      await tester.tap(find.text('French Grunt'));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.tap(find.byKey(const ValueKey('species_crop_moment_100')));
+      await tester.pump(const Duration(milliseconds: 500));
+      await settle(tester);
+      expect(player.seeks, [const Duration(milliseconds: 100)]);
+
+      lookup.complete(const [(startMs: 4200, endMs: 9000)]);
+      await settle(tester);
+
+      expect(player.seeks, [const Duration(milliseconds: 100)]);
+    },
+  );
 }
