@@ -53,6 +53,17 @@ class CategoryBarChart extends StatefulWidget {
   /// tap shows the number and [ChartSelectionStrip] opens it.
   final Future<void> Function(int index)? onOpenBar;
 
+  /// Replaces the tooltip's text for the bar at an index, for a chart whose
+  /// bars carry more than one number (issue #5074). Null keeps the bar's
+  /// label over its formatted count.
+  final String Function(int index)? tooltipText;
+
+  /// When the x labels, compacted or not, still do not fit under their bars,
+  /// draw only every n-th one: the smallest step whose labels fit, counted
+  /// back from the last bar so the most recent period always keeps its
+  /// label. For long runs such as one bar per year over decades (#5074).
+  final bool thinXLabelsToFit;
+
   const CategoryBarChart({
     super.key,
     required this.data,
@@ -65,6 +76,8 @@ class CategoryBarChart extends StatefulWidget {
     this.compactXLabelFormatter,
     this.compactXLabelsToFit = false,
     this.onOpenBar,
+    this.tooltipText,
+    this.thinXLabelsToFit = false,
   }) : assert(yAxisScale > 0, 'yAxisScale must be at least 1');
 
   @override
@@ -93,26 +106,52 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
     if (!listEquals(oldWidget.data, widget.data)) _marked = null;
   }
 
-  /// Whether the widest x label is too wide for the slot under one bar of a
-  /// chart [chartWidth] wide, at the reader's text size.
-  bool _labelsOverflow(BuildContext context, double chartWidth) {
-    final slot =
-        (chartWidth - _leftInset - _borderWidth * 2) / widget.data.length;
+  /// The width of the slot under one bar of a chart [chartWidth] wide.
+  double _slotWidth(double chartWidth) =>
+      (chartWidth - _leftInset - _borderWidth * 2) / widget.data.length;
+
+  /// The widest of [labels] plus the clear gap kept beside it, at the
+  /// reader's text size.
+  double _widestLabel(BuildContext context, Iterable<String> labels) {
     final style = Theme.of(context).textTheme.bodySmall;
     final textScaler = MediaQuery.textScalerOf(context);
     final textDirection = Directionality.of(context);
-    for (final item in widget.data) {
+    var widest = 0.0;
+    for (final label in labels) {
       final painter = TextPainter(
-        text: TextSpan(text: item.label, style: style),
+        text: TextSpan(text: label, style: style),
         textDirection: textDirection,
         textScaler: textScaler,
         maxLines: 1,
       )..layout();
-      final width = painter.width;
+      if (painter.width > widest) widest = painter.width;
       painter.dispose();
-      if (width + CategoryBarChart._labelGap > slot) return true;
     }
-    return false;
+    return widest + CategoryBarChart._labelGap;
+  }
+
+  /// Whether the widest x label is too wide for the slot under one bar of a
+  /// chart [chartWidth] wide, at the reader's text size.
+  bool _labelsOverflow(BuildContext context, double chartWidth) =>
+      _widestLabel(context, widget.data.map((e) => e.label)) >
+      _slotWidth(chartWidth);
+
+  /// Every how many bars an x label is drawn: 1 unless [thinXLabelsToFit]
+  /// is set and the labels as drawn do not fit their slots.
+  int _labelStep(
+    BuildContext context,
+    double chartWidth, {
+    required bool compact,
+  }) {
+    if (!widget.thinXLabelsToFit) return 1;
+    final format = widget.compactXLabelFormatter;
+    final labels = widget.data.map(
+      (e) => compact && format != null ? format(e.label) : e.label,
+    );
+    final slot = _slotWidth(chartWidth);
+    if (slot <= 0) return 1;
+    final step = (_widestLabel(context, labels) / slot).ceil();
+    return step < 1 ? 1 : step;
   }
 
   /// Taps go by column rather than by rod, so a very short bar can be hit.
@@ -202,6 +241,11 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
               color: color,
               maxCount: maxCount,
               useCompactXLabels: useCompactXLabels,
+              labelStep: _labelStep(
+                context,
+                constraints.maxWidth,
+                compact: useCompactXLabels,
+              ),
               chartWidth: constraints.maxWidth,
             );
           },
@@ -238,9 +282,11 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
     required Color color,
     required double maxCount,
     required bool useCompactXLabels,
+    required int labelStep,
     required double chartWidth,
   }) {
     final data = widget.data;
+    final tooltipText = widget.tooltipText;
     final valueFormatter = widget.valueFormatter;
     final xAxisLabel = widget.xAxisLabel;
     final yAxisLabel = widget.yAxisLabel;
@@ -277,7 +323,8 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
               final formattedValue =
                   valueFormatter?.call(item.count) ?? '${item.count}';
               return BarTooltipItem(
-                '${item.label}\n$formattedValue',
+                tooltipText?.call(groupIndex) ??
+                    '${item.label}\n$formattedValue',
                 TextStyle(
                   color: Theme.of(context).colorScheme.onPrimary,
                   fontWeight: FontWeight.bold,
@@ -299,6 +346,9 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
                 final index = value.toInt();
                 if (index < 0 || index >= data.length) {
                   return const Text('');
+                }
+                if ((data.length - 1 - index) % labelStep != 0) {
+                  return const SizedBox.shrink();
                 }
                 final rawLabel = data[index].label;
                 final label = useCompactXLabels
