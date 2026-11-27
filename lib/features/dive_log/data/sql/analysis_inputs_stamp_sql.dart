@@ -13,7 +13,9 @@ import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dar
 /// on the source stamp alone keeps a result built from the old inputs
 /// current. The dive's own altitude needs no term: editing it re-stamps the
 /// dive. The site's is counted in decimetres, rounded, so the integer sum
-/// moves on any change a diver can make.
+/// moves on any change a diver can make, and scaled past the water-type
+/// term's range, so a site edit that changes both at once can never move
+/// them by opposite amounts and leave the sum where it was.
 ///
 /// The primary term is the source row's local rowid, which differs for each
 /// source of a dive. Like the source stamp it is a version token, not a
@@ -26,7 +28,8 @@ String diveAnalysisInputsStampSql(String dive) {
       "WHEN '${type.name}' THEN ${type.index + 1}",
   ].join(' ');
   return '((CASE ${diveEffectiveWaterTypeSql(dive)} $whens ELSE 0 END) + '
-      'COALESCE((SELECT CAST(ROUND(stamp_a.altitude * 10) AS INTEGER) '
+      'COALESCE((SELECT CAST(ROUND(stamp_a.altitude * 10) AS INTEGER) * '
+      '$_altitudeScale '
       'FROM dive_sites stamp_a WHERE stamp_a.id = $dive.site_id '
       'AND $dive.altitude IS NULL), 0) + '
       'COALESCE((SELECT COUNT(*) + SUM(stamp_g.timestamp) + '
@@ -35,6 +38,11 @@ String diveAnalysisInputsStampSql(String dive) {
       'COALESCE((SELECT SUM(stamp_s.rowid) FROM dive_data_sources stamp_s '
       'WHERE stamp_s.dive_id = $dive.id AND stamp_s.is_primary = 1), 0))';
 }
+
+/// What the site-altitude term of [diveAnalysisInputsStampSql] is scaled
+/// by: past the water-type term's largest value, so no change to one can
+/// cancel a change to the other.
+final int _altitudeScale = WaterType.values.length + 1;
 
 /// The tables [diveAnalysisInputsStampSql] reads, for `readsFrom` and ticks.
 Set<ResultSetImplementation<dynamic, dynamic>> diveAnalysisInputsStampTables(

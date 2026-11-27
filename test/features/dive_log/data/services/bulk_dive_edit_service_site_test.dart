@@ -113,14 +113,15 @@ void main() {
       ),
     );
 
+    // The site's water type is read through, not copied (issue #5040).
     final d1 = await row('d1');
     expect(d1.siteId, 's1');
-    expect(d1.waterType, 'salt');
+    expect(d1.waterType, isNull);
     expect(d1.entryMethod, 'shore');
     expect(d1.exitMethod, 'shore');
     final d2 = await row('d2');
     expect(d2.siteId, 's1');
-    expect(d2.waterType, 'salt');
+    expect(d2.waterType, isNull);
     expect(d2.entryMethod, 'shore');
     // d2's exit was set apart from its entry by hand, so it stays.
     expect(d2.exitMethod, 'ladder');

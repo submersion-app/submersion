@@ -2,7 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/constants/enums.dart'
-    show EquipmentType, WeightType;
+    show EquipmentType, WaterType, WeightType;
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -59,7 +59,11 @@ void main() {
   domain.DiveWeight weight(double kg, {WeightType type = WeightType.belt}) =>
       domain.DiveWeight(id: '', diveId: '', weightType: type, amountKg: kg);
 
-  Future<void> insertSite(String id, {String? waterType}) async {
+  Future<void> insertSite(
+    String id, {
+    String? waterType,
+    double? altitude,
+  }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.diveSites)
@@ -68,6 +72,7 @@ void main() {
             id: Value(id),
             name: Value('Site $id'),
             waterType: Value(waterType),
+            altitude: Value(altitude),
             createdAt: Value(now),
             updatedAt: Value(now),
           ),
@@ -181,22 +186,44 @@ void main() {
     expect(after['d2']!.weights, isEmpty);
   });
 
-  test('save sets a site through SiteOp so the water type snaps', () async {
+  // Issue #5040: the site's water type is read through, not copied.
+  test(
+    'save sets a site through SiteOp so the water type is read from it',
+    () async {
+      await seed('d1');
+      await seed('d2');
+      await insertSite('s1', waterType: 'salt');
+      final e = await entity();
+      final r = await rows();
+
+      await e.save({
+        'd1': [draft('d1', DiveField.siteName, null, 's1')],
+      }, r);
+
+      final row = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('d1'))).getSingle();
+      expect(row.siteId, 's1');
+      expect(row.waterType, isNull);
+      expect((await rows())['d1']!.effectiveWaterType, WaterType.salt);
+    },
+  );
+
+  // Issue #5040: a dive with none of its own shows its site's, as every
+  // other reader of the dive does.
+  test("altitude and water type columns read the site's", () async {
     await seed('d1');
     await seed('d2');
-    await insertSite('s1', waterType: 'salt');
+    await insertSite('s1', waterType: 'fresh', altitude: 450);
+    await (db.update(db.dives)..where((t) => t.id.equals('d1'))).write(
+      const DivesCompanion(siteId: Value('s1')),
+    );
     final e = await entity();
     final r = await rows();
 
-    await e.save({
-      'd1': [draft('d1', DiveField.siteName, null, 's1')],
-    }, r);
-
-    final row = await (db.select(
-      db.dives,
-    )..where((t) => t.id.equals('d1'))).getSingle();
-    expect(row.siteId, 's1');
-    expect(row.waterType, 'salt');
+    expect(e.columnFor(DiveField.altitude)!.valueOf(r['d1']!), 450.0);
+    expect(e.columnFor(DiveField.waterType)!.valueOf(r['d1']!), 'fresh');
+    expect(e.columnFor(DiveField.altitude)!.valueOf(r['d2']!), isNull);
   });
 
   test('new weight row takes the latest logged type, belt when none', () async {

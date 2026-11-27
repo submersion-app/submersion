@@ -368,6 +368,37 @@ void main() {
       expect(await r.staleDiveIds(), ['d1']);
     });
 
+    // The stamp is a sum: salt to fresh moves the water term by +1, and
+    // 450.0 to 449.9 m must not move the altitude term by -1 and cancel it.
+    test('a site edit changing water and altitude together makes the dives '
+        'taking them stale', () async {
+      await db
+          .into(db.diveSites)
+          .insert(
+            DiveSitesCompanion(
+              id: const Value('s1'),
+              name: const Value('Lake'),
+              waterType: const Value('salt'),
+              altitude: const Value(450.0),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+      await insertConditions('d1', siteId: 's1');
+      final r = repo();
+      await r.ensureCurrent('d1');
+      expect(await r.staleDiveIds(), isEmpty);
+
+      await (db.update(db.diveSites)..where((t) => t.id.equals('s1'))).write(
+        const DiveSitesCompanion(
+          waterType: Value('fresh'),
+          altitude: Value(449.9),
+        ),
+      );
+
+      expect(await r.staleDiveIds(), ['d1']);
+    });
+
     test('a site altitude edit leaves a dive with its own alone', () async {
       await insertSiteAt('s1', 2000);
       await insertConditions('d1', altitude: 300, siteId: 's1');
