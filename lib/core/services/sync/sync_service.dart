@@ -17,6 +17,7 @@ import 'package:submersion/core/database/weather_fetched_at_repair.dart';
 import 'package:submersion/core/database/combine_source_slot_stamp.dart';
 import 'package:submersion/core/database/combined_dive_summary_repair.dart';
 import 'package:submersion/core/database/dive_water_temp_fill.dart';
+import 'package:submersion/core/database/site_derived_dive_values.dart';
 import 'package:submersion/core/database/device_gear_heal.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, SyncRecord, DeletionLogData;
@@ -1537,6 +1538,9 @@ class SyncService {
   /// download with no primary row, which the v356 stamp then took for a
   /// combined dive, and a live series duplicating its source's own under
   /// another computer's label (issue #4847); both read the touched dives.
+  /// One below v389 copies a site's altitude and water type onto a dive it
+  /// links, and leaves its entry and exit methods empty (issue #5040); both
+  /// repairs read the touched dives.
   Future<void> _repairLegacyPeerRows({Iterable<String>? touchedDiveIds}) async {
     try {
       final db = DatabaseService.instance.database;
@@ -1547,6 +1551,12 @@ class SyncService {
       // base-file path runs this after its apply has committed.
       if (await fillDiveWaterTempsFromSources(db, diveIds: touchedDiveIds) >
           0) {
+        db.notifyUpdates({TableUpdate.onTable(db.dives)});
+      }
+      final siteValues =
+          await clearSiteCopiedDiveValues(db, diveIds: touchedDiveIds) +
+          await fillDiveEntryExitFromSites(db, diveIds: touchedDiveIds);
+      if (siteValues > 0) {
         db.notifyUpdates({TableUpdate.onTable(db.dives)});
       }
       if (await stampCombinedDiveSourceSlots(db, diveIds: touchedDiveIds) > 0) {

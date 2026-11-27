@@ -338,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 387;
+  static const int currentSchemaVersion = 389;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1830,6 +1830,11 @@ class AppDatabase extends _$AppDatabase {
     // depth and a plan's no-switch flag (issue #3793). Additive and
     // defaulted; the floor does not move.
     387,
+    // v389 (issue #5040): a dive reads its site's altitude and water type;
+    // the copies linking a site made are cleared and an empty entry or exit
+    // method is filled from a site listing one. Data only; the floor does
+    // not move. 388 is held by #5028.
+    389,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

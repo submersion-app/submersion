@@ -23,6 +23,7 @@ import 'package:submersion/core/database/lone_download_source_repair.dart';
 import 'package:submersion/core/database/dive_rating_repair.dart';
 import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/database/dive_water_temp_fill.dart';
+import 'package:submersion/core/database/site_derived_dive_values.dart';
 import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
 import 'package:submersion/core/database/weather_fetched_at_repair.dart';
 import 'package:submersion/core/database/database.dart';

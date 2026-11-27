@@ -349,7 +349,9 @@ void main() {
     expect(await writes.currentRelation('d1', 'tags'), {'t2'});
   });
 
-  test('site snaps the water type as bulk edit does', () async {
+  // Issue #5040: the site's water type is read through, as bulk edit reads
+  // it, not copied onto the dive.
+  test('site lends its water type as bulk edit does', () async {
     await db
         .into(db.diveSites)
         .insert(
@@ -375,7 +377,8 @@ void main() {
 
     final doc = (await h.one('dives', 'd1'))!;
     expect((doc['site'] as Map)['id'], 's1');
-    expect(doc['water_type'], 'salt');
+    expect((doc['site'] as Map)['water_type'], 'salt');
+    expect(doc['water_type'], isNull);
     expect(await writes.currentRelation('d1', 'site'), {'s1'});
   });
 

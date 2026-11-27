@@ -2845,6 +2845,15 @@ class UddfEntityImporter {
     // One instance for the run: its lookup cache collapses a batch of dives
     // at the same location into a single elevation request.
     final altitudeEnricher = DiveAltitudeEnricher();
+
+    // The linked sites as stored, read once each: the entity the site import
+    // mapped may not carry every column (its water type is written apart).
+    final storedSites = <String, DiveSite?>{};
+    Future<DiveSite?> storedSite(String id) async {
+      if (storedSites.containsKey(id)) return storedSites[id];
+      return storedSites[id] = await repos.siteRepository.getSiteById(id);
+    }
+
     final additionalComputers = AdditionalComputerWriter(
       diveRepository: repos.diveRepository,
     );
@@ -2954,6 +2963,18 @@ class UddfEntityImporter {
         final directSiteId = diveData['siteId'] as String?;
         if (directSiteId != null) linkedSite = siteIdMapping[directSiteId];
       }
+
+      // A dive reads its site's altitude and water type (issue #5040), and
+      // an export writes them on the dive. A value equal to the linked
+      // site's is that one coming back, not the dive's own.
+      final siteValues = linkedSite == null
+          ? null
+          : await storedSite(linkedSite.id);
+      final importedAltitude = asDoubleOrNull(diveData['altitude']);
+      final importedWaterType = _parseEnum(
+        diveData['waterType'],
+        WaterType.values,
+      );
 
       // Link to the imported or pre-resolved trip
       String? linkedTripId;
@@ -3208,8 +3229,12 @@ class UddfEntityImporter {
         swellHeight: asDoubleOrNull(diveData['swellHeight']),
         entryMethod: _parseEnum(diveData['entryMethod'], EntryMethod.values),
         exitMethod: _parseEnum(diveData['exitMethod'], EntryMethod.values),
-        waterType: _parseEnum(diveData['waterType'], WaterType.values),
-        altitude: asDoubleOrNull(diveData['altitude']),
+        waterType: importedWaterType == siteValues?.waterType
+            ? null
+            : importedWaterType,
+        altitude: importedAltitude == siteValues?.altitude
+            ? null
+            : importedAltitude,
         // Weather as the source recorded it. weatherSource stays null, as
         // for weather typed in by hand: it marks an Open-Meteo fetch.
         windSpeed: asDoubleOrNull(diveData['windSpeed']),

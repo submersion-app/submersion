@@ -356,5 +356,17 @@ extension RungsFromV340 on AppDatabase {
     // no backfill; re-asserted in beforeOpen. The floor does not move.
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
+
+    // v389 (issue #5040): a dive reads its site's altitude and water type
+    // rather than a copy, so the copies linking a site made (a value equal
+    // to the site's) are cleared, and an empty entry or exit method is
+    // filled from a site that lists exactly one, as linking it does. Data
+    // only, so the floor does not move. Neither column joins
+    // changeLogRewrittenColumns (see site_derived_dive_values.dart), and
+    // both repairs run again after each inbound sync apply. 388 is held by
+    // #5028.
+    if (from < 389) await clearSiteCopiedDiveValues(this);
+    if (from < 389) await fillDiveEntryExitFromSites(this);
+    if (from < 389) await reportProgress();
   }
 }

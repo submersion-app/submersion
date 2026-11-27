@@ -156,4 +156,50 @@ void main() {
     )..where((t) => t.recordId.equals('site-rich'))).get();
     expect(pending, isNotEmpty, reason: 'the altitude change must sync');
   });
+
+  // Issue #5040: a dive reads its site's altitude, so the import gives a
+  // looked-up altitude to the site and none to the dive.
+  test('a looked-up site altitude goes to the site, not the dive', () async {
+    await createRichSite();
+    final dive = await dives.createDive(
+      diveAt(
+        const DiveSite(
+          id: 'site-rich',
+          name: 'Hertenstein',
+          location: GeoPoint(47.027631, 8.400640),
+        ),
+      ),
+    );
+    final enricher = DiveAltitudeEnricher(
+      elevationService: fixedElevation(),
+      diveRepository: dives,
+      siteRepository: sites,
+    );
+
+    expect(await enricher.applyForImportedDive(dive), isTrue);
+
+    final stored = await dives.getDiveById('d1');
+    expect(stored!.altitude, isNull);
+    expect(stored.effectiveAltitude, 740.0);
+  });
+
+  test('a site that has an altitude leaves the dive alone', () async {
+    final site = await sites.createSite(
+      const DiveSite(id: 'lake', name: 'Lake', altitude: 450),
+    );
+    final dive = await dives.createDive(
+      diveAt(site).copyWith(entryLocation: const GeoPoint(46.4, 8.0)),
+    );
+    final enricher = DiveAltitudeEnricher(
+      elevationService: fixedElevation(),
+      diveRepository: dives,
+      siteRepository: sites,
+    );
+
+    expect(await enricher.applyForImportedDive(dive), isFalse);
+
+    final stored = await dives.getDiveById('d1');
+    expect(stored!.altitude, isNull);
+    expect(stored.effectiveAltitude, 450);
+  });
 }

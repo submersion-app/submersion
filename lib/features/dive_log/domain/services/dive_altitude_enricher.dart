@@ -7,7 +7,9 @@ import 'package:submersion/features/weather/data/services/elevation_service.dart
 import 'package:submersion/features/weather/domain/services/altitude_resolver.dart';
 
 /// Fills a newly imported or downloaded dive's altitude from its GPS fixes
-/// or linked site. Best-effort like `DiveEquipmentDefaulter`: any failure is
+/// or linked site. A dive reads its site's altitude rather than storing a
+/// copy (issue #5040), so an altitude found for the site goes to the site,
+/// and only one from the dive's own GPS is written to the dive. Best-effort like `DiveEquipmentDefaulter`: any failure is
 /// swallowed so enrichment can never abort an import that has already
 /// persisted the dive. Create ONE instance per import run -- the resolver
 /// cache dedupes lookups for a batch of dives at the same location.
@@ -28,7 +30,7 @@ class DiveAltitudeEnricher {
   final SiteRepository _sites;
 
   /// Enrich a file-imported dive (domain entity in hand). Returns true when
-  /// an altitude was written.
+  /// an altitude was written, to the dive or to its site.
   Future<bool> applyForImportedDive(Dive dive) async {
     if (dive.altitude != null) return false;
     if (DatabaseService.instance.databaseOrNull == null) return false;
@@ -44,9 +46,12 @@ class DiveAltitudeEnricher {
           writeBack.siteId,
           writeBack.altitudeMeters,
         );
+        // The dive reads it from the site.
+        return true;
       }
       final meters = resolution.altitudeMeters;
-      if (meters == null) return false;
+      // A site's stored altitude is read through, not copied.
+      if (meters == null || !resolution.isDiveOwn) return false;
       // Re-read rather than writing [dive] back: updateDive rewrites every
       // child collection from the entity it is handed, and every import seam
       // runs DiveEquipmentDefaulter (and the checklist linker) between
