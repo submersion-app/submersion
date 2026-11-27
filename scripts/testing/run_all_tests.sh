@@ -2,7 +2,7 @@
 #
 # Runs the whole test suite the quickest local way: as bundles, the generated
 # entrypoints that each import up to 40 test files and run them in one isolate
-# (scripts/bundle_tests.py, issue #2500). Bundles also carry the runtime check
+# (scripts/testing/bundle_tests.py, issue #2500). Bundles also carry the runtime check
 # that a test puts back any process-wide state it changed.
 #
 # Measured on an 18-core Mac at --concurrency=16 (issue #2512): 10m11s as
@@ -10,10 +10,10 @@
 # which spread more evenly over 16 workers.
 #
 # Usage:
-#   scripts/run_all_tests.sh [flutter test options...]
-#   scripts/run_all_tests.sh --coverage
-#   TEST_CONCURRENCY=8 scripts/run_all_tests.sh
-#   TEST_FILES_FROM="$PWD/selection.txt" scripts/run_all_tests.sh
+#   scripts/testing/run_all_tests.sh [flutter test options...]
+#   scripts/testing/run_all_tests.sh --coverage
+#   TEST_CONCURRENCY=8 scripts/testing/run_all_tests.sh
+#   TEST_FILES_FROM="$PWD/selection.txt" scripts/testing/run_all_tests.sh
 #
 # TEST_FILES_FROM names a file listing test paths, one per line: only those
 # run, bundled, with the same failure report. The pre-push hook hands a large
@@ -51,7 +51,7 @@
 
 set -u
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$REPO_ROOT" || exit 1
 # The same directory as flutter test may print it: with symlinks resolved
 # (/var is /private/var on macOS), and in Windows form under Git Bash.
@@ -59,7 +59,7 @@ REPO_ROOT_REAL="$(pwd -P)"
 REPO_ROOT_WIN="$(cygpath -m "$REPO_ROOT" 2>/dev/null || true)"
 
 # shellcheck source=test_concurrency.sh
-. "$REPO_ROOT/scripts/test_concurrency.sh"
+. "$REPO_ROOT/scripts/testing/test_concurrency.sh"
 CONCURRENCY="$(resolve_test_concurrency)"
 
 for arg in "$@"; do
@@ -69,7 +69,7 @@ for arg in "$@"; do
         test|test/*) [ -d "$arg" ] || continue ;;
         *) continue ;;
     esac
-    echo "scripts/run_all_tests.sh runs the whole suite and takes flutter test options only;" >&2
+    echo "scripts/testing/run_all_tests.sh runs the whole suite and takes flutter test options only;" >&2
     echo "'$arg' is a test path. To run particular files: flutter test <paths>" >&2
     exit 2
 done
@@ -145,7 +145,7 @@ bundle_suite() {
     fi
     # test/web is the browser suite (@TestOn('browser')): a VM run could
     # only skip it. It runs through scripts/web/test_web.sh.
-    list="$(python3 scripts/bundle_tests.py --total-shards 1 \
+    list="$(python3 scripts/testing/bundle_tests.py --total-shards 1 \
         --exclude-dir test/web \
         --max-files "$1" --out "$BUNDLE_DIR" ${subset[@]+"${subset[@]}"} 2>/dev/null || true)"
     [ -n "$list" ] || return 0

@@ -14,7 +14,7 @@ propping it up, which is the point, and rises when uncovered boilerplate was
 holding it down.
 
 Usage:
-    python3 scripts/filter_trivial_coverage.py coverage/lcov.info
+    python3 scripts/testing/filter_trivial_coverage.py coverage/lcov.info
 
 Rewrites the report in place. A missing or empty report is left alone, so a
 shard whose tests failed before writing coverage still reports the tests.

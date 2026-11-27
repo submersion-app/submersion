@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # The number of parallel test isolates for a local flutter test run, shared by
-# hooks/pre-push and scripts/run_all_tests.sh. Source it, then call
+# hooks/pre-push and scripts/testing/run_all_tests.sh. Source it, then call
 # resolve_test_concurrency.
 
 # The core count, at most 16 and at least 2. A fixed 6 left most of a modern

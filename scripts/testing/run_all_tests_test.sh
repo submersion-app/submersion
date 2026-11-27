@@ -1,16 +1,16 @@
 #!/bin/bash
 #
-# Tests for scripts/run_all_tests.sh and scripts/test_concurrency.sh.
+# Tests for scripts/testing/run_all_tests.sh and scripts/testing/test_concurrency.sh.
 #
 # No Flutter toolchain is required: `flutter` is stubbed on PATH and records
 # how it was called, so this runs in the CI script-tests job. The real
-# scripts/bundle_tests.py builds the bundles.
+# scripts/testing/bundle_tests.py builds the bundles.
 #
-# Usage: bash scripts/run_all_tests_test.sh
+# Usage: bash scripts/testing/run_all_tests_test.sh
 
 set -u
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 REAL_PYTHON="$(command -v python3)"
 
 failures=0
@@ -51,14 +51,14 @@ assert_contains() {
 make_fixture() {
     tmp="$(mktemp -d)"
     root="$tmp/my repo"
-    mkdir -p "$root/scripts" "$root/test" "$tmp/bin"
+    mkdir -p "$root/scripts/testing" "$root/test" "$tmp/bin"
 
     for name in a b; do
         printf "import 'package:flutter_test/flutter_test.dart';\n\nvoid main() {\n  test('%s', () {});\n}\n" \
             "$name" > "$root/test/${name}_test.dart"
     done
     for script in run_all_tests.sh test_concurrency.sh bundle_tests.py; do
-        cp "$REPO_ROOT/scripts/$script" "$root/scripts/$script"
+        cp "$REPO_ROOT/scripts/testing/$script" "$root/scripts/testing/$script"
     done
 
     cat > "$tmp/bin/flutter" <<'STUB'
@@ -120,7 +120,7 @@ run_script() {
     run_output="$(env ${env_args[@]+"${env_args[@]}"} PATH="$tmp/bin:$PATH" \
         FLUTTER_ARGS="$tmp/flutter_args" FLUTTER_BUNDLES="$tmp/flutter_bundles" \
         FLUTTER_CWD="$tmp/flutter_cwd" \
-        bash "$tmp/my repo/scripts/run_all_tests.sh" "$@" 2>&1)"
+        bash "$tmp/my repo/scripts/testing/run_all_tests.sh" "$@" 2>&1)"
     run_status=$?
     flutter_args="$(cat "$tmp/flutter_args")"
     flutter_calls="$(grep -c . "$tmp/flutter_args")"
@@ -466,17 +466,17 @@ rm -rf "$root/test/many" "$tmp/bin/python3"
 # The bundler refuses anything else, and its error goes nowhere, so without
 # this check the file reached flutter test with a message blaming python3.
 
-printf 'scripts/run_all_tests.sh\n' > "$tmp/selection.txt"
+printf 'scripts/testing/run_all_tests.sh\n' > "$tmp/selection.txt"
 run_script "$tmp" TEST_FILES_FROM="$tmp/selection.txt"
 if [ "$run_status" -eq 2 ] && [ "$flutter_calls" -eq 0 ]; then
-    assert_contains has "$run_output" 'scripts/run_all_tests.sh' \
+    assert_contains has "$run_output" 'scripts/testing/run_all_tests.sh' \
         'a list naming a file outside test/ is refused before anything runs'
 else
     fail 'a list naming a file outside test/ is refused before anything runs' \
         "exit $run_status, $flutter_calls calls: $run_output"
 fi
 
-printf 'test/../scripts/run_all_tests.sh\n' > "$tmp/selection.txt"
+printf 'test/../scripts/testing/run_all_tests.sh\n' > "$tmp/selection.txt"
 run_script "$tmp" TEST_FILES_FROM="$tmp/selection.txt"
 if [ "$run_status" -eq 2 ] && [ "$flutter_calls" -eq 0 ]; then
     pass 'a list path climbing out of test/ is refused before anything runs'

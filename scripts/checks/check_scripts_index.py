@@ -18,7 +18,9 @@ This guard keeps that true:
    Some workflows run only on a schedule, a release or a tag, so a path that
    moved would otherwise fail days after the move. A path written behind a
    shell variable ($GITHUB_WORKSPACE/scripts/x.py) counts; one after ../ or
-   another path segment (packages/foo/tool/x.dart) does not.
+   another path segment (packages/foo/tool/x.dart) does not. A line carrying
+   the marker `scripts-layout: legacy` is skipped: the pre-push hook names
+   the pre-#5100 paths on purpose, for branches cut before the move.
 
 Pure stdlib, like the other guards. Files come from `git ls-files`, so a
 local virtualenv or scratch output under scripts/ is never reported.
@@ -44,6 +46,7 @@ _WORKFLOW_PATH = re.compile(
     r"(?:scripts|tool)/[\w./-]*?\.(?:py|sh|rb|dart|json|txt)(?![\w-])"
 )
 _SHELL_VARIABLE_END = re.compile(r"\$(?:\w+|\{\w+\})$")
+LEGACY_MARKER = "scripts-layout: legacy"
 
 
 def _read(root, rel):
@@ -107,6 +110,10 @@ def _workflow_problems(root, files, file_set):
             if path in seen or path in file_set:
                 continue
             if not _counts_as_path(text, match.start()):
+                continue
+            line_start = text.rfind("\n", 0, match.start()) + 1
+            line_end = text.find("\n", match.end())
+            if LEGACY_MARKER in text[line_start : line_end if line_end != -1 else None]:
                 continue
             seen.add(path)
             problems.append(

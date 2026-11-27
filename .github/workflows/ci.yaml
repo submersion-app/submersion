@@ -379,7 +379,7 @@ jobs:
         # patch/project status until every partial lcov arrives (see .github/codecov.yml).
         #
         # Test files run in bundles that share an isolate
-        # (scripts/bundle_tests.py, issue #2500), so a shard's time follows the
+        # (scripts/testing/bundle_tests.py, issue #2500), so a shard's time follows the
         # number of tests it runs, not the number of test files. The count is
         # the fewest shards that keep the slowest shard under the slowest
         # platform build, which sets the critical path. Fewer would lengthen
@@ -452,7 +452,7 @@ jobs:
         # `flutter test` compiles and loads every test file as its own
         # entrypoint, and --coverage collects a hit map per entrypoint, so the
         # cost of a run follows the number of entrypoints, not the number of
-        # tests. scripts/bundle_tests.py groups the test files by directory
+        # tests. scripts/testing/bundle_tests.py groups the test files by directory
         # into bundles that share one isolate, and spreads the bundles over
         # the shards by weight. The few files that need their own entrypoint
         # (a library-level @Tags or @TestOn, a golden file) are passed as they
@@ -462,7 +462,7 @@ jobs:
           # Written to a file first: a generator failure inside a process
           # substitution would be lost, leave the list empty, and let the
           # guard below pass the shard without running anything.
-          python3 scripts/bundle_tests.py \
+          python3 scripts/testing/bundle_tests.py \
             --shard "${{ matrix.shard }}" --total-shards "${TOTAL_SHARDS}" \
             --exclude-dir test/web \
             > bundle-paths.txt
@@ -484,12 +484,12 @@ jobs:
         # Plain copyWith, props, ==, hashCode and toString count toward no
         # coverage target, so no one writes a test only to execute them. A PR whose
         # coverage came mostly from such lines sees its patch status fall,
-        # which is the intent (see scripts/filter_trivial_coverage.py and
+        # which is the intent (see scripts/testing/filter_trivial_coverage.py and
         # docs/developer/testing.md).
         # Runs even when the tests failed, like the upload: a missing or empty
         # report passes through untouched.
         if: always()
-        run: python3 scripts/filter_trivial_coverage.py coverage/lcov.info
+        run: python3 scripts/testing/filter_trivial_coverage.py coverage/lcov.info
 
       - name: Upload coverage
         uses: codecov/codecov-action@v7
@@ -693,7 +693,7 @@ jobs:
             # An `[ ... ] && sleep` one-liner would abort the step with no
             # message here: the step shell is `bash -e`, and on the last
             # attempt the false test makes the loop body's final command
-            # return 1. See scripts/pre_push_hook_test.sh for the same bug.
+            # return 1. See scripts/testing/pre_push_hook_test.sh for the same bug.
             if [ "$attempt" -lt 3 ]; then
               sleep $((attempt * 10))
             fi
@@ -763,7 +763,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/checks/check_proguard_serial_keep.py,scripts/checks/check_apk_signing_cert.py,scripts/checks/check_native_libs_present.py,scripts/checks/check_bundled_native_assets.py,scripts/checks/check_glibc_floor.py,scripts/checks/check_jni_local_refs.py,scripts/checks/check_dc_process_isolation.py,scripts/checks/check_ci_success_gate.py,scripts/checks/check_flutter_setup_retried.py,scripts/checks/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/checks/check_no_skipped_tests.py,scripts/checks/check_docs_links.py,scripts/checks/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/checks/check_ruby_versions.py,scripts/checks/check_apt_mirror.py,scripts/apt_mirror.py,scripts/demo_data/fetch_demo_db.py,scripts/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/snapshot_downloads.py,scripts/checks/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/check_junit_ran.py,scripts/web/serve_bundle.py,scripts/web/stage_hosted_site.py,scripts/wiki_howto_index.py,scripts/geography/generate_country_names.py,scripts/site_catalogue_intake.py'
+          guards='scripts/checks/check_proguard_serial_keep.py,scripts/checks/check_apk_signing_cert.py,scripts/checks/check_native_libs_present.py,scripts/checks/check_bundled_native_assets.py,scripts/checks/check_glibc_floor.py,scripts/checks/check_jni_local_refs.py,scripts/checks/check_dc_process_isolation.py,scripts/checks/check_ci_success_gate.py,scripts/checks/check_flutter_setup_retried.py,scripts/checks/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/testing/bundle_tests.py,scripts/testing/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/testing/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/checks/check_no_skipped_tests.py,scripts/checks/check_docs_links.py,scripts/checks/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/checks/check_ruby_versions.py,scripts/checks/check_apt_mirror.py,scripts/apt_mirror.py,scripts/demo_data/fetch_demo_db.py,scripts/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/snapshot_downloads.py,scripts/checks/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/check_junit_ran.py,scripts/web/serve_bundle.py,scripts/web/stage_hosted_site.py,scripts/wiki_howto_index.py,scripts/geography/generate_country_names.py,scripts/site_catalogue_intake.py'
           python3 -m coverage run --include="$guards" \
             scripts/checks/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -789,9 +789,9 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             scripts/release/sanitize_apple_store_notes_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/bundle_tests_test.py
+            scripts/testing/bundle_tests_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/filter_trivial_coverage_test.py
+            scripts/testing/filter_trivial_coverage_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/beta_failure_alert_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -799,7 +799,7 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             scripts/release/play_beta_cooldown_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/report_inherited_failures_test.py
+            scripts/testing/report_inherited_failures_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/export_support_matrix_catalog_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -967,13 +967,13 @@ jobs:
         # to the change being pushed: running the checks against the main
         # checkout rather than the worktree, and a set -e abort that produced
         # no error message. Stubs dart/flutter, so no toolchain is needed here.
-        run: ./scripts/pre_push_hook_test.sh
+        run: ./scripts/testing/pre_push_hook_test.sh
 
       - name: Run full-suite runner test
-        # scripts/run_all_tests.sh bundles the whole suite for a local run and
+        # scripts/testing/run_all_tests.sh bundles the whole suite for a local run and
         # names the failing files (issue #2512). Stubs flutter, so no toolchain
         # is needed here.
-        run: ./scripts/run_all_tests_test.sh
+        run: ./scripts/testing/run_all_tests_test.sh
 
       - name: Upload coverage
         uses: codecov/codecov-action@v7
@@ -2438,7 +2438,7 @@ jobs:
         run: |
           BASE_SHA="$(git cat-file -p HEAD | sed -n 's/^parent //p' | head -1)" || BASE_SHA=""
           export BASE_SHA="${BASE_SHA:-$EVENT_BASE_SHA}"
-          python3 scripts/report_inherited_failures.py
+          python3 scripts/testing/report_inherited_failures.py
 
       - name: Verify all required jobs succeeded
         run: |

@@ -10,11 +10,11 @@
 # PATH, and DRY_RUN=1 stops the hook before it would run a test suite. That
 # keeps this runnable in the CI script-tests job, which has no Flutter.
 #
-# Usage: bash scripts/pre_push_hook_test.sh
+# Usage: bash scripts/testing/pre_push_hook_test.sh
 
 set -u
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 HOOK_SRC="$REPO_ROOT/hooks/pre-push"
 ZERO="0000000000000000000000000000000000000000"
 
@@ -102,8 +102,8 @@ make_fixture() {
     cp "$HOOK_SRC" "$main_tree/hooks/pre-push"
     chmod +x "$main_tree/hooks/pre-push"
     # The hook sources its concurrency helper from beside itself.
-    mkdir -p "$main_tree/scripts"
-    cp "$REPO_ROOT/scripts/test_concurrency.sh" "$main_tree/scripts/test_concurrency.sh"
+    mkdir -p "$main_tree/scripts/testing"
+    cp "$REPO_ROOT/scripts/testing/test_concurrency.sh" "$main_tree/scripts/testing/test_concurrency.sh"
 
     git worktree add -q "$tmp/wt" -b feature
     cd "$tmp/wt" || exit 1
@@ -354,8 +354,8 @@ make_proximity_fixture() {
     cp "$HOOK_SRC" "$main_tree/hooks/pre-push"
     chmod +x "$main_tree/hooks/pre-push"
     # The hook sources its concurrency helper from beside itself.
-    mkdir -p "$main_tree/scripts"
-    cp "$REPO_ROOT/scripts/test_concurrency.sh" "$main_tree/scripts/test_concurrency.sh"
+    mkdir -p "$main_tree/scripts/testing"
+    cp "$REPO_ROOT/scripts/testing/test_concurrency.sh" "$main_tree/scripts/testing/test_concurrency.sh"
 
     git worktree add -q "$tmp/wt" -b feature
     cd "$tmp/wt" || exit 1
@@ -649,7 +649,7 @@ fi
 rm -rf "$tmp"
 
 # Build a repo for the full-suite path: runnable test files, the real
-# scripts/run_all_tests.sh and the bundler it calls, both of which the hook
+# scripts/testing/run_all_tests.sh and the bundler it calls, both of which the hook
 # runs from the tree being pushed. Echoes the temp dir.
 make_full_run_fixture() {
     tmp="$(mktemp -d)"
@@ -663,7 +663,7 @@ make_full_run_fixture() {
     git config user.name 'Test'
     git config commit.gpgsign false
 
-    mkdir -p lib test hooks scripts
+    mkdir -p lib test hooks scripts/testing
     printf '// lib\n' > lib/sample.dart
     for name in a b; do
         printf "import 'package:flutter_test/flutter_test.dart';\n\nvoid main() {\n  test('%s', () {});\n}\n" \
@@ -672,17 +672,17 @@ make_full_run_fixture() {
     # The mirrored test for lib/sample.dart, so the branch change selects it.
     printf "import 'package:flutter_test/flutter_test.dart';\nimport 'package:submersion/sample.dart';\n\nvoid main() {\n  test('sample', () {});\n}\n" \
         > test/sample_test.dart
-    cp "$REPO_ROOT/scripts/bundle_tests.py" scripts/bundle_tests.py
-    cp "$REPO_ROOT/scripts/run_all_tests.sh" scripts/run_all_tests.sh
-    cp "$REPO_ROOT/scripts/test_concurrency.sh" scripts/test_concurrency.sh
+    cp "$REPO_ROOT/scripts/testing/bundle_tests.py" scripts/testing/bundle_tests.py
+    cp "$REPO_ROOT/scripts/testing/run_all_tests.sh" scripts/testing/run_all_tests.sh
+    cp "$REPO_ROOT/scripts/testing/test_concurrency.sh" scripts/testing/test_concurrency.sh
     git add -A
     git commit -q -m 'initial'
 
     cp "$HOOK_SRC" "$main_tree/hooks/pre-push"
     chmod +x "$main_tree/hooks/pre-push"
     # The hook sources its concurrency helper from beside itself.
-    mkdir -p "$main_tree/scripts"
-    cp "$REPO_ROOT/scripts/test_concurrency.sh" "$main_tree/scripts/test_concurrency.sh"
+    mkdir -p "$main_tree/scripts/testing"
+    cp "$REPO_ROOT/scripts/testing/test_concurrency.sh" "$main_tree/scripts/testing/test_concurrency.sh"
 
     git worktree add -q "$tmp/wt" -b feature
     cd "$tmp/wt" || exit 1
@@ -698,9 +698,9 @@ make_full_run_fixture() {
 # --- Test 10: RUN_ALL_TESTS=1 runs the suite as bundles ---------------------
 #
 # A full local run as separate files took 10m11s at -j 16; as bundles of up to
-# 40 files it took 2m52s (issue #2512). The hook runs scripts/run_all_tests.sh,
+# 40 files it took 2m52s (issue #2512). The hook runs scripts/testing/run_all_tests.sh,
 # which bundles the suite and removes the bundles afterwards; that script's own
-# cases are in scripts/run_all_tests_test.sh.
+# cases are in scripts/testing/run_all_tests_test.sh.
 
 tmp="$(make_full_run_fixture)"
 run_hook "$tmp" RUN_ALL_TESTS=1
@@ -780,12 +780,12 @@ else
         "left behind: $(ls "$tmp/wt/test/.bundles" 2>&1)"
 fi
 
-# --- Test 12: a branch without scripts/run_all_tests.sh runs plain ----------
+# --- Test 12: a branch without scripts/testing/run_all_tests.sh runs plain ----------
 #
 # Every worktree runs the main checkout's hook, so an up-to-date hook meets
 # branches cut before the script existed. Those still get a full run.
 
-rm "$tmp/wt/scripts/run_all_tests.sh"
+rm "$tmp/wt/scripts/testing/run_all_tests.sh"
 run_hook "$tmp" RUN_ALL_TESTS=1
 
 if [ "$hook_status" -eq 0 ] && [ -n "$flutter_test_args" ]; then
@@ -870,8 +870,8 @@ make_hub_fixture() {
     cp "$HOOK_SRC" "$main_tree/hooks/pre-push"
     chmod +x "$main_tree/hooks/pre-push"
     # The hook sources its concurrency helper from beside itself.
-    mkdir -p "$main_tree/scripts"
-    cp "$REPO_ROOT/scripts/test_concurrency.sh" "$main_tree/scripts/test_concurrency.sh"
+    mkdir -p "$main_tree/scripts/testing"
+    cp "$REPO_ROOT/scripts/testing/test_concurrency.sh" "$main_tree/scripts/testing/test_concurrency.sh"
 
     git worktree add -q "$tmp/wt" -b feature
     cd "$tmp/wt" || exit 1
@@ -1114,11 +1114,11 @@ assert_selected has 'ignoring TEST_BUDGET' 'the hint says RUN_ALL_AFFECTED ignor
 # of it, and covers everything, so the hook runs the suite instead when the
 # selection reaches half of the test files and the suite fits the budget.
 # This fixture has 69 test files; the l10n sample plus the guards is 45.
-# The whole suite runs through scripts/run_all_tests.sh, so the pushed tree
+# The whole suite runs through scripts/testing/run_all_tests.sh, so the pushed tree
 # must have it.
 
-mkdir -p "$tmp/wt/scripts"
-cp "$REPO_ROOT/scripts/run_all_tests.sh" "$tmp/wt/scripts/run_all_tests.sh"
+mkdir -p "$tmp/wt/scripts/testing"
+cp "$REPO_ROOT/scripts/testing/run_all_tests.sh" "$tmp/wt/scripts/testing/run_all_tests.sh"
 run_hook "$tmp" TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
 assert_selected has 'whole suite' \
     'announces the whole suite when the selection is most of it'
@@ -1131,8 +1131,8 @@ rm -rf "$tmp"
 
 tmp="$(make_proximity_fixture \
     'lib/features/alpha/presentation/pages/alpha_page.dart lib/features/alpha/domain/alpha_entity.dart')"
-mkdir -p "$tmp/wt/scripts"
-cp "$REPO_ROOT/scripts/run_all_tests.sh" "$tmp/wt/scripts/run_all_tests.sh"
+mkdir -p "$tmp/wt/scripts/testing"
+cp "$REPO_ROOT/scripts/testing/run_all_tests.sh" "$tmp/wt/scripts/testing/run_all_tests.sh"
 run_hook "$tmp" TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
 assert_selected lacks 'whole suite' \
     'a small selection runs on its own, not as the whole suite'
@@ -1205,7 +1205,7 @@ assert_selected has 'Failing test files' 'a failing selection names the failing 
 
 # A branch cut before run_all_tests.sh learned TEST_FILES_FROM gets the
 # per-file run it always had.
-sed -i.bak '/TEST_FILES_FROM/d' "$tmp/wt/scripts/run_all_tests.sh" && rm -f "$tmp/wt/scripts/run_all_tests.sh.bak"
+sed -i.bak '/TEST_FILES_FROM/d' "$tmp/wt/scripts/testing/run_all_tests.sh" && rm -f "$tmp/wt/scripts/testing/run_all_tests.sh.bak"
 run_hook_live "$tmp" TEST_BUNDLE_MIN=1
 if [ "$hook_status" -eq 0 ] && [ -n "$flutter_test_args" ]; then
     case "$flutter_test_args" in
@@ -1227,6 +1227,33 @@ else
 fi
 
 rm -rf "$tmp"
+
+# --- Test 17b: either scripts layout bundles the selection ------------------
+#
+# Issue #5100 moved run_all_tests.sh into scripts/testing/. Every worktree runs
+# the main checkout's hook, so the hook meets branches cut before the move
+# (scripts/run_all_tests.sh) and after it (scripts/testing/run_all_tests.sh),
+# and must bundle through whichever the pushed tree has. A stub stands in for
+# the script so the case shows only which path the hook chose.
+
+write_run_all_stub() {
+    rm -f "$tmp/wt/scripts/run_all_tests.sh" "$tmp/wt/scripts/testing/run_all_tests.sh"
+    mkdir -p "$(dirname "$tmp/wt/$1")"
+    cat > "$tmp/wt/$1" <<'STUB'
+#!/bin/bash
+# Stub that accepts a TEST_FILES_FROM selection.
+printf 'stub run_all_tests ran as %s with %s\n' "$0" "${TEST_FILES_FROM:+a selection}"
+STUB
+}
+
+for layout in scripts/run_all_tests.sh scripts/testing/run_all_tests.sh; do
+    tmp="$(make_full_run_fixture)"
+    write_run_all_stub "$layout"
+    run_hook_live "$tmp" TEST_BUNDLE_MIN=1
+    assert_selected has "stub run_all_tests ran as $layout with a selection" \
+        "a selection bundles through $layout"
+    rm -rf "$tmp"
+done
 
 # --- Test 18: a budget that drops every selected test says so ---------------
 #

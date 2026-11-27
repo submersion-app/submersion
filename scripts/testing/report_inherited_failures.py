@@ -88,7 +88,7 @@ def usable_run(run):
 def job_family(name):
     """The name a job is compared under: test shards share one.
 
-    Shards are load-balanced over test weights (scripts/bundle_tests.py), so a
+    Shards are load-balanced over test weights (scripts/testing/bundle_tests.py), so a
     pull request that adds, removes or resizes a test file moves files between
     shards. main's broken file can then fail in a different shard number.
     """

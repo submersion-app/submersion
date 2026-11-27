@@ -6,7 +6,7 @@ Fully synthetic: a placeholder diver, public dive sites with approximate
 coordinates, and dives, depths, gases and profiles drawn from a fixed seed, so
 re-running reproduces the file byte for byte.
 
-    python3 tool/generate_scrubber_sample_dives.py
+    python3 scripts/testing/generate_scrubber_sample_dives.py
 """
 import math
 import os
@@ -15,7 +15,7 @@ import datetime as dt
 from xml.sax.saxutils import escape
 
 SEED = 20261018
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT = os.path.join(REPO, "test", "dives", "scrubber-1500-dives.uddf")
 N = 1500
 START = dt.date(2016, 10, 18)

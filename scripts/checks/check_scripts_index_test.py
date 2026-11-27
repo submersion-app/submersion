@@ -143,6 +143,17 @@ class WorkflowPathTest(GuardCase):
         self.assertIn("scripts/gone.py", joined)
         self.assertIn("scripts/gone2.sh", joined)
 
+    def test_line_marked_legacy_layout_is_ignored(self):
+        self.index()
+        self.add(
+            "hooks/pre-push",
+            "for c in scripts/testing/r.sh scripts/r.sh; do  # scripts-layout: legacy\n"
+            "bash scripts/gone.sh\n",
+        )
+        problems = self.problems()
+        self.assertEqual(len(problems), 1)
+        self.assertIn("scripts/gone.sh", problems[0])
+
     def test_relative_and_nested_paths_are_ignored(self):
         self.index()
         self.add(

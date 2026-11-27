@@ -28,7 +28,7 @@ Uses `realistic` preset (5,000 dives, 2,000 sites). Takes several minutes due to
 ### With summary output
 
 ```bash
-./scripts/run_perf_tests.sh
+./scripts/testing/run_perf_tests.sh
 ```
 
 ## Data Presets

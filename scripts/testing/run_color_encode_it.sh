@@ -2,8 +2,8 @@
 # Colour-encode integration check (issue #3521) on macOS, Windows or an
 # Android device or emulator.
 #
-#   scripts/run_color_encode_it.sh            # this desktop (macOS, Windows)
-#   scripts/run_color_encode_it.sh android    # the one attached Android device
+#   scripts/testing/run_color_encode_it.sh            # this desktop (macOS, Windows)
+#   scripts/testing/run_color_encode_it.sh android    # the one attached Android device
 #
 #   1. tool/color_encode_it/prepare_test.dart synthesizes input clips with
 #      ffmpeg (the sandboxed macOS app may not run ffmpeg, and Android has
@@ -17,7 +17,7 @@
 # needs adb (ANDROID_HOME, or the default SDK location).
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 if [[ "${1:-}" == "android" ]]; then
   adb="${ANDROID_HOME:-$HOME/Library/Android/sdk}/platform-tools/adb"
