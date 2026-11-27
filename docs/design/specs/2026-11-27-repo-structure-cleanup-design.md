@@ -191,6 +191,10 @@ scripts live.
   layout, fail, and raise a failure alert. Merge only when
   `gh run list --branch main --status in_progress` is empty, and do not merge
   anything else to main until this PR's own CI and beta have finished.
+- `promote.yml` has the same shape for longer: it runs from main but checks
+  out the beta's commit, which can predate the move. It copies main's
+  `generate_release_notes_html.sh` and `generate_appcast.sh` aside before the
+  checkout and runs those, so a beta built before the merge still promotes.
 - Outside this repository: `submersion-app/submersion-website`'s
   `tools/support-matrix/SWEEP.md` runs
   `python3 scripts/export_support_matrix_catalog.py`, which moves to

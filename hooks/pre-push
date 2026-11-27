@@ -441,22 +441,14 @@ fi
 # Parallel test isolates: the core count, at most 16, or TEST_CONCURRENCY. The
 # default and its measurement live in scripts/testing/test_concurrency.sh, shared with
 # scripts/testing/run_all_tests.sh. The hook sources the copy beside itself, in the
-# main checkout, so the two files always come from the same version. A main
-# checkout from before issue #5100 has it one folder up, directly in scripts/.
-HOOK_SCRIPTS="$(cd "$(dirname "$0")/.." && pwd)/scripts"
-HOOK_CONCURRENCY=""
-for candidate in "$HOOK_SCRIPTS/testing/test_concurrency.sh" "$HOOK_SCRIPTS/test_concurrency.sh"; do
-    if [ -f "$candidate" ]; then
-        HOOK_CONCURRENCY="$candidate"
-        break
-    fi
-done
-if [ -n "$HOOK_CONCURRENCY" ]; then
+# main checkout, so the two files always come from the same version.
+HOOK_SCRIPTS="$(cd "$(dirname "$0")/.." && pwd)/scripts/testing"
+if [ -f "$HOOK_SCRIPTS/test_concurrency.sh" ]; then
     # shellcheck source=../scripts/testing/test_concurrency.sh
-    . "$HOOK_CONCURRENCY"
+    . "$HOOK_SCRIPTS/test_concurrency.sh"
     CONCURRENCY="$(resolve_test_concurrency)"
 else
-    echo "⚠️  $HOOK_SCRIPTS/testing/test_concurrency.sh is missing; using 6 test isolates." >&2
+    echo "⚠️  $HOOK_SCRIPTS/test_concurrency.sh is missing; using 6 test isolates." >&2
     CONCURRENCY=6
 fi
 

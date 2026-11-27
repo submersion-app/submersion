@@ -226,6 +226,12 @@ with its inputs and fixtures.
 - `scripts/datasets/tide/fetch_noaa_local_time_fixtures.py`: fetches NOAA
   local-time fixtures for the site-time golden test.
 
+One file stays outside `datasets/` on purpose:
+`scripts/site_catalogue/research/sites.json` points to the site catalogue
+repository. Built-in sites shipped before catalogue release 2026.11.18 link
+to it at this exact path, so moving it would break those links in installed
+apps.
+
 ## brand/
 
 Brand images and the app icon; see [brand/README.md](brand/README.md).

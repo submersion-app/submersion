@@ -69,7 +69,7 @@ env:
 #
 # Every job here runs repo-controlled code before it produces artifacts that
 # ship: build_runner generators, package build hooks (the package:sqlite3 hook
-# downloads and installs SQLCipher), and the scripts/check_*.py guards. Whatever
+# downloads and installs SQLCipher), and the scripts/checks/check_*.py guards. Whatever
 # a job restores from a cache is therefore part of the release supply chain, so
 # these two properties are chosen rather than inherited.
 #
