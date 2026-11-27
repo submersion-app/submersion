@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_stop_tags.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_headline_figures.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_stop_list.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -38,6 +39,8 @@ class PlanChartReadouts extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final outcome = ref.watch(activePlanOutcomeProvider);
+    // The figures follow the Bailout view (#4983); the issues stay the plan's.
+    final figures = ref.watch(planHeadlineFiguresProvider);
     final cnsThreshold = ref.watch(cnsWarningThresholdProvider);
     final stopTags = ref.watch(planChartStopTagsProvider);
     final bottomClearance = bottomClearanceFor(
@@ -47,7 +50,7 @@ class PlanChartReadouts extends ConsumerWidget {
     final theme = Theme.of(context);
 
     String minutes(int seconds) => '${(seconds / 60).ceil()}′';
-    final inDeco = outcome.ndlAtBottom < 0;
+    final inDeco = figures.ndlSeconds < 0;
     final maxSeverity = outcome.issues.isEmpty
         ? null
         : outcome.issues
@@ -82,7 +85,9 @@ class PlanChartReadouts extends ConsumerWidget {
       ],
     );
 
-    final cnsWarn = outcome.cnsEnd >= cnsThreshold;
+    final cnsWarn = figures.cnsEnd >= cnsThreshold;
+    Widget dimmed(Widget child) =>
+        figures.stale ? Opacity(opacity: 0.5, child: child) : child;
 
     return Positioned.fill(
       child: Padding(
@@ -97,24 +102,26 @@ class PlanChartReadouts extends ConsumerWidget {
                 children: [
                   IgnorePointer(
                     child: panel(
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            minutes(outcome.runtimeSeconds),
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              fontFeatures: const [
-                                FontFeature.tabularFigures(),
-                              ],
+                      dimmed(
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              minutes(figures.runtimeSeconds),
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                fontFeatures: const [
+                                  FontFeature.tabularFigures(),
+                                ],
+                              ),
                             ),
-                          ),
-                          Text(
-                            context.l10n.divePlanner_label_runtime,
-                            style: labelStyle,
-                          ),
-                        ],
+                            Text(
+                              context.l10n.divePlanner_label_runtime,
+                              style: labelStyle,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -142,39 +149,44 @@ class PlanChartReadouts extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               IgnorePointer(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    if (inDeco)
-                                      row(
-                                        context.l10n.divePlanner_label_tts,
-                                        minutes(outcome.ttsAtBottom),
-                                      )
-                                    else
-                                      row(
-                                        context.l10n.divePlanner_label_ndl,
-                                        minutes(
-                                          outcome.ndlAtBottom.clamp(0, 1 << 30),
+                                child: dimmed(
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      if (inDeco)
+                                        row(
+                                          context.l10n.divePlanner_label_tts,
+                                          minutes(figures.ttsSeconds),
+                                        )
+                                      else
+                                        row(
+                                          context.l10n.divePlanner_label_ndl,
+                                          minutes(
+                                            figures.ndlSeconds.clamp(
+                                              0,
+                                              1 << 30,
+                                            ),
+                                          ),
+                                        ),
+                                      if (figures.decoSeconds > 0)
+                                        row(
+                                          context.l10n.divePlanner_label_deco,
+                                          minutes(figures.decoSeconds),
+                                        ),
+                                      Text(
+                                        context.l10n.plannerCanvas_chip_cns(
+                                          figures.cnsEnd.toStringAsFixed(0),
+                                        ),
+                                        style: labelStyle?.copyWith(
+                                          color: cnsWarn ? Colors.orange : null,
+                                          fontWeight: cnsWarn
+                                              ? FontWeight.w600
+                                              : null,
                                         ),
                                       ),
-                                    if (outcome.totalDecoSeconds > 0)
-                                      row(
-                                        context.l10n.divePlanner_label_deco,
-                                        minutes(outcome.totalDecoSeconds),
-                                      ),
-                                    Text(
-                                      context.l10n.plannerCanvas_chip_cns(
-                                        outcome.cnsEnd.toStringAsFixed(0),
-                                      ),
-                                      style: labelStyle?.copyWith(
-                                        color: cnsWarn ? Colors.orange : null,
-                                        fontWeight: cnsWarn
-                                            ? FontWeight.w600
-                                            : null,
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                               Flexible(

@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/ascent/ascent_gas_plan.dart';
 import 'package:submersion/core/deco/ascent/ascent_travel_spans.dart';
 import 'package:submersion/core/deco/deco_model.dart';
+import 'package:submersion/core/deco/o2_toxicity_calculator.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/segment_phase.dart';
 import 'package:submersion/features/planner/domain/services/air_break_runs.dart';
+import 'package:submersion/features/planner/domain/services/bailout_cns.dart';
 import 'package:submersion/features/planner/domain/services/bailout_chart_support.dart';
 import 'package:submersion/features/planner/domain/services/diluent_switch_time.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
@@ -135,6 +137,10 @@ class BailoutOutcome {
   /// is the one that needs the most liters, not the deepest.
   final BailoutGasGap? gasGap;
 
+  /// CNS % on surfacing from [worstCase] (issue #4983): the plan's starting
+  /// CNS, the loop up to that instant, then its open-circuit ascent.
+  final double worstCaseCnsEnd;
+
   const BailoutOutcome({
     required this.points,
     required this.worstCase,
@@ -147,6 +153,7 @@ class BailoutOutcome {
     required this.ocStops,
     this.ocTravel = const [],
     this.gasGap,
+    required this.worstCaseCnsEnd,
   });
 
   /// Whether the carried bailout gas gets the diver out: every failure depth
@@ -308,6 +315,18 @@ class BailoutSolver {
     );
     final hypercapniaSeconds = config.hypercapniaSecondsFor(plan) ?? 0;
 
+    // Built and charged as PlanEngine.compute does. The walk charges each
+    // sample chunk at its own mean depth, a leg at a time there, so the two
+    // differ slightly on a depth-changing leg.
+    final o2 = O2ToxicityCalculator(
+      ppO2WarningThreshold: config.ppO2Working,
+      ppO2CriticalThreshold: config.ppO2Deco,
+      cnsWarningThreshold: config.cnsWarningThreshold,
+      cnsMethod: config.cnsMethod,
+    );
+    var cns = plan.startCns;
+    final cnsAtPoints = <double>[];
+
     var state = startState ?? model.initial();
     var elapsed = 0;
     final points = <BailoutPoint>[];
@@ -353,21 +372,25 @@ class BailoutSolver {
         );
 
         for (final piece in splitAtSetpointSwitch(plan, segment, stretch)) {
-          state = model.applySegment(
-            state,
-            piece,
-            // Same mode-aware breathing PlanEngine.compute replays authored
-            // legs with: a segment can override to PlanMode.oc for a
-            // mid-plan bailout leg, which must load open-circuit tissues
-            // here too, not the loop's constant-ppO2 setpoint regardless of
-            // the segment's own mode (caught by a Copilot review).
-            breathingFor(
-              plan,
-              segment.gasMix,
-              piece.avgDepth,
-              config: config,
-              segment: segment,
-            ),
+          // Same mode-aware breathing PlanEngine.compute replays authored
+          // legs with: a segment can override to PlanMode.oc for a
+          // mid-plan bailout leg, which must load open-circuit tissues
+          // here too, not the loop's constant-ppO2 setpoint regardless of
+          // the segment's own mode (caught by a Copilot review).
+          final breathing = breathingFor(
+            plan,
+            segment.gasMix,
+            piece.avgDepth,
+            config: config,
+            segment: segment,
+          );
+          state = model.applySegment(state, piece, breathing);
+          final ambient = environment.pressureAtDepth(piece.avgDepth);
+          cns += o2.calculateCnsForSegment(
+            modeFor(plan, segment) == domain.PlanMode.oc
+                ? ambient * segment.gasMix.o2 / 100.0
+                : breathing.inspiredAt(ambient).pO2,
+            piece.durationSeconds,
           );
         }
         covered += chunk;
@@ -408,6 +431,7 @@ class BailoutSolver {
           );
           states.add(state);
           spentAtPoints.add(Map.of(spent));
+          cnsAtPoints.add(cns);
         }
       }
     }
@@ -482,6 +506,15 @@ class BailoutSolver {
         bailoutPlan: bailoutPlan,
         policy: policy,
       ),
+      worstCaseCnsEnd:
+          cnsAtPoints[worstIndex] +
+          bailoutAscentCns(
+            worst,
+            bailoutPlan: bailoutPlan,
+            policy: policy,
+            environment: environment,
+            o2: o2,
+          ),
       bailoutTanks: bailoutTanks,
       // Listed in the order the worst-case table breathes them, not the
       // order the diver happened to add the cylinders.
