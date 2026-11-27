@@ -19146,6 +19146,132 @@ abstract class AppLocalizations {
   /// **'Website'**
   String get diveSites_contact_website;
 
+  /// No description provided for @diveSites_hours_alwaysOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open 24/7'**
+  String get diveSites_hours_alwaysOpen;
+
+  /// No description provided for @diveSites_hours_addSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Add schedule'**
+  String get diveSites_hours_addSchedule;
+
+  /// No description provided for @diveSites_hours_scheduleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get diveSites_hours_scheduleName;
+
+  /// No description provided for @diveSites_hours_scheduleName_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Summer'**
+  String get diveSites_hours_scheduleName_hint;
+
+  /// No description provided for @diveSites_hours_seasonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Seasonal'**
+  String get diveSites_hours_seasonal;
+
+  /// No description provided for @diveSites_hours_seasonFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get diveSites_hours_seasonFrom;
+
+  /// No description provided for @diveSites_hours_seasonTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get diveSites_hours_seasonTo;
+
+  /// No description provided for @diveSites_hours_deleteSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete schedule'**
+  String get diveSites_hours_deleteSchedule;
+
+  /// No description provided for @diveSites_hours_closed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get diveSites_hours_closed;
+
+  /// No description provided for @diveSites_hours_open24h.
+  ///
+  /// In en, this message translates to:
+  /// **'Open 24 hours'**
+  String get diveSites_hours_open24h;
+
+  /// No description provided for @diveSites_hours_kindHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get diveSites_hours_kindHours;
+
+  /// No description provided for @diveSites_hours_addRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Add hours'**
+  String get diveSites_hours_addRange;
+
+  /// No description provided for @diveSites_hours_removeRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove hours'**
+  String get diveSites_hours_removeRange;
+
+  /// No description provided for @diveSites_hours_copyDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy to other days'**
+  String get diveSites_hours_copyDay;
+
+  /// Title of the dialog that copies one weekday's opening hours to other days.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy {day} to'**
+  String diveSites_hours_copyTitle(String day);
+
+  /// No description provided for @diveSites_hours_selectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get diveSites_hours_selectAll;
+
+  /// No description provided for @diveSites_hours_copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get diveSites_hours_copy;
+
+  /// No description provided for @diveSites_hours_note.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get diveSites_hours_note;
+
+  /// No description provided for @diveSites_hours_note_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Book slots by phone, closed public holidays'**
+  String get diveSites_hours_note_hint;
+
+  /// No description provided for @diveSites_hours_invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Some hours overlap or close before they open'**
+  String get diveSites_hours_invalid;
+
+  /// No description provided for @diveSites_hours_noSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'No weekly hours yet'**
+  String get diveSites_hours_noSchedule;
+
   /// No description provided for @diveSites_detail_section_altitude.
   ///
   /// In en, this message translates to:

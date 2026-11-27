@@ -11618,6 +11618,73 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveSites_contact_website => 'Website';
 
   @override
+  String get diveSites_hours_alwaysOpen => 'Open 24/7';
+
+  @override
+  String get diveSites_hours_addSchedule => 'Add schedule';
+
+  @override
+  String get diveSites_hours_scheduleName => 'Name';
+
+  @override
+  String get diveSites_hours_scheduleName_hint => 'Summer';
+
+  @override
+  String get diveSites_hours_seasonal => 'Seasonal';
+
+  @override
+  String get diveSites_hours_seasonFrom => 'From';
+
+  @override
+  String get diveSites_hours_seasonTo => 'To';
+
+  @override
+  String get diveSites_hours_deleteSchedule => 'Delete schedule';
+
+  @override
+  String get diveSites_hours_closed => 'Closed';
+
+  @override
+  String get diveSites_hours_open24h => 'Open 24 hours';
+
+  @override
+  String get diveSites_hours_kindHours => 'Hours';
+
+  @override
+  String get diveSites_hours_addRange => 'Add hours';
+
+  @override
+  String get diveSites_hours_removeRange => 'Remove hours';
+
+  @override
+  String get diveSites_hours_copyDay => 'Copy to other days';
+
+  @override
+  String diveSites_hours_copyTitle(String day) {
+    return 'Copy $day to';
+  }
+
+  @override
+  String get diveSites_hours_selectAll => 'Select all';
+
+  @override
+  String get diveSites_hours_copy => 'Copy';
+
+  @override
+  String get diveSites_hours_note => 'Note';
+
+  @override
+  String get diveSites_hours_note_hint =>
+      'Book slots by phone, closed public holidays';
+
+  @override
+  String get diveSites_hours_invalid =>
+      'Some hours overlap or close before they open';
+
+  @override
+  String get diveSites_hours_noSchedule => 'No weekly hours yet';
+
+  @override
   String get diveSites_detail_section_altitude => '標高';
 
   @override

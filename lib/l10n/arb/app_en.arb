@@ -7424,6 +7424,36 @@
   "diveSites_contact_phone": "Phone",
   "diveSites_contact_email": "Email",
   "diveSites_contact_website": "Website",
+  "diveSites_hours_alwaysOpen": "Open 24/7",
+  "diveSites_hours_addSchedule": "Add schedule",
+  "diveSites_hours_scheduleName": "Name",
+  "diveSites_hours_scheduleName_hint": "Summer",
+  "diveSites_hours_seasonal": "Seasonal",
+  "diveSites_hours_seasonFrom": "From",
+  "diveSites_hours_seasonTo": "To",
+  "diveSites_hours_deleteSchedule": "Delete schedule",
+  "diveSites_hours_closed": "Closed",
+  "diveSites_hours_open24h": "Open 24 hours",
+  "diveSites_hours_kindHours": "Hours",
+  "diveSites_hours_addRange": "Add hours",
+  "diveSites_hours_removeRange": "Remove hours",
+  "diveSites_hours_copyDay": "Copy to other days",
+  "diveSites_hours_copyTitle": "Copy {day} to",
+  "@diveSites_hours_copyTitle": {
+    "description": "Title of the dialog that copies one weekday's opening hours to other days.",
+    "placeholders": {
+      "day": {
+        "type": "String",
+        "example": "Saturday"
+      }
+    }
+  },
+  "diveSites_hours_selectAll": "Select all",
+  "diveSites_hours_copy": "Copy",
+  "diveSites_hours_note": "Note",
+  "diveSites_hours_note_hint": "Book slots by phone, closed public holidays",
+  "diveSites_hours_invalid": "Some hours overlap or close before they open",
+  "diveSites_hours_noSchedule": "No weekly hours yet",
   "diveSites_detail_section_altitude": "Altitude",
   "diveSites_detail_section_depthRange": "Depth Range",
   "diveSites_detail_section_description": "Description",
