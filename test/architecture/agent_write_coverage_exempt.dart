@@ -279,6 +279,8 @@ final exempt = <String, String>{
     'lib/features/media/data/repositories/media_people_buddy_merge.dart:undoMediaPeopleMerge',
     'lib/features/media/data/repositories/media_people_repository.dart:deleteForBuddies',
     'lib/features/media/data/repositories/media_people_repository.dart:deleteForMedia',
+    'lib/features/media/data/repositories/media_gear_repository.dart:deleteForEquipment',
+    'lib/features/media/data/repositories/media_gear_repository.dart:deleteForMedia',
     'lib/features/media/data/repositories/media_repository.dart:unlinkMediaFromDeletedDives',
     'lib/features/media/data/repositories/media_repository.dart:unlinkMediaFromDeletedEquipment',
     'lib/features/media/data/repositories/media_repository.dart:unlinkMediaFromDeletedSites',

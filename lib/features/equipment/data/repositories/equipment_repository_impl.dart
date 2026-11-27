@@ -1275,6 +1275,31 @@ class EquipmentRepository {
     }
   }
 
+  /// The ids of the dives [getDiveCountForEquipment] counts, newest first:
+  /// the dives a photo picker opens on for the item (issue #5046), so it
+  /// agrees with the Dives row.
+  // stats-scope-exempt: gear wear is physical, not descriptive
+  Future<List<String>> getDiveIdsForEquipment(
+    String equipmentId, {
+    String? diverId,
+  }) async {
+    final rows = await _db
+        .customSelect(
+          '''
+        SELECT d.id AS id
+        FROM dives d
+        WHERE $_diveOnItemSql
+        ORDER BY d.dive_date_time DESC, d.id
+      ''',
+          variables: [
+            Variable.withString(equipmentId),
+            Variable<String>(diverId),
+          ],
+        )
+        .get();
+    return [for (final r in rows) r.read<String>('id')];
+  }
+
   /// Total seconds of the dives [getDiveCountForEquipment] counts, for the
   /// item page's Dive Time row: the same dives, so the two rows describe one
   /// set. A dive with no recorded length adds nothing.
