@@ -108,6 +108,26 @@ void main() {
     expect(saved(), kDefaultPreferredCurrencyCodes);
   });
 
+  testWidgets('the checkbox itself toggles a currency', (tester) async {
+    await open(tester);
+    await tester.tap(
+      find.descendant(
+        of: find.byKey(const Key('preferred-currency-USD')),
+        matching: find.byType(Checkbox),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(saved(), ['EUR']);
+  });
+
+  testWidgets('a search that matches nothing says so', (tester) async {
+    await open(tester);
+    await search(tester, 'qqqq');
+    expect(find.text('No currency matches'), findsOneWidget);
+  });
+
   testWidgets('cancel keeps the stored choice', (tester) async {
     await open(tester);
     await tapCode(tester, 'EUR');
