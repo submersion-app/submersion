@@ -1,4 +1,4 @@
-"""Build assets/fonts/submersion-equipment.ttf from tool/equipment_glyphs.py.
+"""Build assets/fonts/submersion-equipment.ttf from scripts/artwork/equipment_glyphs.py.
 
 The dive-gear shapes in Submersion's equipment list -- wetsuit, drysuit, BCD,
 rebreather, hood, gloves, bootie, reel, DPV, regulator -- exist in no icon
@@ -11,7 +11,7 @@ Run by hand whenever the glyph geometry changes, then commit the .ttf so no
 contributor needs fonttools to build the app:
 
     pip install fonttools
-    python3 tool/build_equipment_icon_font.py
+    python3 scripts/artwork/build_equipment_icon_font.py
 
 Verify the result with --verify, which reads the glyphs back out of the font
 it just wrote and reports their bounds.
@@ -36,7 +36,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from equipment_glyphs import CODE_POINTS, GLYPHS  # noqa: E402
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 OUT = os.path.join(REPO, "assets", "fonts", "submersion-equipment.ttf")
 
 FAMILY = "Submersion Equipment"

@@ -34,7 +34,7 @@ void main() {
     final missing =
         namedByTable().where((id) => !figureArtwork.containsKey(id)).toList()
           ..sort();
-    expect(missing, isEmpty, reason: 'add these to tool/figure and regenerate');
+    expect(missing, isEmpty, reason: 'add these to scripts/artwork/figure and regenerate');
   });
 
   test('no piece in the artwork is unreachable from the table', () {
