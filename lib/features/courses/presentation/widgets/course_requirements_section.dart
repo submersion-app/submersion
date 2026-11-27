@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/courses/domain/entities/course_progress.dart';
@@ -61,14 +61,26 @@ class CourseRequirementsSection extends ConsumerWidget {
     final held = sitting == null
         ? null
         : courseRequirementsList.current(sitting);
+    // Held rows show the live derived counts (see withStoredDerivedAmounts).
     final progress = held == null
         ? stored
-        : CourseProgress(courseId: courseId, requirements: held);
+        : CourseProgress(
+            courseId: courseId,
+            requirements: withStoredDerivedAmounts(held, stored.requirements),
+          );
     final storedSuggestions = suggestionsAsync.value ?? const [];
     final suggestions = held == null
         ? storedSuggestions
         : suggestionsInSitting(storedSuggestions, held);
-    final actions = editing == null ? null : HeldRequirementActions(editing);
+    final container = ref.container;
+    final actions = editing == null
+        ? null
+        : HeldRequirementActions(
+            editing,
+            readDerivedAmount: (requirement) => container.awaitFuture(
+              courseRequirementAmountProvider(requirement).future,
+            ),
+          );
 
     final addButtons = actions == null
         ? null

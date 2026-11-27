@@ -6103,6 +6103,38 @@ class AppLocalizationsNl extends AppLocalizations {
   String get courses_requirement_kind_dive => 'Duikvereiste';
 
   @override
+  String get courses_requirement_kind_ccrHours => 'CCR-uren';
+
+  @override
+  String get courses_requirement_kind_diveQuery =>
+      'Duiken die aan een zoekopdracht voldoen';
+
+  @override
+  String get courses_requirement_field_targetHours => 'Vereiste uren';
+
+  @override
+  String get courses_requirement_field_rebreather => 'Rebreather';
+
+  @override
+  String get courses_requirement_anyRebreather => 'Elke rebreather';
+
+  @override
+  String get courses_requirement_rebreatherRemoved => 'Verwijderde rebreather';
+
+  @override
+  String get courses_requirement_field_query => 'Zoekopdracht voor duiken';
+
+  @override
+  String courses_requirement_hoursProgress(String hours, int target) {
+    return '$hours van $target uur';
+  }
+
+  @override
+  String courses_requirement_matchProgress(int count, int target) {
+    return '$count van $target overeenkomende duiken';
+  }
+
+  @override
   String get courses_requirement_suggestions => 'Voorgestelde duiken';
 
   @override
@@ -28990,6 +29022,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_requirementKind_dive => 'Duiken';
+
+  @override
+  String get enum_requirementKind_ccrHours => 'CCR-uren';
+
+  @override
+  String get enum_requirementKind_diveQuery => 'Overeenkomende duiken';
 
   @override
   String get enum_preDiveSessionStatus_aborted => 'Afgebroken';

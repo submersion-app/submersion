@@ -51,6 +51,8 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'course_requirements': {
     'completed_at': 'Unix ms, checklist',
+    'equipment_id': 'the rebreather an hours-on-CCR requirement counts, null for any unit',
+    'query_json': 'the dive query of a dive-query requirement, as queryNodeToJson writes it',
   },
   'courses': {
     'agency': 'CertificationAgency enum',

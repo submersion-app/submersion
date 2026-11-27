@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -52,10 +53,67 @@ class RequirementTile extends StatelessWidget {
         dense: true,
       );
     }
+    if (requirement.kind.isDerived) {
+      return _DerivedRequirementTile(progress: progress, actions: actions);
+    }
     return _DiveRequirementTile(
       progress: progress,
       suggestions: suggestions,
       actions: actions,
+    );
+  }
+}
+
+/// A requirement counted from the logbook (hours on a CCR, or dives matching
+/// a query): progress only, with nothing to credit or tick.
+class _DerivedRequirementTile extends StatelessWidget {
+  const _DerivedRequirementTile({
+    required this.progress,
+    required this.actions,
+  });
+
+  final CourseRequirementProgress progress;
+
+  /// Null where the tile offers no action.
+  final RequirementActions? actions;
+
+  String _progressText(BuildContext context) {
+    final l10n = context.l10n;
+    final requirement = progress.requirement;
+    if (requirement.kind == RequirementKind.ccrHours) {
+      final format = NumberFormat(
+        '0.0',
+        Localizations.localeOf(context).toString(),
+      );
+      return l10n.courses_requirement_hoursProgress(
+        format.format((progress.derivedAmount ~/ 6) / 10),
+        requirement.targetCount,
+      );
+    }
+    return l10n.courses_requirement_matchProgress(
+      progress.derivedAmount,
+      requirement.targetCount,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final requirement = progress.requirement;
+    final theme = Theme.of(context);
+    final actions = this.actions;
+    return ListTile(
+      leading: progress.isSatisfied
+          ? Icon(Icons.check_circle, color: theme.colorScheme.primary)
+          : Icon(
+              Icons.radio_button_unchecked,
+              color: theme.colorScheme.outline,
+            ),
+      title: Text(requirement.name),
+      subtitle: Text(_progressText(context), style: theme.textTheme.bodySmall),
+      trailing: actions == null
+          ? null
+          : RequirementMenuButton(requirement: requirement, actions: actions),
+      dense: true,
     );
   }
 }

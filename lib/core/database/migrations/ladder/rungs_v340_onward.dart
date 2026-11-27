@@ -346,11 +346,16 @@ extension RungsFromV340 on AppDatabase {
     if (from < 385) await _assertTripEquipmentBagColumn();
     if (from < 385) await reportProgress();
 
-    // v386 (issue #5028): dive_weights.side and weight_preset_entries.side,
+    // v386: the nullable conditions for derived course requirements. The
+    // floor rises to 386 (see minimumCompatibleSchemaVersion).
+    if (from < 386) await _assertCourseRequirementConditionColumns();
+    if (from < 386) await reportProgress();
+
+    // v387 (issue #5028): dive_weights.side and weight_preset_entries.side,
     // the side a weight is carried on, for the trim figure's roll. Nullable
     // with no backfill, null meaning both sides; re-asserted in beforeOpen.
     // The floor does not move.
-    if (from < 386) await _assertWeightSideColumns();
-    if (from < 386) await reportProgress();
+    if (from < 387) await _assertWeightSideColumns();
+    if (from < 387) await reportProgress();
   }
 }

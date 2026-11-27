@@ -4,18 +4,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// v386 adds `dive_weights.side` (issue #5028): which side of the diver a
+/// v387 adds `dive_weights.side` (issue #5028): which side of the diver a
 /// weight is carried on, for the trim figure's roll. Nullable with no
 /// backfill: null means both sides, split evenly, so every existing weight
 /// upgrades unchanged and the floor holds.
 void main() {
-  test('v386 is in the migration ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(386));
-    expect(AppDatabase.migrationVersions, contains(386));
+  test('v387 is in the migration ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(387));
+    expect(AppDatabase.migrationVersions, contains(387));
   });
 
   test('the new column kept the floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(386));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(387));
   });
 
   test('a fresh database has dive_weights.side, nullable TEXT', () async {

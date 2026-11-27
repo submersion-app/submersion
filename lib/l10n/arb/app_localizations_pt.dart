@@ -6141,6 +6141,38 @@ class AppLocalizationsPt extends AppLocalizations {
   String get courses_requirement_kind_dive => 'Requisito de mergulho';
 
   @override
+  String get courses_requirement_kind_ccrHours => 'Horas em CCR';
+
+  @override
+  String get courses_requirement_kind_diveQuery =>
+      'Mergulhos que correspondem a uma pesquisa';
+
+  @override
+  String get courses_requirement_field_targetHours => 'Horas exigidas';
+
+  @override
+  String get courses_requirement_field_rebreather => 'Rebreather';
+
+  @override
+  String get courses_requirement_anyRebreather => 'Qualquer rebreather';
+
+  @override
+  String get courses_requirement_rebreatherRemoved => 'Rebreather removido';
+
+  @override
+  String get courses_requirement_field_query => 'Pesquisa de mergulhos';
+
+  @override
+  String courses_requirement_hoursProgress(String hours, int target) {
+    return '$hours de $target horas';
+  }
+
+  @override
+  String courses_requirement_matchProgress(int count, int target) {
+    return '$count de $target mergulhos correspondentes';
+  }
+
+  @override
   String get courses_requirement_suggestions => 'Mergulhos sugeridos';
 
   @override
@@ -29151,6 +29183,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_requirementKind_dive => 'Mergulhos';
+
+  @override
+  String get enum_requirementKind_ccrHours => 'Horas em CCR';
+
+  @override
+  String get enum_requirementKind_diveQuery => 'Mergulhos correspondentes';
 
   @override
   String get enum_preDiveSessionStatus_aborted => 'Interrompida';

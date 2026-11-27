@@ -67,6 +67,8 @@ final ConflictEnumLabeler requirementKindLabeler = enumLabeler(
   (l, v) => switch (v) {
     RequirementKind.dive => l.enum_requirementKind_dive,
     RequirementKind.checklist => l.enum_requirementKind_checklist,
+    RequirementKind.ccrHours => l.enum_requirementKind_ccrHours,
+    RequirementKind.diveQuery => l.enum_requirementKind_diveQuery,
   },
 );
 

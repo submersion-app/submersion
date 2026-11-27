@@ -1,8 +1,8 @@
 part of '../app_database_migrations.dart';
 
-/// The side a weight is carried on (v386, issue #5028).
+/// The side a weight is carried on (v387, issue #5028).
 extension DiveWeightSideMigrations on AppDatabase {
-  /// `dive_weights.side` and `weight_preset_entries.side` (v386). Nullable,
+  /// `dive_weights.side` and `weight_preset_entries.side` (v387). Nullable,
   /// no backfill: null means both sides. A preset keeps its entries' sides,
   /// so a preset or a set applied to a dive brings them back. Idempotent, so
   /// the ladder and the beforeOpen backstop can both call it.
