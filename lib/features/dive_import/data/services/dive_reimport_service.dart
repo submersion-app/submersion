@@ -28,6 +28,7 @@ import 'package:submersion/features/dive_log/domain/services/source_ownership.da
 import 'package:submersion/features/dive_log/data/repositories/stored_tank_serial_fill.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
+import 'package:submersion/features/universal_import/data/services/tank_pressure_glitch_normalizer.dart';
 
 /// Outcome of one [DiveReimportService.applyReimport] call.
 class DiveReimportResult {
@@ -528,10 +529,13 @@ class DiveReimportService {
       matched[i] = unclaimed[nextUnclaimed++];
     }
 
-    // The stored cylinders and the file's tanks line up one to one: nothing
-    // was removed or added, so each pairing is the same cylinder even where
-    // the import deglitched a start pressure resync reads raw.
-    final oneToOne = existing.length == tanksData.length;
+    // The start pressure each tank's import stored, for telling a cylinder
+    // paired by position apart from another (issue #4665). Only a file with
+    // a Hydrotank needs it.
+    final importedStarts =
+        tanksData.any((t) => _roleName(t['role']) == TankRole.hydrotank.name)
+        ? _backGasImportStarts(diveData, tanksData)
+        : const <double?>[];
 
     final idsByIndex = <String>[];
     for (var i = 0; i < tanksData.length; i++) {
@@ -553,11 +557,7 @@ class DiveReimportService {
       );
       // The file's role, as a parser writes it (an enum or its name); a name
       // this build does not know is none.
-      final fileRole = switch (t['role']) {
-        final TankRole role => role.name,
-        final String name => TankRole.values.asNameMap()[name]?.name,
-        _ => null,
-      };
+      final fileRole = _roleName(t['role']);
 
       final row = matched[i];
       if (row != null) {
@@ -596,7 +596,10 @@ class DiveReimportService {
             // Cloud tanks carry no order, so the row must be the same
             // cylinder, not just the one at that position.
             tankRole:
-                (oneToOne || _sameCylinder(row, serial, startPressure)) &&
+                _sameCylinder(row, serial, [
+                      startPressure,
+                      i < importedStarts.length ? importedStarts[i] : null,
+                    ]) &&
                     upgradesToHydrotank(
                       storedRole: row.tankRole,
                       storedRoleSource: row.roleSource,
@@ -643,20 +646,53 @@ class DiveReimportService {
     return _ParsedTanks.from(tanksData: tanksData, idsByIndex: idsByIndex);
   }
 
-  /// Whether stored [row] is the cylinder a file tank with [serial] and
-  /// [startPressure] reads: the same transmitter when both name one, else a
-  /// start pressure that agrees.
+  /// The name of a role a parser wrote as a [TankRole] or its name; a name
+  /// this build does not know is none.
+  static String? _roleName(Object? role) => switch (role) {
+    final TankRole r => r.name,
+    final String name => TankRole.values.asNameMap()[name]?.name,
+    _ => null,
+  };
+
+  /// Each file tank's start pressure as the import stored it while it took
+  /// every tank for back gas: the import deglitched the pressures
+  /// (`deglitchDiveTankPressures`), which resync does not, and before the
+  /// Hydrotank role an Avelo pump-in at the start read as a lead-in glitch.
+  static List<double?> _backGasImportStarts(
+    Map<String, dynamic> diveData,
+    List<Map<String, dynamic>> tanksData,
+  ) {
+    final asImported = deglitchDiveTankPressures({
+      ...diveData,
+      'tanks': [
+        for (final t in tanksData)
+          {
+            for (final e in t.entries)
+              if (e.key != 'role') e.key: e.value,
+          },
+      ],
+    });
+    return [
+      for (final t in asImported['tanks'] as List)
+        _asDouble((t as Map)['startPressure']),
+    ];
+  }
+
+  /// Whether stored [row] is the cylinder a file tank with [serial] reads:
+  /// the same transmitter when both name one, else a start pressure that
+  /// agrees with one of [startPressures].
   static bool _sameCylinder(
     DiveTank row,
     String? serial,
-    double? startPressure,
+    List<double?> startPressures,
   ) {
     final storedSerial = normalizeTransmitterSerial(row.transmitterSerial);
     if (storedSerial != null && serial != null) return storedSerial == serial;
     final stored = row.startPressure;
-    return stored != null &&
-        startPressure != null &&
-        sameCylinderStartPressure(stored, startPressure);
+    if (stored == null) return false;
+    return startPressures.any(
+      (p) => p != null && sameCylinderStartPressure(stored, p),
+    );
   }
 
   /// Full replace when `gasSwitches` is present (no stable key to match

@@ -120,28 +120,63 @@ void main() {
   );
 
   test(
-    'cylinders that line up one to one pair whatever the pressure',
+    'a start pressure the import deglitched still names the cylinder',
     () async {
-      // The import deglitched the Hydrotank's start pressure when it took the
-      // tank for back gas; resync reads the file's own value.
-      await db
-          .into(db.diveTanks)
-          .insert(
-            DiveTanksCompanion.insert(
-              id: 'tank-a',
-              diveId: diveId,
-              tankOrder: const Value(0),
-              startPressure: const Value(185),
-            ),
-          );
+      // The file's start pressure is a 0 bar lead-in reading, which the
+      // import replaced with the series' first reading while it took the
+      // Hydrotank for back gas; resync reads the file's own value.
+      await seedTank(role: 'backGas');
 
-      await resync([
-        {'startPressure': 200.0, 'role': 'hydrotank'},
-      ]);
+      await service.applyReimport(
+        diveId: diveId,
+        diveData: {
+          'tanks': [
+            {'startPressure': 0.0, 'endPressure': 185.0, 'role': 'hydrotank'},
+          ],
+          'profile': [
+            for (final (t, bar) in [(0, 200.0), (60, 195.0), (1200, 185.0)])
+              {
+                'timestamp': t,
+                'depth': 10.0,
+                'allTankPressures': [
+                  {'tankIndex': 0, 'pressure': bar},
+                ],
+              },
+          ],
+        },
+        now: DateTime(2026, 11, 27),
+      );
 
       expect((await stored()).tankRole, 'hydrotank');
     },
   );
+
+  test('equal counts do not make a different cylinder the same one', () async {
+    // The diver removed the Hydrotank and added another cylinder, so the
+    // dive still holds two and the pony now sits where the Hydrotank was.
+    for (final (id, order, bar) in [('pony', 0, 150), ('added', 1, 230)]) {
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: id,
+              diveId: diveId,
+              tankOrder: Value(order),
+              startPressure: Value(bar.toDouble()),
+            ),
+          );
+    }
+
+    await resync([
+      {'startPressure': 200.0, 'role': 'hydrotank'},
+      {'startPressure': 150.0},
+    ]);
+
+    final pony = await (db.select(
+      db.diveTanks,
+    )..where((t) => t.id.equals('pony'))).getSingle();
+    expect(pony.tankRole, 'backGas');
+  });
 
   test('a stored serial names the cylinder whatever its pressure', () async {
     await db
