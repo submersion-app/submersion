@@ -5230,6 +5230,8 @@
   "firmware_history_changedTo": "Firmware gewijzigd naar {version}",
   "firmware_card_title": "Firmware",
   "firmware_badge_updateAvailable": "Update beschikbaar",
+  "firmware_home_version": "Firmware {version}",
+  "firmware_home_more": "{count, plural, one{nog {count} firmware-update} other{nog {count} firmware-updates}}",
   "firmware_card_installed": "Geïnstalleerd",
   "firmware_card_notRecorded": "Niet vastgelegd",
   "firmware_card_updateAvailable": "Update beschikbaar: {version}",

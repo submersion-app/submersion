@@ -10,6 +10,8 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/equipment_service_navigation.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/firmware/presentation/providers/firmware_status_providers.dart';
+import 'package:submersion/features/firmware/presentation/widgets/home_firmware_rows.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -23,6 +25,10 @@ class GearServicePanel extends ConsumerWidget {
     final l10n = context.l10n;
     final bars = ref.watch(homeGearServiceProvider);
     final list = bars.value ?? const <GearServiceBar>[];
+    // Firmware updates follow the service bars (issue #5104).
+    final updates =
+        ref.watch(firmwareUpdatesProvider).value ??
+        const <FirmwareUpdateEntry>[];
     // Only gear with a service schedule has a clock, so an empty list is
     // either no gear at all or gear with no schedule yet.
     final hasGear = ref.watch(homeHasGearProvider).value ?? false;
@@ -61,7 +67,7 @@ class GearServicePanel extends ConsumerWidget {
       fit: HomePanelFit.clip,
       child: HomePanelAsync<List<GearServiceBar>>(
         value: bars,
-        isEmpty: (b) => b.isEmpty,
+        isEmpty: (b) => b.isEmpty && updates.isEmpty,
         emptyText: emptyText,
         builder: (b) => Column(
           mainAxisSize: MainAxisSize.min,
@@ -76,6 +82,11 @@ class GearServicePanel extends ConsumerWidget {
                   ServiceClockSeverity.dueSoon => HomeBarTone.warn,
                   _ => HomeBarTone.ok,
                 },
+              ),
+            if (updates.isNotEmpty)
+              HomeFirmwareRows(
+                updates: updates,
+                limit: max - b.take(max).length,
               ),
           ],
         ),

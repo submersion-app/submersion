@@ -17158,6 +17158,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get firmware_badge_updateAvailable => 'アップデートあり';
 
   @override
+  String firmware_home_version(String version) {
+    return 'ファームウェア $version';
+  }
+
+  @override
+  String firmware_home_more(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ほか $count 件のファームウェア更新',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get firmware_card_installed => 'インストール済み';
 
   @override

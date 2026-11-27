@@ -17809,6 +17809,22 @@ class AppLocalizationsFr extends AppLocalizations {
   String get firmware_badge_updateAvailable => 'Mise à jour disponible';
 
   @override
+  String firmware_home_version(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String firmware_home_more(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count autres mises à jour du firmware',
+      one: '$count autre mise à jour du firmware',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get firmware_card_installed => 'Installé';
 
   @override

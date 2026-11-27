@@ -5232,6 +5232,8 @@
   "firmware_history_changedTo": "ファームウェアを {version} に変更",
   "firmware_card_title": "ファームウェア",
   "firmware_badge_updateAvailable": "アップデートあり",
+  "firmware_home_version": "ファームウェア {version}",
+  "firmware_home_more": "{count, plural, other{ほか {count} 件のファームウェア更新}}",
   "firmware_card_installed": "インストール済み",
   "firmware_card_notRecorded": "未記録",
   "firmware_card_updateAvailable": "アップデートあり: {version}",

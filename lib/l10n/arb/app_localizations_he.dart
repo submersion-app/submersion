@@ -17407,6 +17407,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get firmware_badge_updateAvailable => 'עדכון זמין';
 
   @override
+  String firmware_home_version(String version) {
+    return 'קושחה $version';
+  }
+
+  @override
+  String firmware_home_more(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'עוד $count עדכוני קושחה',
+      two: 'עוד שני עדכוני קושחה',
+      one: 'עוד עדכון קושחה אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get firmware_card_installed => 'מותקן';
 
   @override

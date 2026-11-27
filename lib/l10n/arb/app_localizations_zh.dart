@@ -16919,6 +16919,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get firmware_badge_updateAvailable => '有可用更新';
 
   @override
+  String firmware_home_version(String version) {
+    return '固件 $version';
+  }
+
+  @override
+  String firmware_home_more(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '还有 $count 个固件更新',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get firmware_card_installed => '已安装';
 
   @override

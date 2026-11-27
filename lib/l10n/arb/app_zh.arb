@@ -5348,6 +5348,8 @@
   "firmware_history_changedTo": "固件已更改为 {version}",
   "firmware_card_title": "固件",
   "firmware_badge_updateAvailable": "有可用更新",
+  "firmware_home_version": "固件 {version}",
+  "firmware_home_more": "{count, plural, other{还有 {count} 个固件更新}}",
   "firmware_card_installed": "已安装",
   "firmware_card_notRecorded": "未记录",
   "firmware_card_updateAvailable": "有可用更新：{version}",

@@ -5230,6 +5230,8 @@
   "firmware_history_changedTo": "تم تغيير البرنامج الثابت إلى {version}",
   "firmware_card_title": "البرنامج الثابت",
   "firmware_badge_updateAvailable": "يتوفر تحديث",
+  "firmware_home_version": "البرنامج الثابت {version}",
+  "firmware_home_more": "{count, plural, zero{لا توجد تحديثات أخرى للبرامج الثابتة} one{تحديث واحد آخر للبرنامج الثابت} two{تحديثان آخران للبرنامج الثابت} few{{count} تحديثات أخرى للبرامج الثابتة} many{{count} تحديثًا آخر للبرامج الثابتة} other{{count} تحديث آخر للبرامج الثابتة}}",
   "firmware_card_installed": "المثبت",
   "firmware_card_notRecorded": "غير مسجل",
   "firmware_card_updateAvailable": "يتوفر تحديث: {version}",

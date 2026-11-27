@@ -5230,6 +5230,8 @@
   "firmware_history_changedTo": "Firmware alterado para {version}",
   "firmware_card_title": "Firmware",
   "firmware_badge_updateAvailable": "Atualização disponível",
+  "firmware_home_version": "Firmware {version}",
+  "firmware_home_more": "{count, plural, one{mais {count} atualização de firmware} other{mais {count} atualizações de firmware}}",
   "firmware_card_installed": "Instalado",
   "firmware_card_notRecorded": "Não registrado",
   "firmware_card_updateAvailable": "Atualização disponível: {version}",

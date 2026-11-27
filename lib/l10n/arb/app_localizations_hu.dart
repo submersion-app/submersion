@@ -17712,6 +17712,22 @@ class AppLocalizationsHu extends AppLocalizations {
   String get firmware_badge_updateAvailable => 'Frissítés érhető el';
 
   @override
+  String firmware_home_version(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String firmware_home_more(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'még $count firmware-frissítés',
+      one: 'még $count firmware-frissítés',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get firmware_card_installed => 'Telepítve';
 
   @override

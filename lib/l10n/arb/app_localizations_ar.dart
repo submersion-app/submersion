@@ -18067,6 +18067,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get firmware_badge_updateAvailable => 'يتوفر تحديث';
 
   @override
+  String firmware_home_version(String version) {
+    return 'البرنامج الثابت $version';
+  }
+
+  @override
+  String firmware_home_more(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تحديث آخر للبرامج الثابتة',
+      many: '$count تحديثًا آخر للبرامج الثابتة',
+      few: '$count تحديثات أخرى للبرامج الثابتة',
+      two: 'تحديثان آخران للبرنامج الثابت',
+      one: 'تحديث واحد آخر للبرنامج الثابت',
+      zero: 'لا توجد تحديثات أخرى للبرامج الثابتة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get firmware_card_installed => 'المثبت';
 
   @override

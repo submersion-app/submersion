@@ -5355,6 +5355,8 @@
   "firmware_history_changedTo": "Firmware geändert auf {version}",
   "firmware_card_title": "Firmware",
   "firmware_badge_updateAvailable": "Update verfügbar",
+  "firmware_home_version": "Firmware {version}",
+  "firmware_home_more": "{count, plural, one{{count} weiteres Firmware-Update} other{{count} weitere Firmware-Updates}}",
   "firmware_card_installed": "Installiert",
   "firmware_card_notRecorded": "Nicht erfasst",
   "firmware_card_updateAvailable": "Update verfügbar: {version}",

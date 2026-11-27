@@ -28186,6 +28186,18 @@ abstract class AppLocalizations {
   /// **'Update available'**
   String get firmware_badge_updateAvailable;
 
+  /// No description provided for @firmware_home_version.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware {version}'**
+  String firmware_home_version(String version);
+
+  /// No description provided for @firmware_home_more.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} more firmware update} other{{count} more firmware updates}}'**
+  String firmware_home_more(int count);
+
   /// No description provided for @firmware_card_installed.
   ///
   /// In en, this message translates to:
