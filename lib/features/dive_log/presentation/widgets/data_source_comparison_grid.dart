@@ -34,7 +34,13 @@ class _SourceComparisonGrid extends StatelessWidget {
   /// Why the menu's operations are unavailable, or null when they are.
   final String? operationReason;
 
-  static const _cellPadding = EdgeInsetsDirectional.fromSTEB(0, 6, 12, 6);
+  /// The label column hugs the section's leading edge.
+  static const _labelPadding = EdgeInsetsDirectional.fromSTEB(0, 6, 6, 6);
+
+  /// A source cell keeps a small inset on both sides, so its text sits
+  /// inside the viewed column's tint; with the label's end inset it
+  /// leaves the same 12 between columns as before.
+  static const _sourcePadding = EdgeInsetsDirectional.all(6);
 
   @override
   Widget build(BuildContext context) {
@@ -103,6 +109,41 @@ class _SourceComparisonGrid extends StatelessWidget {
             child: child,
           );
 
+    final actions = {for (final s in sources) s.id: actionsFor(s)};
+
+    // A cell of [s]'s column: tinted while [s] is viewed, and a tap views
+    // it, as a tap anywhere on its card did. intrinsicHeight stretches the
+    // cell to its row's height, so the tint runs unbroken down the column,
+    // while still letting a two-line value set that height (a fill cell
+    // would not count towards it and could clip).
+    TableCell columnCell(
+      DiveDataSource s,
+      Widget child, {
+      AlignmentGeometry alignment = AlignmentDirectional.centerStart,
+      Widget Function(Widget body)? wrap,
+    }) {
+      final body = Material(
+        color: s.id == viewedSourceId
+            ? colorScheme.surfaceContainerHighest
+            : Colors.transparent,
+        child: InkWell(
+          onTap: actions[s.id]!.onTap,
+          child: Align(
+            alignment: alignment,
+            widthFactor: 1,
+            heightFactor: 1,
+            child: child,
+          ),
+        ),
+      );
+      // TableCell has to sit directly under the table, so anything that
+      // wraps the cell goes inside it.
+      return TableCell(
+        verticalAlignment: TableCellVerticalAlignment.intrinsicHeight,
+        child: wrap == null ? body : wrap(body),
+      );
+    }
+
     final table = Table(
       key: DataSourcesSection.comparisonGridKey,
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
@@ -123,30 +164,34 @@ class _SourceComparisonGrid extends StatelessWidget {
             // header is left blank rather than titled "Metric".
             const SizedBox.shrink(),
             for (final s in sources)
-              KeyedSubtree(
-                key: DataSourcesSection.cardKey(s.id),
-                child: Material(
-                  color: s.id == viewedSourceId
-                      ? colorScheme.surfaceContainerHighest
-                      : Colors.transparent,
-                  child: InkWell(
-                    onTap: actionsFor(s).onTap,
-                    child: Padding(
-                      // A menu button brings its own inset at the end.
-                      padding: EdgeInsetsDirectional.fromSTEB(
-                        0,
-                        2,
-                        actionsFor(s).hasMenuFor(s) ? 0 : 12,
-                        6,
-                      ),
-                      child: sourceCell(
-                        _SourceColumnHeader(
-                          source: s,
-                          isViewing: s.id == viewedSourceId,
-                          actions: actionsFor(s),
-                          operationReason: operationReason,
-                        ),
-                      ),
+              columnCell(
+                s,
+                alignment: AlignmentDirectional.topStart,
+                // One node per source for screen readers: its name and
+                // chips, read as a button that is selected while viewed.
+                wrap: (body) => KeyedSubtree(
+                  key: DataSourcesSection.cardKey(s.id),
+                  child: Semantics(
+                    container: true,
+                    button: actions[s.id]!.onTap != null,
+                    selected: s.id == viewedSourceId,
+                    child: body,
+                  ),
+                ),
+                Padding(
+                  // A menu button brings its own inset at the end.
+                  padding: EdgeInsetsDirectional.fromSTEB(
+                    6,
+                    2,
+                    actions[s.id]!.hasMenuFor(s) ? 0 : 6,
+                    6,
+                  ),
+                  child: sourceCell(
+                    _SourceColumnHeader(
+                      source: s,
+                      isViewing: s.id == viewedSourceId,
+                      actions: actions[s.id]!,
+                      operationReason: operationReason,
                     ),
                   ),
                 ),
@@ -157,18 +202,21 @@ class _SourceComparisonGrid extends StatelessWidget {
           TableRow(
             children: [
               Padding(
-                padding: _cellPadding,
+                padding: _labelPadding,
                 child: Text(label, style: labelStyle),
               ),
               for (final s in sources)
-                Padding(
-                  padding: _cellPadding,
-                  child: sourceCell(
-                    Text(
-                      pick(s) ?? '—',
-                      style: valueStyle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                columnCell(
+                  s,
+                  Padding(
+                    padding: _sourcePadding,
+                    child: sourceCell(
+                      Text(
+                        pick(s) ?? '—',
+                        style: valueStyle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ),
                 ),

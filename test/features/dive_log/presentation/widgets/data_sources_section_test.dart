@@ -508,48 +508,118 @@ void main() {
       );
     });
 
-    testWidgets('the viewed card gets a tinted background, others do not', (
-      tester,
-    ) async {
-      final primary = _makeSource(id: 'src-1', isPrimary: true);
-      final secondary = _makeSource(
-        id: 'src-2',
-        isPrimary: false,
-        computerModel: 'Suunto D5',
-      );
-
+    Future<void> pumpTwo(
+      WidgetTester tester, {
+      String? viewedSourceId,
+      void Function(String id)? onTapSource,
+    }) async {
       await tester.pumpWidget(
         testApp(
           child: SingleChildScrollView(
             child: DataSourcesSection(
               operationReason: null,
-              dataSources: [primary, secondary],
+              dataSources: [
+                _makeSource(id: 'src-1', isPrimary: true),
+                _makeSource(
+                  id: 'src-2',
+                  computerId: 'comp-2',
+                  isPrimary: false,
+                  computerModel: 'Suunto D5',
+                  maxDepth: 31.0,
+                ),
+              ],
               diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
               diveId: 'dive-1',
               units: _units,
-              viewedSourceId: 'src-2',
-              onTapSource: (_) {},
+              viewedSourceId: viewedSourceId,
+              onTapSource: onTapSource ?? (_) {},
             ),
           ),
         ),
       );
       await tester.pumpAndSettle();
+    }
 
-      Color? cardColor(String id) => tester
-          .widget<Material>(
-            find
-                .descendant(
-                  of: find.byKey(DataSourcesSection.cardKey(id)),
-                  matching: find.byType(Material),
-                )
-                .first,
-          )
-          .color;
+    /// The Materials in the comparison table painted with the viewed tint.
+    Finder tinted(WidgetTester tester) {
       final scheme = Theme.of(
         tester.element(find.byType(DataSourcesSection)),
       ).colorScheme;
-      expect(cardColor('src-2'), scheme.surfaceContainerHighest);
-      expect(cardColor('src-1'), isNot(scheme.surfaceContainerHighest));
+      return find.descendant(
+        of: find.byKey(DataSourcesSection.comparisonGridKey),
+        matching: find.byWidgetPredicate(
+          (w) => w is Material && w.color == scheme.surfaceContainerHighest,
+        ),
+      );
+    }
+
+    // A source's column is its entry, so a tap anywhere in it views that
+    // source, as a tap anywhere on its card did (#5081).
+    testWidgets('tapping any cell of a column views that source', (
+      tester,
+    ) async {
+      final tapped = <String>[];
+      await pumpTwo(tester, onTapSource: tapped.add);
+
+      await tester.tap(find.text('31.0m'));
+      await tester.tap(find.text('Suunto D5'));
+      await tester.tap(find.text('30.0m'));
+      await tester.pumpAndSettle();
+
+      expect(tapped, ['src-2', 'src-2', 'src-1']);
+    });
+
+    testWidgets('the viewed column is tinted top to bottom', (tester) async {
+      await pumpTwo(tester, viewedSourceId: 'src-2');
+
+      final rows = tester
+          .widget<Table>(find.byKey(DataSourcesSection.comparisonGridKey))
+          .children
+          .length;
+      final cells = tinted(tester);
+      // One tinted cell per row, header included, all in src-2's column.
+      expect(cells, findsNWidgets(rows));
+      final column = tester.getRect(
+        find.byKey(DataSourcesSection.cardKey('src-2')),
+      );
+      for (var i = 0; i < rows; i++) {
+        final cell = tester.getRect(cells.at(i));
+        expect(cell.left, closeTo(column.left, 0.5));
+        expect(cell.right, closeTo(column.right, 0.5));
+      }
+      // The tint runs unbroken: each cell starts where the one above ends.
+      for (var i = 1; i < rows; i++) {
+        expect(
+          tester.getRect(cells.at(i)).top,
+          closeTo(tester.getRect(cells.at(i - 1)).bottom, 1.5),
+        );
+      }
+    });
+
+    testWidgets('a stale viewed id tints nothing and shows no Viewing chip', (
+      tester,
+    ) async {
+      await pumpTwo(tester, viewedSourceId: 'gone');
+
+      expect(tinted(tester), findsNothing);
+      expect(find.text('Viewing'), findsNothing);
+    });
+
+    testWidgets('the header is a button, selected while viewed', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await pumpTwo(tester, viewedSourceId: 'src-2');
+
+      expect(
+        tester.getSemantics(find.byKey(DataSourcesSection.cardKey('src-2'))),
+        isSemantics(isButton: true, isSelected: true),
+      );
+      expect(
+        tester.getSemantics(find.byKey(DataSourcesSection.cardKey('src-1'))),
+        isSemantics(isButton: true, isSelected: false),
+      );
+      semantics.dispose();
     });
 
     testWidgets(
@@ -971,48 +1041,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.more_vert), findsNothing);
-    });
-
-    testWidgets('onTapSource callback fires when secondary card is tapped', (
-      tester,
-    ) async {
-      final primary = _makeSource(id: 'src-1', isPrimary: true);
-      final secondary = _makeSource(
-        id: 'src-2',
-        isPrimary: false,
-        computerModel: 'Suunto D5',
-      );
-
-      String? tappedId;
-
-      await tester.pumpWidget(
-        testApp(
-          child: SingleChildScrollView(
-            child: DataSourcesSection(
-              operationReason: null,
-              dataSources: [primary, secondary],
-              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
-              diveId: 'dive-1',
-              units: _units,
-              onTapSource: (id) => tappedId = id,
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Suunto D5').last);
-      await tester.pumpAndSettle();
-
-      expect(tappedId, equals('src-2'));
-      // Cards are ink wells now, so the tap shows a ripple.
-      expect(
-        find.descendant(
-          of: find.byKey(DataSourcesSection.cardKey('src-2')),
-          matching: find.byType(InkWell),
-        ),
-        findsWidgets,
-      );
     });
   });
 
