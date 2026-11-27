@@ -119,15 +119,25 @@ OpeningStatus openingStatusAt(OpeningHours hours, DateTime wallClock) {
   return ClosedNow(nextOpen: null, outOfSeason: outOfSeason);
 }
 
-/// Follows an open stretch ending at [closes] across midnights while the
-/// next day opens exactly then; null when it never ends within a week.
+/// Follows an open stretch ending at [closes] through every range that opens
+/// exactly as the last one closes: a later range the same day (12:00 to
+/// 13:00, then 13:00 on) or the next day's from midnight. Null when it never
+/// ends within a week.
 DateTime? _closingFrom(
   DateTime closes,
   Iterable<(DateTime, DateTime)> Function(int dayOffset) openOn,
 ) {
+  final ahead = [
+    for (var offset = 0; offset <= _neverClosesAfterDays; offset++)
+      ...openOn(offset),
+  ];
+  // Still open a week past the first close: it does not close. Each step
+  // moves [end] strictly later (a range closes after it opens), so the
+  // loop ends.
+  final horizon = closes.add(const Duration(days: _neverClosesAfterDays - 1));
   var end = closes;
-  for (var offset = 1; offset <= _neverClosesAfterDays; offset++) {
-    final next = openOn(offset).where((r) => r.$1 == end).firstOrNull;
+  while (end.isBefore(horizon)) {
+    final next = ahead.where((r) => r.$1 == end).firstOrNull;
     if (next == null) return end;
     end = next.$2;
   }

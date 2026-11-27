@@ -226,4 +226,17 @@ void main() {
 
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('an opening a week away names its date, not the weekday', (
+    tester,
+  ) async {
+    // Saturday 28 Nov 2026, after closing: next opening is Saturday 5 Dec.
+    await pumpCard(
+      tester,
+      DiveSite(id: 's', name: 'X', openingHours: satHours),
+      now: DateTime(2026, 11, 28, 15),
+    );
+
+    expect(find.text('Closed, opens Dec 5 10:00'), findsOneWidget);
+  });
 }

@@ -125,6 +125,11 @@ void main() {
       expect(writes.fields['website']!.parse('bluehole.bz'), 'bluehole.bz');
     });
 
+    test('a long website is accepted', () {
+      final long = 'https://stoneycove.com/book?${'x' * 280}';
+      expect(writes.fields['website']!.parse(long), long);
+    });
+
     test('an email that is not one is refused', () {
       expect(
         () => writes.fields['email']!.parse('nope'),

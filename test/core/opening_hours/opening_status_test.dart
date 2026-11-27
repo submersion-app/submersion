@@ -180,4 +180,20 @@ void main() {
       );
     });
   });
+
+  group('touching ranges (review round 2)', () {
+    test('a range that starts as another ends is one stretch', () {
+      final hours = OpeningHours(
+        schedules: [
+          _week({
+            DateTime.saturday: DayHours.ranges(const [
+              TimeRange(480, 720),
+              TimeRange(720, 800),
+            ]),
+          }),
+        ],
+      );
+      expect(openingStatusAt(hours, _sat(11)), OpenNow(closesAt: _sat(13, 20)));
+    });
+  });
 }

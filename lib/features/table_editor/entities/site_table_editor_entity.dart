@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_sites/domain/services/site_contact_rules.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -264,13 +265,17 @@ List<SiteEditorColumn> _columns(Map<String, bool> editableLibrarySites) {
   String? reason(SiteWithCount e, AppLocalizations l) =>
       mayEdit(e) ? null : l.tableEditor_libraryReadOnly;
 
-  SiteEditorColumn text(SiteField f, String? Function(DiveSite) get) =>
-      textColumn(
-        f,
-        (e) => get(e.site),
-        isEditable: mayEdit,
-        readOnlyReason: reason,
-      );
+  SiteEditorColumn text(
+    SiteField f,
+    String? Function(DiveSite) get, {
+    bool Function(String text)? accept,
+  }) => textColumn(
+    f,
+    (e) => get(e.site),
+    accept: accept,
+    isEditable: mayEdit,
+    readOnlyReason: reason,
+  );
   SiteEditorColumn depth(SiteField f, double? Function(DiveSite) get) =>
       numberColumn(
         f,
@@ -356,8 +361,9 @@ List<SiteEditorColumn> _columns(Map<String, bool> editableLibrarySites) {
     text(SiteField.mooringNumber, (s) => s.mooringNumber),
     text(SiteField.address, (s) => s.address),
     text(SiteField.phone, (s) => s.phone),
-    text(SiteField.email, (s) => s.email),
-    text(SiteField.website, (s) => s.website),
+    // As the Contact card refuses them (issue #5073).
+    text(SiteField.email, (s) => s.email, accept: isValidSiteEmail),
+    text(SiteField.website, (s) => s.website, accept: isValidSiteWebsite),
     text(SiteField.hazards, (s) => s.hazards),
     // Private to the profile, so a library site keeps them editable.
     plainNumberColumn(SiteField.rating, (e) => e.site.rating, min: 0, max: 5),

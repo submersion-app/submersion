@@ -167,4 +167,15 @@ void main() {
     expect(day.copyWith(kind: DayHoursKind.open24h), const DayHours.open24h());
     expect(day.copyWith(kind: DayHoursKind.closed), const DayHours.closed());
   });
+
+  test('whole minutes written as decimals are read; fractions are not', () {
+    const raw =
+        '{"v":1,"schedules":[{"days":{"sat":[[540.0,720.0],[780.5,900]]}}]}';
+    expect(
+      decodeOpeningHours(
+        raw,
+      )!.schedules.single.dayHours(DateTime.saturday).ranges,
+      const [TimeRange(540, 720)],
+    );
+  });
 }

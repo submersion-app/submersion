@@ -53,8 +53,16 @@ class SiteOpeningHoursCard extends ConsumerWidget {
           moment.year == wallClock.year &&
           moment.month == wallClock.month &&
           moment.day == wallClock.day;
-      return sameDay
-          ? clock
+      if (sameDay) return clock;
+      // A week or so ahead, a weekday alone reads as this one: name the
+      // date instead.
+      final daysAhead = DateTime.utc(moment.year, moment.month, moment.day)
+          .difference(
+            DateTime.utc(wallClock.year, wallClock.month, wallClock.day),
+          )
+          .inDays;
+      return daysAhead >= 6
+          ? '${monthDayLabel(units, MonthDay.of(moment))} $clock'
           : '${weekdayName(context, moment.weekday, short: true)} $clock';
     }
 

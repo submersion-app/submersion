@@ -122,10 +122,19 @@ DayHours _decodeDay(Object value) {
     _drop('a day that is neither "24h" nor a list');
     return const DayHours.closed();
   }
+  // A whole number written as a decimal (540.0, from an agent or a
+  // hand-edited cell) is still a minute; a fraction is not.
+  int? minute(Object? v) => switch (v) {
+    final int i => i,
+    final double d when d == d.roundToDouble() => d.toInt(),
+    _ => null,
+  };
   final ranges = <TimeRange>[];
   for (final r in value) {
-    if (r is List && r.length == 2 && r[0] is int && r[1] is int) {
-      final range = TimeRange(r[0] as int, r[1] as int);
+    final opens = r is List && r.length == 2 ? minute(r[0]) : null;
+    final closes = r is List && r.length == 2 ? minute(r[1]) : null;
+    if (opens != null && closes != null) {
+      final range = TimeRange(opens, closes);
       if (range.isValid) {
         ranges.add(range);
         continue;

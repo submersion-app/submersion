@@ -38,8 +38,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/environment_en
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/dive_sites/presentation/helpers/site_link_launcher.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_contact_card.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_pin_directions_button.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_opening_hours_card.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_delete_usage.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_card.dart';
@@ -1399,15 +1399,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
                           : null,
                     ),
                   ),
-                  if (site.hasCoordinates &&
-                      (site.address?.trim().isEmpty ?? true))
-                    IconButton(
-                      key: const ValueKey('site_location_directions'),
-                      icon: const Icon(Icons.directions),
-                      color: colorScheme.primary,
-                      tooltip: context.l10n.diveSites_contact_directions,
-                      onPressed: () => openSiteDirections(context, ref, site),
-                    ),
+                  if (SitePinDirectionsButton.shownFor(site))
+                    SitePinDirectionsButton(site: site),
                 ],
               ),
             ],

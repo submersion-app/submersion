@@ -4,7 +4,10 @@ import 'package:submersion/core/opening_hours/opening_hours.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/table_editor/domain/table_draft.dart';
+import 'package:submersion/features/table_editor/domain/table_editor_column.dart';
 import 'package:submersion/features/table_editor/entities/site_table_editor_entity.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
@@ -314,5 +317,20 @@ void main() {
     expect(saved.address, 'LE9 4DW');
     expect(saved.website, 'stoneycove.com');
     expect(saved.openingHours, hours);
+  });
+
+  test('an email or website the site could not use is refused', () {
+    const units = UnitFormatter(AppSettings());
+    final l10n = AppLocalizationsEn();
+    final e = entity();
+    final website = e.columnFor(SiteField.website)!;
+    final email = e.columnFor(SiteField.email)!;
+
+    expect(website.parse('mailto:x@y.com', units, l10n), isA<CellRejected>());
+    expect(website.parse('stoneycove.com', units, l10n), isA<CellParsed>());
+    expect(email.parse('info@', units, l10n), isA<CellRejected>());
+    expect(email.parse('info@stoneycove.com', units, l10n), isA<CellParsed>());
+    // A blank still clears the field.
+    expect(website.parse('', units, l10n), isA<CellParsed>());
   });
 }

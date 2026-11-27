@@ -73,6 +73,8 @@ class SiteWrites extends WritableEntry {
     'website': const _CheckedTextCodec(
       check: isValidSiteWebsite,
       shape: 'a web address (http or https)',
+      // A booking page's address can run long; the app stores any length.
+      maxLength: 2000,
     ),
     'opening_hours': const JsonObjectCodec(
       shape: 'an opening hours object',
@@ -500,17 +502,15 @@ OpeningHours? _openingHoursOf(Object? raw) => switch (raw) {
 /// Text that must pass [check] to be written: a site's email or website,
 /// which the site page hands to another app.
 class _CheckedTextCodec extends FieldCodec {
-  const _CheckedTextCodec({required this.check, required this.shape})
-    : super(nullable: true);
+  const _CheckedTextCodec({
+    required this.check,
+    required this.shape,
+    this.maxLength = 200,
+  }) : super(nullable: true);
 
   final bool Function(String text) check;
   final String shape;
-
-  static const _text = FieldCodec.text(
-    maxLength: 200,
-    nullable: true,
-    trim: true,
-  );
+  final int maxLength;
 
   @override
   String get describe => shape;
@@ -521,7 +521,13 @@ class _CheckedTextCodec extends FieldCodec {
 
   @override
   Object parseValue(Object raw) {
-    final text = _text.parseValue(raw) as String;
+    final text =
+        FieldCodec.text(
+              maxLength: maxLength,
+              nullable: true,
+              trim: true,
+            ).parseValue(raw)
+            as String;
     if (!check(text)) throw FieldRefusal('This field takes $shape.');
     return text;
   }
