@@ -34,20 +34,30 @@ class SacPinLayout extends SingleChildLayoutDelegate {
 }
 
 /// Places a tooltip beside the bar from [barLeft] to [barRight], on whichever
-/// side has room, centered on [centerY].
+/// side has room, centered on [centerY]. On a narrow plot it narrows to the
+/// roomier side, down to [minBesideWidth], wrapping its text onto more lines.
 ///
-/// Where neither side has room, as over a middle bar on a phone, it centers on
+/// Where even that side is narrower, it centers on
 /// the bar across the average line at [baselineY] from it, below a bar that
-/// [rises] and above one that hangs, so it never covers the bar it describes.
-/// It stays inside the width it is given.
+/// [rises] and above one that hangs, so it clears the bar it describes.
+///
+/// It stays inside the width it is given and between [top] and [bottom],
+/// the plot's own edges, so nothing drawn after the plot, such as the time
+/// axis, paints over it. Only a tooltip taller than the plot, at very large
+/// text, runs past [bottom].
 class SacTooltipLayout extends SingleChildLayoutDelegate {
   static const double gap = 6;
+
+  /// The narrowest a tooltip squeezes to sit beside its bar.
+  static const double minBesideWidth = 120;
 
   final double barLeft;
   final double barRight;
   final double centerY;
   final double baselineY;
   final bool rises;
+  final double top;
+  final double bottom;
   final double maxWidth;
 
   const SacTooltipLayout({
@@ -56,21 +66,32 @@ class SacTooltipLayout extends SingleChildLayoutDelegate {
     required this.centerY,
     required this.baselineY,
     required this.rises,
+    required this.top,
+    required this.bottom,
     required this.maxWidth,
   });
 
+  /// Allows for rounding where the tooltip was narrowed to the room exactly.
+  static const double _slack = 0.01;
+
+  double _fit(double y, double height) =>
+      math.max(top, math.min(y, bottom - height));
+
   @override
-  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
-      BoxConstraints(maxWidth: math.min(maxWidth, constraints.maxWidth));
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
+    final room = math.max(constraints.maxWidth - barRight, barLeft) - gap;
+    final width = room >= minBesideWidth ? room : constraints.maxWidth;
+    return BoxConstraints(maxWidth: math.min(maxWidth, width));
+  }
 
   @override
   Offset getPositionForChild(Size size, Size childSize) {
     final width = childSize.width;
-    final beside = centerY - childSize.height / 2;
-    if (barRight + gap + width <= size.width) {
+    final beside = _fit(centerY - childSize.height / 2, childSize.height);
+    if (barRight + gap + width <= size.width + _slack) {
       return Offset(barRight + gap, beside);
     }
-    if (barLeft - gap - width >= 0) {
+    if (barLeft - gap - width >= -_slack) {
       return Offset(barLeft - gap - width, beside);
     }
     final double left = ((barLeft + barRight - width) / 2).clamp(
@@ -79,7 +100,10 @@ class SacTooltipLayout extends SingleChildLayoutDelegate {
     );
     return Offset(
       left,
-      rises ? baselineY + gap : baselineY - gap - childSize.height,
+      _fit(
+        rises ? baselineY + gap : baselineY - gap - childSize.height,
+        childSize.height,
+      ),
     );
   }
 
@@ -90,6 +114,8 @@ class SacTooltipLayout extends SingleChildLayoutDelegate {
       oldDelegate.centerY != centerY ||
       oldDelegate.baselineY != baselineY ||
       oldDelegate.rises != rises ||
+      oldDelegate.top != top ||
+      oldDelegate.bottom != bottom ||
       oldDelegate.maxWidth != maxWidth;
 }
 

@@ -119,6 +119,10 @@ class SacTimeColumns extends StatelessWidget {
 
   static const double _tooltipMaxWidth = 220;
 
+  /// How far in from its end of the line the average tag may reach, for
+  /// keeping a bar's label off it.
+  static const double _averageTagReach = 64;
+
   /// How much of its color a column keeps while another one is picked, so
   /// the picked column is the only one at full strength (issue #4697).
   static const double unpickedAlpha = 0.35;
@@ -325,27 +329,47 @@ class SacTimeColumns extends StatelessWidget {
     );
   }
 
-  Widget _averageTag(ThemeData theme, TextStyle? style, String label) =>
-      CustomSingleChildLayout(
-        delegate: SacPinLayout(
-          anchor: Offset(0, _baselineY),
-          childAnchor: Alignment.centerLeft,
-        ),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            // The card's own color, so the tag reads over the bars it covers.
-            color:
-                theme.cardTheme.color ?? theme.colorScheme.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(label, style: style, softWrap: false),
-          ),
-        ),
-      );
+  /// Whether a bar label sits within the average tag's reach of the left
+  /// end of a plot [width] wide, or of the right end with [fromRight].
+  bool _labelNearEnd(double width, {required bool fromRight}) =>
+      barLabels.any((label) {
+        if (label.index < 0 || label.index >= columns.length) return false;
+        final column = columns[label.index];
+        final x = _xAt(width, column.startSeconds + column.durationSeconds / 2);
+        return fromRight ? x > width - _averageTagReach : x < _averageTagReach;
+      });
 
-  Widget _tooltip(double width, String details) {
+  /// The average tag, at the left end of the line unless a bar's label sits
+  /// there and the right end is clear.
+  Widget _averageTag(
+    ThemeData theme,
+    TextStyle? style,
+    String label,
+    double width,
+  ) {
+    final right =
+        _labelNearEnd(width, fromRight: false) &&
+        !_labelNearEnd(width, fromRight: true);
+    return CustomSingleChildLayout(
+      delegate: SacPinLayout(
+        anchor: Offset(right ? width : 0, _baselineY),
+        childAnchor: right ? Alignment.centerRight : Alignment.centerLeft,
+      ),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          // The card's own color, so the tag reads over the bars it covers.
+          color: theme.cardTheme.color ?? theme.colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Text(label, style: style, softWrap: false),
+        ),
+      ),
+    );
+  }
+
+  Widget _tooltip(double width, double band, String details) {
     final column = columns[activeIndex!];
     return CustomSingleChildLayout(
       delegate: SacTooltipLayout(
@@ -354,6 +378,9 @@ class SacTimeColumns extends StatelessWidget {
         centerY: barsHeight / 2,
         baselineY: _baselineY,
         rises: _rises(activeIndex!),
+        // The plot's edges, label bands included, in the bars' coordinates.
+        top: -band,
+        bottom: barsHeight + band,
         maxWidth: _tooltipMaxWidth,
       ),
       child: SacChartTooltip(key: tooltipKey, text: details),
@@ -417,13 +444,13 @@ class SacTimeColumns extends StatelessWidget {
                         if (label.index >= 0 && label.index < columns.length)
                           _barLabel(label, valueStyle, width),
                       if (averageLabel != null)
-                        _averageTag(theme, labelStyle, averageLabel!),
+                        _averageTag(theme, labelStyle, averageLabel!, width),
                     ],
                   ),
                 ),
               ),
               if (details != null)
-                IgnorePointer(child: _tooltip(width, details)),
+                IgnorePointer(child: _tooltip(width, band, details)),
             ],
           ),
         ),

@@ -312,6 +312,38 @@ void main() {
       expect(find.text('+0.5'), findsOneWidget);
     });
 
+    testWidgets('the average tag makes way for a label at its end', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(
+        tester,
+        time: [
+          sacSegment(0, 5, sacRate: 1.2),
+          sacSegment(5, 10),
+          sacSegment(10, 15),
+          sacSegment(15, 20),
+        ],
+      );
+      final plot = tester.getRect(find.byKey(SacTimeColumns.plotKey));
+      final tag = tester.getRect(find.text('avg 10.5'));
+      final label = tester.getRect(find.text('+1.5'));
+
+      expect(tag.right, closeTo(plot.right - 4, 1));
+      expect(tag.overlaps(label), isFalse);
+    });
+
+    testWidgets('the average tag sits at the left end by default', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(tester);
+      final plot = tester.getRect(find.byKey(SacTimeColumns.plotKey));
+
+      expect(
+        tester.getRect(find.text('avg 10.0')).left,
+        closeTo(plot.left + 4, 1),
+      );
+    });
+
     testWidgets('a dive at one steady rate writes no differences', (
       tester,
     ) async {
@@ -442,6 +474,10 @@ void main() {
         expect(tooltip.left, greaterThanOrEqualTo(chart.left));
         expect(tooltip.right, lessThanOrEqualTo(chart.right));
         expect(tooltip.overlaps(bar), isFalse, reason: 'covers its bar');
+        // Inside the plot, so the time axis drawn after it can't cover it.
+        final plot = tester.getRect(find.byKey(SacTimeColumns.plotKey));
+        expect(tooltip.top, greaterThanOrEqualTo(plot.top - 0.5));
+        expect(tooltip.bottom, lessThanOrEqualTo(plot.bottom + 0.5));
       });
     }
 
