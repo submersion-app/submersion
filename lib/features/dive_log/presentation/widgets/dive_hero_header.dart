@@ -54,6 +54,10 @@ class DiveHeroHeader extends ConsumerWidget {
   /// does too rather than following the name (issue #4888).
   final Widget? trailing;
 
+  /// The width [trailing] takes. It is laid over the card's corner, so the
+  /// rating/mode row keeps this much room at its end for it to sit in.
+  final double trailingWidth;
+
   const DiveHeroHeader({
     required this.dive,
     required this.units,
@@ -64,6 +68,7 @@ class DiveHeroHeader extends ConsumerWidget {
     this.belowTitle,
     this.onSiteTap,
     this.trailing,
+    this.trailingWidth = 0,
     super.key,
   });
 
@@ -90,6 +95,7 @@ class DiveHeroHeader extends ConsumerWidget {
     final hasLocation = siteLoc != null || hasGps;
     final colorScheme = Theme.of(context).colorScheme;
     final cardColor = Theme.of(context).cardColor;
+    final trailing = this.trailing;
     final diveTypesById = {
       for (final t
           in ref.watch(diveTypesProvider).value ?? const <DiveTypeEntity>[])
@@ -232,6 +238,12 @@ class DiveHeroHeader extends ConsumerWidget {
                             const SizedBox(width: 8),
                           ],
                           DiveModeBadge(mode: dive.diveMode),
+                          // Keeps the trailing widget's room at the end of
+                          // this row, where it is laid over the card's top
+                          // right corner (see below), so the two never
+                          // collide and only this row gives up width.
+                          if (trailing != null && trailingWidth > 0)
+                            SizedBox(width: trailingWidth),
                         ],
                       ),
                       if (visibleHeaderTypeIds.isNotEmpty) ...[
@@ -260,16 +272,15 @@ class DiveHeroHeader extends ConsumerWidget {
                   ),
                 ],
               );
-              final trailing = this.trailing;
               if (trailing == null) return header;
-              // A column of its own, pinned to the top like every other
-              // card's pencil: the badge column keeps its centring, and the
-              // two cannot overlap at any width.
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              // Pinned to the top right like every other card's pencil,
+              // whatever the name's length and however the columns below it
+              // are centred. Laid over the header rather than given a column
+              // of its own, so the text lines keep their width (issue #4888).
+              return Stack(
                 children: [
-                  Expanded(child: header),
-                  trailing,
+                  header,
+                  Positioned(top: 0, right: 0, child: trailing),
                 ],
               );
             },

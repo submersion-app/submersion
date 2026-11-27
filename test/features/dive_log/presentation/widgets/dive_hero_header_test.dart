@@ -169,15 +169,32 @@ void main() {
     const trailingKey = Key('trailing');
     const trailingIcon = Icon(Icons.edit_outlined, key: trailingKey);
 
-    Dive rated(String name) => Dive(
+    Rect trailingRect(WidgetTester tester) =>
+        tester.getRect(find.byKey(trailingKey));
+
+    // The Card's own surface, inside its margin.
+    Rect cardRect(WidgetTester tester) => tester.getRect(
+      find
+          .descendant(of: find.byType(Card), matching: find.byType(Material))
+          .first,
+    );
+
+    Dive rated(String name, {DiveSite? site, List<String>? types}) => Dive(
       id: 'd4',
       diveNumber: 12,
       name: name,
       dateTime: DateTime.utc(2026, 5, 4, 9),
       rating: 4,
       diveMode: DiveMode.ccr,
-      diveTypeIds: const ['technical', 'wreck', 'deep'],
+      diveTypeIds: types ?? const ['technical', 'wreck', 'deep'],
+      site: site,
     );
+
+    void phoneWidth(WidgetTester tester) {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+    }
 
     testWidgets('sits at the top right, right of the rating and mode badge', (
       tester,
@@ -188,24 +205,21 @@ void main() {
           dive: rated('Shark Point'),
           units: units,
           trailing: trailingIcon,
+          trailingWidth: 24,
         ),
       );
 
-      final trailing = tester.getRect(find.byKey(trailingKey));
+      final trailing = trailingRect(tester);
       final badge = tester.getRect(find.byType(DiveModeBadge));
       final star = tester.getRect(find.byIcon(Icons.star));
       final title = tester.getRect(find.text('Shark Point'));
-      // The Card's own surface, inside its margin.
-      final card = tester.getRect(
-        find
-            .descendant(of: find.byType(Card), matching: find.byType(Material))
-            .first,
-      );
+      final card = cardRect(tester);
 
       expect(trailing.left, greaterThanOrEqualTo(badge.right));
       expect(trailing.left, greaterThan(star.right));
-      // At the card's right edge, inside its 16 px padding.
+      // At the card's top right corner, inside its 16 px padding.
       expect(card.right - trailing.right, closeTo(16, 0.5));
+      expect(trailing.top - card.top, closeTo(16, 0.5));
       // On the title's line, not centred in the header.
       expect(trailing.top, lessThanOrEqualTo(title.center.dy));
     });
@@ -217,9 +231,10 @@ void main() {
           dive: rated('Bay'),
           units: units,
           trailing: trailingIcon,
+          trailingWidth: 24,
         ),
       );
-      final short = tester.getRect(find.byKey(trailingKey));
+      final short = trailingRect(tester);
 
       await pump(
         tester,
@@ -227,35 +242,99 @@ void main() {
           dive: rated('The long drift along the outer reef wall'),
           units: units,
           trailing: trailingIcon,
+          trailingWidth: 24,
         ),
       );
-      final long = tester.getRect(find.byKey(trailingKey));
+      final long = trailingRect(tester);
 
       expect(long.right, short.right);
       expect(long.top, short.top);
     });
 
+    testWidgets('stays at the top when the badge column is the taller', (
+      tester,
+    ) async {
+      phoneWidth(tester);
+      await pump(
+        tester,
+        DiveHeroHeader(
+          dive: rated(
+            'Bay',
+            types: const ['technical', 'wreck', 'deep', 'drift', 'night'],
+          ),
+          units: units,
+          trailing: trailingIcon,
+          trailingWidth: 24,
+        ),
+      );
+
+      final trailing = trailingRect(tester);
+      final badge = tester.getRect(find.byType(DiveModeBadge));
+      expect(trailing.top - cardRect(tester).top, closeTo(16, 0.5));
+      // Clear of the rating/mode row it shares the corner with.
+      expect(trailing.left, greaterThanOrEqualTo(badge.right));
+    });
+
     testWidgets('fits a phone width with a long name and every badge', (
       tester,
     ) async {
-      tester.view.physicalSize = const Size(360, 800);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
-
+      phoneWidth(tester);
       await pump(
         tester,
         DiveHeroHeader(
           dive: rated('The long drift along the outer reef wall'),
           units: units,
           trailing: trailingIcon,
+          trailingWidth: 24,
         ),
       );
 
       expect(tester.takeException(), isNull);
-      final trailing = tester.getRect(find.byKey(trailingKey));
+      final trailing = trailingRect(tester);
       final badge = tester.getRect(find.byType(DiveModeBadge));
       expect(trailing.left, greaterThanOrEqualTo(badge.right));
-      expect(trailing.right, lessThanOrEqualTo(360));
+      expect(cardRect(tester).right - trailing.right, closeTo(16, 0.5));
+    });
+
+    // Unlocking must not wrap the site, location or time lines: only the
+    // rating/mode row gives up the trailing widget's width.
+    testWidgets('leaves the text lines their width at phone width', (
+      tester,
+    ) async {
+      phoneWidth(tester);
+      // Open circuit and unrated, so the type badges, not the rating/mode
+      // row with the trailing widget's room, set the badge column's width.
+      final atSite = Dive(
+        id: 'd5',
+        diveNumber: 13,
+        name: 'The long drift along the outer reef wall',
+        dateTime: DateTime.utc(2026, 5, 5, 9),
+        diveTypeIds: const ['technical', 'wreck', 'deep'],
+        site: const DiveSite(
+          id: 's3',
+          name: 'Outer reef wall north',
+          region: 'Northern Province',
+          country: 'United States',
+        ),
+      );
+      final location = find.text(atSite.site!.locationString);
+
+      await pump(tester, DiveHeroHeader(dive: atSite, units: units));
+      final heightWithout = cardRect(tester).height;
+      final locationWithout = tester.getRect(location).width;
+
+      await pump(
+        tester,
+        DiveHeroHeader(
+          dive: atSite,
+          units: units,
+          trailing: trailingIcon,
+          trailingWidth: 24,
+        ),
+      );
+
+      expect(cardRect(tester).height, heightWithout);
+      expect(tester.getRect(location).width, locationWithout);
     });
   });
 }

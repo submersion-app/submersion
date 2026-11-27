@@ -25,19 +25,26 @@ class RecordPencilDisc extends StatelessWidget {
   /// Opens the card; null when something around the disc does that.
   final VoidCallback? onTap;
 
+  /// The disc's diameter as drawn under [context]'s text scale.
+  static double diameterOf(BuildContext context) =>
+      // Whole points, rounded down: a title's line can come out a fraction
+      // under its scaled height, and the disc must not be the taller.
+      _scalerOf(context).scale(size).floorToDouble();
+
+  static TextScaler _scalerOf(BuildContext context) =>
+      MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1);
+
   @override
   Widget build(BuildContext context) {
     final colors = RecordPencilColors.of(context);
-    final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1);
+    final scaler = _scalerOf(context);
     final glyph = Icon(
       Icons.edit,
       size: scaler.scale(16),
       color: colors.onFill,
     );
     return SizedBox.square(
-      // Whole points, rounded down: a title's line can come out a fraction
-      // under its scaled height, and the disc must not be the taller.
-      dimension: scaler.scale(size).floorToDouble(),
+      dimension: diameterOf(context),
       child: Material(
         color: colors.fill,
         shape: CircleBorder(side: BorderSide(color: colors.outline)),
@@ -87,6 +94,18 @@ class RecordCardPencil extends StatelessWidget {
   /// The card's title, named to a screen reader and in the tooltip.
   final String cardTitle;
 
+  static const double _dotSlot = 8;
+  static const double _gap = 4;
+
+  /// The width a [RecordCardPencil] takes under [context]: none while it
+  /// draws nothing, so a row laying it over its corner can keep exactly its
+  /// room (the dive page's header card, issue #4888).
+  static double widthOf(BuildContext context) {
+    final frame = RecordCardFrameScope.maybeOf(context);
+    if (frame == null || frame.isOpen) return 0;
+    return _dotSlot + _gap + RecordPencilDisc.diameterOf(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final frame = RecordCardFrameScope.maybeOf(context);
@@ -95,10 +114,10 @@ class RecordCardPencil extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox.square(
-          dimension: 8,
+          dimension: _dotSlot,
           child: frame.isChanged ? const RecordChangedDot() : null,
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: _gap),
         // The only way into the card: the body's own taps (the site, the
         // map) keep doing what they do while reading. A node of its own, or
         // a Card around the title row would merge it into one button named

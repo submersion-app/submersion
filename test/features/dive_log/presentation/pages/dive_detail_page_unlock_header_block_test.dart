@@ -43,7 +43,7 @@ void main() {
 
   // The Add strip coming in under the bar moves the whole page down a page
   // that fits (#4566); the hero itself must not grow or shift sideways.
-  testWidgets('unlocked: a pencil in the title row, and the hero keeps its '
+  testWidgets('unlocked: a pencil at the top right, and the hero keeps its '
       'size', (tester) async {
     await pumpPage(tester, stored: headed);
     final locked = tester.getRect(find.byType(DiveHeroHeader));
@@ -54,6 +54,15 @@ void main() {
     final unlocked = tester.getRect(find.byType(DiveHeroHeader));
     expect(unlocked.size, locked.size);
     expect(unlocked.left, locked.left);
+
+    // At the card's far right like every other card's pencil, not after
+    // the name (issue #4888): the hero's Card margin plus its 16 px padding.
+    final disc = tester.getRect(pencil());
+    expect(unlocked.right - disc.right, closeTo(20, 4.5));
+    expect(
+      disc.left,
+      greaterThan(tester.getRect(find.text('Morning drift')).right),
+    );
   });
 
   testWidgets('the pencil opens the header card where it sits', (tester) async {
