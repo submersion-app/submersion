@@ -5134,24 +5134,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     : (nearestTag is O2CellMetric
                           ? ProfileRightAxisMetric.o2CellMv
                           : null);
-                final newHoverMetric = !rightAxisExplicitlyHidden
-                    ? nearestAxisMetric
-                    : null;
-                final newHighlightedBarIndex = nearestTag != null
-                    ? nearestBarIndex
-                    : null;
-                if (newHoverMetric != _hoverRightAxisMetric ||
-                    newHighlightedBarIndex != _hoverHighlightedBarIndex ||
-                    nearestTag != _hoverHighlightedMetric) {
-                  _updatePlot(() {
-                    _hoverRightAxisMetric = newHoverMetric;
-                    _hoverHighlightedBarIndex = newHighlightedBarIndex;
-                    _hoverHighlightedMetric = newHighlightedBarIndex != null
-                        ? nearestTag
-                        : null;
-                  });
-                }
-
                 // Ascent/descent rate bars have no fl_chart bar of their own
                 // (see AscentRateBarOverlay), so they cannot be tagged into
                 // lineMetricTags above; light up only when the cursor is
@@ -5201,18 +5183,27 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         hoveredAscentRateTimestamp,
                   );
                 }
-                // The bars drive the axis while hovered, as a tagged line
-                // does (issue #5069), unless a line is nearer or the diver
-                // chose "None".
-                if (hoveredAscentRateTimestamp != null &&
-                    newHoverMetric == null &&
-                    !rightAxisExplicitlyHidden &&
-                    _hoverRightAxisMetric !=
-                        ProfileRightAxisMetric.ascentRate) {
-                  _updatePlot(
-                    () => _hoverRightAxisMetric =
-                        ProfileRightAxisMetric.ascentRate,
-                  );
+                // A hovered bar drives the axis as a tagged line does (issue
+                // #5069), unless a line is nearer.
+                final newHoverMetric = !rightAxisExplicitlyHidden
+                    ? (nearestAxisMetric ??
+                          (hoveredAscentRateTimestamp != null
+                              ? ProfileRightAxisMetric.ascentRate
+                              : null))
+                    : null;
+                final newHighlightedBarIndex = nearestTag != null
+                    ? nearestBarIndex
+                    : null;
+                if (newHoverMetric != _hoverRightAxisMetric ||
+                    newHighlightedBarIndex != _hoverHighlightedBarIndex ||
+                    nearestTag != _hoverHighlightedMetric) {
+                  _updatePlot(() {
+                    _hoverRightAxisMetric = newHoverMetric;
+                    _hoverHighlightedBarIndex = newHighlightedBarIndex;
+                    _hoverHighlightedMetric = newHighlightedBarIndex != null
+                        ? nearestTag
+                        : null;
+                  });
                 }
 
                 // Deco stop focus dot: positioned from the resolved touch
