@@ -10272,6 +10272,28 @@
   "equipment_edit_webLinkHint": "e.g., shop.example.com/product",
   "equipment_edit_typeLabel": "Type *",
   "equipment_edit_typeLockedHelper": "A connected dive computer or transmitter keeps its type.",
+  "equipment_suggest_link": "Can't find a fit? Suggest a category",
+  "equipment_suggest_title": "Suggest a category",
+  "equipment_suggest_intro": "This opens a prefilled feature request on GitHub. You review it and post it from your browser.",
+  "equipment_suggest_kindQuestion": "What are you suggesting?",
+  "equipment_suggest_kindCategory": "New type of gear",
+  "equipment_suggest_kindSubcategory": "New kind of a type",
+  "equipment_suggest_nameLabel": "Name",
+  "equipment_suggest_parentSubcategoryLabel": "A kind of",
+  "equipment_suggest_parentCategoryLabel": "Closest existing type",
+  "equipment_suggest_parentNone": "None",
+  "equipment_suggest_reasonLabel": "Why is it needed?",
+  "equipment_suggest_reasonHint": "What sets it apart from the existing types?",
+  "equipment_suggest_includeExample": "Include this item as an example ({example})",
+  "@equipment_suggest_includeExample": {
+    "placeholders": {
+      "example": {
+        "type": "String",
+        "example": "Scubapro 52 mm brass"
+      }
+    }
+  },
+  "equipment_suggest_open": "Open in GitHub",
   "equipment_edit_useCustomReminders": "Use Custom Reminders",
   "equipment_edit_useCustomRemindersSubtitle": "Set different reminder days for this item",
   "equipment_fab_addEquipment": "Add Equipment",

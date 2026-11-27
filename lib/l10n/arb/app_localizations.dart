@@ -27043,6 +27043,90 @@ abstract class AppLocalizations {
   /// **'A connected dive computer or transmitter keeps its type.'**
   String get equipment_edit_typeLockedHelper;
 
+  /// No description provided for @equipment_suggest_link.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t find a fit? Suggest a category'**
+  String get equipment_suggest_link;
+
+  /// No description provided for @equipment_suggest_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest a category'**
+  String get equipment_suggest_title;
+
+  /// No description provided for @equipment_suggest_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'This opens a prefilled feature request on GitHub. You review it and post it from your browser.'**
+  String get equipment_suggest_intro;
+
+  /// No description provided for @equipment_suggest_kindQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What are you suggesting?'**
+  String get equipment_suggest_kindQuestion;
+
+  /// No description provided for @equipment_suggest_kindCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'New type of gear'**
+  String get equipment_suggest_kindCategory;
+
+  /// No description provided for @equipment_suggest_kindSubcategory.
+  ///
+  /// In en, this message translates to:
+  /// **'New kind of a type'**
+  String get equipment_suggest_kindSubcategory;
+
+  /// No description provided for @equipment_suggest_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get equipment_suggest_nameLabel;
+
+  /// No description provided for @equipment_suggest_parentSubcategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'A kind of'**
+  String get equipment_suggest_parentSubcategoryLabel;
+
+  /// No description provided for @equipment_suggest_parentCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Closest existing type'**
+  String get equipment_suggest_parentCategoryLabel;
+
+  /// No description provided for @equipment_suggest_parentNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get equipment_suggest_parentNone;
+
+  /// No description provided for @equipment_suggest_reasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Why is it needed?'**
+  String get equipment_suggest_reasonLabel;
+
+  /// No description provided for @equipment_suggest_reasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What sets it apart from the existing types?'**
+  String get equipment_suggest_reasonHint;
+
+  /// No description provided for @equipment_suggest_includeExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Include this item as an example ({example})'**
+  String equipment_suggest_includeExample(String example);
+
+  /// No description provided for @equipment_suggest_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in GitHub'**
+  String get equipment_suggest_open;
+
   /// No description provided for @equipment_edit_useCustomReminders.
   ///
   /// In en, this message translates to:
