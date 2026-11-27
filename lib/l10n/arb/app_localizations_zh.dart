@@ -60738,6 +60738,48 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_photos_title => '照片';
 
   @override
+  String get equipment_divePhotos_title => '潜水照片中';
+
+  @override
+  String get equipment_divePhotos_empty => '关联显示此装备的潜水照片。';
+
+  @override
+  String get equipment_divePhotos_link => '关联照片';
+
+  @override
+  String equipment_divePhotos_showAll(int count) {
+    return '全部显示 ($count)';
+  }
+
+  @override
+  String get equipment_divePhotos_unlink => '取消关联';
+
+  @override
+  String equipment_divePhotos_sheetTitle(String name) {
+    return '将照片关联到$name';
+  }
+
+  @override
+  String get equipment_divePhotos_divesWithGear => '使用此装备的潜水';
+
+  @override
+  String get equipment_divePhotos_allPhotos => '所有照片';
+
+  @override
+  String equipment_divePhotos_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '应用 $count 项更改',
+      one: '应用 1 项更改',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_divePhotos_noPhotos => '这里还没有照片';
+
+  @override
   String get equipment_photos_add => '添加照片';
 
   @override

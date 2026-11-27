@@ -63373,6 +63373,49 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_photos_title => 'תמונות';
 
   @override
+  String get equipment_divePhotos_title => 'בתמונות צלילה';
+
+  @override
+  String get equipment_divePhotos_empty =>
+      'קשרו תמונות מהצלילות שלכם שבהן הפריט הזה מופיע.';
+
+  @override
+  String get equipment_divePhotos_link => 'קישור תמונות';
+
+  @override
+  String equipment_divePhotos_showAll(int count) {
+    return 'הצג הכול ($count)';
+  }
+
+  @override
+  String get equipment_divePhotos_unlink => 'ביטול קישור';
+
+  @override
+  String equipment_divePhotos_sheetTitle(String name) {
+    return 'קישור תמונות ל-$name';
+  }
+
+  @override
+  String get equipment_divePhotos_divesWithGear => 'צלילות עם ציוד זה';
+
+  @override
+  String get equipment_divePhotos_allPhotos => 'כל התמונות';
+
+  @override
+  String equipment_divePhotos_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'החלת $count שינויים',
+      one: 'החלת שינוי אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_divePhotos_noPhotos => 'אין כאן תמונות עדיין';
+
+  @override
   String get equipment_photos_add => 'הוספת תמונות';
 
   @override

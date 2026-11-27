@@ -64325,6 +64325,49 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_photos_title => 'Foto\'s';
 
   @override
+  String get equipment_divePhotos_title => 'Op duikfoto\'s';
+
+  @override
+  String get equipment_divePhotos_empty =>
+      'Koppel foto\'s van je duiken waarop dit item te zien is.';
+
+  @override
+  String get equipment_divePhotos_link => 'Foto\'s koppelen';
+
+  @override
+  String equipment_divePhotos_showAll(int count) {
+    return 'Alles tonen ($count)';
+  }
+
+  @override
+  String get equipment_divePhotos_unlink => 'Ontkoppelen';
+
+  @override
+  String equipment_divePhotos_sheetTitle(String name) {
+    return 'Foto\'s koppelen aan $name';
+  }
+
+  @override
+  String get equipment_divePhotos_divesWithGear => 'Duiken met deze uitrusting';
+
+  @override
+  String get equipment_divePhotos_allPhotos => 'Alle foto\'s';
+
+  @override
+  String equipment_divePhotos_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wijzigingen toepassen',
+      one: '1 wijziging toepassen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_divePhotos_noPhotos => 'Hier zijn nog geen foto\'s';
+
+  @override
   String get equipment_photos_add => 'Foto\'s toevoegen';
 
   @override

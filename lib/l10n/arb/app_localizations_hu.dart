@@ -64331,6 +64331,50 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_photos_title => 'Fotók';
 
   @override
+  String get equipment_divePhotos_title => 'Merülési fotókon';
+
+  @override
+  String get equipment_divePhotos_empty =>
+      'Kapcsold hozzá a merüléseid fotóit, amelyeken ez a felszerelés látható.';
+
+  @override
+  String get equipment_divePhotos_link => 'Fotók kapcsolása';
+
+  @override
+  String equipment_divePhotos_showAll(int count) {
+    return 'Összes megjelenítése ($count)';
+  }
+
+  @override
+  String get equipment_divePhotos_unlink => 'Leválasztás';
+
+  @override
+  String equipment_divePhotos_sheetTitle(String name) {
+    return 'Fotók kapcsolása ehhez: $name';
+  }
+
+  @override
+  String get equipment_divePhotos_divesWithGear =>
+      'Merülések ezzel a felszereléssel';
+
+  @override
+  String get equipment_divePhotos_allPhotos => 'Összes fotó';
+
+  @override
+  String equipment_divePhotos_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count módosítás alkalmazása',
+      one: '1 módosítás alkalmazása',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_divePhotos_noPhotos => 'Itt még nincsenek fotók';
+
+  @override
   String get equipment_photos_add => 'Fotók hozzáadása';
 
   @override

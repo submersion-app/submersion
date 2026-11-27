@@ -62086,6 +62086,48 @@ class AppLocalizationsJa extends AppLocalizations {
   String get equipment_photos_title => '写真';
 
   @override
+  String get equipment_divePhotos_title => 'ダイビング写真';
+
+  @override
+  String get equipment_divePhotos_empty => 'この器材が写っているダイビングの写真をリンクします。';
+
+  @override
+  String get equipment_divePhotos_link => '写真をリンク';
+
+  @override
+  String equipment_divePhotos_showAll(int count) {
+    return 'すべて表示 ($count)';
+  }
+
+  @override
+  String get equipment_divePhotos_unlink => 'リンク解除';
+
+  @override
+  String equipment_divePhotos_sheetTitle(String name) {
+    return '$nameに写真をリンク';
+  }
+
+  @override
+  String get equipment_divePhotos_divesWithGear => 'この器材を使ったダイビング';
+
+  @override
+  String get equipment_divePhotos_allPhotos => 'すべての写真';
+
+  @override
+  String equipment_divePhotos_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件の変更を適用',
+      one: '1件の変更を適用',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_divePhotos_noPhotos => 'まだ写真はありません';
+
+  @override
   String get equipment_photos_add => '写真を追加';
 
   @override

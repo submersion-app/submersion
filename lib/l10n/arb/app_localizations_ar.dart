@@ -65733,6 +65733,52 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_photos_title => 'الصور';
 
   @override
+  String get equipment_divePhotos_title => 'في صور الغطس';
+
+  @override
+  String get equipment_divePhotos_empty =>
+      'اربط صورًا من غطساتك تظهر فيها هذه المعدات.';
+
+  @override
+  String get equipment_divePhotos_link => 'ربط الصور';
+
+  @override
+  String equipment_divePhotos_showAll(int count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get equipment_divePhotos_unlink => 'إلغاء الربط';
+
+  @override
+  String equipment_divePhotos_sheetTitle(String name) {
+    return 'ربط الصور بـ $name';
+  }
+
+  @override
+  String get equipment_divePhotos_divesWithGear => 'الغطسات بهذه المعدات';
+
+  @override
+  String get equipment_divePhotos_allPhotos => 'كل الصور';
+
+  @override
+  String equipment_divePhotos_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تطبيق $count تغيير',
+      many: 'تطبيق $count تغييرًا',
+      few: 'تطبيق $count تغييرات',
+      two: 'تطبيق تغييرين',
+      one: 'تطبيق تغيير واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_divePhotos_noPhotos => 'لا توجد صور هنا بعد';
+
+  @override
   String get equipment_photos_add => 'إضافة صور';
 
   @override

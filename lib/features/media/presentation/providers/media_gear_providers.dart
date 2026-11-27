@@ -59,4 +59,19 @@ final equipmentDiveIdsProvider = FutureProvider.family<List<String>, String>((
   return repository.getDiveIdsForEquipment(equipmentId, diverId: diverId);
 });
 
+/// The linkable photos on the dives [equipmentDiveIdsProvider] lists for one
+/// item, newest first: the gear page picker's Dives with this gear.
+final linkableMediaOnEquipmentDivesProvider =
+    FutureProvider.family<List<MediaItem>, String>((ref, equipmentId) async {
+      final diveIds = await ref.watch(
+        equipmentDiveIdsProvider(equipmentId).future,
+      );
+      ref.invalidateSelfWhen(
+        ref.read(mediaRepositoryProvider).watchMediaChanges(),
+      );
+      return ref
+          .watch(mediaGearRepositoryProvider)
+          .linkableMediaOnDives(diveIds);
+    });
+
 const _diveGearTables = {'dives', 'dive_equipment', 'dive_tanks'};

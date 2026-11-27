@@ -101055,6 +101055,66 @@ abstract class AppLocalizations {
   /// **'Photos'**
   String get equipment_photos_title;
 
+  /// Gear page card listing dive photos and videos linked to the item as showing it (not its own reference photos).
+  ///
+  /// In en, this message translates to:
+  /// **'In dive photos'**
+  String get equipment_divePhotos_title;
+
+  /// No description provided for @equipment_divePhotos_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Link photos from your dives that show this item.'**
+  String get equipment_divePhotos_empty;
+
+  /// No description provided for @equipment_divePhotos_link.
+  ///
+  /// In en, this message translates to:
+  /// **'Link photos'**
+  String get equipment_divePhotos_link;
+
+  /// No description provided for @equipment_divePhotos_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all ({count})'**
+  String equipment_divePhotos_showAll(int count);
+
+  /// No description provided for @equipment_divePhotos_unlink.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get equipment_divePhotos_unlink;
+
+  /// No description provided for @equipment_divePhotos_sheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Link photos to {name}'**
+  String equipment_divePhotos_sheetTitle(String name);
+
+  /// No description provided for @equipment_divePhotos_divesWithGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives with this gear'**
+  String get equipment_divePhotos_divesWithGear;
+
+  /// No description provided for @equipment_divePhotos_allPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'All photos'**
+  String get equipment_divePhotos_allPhotos;
+
+  /// No description provided for @equipment_divePhotos_apply.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Apply 1 change} other{Apply {count} changes}}'**
+  String equipment_divePhotos_apply(int count);
+
+  /// No description provided for @equipment_divePhotos_noPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'No photos here yet'**
+  String get equipment_divePhotos_noPhotos;
+
   /// No description provided for @equipment_photos_add.
   ///
   /// In en, this message translates to:
