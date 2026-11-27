@@ -238,6 +238,45 @@ void main() {
       );
     });
 
+    // The keys compare the text the rows show, alphabetically: accents fold
+    // in with their base letter and case does not split the alphabet.
+    test('titles fold accents in with their base letter', () {
+      expect(
+        order(
+          [
+            cert('zeta', name: 'Zeta', agency: ssi, issueDate: day),
+            cert('epave', name: '\u00c9pave', agency: ssi, issueDate: day),
+            cert('nitrox', name: 'Nitrox', agency: ssi, issueDate: day),
+          ],
+          CertificationSortField.dateIssued,
+          SortDirection.descending,
+        ),
+        ['epave', 'nitrox', 'zeta'],
+      );
+    });
+
+    test('agencies order by the shown name, ignoring case', () {
+      Certification custom(String id, String agency) => Certification(
+        id: id,
+        name: 'Nitrox',
+        agency: agency,
+        issueDate: day,
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+      expect(
+        order(
+          [
+            cert('padi', name: 'Nitrox', issueDate: day),
+            custom('aqua', 'aquaAcademy'),
+          ],
+          CertificationSortField.dateIssued,
+          SortDirection.descending,
+        ),
+        ['aqua', 'padi'],
+      );
+    });
+
     test('identical rows order by id whatever the input order', () {
       for (final field in CertificationSortField.values) {
         expect(order([twinY, twinX], field, SortDirection.descending), [

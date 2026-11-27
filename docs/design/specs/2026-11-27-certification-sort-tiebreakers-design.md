@@ -21,8 +21,6 @@ arbitrary order that can change between rebuilds.
 
 - Table mode's column-header sort (shared by every entity table) is unchanged.
 - No new sort fields, settings or UI controls.
-- The existing key comparisons (lowercased localized title, agency
-  interchange name, undated as oldest) are unchanged.
 
 ## Approaches
 
@@ -50,8 +48,15 @@ Every chain ends with the certification id as a last tiebreak.
 Flipping the direction reverses the whole chain (decided: option B), so Date
 oldest first gives agency Z to A, then title Z to A within each day.
 
-The title key is the localized displayed title, now computed for every sort
-since it is a tiebreaker for all three.
+The title key is the localized displayed title, now a tiebreaker for all
+three sorts. Undated certifications sort as oldest, as before.
+
+Follow-up decided in review: both text keys compare what the rows show
+through the app's `TextCollator`, the collation the agency grouping already
+uses. The agency key is the agency's localized name (it was the English
+interchange name, compared case-sensitively, so a lowercase custom agency
+sorted after every built-in), and the title key folds accents (an initial
+like "É" sorted after "z").
 
 ## Left to the builder
 
