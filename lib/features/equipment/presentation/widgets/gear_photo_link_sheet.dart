@@ -297,7 +297,8 @@ class _GearPhotoLinkSheetState extends ConsumerState<GearPhotoLinkSheet> {
   /// A dive group's title: its number, site and date, as the Library's.
   String _groupTitle(BuildContext context, MediaLibraryEntry e) {
     final at = e.diveDateTime ?? e.item.takenAt;
-    final date = MaterialLocalizations.of(context).formatMediumDate(at);
+    // The diver's own date format (dive times are wall-clock-as-UTC).
+    final date = ref.read(unitFormatterProvider).formatDate(at);
     return [
       if (e.diveNumber != null) '#${e.diveNumber}',
       ?e.siteName,
