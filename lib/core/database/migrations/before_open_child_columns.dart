@@ -109,7 +109,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // library_site_notes. Every read of either table selects the whole row.
     await _assertSiteCatalogueAnswersColumns();
 
-    // v387: a dive site's address, contact details and opening hours
+    // v388: a dive site's address, contact details and opening hours
     // (issue #5073). Every site read selects the whole row.
     await _assertSiteContactHoursColumns();
 

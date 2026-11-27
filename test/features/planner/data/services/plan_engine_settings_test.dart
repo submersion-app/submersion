@@ -37,6 +37,7 @@ const _changed = AppSettings(
   ccrDiluentModPpO2: 1.4,
   ccrSetpointLow: 0.6,
   ccrSetpointHigh: 1.2,
+  ccrSetpointSwitchDepth: 6.0,
   cnsWarningThreshold: 70,
   o2Narcotic: false,
   endLimit: 36,
@@ -90,6 +91,7 @@ void main() {
       expect(c.ccrDiluentModPpO2, 1.4);
       expect(c.ccrSetpointLow, 0.6);
       expect(c.ccrSetpointHigh, 1.2);
+      expect(c.ccrSetpointSwitchDepth, 6.0);
       expect(c.cnsWarningThreshold, 70);
       expect(c.o2Narcotic, isFalse);
       expect(c.endLimitMeters, 36);

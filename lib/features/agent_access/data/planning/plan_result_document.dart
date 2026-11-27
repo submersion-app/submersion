@@ -270,8 +270,24 @@ Map<String, Object?> effectiveSettings(DivePlan plan, PlanEngineConfig config) {
     'otu_limit': {'value': config.otuLimit, 'source': 'default'},
     // A loop's own: the setpoints it breathes, and a pSCR's bypass ratio.
     if (plan.mode == PlanMode.ccr) ...{
-      'setpoint_low_bar': fromSettings(resolved.setpointLowFor(plan)),
-      'setpoint_high_bar': fromSettings(resolved.setpointHighFor(plan)),
+      'setpoint_low_bar': {
+        'value': resolved.setpointLowFor(plan),
+        'source': plan.setpointLow == null ? 'settings' : 'plan',
+      },
+      // With the switch Off the loop never reaches its high setpoint, so
+      // the one breathed at depth is the low (as the planned log entry
+      // records it).
+      'setpoint_high_bar': plan.setpointSwitchOff
+          ? {'value': resolved.setpointLowFor(plan), 'source': 'plan'}
+          : {
+              'value': resolved.setpointHighFor(plan),
+              'source': plan.setpointHigh == null ? 'settings' : 'plan',
+            },
+      // Null when the plan turns the switch off: the low setpoint holds
+      // throughout (issue #3793).
+      'setpoint_switch_depth_m': plan.setpointSwitchOff
+          ? {'value': null, 'source': 'plan'}
+          : own(plan.setpointSwitchDepth, resolved.ccrSetpointSwitchDepth),
     },
     // A constant mass flow loop's injection rate and VO2 (issue #4660).
     if (plan.mode == PlanMode.scr) ...{

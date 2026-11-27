@@ -371,7 +371,12 @@ class BailoutSolver {
           durationSeconds: chunk,
         );
 
-        for (final piece in splitAtSetpointSwitch(plan, segment, stretch)) {
+        for (final piece in splitAtSetpointSwitch(
+          plan,
+          segment,
+          stretch,
+          switchDepth: config.setpointSwitchDepthFor(plan),
+        )) {
           // Same mode-aware breathing PlanEngine.compute replays authored
           // legs with: a segment can override to PlanMode.oc for a
           // mid-plan bailout leg, which must load open-circuit tissues

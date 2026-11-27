@@ -351,10 +351,16 @@ extension RungsFromV340 on AppDatabase {
     if (from < 386) await _assertCourseRequirementConditionColumns();
     if (from < 386) await reportProgress();
 
-    // v387 (issue #5073): a dive site's address, phone, email, website and
+    // v387 (issue #3793): diver_settings.ccr_setpoint_switch_depth (default
+    // 10 m) and dive_plans.setpoint_switch_off (default off). Columns only,
+    // no backfill; re-asserted in beforeOpen. The floor does not move.
+    if (from < 387) await _assertCcrSetpointSwitchColumns();
+    if (from < 387) await reportProgress();
+
+    // v388 (issue #5073): a dive site's address, phone, email, website and
     // opening hours. Nullable, no backfill, re-asserted in beforeOpen; the
     // floor does not move.
-    if (from < 387) await _assertSiteContactHoursColumns();
-    if (from < 387) await reportProgress();
+    if (from < 388) await _assertSiteContactHoursColumns();
+    if (from < 388) await reportProgress();
   }
 }

@@ -405,7 +405,7 @@ CREATE TABLE dive_sites (
   access_notes TEXT,
   mooring_number TEXT,
   parking_info TEXT,
-  address TEXT,           -- free text street address (v387)
+  address TEXT,           -- free text street address (v388)
   phone TEXT,
   email TEXT,
   website TEXT,

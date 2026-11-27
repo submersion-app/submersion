@@ -1,10 +1,10 @@
 part of '../app_database_migrations.dart';
 
-/// A dive site's address, contact details and opening hours (v387, issue
+/// A dive site's address, contact details and opening hours (v388, issue
 /// #5073).
 extension SiteContactHoursMigrations on AppDatabase {
   /// The five `dive_sites` columns. All nullable, so an older peer omits
-  /// them and a row from before simply has none. Safe from both the v387
+  /// them and a row from before simply has none. Safe from both the v388
   /// rung and the beforeOpen backstop.
   Future<void> _assertSiteContactHoursColumns() async {
     for (final column in const [

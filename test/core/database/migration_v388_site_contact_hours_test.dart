@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v387 (issue #5073): a dive site's address, phone, email, website
+/// Schema v388 (issue #5073): a dive site's address, phone, email, website
 /// and opening hours. All nullable and never backfilled.
 void main() {
   const added = ['address', 'phone', 'email', 'website', 'opening_hours'];
@@ -28,14 +28,14 @@ void main() {
           .map((row) => row.read<String>('name'))
           .toList();
 
-  test('v387 is in the ladder and keeps the floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(387));
-    expect(AppDatabase.migrationVersions, contains(387));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(387));
+  test('v388 is in the ladder and keeps the floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(388));
+    expect(AppDatabase.migrationVersions, contains(388));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(388));
   });
 
   test('upgrading adds the columns and leaves existing rows empty', () async {
-    final db = AppDatabase(dbAt(386));
+    final db = AppDatabase(dbAt(387));
     addTearDown(db.close);
 
     expect(await columns(db), containsAll(added));
@@ -55,7 +55,7 @@ void main() {
   });
 
   test('a database without the table upgrades without failing', () async {
-    final db = AppDatabase(dbAt(386, withTable: false));
+    final db = AppDatabase(dbAt(387, withTable: false));
     addTearDown(db.close);
 
     await db.customSelect('SELECT 1').get();
