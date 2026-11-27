@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/pop_out/presentation/providers/pop_out_providers.dart';
 import 'package:submersion/features/pop_out/presentation/widgets/pop_out_profile_button.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
@@ -292,7 +293,12 @@ class DiveDetailProfileSection extends ConsumerWidget {
             LayoutBuilder(
               builder: (context, constraints) {
                 final bar = toolbar(
-                  narrow: constraints.maxWidth < _fullToolbarMinWidth,
+                  narrow:
+                      constraints.maxWidth <
+                      _fullToolbarMinWidth +
+                          (ref.watch(popOutAvailableProvider)
+                              ? _popOutButtonWidth
+                              : 0),
                 );
                 return editing != null
                     ? Align(
@@ -626,9 +632,12 @@ class _OutliersButton extends ConsumerWidget {
 /// The narrowest header row that holds the Profile card's full toolbar
 /// beside its title and, while unlocked, the pencil. Measured: a 375 px
 /// phone's 311 px row overflowed with the outliers button showing, a 393 px
-/// phone's 329 px row did not. The desktop pop-out button (issue #5078)
-/// adds one compact icon button, 40 px more.
-const double _fullToolbarMinWidth = 368;
+/// phone's 329 px row did not.
+const double _fullToolbarMinWidth = 328;
+
+/// What the desktop pop-out button (issue #5078) adds to the full toolbar:
+/// one compact icon button. Phones never show it.
+const double _popOutButtonWidth = 40;
 
 /// The Profile card's two 3D scenes.
 enum _ProfileScene { dive, site }

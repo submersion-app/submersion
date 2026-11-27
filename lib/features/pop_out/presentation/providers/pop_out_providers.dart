@@ -1,5 +1,8 @@
 import 'package:window_manager/window_manager.dart';
 
+import 'package:flutter/foundation.dart';
+
+import 'package:submersion/core/platform/desktop_target_platform.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/presentation/providers/app_lock_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -15,8 +18,13 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 const kPopOutProfileFrameKey = 'pop_out_profile_frame';
 
 /// Whether this app can open pop-out windows: macOS, Windows and Linux.
+///
+/// The target platform rather than the host: a widget test runs on a Mac
+/// host but lays out as Android, and its toolbars must not gain a button no
+/// phone has.
 final popOutAvailableProvider = Provider<bool>(
-  (ref) => !HostPlatform.isWeb && HostPlatform.isDesktop,
+  (ref) =>
+      !HostPlatform.isWeb && isDesktopTargetPlatform(defaultTargetPlatform),
 );
 
 /// The window layer.
