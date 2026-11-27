@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/features/settings/presentation/widgets/currency_picker.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -591,17 +591,10 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
                 const SizedBox(width: 12),
                 SizedBox(
                   width: 120,
-                  child: DropdownButtonFormField<String>(
+                  child: CurrencyPickerField(
                     key: const Key('fill-currency'),
-                    initialValue: _currency,
-                    isExpanded: true,
-                    decoration: InputDecoration(
-                      labelText: l10n.trips_cylinders_fill_currency,
-                    ),
-                    items: [
-                      for (final code in currencyCodesWith(_currency))
-                        DropdownMenuItem(value: code, child: Text(code)),
-                    ],
+                    value: _currency,
+                    label: l10n.trips_cylinders_fill_currency,
                     onChanged: (v) {
                       if (v != null) setState(() => _currency = v);
                     },

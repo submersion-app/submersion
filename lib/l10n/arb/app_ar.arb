@@ -19444,5 +19444,14 @@
   "settings_homeHeader_wide": "الشاشات الأعرض",
   "settings_homeHeader_compact": "مضغوط",
   "settings_homeHeader_banner": "لافتة",
-  "settings_homeHeader_description": "المضغوط شريط رفيع مع مؤشرات الحالة. اللافتة هي لافتة الترحيب مع إجماليات غوصك. يُحفظ على هذا الجهاز."
+  "settings_homeHeader_description": "المضغوط شريط رفيع مع مؤشرات الحالة. اللافتة هي لافتة الترحيب مع إجماليات غوصك. يُحفظ على هذا الجهاز.",
+  "currencyPicker_searchHint": "ابحث بالرمز أو الاسم",
+  "currencyPicker_section_preferred": "المفضلة",
+  "currencyPicker_section_all": "جميع العملات",
+  "currencyPicker_noMatches": "لا توجد عملة مطابقة",
+  "settings_units_preferredCurrencies": "العملات المفضلة",
+  "settings_units_preferredCurrencies_subtitle": "تظهر أولاً في كل أداة لاختيار العملة",
+  "settings_units_preferredCurrencies_count": "{count, plural, =0{لا شيء} =1{عملة واحدة} =2{عملتان} few{{count} عملات} many{{count} عملة} other{{count} عملة}}",
+  "settings_units_preferredCurrencies_reset": "استعادة الإعدادات الافتراضية",
+  "settings_conflict_field_preferredCurrencyCodes": "العملات المفضلة"
 }

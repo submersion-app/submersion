@@ -121,6 +121,11 @@ class DiverSettings extends Table {
       text().withDefault(const Constant('salt'))();
   TextColumn get defaultCurrency => text().withDefault(const Constant('USD'))();
 
+  /// v387: the currencies this diver lists first in every currency picker, a
+  /// JSON list of ISO 4217 codes in the diver's order (issue #4997). Null
+  /// means the built-in defaults; an empty list means none.
+  TextColumn get preferredCurrencyCodes => text().nullable()();
+
   /// v144: per-diver calibration deciding which measured distances count as
   /// excellent/good/moderate/poor visibility.
   ///
@@ -516,7 +521,7 @@ class DiverSettings extends Table {
   // (issue #4593).
   BoolColumn get defaultShowBuoyancy =>
       boolean().withDefault(const Constant(false))();
-  // v379: default visibility for the three Avelo lines on the dive profile
+  // v386: default visibility for the three Avelo lines on the dive profile
   // (issue #4664): the computer's buoyancy, gas remaining and RMV.
   BoolColumn get defaultShowAveloBuoyancy =>
       boolean().withDefault(const Constant(false))();
@@ -588,7 +593,7 @@ class DiverSettings extends Table {
   IntColumn get profileColorGf => integer().nullable()();
   IntColumn get profileColorSurfaceGf => integer().nullable()();
   IntColumn get profileColorMeanDepth => integer().nullable()();
-  // v379: the three Avelo lines (issue #4664).
+  // v386: the three Avelo lines (issue #4664).
   IntColumn get profileColorAveloBuoyancy => integer().nullable()();
   IntColumn get profileColorAveloGasRemaining => integer().nullable()();
   IntColumn get profileColorComputerRmv => integer().nullable()();

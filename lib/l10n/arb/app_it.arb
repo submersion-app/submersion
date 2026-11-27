@@ -19444,5 +19444,14 @@
   "settings_homeHeader_wide": "Schermi più ampi",
   "settings_homeHeader_compact": "Compatta",
   "settings_homeHeader_banner": "Banner",
-  "settings_homeHeader_description": "Compatta è una barra sottile con le spie di stato. Banner è il banner di benvenuto con i totali delle tue immersioni. Salvato su questo dispositivo."
+  "settings_homeHeader_description": "Compatta è una barra sottile con le spie di stato. Banner è il banner di benvenuto con i totali delle tue immersioni. Salvato su questo dispositivo.",
+  "currencyPicker_searchHint": "Cerca per codice o nome",
+  "currencyPicker_section_preferred": "Preferite",
+  "currencyPicker_section_all": "Tutte le valute",
+  "currencyPicker_noMatches": "Nessuna valuta corrisponde",
+  "settings_units_preferredCurrencies": "Valute preferite",
+  "settings_units_preferredCurrencies_subtitle": "Mostrate per prime in ogni selettore di valuta",
+  "settings_units_preferredCurrencies_count": "{count, plural, =0{Nessuna} =1{1 valuta} other{{count} valute}}",
+  "settings_units_preferredCurrencies_reset": "Ripristina predefinite",
+  "settings_conflict_field_preferredCurrencyCodes": "Valute preferite"
 }

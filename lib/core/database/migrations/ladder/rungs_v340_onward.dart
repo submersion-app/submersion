@@ -350,5 +350,11 @@ extension RungsFromV340 on AppDatabase {
     // floor rises to 386 (see minimumCompatibleSchemaVersion).
     if (from < 386) await _assertCourseRequirementConditionColumns();
     if (from < 386) await reportProgress();
+
+    // v387: diver_settings.preferred_currency_codes, the currencies a diver
+    // lists first in the currency pickers (issue #4997). Nullable, no
+    // backfill, so the floor does not move; re-asserted in beforeOpen.
+    if (from < 387) await _assertPreferredCurrencyCodesColumn();
+    if (from < 387) await reportProgress();
   }
 }

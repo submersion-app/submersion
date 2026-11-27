@@ -66980,4 +66980,43 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compact est une barre fine avec des voyants d\'état. Bannière est la bannière d\'accueil avec vos totaux de plongée. Enregistré sur cet appareil.';
+
+  @override
+  String get currencyPicker_searchHint => 'Rechercher par code ou nom';
+
+  @override
+  String get currencyPicker_section_preferred => 'Préférées';
+
+  @override
+  String get currencyPicker_section_all => 'Toutes les devises';
+
+  @override
+  String get currencyPicker_noMatches => 'Aucune devise ne correspond';
+
+  @override
+  String get settings_units_preferredCurrencies => 'Devises préférées';
+
+  @override
+  String get settings_units_preferredCurrencies_subtitle =>
+      'Affichées en premier dans chaque sélecteur de devise';
+
+  @override
+  String settings_units_preferredCurrencies_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count devises',
+      one: '$count devise',
+      zero: 'Aucune',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_units_preferredCurrencies_reset =>
+      'Rétablir les valeurs par défaut';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'Devises préférées';
 }

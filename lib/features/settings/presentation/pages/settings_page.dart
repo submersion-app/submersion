@@ -7,7 +7,6 @@ import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/equipment/presentation/widgets/profile_checklist_dialog.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/settings/presentation/info/settings_info.dart';
@@ -22,6 +21,8 @@ import 'package:submersion/features/settings/presentation/pages/safety_hub_page.
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/widgets/coordinate_format_picker.dart';
+import 'package:submersion/features/settings/presentation/widgets/currency_picker.dart';
+import 'package:submersion/features/settings/presentation/widgets/preferred_currencies_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/first_day_of_week_tile.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
@@ -650,6 +651,18 @@ class _UnitsSectionContent extends ConsumerWidget {
                     settings.defaultCurrency,
                   ),
                 ),
+                const Divider(height: 1),
+                _buildUnitTile(
+                  context,
+                  title: context.l10n.settings_units_preferredCurrencies,
+                  subtitle:
+                      context.l10n.settings_units_preferredCurrencies_subtitle,
+                  value: context.l10n.settings_units_preferredCurrencies_count(
+                    settings.preferredCurrencyCodes.length,
+                  ),
+                  onTap: () =>
+                      unawaited(showPreferredCurrenciesDialog(context, ref)),
+                ),
               ],
             ),
           ),
@@ -1133,49 +1146,20 @@ class _UnitsSectionContent extends ConsumerWidget {
     );
   }
 
-  void _showCurrencyPicker(
+  Future<void> _showCurrencyPicker(
     BuildContext context,
     WidgetRef ref,
     String currentCode,
-  ) {
-    final current = currentCode.trim().toUpperCase();
-    final codes = currencyCodesWith(current);
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.settings_units_dialog_defaultCurrency),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView(
-            shrinkWrap: true,
-            children: [
-              for (final code in codes)
-                ListTile(
-                  title: Text('$code  ${currencySymbol(code)}'),
-                  trailing: code == current
-                      ? Icon(
-                          Icons.check,
-                          color: Theme.of(context).colorScheme.primary,
-                        )
-                      : null,
-                  onTap: () {
-                    ref
-                        .read(settingsProvider.notifier)
-                        .setDefaultCurrency(code);
-                    Navigator.of(dialogContext).pop();
-                  },
-                ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(context.l10n.common_action_cancel),
-          ),
-        ],
-      ),
+  ) async {
+    final choice = await showCurrencyPicker(
+      context,
+      title: context.l10n.settings_units_dialog_defaultCurrency,
+      current: currentCode,
+      preferred: ref.read(preferredCurrencyCodesProvider),
     );
+    final code = choice?.code;
+    if (code == null) return;
+    await ref.read(settingsProvider.notifier).setDefaultCurrency(code);
   }
 
   void _showTimeFormatPicker(

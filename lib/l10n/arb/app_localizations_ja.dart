@@ -64143,4 +64143,40 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'コンパクトはステータスランプ付きの細いバーです。バナーはダイブの合計を表示するウェルカムバナーです。この端末に保存されます。';
+
+  @override
+  String get currencyPicker_searchHint => 'コードまたは名前で検索';
+
+  @override
+  String get currencyPicker_section_preferred => '優先';
+
+  @override
+  String get currencyPicker_section_all => 'すべての通貨';
+
+  @override
+  String get currencyPicker_noMatches => '一致する通貨はありません';
+
+  @override
+  String get settings_units_preferredCurrencies => '優先する通貨';
+
+  @override
+  String get settings_units_preferredCurrencies_subtitle =>
+      'すべての通貨選択で先頭に表示されます';
+
+  @override
+  String settings_units_preferredCurrencies_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 通貨',
+      zero: 'なし',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_units_preferredCurrencies_reset => 'デフォルトに戻す';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes => '優先する通貨';
 }

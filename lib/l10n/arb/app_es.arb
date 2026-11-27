@@ -19444,5 +19444,14 @@
   "settings_homeHeader_wide": "Pantallas más anchas",
   "settings_homeHeader_compact": "Compacto",
   "settings_homeHeader_banner": "Banner",
-  "settings_homeHeader_description": "Compacto es una barra estrecha con luces de estado. Banner es el banner de bienvenida con tus totales de inmersión. Se guarda en este dispositivo."
+  "settings_homeHeader_description": "Compacto es una barra estrecha con luces de estado. Banner es el banner de bienvenida con tus totales de inmersión. Se guarda en este dispositivo.",
+  "currencyPicker_searchHint": "Buscar por código o nombre",
+  "currencyPicker_section_preferred": "Preferidas",
+  "currencyPicker_section_all": "Todas las monedas",
+  "currencyPicker_noMatches": "Ninguna moneda coincide",
+  "settings_units_preferredCurrencies": "Monedas preferidas",
+  "settings_units_preferredCurrencies_subtitle": "Aparecen primero en cada selector de moneda",
+  "settings_units_preferredCurrencies_count": "{count, plural, =0{Ninguna} =1{1 moneda} other{{count} monedas}}",
+  "settings_units_preferredCurrencies_reset": "Restablecer valores predeterminados",
+  "settings_conflict_field_preferredCurrencyCodes": "Monedas preferidas"
 }

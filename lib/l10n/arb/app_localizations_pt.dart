@@ -66818,4 +66818,42 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compacto é uma barra estreita com luzes de status. Faixa é a faixa de boas-vindas com seus totais de mergulho. Salvo neste dispositivo.';
+
+  @override
+  String get currencyPicker_searchHint => 'Pesquisar por código ou nome';
+
+  @override
+  String get currencyPicker_section_preferred => 'Preferidas';
+
+  @override
+  String get currencyPicker_section_all => 'Todas as moedas';
+
+  @override
+  String get currencyPicker_noMatches => 'Nenhuma moeda corresponde';
+
+  @override
+  String get settings_units_preferredCurrencies => 'Moedas preferidas';
+
+  @override
+  String get settings_units_preferredCurrencies_subtitle =>
+      'Aparecem primeiro em todos os seletores de moeda';
+
+  @override
+  String settings_units_preferredCurrencies_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count moedas',
+      one: '$count moeda',
+      zero: 'Nenhuma',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_units_preferredCurrencies_reset => 'Restaurar padrões';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'Moedas preferidas';
 }

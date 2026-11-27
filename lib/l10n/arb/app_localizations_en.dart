@@ -65825,4 +65825,42 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compact is a slim bar with status lights. Banner is the welcome banner with your dive totals. Saved on this device.';
+
+  @override
+  String get currencyPicker_searchHint => 'Search by code or name';
+
+  @override
+  String get currencyPicker_section_preferred => 'Preferred';
+
+  @override
+  String get currencyPicker_section_all => 'All currencies';
+
+  @override
+  String get currencyPicker_noMatches => 'No currency matches';
+
+  @override
+  String get settings_units_preferredCurrencies => 'Preferred currencies';
+
+  @override
+  String get settings_units_preferredCurrencies_subtitle =>
+      'Listed first in every currency picker';
+
+  @override
+  String settings_units_preferredCurrencies_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count currencies',
+      one: '1 currency',
+      zero: 'None',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_units_preferredCurrencies_reset => 'Reset to defaults';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'Preferred currencies';
 }

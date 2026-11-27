@@ -58,6 +58,7 @@ Formats** and **Time & Date**. Quick Select changes none of it:
 | **Gas calculations** | **Real gas** accounts for compressibility (a 12 L cylinder at 200 bar holds about 2317 L); **Ideal gas** matches hand calculation and dive tables (2400 L). Affects RMV, gas used, gas statistics, the planner and the gas calculators. | Real gas |
 | **Water type** | The default water type for the planner | Salt water |
 | **Default Currency** | For prices and costs | USD |
+| **Preferred currencies** | The currencies listed first in every currency picker, in the order you ticked them. Every other ISO 4217 currency stays one search away, by code or by name (for example "real" finds BRL). Each diver profile keeps its own list. | USD, EUR, GBP, CHF, AUD, CAD, NZD, JPY, SEK, NOK, DKK, PLN, THB, EGP, MXN, IDR, PHP, ZAR |
 | **Visibility scale** | How visibility you measured is described: **Tropical**, **Temperate**, **Cold water / Inland**, or **Custom** | Tropical |
 | **Coordinate format** | **Decimal degrees**, **Degrees and decimal minutes**, **Degrees, minutes, seconds**, **UTM** or **MGRS** | Decimal degrees |
 | **Place name language** | The language used when a site's country, region and town are looked up from its coordinates. Existing sites are not changed. | |

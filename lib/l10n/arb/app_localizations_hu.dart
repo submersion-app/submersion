@@ -66452,4 +66452,44 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'A Kompakt egy keskeny sáv állapotjelzőkkel. A Szalag az üdvözlő szalag a merülési összesítőiddel. Ezen az eszközön mentve.';
+
+  @override
+  String get currencyPicker_searchHint => 'Keresés kód vagy név szerint';
+
+  @override
+  String get currencyPicker_section_preferred => 'Előnyben részesített';
+
+  @override
+  String get currencyPicker_section_all => 'Összes pénznem';
+
+  @override
+  String get currencyPicker_noMatches => 'Nincs egyező pénznem';
+
+  @override
+  String get settings_units_preferredCurrencies =>
+      'Előnyben részesített pénznemek';
+
+  @override
+  String get settings_units_preferredCurrencies_subtitle =>
+      'Minden pénznemválasztóban elöl jelennek meg';
+
+  @override
+  String settings_units_preferredCurrencies_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pénznem',
+      one: '1 pénznem',
+      zero: 'Nincs',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_units_preferredCurrencies_reset =>
+      'Alapértelmezések visszaállítása';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'Előnyben részesített pénznemek';
 }

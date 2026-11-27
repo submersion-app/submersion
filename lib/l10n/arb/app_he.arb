@@ -19444,5 +19444,14 @@
   "settings_homeHeader_wide": "מסכים רחבים יותר",
   "settings_homeHeader_compact": "דחוס",
   "settings_homeHeader_banner": "באנר",
-  "settings_homeHeader_description": "דחוס הוא סרגל צר עם נורות מצב. באנר הוא באנר הפתיחה עם סיכומי הצלילות שלך. נשמר במכשיר זה."
+  "settings_homeHeader_description": "דחוס הוא סרגל צר עם נורות מצב. באנר הוא באנר הפתיחה עם סיכומי הצלילות שלך. נשמר במכשיר זה.",
+  "currencyPicker_searchHint": "חיפוש לפי קוד או שם",
+  "currencyPicker_section_preferred": "מועדפים",
+  "currencyPicker_section_all": "כל המטבעות",
+  "currencyPicker_noMatches": "אין מטבע תואם",
+  "settings_units_preferredCurrencies": "מטבעות מועדפים",
+  "settings_units_preferredCurrencies_subtitle": "מופיעים ראשונים בכל בורר מטבע",
+  "settings_units_preferredCurrencies_count": "{count, plural, =0{אין} =1{מטבע אחד} other{{count} מטבעות}}",
+  "settings_units_preferredCurrencies_reset": "איפוס לברירות המחדל",
+  "settings_conflict_field_preferredCurrencyCodes": "מטבעות מועדפים"
 }

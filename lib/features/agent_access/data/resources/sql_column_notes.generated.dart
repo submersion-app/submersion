@@ -374,6 +374,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'planner_scr_vo2': 'Planner default diver VO2 on a CMF loop, surface L per minute',
     'planner_turn_pressure_rule': 'planner air-break and turn-pressure global defaults',
     'pp_o2_deco_bands_enabled': 'Per-O2-band deco ppO2 limits: an optional, finer-grained alternative to the single ppO2MaxDeco above, scoped to the Dive Planner only',
+    'preferred_currency_codes': 'the currencies this diver lists first in every currency picker, a JSON list of ISO 4217 codes in the diver\'s order',
     'profile_color_avelo_buoyancy': 'the three Avelo lines',
     'profile_metrics_follow_viewport': 'profile metric overlays follow the zoomed depth window, and the passive-SCR ratio',
     'recent_equipment_colors': 'the custom colours the diver picked for their gear, a JSON list, most recent first',

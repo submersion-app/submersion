@@ -66707,4 +66707,43 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Kompakt ist eine schmale Leiste mit Statusanzeigen. Banner ist das Begrüßungsbanner mit deinen Tauchsummen. Wird auf diesem Gerät gespeichert.';
+
+  @override
+  String get currencyPicker_searchHint => 'Nach Code oder Name suchen';
+
+  @override
+  String get currencyPicker_section_preferred => 'Bevorzugt';
+
+  @override
+  String get currencyPicker_section_all => 'Alle Währungen';
+
+  @override
+  String get currencyPicker_noMatches => 'Keine passende Währung';
+
+  @override
+  String get settings_units_preferredCurrencies => 'Bevorzugte Währungen';
+
+  @override
+  String get settings_units_preferredCurrencies_subtitle =>
+      'Stehen in jeder Währungsauswahl oben';
+
+  @override
+  String settings_units_preferredCurrencies_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Währungen',
+      one: '1 Währung',
+      zero: 'Keine',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_units_preferredCurrencies_reset =>
+      'Auf Standard zurücksetzen';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'Bevorzugte Währungen';
 }

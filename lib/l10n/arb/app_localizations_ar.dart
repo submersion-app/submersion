@@ -67874,4 +67874,46 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'المضغوط شريط رفيع مع مؤشرات الحالة. اللافتة هي لافتة الترحيب مع إجماليات غوصك. يُحفظ على هذا الجهاز.';
+
+  @override
+  String get currencyPicker_searchHint => 'ابحث بالرمز أو الاسم';
+
+  @override
+  String get currencyPicker_section_preferred => 'المفضلة';
+
+  @override
+  String get currencyPicker_section_all => 'جميع العملات';
+
+  @override
+  String get currencyPicker_noMatches => 'لا توجد عملة مطابقة';
+
+  @override
+  String get settings_units_preferredCurrencies => 'العملات المفضلة';
+
+  @override
+  String get settings_units_preferredCurrencies_subtitle =>
+      'تظهر أولاً في كل أداة لاختيار العملة';
+
+  @override
+  String settings_units_preferredCurrencies_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عملة',
+      many: '$count عملة',
+      few: '$count عملات',
+      two: 'عملتان',
+      one: 'عملة واحدة',
+      zero: 'لا شيء',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_units_preferredCurrencies_reset =>
+      'استعادة الإعدادات الافتراضية';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'العملات المفضلة';
 }

@@ -19444,5 +19444,14 @@
   "settings_homeHeader_wide": "更宽的屏幕",
   "settings_homeHeader_compact": "紧凑",
   "settings_homeHeader_banner": "横幅",
-  "settings_homeHeader_description": "紧凑是带状态灯的窄栏。横幅是显示潜水总计的欢迎横幅。保存在此设备上。"
+  "settings_homeHeader_description": "紧凑是带状态灯的窄栏。横幅是显示潜水总计的欢迎横幅。保存在此设备上。",
+  "currencyPicker_searchHint": "按代码或名称搜索",
+  "currencyPicker_section_preferred": "首选",
+  "currencyPicker_section_all": "所有货币",
+  "currencyPicker_noMatches": "没有匹配的货币",
+  "settings_units_preferredCurrencies": "首选货币",
+  "settings_units_preferredCurrencies_subtitle": "在每个货币选择器中排在最前",
+  "settings_units_preferredCurrencies_count": "{count, plural, =0{无} other{{count} 种货币}}",
+  "settings_units_preferredCurrencies_reset": "恢复默认",
+  "settings_conflict_field_preferredCurrencyCodes": "首选货币"
 }

@@ -19443,5 +19443,14 @@
   "settings_homeHeader_wide": "より広い画面",
   "settings_homeHeader_compact": "コンパクト",
   "settings_homeHeader_banner": "バナー",
-  "settings_homeHeader_description": "コンパクトはステータスランプ付きの細いバーです。バナーはダイブの合計を表示するウェルカムバナーです。この端末に保存されます。"
+  "settings_homeHeader_description": "コンパクトはステータスランプ付きの細いバーです。バナーはダイブの合計を表示するウェルカムバナーです。この端末に保存されます。",
+  "currencyPicker_searchHint": "コードまたは名前で検索",
+  "currencyPicker_section_preferred": "優先",
+  "currencyPicker_section_all": "すべての通貨",
+  "currencyPicker_noMatches": "一致する通貨はありません",
+  "settings_units_preferredCurrencies": "優先する通貨",
+  "settings_units_preferredCurrencies_subtitle": "すべての通貨選択で先頭に表示されます",
+  "settings_units_preferredCurrencies_count": "{count, plural, =0{なし} other{{count} 通貨}}",
+  "settings_units_preferredCurrencies_reset": "デフォルトに戻す",
+  "settings_conflict_field_preferredCurrencyCodes": "優先する通貨"
 }

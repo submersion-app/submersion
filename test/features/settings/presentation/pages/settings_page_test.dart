@@ -289,6 +289,13 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultCurrency(String currencyCode) async =>
       state = state.copyWith(defaultCurrency: currencyCode);
+
+  @override
+  Future<void> setPreferredCurrencyCodes(List<String> codes) async =>
+      state = state.copyWith(
+        preferredCurrencyCodes: normalizePreferredCurrencyCodes(codes),
+      );
+
   @override
   Future<void> setVisibilityScale({
     required VisibilityScalePreset preset,
@@ -2652,7 +2659,7 @@ void main() {
       expect(find.text('EUR'), findsOneWidget);
     });
 
-    testWidgets('the picker lists the preset codes with their symbols', (
+    testWidgets('the picker lists the preferred codes with their symbols', (
       tester,
     ) async {
       await tester.pumpWidget(buildUnitsWidget(getOverrides()));
@@ -2660,8 +2667,14 @@ void main() {
       await openPicker(tester);
 
       expect(find.byType(AlertDialog), findsOneWidget);
-      expect(find.text('EUR  €'), findsOneWidget);
-      expect(find.text('GBP  £'), findsOneWidget);
+      for (final (code, symbol) in [('EUR', '€'), ('GBP', '£')]) {
+        final tile = find.byKey(Key('currency-picker-$code'));
+        expect(tile, findsOneWidget);
+        expect(
+          find.descendant(of: tile, matching: find.text(symbol)),
+          findsOneWidget,
+        );
+      }
       // The current selection is ticked (scoped to the dialog - the page
       // behind it has check icons of its own).
       expect(
@@ -2680,11 +2693,54 @@ void main() {
       await tester.pumpAndSettle();
       await openPicker(tester);
 
-      await tester.tap(find.text('EUR  €'));
+      await tester.tap(find.byKey(const Key('currency-picker-EUR')));
       await tester.pumpAndSettle();
 
       expect(find.byType(AlertDialog), findsNothing);
       expect(find.text('EUR'), findsOneWidget);
+    });
+
+    testWidgets('any ISO currency can be found and made the default '
+        '(issue #4997)', (tester) async {
+      await tester.pumpWidget(buildUnitsWidget(getOverrides()));
+      await tester.pumpAndSettle();
+      await openPicker(tester);
+
+      await tester.enterText(
+        find.byKey(const Key('currency-picker-search')),
+        'brazil',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('currency-picker-BRL')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(find.text('BRL'), findsOneWidget);
+    });
+
+    testWidgets('the preferred currencies tile counts them and opens the '
+        'checklist (issue #4997)', (tester) async {
+      await tester.pumpWidget(
+        buildUnitsWidget(
+          getOverrides(
+            const AppSettings(preferredCurrencyCodes: ['BRL', 'EUR']),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Preferred currencies'), 200);
+      await tester.pumpAndSettle();
+
+      expect(find.text('2 currencies'), findsOneWidget);
+
+      await tester.tap(find.text('Preferred currencies'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('preferred-currency-EUR')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 currency'), findsOneWidget);
     });
 
     testWidgets('cancelling leaves the currency unchanged', (tester) async {
@@ -2699,26 +2755,24 @@ void main() {
       expect(find.text('USD'), findsOneWidget);
     });
 
-    testWidgets('a stored code outside the presets stays selectable', (
+    testWidgets('a stored code outside the catalog stays selectable', (
       tester,
     ) async {
       // Currency is free text elsewhere in the app, so the picker must offer
-      // the persisted value even when it is not one of the presets.
+      // the persisted value even when it is not an ISO catalog code.
       await tester.pumpWidget(
         buildUnitsWidget(
-          getOverrides(const AppSettings(defaultCurrency: 'ISK')),
+          getOverrides(const AppSettings(defaultCurrency: 'XAU')),
         ),
       );
       await tester.pumpAndSettle();
       await openPicker(tester);
 
-      // Listed with its symbol in the dialog, and ticked as the current value.
-      expect(find.text('ISK  ${currencySymbol('ISK')}'), findsOneWidget);
+      // Listed in the dialog, and ticked as the current value.
+      final tile = find.byKey(const Key('currency-picker-XAU'));
+      expect(tile, findsOneWidget);
       expect(
-        find.descendant(
-          of: find.byType(AlertDialog),
-          matching: find.byIcon(Icons.check),
-        ),
+        find.descendant(of: tile, matching: find.byIcon(Icons.check)),
         findsOneWidget,
       );
     });

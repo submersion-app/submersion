@@ -65482,4 +65482,41 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'דחוס הוא סרגל צר עם נורות מצב. באנר הוא באנר הפתיחה עם סיכומי הצלילות שלך. נשמר במכשיר זה.';
+
+  @override
+  String get currencyPicker_searchHint => 'חיפוש לפי קוד או שם';
+
+  @override
+  String get currencyPicker_section_preferred => 'מועדפים';
+
+  @override
+  String get currencyPicker_section_all => 'כל המטבעות';
+
+  @override
+  String get currencyPicker_noMatches => 'אין מטבע תואם';
+
+  @override
+  String get settings_units_preferredCurrencies => 'מטבעות מועדפים';
+
+  @override
+  String get settings_units_preferredCurrencies_subtitle =>
+      'מופיעים ראשונים בכל בורר מטבע';
+
+  @override
+  String settings_units_preferredCurrencies_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מטבעות',
+      one: 'מטבע אחד',
+      zero: 'אין',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_units_preferredCurrencies_reset => 'איפוס לברירות המחדל';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes => 'מטבעות מועדפים';
 }

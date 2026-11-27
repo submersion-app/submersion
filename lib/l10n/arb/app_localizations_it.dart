@@ -66849,4 +66849,43 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compatta è una barra sottile con le spie di stato. Banner è il banner di benvenuto con i totali delle tue immersioni. Salvato su questo dispositivo.';
+
+  @override
+  String get currencyPicker_searchHint => 'Cerca per codice o nome';
+
+  @override
+  String get currencyPicker_section_preferred => 'Preferite';
+
+  @override
+  String get currencyPicker_section_all => 'Tutte le valute';
+
+  @override
+  String get currencyPicker_noMatches => 'Nessuna valuta corrisponde';
+
+  @override
+  String get settings_units_preferredCurrencies => 'Valute preferite';
+
+  @override
+  String get settings_units_preferredCurrencies_subtitle =>
+      'Mostrate per prime in ogni selettore di valuta';
+
+  @override
+  String settings_units_preferredCurrencies_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count valute',
+      one: '1 valuta',
+      zero: 'Nessuna',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_units_preferredCurrencies_reset =>
+      'Ripristina predefinite';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'Valute preferite';
 }

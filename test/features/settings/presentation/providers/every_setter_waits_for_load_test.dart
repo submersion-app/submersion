@@ -69,6 +69,7 @@ Future<void> _changeEverySetting(SettingsNotifier n) {
     n.setGasModel(GasModel.values.last),
     n.setDefaultPlannerWaterType(PlannerWaterType.values.last),
     n.setDefaultCurrency(' eur '),
+    n.setPreferredCurrencyCodes(const ['BRL', 'EUR']),
     n.setVisibilityScale(
       preset: VisibilityScalePreset.values.last,
       excellentM: 30,

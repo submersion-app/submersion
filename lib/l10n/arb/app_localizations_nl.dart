@@ -66446,4 +66446,43 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compact is een smalle balk met statuslampjes. Banner is de welkomstbanner met je duiktotalen. Opgeslagen op dit apparaat.';
+
+  @override
+  String get currencyPicker_searchHint => 'Zoeken op code of naam';
+
+  @override
+  String get currencyPicker_section_preferred => 'Voorkeur';
+
+  @override
+  String get currencyPicker_section_all => 'Alle valuta';
+
+  @override
+  String get currencyPicker_noMatches => 'Geen valuta gevonden';
+
+  @override
+  String get settings_units_preferredCurrencies => 'Voorkeursvaluta';
+
+  @override
+  String get settings_units_preferredCurrencies_subtitle =>
+      'Staan bovenaan in elke valutakiezer';
+
+  @override
+  String settings_units_preferredCurrencies_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count valuta',
+      one: '1 valuta',
+      zero: 'Geen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_units_preferredCurrencies_reset =>
+      'Standaardwaarden herstellen';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'Voorkeursvaluta';
 }

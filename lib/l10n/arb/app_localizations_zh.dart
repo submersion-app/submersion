@@ -62632,4 +62632,39 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       '紧凑是带状态灯的窄栏。横幅是显示潜水总计的欢迎横幅。保存在此设备上。';
+
+  @override
+  String get currencyPicker_searchHint => '按代码或名称搜索';
+
+  @override
+  String get currencyPicker_section_preferred => '首选';
+
+  @override
+  String get currencyPicker_section_all => '所有货币';
+
+  @override
+  String get currencyPicker_noMatches => '没有匹配的货币';
+
+  @override
+  String get settings_units_preferredCurrencies => '首选货币';
+
+  @override
+  String get settings_units_preferredCurrencies_subtitle => '在每个货币选择器中排在最前';
+
+  @override
+  String settings_units_preferredCurrencies_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 种货币',
+      zero: '无',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_units_preferredCurrencies_reset => '恢复默认';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes => '首选货币';
 }

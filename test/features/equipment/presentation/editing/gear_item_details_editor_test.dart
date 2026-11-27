@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/core/utils/currency_catalog.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -390,6 +392,28 @@ void main() {
         .widget<DropdownMenu<String>>(currencyMenu)
         .dropdownMenuEntries;
     expect(entries.first.value, 'ISK');
+  });
+
+  testWidgets('the menu offers the preferred currencies, then every other ISO '
+      'currency (issue #4997)', (tester) async {
+    await pumpEditor(
+      tester,
+      regulator.copyWith(purchasePrice: 150, purchaseCurrency: 'EUR'),
+    );
+
+    final codes = [
+      for (final entry
+          in tester
+              .widget<DropdownMenu<String>>(currencyMenu)
+              .dropdownMenuEntries)
+        entry.value,
+    ];
+    expect(
+      codes.take(kDefaultPreferredCurrencyCodes.length),
+      kDefaultPreferredCurrencyCodes,
+    );
+    expect(codes, contains('BRL'));
+    expect(codes, hasLength(kIsoCurrencies.length));
   });
 
   testWidgets('a currency cleared falls back to the diver default, not '

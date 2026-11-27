@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart';
@@ -412,6 +413,13 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setDefaultCurrency(String currencyCode) async =>
       state = state.copyWith(defaultCurrency: currencyCode);
+
+  @override
+  Future<void> setPreferredCurrencyCodes(List<String> codes) async =>
+      state = state.copyWith(
+        preferredCurrencyCodes: normalizePreferredCurrencyCodes(codes),
+      );
+
   @override
   Future<void> setVisibilityScale({
     required VisibilityScalePreset preset,

@@ -16,6 +16,7 @@ import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/constants/place_name_language.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
+import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
@@ -255,6 +256,10 @@ class AppSettings implements UnitFormatterSettings {
   /// (e.g. equipment purchase price).
   @override
   final String defaultCurrency;
+
+  /// The currencies listed first in every currency picker, in the diver's
+  /// order (issue #4997). The full ISO 4217 catalog follows them.
+  final List<String> preferredCurrencyCodes;
 
   /// Per-diver calibration deciding which measured visibility distances read
   /// as excellent/good/moderate/poor.
@@ -882,6 +887,7 @@ class AppSettings implements UnitFormatterSettings {
     this.gasModel = GasModel.real,
     this.defaultPlannerWaterType = PlannerWaterType.salt,
     this.defaultCurrency = 'USD',
+    this.preferredCurrencyCodes = kDefaultPreferredCurrencyCodes,
     this.visibilityScalePreset = VisibilityScalePreset.tropical,
     this.visibilityScaleExcellentM,
     this.visibilityScaleGoodM,
@@ -1131,6 +1137,7 @@ class AppSettings implements UnitFormatterSettings {
     GasModel? gasModel,
     PlannerWaterType? defaultPlannerWaterType,
     String? defaultCurrency,
+    List<String>? preferredCurrencyCodes,
     VisibilityScalePreset? visibilityScalePreset,
     double? visibilityScaleExcellentM,
     double? visibilityScaleGoodM,
@@ -1350,6 +1357,8 @@ class AppSettings implements UnitFormatterSettings {
       defaultPlannerWaterType:
           defaultPlannerWaterType ?? this.defaultPlannerWaterType,
       defaultCurrency: defaultCurrency ?? this.defaultCurrency,
+      preferredCurrencyCodes:
+          preferredCurrencyCodes ?? this.preferredCurrencyCodes,
       visibilityScalePreset:
           visibilityScalePreset ?? this.visibilityScalePreset,
       visibilityScaleExcellentM:
@@ -2413,6 +2422,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setDefaultCurrency(String currencyCode) => _update(
     (s) => s.copyWith(defaultCurrency: currencyCode.trim().toUpperCase()),
+  );
+
+  /// Sets the currencies listed first in every currency picker (issue
+  /// #4997), normalised and in the given order.
+  Future<void> setPreferredCurrencyCodes(List<String> codes) => _update(
+    (s) => s.copyWith(
+      preferredCurrencyCodes: List.unmodifiable(
+        normalizePreferredCurrencyCodes(codes),
+      ),
+    ),
   );
 
   /// Sets the visibility calibration.
@@ -3621,6 +3640,20 @@ final gasConsumptionDisplayProvider = Provider<GasConsumptionDisplay>((ref) {
 
 final defaultCurrencyProvider = Provider<String>((ref) {
   return ref.watch(settingsProvider.select((s) => s.defaultCurrency));
+});
+
+/// The active diver's preferred currencies (issue #4997), which every
+/// currency picker lists first.
+///
+/// Selects the joined codes rather than the list itself, since every
+/// settings load decodes a fresh list: this way a picker rebuilds only when
+/// the preferences change, not on every settings write. Codes are always
+/// three letters, so a comma cannot occur inside one.
+final preferredCurrencyCodesProvider = Provider<List<String>>((ref) {
+  final key = ref.watch(
+    settingsProvider.select((s) => s.preferredCurrencyCodes.join(',')),
+  );
+  return key.isEmpty ? const [] : List.unmodifiable(key.split(','));
 });
 
 final altitudeUnitProvider = Provider<AltitudeUnit>((ref) {

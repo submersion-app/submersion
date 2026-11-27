@@ -104419,6 +104419,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Compact is a slim bar with status lights. Banner is the welcome banner with your dive totals. Saved on this device.'**
   String get settings_homeHeader_description;
+
+  /// Hint in the search field of the currency picker, which searches ISO currency codes and their English names
+  ///
+  /// In en, this message translates to:
+  /// **'Search by code or name'**
+  String get currencyPicker_searchHint;
+
+  /// Heading in the currency picker above the diver's preferred currencies
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred'**
+  String get currencyPicker_section_preferred;
+
+  /// Heading in the currency picker above the rest of the ISO 4217 currency catalog
+  ///
+  /// In en, this message translates to:
+  /// **'All currencies'**
+  String get currencyPicker_section_all;
+
+  /// Shown in the currency picker when the search matches no currency
+  ///
+  /// In en, this message translates to:
+  /// **'No currency matches'**
+  String get currencyPicker_noMatches;
+
+  /// Settings row and dialog title for choosing the currencies listed first in every currency picker
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred currencies'**
+  String get settings_units_preferredCurrencies;
+
+  /// Explains the preferred currencies setting
+  ///
+  /// In en, this message translates to:
+  /// **'Listed first in every currency picker'**
+  String get settings_units_preferredCurrencies_subtitle;
+
+  /// How many preferred currencies the diver chose, shown as the setting's value
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{None} =1{1 currency} other{{count} currencies}}'**
+  String settings_units_preferredCurrencies_count(int count);
+
+  /// Button in the preferred currencies dialog that restores the built-in list
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to defaults'**
+  String get settings_units_preferredCurrencies_reset;
+
+  /// Sync conflict dialog label for the currencies a diver lists first in the currency pickers
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred currencies'**
+  String get settings_conflict_field_preferredCurrencyCodes;
 }
 
 class _AppLocalizationsDelegate

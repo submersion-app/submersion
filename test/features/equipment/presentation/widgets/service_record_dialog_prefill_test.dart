@@ -322,19 +322,19 @@ void main() {
       expect(currencyText(tester), 'GBP');
     });
 
-    testWidgets('a resolved code outside the presets stays selectable', (
+    testWidgets('a resolved code outside the catalog stays selectable', (
       tester,
     ) async {
-      // currencyCodesWith only leads with the STORED code, so a default
+      // allCurrencyCodesWith only leads with the STORED code, so a default
       // resolved from a kind could otherwise be missing from the menu.
-      await pumpDialog(tester, kindCost: 60, kindCurrency: 'ISK');
+      await pumpDialog(tester, kindCost: 60, kindCurrency: 'XAU');
 
-      expect(currencyText(tester), 'ISK');
+      expect(currencyText(tester), 'XAU');
 
       await tester.tap(find.byType(DropdownMenu<String>));
       await tester.pumpAndSettle();
 
-      expect(find.text('ISK'), findsWidgets);
+      expect(find.text('XAU'), findsWidgets);
     });
   });
 }

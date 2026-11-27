@@ -19444,5 +19444,14 @@
   "settings_homeHeader_wide": "Szélesebb képernyők",
   "settings_homeHeader_compact": "Kompakt",
   "settings_homeHeader_banner": "Szalag",
-  "settings_homeHeader_description": "A Kompakt egy keskeny sáv állapotjelzőkkel. A Szalag az üdvözlő szalag a merülési összesítőiddel. Ezen az eszközön mentve."
+  "settings_homeHeader_description": "A Kompakt egy keskeny sáv állapotjelzőkkel. A Szalag az üdvözlő szalag a merülési összesítőiddel. Ezen az eszközön mentve.",
+  "currencyPicker_searchHint": "Keresés kód vagy név szerint",
+  "currencyPicker_section_preferred": "Előnyben részesített",
+  "currencyPicker_section_all": "Összes pénznem",
+  "currencyPicker_noMatches": "Nincs egyező pénznem",
+  "settings_units_preferredCurrencies": "Előnyben részesített pénznemek",
+  "settings_units_preferredCurrencies_subtitle": "Minden pénznemválasztóban elöl jelennek meg",
+  "settings_units_preferredCurrencies_count": "{count, plural, =0{Nincs} =1{1 pénznem} other{{count} pénznem}}",
+  "settings_units_preferredCurrencies_reset": "Alapértelmezések visszaállítása",
+  "settings_conflict_field_preferredCurrencyCodes": "Előnyben részesített pénznemek"
 }

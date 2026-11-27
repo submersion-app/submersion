@@ -64,12 +64,15 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // v370 backstop: diver_settings.default_show_buoyancy (issue #4593).
     await _assertDefaultShowBuoyancyColumn();
 
-    // v379 backstop: the Avelo profile lines' visibility and colour columns
+    // v386 backstop: the Avelo profile lines' visibility and colour columns
     // on diver_settings (issue #4664).
     await _assertAveloLineColumns();
 
     // v371 backstop: diver_settings.favourite_dive_type_ids (issue #4413).
     await _assertFavouriteDiveTypeIdsColumn();
+
+    // v387 backstop: diver_settings.preferred_currency_codes (issue #4997).
+    await _assertPreferredCurrencyCodesColumn();
 
     // v374 backstop: the planner's SCR injection rate and VO2 columns on
     // dive_plans and diver_settings (issue #4660).
