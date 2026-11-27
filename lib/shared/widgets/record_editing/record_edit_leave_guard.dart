@@ -146,7 +146,8 @@ class _SystemBackClosesKeyboardState extends State<_SystemBackClosesKeyboard>
 
   /// Runs while the keyboard is moving or has only just stopped: restarted
   /// on every change of the window's bottom inset and whenever a field on
-  /// the page takes focus, which is when the keyboard is about to open.
+  /// the page takes focus with the keyboard down, which is when it is about
+  /// to open.
   Timer? _keyboardMoving;
 
   /// The window's bottom inset as last seen.
@@ -183,7 +184,11 @@ class _SystemBackClosesKeyboardState extends State<_SystemBackClosesKeyboard>
     _keyboardMoved();
   }
 
+  /// A field taking focus with the keyboard down is the keyboard about to
+  /// open, before the window has moved. With it already up, moving from
+  /// field to field moves nothing, and the next Back is the diver's.
   void _onFocusChanged() {
+    if (!mounted || View.of(context).viewInsets.bottom > 0) return;
     if (_page.hasFocus && _isField(FocusManager.instance.primaryFocus)) {
       _keyboardMoved();
     }

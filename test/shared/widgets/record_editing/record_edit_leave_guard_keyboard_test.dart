@@ -38,6 +38,7 @@ final _notes = EditField<_Rec, String>(
 
 const _field = ValueKey('a field');
 const _otherField = ValueKey('a field on a page above');
+const _secondField = ValueKey('a second field');
 
 /// The app as it runs: a router, so the system Back goes through its back
 /// button dispatcher before any route hears of it. Home pushes the guarded
@@ -74,6 +75,7 @@ Future<RecordEditController<_Rec>> _open(
             body: Column(
               children: [
                 const TextField(key: _field),
+                const TextField(key: _secondField),
                 TextButton(
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
@@ -446,5 +448,22 @@ void main() {
     expect(find.text('Discard changes?'), findsNothing);
     expect(find.text('Record'), findsOneWidget);
     expect(controller.isDirty, isTrue);
+  });
+
+  testWidgets('moving to another field with the keyboard up leaves the '
+      'next Back closing it', (tester) async {
+    final controller = await _open(tester);
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'changed');
+    await _typeIn(tester, _field);
+    await tester.showKeyboard(find.byKey(_secondField));
+    await tester.pump();
+    expect(_focused(tester, _secondField), isTrue);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Discard changes?'), findsNothing);
+    expect(_focused(tester, _secondField), isFalse);
   });
 }
