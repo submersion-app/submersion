@@ -683,7 +683,7 @@ void main() {
     expect(row.defaultShowComputerRmv, isFalse);
   });
 
-  test('applies a pre-v384 diver_settings payload missing the CCR setpoint '
+  test('applies a pre-v387 diver_settings payload missing the CCR setpoint '
       'switch depth', () async {
     await db.customStatement('PRAGMA foreign_keys = OFF');
 

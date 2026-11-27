@@ -157,4 +157,110 @@ void main() {
       findsOneWidget,
     );
   });
+
+  group('a requirement counted from the logbook', () {
+    CourseRequirementProgress derived(
+      RequirementKind kind, {
+      required int targetCount,
+      required int derivedAmount,
+    }) {
+      final now = DateTime(2026);
+      return CourseRequirementProgress(
+        requirement: CourseRequirement(
+          id: 'req-derived',
+          courseId: 'course-1',
+          name: 'Logbook requirement',
+          kind: kind,
+          targetCount: targetCount,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        linkedDives: const [],
+        derivedAmount: derivedAmount,
+      );
+    }
+
+    Future<void> pumpDerived(
+      WidgetTester tester,
+      CourseRequirementProgress progress, {
+      Locale locale = const Locale('en'),
+      RequirementActions? actions,
+    }) async {
+      await tester.pumpWidget(
+        testApp(
+          locale: locale,
+          child: RequirementTile(
+            progress: progress,
+            suggestions: const [],
+            actions: actions,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('CCR hours show tenths of an hour and tick once met', (
+      tester,
+    ) async {
+      await pumpDerived(
+        tester,
+        derived(RequirementKind.ccrHours, targetCount: 2, derivedAmount: 150),
+      );
+
+      expect(find.text('2.5 of 2 hours'), findsOneWidget);
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+    });
+
+    testWidgets('CCR hours just short of the target never round up to it', (
+      tester,
+    ) async {
+      // 119 minutes is 1.98 hours: shown as 1.9, not 2.0, while unmet.
+      await pumpDerived(
+        tester,
+        derived(RequirementKind.ccrHours, targetCount: 2, derivedAmount: 119),
+      );
+
+      expect(find.text('1.9 of 2 hours'), findsOneWidget);
+      expect(find.byIcon(Icons.radio_button_unchecked), findsOneWidget);
+    });
+
+    testWidgets('CCR hours use the locale decimal separator', (tester) async {
+      await pumpDerived(
+        tester,
+        derived(RequirementKind.ccrHours, targetCount: 2, derivedAmount: 150),
+        locale: const Locale('de'),
+      );
+
+      expect(find.text('2,5 von 2 Stunden'), findsOneWidget);
+    });
+
+    testWidgets('a dive search counts its matching dives', (tester) async {
+      await pumpDerived(
+        tester,
+        derived(RequirementKind.diveQuery, targetCount: 5, derivedAmount: 3),
+      );
+
+      expect(find.text('3 of 5 matching dives'), findsOneWidget);
+      expect(find.byIcon(Icons.radio_button_unchecked), findsOneWidget);
+      // Nothing to credit or tick on a logbook-counted requirement.
+      expect(find.text('Choose dive'), findsNothing);
+      expect(find.byType(Checkbox), findsNothing);
+    });
+
+    testWidgets('the menu appears only while the card is being edited', (
+      tester,
+    ) async {
+      final progress = derived(
+        RequirementKind.diveQuery,
+        targetCount: 5,
+        derivedAmount: 5,
+      );
+      await pumpDerived(tester, progress);
+      expect(find.byType(RequirementMenuButton), findsNothing);
+
+      await pumpDerived(tester, progress, actions: _RecordingActions());
+      expect(find.byType(RequirementMenuButton), findsOneWidget);
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+    });
+  });
 }

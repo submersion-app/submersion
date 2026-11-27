@@ -31,8 +31,11 @@ void main() {
       AppDatabase.migrationStepCount(382),
       AppDatabase.migrationStepCount(383) + 1,
     );
-    // Additive tables: the floor does not move.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 381);
+    // Additive tables: v383 does not move the floor.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(381),
+    );
   });
 
   test('upgrading from v382 adds both tables', () async {

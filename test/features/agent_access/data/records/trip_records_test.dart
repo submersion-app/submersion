@@ -253,6 +253,50 @@ void main() {
       expect(doc['equipment_ids'], ['own-reg']);
     });
 
+    test('bag_contents lists each bag with the visible gear in it', () async {
+      for (final (id, type, owner) in [
+        ('duffel', 'bag', kDiverA),
+        ('fins', 'fins', kDiverA),
+        ('mask', 'mask', kDiverA),
+        ('b-reg', 'regulator', kDiverB),
+      ]) {
+        await db
+            .into(db.equipment)
+            .insert(
+              EquipmentCompanion.insert(
+                id: id,
+                name: id,
+                type: type,
+                createdAt: t,
+                updatedAt: t,
+                diverId: Value(owner),
+              ),
+            );
+      }
+      for (final (id, bag) in [
+        ('duffel', null),
+        ('fins', 'duffel'),
+        ('mask', null),
+        ('b-reg', 'duffel'),
+      ]) {
+        await db
+            .into(db.tripEquipment)
+            .insert(
+              TripEquipmentCompanion.insert(
+                id: 'pack-$id',
+                tripId: 'open',
+                equipmentId: id,
+                createdAt: t,
+                bagEquipmentId: Value(bag),
+              ),
+            );
+      }
+      final doc = (await h.one('trips', 'open', include: ['bag_contents']))!;
+      expect(doc['bag_contents'], {
+        'duffel': ['fins'],
+      });
+    });
+
     test('side_trips names the children of a trip', () async {
       await trip('side', kDiverA, parent: 'mine');
       await (db.update(db.trips)..where((x) => x.id.equals('side'))).write(
@@ -330,6 +374,70 @@ void main() {
         (await h.one('trip_checklist_items', 'chk-mine'))!['due_date'],
         '2024-02-20',
       );
+    });
+
+    test('a gear item reads as the asking diver sees it', () async {
+      // 'named' is diver B's trip, shared with diver A. B's private wing is
+      // packed for it: B reads the item ticked, A (who cannot see the wing)
+      // reads a plain item by its own is_done.
+      await db
+          .into(db.tripChecklists)
+          .insert(
+            TripChecklistsCompanion.insert(
+              id: 'list-named',
+              tripId: 'named',
+              name: 'Packing',
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'wing-b',
+              name: 'Wing',
+              type: 'bcd',
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value(kDiverB),
+            ),
+          );
+      await db
+          .into(db.tripChecklistItems)
+          .insert(
+            TripChecklistItemsCompanion.insert(
+              id: 'chk-gear',
+              checklistId: 'list-named',
+              title: 'Wing',
+              equipmentId: const Value('wing-b'),
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      await db
+          .into(db.tripEquipment)
+          .insert(
+            TripEquipmentCompanion.insert(
+              id: 'pack-wing',
+              tripId: 'named',
+              equipmentId: 'wing-b',
+              createdAt: t,
+            ),
+          );
+
+      final asOwner = await h.one(
+        'trip_checklist_items',
+        'chk-gear',
+        diverId: kDiverB,
+      );
+      expect(asOwner!['is_done'], isTrue);
+      final asSharee = await h.one(
+        'trip_checklist_items',
+        'chk-gear',
+        diverId: kDiverA,
+      );
+      expect(asSharee!['is_done'], isFalse);
     });
 
     test('a trip cylinder keeps volume_l', () async {

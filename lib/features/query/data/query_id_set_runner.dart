@@ -57,7 +57,11 @@ class QueryIdSetRunner {
 
   /// How many rows [ids] would return, without fetching them (a live
   /// match count).
-  Future<int> count(CompiledQuery compiled, {QueryScope? scope}) async {
+  Future<int> count(
+    CompiledQuery compiled, {
+    QueryScope? scope,
+    QueryCte? cte,
+  }) async {
     final a = compiled.rootAlias;
     final clauses = [
       if (!compiled.isEmpty) compiled.where,
@@ -66,8 +70,11 @@ class QueryIdSetRunner {
     final where = clauses.isEmpty ? '' : ' WHERE ${clauses.join(' AND ')}';
     final row = await _db
         .customSelect(
+          '${cte == null ? '' : '${cte.sql} '}'
           'SELECT COUNT(*) AS n FROM ${compiled.table} $a$where',
           variables: [
+            if (cte != null)
+              for (final p in cte.params) Variable<Object>(p),
             for (final p in compiled.params) Variable<Object>(p as Object),
             if (scope != null)
               for (final p in scope.params) Variable<Object>(p),

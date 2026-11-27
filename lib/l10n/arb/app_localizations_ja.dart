@@ -4789,7 +4789,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get checklists_replaceTemplate_confirm => '置き換え';
 
   @override
+  String get checklists_addGear => '器材を追加';
+
+  @override
+  String get checklists_addGearSet => '器材セットを追加';
+
+  @override
+  String get checklists_addGear_cylindersOnGearTab => 'タンクは器材タブで追加します。';
+
+  @override
   String get checklists_addItem => '項目を追加';
+
+  @override
+  String get checklists_toPack => 'パッキング予定';
+
+  @override
+  String get checklists_packed => 'パッキング済み';
 
   @override
   String get checklists_item_titleLabel => 'タイトル';
@@ -5888,6 +5903,37 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get courses_requirement_kind_dive => 'ダイブ要件';
+
+  @override
+  String get courses_requirement_kind_ccrHours => 'CCRの使用時間';
+
+  @override
+  String get courses_requirement_kind_diveQuery => '検索条件に一致するダイブ';
+
+  @override
+  String get courses_requirement_field_targetHours => '必要な時間（時間数）';
+
+  @override
+  String get courses_requirement_field_rebreather => 'リブリーザー';
+
+  @override
+  String get courses_requirement_anyRebreather => 'すべてのリブリーザー';
+
+  @override
+  String get courses_requirement_rebreatherRemoved => '削除されたリブリーザー';
+
+  @override
+  String get courses_requirement_field_query => 'ダイブの検索条件';
+
+  @override
+  String courses_requirement_hoursProgress(String hours, int target) {
+    return '$target時間中$hours時間';
+  }
+
+  @override
+  String courses_requirement_matchProgress(int count, int target) {
+    return '条件に一致するダイブ：$target本中$count本';
+  }
 
   @override
   String get courses_requirement_suggestions => '候補のダイブ';
@@ -26692,6 +26738,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_conflict_field_uploadFactsHlc => 'アップロードの記録';
 
   @override
+  String get settings_conflict_field_bagHlc => 'バッグの記録';
+
+  @override
   String get settings_conflict_field_url => 'アドレス';
 
   @override
@@ -27490,6 +27539,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_conflict_ref_transmitter => 'トランスミッター';
 
   @override
+  String get settings_conflict_ref_packedIn => '収納先';
+
+  @override
   String get settings_conflict_ref_trip => 'トリップ';
 
   @override
@@ -27570,6 +27622,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get enum_requirementKind_dive => 'ダイブ';
+
+  @override
+  String get enum_requirementKind_ccrHours => 'CCRの使用時間';
+
+  @override
+  String get enum_requirementKind_diveQuery => '条件に一致するダイブ';
 
   @override
   String get enum_preDiveSessionStatus_aborted => '中止';
@@ -34898,6 +34956,41 @@ class AppLocalizationsJa extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get trips_bags_choose => 'バッグを選択';
+
+  @override
+  String get trips_bags_none => 'バッグ未指定';
+
+  @override
+  String get trips_bags_move => 'バッグに移す';
+
+  @override
+  String get trips_bags_section => 'バッグ';
+
+  @override
+  String trips_bags_total(String weight) {
+    return '合計重量：$weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return '既知の重量の小計：$weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return '重量未登録：$items';
+  }
+
+  @override
+  String trips_bags_missingMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String get trips_bags_missingSeparator => '、';
 
   @override
   String get trips_gear_add_action => '追加';

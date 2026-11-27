@@ -68,7 +68,7 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // on diver_settings (issue #4664).
     await _assertAveloLineColumns();
 
-    // v384 backstop: diver_settings.ccr_setpoint_switch_depth and
+    // v387 backstop: diver_settings.ccr_setpoint_switch_depth and
     // dive_plans.setpoint_switch_off (issue #3793).
     await _assertCcrSetpointSwitchColumns();
 

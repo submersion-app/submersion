@@ -30,6 +30,7 @@ class TripPackedItemRow extends ConsumerWidget {
   /// Takes the item off the trip; null offers no menu (a trip page that
   /// only reads, issue #4527).
   final Future<void> Function()? onUnpack;
+  final VoidCallback? onMoveToBag;
 
   const TripPackedItemRow({
     super.key,
@@ -37,6 +38,7 @@ class TripPackedItemRow extends ConsumerWidget {
     this.alerts = const [],
     this.margin,
     this.onUnpack,
+    this.onMoveToBag,
   });
 
   @override
@@ -82,8 +84,16 @@ class TripPackedItemRow extends ConsumerWidget {
       trailing: switch (onUnpack) {
         final unpack? => PopupMenuButton<String>(
           key: Key('trip-gear-menu-${item.id}'),
-          onSelected: (_) => unpack(),
+          onSelected: (action) {
+            if (action == 'move') {
+              onMoveToBag?.call();
+            } else {
+              unpack();
+            }
+          },
           itemBuilder: (_) => [
+            if (onMoveToBag != null)
+              PopupMenuItem(value: 'move', child: Text(l10n.trips_bags_move)),
             PopupMenuItem(value: 'unpack', child: Text(l10n.trips_gear_remove)),
           ],
         ),

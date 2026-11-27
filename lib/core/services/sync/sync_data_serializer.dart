@@ -5865,33 +5865,77 @@ class SyncDataSerializer {
         );
   }
 
-  /// Applies one incoming `trip_equipment` row (v248, issue #2338). The
-  /// (trip, item) pair is unique: a peer's copy under another id is
-  /// reconciled to the lower id and then skipped, as
-  /// [_applyEquipmentShareRecord] does.
-  Future<void> _applyTripEquipmentRecord(TripEquipmentRow record) async {
-    await _reconcileJunctionIds(
-      'trip_equipment',
-      parentColumn: 'trip_id',
-      childColumn: 'equipment_id',
-      pairs: [
-        (parent: record.tripId, child: record.equipmentId, id: record.id),
-      ],
-    );
-    await _db
-        .into(_db.tripEquipment)
-        .insert(
-          record,
-          onConflict: DoNothing<$TripEquipmentTable, TripEquipmentRow>(
-            target: const [],
-          ),
+  /// Reconciles copies of the same packed item to the lowest id while keeping
+  /// the newest bag assignment (issue #4945).
+  ///
+  /// Steps per row, so no step can fail the batch: the local copy of the
+  /// pair takes the incoming bag when its bag clock is newer; the local
+  /// copy's sync mark, then the copy itself, move to the incoming id when
+  /// that is lower and no other row holds it, so a bag change made here and
+  /// not yet published still goes out; then the incoming row lands if
+  /// neither its pair nor its id is held.
+  ///
+  /// The bag has its own clock, `bag_hlc`. A row from a peer that does not
+  /// know bags carries no bag key and lands with no bag clock, so any bag
+  /// assignment, however old its clock, still takes it.
+  Future<void> _applyTripEquipmentRecords(
+    List<Map<String, dynamic>> records,
+  ) async {
+    if (records.isEmpty) return;
+    const localCopy =
+        'SELECT id FROM trip_equipment '
+        'WHERE trip_id = ? AND equipment_id = ? AND id > ? '
+        'AND NOT EXISTS (SELECT 1 FROM trip_equipment WHERE id = ?)';
+    await _db.batch((batch) {
+      for (final data in records) {
+        final row = TripEquipmentRow.fromJson(data);
+        final knowsBags = data.containsKey('bagEquipmentId');
+        final bagHlc = knowsBags ? row.bagHlc : null;
+        // Sync writes canonical, padded HLCs, which order as strings.
+        if (bagHlc != null) {
+          batch.customStatement(
+            'UPDATE trip_equipment SET bag_equipment_id = ?, bag_hlc = ? '
+            'WHERE trip_id = ? AND equipment_id = ? '
+            'AND (bag_hlc IS NULL OR bag_hlc < ?)',
+            [row.bagEquipmentId, bagHlc, row.tripId, row.equipmentId, bagHlc],
+          );
+        }
+        final pair = [row.tripId, row.equipmentId, row.id, row.id];
+        batch.customStatement(
+          "UPDATE sync_records SET record_id = ? "
+          "WHERE entity_type = 'tripEquipment' "
+          'AND record_id IN ($localCopy)',
+          [row.id, ...pair],
         );
+        batch.customStatement(
+          'UPDATE trip_equipment SET id = ?, created_at = ? '
+          'WHERE id IN ($localCopy)',
+          [row.id, row.createdAt, ...pair],
+        );
+        batch.customStatement(
+          'INSERT INTO trip_equipment '
+          '(id, trip_id, equipment_id, bag_equipment_id, bag_hlc, '
+          'created_at, hlc) '
+          'VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING',
+          [
+            row.id,
+            row.tripId,
+            row.equipmentId,
+            knowsBags ? row.bagEquipmentId : null,
+            bagHlc,
+            row.createdAt,
+            row.hlc,
+          ],
+        );
+      }
+    });
+    _db.notifyUpdates({TableUpdate.onTable(_db.tripEquipment)});
   }
 
   /// Applies one incoming `trip_hides` row (v250, issue #2594). The
   /// (trip, profile) pair is unique: a peer's copy under another id is
   /// reconciled to the lower id and then skipped, as
-  /// [_applyTripEquipmentRecord] does.
+  /// [_applyTripEquipmentRecords] does.
   Future<void> _applyTripHideRecord(TripHideRow record) async {
     await _reconcileJunctionIds(
       'trip_hides',
@@ -5926,7 +5970,7 @@ class SyncDataSerializer {
   /// Applies one incoming `trip_shares` row (v311, issue #2151). The
   /// (trip, profile) pair is unique: a peer's copy under another id is
   /// reconciled to the lower id and then skipped, as
-  /// [_applyTripEquipmentRecord] does.
+  /// [_applyTripEquipmentRecords] does.
   Future<void> _applyTripShareRecord(TripShareRow record) async {
     await _reconcileJunctionIds(
       'trip_shares',
@@ -6560,7 +6604,7 @@ class SyncDataSerializer {
         await _applyEquipmentShareRecord(EquipmentShareRow.fromJson(data));
         return;
       case 'tripEquipment':
-        await _applyTripEquipmentRecord(TripEquipmentRow.fromJson(data));
+        await _applyTripEquipmentRecords([data]);
         return;
       case 'tripHides':
         await _applyTripHideRecord(TripHideRow.fromJson(data));
@@ -8147,29 +8191,7 @@ class SyncDataSerializer {
         );
         return;
       case 'tripEquipment':
-        // DoNothing: see [_applyTripEquipmentRecord].
-        final packRows = _lowestIdPerPair(
-          records.map((r) => TripEquipmentRow.fromJson(r)).toList(),
-          (row) => (parent: row.tripId, child: row.equipmentId, id: row.id),
-        );
-        await _reconcileJunctionIds(
-          'trip_equipment',
-          parentColumn: 'trip_id',
-          childColumn: 'equipment_id',
-          pairs: [
-            for (final row in packRows)
-              (parent: row.tripId, child: row.equipmentId, id: row.id),
-          ],
-        );
-        await _db.batch(
-          (b) => b.insertAll(
-            _db.tripEquipment,
-            packRows,
-            onConflict: DoNothing<$TripEquipmentTable, TripEquipmentRow>(
-              target: const [],
-            ),
-          ),
-        );
+        await _applyTripEquipmentRecords(records);
         return;
       case 'tripHides':
         // DoNothing: see [_applyTripHideRecord].
@@ -13160,7 +13182,7 @@ class SyncDataSerializer {
       'defaultShowAveloBuoyancy': false,
       'defaultShowAveloGasRemaining': false,
       'defaultShowComputerRmv': false,
-      // v384: seed it so payloads predating the column hydrate instead of
+      // v387: seed it so payloads predating the column hydrate instead of
       // throwing in DiverSetting.fromJson (issue #3793).
       'ccrSetpointSwitchDepth': 10.0,
       // v177: GTR settings; seed them so payloads predating the columns

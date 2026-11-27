@@ -317,7 +317,7 @@ void main() {
       rowsWhenDone = courseRequirementsList.current(session)?.length;
     });
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), 'Deep dive');
+    await tester.enterText(find.byType(TextField).first, 'Deep dive');
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     // A real read: wait for it, however long a busy machine takes.

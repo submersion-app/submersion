@@ -1,12 +1,12 @@
 part of '../app_database_migrations.dart';
 
-/// The diver-wide CCR setpoint switch depth and a plan's no-switch flag (v384,
+/// The diver-wide CCR setpoint switch depth and a plan's no-switch flag (v387,
 /// issue #3793).
 extension CcrSetpointSwitchMigrations on AppDatabase {
   /// `diver_settings.ccr_setpoint_switch_depth` (REAL, default 10 m) and
   /// `dive_plans.setpoint_switch_off` (boolean, default off). No backfill: an
   /// existing diver gets the 10 m the planner always used, an existing plan
-  /// keeps switching. Safe from both the v384 rung and the beforeOpen
+  /// keeps switching. Safe from both the v387 rung and the beforeOpen
   /// backstop.
   Future<void> _assertCcrSetpointSwitchColumns() async {
     await _addColumnIfMissing(

@@ -75,6 +75,12 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v382: dives.hand_set_fields (issue #4909), for the same reason.
     await _assertDiveHandSetFieldsColumn();
 
+    // v384: trip_checklist_items.equipment_id (issue #4934).
+    await _assertTripChecklistEquipmentColumn();
+
+    // v385: trip_equipment.bag_equipment_id and bag_hlc (issue #4945).
+    await _assertTripEquipmentBagColumn();
+
     // v350: sightings.abundance (issue #4337). Every sighting read selects
     // the whole row, for the same reason as the tank columns.
     await _assertSightingAbundanceColumn();

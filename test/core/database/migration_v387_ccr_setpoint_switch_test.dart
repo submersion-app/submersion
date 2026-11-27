@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v384: `diver_settings.ccr_setpoint_switch_depth` (REAL, default 10 m)
+/// Schema v387: `diver_settings.ccr_setpoint_switch_depth` (REAL, default 10 m)
 /// and `dive_plans.setpoint_switch_off` (boolean, default off), issue #3793.
 /// Defaulted, no backfill, so the sync floor holds.
 void main() {
@@ -60,29 +60,29 @@ void main() {
               .getSingle())
           .data;
 
-  test('v384 is in the ladder and keeps the floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(384));
-    expect(AppDatabase.migrationVersions, contains(384));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(384));
+  test('v387 is in the ladder and keeps the floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(387));
+    expect(AppDatabase.migrationVersions, contains(387));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(387));
   });
 
   test(
-    'upgrading from v383 gives an existing diver the 10 m default',
+    'upgrading from v386 gives an existing diver the 10 m default',
     () async {
-      final db = AppDatabase(dbAt(383));
+      final db = AppDatabase(dbAt(386));
       addTearDown(db.close);
       expect(await storedSettings(db), {'ccr_setpoint_switch_depth': 10.0});
     },
   );
 
-  test('upgrading from v383 leaves an existing plan switching', () async {
-    final db = AppDatabase(dbAt(383));
+  test('upgrading from v386 leaves an existing plan switching', () async {
+    final db = AppDatabase(dbAt(386));
     addTearDown(db.close);
     expect(await storedPlan(db), {'setpoint_switch_off': 0});
   });
 
   test('the upgraded flag is a boolean', () async {
-    final db = AppDatabase(dbAt(383));
+    final db = AppDatabase(dbAt(386));
     addTearDown(db.close);
     await storedPlan(db);
     await expectLater(
@@ -92,7 +92,7 @@ void main() {
   });
 
   test('a database already carrying the columns keeps its values', () async {
-    final db = AppDatabase(dbAt(383, withColumns: true));
+    final db = AppDatabase(dbAt(386, withColumns: true));
     addTearDown(db.close);
     expect(await storedSettings(db), {'ccr_setpoint_switch_depth': 6.5});
     expect(await storedPlan(db), {'setpoint_switch_off': 1});

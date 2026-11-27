@@ -172,6 +172,7 @@ void main() {
       ('equipment', 'parentEquipmentId'): 'equipment',
       ('equipmentComponents', 'componentEquipmentId'): 'equipment',
       ('transmitters', 'transmitterEquipmentId'): 'equipment',
+      ('tripEquipment', 'bagEquipmentId'): 'equipment',
       ('transmitters', 'diveComputerId'): 'diveComputers',
       ('weightPresetEntries', 'presetId'): 'weightPresets',
       ('buddies', 'linkedDiverId'): 'divers',

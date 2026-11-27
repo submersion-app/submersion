@@ -168,7 +168,8 @@ Map<String, T> byId<T>(Iterable<T> records, String Function(T) idOf) => {
 };
 
 /// An entity read by id through a repository that only reads by parent. Its
-/// rows list under [parentColumn].
+/// rows list under [parentColumn]. Pass [byParents], or [byParentsAs] for
+/// rows that read differently depending on who asks ([RecordLoad.diverId]).
 RecordEntity<T> childEntity<T>(
   RecordRepositories r, {
   required String name,
@@ -177,30 +178,37 @@ RecordEntity<T> childEntity<T>(
   List<String> alsoParentColumns = const [],
   required RecordScope scope,
   required String Function(T) idOf,
-  required Future<Map<String, List<T>>> Function(List<String>) byParents,
+  Future<Map<String, List<T>>> Function(List<String>)? byParents,
+  Future<Map<String, List<T>>> Function(List<String>, RecordLoad)? byParentsAs,
   required Map<String, Object?> Function(T) document,
   required List<String> summaryKeys,
   String? orderBy,
   Map<String, BlockLoader<T>> blocks = const {},
-}) => RecordEntity<T>(
-  name: name,
-  table: table,
-  scope: scope,
-  parentColumn: parentColumn,
-  alsoParentColumns: alsoParentColumns,
-  orderBy: orderBy,
-  blocks: blocks,
-  load: (ids, _) => loadChildren<T>(
-    r.db,
+}) {
+  assert(
+    (byParents == null) != (byParentsAs == null),
+    'Pass byParents or byParentsAs, not both',
+  );
+  return RecordEntity<T>(
+    name: name,
     table: table,
+    scope: scope,
     parentColumn: parentColumn,
-    ids: ids,
-    idOf: idOf,
-    byParents: byParents,
-  ),
-  document: document,
-  summaryKeys: summaryKeys,
-);
+    alsoParentColumns: alsoParentColumns,
+    orderBy: orderBy,
+    blocks: blocks,
+    load: (ids, load) => loadChildren<T>(
+      r.db,
+      table: table,
+      parentColumn: parentColumn,
+      ids: ids,
+      idOf: idOf,
+      byParents: byParents ?? (parents) => byParentsAs!(parents, load),
+    ),
+    document: document,
+    summaryKeys: summaryKeys,
+  );
+}
 
 /// One read per id, for a repository with no batch method. A read tool is
 /// bounded by its page size, and these reads are local.

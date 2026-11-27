@@ -28,26 +28,36 @@ DEFAULT_SRC = os.path.join(os.path.dirname(REPO_ROOT), "submersion-website", "sc
 OUT_DIR = os.path.join(REPO_ROOT, "docs", "assets", "screenshots", "readme")
 
 SHOWCASE_WIDTH = 1600
-GALLERY_WIDTH = 900
+EXTRA_WIDTH = 1000
 QUALITY = 85
 
 # (source name, output name, target width). The numeric prefix is the order the
-# image appears in README.md; 01-08 are the showcase rows, 09-14 the gallery.
+# image appears in README.md. Each website section has one showcase image at
+# full width; the sections that show more than one screenshot on the site get
+# the rest as a row of extras beneath it. A source narrower than its target
+# width (the portrait phone and buoyancy captures) is kept at its own width
+# rather than upscaled.
 MAPPING = [
-    ("dive_detail.png", "01-dive-logging.jpg", SHOWCASE_WIDTH),
-    ("tissue_loading.png", "02-profile-deco.jpg", SHOWCASE_WIDTH),
-    ("computer_import.png", "03-dive-computers.jpg", SHOWCASE_WIDTH),
-    ("sites_map.png", "04-sites-maps.jpg", SHOWCASE_WIDTH),
-    ("planner.png", "05-planning.jpg", SHOWCASE_WIDTH),
-    ("photo_gallery.png", "06-photos-gear.jpg", SHOWCASE_WIDTH),
-    ("statistics.png", "07-statistics.jpg", SHOWCASE_WIDTH),
-    ("sync_settings.png", "08-your-data.jpg", SHOWCASE_WIDTH),
-    ("profile_player.png", "09-profile-player.jpg", GALLERY_WIDTH),
-    ("dive_3d.png", "10-tissue-3d.jpg", GALLERY_WIDTH),
-    ("site_detail.png", "11-site-terrain.jpg", GALLERY_WIDTH),
-    ("marine_life.png", "12-marine-life.jpg", GALLERY_WIDTH),
-    ("gas_blender.png", "13-gas-blender.jpg", GALLERY_WIDTH),
-    ("themes.png", "14-themes.jpg", GALLERY_WIDTH),
+    ("dive-detail.png", "01-dive-detail.jpg", SHOWCASE_WIDTH),
+    ("duplicate-review.png", "02-duplicate-review.jpg", SHOWCASE_WIDTH),
+    ("trip-day.png", "03-trip-day.jpg", SHOWCASE_WIDTH),
+    ("site-map.png", "04-site-map.jpg", SHOWCASE_WIDTH),
+    ("seascape.png", "05-seascape.jpg", EXTRA_WIDTH),
+    ("media-browser.jpg", "06-media-browser.jpg", SHOWCASE_WIDTH),
+    ("video-species.jpg", "07-video-species.jpg", EXTRA_WIDTH),
+    ("tissue-cylinders.png", "08-tissue-cylinders.jpg", SHOWCASE_WIDTH),
+    ("insights-connections.png", "09-insights-connections.jpg", SHOWCASE_WIDTH),
+    ("insights-progression.png", "10-insights-progression.jpg", EXTRA_WIDTH),
+    ("safety-review.png", "11-safety-review.jpg", SHOWCASE_WIDTH),
+    ("buoyancy.png", "12-buoyancy.jpg", EXTRA_WIDTH),
+    ("planner.png", "13-planner.jpg", SHOWCASE_WIDTH),
+    ("gear-figure.png", "14-gear-figure.jpg", SHOWCASE_WIDTH),
+    ("ready.png", "15-ready.jpg", SHOWCASE_WIDTH),
+    ("sync-storage.png", "16-sync-storage.jpg", SHOWCASE_WIDTH),
+    ("data-quality.png", "17-data-quality.jpg", SHOWCASE_WIDTH),
+    ("platform-mac.png", "18-platform-mac.jpg", SHOWCASE_WIDTH),
+    ("platform-ipad.png", "19-platform-ipad.jpg", EXTRA_WIDTH),
+    ("platform-iphone.png", "20-platform-iphone.jpg", EXTRA_WIDTH),
 ]
 
 # Alpha at or above this counts as opaque. The macOS window screenshots are
@@ -149,8 +159,11 @@ def main():
                 img = flatten(src_img)
             except ValueError as err:
                 sys.exit(f"{src}: {err}")
+        # Never upscale: a narrow portrait capture keeps its own width.
+        width = min(width, img.width)
         height = round(img.height * width / img.width)
-        img = img.resize((width, height), Image.LANCZOS)
+        if (width, height) != img.size:
+            img = img.resize((width, height), Image.LANCZOS)
 
         out = os.path.join(OUT_DIR, out_name)
         img.save(out, "JPEG", quality=QUALITY, optimize=True, progressive=True)

@@ -4988,7 +4988,23 @@ class AppLocalizationsIt extends AppLocalizations {
   String get checklists_replaceTemplate_confirm => 'Sostituisci';
 
   @override
+  String get checklists_addGear => 'Aggiungi attrezzatura';
+
+  @override
+  String get checklists_addGearSet => 'Aggiungi set di attrezzatura';
+
+  @override
+  String get checklists_addGear_cylindersOnGearTab =>
+      'Le bombole vanno nella scheda Attrezzatura.';
+
+  @override
   String get checklists_addItem => 'Aggiungi elemento';
+
+  @override
+  String get checklists_toPack => 'Da mettere in valigia';
+
+  @override
+  String get checklists_packed => 'In valigia';
 
   @override
   String get checklists_item_titleLabel => 'Titolo';
@@ -6122,6 +6138,38 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get courses_requirement_kind_dive => 'Requisito di immersione';
+
+  @override
+  String get courses_requirement_kind_ccrHours => 'Ore in CCR';
+
+  @override
+  String get courses_requirement_kind_diveQuery =>
+      'Immersioni che corrispondono a una ricerca';
+
+  @override
+  String get courses_requirement_field_targetHours => 'Ore richieste';
+
+  @override
+  String get courses_requirement_field_rebreather => 'Rebreather';
+
+  @override
+  String get courses_requirement_anyRebreather => 'Qualsiasi rebreather';
+
+  @override
+  String get courses_requirement_rebreatherRemoved => 'Rebreather rimosso';
+
+  @override
+  String get courses_requirement_field_query => 'Ricerca immersioni';
+
+  @override
+  String courses_requirement_hoursProgress(String hours, int target) {
+    return '$hours di $target ore';
+  }
+
+  @override
+  String courses_requirement_matchProgress(int count, int target) {
+    return '$count di $target immersioni corrispondenti';
+  }
 
   @override
   String get courses_requirement_suggestions => 'Immersioni suggerite';
@@ -27926,6 +27974,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Registro di caricamento';
 
   @override
+  String get settings_conflict_field_bagHlc => 'Registro della borsa';
+
+  @override
   String get settings_conflict_field_url => 'Indirizzo';
 
   @override
@@ -28745,6 +28796,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_ref_transmitter => 'Trasmettitore';
 
   @override
+  String get settings_conflict_ref_packedIn => 'Riposto in';
+
+  @override
   String get settings_conflict_ref_trip => 'Viaggio';
 
   @override
@@ -28826,6 +28880,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_requirementKind_dive => 'Immersioni';
+
+  @override
+  String get enum_requirementKind_ccrHours => 'Ore in CCR';
+
+  @override
+  String get enum_requirementKind_diveQuery => 'Immersioni corrispondenti';
 
   @override
   String get enum_preDiveSessionStatus_aborted => 'Interrotta';
@@ -36524,6 +36584,41 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get trips_bags_choose => 'Scegli una borsa';
+
+  @override
+  String get trips_bags_none => 'Senza borsa';
+
+  @override
+  String get trips_bags_move => 'Sposta in una borsa';
+
+  @override
+  String get trips_bags_section => 'Borse';
+
+  @override
+  String trips_bags_total(String weight) {
+    return 'Peso totale: $weight';
+  }
+
+  @override
+  String trips_bags_subtotal(String weight) {
+    return 'Subtotale noto: $weight';
+  }
+
+  @override
+  String trips_bags_missing(String items) {
+    return 'Peso mancante: $items';
+  }
+
+  @override
+  String trips_bags_missingMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String get trips_bags_missingSeparator => ', ';
 
   @override
   String get trips_gear_add_action => 'Aggiungi';

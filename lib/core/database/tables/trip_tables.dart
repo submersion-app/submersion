@@ -383,6 +383,13 @@ class TripChecklistItems extends Table {
   TextColumn get checklistId => text().references(TripChecklists, #id)();
   TextColumn get title => text()();
 
+  /// The equipment row a gear item plans, whose packing for the trip
+  /// (trip_equipment) is the item's tick while the trip can pack it: it
+  /// exists, is not on the wishlist, and the trip's diver may use it. A soft
+  /// reference: otherwise the item reads as a plain one, ticked by is_done,
+  /// so deleted or unusable gear never strands it.
+  TextColumn get equipmentId => text().nullable()();
+
   /// The section this item is grouped under, if any (issue #3360). Replaces
   /// the free-text `category` column; deleting the section does not delete
   /// or hide the item, it falls back to "no section".
@@ -395,6 +402,9 @@ class TripChecklistItems extends Table {
 
   /// Absolute due date, resolved from the template offset at apply time.
   IntColumn get dueDate => integer().nullable()();
+
+  /// The tick, ignored while equipment_id names gear the trip can pack,
+  /// whose trip_equipment row says instead whether it is packed.
   BoolColumn get isDone => boolean().withDefault(const Constant(false))();
   IntColumn get completedAt => integer().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
@@ -422,6 +432,15 @@ class TripEquipment extends Table {
       text().references(Trips, #id, onDelete: KeyAction.cascade)();
   TextColumn get equipmentId =>
       text().references(Equipment, #id, onDelete: KeyAction.cascade)();
+
+  /// The inventory ID of the packed bag on this trip. A soft reference
+  /// lets the bag and its contents arrive independently during sync.
+  TextColumn get bagEquipmentId => text().nullable()();
+
+  /// The clock of the last bag assignment, apart from [hlc] so a copy from
+  /// a peer that does not know bags never outranks one. Null when the bag
+  /// was never set.
+  TextColumn get bagHlc => text().nullable()();
   IntColumn get createdAt => integer()();
 
   /// This child's own clock, stamped when it is marked pending

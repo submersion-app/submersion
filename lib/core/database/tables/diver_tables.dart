@@ -227,7 +227,7 @@ class DiverSettings extends Table {
   RealColumn get ccrSetpointLow => real().withDefault(const Constant(0.7))();
   RealColumn get ccrSetpointHigh => real().withDefault(const Constant(1.3))();
   // The depth (m) a CCR plan switches from the low to the high setpoint
-  // (v384, issue #3793). A plan's own switch depth, or its switch-off flag,
+  // (v387, issue #3793). A plan's own switch depth, or its switch-off flag,
   // overrides it.
   RealColumn get ccrSetpointSwitchDepth =>
       real().withDefault(const Constant(10.0))();
