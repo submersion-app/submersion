@@ -207,6 +207,7 @@ class SpeciesRepository {
     SightingAbundance abundance = SightingAbundance.seen,
     int count = 1,
     String notes = '',
+    int? seenAtSeconds,
   }) async {
     final id = _uuid.v4();
     final stored = _storedCount(abundance, count);
@@ -220,6 +221,7 @@ class SpeciesRepository {
             abundance: Value(abundance.storageValue),
             count: Value(stored),
             notes: Value(notes),
+            seenAtSeconds: Value(seenAtSeconds),
           ),
         );
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -248,6 +250,7 @@ class SpeciesRepository {
       abundance: abundance,
       count: stored,
       notes: notes,
+      seenAtSeconds: seenAtSeconds,
     );
   }
 
@@ -314,6 +317,7 @@ class SpeciesRepository {
     abundance: SightingAbundance.fromStorage(row.data['abundance'] as String?),
     count: row.data['count'] as int,
     notes: (row.data['notes'] as String?) ?? '',
+    seenAtSeconds: row.data['seen_at_seconds'] as int?,
   );
 
   /// Batched variant of [getSightingsForDive]: one query for many dives.
@@ -367,6 +371,7 @@ class SpeciesRepository {
           ),
           count: row.data['count'] as int,
           notes: (row.data['notes'] as String?) ?? '',
+          seenAtSeconds: row.data['seen_at_seconds'] as int?,
         );
         byDive.putIfAbsent(sighting.diveId, () => []).add(sighting);
       }
@@ -413,7 +418,14 @@ class SpeciesRepository {
     await (_db.update(
       _db.sightings,
     )..where((t) => t.id.equals(sighting.id))).write(
-      _withAmount(SightingsCompanion(notes: Value(sighting.notes)), sighting),
+      // The time is always written, so clearing it stores null (#5092).
+      _withAmount(
+        SightingsCompanion(
+          notes: Value(sighting.notes),
+          seenAtSeconds: Value(sighting.seenAtSeconds),
+        ),
+        sighting,
+      ),
     );
     final now = DateTime.now().millisecondsSinceEpoch;
     await _syncRepository.markRecordPending(

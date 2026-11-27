@@ -155,6 +155,7 @@ class SightingsNotifier extends StateNotifier<List<Sighting>> {
         abundance: sighting.abundance,
         count: sighting.count,
         notes: sighting.notes,
+        seenAtSeconds: sighting.seenAtSeconds,
       );
     }
   }

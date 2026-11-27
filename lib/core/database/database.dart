@@ -338,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 387;
+  static const int currentSchemaVersion = 390;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -536,7 +536,16 @@ class AppDatabase extends _$AppDatabase {
   /// the new kinds as manually credited dives and discard the conditions.
   /// Holding those readers also prevents them from publishing explicit nulls
   /// for the discarded conditions after they upgrade.
-  static const int minimumCompatibleSchemaVersion = 386;
+  ///
+  /// Raised 386 -> 390 by the time on a sighting (#5092): v390 adds the
+  /// synced column sightings.seen_at_seconds, where null is no time. A peer
+  /// below 390 drops the time. Once that peer upgrades, the column is null
+  /// there, and its next edit of the sighting publishes an explicit null,
+  /// which the merge applies as a real value (only an omitted key is
+  /// refilled from the local row), erasing the diver's time on every
+  /// device. Peers below 390 are held until they update. Their own payloads
+  /// still arrive here and decode cleanly: a missing time is null.
+  static const int minimumCompatibleSchemaVersion = 390;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1830,6 +1839,10 @@ class AppDatabase extends _$AppDatabase {
     // depth and a plan's no-switch flag (issue #3793). Additive and
     // defaulted; the floor does not move.
     387,
+    // v390: sightings.seen_at_seconds, when in the dive a species was seen
+    // (issue #5092). Nullable, no backfill; the floor rises to 390.
+    // Numbered 390: main holds 387, open PRs claim 388 and 389.
+    390,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

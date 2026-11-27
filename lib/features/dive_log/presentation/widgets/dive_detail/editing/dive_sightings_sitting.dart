@@ -41,6 +41,7 @@ final diveSightingsList = SittingList<Dive, Sighting>(
           abundance: sighting.abundance,
           count: sighting.count,
           notes: sighting.notes,
+          seenAtSeconds: sighting.seenAtSeconds,
         );
       } else if (before != sighting) {
         await repository.updateSighting(sighting);

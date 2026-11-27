@@ -735,6 +735,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'sightings': {
     'abundance': 'NULL when count is exact, else seen, single, few, many or abundant with count 1',
+    'seen_at_seconds': 'when in the dive the diver saw the species, in seconds from the dive start (the profile\'s time axis)',
   },
   'site_features': {
     'bearing_deg': '0-359 compass degrees',

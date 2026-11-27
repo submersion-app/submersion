@@ -356,5 +356,11 @@ extension RungsFromV340 on AppDatabase {
     // no backfill; re-asserted in beforeOpen. The floor does not move.
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
+
+    // v390 (issue #5092): sightings.seen_at_seconds, when in the dive the
+    // diver saw the species. Nullable, no backfill, re-asserted in
+    // beforeOpen. The floor rises to 390 (see minimumCompatibleSchemaVersion).
+    if (from < 390) await _assertSightingSeenAtColumn();
+    if (from < 390) await reportProgress();
   }
 }
