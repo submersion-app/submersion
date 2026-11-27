@@ -122,6 +122,23 @@ void main() {
     expect(_depthSpan(tester), closeTo(fullDepth, 1e-9));
   });
 
+  testWidgets('the zoom-out button in Time only widens time only', (
+    tester,
+  ) async {
+    _ignoreOverflowErrors();
+    await tester.pumpWidget(_chart(timeOnly: true));
+    await tester.pumpAndSettle();
+    final fullDepth = _depthSpan(tester);
+    await _wheelIn(tester, 10);
+    final zoomedTime = _timeSpan(tester);
+
+    await tester.tap(find.byIcon(Icons.remove));
+    await tester.pump();
+
+    expect(_timeSpan(tester), greaterThan(zoomedTime));
+    expect(_depthSpan(tester), closeTo(fullDepth, 1e-9));
+  });
+
   testWidgets('double-tap in Time only zooms time only', (tester) async {
     _ignoreOverflowErrors();
     await tester.pumpWidget(_chart(timeOnly: true));

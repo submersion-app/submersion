@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/constants/profile_zoom_mode.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_options_dialog.dart';
@@ -77,5 +78,47 @@ void main() {
   testWidgets('the Keep overlays in view checkbox is gone', (tester) async {
     await _openDisplay(tester);
     expect(find.text('Keep overlays in view'), findsNothing);
+  });
+
+  // A config built without the chart's live axis (as here) still gives the
+  // Right axis row a value: None.
+  testWidgets('the Right axis row reads None without a live axis value', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ChartOptionsDialog(
+              config: ProfileLegendConfig(
+                rightAxisChoices: [
+                  (
+                    metric: ProfileRightAxisMetric.temperature,
+                    color: Color(0xFF5C6BC0),
+                  ),
+                ],
+              ),
+              anchorOffset: Offset.zero,
+              anchorSize: Size(40, 40),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Display'));
+    await tester.pumpAndSettle();
+
+    final row = find.byKey(const ValueKey('chart-options-right-axis'));
+    expect(
+      find.descendant(of: row, matching: find.text('None')),
+      findsOneWidget,
+    );
   });
 }
