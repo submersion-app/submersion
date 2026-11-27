@@ -2,8 +2,8 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 
-/// The most two gas percentages may differ and still be the same mix, as the
-/// re-parse's own diver-edit test treats them.
+/// How far apart two gas percentages may be and still be the same mix, the
+/// same tolerance the re-parse's own diver-edit test uses.
 const double _sameMixTolerancePercent = 0.5;
 
 /// Whether [row]'s stored role is only the importer's guess for a gas that
