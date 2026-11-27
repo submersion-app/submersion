@@ -10,7 +10,7 @@ import tempfile
 import unittest
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_REPO = os.path.dirname(_HERE)
+_REPO = os.path.dirname(os.path.dirname(_HERE))
 
 
 def _load(name):

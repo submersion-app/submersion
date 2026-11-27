@@ -112,9 +112,9 @@ Android, NuGet `Microsoft.ML.OnnxRuntime` for Linux, NuGet
 `Microsoft.Windows.AI.MachineLearning`, Windows ML, for Windows), checks it
 and each library against the hashes in `lib/src/ort/ort_release.dart`, and
 ships the libraries as code assets. Apple builds and the web get none. CI
-checks the Android archive (`scripts/check_native_libs_present.py`, ONNX
+checks the Android archive (`scripts/checks/check_native_libs_present.py`, ONNX
 Runtime on arm64-v8a and x86_64 only) and the desktop bundles
-(`scripts/check_bundled_native_assets.py`).
+(`scripts/checks/check_bundled_native_assets.py`).
 
 On Windows the models open on a hardware engine Windows ML offers (a GPU or
 NPU vendor's, registered from its catalogue in `hardware_engines.dart`),

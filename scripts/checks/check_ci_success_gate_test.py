@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - run: python3 scripts/check_ci_success_gate.py
+      - run: python3 scripts/checks/check_ci_success_gate.py
 """
 
 # script-tests exists but never reaches the gate: it can fail while the required
@@ -90,7 +90,7 @@ jobs:
     name: CI Success
     runs-on: ubuntu-latest
     steps:
-      - run: python3 scripts/check_ci_success_gate.py
+      - run: python3 scripts/checks/check_ci_success_gate.py
 """
 
 # The guard runs only in a gated job, never in the gate itself. Dropping that
@@ -98,37 +98,37 @@ jobs:
 # report its own de-gating: exactly the self-concealing failure it exists to
 # prevent. The gate has to run it too.
 RED_GATE_DOES_NOT_RUN_GUARD = GREEN.replace(
-    "      - run: python3 scripts/check_ci_success_gate.py\n", ""
+    "      - run: python3 scripts/checks/check_ci_success_gate.py\n", ""
 )
 
 # Deleting the step but leaving documentation behind must not read as running
 # it. A guard that accepts a mention of its own filename as proof of execution
 # is the false green it exists to prevent.
 RED_GATE_ONLY_MENTIONS_GUARD_IN_COMMENT = GREEN.replace(
-    "      - run: python3 scripts/check_ci_success_gate.py\n",
-    "      # we used to run scripts/check_ci_success_gate.py here\n",
+    "      - run: python3 scripts/checks/check_ci_success_gate.py\n",
+    "      # we used to run scripts/checks/check_ci_success_gate.py here\n",
 )
 
 # A shell comment inside a run block is equally non-executing.
 RED_GATE_MENTIONS_GUARD_IN_SHELL_COMMENT = GREEN.replace(
-    "      - run: python3 scripts/check_ci_success_gate.py\n",
+    "      - run: python3 scripts/checks/check_ci_success_gate.py\n",
     """      - run: |
-          # scripts/check_ci_success_gate.py used to run here
+          # scripts/checks/check_ci_success_gate.py used to run here
           echo done
 """,
 )
 
 # The inline spelling with a trailing YAML comment still genuinely runs it.
 GREEN_RUN_WITH_TRAILING_COMMENT = GREEN.replace(
-    "      - run: python3 scripts/check_ci_success_gate.py\n",
-    "      - run: python3 scripts/check_ci_success_gate.py  # self-hosting\n",
+    "      - run: python3 scripts/checks/check_ci_success_gate.py\n",
+    "      - run: python3 scripts/checks/check_ci_success_gate.py  # self-hosting\n",
 )
 
 # So does the block-scalar spelling.
 GREEN_RUN_AS_BLOCK_SCALAR = GREEN.replace(
-    "      - run: python3 scripts/check_ci_success_gate.py\n",
+    "      - run: python3 scripts/checks/check_ci_success_gate.py\n",
     """      - run: |
-          python3 scripts/check_ci_success_gate.py
+          python3 scripts/checks/check_ci_success_gate.py
 """,
 )
 
@@ -223,7 +223,7 @@ class GuardTests(unittest.TestCase):
     name: Script Tests
     runs-on: ubuntu-latest
     steps:
-      - run: python3 scripts/check_ci_success_gate.py
+      - run: python3 scripts/checks/check_ci_success_gate.py
 """,
         )
         self.assertIn("check_ci_success_gate.py", text)
@@ -313,7 +313,7 @@ class FileTests(unittest.TestCase):
     def test_repository_workflow_is_gated(self):
         # The real thing: guards against this file drifting out of date.
         path = os.path.join(
-            os.path.dirname(_HERE), ".github", "workflows", "ci.yaml"
+            os.path.dirname(os.path.dirname(_HERE)), ".github", "workflows", "ci.yaml"
         )
         ok, lines = guard.check_file(path)
         self.assertTrue(ok, "\n".join(lines))
@@ -323,7 +323,7 @@ class FileTests(unittest.TestCase):
         # An exemption would let it go red with the required check green,
         # so it stays in the gate's needs and out of the exempt list.
         path = os.path.join(
-            os.path.dirname(_HERE), ".github", "workflows", "ci.yaml"
+            os.path.dirname(os.path.dirname(_HERE)), ".github", "workflows", "ci.yaml"
         )
         with open(path) as fh:
             needs = guard.gate_needs(fh.read())

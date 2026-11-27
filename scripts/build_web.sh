@@ -65,4 +65,4 @@ if [ "${SUBMERSION_WEB_SAMPLE_LOGBOOK:-1}" != "0" ]; then
   python3 scripts/demo_data/fetch_demo_db.py build/web/demo --web-index
 fi
 
-python3 scripts/check_web_bundle.py build/web
+python3 scripts/checks/check_web_bundle.py build/web

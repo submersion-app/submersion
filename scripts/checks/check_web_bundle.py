@@ -26,7 +26,7 @@ import os
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_REPO = os.path.dirname(_HERE)
+_REPO = os.path.dirname(os.path.dirname(_HERE))
 DEFAULT_BUNDLE = os.path.join(_REPO, "build", "web")
 DEFAULT_LOCK = os.path.join(_REPO, "scripts", "web", "sqlite3_wasm.lock")
 

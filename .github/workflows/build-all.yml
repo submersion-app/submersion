@@ -538,7 +538,7 @@ jobs:
         # in the Release directory, so a native asset missing here ships to
         # every user and takes the app down at startup (issue #1129). Windows
         # runners expose the interpreter as `python`, not `python3`.
-        run: python scripts/check_bundled_native_assets.py build\windows\x64\runner\Release
+        run: python scripts/checks/check_bundled_native_assets.py build\windows\x64\runner\Release
 
       - name: Build Windows installer
         env:
@@ -643,7 +643,7 @@ jobs:
       # (issue #3523). Move the pin only together with the docs.
       #
       # binutils supplies readelf for scripts/linux_package_deps.py and
-      # scripts/check_glibc_floor.py; the hosted image already has it, and it
+      # scripts/checks/check_glibc_floor.py; the hosted image already has it, and it
       # is named here so a future image change cannot remove it silently.
       - name: Install Linux dependencies
         run: |
@@ -711,7 +711,7 @@ jobs:
         # Runs before the tarball is rolled, for the same reason as the Windows
         # job: a missing native asset is invisible until a user launches the
         # app (issue #1129).
-        run: python3 scripts/check_bundled_native_assets.py build/linux/x64/release/bundle
+        run: python3 scripts/checks/check_bundled_native_assets.py build/linux/x64/release/bundle
 
       - name: Check glibc floor
         # Fails if anything in the bundle needs a newer glibc than the 2.38
@@ -719,7 +719,7 @@ jobs:
         # that floor without failing any build step, and the package install
         # check below cannot see it because it tests on the runner's own
         # release (issue #3523). Runs before the tarball and packages exist.
-        run: python3 scripts/check_glibc_floor.py build/linux/x64/release/bundle
+        run: python3 scripts/checks/check_glibc_floor.py build/linux/x64/release/bundle
 
       - name: Install packaging tools
         run: |
@@ -1087,7 +1087,7 @@ jobs:
       # native library is not 16 KB-aligned, in either the APK or the AAB.
       - name: Verify 16 KB native library alignment
         run: |
-          python3 scripts/check_16kb_alignment.py \
+          python3 scripts/checks/check_16kb_alignment.py \
             build/app/outputs/flutter-apk/app-release.apk \
             build/app/outputs/bundle/release/app-release.aab
 
@@ -1103,7 +1103,7 @@ jobs:
       # fingerprint is generated at random.
       - name: Verify APK signing certificate is a registered OAuth client
         run: |
-          python3 scripts/check_apk_signing_cert.py \
+          python3 scripts/checks/check_apk_signing_cert.py \
             build/app/outputs/flutter-apk/app-release.apk
 
       # Guards against issue #433: sqlite3_flutter_libs 0.6.0+eol (an empty
@@ -1112,7 +1112,7 @@ jobs:
       # publishing if a required native library is missing from the APK or AAB.
       - name: Verify required native libraries are bundled
         run: |
-          python3 scripts/check_native_libs_present.py \
+          python3 scripts/checks/check_native_libs_present.py \
             build/app/outputs/flutter-apk/app-release.apk \
             build/app/outputs/bundle/release/app-release.aab
 

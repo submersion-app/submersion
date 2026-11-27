@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for check_glibc_floor.py.
 
-Run: python3 scripts/check_glibc_floor_test.py
+Run: python3 scripts/checks/check_glibc_floor_test.py
 
 The case this guards is issue #3523: the Linux release build runs on a hosted
 runner, and when GitHub moves that runner to a newer Ubuntu the shipped
@@ -31,7 +31,7 @@ _spec = importlib.util.spec_from_file_location(
 guard = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(guard)
 
-INSTALLATION_DOC = os.path.join(_HERE, os.pardir, "docs", "user", "installation.md")
+INSTALLATION_DOC = os.path.join(_HERE, os.pardir, os.pardir, "docs", "user", "installation.md")
 
 ELF_MAGIC = b"\x7fELF"
 

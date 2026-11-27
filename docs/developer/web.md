@@ -91,7 +91,7 @@ That is the one entry: fetch `sqlite3.wasm`, compile the workers,
 `flutter_service_worker.js` (Flutter writes it whatever the strategy; the
 bootstrap registers nothing, and a cached bundle is what a self-hoster who
 replaces the files must not get), copy the hosting files from
-`web_hosting/`, and run `scripts/check_web_bundle.py`. The check fails on a
+`web_hosting/`, and run `scripts/checks/check_web_bundle.py`. The check fails on a
 missing file, a `sqlite3.wasm` that is not the lock's build, a service
 worker, or a source or sidecar in the bundle.
 

@@ -337,7 +337,7 @@ class RepositoryTests(unittest.TestCase):
     def test_repository_is_retried(self):
         # The real thing: every workflow in this repository goes through the
         # retrying action, and the action really retries.
-        self.assertEqual(guard.find_violations(os.path.dirname(_HERE)), [])
+        self.assertEqual(guard.find_violations(os.path.dirname(os.path.dirname(_HERE))), [])
 
 
 if __name__ == "__main__":

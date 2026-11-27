@@ -17,7 +17,7 @@ guard = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(guard)
 
 REPO = "submersion-app/submersion"
-TEMPLATE = os.path.join(_HERE, os.pardir, ".github", "PULL_REQUEST_TEMPLATE.md")
+TEMPLATE = os.path.join(_HERE, os.pardir, os.pardir, ".github", "PULL_REQUEST_TEMPLATE.md")
 
 
 def closing(body):

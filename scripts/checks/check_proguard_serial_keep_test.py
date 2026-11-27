@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for check_proguard_serial_keep.py.
 
-Run: python3 scripts/check_proguard_serial_keep_test.py
+Run: python3 scripts/checks/check_proguard_serial_keep_test.py
 
 These exercise the R8 mapping.txt parser and its pass/fail contract, including
 the cases the Build Android integration step cannot reproduce (a renamed

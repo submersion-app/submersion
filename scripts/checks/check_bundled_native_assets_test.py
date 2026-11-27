@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for check_bundled_native_assets.py.
 
-Run: python3 scripts/check_bundled_native_assets_test.py
+Run: python3 scripts/checks/check_bundled_native_assets_test.py
 
 The headline case is the issue #1129 regression: a Windows bundle whose
 NativeAssetsManifest.json declares sqlcipher.dll but whose Release directory

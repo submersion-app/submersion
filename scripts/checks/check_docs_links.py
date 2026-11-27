@@ -43,7 +43,7 @@ CODE_REF_SOURCES = (
     "CONTRIBUTING.md",
     "CLAUDE.md",
 )
-NOT_SCANNED = {os.path.join("scripts", "check_docs_links_test.py")}
+NOT_SCANNED = {os.path.join("scripts", "checks", "check_docs_links_test.py")}
 SKIP_DIRS = {"__pycache__", "node_modules", ".dart_tool", "build"}
 RETIRED = {
     os.path.join("docs", "superpowers"): (
@@ -85,7 +85,7 @@ DOCS_REF_RE = re.compile(
     + "|".join(re.escape(folder) for folder in RETIRED_REF_HOMES)
     + r")/[A-Za-z0-9_./-]+\.(?:md|html|png|jpg|json)\b"
 )
-DEFAULT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DEFAULT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def _walk(root, entries, keep):

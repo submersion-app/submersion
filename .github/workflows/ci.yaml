@@ -705,25 +705,25 @@ jobs:
         # Fails if a job is missing from ci-success.needs. Such a job shows red
         # on the PR while the required check stays green, which is how
         # script-tests itself went ungated from 2026-06-24 to 2026-09-03.
-        run: python3 scripts/check_ci_success_gate.py
+        run: python3 scripts/checks/check_ci_success_gate.py
 
       - name: Check Flutter setup is retried
         # Fails if a workflow calls subosito/flutter-action directly instead of
         # ./.github/actions/setup-flutter, or if that action stops retrying. One
         # stalled SDK download turned main red in run 36852093336 (#2765).
-        run: python3 scripts/check_flutter_setup_retried.py
+        run: python3 scripts/checks/check_flutter_setup_retried.py
 
       - name: Check JNI local-reference hygiene (source)
         # Source-level guard: no build artifact needed (unlike the APK/mapping
         # guards), so it runs here. Fails if a libdivecomputer JNI callback
         # leaks a local ref -> local reference table overflow on a long download
         # (Mares Puck Pro) -> silent SIGABRT. See issue #318.
-        run: python3 scripts/check_jni_local_refs.py
+        run: python3 scripts/checks/check_jni_local_refs.py
 
       - name: Check dive-download process isolation (manifest)
         # Fails if the serial download service loses android:process=":dc" -- a
         # native download crash would then kill the app again (issue #318).
-        run: python3 scripts/check_dc_process_isolation.py
+        run: python3 scripts/checks/check_dc_process_isolation.py
 
       - name: Check docs links and references
         # Fails on a broken relative link in docs/README.md, docs/developer/
@@ -731,7 +731,7 @@ jobs:
         # not exist, or if the retired docs/superpowers/ or docs/plans/
         # folder reappears. This job has no `needs: changes`, so it runs on
         # docs-only pull requests too.
-        run: python3 scripts/check_docs_links.py
+        run: python3 scripts/checks/check_docs_links.py
 
       - name: Check the sqlite3.wasm lock matches pubspec.lock
         # Fails if scripts/web/sqlite3_wasm.lock pins a sqlite3.wasm release
@@ -746,44 +746,44 @@ jobs:
         # version and security update fail, monthly and silently (#2766).
         # Also fails on a Gemfile whose directory no bundler entry in
         # .github/dependabot.yml lists, as android/ was (#3495).
-        run: python3 scripts/check_dependabot_gemfiles.py
+        run: python3 scripts/checks/check_dependabot_gemfiles.py
 
       - name: Check every workflow sets up one Ruby
         # The fastlane bundle check below proves nothing if it installs on a
         # different Ruby from the lanes it guards (#3495).
-        run: python3 scripts/check_ruby_versions.py
+        run: python3 scripts/checks/check_ruby_versions.py
 
       - name: Check every apt install repoints the mirror first
         # Fails if a job installs from apt before running
         # scripts/apt_mirror.py. A slow regional EC2 mirror ran Web Smoke and
         # the beta's Linux build past their limits and stopped every beta
         # (#4722).
-        run: python3 scripts/check_apt_mirror.py
+        run: python3 scripts/checks/check_apt_mirror.py
 
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_glibc_floor.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/check_ruby_versions.py,scripts/check_apt_mirror.py,scripts/apt_mirror.py,scripts/demo_data/fetch_demo_db.py,scripts/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/snapshot_downloads.py,scripts/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/check_junit_ran.py,scripts/web/serve_bundle.py,scripts/web/stage_hosted_site.py,scripts/wiki_howto_index.py,scripts/geography/generate_country_names.py,scripts/site_catalogue_intake.py'
+          guards='scripts/checks/check_proguard_serial_keep.py,scripts/checks/check_apk_signing_cert.py,scripts/checks/check_native_libs_present.py,scripts/checks/check_bundled_native_assets.py,scripts/checks/check_glibc_floor.py,scripts/checks/check_jni_local_refs.py,scripts/checks/check_dc_process_isolation.py,scripts/checks/check_ci_success_gate.py,scripts/checks/check_flutter_setup_retried.py,scripts/checks/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/checks/check_no_skipped_tests.py,scripts/checks/check_docs_links.py,scripts/checks/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/checks/check_ruby_versions.py,scripts/checks/check_apt_mirror.py,scripts/apt_mirror.py,scripts/demo_data/fetch_demo_db.py,scripts/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/snapshot_downloads.py,scripts/checks/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/check_junit_ran.py,scripts/web/serve_bundle.py,scripts/web/stage_hosted_site.py,scripts/wiki_howto_index.py,scripts/geography/generate_country_names.py,scripts/site_catalogue_intake.py'
           python3 -m coverage run --include="$guards" \
-            scripts/check_proguard_serial_keep_test.py
+            scripts/checks/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/check_apk_signing_cert_test.py
+            scripts/checks/check_apk_signing_cert_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/check_native_libs_present_test.py
+            scripts/checks/check_native_libs_present_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/check_bundled_native_assets_test.py
+            scripts/checks/check_bundled_native_assets_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/check_glibc_floor_test.py
+            scripts/checks/check_glibc_floor_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/check_jni_local_refs_test.py
+            scripts/checks/check_jni_local_refs_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/check_dc_process_isolation_test.py
+            scripts/checks/check_dc_process_isolation_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/check_ci_success_gate_test.py
+            scripts/checks/check_ci_success_gate_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/check_flutter_setup_retried_test.py
+            scripts/checks/check_flutter_setup_retried_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/check_pr_issue_link_test.py
+            scripts/checks/check_pr_issue_link_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/fix_macho_symbol_order_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -803,15 +803,15 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             scripts/export_support_matrix_catalog_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/check_no_skipped_tests_test.py
+            scripts/checks/check_no_skipped_tests_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/check_docs_links_test.py
+            scripts/checks/check_docs_links_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/check_dependabot_gemfiles_test.py
+            scripts/checks/check_dependabot_gemfiles_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/check_ruby_versions_test.py
+            scripts/checks/check_ruby_versions_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/check_apt_mirror_test.py
+            scripts/checks/check_apt_mirror_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/apt_mirror_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -825,7 +825,7 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             scripts/snapshot_downloads_test.py
           python3 -m coverage run --append --include="$guards" \
-            scripts/check_web_bundle_test.py
+            scripts/checks/check_web_bundle_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/web/check_sqlite3_wasm_lock_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -985,7 +985,7 @@ jobs:
           fail_ci_if_error: false
 
   # The browser app (issue #4121): a release web build with the hosting
-  # files, checked by scripts/check_web_bundle.py, and its Dockerfile built
+  # files, checked by scripts/checks/check_web_bundle.py, and its Dockerfile built
   # once per run so it cannot rot. Nothing is pushed or published; the
   # bundle is an artifact the smoke job serves.
   web-build:
@@ -1159,7 +1159,7 @@ jobs:
         env:
           WEB_TEST_REPORT_DIR: ${{ runner.temp }}/web-reports
         run: |
-          python3 scripts/check_no_skipped_tests.py "$RUNNER_TEMP/seed-report.json"
+          python3 scripts/checks/check_no_skipped_tests.py "$RUNNER_TEMP/seed-report.json"
           scripts/web/test_web.sh \
             --dart-define=MINIO_ENDPOINT=http://localhost:9000 \
             --dart-define=MINIO_NOCORS_ENDPOINT=http://localhost:9001 \
@@ -1263,7 +1263,7 @@ jobs:
             --dart-define=MINIO_BUCKET="$MINIO_BUCKET" \
             --dart-define=MINIO_ACCESS_KEY="$MINIO_ROOT_USER" \
             --dart-define=MINIO_SECRET_KEY="$MINIO_ROOT_PASSWORD"
-          python3 scripts/check_no_skipped_tests.py "$RUNNER_TEMP/seed-report.json"
+          python3 scripts/checks/check_no_skipped_tests.py "$RUNNER_TEMP/seed-report.json"
 
       - name: Download the web bundle
         uses: actions/download-artifact@v8
@@ -1455,7 +1455,7 @@ jobs:
           done
           # A skipped test exits 0, so without this a test that quietly stopped
           # running (a missing tool, a platform check) would still pass.
-          python3 scripts/check_no_skipped_tests.py "${reports[@]}"
+          python3 scripts/checks/check_no_skipped_tests.py "${reports[@]}"
 
   # The integration tests whose behaviour is macOS-specific (#2940): the
   # AVFoundation transcoder behind its platform channel, and db_security_test,
@@ -1600,7 +1600,7 @@ jobs:
           done
           # The transcoder test skips rather than fails when ffmpeg is
           # missing; a skip here means the job checked nothing, so it fails.
-          python3 scripts/check_no_skipped_tests.py "${reports[@]}"
+          python3 scripts/checks/check_no_skipped_tests.py "${reports[@]}"
 
   build-ios:
     name: Build iOS
@@ -1971,7 +1971,7 @@ jobs:
       # silently shipped and crashed the app on Android 15+ 16 KB-page devices.
       # Fails the build if any 64-bit native library is not 16 KB-aligned.
       - name: Verify 16 KB native library alignment
-        run: python3 scripts/check_16kb_alignment.py build/app/outputs/flutter-apk/app-release.apk
+        run: python3 scripts/checks/check_16kb_alignment.py build/app/outputs/flutter-apk/app-release.apk
 
       # Guards against issue #433: a dependency bump (sqlite3_flutter_libs ->
       # 0.6.0+eol, an empty tombstone release) silently dropped libsqlite3.so
@@ -1979,14 +1979,14 @@ jobs:
       # alignment guard above does not catch this -- a missing lib is not a
       # misaligned one. Fails the build if a required native library is absent.
       - name: Verify required native libraries are bundled
-        run: python3 scripts/check_native_libs_present.py build/app/outputs/flutter-apk/app-release.apk
+        run: python3 scripts/checks/check_native_libs_present.py build/app/outputs/flutter-apk/app-release.apk
 
       # Guards against the second half of issue #318: R8 release minification
       # renamed the reflectively-probed usb-serial-for-android driver methods
       # (e.g. getSupportedDevices), so every serial-USB download crashed with a
       # NoSuchMethodException. Fails the build if a driver method was obfuscated.
       - name: Verify serial driver ProGuard keep rules
-        run: python3 scripts/check_proguard_serial_keep.py build/app/outputs/mapping/release/mapping.txt
+        run: python3 scripts/checks/check_proguard_serial_keep.py build/app/outputs/mapping/release/mapping.txt
 
       - name: Upload Android artifact
         uses: actions/upload-artifact@v7
@@ -2074,14 +2074,14 @@ jobs:
         # Same guard as the Windows job. Linux uses the stock Flutter install
         # rule and has always bundled its libraries, so this doubles as the
         # positive control that the check is not vacuously passing.
-        run: python3 scripts/check_bundled_native_assets.py build/linux/x64/release/bundle
+        run: python3 scripts/checks/check_bundled_native_assets.py build/linux/x64/release/bundle
 
       - name: Check glibc floor
         # Same guard as build-all.yml's build-linux, run here so a change
         # that raises the floor (a runner pin moved, a native dependency
         # rebuilt against newer glibc) fails on the pull request rather than
         # in the beta pipeline after merge (issue #3523).
-        run: python3 scripts/check_glibc_floor.py build/linux/x64/release/bundle
+        run: python3 scripts/checks/check_glibc_floor.py build/linux/x64/release/bundle
 
       # Packaging runs here as well as in build-all.yml because build-all.yml
       # is workflow_call-only: nothing a pull request triggers ever invokes it,
@@ -2255,7 +2255,7 @@ jobs:
         # #1129). CI builds but never launches, so this is the step that has to
         # notice. Windows runners expose the interpreter as `python`, not the
         # `python3` the Linux guard steps use.
-        run: python scripts/check_bundled_native_assets.py build\windows\x64\runner\Release
+        run: python scripts/checks/check_bundled_native_assets.py build\windows\x64\runner\Release
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v7
@@ -2369,7 +2369,7 @@ jobs:
           exit 1
 
   # Adding a job below WITHOUT adding it here makes it advisory: red on the PR,
-  # ignored by the merge box. scripts/check_ci_success_gate.py fails the build
+  # ignored by the merge box. scripts/checks/check_ci_success_gate.py fails the build
   # if that happens; exempt a genuinely non-gating job there, not by omission.
   ci-success:
     name: CI Success
@@ -2413,7 +2413,7 @@ jobs:
         # too. Running it here, in the one job branch protection requires,
         # closes that loop. Ordered before the results check so a de-gated
         # pipeline reports the cause rather than a downstream symptom.
-        run: python3 scripts/check_ci_success_gate.py
+        run: python3 scripts/checks/check_ci_success_gate.py
 
       - name: Mark failures that main shares
         # When main is red, every pull request inherits the failure and a

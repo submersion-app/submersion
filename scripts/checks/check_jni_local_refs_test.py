@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for check_jni_local_refs.py.
 
-Run: python3 scripts/check_jni_local_refs_test.py
+Run: python3 scripts/checks/check_jni_local_refs_test.py
 
 These exercise the JNI local-reference accounting the Build Android step cannot
 reproduce without an emulator: a callback that leaks a ``jclass`` (the issue
@@ -20,7 +20,7 @@ import unittest
 
 # Load the sibling script by path so the test runs from any working directory.
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_REPO_ROOT = os.path.dirname(_HERE)
+_REPO_ROOT = os.path.dirname(os.path.dirname(_HERE))
 _spec = importlib.util.spec_from_file_location(
     "check_jni_local_refs",
     os.path.join(_HERE, "check_jni_local_refs.py"),

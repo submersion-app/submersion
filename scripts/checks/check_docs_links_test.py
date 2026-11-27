@@ -181,7 +181,7 @@ class CodeRefTests(unittest.TestCase):
         self.assertEqual(guard.check_code_refs(self.root), [])
 
     def test_guard_test_file_is_not_scanned(self):
-        write(self.root, "scripts/check_docs_links_test.py", "'docs/developer/gone.md'\n")
+        write(self.root, "scripts/checks/check_docs_links_test.py", "'docs/developer/gone.md'\n")
         self.assertEqual(guard.check_code_refs(self.root), [])
 
 

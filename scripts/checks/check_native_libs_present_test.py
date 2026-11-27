@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for check_native_libs_present.py.
 
-Run: python3 scripts/check_native_libs_present_test.py
+Run: python3 scripts/checks/check_native_libs_present_test.py
 
 These exercise the APK/AAB native-library presence parser and its pass/fail
 contract, including the issue #433 regression (an archive that ships its ABIs
