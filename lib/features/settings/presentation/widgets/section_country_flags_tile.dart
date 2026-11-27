@@ -5,6 +5,16 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/country_flag.dart';
 
+/// The flag section of an appearance page's [sectionKey], or null for a
+/// section whose rows show no country flag.
+FlagSection? flagSectionFor(String sectionKey) => switch (sectionKey) {
+  'sites' => FlagSection.sites,
+  'dives' => FlagSection.dives,
+  'buddies' => FlagSection.buddies,
+  'trips' => FlagSection.trips,
+  _ => null,
+};
+
 /// The Country flags switch on a section's appearance page (issue #5001):
 /// one each for sites, dives, buddies and trips, covering that section's
 /// rows and its detail page.

@@ -351,10 +351,12 @@ class CompactDiveListTile extends ConsumerWidget {
     // custom type's own name, without this tile subscribing to the type list.
     final titleText = _buildTitleText(units, context);
     // The site's flag sits before a title that names the site (issue
-    // #5001), and the label then names the country the flag stands for.
+    // #5001), and the label then names the country the flag stands for, so
+    // a site with no country text to name draws no flag.
     final titleNamesSite =
-        titleField == DiveField.siteName ||
-        titleField == DiveField.siteLocation;
+        (titleField == DiveField.siteName ||
+            titleField == DiveField.siteLocation) &&
+        (siteCountry?.trim().isNotEmpty ?? false);
     final flagCode = titleNamesSite
         ? shownFlagCode(
             ref,

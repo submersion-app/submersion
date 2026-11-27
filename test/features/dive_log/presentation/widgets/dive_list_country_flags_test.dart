@@ -118,6 +118,17 @@ void main() {
     expect(tester.getTopLeft(find.text('Blue Hole')).dx, flagged);
   });
 
+  testWidgets('compact card draws no flag for a code with no country text', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      ListViewMode.compact,
+      summary: _summary(country: null, code: 'BZ'),
+    );
+    expect(find.byType(CountryFlag), findsNothing);
+  });
+
   for (final mode in [ListViewMode.detailed, ListViewMode.compact]) {
     testWidgets('the Dives switch off hides the ${mode.name} card flag', (
       tester,

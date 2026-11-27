@@ -127,6 +127,48 @@ void main() {
     expect(find.byKey(const ValueKey('buddy-avatar-flag')), findsNothing);
   });
 
+  testWidgets('a stored code with no country text draws no badge', (
+    tester,
+  ) async {
+    await pumpStandard(
+      tester,
+      buddy: BuddyWithDiveCount(
+        buddy: Buddy(
+          id: 'b3',
+          name: 'Luca',
+          email: 'luca@example.com',
+          countryCode: 'IT',
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+        diveCount: 1,
+      ),
+    );
+    // The badge would be the row's only sign of the country, and with no
+    // text there is nothing for the label to name.
+    expect(find.byType(CountryFlag), findsNothing);
+  });
+
+  testWidgets('the badge sits on the trailing corner in a right-to-left row', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...await overrides(BuddyField.email),
+          showBuddyCountryFlagsProvider.overrideWithValue(true),
+        ],
+        locale: const Locale('he'),
+        child: BuddyListTile(entry: entry, onTap: () {}),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final avatar = tester.getRect(find.byType(ProfileAvatar));
+    final flag = tester.getRect(find.byType(CountryFlag));
+    expect(flag.center.dx, lessThan(avatar.center.dx));
+    expect(flag.center.dy, greaterThan(avatar.center.dy));
+  });
+
   testWidgets('the Buddies switch off hides the badge', (tester) async {
     await pumpStandard(tester, flags: false);
     expect(find.byType(CountryFlag), findsNothing);

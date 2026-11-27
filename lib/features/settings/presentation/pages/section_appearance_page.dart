@@ -9,11 +9,10 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/widgets/card_photo_overlay_slider.dart';
 import 'package:submersion/features/settings/presentation/widgets/dive_details_appearance_tiles.dart';
 import 'package:submersion/features/settings/presentation/widgets/gradient_preset_picker.dart';
-import 'package:submersion/features/settings/presentation/widgets/viewer_fullscreen_mode_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/section_country_flags_tile.dart';
+import 'package:submersion/features/settings/presentation/widgets/viewer_fullscreen_mode_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/providers/table_details_pane_provider.dart';
-import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
 
 /// Per-section metadata used to drive the appearance page layout.
@@ -186,14 +185,6 @@ String _sectionListFieldsLabel(BuildContext context, String key) {
 /// When [embedded] is true, omits the Scaffold/AppBar for embedding in a
 /// desktop detail pane. When [onColumnConfigTap] is provided, calls that
 /// instead of navigating to the column config route.
-/// The sections whose rows can show a country flag.
-const _flagSections = {
-  'sites': FlagSection.sites,
-  'dives': FlagSection.dives,
-  'buddies': FlagSection.buddies,
-  'trips': FlagSection.trips,
-};
-
 class SectionAppearancePage extends ConsumerWidget {
   final String sectionKey;
   final bool embedded;
@@ -223,7 +214,7 @@ class SectionAppearancePage extends ConsumerWidget {
         _buildViewModeDropdown(context, ref, config),
         _buildListFieldsTile(context, config),
         // Each of these sections has its own flags switch (issue #5001).
-        if (_flagSections[config.key] case final section?)
+        if (flagSectionFor(config.key) case final section?)
           SectionCountryFlagsTile(section: section),
 
         // -- Cards section (dives / sites only) --

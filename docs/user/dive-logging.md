@@ -511,6 +511,11 @@ Open the list's overflow menu (**⋮**) to switch how the list is drawn:
 Your choice is remembered. **Settings > Appearance > Dives > Dives List View** sets the
 default, and also offers a **Dense** layout with one line per dive.
 
+When a dive's site has a country, its flag shows beside the location line on a
+Detailed card and before the site name on a Compact one.
+**Settings > Appearance > Dives > Country flags** turns them off. Sites, Buddies
+and Trips each have their own **Country flags** switch on their appearance page.
+
 ### Sorting
 
 Tap the **sort** control (or a column header in Table view) to order dives by

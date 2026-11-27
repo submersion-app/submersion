@@ -59,6 +59,7 @@ import 'package:submersion/shared/selection/selection_inset.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/utils/ink_centered_text_style.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
@@ -66,7 +67,6 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/shared/widgets/record_list_card.dart';
 import 'package:submersion/shared/widgets/table_mode_layout/table_mode_layout.dart';
 import 'package:submersion/shared/widgets/record_list_chevron.dart';
-import 'package:submersion/shared/widgets/country_flag.dart';
 
 /// Compute a single map tile URL for the given lat/lng at [zoom], via the
 /// shared slippy-map conversion.
