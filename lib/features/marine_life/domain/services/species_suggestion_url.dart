@@ -1,4 +1,5 @@
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
+import 'package:submersion/shared/utils/longest_fitting_prefix.dart';
 
 /// Where suggestions land: a prefilled issue form in the project's GitHub
 /// repository. The app sends nothing itself; the diver posts the issue from
@@ -28,41 +29,48 @@ Uri buildSpeciesSuggestionUrl({
   required String locale,
   required String appVersion,
 }) {
-  var description = species.description ?? '';
-  var taxonomyClass = species.taxonomyClass ?? '';
+  Uri build({
+    required String commonName,
+    required String scientificName,
+    required String taxonomyClass,
+    required String description,
+  }) => Uri.https('github.com', '/$speciesSuggestionRepository/issues/new', {
+    'template': speciesSuggestionTemplate,
+    'title': 'Species suggestion: $commonName',
+    'common_name': commonName,
+    if (species.scientificName != null) 'scientific_name': scientificName,
+    'category': species.category.name,
+    if (species.taxonomyClass != null) 'taxonomy_class': taxonomyClass,
+    'description': description,
+    'locale': locale,
+    'app_version': appVersion,
+  });
+
+  bool fits(Uri uri) => uri.toString().length <= speciesSuggestionMaxUrlLength;
+
   var commonName = species.commonName;
   var scientificName = species.scientificName ?? '';
+  var taxonomyClass = species.taxonomyClass ?? '';
+  var description = species.description ?? '';
+  Uri current() => build(
+    commonName: commonName,
+    scientificName: scientificName,
+    taxonomyClass: taxonomyClass,
+    description: description,
+  );
 
-  Uri build() =>
-      Uri.https('github.com', '/$speciesSuggestionRepository/issues/new', {
-        'template': speciesSuggestionTemplate,
-        'title': 'Species suggestion: $commonName',
-        'common_name': commonName,
-        if (species.scientificName != null) 'scientific_name': scientificName,
-        'category': species.category.name,
-        if (species.taxonomyClass != null) 'taxonomy_class': taxonomyClass,
-        'description': description,
-        'locale': locale,
-        'app_version': appVersion,
-      });
+  /// Trims one field to the longest prefix with which the URL fits.
+  String trim(String value, void Function(String) write, {int floor = 0}) =>
+      longestFittingPrefix(value, (v) {
+        write(v);
+        final ok = fits(current());
+        write(value);
+        return ok;
+      }, floor: floor);
 
-  var uri = build();
-
-  /// Trims one field until the URL fits or the field is down to [floor].
-  void shrink(String Function() read, void Function(String) write, int floor) {
-    while (uri.toString().length > speciesSuggestionMaxUrlLength &&
-        read().length > floor) {
-      final over = uri.toString().length - speciesSuggestionMaxUrlLength;
-      // Encoded characters can be three bytes each; cut generously.
-      final cut = (over ~/ 3 + 1).clamp(1, read().length - floor);
-      write(read().substring(0, read().length - cut));
-      uri = build();
-    }
-  }
-
-  shrink(() => description, (v) => description = v, 0);
-  shrink(() => taxonomyClass, (v) => taxonomyClass = v, 0);
-  shrink(() => commonName, (v) => commonName = v, 1);
-  shrink(() => scientificName, (v) => scientificName = v, 1);
-  return uri;
+  description = trim(description, (v) => description = v);
+  taxonomyClass = trim(taxonomyClass, (v) => taxonomyClass = v);
+  commonName = trim(commonName, (v) => commonName = v, floor: 1);
+  scientificName = trim(scientificName, (v) => scientificName = v, floor: 1);
+  return current();
 }

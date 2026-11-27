@@ -162,6 +162,28 @@ void main() {
     expect(uri.toString(), isNot(contains('ü')));
   });
 
+  test('keeps as much of a long CJK description as fits', () {
+    final uri = buildSpeciesSuggestionUrl(
+      species: _species.copyWith(description: '中' * 2000),
+      locale: 'zh',
+      appVersion: '1.0.0.1',
+    );
+
+    expect(uri.toString().length, lessThanOrEqualTo(8000));
+    expect(uri.queryParameters['description']!.length, greaterThan(800));
+  });
+
+  test('a trimmed emoji description never ends on half a character', () {
+    final uri = buildSpeciesSuggestionUrl(
+      species: _species.copyWith(description: 'a${'🐠' * 1500}'),
+      locale: 'en',
+      appVersion: '1.0.0.1',
+    );
+
+    expect(uri.toString().length, lessThanOrEqualTo(8000));
+    expect(uri.queryParameters['description'], isNot(contains('\uFFFD')));
+  });
+
   test('every field the builder sends is an id in the issue form', () {
     final form = File(
       p.join('.github', 'ISSUE_TEMPLATE', 'species-suggestion.yml'),

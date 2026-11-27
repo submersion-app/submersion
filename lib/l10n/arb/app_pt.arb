@@ -5056,7 +5056,7 @@
   "equipment_suggest_parentCategoryLabel": "Tipo existente mais próximo",
   "equipment_suggest_parentNone": "Nenhum",
   "equipment_suggest_reasonLabel": "Por que é necessário?",
-  "equipment_suggest_reasonHint": "O que o diferencia dos tipos existentes?",
+  "equipment_suggest_reasonHint": "O que a diferencia dos tipos existentes?",
   "equipment_suggest_includeExample": "Incluir este item como exemplo ({example})",
   "equipment_suggest_open": "Abrir no GitHub",
   "equipment_edit_useCustomReminders": "Usar Lembretes Personalizados",

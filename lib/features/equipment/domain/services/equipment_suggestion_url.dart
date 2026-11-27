@@ -1,6 +1,7 @@
 import 'package:submersion/features/equipment/domain/entities/equipment_suggestion.dart';
 import 'package:submersion/features/marine_life/domain/services/species_suggestion_url.dart'
     show speciesSuggestionMaxUrlLength, speciesSuggestionRepository;
+import 'package:submersion/shared/utils/longest_fitting_prefix.dart';
 
 /// The issue form a suggestion fills, under `.github/ISSUE_TEMPLATE/`. Its
 /// field ids are the query keys below, and its labels are applied by GitHub
@@ -23,13 +24,10 @@ Uri buildEquipmentSuggestionUrl({
   required String locale,
   required String appVersion,
 }) {
-  var name = suggestion.name;
-  var reason = suggestion.reason;
-  var example = suggestion.example?.trim() ?? '';
-  final hasExample = example.isNotEmpty;
+  final example = suggestion.example?.trim() ?? '';
   final parent = suggestion.parent;
 
-  Uri build() =>
+  Uri build(String name, String reason, String example) =>
       Uri.https('github.com', '/$speciesSuggestionRepository/issues/new', {
         'template': equipmentSuggestionTemplate,
         'title': 'Equipment suggestion: $name',
@@ -42,28 +40,26 @@ Uri buildEquipmentSuggestionUrl({
             ? 'None'
             : '${parent.displayName} (${parent.name})',
         'reason': reason,
-        if (hasExample) 'example': example,
+        if (example.isNotEmpty) 'example': example,
         'locale': locale,
         'app_version': appVersion,
       });
 
-  var uri = build();
+  bool fits(Uri uri) => uri.toString().length <= speciesSuggestionMaxUrlLength;
 
-  /// Trims one field until the URL fits or the field is down to [floor].
-  void shrink(String Function() read, void Function(String) write, int floor) {
-    while (uri.toString().length > speciesSuggestionMaxUrlLength &&
-        read().length > floor) {
-      final over = uri.toString().length - speciesSuggestionMaxUrlLength;
-      // Encoded characters can be three bytes each, or more for a character
-      // outside the basic plane; cut generously.
-      final cut = (over ~/ 3 + 1).clamp(1, read().length - floor);
-      write(read().substring(0, read().length - cut));
-      uri = build();
-    }
-  }
-
-  shrink(() => reason, (v) => reason = v, 0);
-  shrink(() => example, (v) => example = v, 0);
-  shrink(() => name, (v) => name = v, 1);
-  return uri;
+  final reason = longestFittingPrefix(
+    suggestion.reason,
+    (v) => fits(build(suggestion.name, v, example)),
+  );
+  // An example trimmed to nothing is left out rather than sent empty.
+  final keptExample = longestFittingPrefix(
+    example,
+    (v) => fits(build(suggestion.name, reason, v)),
+  );
+  final name = longestFittingPrefix(
+    suggestion.name,
+    (v) => fits(build(v, reason, keptExample)),
+    floor: 1,
+  );
+  return build(name, reason, keptExample);
 }

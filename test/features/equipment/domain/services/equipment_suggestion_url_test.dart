@@ -107,6 +107,30 @@ void main() {
     expect(uri.queryParameters['name'], isNotEmpty);
   });
 
+  test('keeps as much of a long CJK reason as fits', () {
+    final uri = _build(_spg.copyWith(reason: '中' * 2000));
+
+    expect(uri.toString().length, lessThanOrEqualTo(8000));
+    // About 850 characters fit; the old cut kept none past 1,300.
+    expect(uri.queryParameters['reason']!.length, greaterThan(800));
+  });
+
+  test('a trimmed emoji reason never ends on half a character', () {
+    final uri = _build(_spg.copyWith(reason: 'a${'🐠' * 1500}'));
+
+    expect(uri.toString().length, lessThanOrEqualTo(8000));
+    expect(uri.queryParameters['reason'], isNot(contains('\uFFFD')));
+    expect(uri.queryParameters['reason']!.length, greaterThan(1000));
+  });
+
+  test('copyWith can clear the parent and the example', () {
+    final cleared = _spg.copyWith(clearParent: true, clearExample: true);
+
+    expect(cleared.parent, isNull);
+    expect(cleared.example, isNull);
+    expect(cleared.name, _spg.name);
+  });
+
   test('every field the builder sends is an id in the issue form', () {
     final form = File(
       p.join('.github', 'ISSUE_TEMPLATE', 'equipment-suggestion.yml'),

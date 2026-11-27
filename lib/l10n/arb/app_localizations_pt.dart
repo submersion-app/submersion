@@ -17031,7 +17031,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_suggest_reasonHint =>
-      'O que o diferencia dos tipos existentes?';
+      'O que a diferencia dos tipos existentes?';
 
   @override
   String equipment_suggest_includeExample(String example) {

@@ -45,12 +45,14 @@ class EquipmentSuggestion extends Equatable {
     EquipmentType? parent,
     String? reason,
     String? example,
+    bool clearParent = false,
+    bool clearExample = false,
   }) => EquipmentSuggestion(
     kind: kind ?? this.kind,
     name: name ?? this.name,
-    parent: parent ?? this.parent,
+    parent: clearParent ? null : parent ?? this.parent,
     reason: reason ?? this.reason,
-    example: example ?? this.example,
+    example: clearExample ? null : example ?? this.example,
   );
 
   @override
