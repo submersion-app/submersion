@@ -148,6 +148,24 @@ void main() {
     expect(find.textContaining('in the last 12 months'), findsNothing);
   });
 
+  testWidgets('decades of years at phone width shorten to two digits', (
+    tester,
+  ) async {
+    final decades = [
+      for (var y = 1996; y <= 2026; y++) _s(DateTime.utc(y, 6, 1)),
+    ];
+    await _pump(tester, _totals(decades), _usage(decades), width: 360);
+
+    await tester.tap(find.text('All years'));
+    await tester.pumpAndSettle();
+
+    expect(_bars(tester), hasLength(31));
+    // The current year keeps its label, in the card's short form.
+    expect(find.text("'26"), findsOneWidget);
+    expect(find.text('2026'), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a bar tooltip gives its period, dives and hours', (
     tester,
   ) async {
