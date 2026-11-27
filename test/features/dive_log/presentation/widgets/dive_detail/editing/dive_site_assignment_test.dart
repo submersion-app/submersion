@@ -190,26 +190,27 @@ void main() {
     });
   });
 
+  // Issue #5040: a site's altitude is read through, not copied; one a
+  // lookup finds for the site is held for the site.
   group('altitude', () {
-    test(
-      'a site with an altitude fills an empty one, and holds no write',
-      () async {
-        final session = EditSession(bare);
-        assign(session, _withAltitude);
-        await answer(session);
+    test('a site with an altitude is read, and holds no write', () async {
+      final session = EditSession(bare);
+      assign(session, _withAltitude);
+      await answer(session);
 
-        expect(session.valueOf(diveAltitudeField), 700);
-        expect(session.hasHeldWrites, isFalse);
-        expect(elevation.calls, 0);
-      },
-    );
+      expect(session.valueOf(diveAltitudeField), isNull);
+      expect(effectiveAltitudeOf(session), 700);
+      expect(session.hasHeldWrites, isFalse);
+      expect(elevation.calls, 0);
+    });
 
     test('a site looked up holds its site write', () async {
       final session = EditSession(bare);
       assign(session, _highA);
       await answer(session);
 
-      expect(session.valueOf(diveAltitudeField), 512);
+      expect(session.valueOf(diveAltitudeField), isNull);
+      expect(siteAltitudeOf(session), 512);
       expect(session.isHeld(siteAltitudeWriteKey('a')), isTrue);
     });
 
@@ -223,7 +224,8 @@ void main() {
       expect(session.isHeld(siteAltitudeWriteKey('a')), isFalse);
       await answer(session);
 
-      expect(session.valueOf(diveAltitudeField), 1300);
+      expect(session.valueOf(diveAltitudeField), isNull);
+      expect(siteAltitudeOf(session), 1300);
       await session.runHeldWrites();
       expect(siteWrites, [('b', 1300.0)]);
     });
@@ -249,7 +251,7 @@ void main() {
         ..set(diveAltitudeField, null);
       assign(session, _highA);
       await answer(session);
-      expect(session.valueOf(diveAltitudeField), 512);
+      expect(siteAltitudeOf(session), 512);
 
       assign(session, null);
       await answer(session);
@@ -285,12 +287,13 @@ void main() {
       assign(session, _highA);
       assign(session, _highB);
       await answer(session);
-      expect(session.valueOf(diveAltitudeField), 1300);
+      expect(siteAltitudeOf(session), 1300);
 
       gate.complete();
       await answer(session);
 
-      expect(session.valueOf(diveAltitudeField), 1300);
+      expect(session.valueOf(diveAltitudeField), isNull);
+      expect(siteAltitudeOf(session), 1300);
       expect(session.isHeld(siteAltitudeWriteKey('a')), isFalse);
     });
   });
@@ -420,12 +423,10 @@ void main() {
       ),
     );
     await answer(session);
-    expect(session.changedCardIds, {
-      'header',
-      'details',
-      'environment',
-      'altitude',
-    });
+    // The site's water type and altitude are read through, not set (issue
+    // #5040): Details is marked for the dive type it adds, Environment for
+    // the entry method, and Altitude not at all.
+    expect(session.changedCardIds, {'header', 'details', 'environment'});
   });
 
   group('exitFollows', () {

@@ -896,7 +896,14 @@ void main() {
         await tapFetch(tester);
 
         expect(elevation.calls, 1);
-        expect(controller.session!.valueOf(diveAltitudeField), 12);
+        // Found for the site, and held for it, not set on the dive (issue
+        // #5040).
+        expect(controller.session!.valueOf(diveAltitudeField), isNull);
+        expect(siteAltitudeOf(controller.session!), 12);
+        expect(
+          controller.session!.isHeld(siteAltitudeWriteKey('site-1')),
+          isTrue,
+        );
       });
     });
   });

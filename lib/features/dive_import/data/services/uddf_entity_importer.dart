@@ -2163,7 +2163,14 @@ class UddfEntityImporter {
         ),
       );
 
-      if (uddfId != null) idMapping[uddfId] = overwrittenSite;
+      // With the water type written apart above, so a dive linked to it
+      // can tell the site's from its own (issue #5040).
+      if (uddfId != null) {
+        idMapping[uddfId] = overwrittenSite.copyWith(
+          waterType:
+              WaterType.values.asNameMap()[waterType] ?? existing.waterType,
+        );
+      }
       if (_hasSiteChildData(siteData)) {
         await restoreSiteChildren?.call(siteData, overwrittenSite.id);
       }
@@ -2272,7 +2279,13 @@ class UddfEntityImporter {
         );
       }
 
-      if (uddfId != null) idMapping[uddfId] = createdSite;
+      // With the water type written apart above, so a dive linked to it
+      // can tell the site's from its own (issue #5040).
+      if (uddfId != null) {
+        idMapping[uddfId] = createdSite.copyWith(
+          waterType: WaterType.values.asNameMap()[waterType],
+        );
+      }
       if (_hasSiteChildData(siteData)) {
         await restoreSiteChildren?.call(siteData, createdSite.id);
       }
@@ -2846,14 +2859,6 @@ class UddfEntityImporter {
     // at the same location into a single elevation request.
     final altitudeEnricher = DiveAltitudeEnricher();
 
-    // The linked sites as stored, read once each: the entity the site import
-    // mapped may not carry every column (its water type is written apart).
-    final storedSites = <String, DiveSite?>{};
-    Future<DiveSite?> storedSite(String id) async {
-      if (storedSites.containsKey(id)) return storedSites[id];
-      return storedSites[id] = await repos.siteRepository.getSiteById(id);
-    }
-
     final additionalComputers = AdditionalComputerWriter(
       diveRepository: repos.diveRepository,
     );
@@ -2967,9 +2972,6 @@ class UddfEntityImporter {
       // A dive reads its site's altitude and water type (issue #5040), and
       // an export writes them on the dive. A value equal to the linked
       // site's is that one coming back, not the dive's own.
-      final siteValues = linkedSite == null
-          ? null
-          : await storedSite(linkedSite.id);
       final importedAltitude = asDoubleOrNull(diveData['altitude']);
       final importedWaterType = _parseEnum(
         diveData['waterType'],
@@ -3229,10 +3231,10 @@ class UddfEntityImporter {
         swellHeight: asDoubleOrNull(diveData['swellHeight']),
         entryMethod: _parseEnum(diveData['entryMethod'], EntryMethod.values),
         exitMethod: _parseEnum(diveData['exitMethod'], EntryMethod.values),
-        waterType: importedWaterType == siteValues?.waterType
+        waterType: importedWaterType == linkedSite?.waterType
             ? null
             : importedWaterType,
-        altitude: importedAltitude == siteValues?.altitude
+        altitude: importedAltitude == linkedSite?.altitude
             ? null
             : importedAltitude,
         // Weather as the source recorded it. weatherSource stays null, as
