@@ -67,8 +67,14 @@ class Document extends Equatable {
 
   final String id;
 
-  /// The diver whose library the document belongs to.
-  final String diverId;
+  /// The diver whose library the document belongs to; null for a document
+  /// shared with a shared site library (issue #4713), which is the
+  /// library's.
+  final String? diverId;
+
+  /// The shared site library this document is shared with, or null for a
+  /// personal document.
+  final String? sharedLibraryId;
   final DocumentOwner owner;
   final DocumentType type;
 
@@ -96,6 +102,7 @@ class Document extends Equatable {
   const Document({
     required this.id,
     required this.diverId,
+    this.sharedLibraryId,
     required this.owner,
     required this.type,
     this.title = '',
@@ -112,6 +119,9 @@ class Document extends Equatable {
     required this.updatedAt,
   });
 
+  /// Whether the document belongs to a shared site library.
+  bool get isShared => sharedLibraryId != null;
+
   int get effectiveReminderLeadDays =>
       reminderLeadDays ?? defaultReminderLeadDays;
 
@@ -122,7 +132,8 @@ class Document extends Equatable {
 
   Document copyWith({
     String? id,
-    String? diverId,
+    Object? diverId = _unset,
+    Object? sharedLibraryId = _unset,
     DocumentOwner? owner,
     DocumentType? type,
     String? title,
@@ -142,7 +153,8 @@ class Document extends Equatable {
         identical(value, _unset) ? current : value as T?;
     return Document(
       id: id ?? this.id,
-      diverId: diverId ?? this.diverId,
+      diverId: pick<String>(diverId, this.diverId),
+      sharedLibraryId: pick<String>(sharedLibraryId, this.sharedLibraryId),
       owner: owner ?? this.owner,
       type: type ?? this.type,
       title: title ?? this.title,
@@ -164,6 +176,7 @@ class Document extends Equatable {
   List<Object?> get props => [
     id,
     diverId,
+    sharedLibraryId,
     owner,
     type,
     title,

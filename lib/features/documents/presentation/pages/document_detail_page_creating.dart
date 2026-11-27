@@ -38,7 +38,7 @@ mixin _DocumentDetailPageCreating
     // Read before the first wait: the page can be gone by the end.
     final service = ref.read(documentEditSaveServiceProvider);
     var record = session.applyTo(session.stored);
-    if (record.document.diverId.isEmpty) {
+    if (record.document.diverId?.isEmpty ?? true) {
       final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
       if (diverId == null) throw StateError('No active diver');
       record = record.copyWith(

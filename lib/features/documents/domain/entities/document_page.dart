@@ -38,6 +38,10 @@ class DocumentPage extends Equatable {
   /// This page's sync clock; null for a page not yet saved.
   final String? hlc;
 
+  /// The `pages/<id>.bin` file of a shared site library that holds this
+  /// page's bytes (issue #4713); null for a personal page or new bytes.
+  final String? libraryFileId;
+
   const DocumentPage({
     required this.id,
     required this.documentId,
@@ -50,6 +54,7 @@ class DocumentPage extends Equatable {
     required this.createdAt,
     required this.updatedAt,
     this.hlc,
+    this.libraryFileId,
   });
 
   bool get isImage => mimeType.startsWith('image/');
@@ -70,6 +75,8 @@ class DocumentPage extends Equatable {
     bool clearSide = false,
     Uint8List? bytes,
     DateTime? updatedAt,
+    String? libraryFileId,
+    bool clearLibraryFileId = false,
   }) => DocumentPage(
     id: id ?? this.id,
     documentId: documentId ?? this.documentId,
@@ -82,6 +89,9 @@ class DocumentPage extends Equatable {
     createdAt: createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     hlc: hlc,
+    libraryFileId: clearLibraryFileId
+        ? null
+        : (libraryFileId ?? this.libraryFileId),
   );
 
   /// The same page without its content, for metadata-only listings.
@@ -96,6 +106,7 @@ class DocumentPage extends Equatable {
     createdAt: createdAt,
     updatedAt: updatedAt,
     hlc: hlc,
+    libraryFileId: libraryFileId,
   );
 
   // bytes are left out: hashing megabytes for equality is never wanted.
@@ -111,5 +122,6 @@ class DocumentPage extends Equatable {
     createdAt,
     updatedAt,
     hlc,
+    libraryFileId,
   ];
 }

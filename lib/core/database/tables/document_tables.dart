@@ -18,13 +18,21 @@ import 'package:submersion/core/database/tables/tag_tables.dart';
 import 'package:submersion/core/database/tables/trip_tables.dart';
 
 /// One document (issue #2613). At most one owner link is set; none means a
-/// personal document. Owner links use SET NULL only as a safety net: every
+/// personal document. A document shared with a shared site library (issue
+/// #4713) has [sharedLibraryId] set and no [diverId]: it belongs to the
+/// library, as a library site does. Owner links use SET NULL only as a safety net: every
 /// owner's delete path calls DocumentRepository.deleteForOwner, which
 /// deletes and tombstones the documents first.
 @DataClassName('DocumentRow')
 class Documents extends Table {
   TextColumn get id => text()();
-  TextColumn get diverId => text().references(Divers, #id)();
+
+  /// Null exactly when [sharedLibraryId] is set (v388).
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+
+  /// The shared site library this document belongs to; never on the
+  /// personal-sync wire (v388, issue #4713).
+  TextColumn get sharedLibraryId => text().nullable()();
   TextColumn get diveId =>
       text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
   TextColumn get siteId => text().nullable().references(
@@ -93,6 +101,11 @@ class DocumentPages extends Table {
   BlobColumn get bytes => blob()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+
+  /// The `pages/<id>.bin` file of a shared library that holds these bytes
+  /// (v388, issue #4713); cleared when the bytes change, so a new scan is
+  /// uploaded as a new file. Device-local: never on the personal-sync wire.
+  TextColumn get libraryFileId => text().nullable()();
 
   /// This page's own clock: exported on it, so a stale page from a peer
   /// cannot overwrite a newer one (the diveProfileSeries pattern).

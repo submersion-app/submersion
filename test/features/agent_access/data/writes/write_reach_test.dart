@@ -83,7 +83,7 @@ void main() {
       .insert(
         DocumentsCompanion.insert(
           id: id,
-          diverId: kDiverA,
+          diverId: const Value(kDiverA),
           diveId: Value(diveId),
           siteId: Value(siteId),
           buddyId: Value(buddyId),

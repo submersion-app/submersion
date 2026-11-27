@@ -191,7 +191,7 @@ void main() {
         .insert(
           DocumentsCompanion.insert(
             id: 'doc-1',
-            diverId: kDiverA,
+            diverId: const Value(kDiverA),
             diveId: const Value('d1'),
             type: 'other',
             createdAt: kSeedTime,

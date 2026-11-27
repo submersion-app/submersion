@@ -200,8 +200,11 @@ class DocumentMutations {
   Future<void> rearmReminders(Iterable<Document> documents) async {
     final clearanceDivers = <String>{};
     for (final document in documents) {
+      final diverId = document.diverId;
+      // A library document reminds no one (issue #4713).
+      if (diverId == null) continue;
       if (document.type == DocumentType.medicalClearance &&
-          !clearanceDivers.add(document.diverId)) {
+          !clearanceDivers.add(diverId)) {
         continue;
       }
       await _rearm(document);

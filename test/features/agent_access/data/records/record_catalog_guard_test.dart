@@ -256,7 +256,7 @@ void main() {
         .insert(
           DocumentsCompanion.insert(
             id: 'doc',
-            diverId: kDiverA,
+            diverId: const Value(kDiverA),
             type: 'insurance',
             createdAt: t,
             updatedAt: t,

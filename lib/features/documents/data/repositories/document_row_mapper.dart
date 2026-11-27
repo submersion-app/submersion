@@ -41,6 +41,7 @@ DocumentOwner ownerOfRow(DocumentRow r) {
 Document documentFromRow(DocumentRow r) => Document(
   id: r.id,
   diverId: r.diverId,
+  sharedLibraryId: r.sharedLibraryId,
   owner: ownerOfRow(r),
   type: DocumentType.fromStorage(r.type),
   title: r.title,
@@ -65,6 +66,7 @@ DocumentsCompanion documentCompanion(Document d, {required int updatedAt}) {
   return DocumentsCompanion(
     id: Value(d.id),
     diverId: Value(d.diverId),
+    sharedLibraryId: Value(d.sharedLibraryId),
     diveId: Value(link(DocumentOwnerKind.dive)),
     siteId: Value(link(DocumentOwnerKind.site)),
     tripId: Value(link(DocumentOwnerKind.trip)),
@@ -101,4 +103,5 @@ DocumentPage pageFromRow(DocumentPageRow r) => DocumentPage(
   createdAt: DateTime.fromMillisecondsSinceEpoch(r.createdAt),
   updatedAt: DateTime.fromMillisecondsSinceEpoch(r.updatedAt),
   hlc: r.hlc,
+  libraryFileId: r.libraryFileId,
 );

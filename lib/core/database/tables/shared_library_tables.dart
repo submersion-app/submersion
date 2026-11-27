@@ -134,6 +134,36 @@ class SharedSiteStates extends Table {
   Set<Column> get primaryKey => {siteId};
 }
 
+/// Per shared library document (issue #4713): the field clocks and this
+/// device's dirty flag, the twin of [SharedSiteStates]. Device-local. No FK,
+/// so the row outlives a removed document and its tombstone can still go up.
+@DataClassName('SharedDocumentStateRow')
+class SharedDocumentStates extends Table {
+  TextColumn get documentId => text()();
+  TextColumn get libraryId => text()();
+
+  /// The library site the document is filed under; fixed at share time.
+  TextColumn get siteId => text()();
+
+  /// `{field: {"hlc": "...", "memberId": "...", "sig": "..."}}`.
+  TextColumn get clocksJson => text().withDefault(const Constant('{}'))();
+
+  /// `modifiedTime` of the document file as last listed, ISO-8601 UTC.
+  TextColumn get remoteModifiedTime => text().nullable()();
+  BoolColumn get dirty => boolean().withDefault(const Constant(false))();
+
+  /// The document's tombstone flag as this device last knew it.
+  BoolColumn get deleted => boolean().withDefault(const Constant(false))();
+
+  /// Read, but its site is not in the library yet: re-read when it arrives.
+  BoolColumn get parked => boolean().withDefault(const Constant(false))();
+  TextColumn get lastEditorMemberId => text().nullable()();
+  IntColumn get lastEditedAtMs => integer().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {documentId};
+}
+
 /// A proposed edit from a reader (issue #2567): outgoing until uploaded,
 /// incoming on an owner's device until accepted or dismissed.
 @DataClassName('SharedSiteSuggestionRow')

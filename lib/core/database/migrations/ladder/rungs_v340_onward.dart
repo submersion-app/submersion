@@ -356,5 +356,13 @@ extension RungsFromV340 on AppDatabase {
     // no backfill; re-asserted in beforeOpen. The floor does not move.
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
+
+    // v388 (issue #4713): documents shared through a shared site library.
+    // documents.diver_id becomes nullable by a table rebuild, plus
+    // documents.shared_library_id, document_pages.library_file_id and
+    // shared_document_states; re-asserted in beforeOpen. The floor does not
+    // move.
+    if (from < 388) await _assertSharedDocumentSchema();
+    if (from < 388) await reportProgress();
   }
 }

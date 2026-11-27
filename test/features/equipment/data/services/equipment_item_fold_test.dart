@@ -415,7 +415,7 @@ void main() {
         .insert(
           DocumentsCompanion.insert(
             id: 'doc',
-            diverId: 'd1',
+            diverId: const Value('d1'),
             equipmentId: const Value('from'),
             type: 'receipt',
             createdAt: 0,

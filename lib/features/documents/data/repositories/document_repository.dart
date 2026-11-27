@@ -381,8 +381,10 @@ class DocumentRepository with _DocumentClearanceQueries {
     );
     try {
       await _db.transaction(() async {
-        if (doc.isPrimary) {
-          await _clearOtherPrimaries(doc.diverId, id, nowMs);
+        // A library document has no diver, so no primary to clear.
+        final primaryOf = doc.isPrimary ? doc.diverId : null;
+        if (primaryOf != null) {
+          await _clearOtherPrimaries(primaryOf, id, nowMs);
         }
         await _db
             .into(_db.documents)
@@ -770,7 +772,10 @@ class DocumentRepository with _DocumentClearanceQueries {
     if (diverId != null) q.where((t) => t.diverId.equals(diverId));
     final out = <String, Document>{};
     for (final row in await q.get()) {
-      out.putIfAbsent(row.diverId, () => documentFromRow(row));
+      // A library document has no diver: never anyone's primary policy.
+      final rowDiver = row.diverId;
+      if (rowDiver == null) continue;
+      out.putIfAbsent(rowDiver, () => documentFromRow(row));
     }
     return out;
   }
