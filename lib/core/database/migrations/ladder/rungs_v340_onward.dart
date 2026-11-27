@@ -357,10 +357,10 @@ extension RungsFromV340 on AppDatabase {
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
 
-    // v388 (issue #4975): diver_settings.equipment_detail_sections, the gear
+    // v391 (issue #4975): diver_settings.equipment_detail_sections, the gear
     // item page's card order and visibility. Nullable column, no backfill;
     // re-asserted in beforeOpen. The floor does not move.
-    if (from < 388) await _assertEquipmentDetailSectionsColumn();
-    if (from < 388) await reportProgress();
+    if (from < 391) await _assertEquipmentDetailSectionsColumn();
+    if (from < 391) await reportProgress();
   }
 }

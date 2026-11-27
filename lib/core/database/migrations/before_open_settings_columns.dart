@@ -72,7 +72,7 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // dive_plans.setpoint_switch_off (issue #3793).
     await _assertCcrSetpointSwitchColumns();
 
-    // v388 backstop: diver_settings.equipment_detail_sections (issue #4975).
+    // v391 backstop: diver_settings.equipment_detail_sections (issue #4975).
     await _assertEquipmentDetailSectionsColumn();
 
     // v371 backstop: diver_settings.favourite_dive_type_ids (issue #4413).

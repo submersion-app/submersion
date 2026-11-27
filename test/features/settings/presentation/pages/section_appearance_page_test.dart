@@ -28,6 +28,8 @@ Widget _buildTestWidget(
       ...?overrides?.cast(),
     ],
     child: MaterialApp(
+      // The tests find English labels.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: SectionAppearancePage(
@@ -272,6 +274,7 @@ void main() {
             settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           ],
           child: MaterialApp.router(
+            locale: const Locale('en'),
             routerConfig: router,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,

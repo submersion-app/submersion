@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v388: `diver_settings.equipment_detail_sections` (TEXT, nullable),
+/// Schema v391: `diver_settings.equipment_detail_sections` (TEXT, nullable),
 /// the gear item page's card order and visibility, issue #4975. No backfill,
 /// so the sync floor holds.
 void main() {
@@ -41,10 +41,10 @@ void main() {
               .getSingle())
           .data;
 
-  test('v388 is in the ladder and keeps the floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(388));
-    expect(AppDatabase.migrationVersions, contains(388));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(388));
+  test('v391 is in the ladder and keeps the floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(391));
+    expect(AppDatabase.migrationVersions, contains(391));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(391));
   });
 
   test(
