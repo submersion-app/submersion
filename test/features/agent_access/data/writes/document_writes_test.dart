@@ -37,6 +37,22 @@ void main() {
   });
   tearDown(() => tearDownTestDatabase());
 
+  test('a document shared with a site library is not written here', () async {
+    final id = await make('documents', {'type': 'map', 'title': 'Access'});
+    await db.customStatement(
+      "UPDATE documents SET shared_library_id = 'L', diver_id = NULL "
+      'WHERE id = ?',
+      [id],
+    );
+    for (final op in [
+      updateOp('documents', id, {'notes': 'Changed'}),
+      deleteOp('documents', id),
+    ]) {
+      final plan = await h.preview([op]);
+      expect(plan.items.single.block, isNotNull, reason: '$op');
+    }
+  });
+
   // d2 is the other profile's private dive; d1 is this profile's own.
   test('a document cannot be attached to another profile\'s record', () async {
     Map<String, Object?> on(String dive) => createOp('documents', {

@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/change_log/record_sitting_writer.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/shared_library/library_document_stamper.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/presentation/editing/document_edit_fields.dart';
 import 'package:submersion/features/documents/presentation/editing/document_record.dart';
@@ -15,10 +18,19 @@ const _log = LoggerService('DocumentEditSaveService');
 /// 3): the row, its pages and its tags, in one transaction and one History
 /// entry labelled with the cards it changed.
 class DocumentEditSaveService {
-  DocumentEditSaveService(this._documents, this._tags);
+  DocumentEditSaveService(
+    this._documents,
+    this._tags, {
+    LibraryDocumentStamper? library,
+  }) : _library = library ?? LibraryDocumentStamper(documents: _documents);
 
   final DocumentRepository _documents;
   final TagLinkRepository _tags;
+
+  /// Stamps edits to a document shared with a shared site library, and
+  /// shares a new one there by default (issue #4713). Both run after the
+  /// sitting commits: a rolled-back sitting must not leave a clock behind.
+  final LibraryDocumentStamper _library;
 
   /// Document [id] as stored: its row, its pages without their content,
   /// and its tags (null when they cannot be read). Null when it is gone.
@@ -55,6 +67,53 @@ class DocumentEditSaveService {
     required String documentId,
     required DocumentRecord Function(DocumentRecord stored) apply,
     required Iterable<String> changedCardIds,
+    String? actingDiverId,
+  }) async {
+    final saved = await _writeSitting(
+      documentId: documentId,
+      apply: apply,
+      changedCardIds: changedCardIds,
+    );
+    if (saved != null && saved.after.document.isShared) {
+      await _library.stamp(
+        documentId,
+        libraryFieldsChanged(saved.before, saved.after),
+        actingDiverId: actingDiverId,
+      );
+    }
+    return saved;
+  }
+
+  /// The library document fields [after] changed from [before].
+  @visibleForTesting
+  static Set<String> libraryFieldsChanged(
+    DocumentRecord before,
+    DocumentRecord after,
+  ) {
+    final a = before.document;
+    final b = after.document;
+    final pagesChanged =
+        !listEquals(before.pages, after.pages) ||
+        after.pages.any((p) => p.bytes != null);
+    return {
+      if (a.type != b.type) 'type',
+      if (a.title != b.title) 'title',
+      if (a.issuer != b.issuer) 'issuer',
+      if (a.referenceNumber != b.referenceNumber) 'referenceNumber',
+      if (a.issueDate != b.issueDate) 'issueDate',
+      if (a.expiryDate != b.expiryDate) 'expiryDate',
+      if (a.notes != b.notes) 'notes',
+      if (after.tagIds != null &&
+          !DocumentRecord.sameTags(before.tagIds, after.tagIds))
+        'tags',
+      if (pagesChanged) 'pages',
+    };
+  }
+
+  Future<({DocumentRecord before, DocumentRecord after})?> _writeSitting({
+    required String documentId,
+    required DocumentRecord Function(DocumentRecord stored) apply,
+    required Iterable<String> changedCardIds,
   }) => writeRecordSitting<DocumentRecord>(
     table: 'documents',
     recordId: documentId,
@@ -82,6 +141,26 @@ class DocumentEditSaveService {
   /// is left. Returns the document as stored at the end. Throws
   /// [StateError] when [record] has no id, or one a stored document has.
   Future<DocumentRecord> create({
+    required DocumentRecord record,
+    required Iterable<String> changedCardIds,
+    Future<void> Function()? alsoWrite,
+  }) async {
+    final created = await _createSitting(
+      record: record,
+      changedCardIds: changedCardIds,
+      alsoWrite: alsoWrite,
+    );
+    final diverId = record.document.diverId;
+    if (diverId == null) return created;
+    // A new document on a library site starts shared, unless its type is a
+    // diver's own papers or the diver only reads the library (issue #4713).
+    if (await _library.shareIfDefault(record.id, actingDiverId: diverId)) {
+      return await read(record.id) ?? created;
+    }
+    return created;
+  }
+
+  Future<DocumentRecord> _createSitting({
     required DocumentRecord record,
     required Iterable<String> changedCardIds,
     Future<void> Function()? alsoWrite,

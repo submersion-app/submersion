@@ -42,7 +42,7 @@ class LibraryEditStamper {
     final libraryId = row?.sharedLibraryId;
     if (libraryId == null) return;
 
-    final memberId = await _resolveMember(libraryId, actingDiverId);
+    final memberId = await resolveMember(libraryId, actingDiverId);
     final existing =
         await _store.getSiteState(siteId) ??
         SharedSiteState(siteId: siteId, libraryId: libraryId);
@@ -136,6 +136,13 @@ class LibraryEditStamper {
     )..where((t) => t.id.equals(siteId))).getSingleOrNull();
     final libraryId = row?.sharedLibraryId;
     if (libraryId == null) return true;
+    return mayEditLibrary(libraryId, actingDiverId: actingDiverId);
+  }
+
+  /// Whether a write to a record of library [libraryId] may go ahead here,
+  /// by the rule [mayEdit] describes: a site, or a shared document (issue
+  /// #4713).
+  Future<bool> mayEditLibrary(String libraryId, {String? actingDiverId}) async {
     final library = await _store.getLibrary(libraryId);
     // Not connected here: no roles to go by, nothing to upload to.
     if (library == null) return true;
@@ -153,7 +160,9 @@ class LibraryEditStamper {
         (actingDiverId == null ? members.every(edits) : members.any(edits));
   }
 
-  Future<String> _resolveMember(String libraryId, String? diverId) async {
+  /// The member editing for [diverId] in [libraryId]: that profile's
+  /// membership, else the library's sole one here, else [unknownMember].
+  Future<String> resolveMember(String libraryId, String? diverId) async {
     if (diverId != null) {
       final own = await _store.membership(
         diverId: diverId,

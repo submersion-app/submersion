@@ -111,6 +111,18 @@ class DocumentWrites extends WritableEntry {
 
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
+    // A shared library document is the library's: its roles, its clocks and
+    // its other members' copies go through the app (issue #4713).
+    final id = check.id;
+    if (check.kind != ChangeKind.create &&
+        id != null &&
+        ((await _r.documents.getById(id))?.isShared ?? false)) {
+      return const PlanBlock(
+        BlockReason.notPermitted,
+        'This document belongs to a shared site library. Change it in the '
+        'app.',
+      );
+    }
     if (check.kind == ChangeKind.delete) return null;
     final doc = {...?check.document, ...check.values};
     final type = doc['type'];
