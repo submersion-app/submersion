@@ -42,9 +42,10 @@ class _FirmwareCardState extends ConsumerState<FirmwareCard> {
         : const <Never>[];
     final installed = installedFirmwareOf(item, registrations);
     final model = status is FirmwareListedStatus ? status.model : null;
+    // The page the diver saved wins over the catalogue's.
     final pageLink =
-        parseWebLink(model?.firmwarePageUrl) ??
-        parseWebLink(item.firmwarePageUrl);
+        parseWebLink(item.firmwarePageUrl) ??
+        parseWebLink(model?.firmwarePageUrl);
 
     return Card(
       child: Padding(

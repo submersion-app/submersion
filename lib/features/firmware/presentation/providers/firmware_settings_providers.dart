@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -38,3 +39,9 @@ final firmwareNotificationsEnabledProvider =
         SettingsKeys.firmwareNotificationsEnabled,
       ),
     );
+
+/// Whether this device shows system notifications at all: only iOS and
+/// Android do (`NotificationService`). A provider so tests can pin it.
+final firmwareNotificationsSupportedProvider = Provider<bool>(
+  (ref) => HostPlatform.isMobile,
+);

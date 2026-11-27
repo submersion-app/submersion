@@ -6,8 +6,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The firmware switches in the notification settings (issue #5104), kept on
 /// this device: whether it reads the public firmware list, and whether it
-/// notifies. The second is hidden while checks are off rather than shown
-/// disabled, since it would do nothing.
+/// notifies. The second is hidden while checks are off, and on a device that
+/// shows no notifications, rather than shown doing nothing.
 class FirmwareSettingsSwitches extends ConsumerWidget {
   const FirmwareSettingsSwitches({super.key});
 
@@ -29,7 +29,7 @@ class FirmwareSettingsSwitches extends ConsumerWidget {
                 ref.read(firmwareChecksEnabledProvider.notifier).set(on),
           ),
         ),
-        if (checks) ...[
+        if (checks && ref.watch(firmwareNotificationsSupportedProvider)) ...[
           const SizedBox(height: 16),
           Card(
             child: SwitchListTile(

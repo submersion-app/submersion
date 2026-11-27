@@ -35,7 +35,10 @@ FirmwareModel? matchFirmwareModel(
   return null;
 }
 
-String _versionKey(String v) => v.trim().toLowerCase();
+/// A version compared without case, surrounding space, or a leading "v"
+/// before a digit: "V95", "v95" and "95" are one release.
+String _versionKey(String v) =>
+    v.trim().toLowerCase().replaceFirst(RegExp(r'^v(?=\d)'), '');
 
 /// Where [version] sits in [model]'s newest-first releases, by the maker's
 /// spelling or any reported one, or null when the list does not have it.

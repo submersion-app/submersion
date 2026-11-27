@@ -57,9 +57,9 @@ void main() {
   late MockDiveComputerRepository repository;
   late MockDiveComputerService service;
   late StreamController<DownloadEvent> events;
-  late List<(String, String)> reports;
+  late List<(String, String, String?)> reports;
   late List<DiveComputer> updates;
-  late Future<void> Function(DiveComputer, String) reportFirmware;
+  late Future<void> Function(DiveComputer, String, String?) reportFirmware;
   late DownloadNotifier notifier;
 
   setUp(() {
@@ -68,8 +68,8 @@ void main() {
     events = StreamController<DownloadEvent>.broadcast();
     reports = [];
     updates = [];
-    reportFirmware = (computer, version) async =>
-        reports.add((computer.equipmentId!, version));
+    reportFirmware = (computer, version, previous) async =>
+        reports.add((computer.equipmentId!, version, previous));
     when(service.downloadEvents).thenAnswer((_) => events.stream);
     when(
       service.startDownload(any, fingerprint: anyNamed('fingerprint')),
@@ -80,7 +80,8 @@ void main() {
     notifier = DownloadNotifier(
       service: service,
       repository: repository,
-      reportFirmware: (computer, version) => reportFirmware(computer, version),
+      reportFirmware: (computer, version, previous) =>
+          reportFirmware(computer, version, previous),
     );
   });
 
@@ -103,7 +104,8 @@ void main() {
 
   test('a reported version goes to the recorder for the gear twin', () async {
     await complete(_computer(), firmware: ' 95 ');
-    expect(reports, [('eq1', '95')]);
+    // The registration's version before the download is the previous one.
+    expect(reports, [('eq1', '95', '92')]);
     expect(updates.single.firmwareVersion, '95');
   });
 
@@ -125,7 +127,7 @@ void main() {
   });
 
   test('a recorder that fails leaves the registration updated', () async {
-    reportFirmware = (_, _) async => throw StateError('disk full');
+    reportFirmware = (_, _, _) async => throw StateError('disk full');
     await complete(_computer(), firmware: '95');
     expect(updates.single.firmwareVersion, '95');
   });

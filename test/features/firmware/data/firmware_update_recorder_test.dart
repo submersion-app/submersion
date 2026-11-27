@@ -179,6 +179,24 @@ void main() {
     expect(await records.getRecordsForEquipment('twin'), isEmpty);
   });
 
+  test(
+    'a version only the registration held counts as the previous one',
+    () async {
+      await addComputer();
+
+      final outcome = await recorder.recordReported(
+        equipmentId: 'perdix',
+        reportedVersion: '95',
+        at: at,
+        catalogue: catalogue,
+        previousVersion: '92',
+      );
+
+      expect(outcome, FirmwareReportOutcome.logged);
+      expect((await history()).single.firmwareVersion, '95');
+    },
+  );
+
   test('a new version logs one entry', () async {
     await addComputer(firmware: 'V92');
 

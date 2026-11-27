@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/firmware/presentation/providers/firmware_settings_providers.dart';
 import 'package:submersion/features/firmware/presentation/widgets/firmware_settings_switches.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -20,13 +21,19 @@ void main() {
   Future<SharedPreferences> pump(
     WidgetTester tester, [
     Map<String, Object> values = const {},
+    bool notificationsSupported = true,
   ]) async {
     SharedPreferences.setMockInitialValues(values);
     final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
       testApp(
         locale: const Locale('en'),
-        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          firmwareNotificationsSupportedProvider.overrideWithValue(
+            notificationsSupported,
+          ),
+        ],
         child: const SingleChildScrollView(child: FirmwareSettingsSwitches()),
       ),
     );
@@ -59,6 +66,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(prefs.getBool(SettingsKeys.firmwareChecksEnabled), isFalse);
+    expect(find.text(notices), findsNothing);
+  });
+
+  testWidgets('a device that shows no notifications offers no switch', (
+    tester,
+  ) async {
+    await pump(tester, const {}, false);
+    expect(find.text(checks), findsOneWidget);
     expect(find.text(notices), findsNothing);
   });
 

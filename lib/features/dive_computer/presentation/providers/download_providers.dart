@@ -332,16 +332,14 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   /// the next one without rebuilding the notifier. Null means never
   /// (issue #1216).
   final bool Function(String? computerId)? _resolveClockSync;
-  final Future<void> Function(DiveComputer computer, String version)?
-  _reportFirmware;
+  final FirmwareReport? _reportFirmware;
 
   DownloadNotifier({
     required pigeon.DiveComputerService service,
     required DiveComputerRepository repository,
     bool Function()? trimTankPressureAtSurfacing,
     bool Function(String? computerId)? resolveClockSync,
-    Future<void> Function(DiveComputer computer, String version)?
-    reportFirmware,
+    FirmwareReport? reportFirmware,
   }) : _service = service,
        _repository = repository,
        _trimTankPressureAtSurfacing = trimTankPressureAtSurfacing,
@@ -592,7 +590,11 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       // onto the wrong one. Only the call that still owns the field may
       // refresh it.
       if (identical(_computer, computer)) _computer = updated;
-      await _reportFirmwareFor(updated, firmwareVersion);
+      await _reportFirmwareFor(
+        updated,
+        firmwareVersion,
+        previous: computer.firmwareVersion,
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Device info persist failed for ${computer.displayName}',
@@ -608,14 +610,15 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   /// logged and never undoes the registration's own update.
   Future<void> _reportFirmwareFor(
     DiveComputer computer,
-    String? version,
-  ) async {
+    String? version, {
+    String? previous,
+  }) async {
     final report = _reportFirmware;
     if (report == null || version == null || computer.equipmentId == null) {
       return;
     }
     try {
-      await report(computer, version);
+      await report(computer, version, previous);
     } catch (e, stackTrace) {
       _log.error(
         'Firmware history update failed for ${computer.displayName}',
@@ -723,7 +726,7 @@ final downloadNotifierProvider =
             ref.read(clockSyncSettingsNotifierProvider).resolve(computerId),
         // The cached catalogue tells two spellings of one release apart from
         // a real change (issue #5104).
-        reportFirmware: (computer, version) => ref
+        reportFirmware: (computer, version, previous) => ref
             .read(firmwareUpdateRecorderProvider)
             .recordReported(
               equipmentId: computer.equipmentId!,
@@ -733,6 +736,7 @@ final downloadNotifierProvider =
               // A gear twin may have no maker or model of its own.
               fallbackBrand: computer.manufacturer,
               fallbackModel: computer.model,
+              previousVersion: previous,
             ),
       );
     });

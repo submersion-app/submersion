@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/helpers/equipment_web_link_launcher.dart';
 import 'package:submersion/features/firmware/domain/firmware_catalogue.dart';
 import 'package:submersion/features/firmware/domain/firmware_status.dart';
 import 'package:submersion/features/firmware/presentation/providers/firmware_status_providers.dart';
@@ -67,6 +68,7 @@ void main() {
     FirmwareStatus status, {
     double width = 800,
     List<DiveComputer> computers = const [],
+    List<Object> extra = const [],
   }) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = Size(width, 1600);
@@ -81,6 +83,7 @@ void main() {
           computersForEquipmentProvider(
             item.id,
           ).overrideWith((ref) async => computers),
+          ...extra,
         ].cast(),
         child: MaterialApp(
           locale: const Locale('en'),
@@ -224,5 +227,24 @@ void main() {
       width: 360,
     );
     expect(tester.takeException(), isNull);
+  });
+  testWidgets("the diver's own firmware page wins over the list's", (
+    tester,
+  ) async {
+    String? opened;
+    await pump(
+      tester,
+      computer(firmware: 'V95', page: 'https://my.example.org/fw'),
+      FirmwareUpToDate(perdix),
+      extra: [
+        equipmentWebLinkLaunchProvider.overrideWithValue((uri) async {
+          opened = uri.toString();
+          return true;
+        }),
+      ],
+    );
+    await tester.tap(find.text('Firmware page'));
+    await tester.pumpAndSettle();
+    expect(opened, 'https://my.example.org/fw');
   });
 }

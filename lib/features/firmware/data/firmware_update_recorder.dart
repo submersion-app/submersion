@@ -62,13 +62,17 @@ class FirmwareUpdateRecorder {
     FirmwareCatalogue? catalogue,
     String? fallbackBrand,
     String? fallbackModel,
+    String? previousVersion,
   }) async {
     final reported = reportedVersion.trim();
     final item = await _equipment.getEquipmentById(equipmentId);
     if (item == null || reported.isEmpty) {
       return FirmwareReportOutcome.unchanged;
     }
-    final stored = item.firmwareVersion?.trim() ?? '';
+    // The item's own version, else the one the registration held before
+    // this download (read through, never copied).
+    final stored =
+        _nonBlank(item.firmwareVersion) ?? _nonBlank(previousVersion) ?? '';
     if (stored.isEmpty) {
       await setRecordedFirmwareVersion(_equipment, equipmentId, reported);
       return FirmwareReportOutcome.recordedFirst;

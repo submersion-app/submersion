@@ -164,10 +164,16 @@ void main() {
       expect(sameFirmwareRelease('v95', 'V95'), isTrue);
     });
 
+    test('a leading v is the same release, with or without a list', () {
+      expect(sameFirmwareRelease('V2.1', '2.1'), isTrue);
+      expect(sameFirmwareRelease('v95', '95'), isTrue);
+      expect(sameFirmwareRelease('Vega 2', 'ega 2'), isFalse);
+    });
+
     test('different releases, or unknown spellings, are not', () {
       expect(sameFirmwareRelease('V95', 'V94', model: perdix), isFalse);
-      expect(sameFirmwareRelease('V95', '95'), isFalse);
-      expect(sameFirmwareRelease('V90', '90', model: perdix), isFalse);
+      expect(sameFirmwareRelease('V95', '94'), isFalse);
+      expect(sameFirmwareRelease('V90', '91', model: perdix), isFalse);
     });
   });
 }
