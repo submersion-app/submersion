@@ -18436,13 +18436,14 @@ class AppLocalizationsIt extends AppLocalizations {
     String volumeSymbol,
     String pressure,
     String pressureSymbol,
+    String exceeds,
   ) {
-    return 'Consumo di gas: $volume $volumeSymbol, $pressure $pressureSymbol';
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. Attenzione: supera la capacità della bombola',
+      'other': '',
+    });
+    return 'Consumo di gas: $volume $volumeSymbol, $pressure $pressureSymbol$_temp0';
   }
-
-  @override
-  String get gasCalculators_consumption_semanticsExceeds =>
-      'Attenzione: supera la capacità della bombola';
 
   @override
   String gasCalculators_consumption_exceedsTank(

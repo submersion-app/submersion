@@ -11137,9 +11137,9 @@
   "gasCalculators_consumption_avgDepth": "Average Depth",
   "gasCalculators_consumption_breakdown": "Calculation Breakdown",
   "gasCalculators_consumption_diveTime": "Dive Time",
-  "gasCalculators_consumption_semantics": "Gas consumption: {volume} {volumeSymbol}, {pressure} {pressureSymbol}",
+  "gasCalculators_consumption_semantics": "Gas consumption: {volume} {volumeSymbol}, {pressure} {pressureSymbol}{exceeds, select, yes{. Warning: exceeds cylinder capacity} other{}}",
   "@gasCalculators_consumption_semantics": {
-    "description": "What a screen reader says for the gas consumption result card (issue #5106): the volume and the pressure it takes from the cylinder.",
+    "description": "What a screen reader says for the gas consumption result card (issue #5106): the volume and the pressure it takes from the cylinder. exceeds is yes when the plan needs more gas than the cylinder holds, which adds a warning sentence.",
     "placeholders": {
       "volume": {
         "type": "String",
@@ -11156,12 +11156,12 @@
       "pressureSymbol": {
         "type": "String",
         "example": "bar"
+      },
+      "exceeds": {
+        "type": "String",
+        "example": "yes"
       }
     }
-  },
-  "gasCalculators_consumption_semanticsExceeds": "Warning: exceeds cylinder capacity",
-  "@gasCalculators_consumption_semanticsExceeds": {
-    "description": "Added to the screen reader's gas consumption result (issue #5106) when the plan needs more gas than the cylinder holds."
   },
   "gasCalculators_consumption_exceedsTank": "Exceeds cylinder capacity ({pressure} {symbol})",
   "gasCalculators_consumption_gasAtDepth": "Gas consumption at depth",

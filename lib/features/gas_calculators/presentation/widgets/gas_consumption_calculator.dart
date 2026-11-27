@@ -151,16 +151,15 @@ class GasConsumptionCalculator extends ConsumerWidget {
 
               // Results card
               Semantics(
-                label: [
-                  context.l10n.gasCalculators_consumption_semantics(
-                    displayVolume.toStringAsFixed(0),
-                    volumeSymbol,
-                    displayPressure.toStringAsFixed(0),
-                    pressureSymbol,
-                  ),
-                  if (result.exceedsTank)
-                    context.l10n.gasCalculators_consumption_semanticsExceeds,
-                ].join('. '),
+                // One sentence per language, warning included, so each
+                // language punctuates it itself.
+                label: context.l10n.gasCalculators_consumption_semantics(
+                  displayVolume.toStringAsFixed(0),
+                  volumeSymbol,
+                  displayPressure.toStringAsFixed(0),
+                  pressureSymbol,
+                  result.exceedsTank ? 'yes' : 'no',
+                ),
                 child: Card(
                   color: result.exceedsTank
                       ? colorScheme.errorContainer

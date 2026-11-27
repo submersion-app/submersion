@@ -29275,22 +29275,17 @@ abstract class AppLocalizations {
   /// **'Dive Time'**
   String get gasCalculators_consumption_diveTime;
 
-  /// What a screen reader says for the gas consumption result card (issue #5106): the volume and the pressure it takes from the cylinder.
+  /// What a screen reader says for the gas consumption result card (issue #5106): the volume and the pressure it takes from the cylinder. exceeds is yes when the plan needs more gas than the cylinder holds, which adds a warning sentence.
   ///
   /// In en, this message translates to:
-  /// **'Gas consumption: {volume} {volumeSymbol}, {pressure} {pressureSymbol}'**
+  /// **'Gas consumption: {volume} {volumeSymbol}, {pressure} {pressureSymbol}{exceeds, select, yes{. Warning: exceeds cylinder capacity} other{}}'**
   String gasCalculators_consumption_semantics(
     String volume,
     String volumeSymbol,
     String pressure,
     String pressureSymbol,
+    String exceeds,
   );
-
-  /// Added to the screen reader's gas consumption result (issue #5106) when the plan needs more gas than the cylinder holds.
-  ///
-  /// In en, this message translates to:
-  /// **'Warning: exceeds cylinder capacity'**
-  String get gasCalculators_consumption_semanticsExceeds;
 
   /// No description provided for @gasCalculators_consumption_exceedsTank.
   ///
