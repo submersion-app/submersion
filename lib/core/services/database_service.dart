@@ -15,6 +15,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/database_connection_setup.dart';
 import 'package:submersion/core/database/database_snapshot.dart';
 import 'package:submersion/core/database/database_version_exception.dart';
+import 'package:submersion/core/database/shared_database_ports.dart';
 import 'package:submersion/core/database/sqlcipher_setup.dart'
     as sqlcipher_setup;
 import 'package:submersion/core/platform/browser_origin_storage.dart';
@@ -139,6 +140,40 @@ class DatabaseService {
   bool get hasReachedFile => _database != null || _openAttempted;
   bool _openAttempted = false;
 
+  /// Installs [db], a connection to a database another engine opened: a
+  /// desktop pop-out window's read-only view of the main window's database
+  /// (issue #5078). Nothing here owns its worker, so closing it only
+  /// disconnects.
+  void attachSharedDatabase(AppDatabase db) {
+    _database = db;
+    _installed();
+  }
+
+  final List<Future<void> Function()> _beforeCloseHooks = [];
+
+  /// Runs [hook] at the start of every [close], while the database is still
+  /// open, so whatever reads it from elsewhere (a desktop pop-out window,
+  /// issue #5078) can stop first. A failing hook is logged and the close goes
+  /// on. Returns a callback that removes the hook.
+  void Function() addBeforeCloseHook(Future<void> Function() hook) {
+    _beforeCloseHooks.add(hook);
+    return () => _beforeCloseHooks.remove(hook);
+  }
+
+  Future<void> _runBeforeCloseHooks() async {
+    for (final hook in List.of(_beforeCloseHooks)) {
+      try {
+        await hook();
+      } catch (e, stackTrace) {
+        _log.error(
+          'A before-close hook failed',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+  }
+
   /// For testing only: allows injecting a test database
   @visibleForTesting
   void setTestDatabase(AppDatabase db) {
@@ -173,6 +208,7 @@ class DatabaseService {
     debugFailDeleteFor = null;
     debugClock = null;
     compactFileOverride = null;
+    _beforeCloseHooks.clear();
   }
 
   /// Registers [locationService] without opening anything.
@@ -661,6 +697,7 @@ class DatabaseService {
       }
     }
     _background = background;
+    publishDatabase(kMainDatabasePortName, background);
     return database;
   }
 
@@ -746,6 +783,9 @@ class DatabaseService {
       _openAttempted = false;
       return;
     }
+
+    await _runBeforeCloseHooks();
+    unpublishDatabase(kMainDatabasePortName);
 
     if (strict) {
       // Graceful close first, but only briefly: GeneratedDatabase.close()

@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import 'package:submersion/core/database/shared_database_ports.dart';
 import 'package:submersion/core/database/background_database_connection.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
@@ -45,6 +46,13 @@ class LocalCacheDatabaseService {
     return _database!;
   }
 
+  /// Installs [db], a connection to the cache another engine opened: a
+  /// desktop pop-out window's read-only view of the main window's cache
+  /// (issue #5078). Nothing here owns its worker.
+  void attachSharedDatabase(LocalCacheDatabase db) {
+    _database = db;
+  }
+
   /// For testing only: allows injecting a test database
   @visibleForTesting
   void setTestDatabase(LocalCacheDatabase db) {
@@ -78,10 +86,12 @@ class LocalCacheDatabaseService {
     final background = await BackgroundDatabaseConnection.openPlain(dbPath);
     _background = background;
     _database = LocalCacheDatabase(background.connection);
+    publishDatabase(kLocalCacheDatabasePortName, background);
   }
 
   Future<void> close() async {
     if (_database == null) return;
+    unpublishDatabase(kLocalCacheDatabasePortName);
     try {
       // Shutdown path: a plain close() hangs while any watch() subscription
       // is paused (Riverpod 3 pauses the streams of unlistened providers),
