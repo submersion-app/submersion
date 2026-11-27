@@ -58,7 +58,9 @@ void colorEncodeInAppTests({
       }
       final source = await input(c.fileName);
       if (source == null) {
-        markTestSkipped('no ${c.fileName}; run scripts/testing/run_color_encode_it.sh');
+        markTestSkipped(
+          'no ${c.fileName}; run scripts/testing/run_color_encode_it.sh',
+        );
         return;
       }
       final out = await output(c.fileName);
