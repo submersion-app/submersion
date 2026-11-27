@@ -1,5 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ascent_rate_axis_scale.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// The ascent-rate right axis (issue #5069) reads the bars' own scale: zero
 /// at mid-plot, the saturation rate at the top and bottom edges, whatever
@@ -31,5 +34,40 @@ void main() {
       ascentRateAtAxisValue(-5, axisMin: -5, axisMax: -5, maxAbsRate: 12),
       0,
     );
+  });
+
+  // The five labels sit at fixed plot fractions, so they stay on the bars'
+  // baseline and quarter lines at any zoom, and carry a decimal exactly when
+  // a value is not whole: 7.5 reads +7.5, not +8.
+  group('ascentRateAxisLabels', () {
+    test('the floor span reads in whole and half metres per minute', () {
+      expect(ascentRateAxisLabels(15, const UnitFormatter(AppSettings())), [
+        (fraction: 0.0, label: '+15'),
+        (fraction: 0.25, label: '+7.5'),
+        (fraction: 0.5, label: '0'),
+        (fraction: 0.75, label: '-7.5'),
+        (fraction: 1.0, label: '-15'),
+      ]);
+    });
+
+    test('a whole quarter needs no decimal', () {
+      expect(
+        ascentRateAxisLabels(
+          20,
+          const UnitFormatter(AppSettings()),
+        ).map((l) => l.label),
+        ['+20', '+10', '0', '-10', '-20'],
+      );
+    });
+
+    test('feet per minute for an imperial diver', () {
+      expect(
+        ascentRateAxisLabels(
+          15,
+          const UnitFormatter(AppSettings(depthUnit: DepthUnit.feet)),
+        ).map((l) => l.label),
+        ['+49.2', '+24.6', '0', '-24.6', '-49.2'],
+      );
+    });
   });
 }

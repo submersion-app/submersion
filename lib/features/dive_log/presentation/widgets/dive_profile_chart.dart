@@ -50,6 +50,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/profile_metric
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_bar_window.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ascent_rate_bar_overlay.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/ascent_rate_axis_labels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ascent_rate_axis_scale.dart';
 import 'package:submersion/core/constants/o2_cell_unit.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readout.dart';
@@ -4800,15 +4801,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       effectiveRightAxisMetric != null &&
                       rightAxisRange != null,
                   reservedSize: DiveProfileChart.rightAxisSize(availableWidth),
-                  interval: rightAxisIsDepthScale
+                  interval: rightAxisIsDepthScale || ascentRateMaxAbs != null
                       ? depthInterval
-                      : (ascentRateMaxAbs != null
-                            ? (visibleMaxDepth - visibleMinDepth) / 4
-                            : null),
+                      : null,
                   getTitlesWidget: (value, meta) {
                     if (effectiveRightAxisMetric == null ||
                         rightAxisRange == null) {
                       return const SizedBox();
+                    }
+                    // Ascent rate's labels are an overlay at fixed plot
+                    // fractions (AscentRateAxisLabels); fl_chart only keeps
+                    // the gutter reserved.
+                    if (ascentRateMaxAbs != null) {
+                      return const SizedBox.shrink();
                     }
                     // Suppress interval ticks too close to the min boundary
                     final distToMin = (value - meta.min).abs();
@@ -4818,20 +4823,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     final String label;
                     if (rightAxisIsDepthScale) {
                       label = depthTickLabel(value);
-                    } else if (ascentRateMaxAbs != null) {
-                      double rateAt(double axisValue) => ascentRateAtAxisValue(
-                        axisValue,
-                        axisMin: meta.min,
-                        axisMax: meta.max,
-                        maxAbsRate: ascentRateMaxAbs,
-                      );
-                      final rate = rateAt(value);
-                      label = formatRightAxisTick(
-                        ProfileRightAxisMetric.ascentRate,
-                        rate,
-                        units,
-                        tickStep: rateAt(value + meta.appliedInterval) - rate,
-                      );
                     } else {
                       // Map from inverted depth axis to the metric value
                       final metricValue = metricBand.unmap(
@@ -5485,6 +5476,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               maxAbsRateMetersPerMin:
                   _ascentRateAxisRange(widget.ascentRates)?.max ?? 0,
               highlightedTimestamp: _hoveredAscentRateTimestamp,
+            ),
+          ),
+        // The ascent-rate axis labels, fixed to the plot like the bars they
+        // read (issue #5069).
+        if (ascentRateMaxAbs != null)
+          Positioned.fill(
+            child: AscentRateAxisLabels(
+              labels: ascentRateAxisLabels(ascentRateMaxAbs, units),
+              insets: plotInsets,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: _palette.rightAxisColor(
+                  ProfileRightAxisMetric.ascentRate,
+                  singleTank: _isSingleTankDive,
+                ),
+              ),
             ),
           ),
         // Deco stop focus dot: a widget layer positioned from the resolved

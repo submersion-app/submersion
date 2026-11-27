@@ -27,9 +27,10 @@ String formatRightAxisTick(
   double value,
   UnitFormatter units, {
   double? tickStep,
+  int minDecimals = 0,
 }) {
   final display = _displayValue(metric, value, units);
-  var decimals = _baseDecimals(metric);
+  var decimals = math.max(_baseDecimals(metric), minDecimals);
   if (tickStep != null && tickStep.isFinite && tickStep != 0) {
     final displayStep =
         (_displayValue(metric, value + tickStep, units) - display).abs();

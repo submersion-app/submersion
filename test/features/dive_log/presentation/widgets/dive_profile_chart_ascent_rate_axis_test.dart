@@ -9,6 +9,7 @@ import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/ascent_rate_axis_labels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -96,6 +97,21 @@ Map<String, double> _rightTicks(WidgetTester tester) => {
           .dy,
 };
 
+/// The ascent-rate axis labels, by label, with each one's vertical centre.
+/// They are an overlay at fixed plot fractions, not fl_chart side titles.
+Map<String, double> _rateLabels(WidgetTester tester) => {
+  for (final element
+      in find
+          .descendant(
+            of: find.byType(AscentRateAxisLabels),
+            matching: find.byType(Text),
+          )
+          .evaluate())
+    (element.widget as Text).data!: tester
+        .getCenter(find.byWidget(element.widget))
+        .dy,
+};
+
 double _parse(String label) => double.parse(label.replaceAll('+', ''));
 
 /// Zooms both axes in about the plot centre. At 1x the bars' scale and a
@@ -141,13 +157,38 @@ void main() {
     _legend(tester).setRightAxisMetric(ProfileRightAxisMetric.ascentRate);
     await tester.pumpAndSettle();
 
-    final ticks = _rightTicks(tester);
+    final ticks = _rateLabels(tester);
     expect(ticks.keys, contains('0'));
     final mid = _plotMidY(tester);
     expect(ticks['0'], closeTo(mid, 2));
     for (final MapEntry(key: label, value: y) in ticks.entries) {
       if (y < mid - 2) expect(label, startsWith('+'), reason: label);
       if (y > mid + 2) expect(label, startsWith('-'), reason: label);
+    }
+  });
+
+  testWidgets('after a both-axes zoom and a depth pan, 0 stays on the bars '
+      'baseline', (tester) async {
+    await _pump(tester, _deepProfile());
+    _legend(tester).setRightAxisMetric(ProfileRightAxisMetric.ascentRate);
+    await tester.pumpAndSettle();
+    final unzoomed = _rateLabels(tester);
+    await _zoomIn(tester);
+    final drag = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await drag.down(tester.getCenter(find.byType(LineChart).first));
+    for (var i = 0; i < 6; i++) {
+      await drag.moveBy(const Offset(0, 23));
+      await tester.pump();
+    }
+    await drag.up();
+    await tester.pumpAndSettle();
+
+    // The same five labels in the same places as at 1x: the scale is the
+    // bars', fixed to the plot, whatever depth window is showing.
+    final labels = _rateLabels(tester);
+    expect(labels.keys, unzoomed.keys);
+    for (final MapEntry(key: label, value: y) in labels.entries) {
+      expect(y, closeTo(unzoomed[label]!, 0.5), reason: label);
     }
   });
 
@@ -159,7 +200,7 @@ void main() {
     await tester.pumpAndSettle();
     await _zoomIn(tester);
 
-    final values = _rightTicks(tester).keys.map(_parse).toList();
+    final values = _rateLabels(tester).keys.map(_parse).toList();
     for (final v in values) {
       expect(v.isFinite, isTrue);
     }
@@ -183,7 +224,7 @@ void main() {
     await tester.pumpAndSettle();
     await _zoomIn(tester);
 
-    final top = _rightTicks(
+    final top = _rateLabels(
       tester,
     ).keys.map(_parse).reduce((a, b) => a > b ? a : b);
     const floorFeet =
@@ -216,9 +257,9 @@ void main() {
 
       await hoverOverAscentBar(tester);
 
-      expect(_rightTicks(tester).keys, contains('0'));
+      expect(_rateLabels(tester).keys, contains('0'));
       expect(
-        _rightTicks(tester).keys.where((k) => k.startsWith('+')),
+        _rateLabels(tester).keys.where((k) => k.startsWith('+')),
         isNotEmpty,
       );
     });
@@ -231,6 +272,7 @@ void main() {
       await hoverOverAscentBar(tester);
 
       expect(_rightTicks(tester), isEmpty);
+      expect(_rateLabels(tester), isEmpty);
     });
   });
 }
