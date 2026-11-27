@@ -905,10 +905,10 @@ jobs:
           python3 scripts/dive_site_harvester_test.py
 
       - name: Run appcast beta feed test
-        run: ./scripts/generate_appcast_beta_test.sh
+        run: ./scripts/release/generate_appcast_beta_test.sh
 
       - name: Run release notes HTML test
-        run: ./scripts/generate_release_notes_html_test.sh
+        run: ./scripts/release/generate_release_notes_html_test.sh
 
       - name: Run beta release notes test
         run: ./scripts/release/beta_release_notes_test.sh
@@ -2034,7 +2034,7 @@ jobs:
       # hosted runner image happens to ship the headers today, so declaring
       # it keeps a future image change from silently breaking the build.
       # binutils supplies readelf for the glibc floor check and for
-      # scripts/linux_package_deps.py in the packaging step, on the same
+      # scripts/release/linux_package_deps.py in the packaging step, on the same
       # reasoning.
       - name: Install Linux dependencies
         run: |

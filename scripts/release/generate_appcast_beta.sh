@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Generates appcast-beta.xml for the Sparkle/WinSparkle beta channel.
 #
-# Usage: ./scripts/generate_appcast_beta.sh <version> <build_number> <date> \
+# Usage: ./scripts/release/generate_appcast_beta.sh <version> <build_number> <date> \
 #          <macos_dmg_url> <windows_url> <release_notes_html_file> [stable_appcast_path]
 #
 # Same arguments and env contract as generate_appcast.sh

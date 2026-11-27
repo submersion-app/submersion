@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Converts markdown release notes to a simple HTML page for Sparkle/WinSparkle.
 #
-# Usage: ./scripts/generate_release_notes_html.sh < release-notes.md > release-notes.html
-#        cat release-notes.md | ./scripts/generate_release_notes_html.sh > release-notes.html
+# Usage: ./scripts/release/generate_release_notes_html.sh < release-notes.md > release-notes.html
+#        cat release-notes.md | ./scripts/release/generate_release_notes_html.sh > release-notes.html
 #
 # Reads markdown from stdin, writes HTML to stdout.
 # Handles ## headings, ### subheadings, and - bullet points.

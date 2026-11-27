@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for linux_package_deps.py.
 
-Run: python3 scripts/linux_package_deps_test.py
+Run: python3 scripts/release/linux_package_deps_test.py
 
 The regression this guards: desktop_webview_window's CMake silently falls back
 from webkit2gtk-4.1 to 4.0 when 4.1 is absent at build time, which changes what

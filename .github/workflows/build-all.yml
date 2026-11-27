@@ -642,7 +642,7 @@ jobs:
       # is why the job is pinned and why "Check glibc floor" runs below
       # (issue #3523). Move the pin only together with the docs.
       #
-      # binutils supplies readelf for scripts/linux_package_deps.py and
+      # binutils supplies readelf for scripts/release/linux_package_deps.py and
       # scripts/checks/check_glibc_floor.py; the hosted image already has it, and it
       # is named here so a future image change cannot remove it silently.
       - name: Install Linux dependencies
@@ -753,8 +753,8 @@ jobs:
           cp scripts/release/linux_tarball_extras/install.sh "$BUNDLE/"
           cp scripts/release/linux_tarball_extras/uninstall.sh "$BUNDLE/"
           chmod +x "$BUNDLE/install.sh" "$BUNDLE/uninstall.sh"
-          cp scripts/data/linux_soname_map.json "$BUNDLE/deps.json"
-          python3 scripts/gen_udev_rules.py \
+          cp scripts/release/linux_soname_map.json "$BUNDLE/deps.json"
+          python3 scripts/release/gen_udev_rules.py \
             packages/libdivecomputer_plugin/third_party/libdivecomputer/src/descriptor.c \
             > "$BUNDLE/60-submersion-divecomputers.rules"
           cd "$BUNDLE"

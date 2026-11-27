@@ -131,7 +131,7 @@ jobs:
           set -euo pipefail
           git checkout "${{ steps.resolve.outputs.sha }}"
           ./scripts/release/generate_changelog.sh --notes-only > release-notes.md
-          ./scripts/generate_release_notes_html.sh < release-notes.md > release-notes.html
+          ./scripts/release/generate_release_notes_html.sh < release-notes.md > release-notes.html
           VERSION="${TAG_NAME#v}"
           export SPARKLE_EDDSA_SIGNATURE=$(python3 -c "import json;print(json.load(open('promoted/metadata.json'))['eddsaSignature'])")
           export SPARKLE_DMG_LENGTH=$(python3 -c "import json;print(json.load(open('promoted/metadata.json'))['dmgLength'])")
@@ -145,7 +145,7 @@ jobs:
             export SPARKLE_ALLOW_UNSIGNED_WINDOWS=1
           fi
           BASE="https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}"
-          ./scripts/generate_appcast.sh "$VERSION" "${{ steps.resolve.outputs.build-number }}" \
+          ./scripts/release/generate_appcast.sh "$VERSION" "${{ steps.resolve.outputs.build-number }}" \
             "$(date -R)" \
             "${BASE}/Submersion-${TAG_NAME}-macOS.dmg" \
             "${BASE}/Submersion-${TAG_NAME}-Windows-Setup.exe" \

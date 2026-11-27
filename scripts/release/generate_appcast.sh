@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Generates appcast.xml for Sparkle/WinSparkle auto-updates.
 #
-# Usage: ./scripts/generate_appcast.sh <version> <build_number> <date> <macos_dmg_url> <windows_url> <release_notes_html_file>
+# Usage: ./scripts/release/generate_appcast.sh <version> <build_number> <date> <macos_dmg_url> <windows_url> <release_notes_html_file>
 #
 # Arguments:
 #   version                  - Marketing version string (e.g. "1.1.3")

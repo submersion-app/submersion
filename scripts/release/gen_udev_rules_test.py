@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Unit tests for gen_udev_rules.py.
 
-Run: python3 scripts/gen_udev_rules_test.py
+Run: python3 scripts/release/gen_udev_rules_test.py
 
 The regression this guards: libdivecomputer's descriptor tables are C source,
 not a data file, so a submodule bump that reshapes them would make a naive

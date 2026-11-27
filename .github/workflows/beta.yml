@@ -210,7 +210,7 @@ jobs:
         run: |
           set -euo pipefail
           cp artifacts/beta-notes.md release-notes.md
-          ./scripts/generate_release_notes_html.sh < release-notes.md > release-notes.html
+          ./scripts/release/generate_release_notes_html.sh < release-notes.md > release-notes.html
 
       - name: Generate checksums and metadata
         env:
@@ -264,7 +264,7 @@ jobs:
           curl -fsSL -o stable-appcast.xml \
             "https://github.com/${{ github.repository }}/releases/latest/download/appcast.xml" \
             || : > stable-appcast.xml
-          ./scripts/generate_appcast_beta.sh "$VERSION" "$BUILD_NUMBER" "$DATE" \
+          ./scripts/release/generate_appcast_beta.sh "$VERSION" "$BUILD_NUMBER" "$DATE" \
             "${BASE}/Submersion-${TAG_NAME}-macOS.dmg" \
             "${BASE}/Submersion-${TAG_NAME}-Windows-Setup.exe" \
             release-notes.html stable-appcast.xml > appcast-beta.xml

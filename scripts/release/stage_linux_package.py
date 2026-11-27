@@ -31,7 +31,7 @@ DESCRIPTOR_C = os.path.join(
     "src",
     "descriptor.c",
 )
-GEN_UDEV = os.path.join(REPO_ROOT, "scripts", "gen_udev_rules.py")
+GEN_UDEV = os.path.join(REPO_ROOT, "scripts", "release", "gen_udev_rules.py")
 
 ICON_SIZES = (16, 32, 48, 64, 128, 256, 512)
 INSTALL_METHODS = ("deb", "rpm")

@@ -9,7 +9,7 @@ nothing catches until a user's package manager installs the wrong library.
 
 This reads DT_NEEDED out of the built artifacts instead, subtracts the
 libraries shipped inside the package, and maps what remains through
-scripts/data/linux_soname_map.json. An unmapped soname is a hard failure: the
+scripts/release/linux_soname_map.json. An unmapped soname is a hard failure: the
 alternative is a package that installs cleanly and then fails to launch, which
 is the same shape as issue #1129 (see check_bundled_native_assets.py).
 
@@ -29,7 +29,7 @@ import subprocess
 import sys
 
 DEFAULT_MAP = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "data", "linux_soname_map.json"
+    os.path.dirname(os.path.abspath(__file__)), "linux_soname_map.json"
 )
 
 _NEEDED_RE = re.compile(r"\(NEEDED\).*\[(.+?)\]")
@@ -104,7 +104,7 @@ def map_sonames(sonames, soname_map, column):
     if unmapped:
         sys.exit(
             "linux_package_deps: unmapped soname(s): %s\n"
-            "Add them to scripts/data/linux_soname_map.json. An unmapped "
+            "Add them to scripts/release/linux_soname_map.json. An unmapped "
             "library means the package would install without declaring "
             "something it needs. If a soname is reachable but never loaded, "
             "give it an \"exclude\" entry saying why." % ", ".join(unmapped)
