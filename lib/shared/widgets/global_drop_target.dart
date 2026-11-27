@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/platform/host_platform.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
 import 'package:submersion/features/buddies/presentation/utils/open_buddy_card.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -284,7 +285,7 @@ class _FrostedDropOverlay extends StatelessWidget {
                         color: const Color(0x9964B4FF),
                         width: 2,
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(Radii.r16),
                     ),
                     child: const Icon(
                       Icons.upload_file,
@@ -292,7 +293,7 @@ class _FrostedDropOverlay extends StatelessWidget {
                       color: Color(0xCC64B4FF),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: Spacing.s16),
                   Text(
                     l10n.dropTarget_title,
                     style: const TextStyle(
@@ -301,7 +302,7 @@ class _FrostedDropOverlay extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: Spacing.s4),
                   Text(
                     l10n.dropTarget_subtitle,
                     style: const TextStyle(

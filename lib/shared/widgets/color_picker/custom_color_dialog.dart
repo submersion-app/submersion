@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/utils/color_hex.dart';
 import 'package:submersion/shared/widgets/color_picker/hsv_color_controls.dart';
@@ -92,7 +93,7 @@ class _CustomColorDialogState extends State<_CustomColorDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ExcludeSemantics(child: widget.preview(shown)),
-              const SizedBox(height: 16),
+              const SizedBox(height: Spacing.s16),
               SizedBox(
                 height: 160,
                 child: SaturationValueSquare(
@@ -100,9 +101,9 @@ class _CustomColorDialogState extends State<_CustomColorDialog> {
                   onChanged: _fromControls,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.s12),
               HueSlider(color: _hsv, onChanged: _fromControls),
-              const SizedBox(height: 16),
+              const SizedBox(height: Spacing.s16),
               TextField(
                 key: const ValueKey('custom-color-hex'),
                 controller: _hex,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/core/theme/spacing.dart';
 
 /// How a scrollbar thumb looks for one set of widget states, resolved from
 /// the effective [ScrollbarTheme] with Material's per-platform defaults.
@@ -63,7 +64,7 @@ class ListScrubberThumbStyle {
       color: scrollbar.thumbColor?.resolve(states) ?? fallback,
       radius:
           scrollbar.radius ??
-          (android ? Radius.zero : const Radius.circular(8)),
+          (android ? Radius.zero : const Radius.circular(Radii.r8)),
       crossAxisMargin: scrollbar.crossAxisMargin ?? (android ? 0 : 2),
     );
   }

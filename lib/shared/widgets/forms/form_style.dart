@@ -7,9 +7,14 @@ abstract final class FormStyle {
   /// Corner radius of section groups and collapsed bars.
   static const double groupRadius = 13;
 
+  /// Horizontal inset of a row's content: the 14 of [rowPadding]. Captions,
+  /// overlines and inline inputs use it so their text lines up with the row
+  /// labels above and below them.
+  static const double rowInset = 14;
+
   /// Padding inside a label/value row.
   static const EdgeInsets rowPadding = EdgeInsets.symmetric(
-    horizontal: 14,
+    horizontal: rowInset,
     vertical: 11,
   );
 
@@ -84,9 +89,15 @@ abstract final class FormStyle {
 
   /// Padding of the header row inside a section card.
   static const EdgeInsets headerPadding = EdgeInsets.symmetric(
-    horizontal: 14,
+    horizontal: rowInset,
     vertical: 12,
   );
+
+  /// Gap between a section header's icon and its title.
+  static const double headerIconGap = 10;
+
+  /// Space above an overline, between it and the rows it follows.
+  static const double overlineTopGap = 10;
 
   /// Section title inside the card header.
   static TextStyle sectionTitleStyle(BuildContext context) {

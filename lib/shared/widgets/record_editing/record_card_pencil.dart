@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/theme/record_pencil_colors.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
@@ -98,7 +99,7 @@ class RecordCardPencil extends StatelessWidget {
           dimension: 8,
           child: frame.isChanged ? const RecordChangedDot() : null,
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: Spacing.s4),
         // The only way into the card: the body's own taps (the site, the
         // map) keep doing what they do while reading. A node of its own, or
         // a Card around the title row would merge it into one button named

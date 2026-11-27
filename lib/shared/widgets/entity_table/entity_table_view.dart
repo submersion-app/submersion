@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/core/utils/table_value_compare.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -489,7 +490,7 @@ class _EntityTableViewState<T, F extends EntityField>
       width: _widthOf(column),
       height: kEntityTableRowHeight,
       padding: custom == null
-          ? const EdgeInsets.symmetric(horizontal: 8)
+          ? const EdgeInsets.symmetric(horizontal: Spacing.s8)
           : EdgeInsets.zero,
       alignment: column.field.isRightAligned
           ? Alignment.centerRight
@@ -516,7 +517,7 @@ class _EntityTableViewState<T, F extends EntityField>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Flexible(child: label),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: Spacing.s6),
                     ConstrainedBox(
                       constraints: BoxConstraints(
                         maxWidth: math.max(0, (_widthOf(column) - 16 - 6) / 2),
