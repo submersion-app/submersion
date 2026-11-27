@@ -19302,6 +19302,66 @@ abstract class AppLocalizations {
   /// **'Parking availability, fees, tips'**
   String get diveSites_edit_access_parkingInfo_hint;
 
+  /// No description provided for @diveSites_edit_contact_address_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get diveSites_edit_contact_address_label;
+
+  /// No description provided for @diveSites_edit_contact_address_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Street, town and postcode'**
+  String get diveSites_edit_contact_address_hint;
+
+  /// No description provided for @diveSites_edit_contact_phone_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get diveSites_edit_contact_phone_label;
+
+  /// No description provided for @diveSites_edit_contact_phone_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking or owner number'**
+  String get diveSites_edit_contact_phone_hint;
+
+  /// No description provided for @diveSites_edit_contact_email_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get diveSites_edit_contact_email_label;
+
+  /// No description provided for @diveSites_edit_contact_email_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'name@example.com'**
+  String get diveSites_edit_contact_email_hint;
+
+  /// No description provided for @diveSites_edit_contact_website_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get diveSites_edit_contact_website_label;
+
+  /// No description provided for @diveSites_edit_contact_website_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'example.com'**
+  String get diveSites_edit_contact_website_hint;
+
+  /// No description provided for @diveSites_edit_contact_emailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an email address like name@example.com'**
+  String get diveSites_edit_contact_emailInvalid;
+
+  /// No description provided for @diveSites_edit_contact_websiteInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a web address like example.com'**
+  String get diveSites_edit_contact_websiteInvalid;
+
   /// No description provided for @diveSites_edit_access_parkingInfo_label.
   ///
   /// In en, this message translates to:

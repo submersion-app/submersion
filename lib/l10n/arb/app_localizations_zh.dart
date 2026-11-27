@@ -11557,6 +11557,38 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_edit_access_parkingInfo_hint => '停车位、费用、提示';
 
   @override
+  String get diveSites_edit_contact_address_label => 'Address';
+
+  @override
+  String get diveSites_edit_contact_address_hint => 'Street, town and postcode';
+
+  @override
+  String get diveSites_edit_contact_phone_label => 'Phone';
+
+  @override
+  String get diveSites_edit_contact_phone_hint => 'Booking or owner number';
+
+  @override
+  String get diveSites_edit_contact_email_label => 'Email';
+
+  @override
+  String get diveSites_edit_contact_email_hint => 'name@example.com';
+
+  @override
+  String get diveSites_edit_contact_website_label => 'Website';
+
+  @override
+  String get diveSites_edit_contact_website_hint => 'example.com';
+
+  @override
+  String get diveSites_edit_contact_emailInvalid =>
+      'Enter an email address like name@example.com';
+
+  @override
+  String get diveSites_edit_contact_websiteInvalid =>
+      'Enter a web address like example.com';
+
+  @override
   String get diveSites_edit_access_parkingInfo_label => '停车信息';
 
   @override
