@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/core/utils/locale_number_symbols.dart';
 import 'package:submersion/core/utils/number_display.dart';
@@ -57,10 +58,11 @@ class ExposureHeadline extends StatelessWidget {
         Expanded(
           child: _StatTile(
             label: l10n.equipmentCondition_exposure_hoursLabel,
-            value: formatFixedForDisplay(
-              totals.byUnit[ExposureUnit.hours] ?? 0,
-              1,
-            ),
+            // Grouped like the dives beside it, one decimal as on the chips.
+            value: NumberFormat.decimalPatternDigits(
+              locale: Intl.getCurrentLocale(),
+              decimalDigits: 1,
+            ).format(totals.byUnit[ExposureUnit.hours] ?? 0),
           ),
         ),
       ],

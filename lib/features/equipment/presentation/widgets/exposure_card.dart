@@ -52,7 +52,8 @@ class ExposureCard extends ConsumerWidget {
                 ),
                 HeaderInfoButton(
                   title: l10n.equipmentCondition_exposure_title,
-                  // The units with a chip on the card when tapped.
+                  // The units the card shows when tapped: the dives and
+                  // hours tiles and the other units' chips.
                   content: (context) => equipmentExposureInfo(
                     context.l10n,
                     infoUnits(context),
@@ -108,7 +109,13 @@ class ExposureCard extends ConsumerWidget {
         ExposureHeadline(totals: totals, usage: usage, units: units),
         if (usage != null && !usage.isEmpty) ...[
           const SizedBox(height: 16),
-          ExposureUsageChart(history: usage, units: units),
+          // Keyed by the item: the detail pane swaps items in place, and
+          // each item opens on 12 months, never on the last one's range.
+          ExposureUsageChart(
+            key: ValueKey(equipmentId),
+            history: usage,
+            units: units,
+          ),
         ],
         if (chips.isNotEmpty) ...[
           const SizedBox(height: 12),

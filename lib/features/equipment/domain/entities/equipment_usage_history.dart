@@ -18,6 +18,13 @@ class UsageBucket extends Equatable {
     required this.hours,
   });
 
+  UsageBucket copyWith({DateTime? start, int? dives, double? hours}) =>
+      UsageBucket(
+        start: start ?? this.start,
+        dives: dives ?? this.dives,
+        hours: hours ?? this.hours,
+      );
+
   @override
   List<Object?> get props => [start, dives, hours];
 }
@@ -59,6 +66,20 @@ class EquipmentUsageHistory extends Equatable {
   );
 
   bool get isEmpty => lastDive == null;
+
+  EquipmentUsageHistory copyWith({
+    List<UsageBucket>? monthly,
+    List<UsageBucket>? yearly,
+    int? divesLast12Months,
+    DateTime? lastDive,
+    LastDivedAgo? lastDivedAgo,
+  }) => EquipmentUsageHistory(
+    monthly: monthly ?? this.monthly,
+    yearly: yearly ?? this.yearly,
+    divesLast12Months: divesLast12Months ?? this.divesLast12Months,
+    lastDive: lastDive ?? this.lastDive,
+    lastDivedAgo: lastDivedAgo ?? this.lastDivedAgo,
+  );
 
   @override
   List<Object?> get props => [

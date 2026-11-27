@@ -297,6 +297,12 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
     // leave unlabelled lines (issue #219).
     // The steps are chosen in axis units and scaled back to counts, so an
     // hour-scaled axis over minute bars still ticks in whole hours.
+    // A rod never fills its slot: 20 px, 12 px once crowded, and never
+    // wider than 70 percent of the slot, so decades of yearly bars at
+    // phone width keep a gap between them (issue #5074).
+    final slot = _slotWidth(chartWidth);
+    final rodCap = data.length > 12 ? 12.0 : 20.0;
+    final rodWidth = slot > 0 && slot * 0.7 < rodCap ? slot * 0.7 : rodCap;
     final scale = widget.yAxisScale;
     final unitAxis = ChartAxis.forCounts(maxCount / scale);
     final axis = ChartAxis(
@@ -423,7 +429,7 @@ class _CategoryBarChartState extends State<CategoryBarChart> {
                 color: marked == null || marked == index
                     ? color
                     : color.withValues(alpha: 0.35),
-                width: data.length > 12 ? 12 : 20,
+                width: rodWidth,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(4),
                 ),

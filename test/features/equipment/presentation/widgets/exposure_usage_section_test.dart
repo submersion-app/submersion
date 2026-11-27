@@ -188,9 +188,56 @@ void main() {
     );
 
     expect(find.text('15,000'), findsOneWidget);
-    expect(find.text('12345.6'), findsOneWidget);
+    expect(find.text('12,345.6'), findsOneWidget);
     expect(find.text('7 days ago'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('another item opens on 12 months, whatever the last one showed', (
+    tester,
+  ) async {
+    final mask = [_s(DateTime.utc(2026, 10, 1))];
+    // One container for the whole test, as the app keeps one: an item
+    // visited before has its history cached, so its card builds with data
+    // on the first frame and nothing unmounts the chart in between.
+    final container = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        for (final (key, samples) in [('reg', idleSince), ('mask', mask)]) ...[
+          equipmentExposureTotalsProvider(
+            key,
+          ).overrideWith((ref) async => _totals(samples)),
+          equipmentUsageHistoryProvider(
+            key,
+          ).overrideWith((ref) async => _usage(samples)),
+        ],
+      ],
+    );
+    addTearDown(container.dispose);
+    Widget app(String id) => UncontrolledProviderScope(
+      container: container,
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(child: ExposureCard(equipmentId: id)),
+        ),
+      ),
+    );
+    await tester.pumpWidget(app('mask'));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(app('reg'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('All years'));
+    await tester.pumpAndSettle();
+    expect(_bars(tester), hasLength(8));
+
+    // The detail pane swaps the item in place, as master-detail does.
+    await tester.pumpWidget(app('mask'));
+    await tester.pumpAndSettle();
+
+    expect(_bars(tester), hasLength(12));
   });
 
   testWidgets('a dive today reads as Today', (tester) async {

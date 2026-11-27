@@ -126,6 +126,21 @@ void main() {
     });
   });
 
+  group('copyWith', () {
+    test('replaces only the fields given', () {
+      final bucket = UsageBucket(start: DateTime.utc(2026), dives: 1, hours: 2);
+      expect(
+        bucket.copyWith(dives: 5),
+        UsageBucket(start: DateTime.utc(2026), dives: 5, hours: 2),
+      );
+      final history = _build([_s(DateTime.utc(2026, 11, 2))]);
+      final copy = history.copyWith(divesLast12Months: 9);
+      expect(copy.divesLast12Months, 9);
+      expect(copy.monthly, history.monthly);
+      expect(copy.lastDivedAgo, history.lastDivedAgo);
+    });
+  });
+
   group('lastDivedAgo', () {
     LastDivedAgo ago(DateTime last) =>
         lastDivedAgo(lastDive: last, today: _today);

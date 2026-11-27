@@ -76,6 +76,20 @@ void main() {
     expect(find.text('2026'), findsNothing);
   });
 
+  testWidgets('bars stay narrower than their slots when there are many', (
+    tester,
+  ) async {
+    // 31 bars share about 344 px: 11 px each, under the 12 px rod width a
+    // crowded chart used to draw, so neighbouring bars overlapped.
+    await _pump(tester, years);
+
+    final chart = tester.widget<BarChart>(find.byType(BarChart));
+    const slot = (390 - 44 - 2) / 31;
+    for (final group in chart.data.barGroups) {
+      expect(group.barRods.single.width, lessThan(slot));
+    }
+  });
+
   testWidgets('labels that fit are all drawn even with thinning on', (
     tester,
   ) async {
