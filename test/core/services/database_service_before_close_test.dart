@@ -78,7 +78,7 @@ void main() {
   test('resetForTesting restores the hook limit', () async {
     service.beforeCloseHookTimeout = const Duration(milliseconds: 1);
     service.resetForTesting();
-    expect(service.beforeCloseHookTimeout, const Duration(seconds: 3));
+    expect(service.beforeCloseHookTimeout, const Duration(seconds: 4));
   });
 
   test('resetForTesting withdraws the published database', () async {

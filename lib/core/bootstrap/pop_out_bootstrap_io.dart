@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'package:submersion/core/database/background_database_connection.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/database/read_only_query_interceptor.dart';
@@ -97,18 +98,37 @@ Future<bool> _joinDatabases(PopOutChannel channel) async {
     interceptor: ReadOnlyQueryInterceptor(onRefused: reportRefusal),
   );
   if (main == null) return false;
-  DatabaseService.instance.attachSharedDatabase(AppDatabase(main));
   final cache = await connectToPublishedDatabase(
     kLocalCacheDatabasePortName,
     interceptor: ReadOnlyQueryInterceptor(onRefused: reportRefusal),
   );
-  // Without the cache, every screen part that reads it would fail; show
-  // the could-not-connect message instead.
-  if (cache == null) return false;
+  final mainDatabase = AppDatabase(main);
+  if (cache == null) {
+    // Without the cache, every part that reads it would fail; the window
+    // shows the could-not-connect message instead, and lets go of the main
+    // database rather than hold a connection nothing will use.
+    await closeDatabaseForAppShutdown(mainDatabase);
+    return false;
+  }
+  DatabaseService.instance.attachSharedDatabase(mainDatabase);
   LocalCacheDatabaseService.instance.attachSharedDatabase(
     LocalCacheDatabase(cache),
   );
   return true;
+}
+
+/// Lets go of the main window's databases. Closing a shared client only
+/// disconnects it; the main window's workers carry on.
+Future<void> _leaveDatabases() async {
+  final main = DatabaseService.instance.databaseOrNull;
+  if (main != null) await closeDatabaseForAppShutdown(main);
+  try {
+    await closeDatabaseForAppShutdown(
+      LocalCacheDatabaseService.instance.database,
+    );
+  } on StateError {
+    // Never attached.
+  }
 }
 
 Future<void> _placeWindow(PopOutLaunch launch) async {
@@ -180,28 +200,40 @@ class _PopOutWindowEvents with WindowListener {
     });
   }
 
-  /// The diver closed the window: tell the main window, then close.
-  /// A close the main window asked for has already dropped the hold, and
-  /// needs no report.
+  bool _closing = false;
+
+  /// The window is closing, from its own button or because the main window
+  /// asked (CloseMessage). The close is held until this has let go of the
+  /// databases and told the main window, so the main window can close them
+  /// as soon as it hears.
   @override
   Future<void> onWindowClose() async {
-    if (!await windowManager.isPreventClose()) return;
+    if (_closing) return;
+    _closing = true;
     _frameReport?.cancel();
-    final bounds = await windowManager.getBounds();
-    await _channel.send(
-      FrameMessage(
-        PopOutFrame(
-          x: bounds.left,
-          y: bounds.top,
-          width: bounds.width,
-          height: bounds.height,
+    try {
+      final bounds = await windowManager.getBounds();
+      await _channel.send(
+        FrameMessage(
+          PopOutFrame(
+            x: bounds.left,
+            y: bounds.top,
+            width: bounds.width,
+            height: bounds.height,
+          ),
         ),
-      ),
-    );
-    await _channel.send(const ClosedMessage());
-    // Never windowManager.destroy(): on macOS it terminates the whole app.
-    await windowManager.setPreventClose(false);
-    await windowManager.close();
+      );
+      // Inside the main window's wait for this (PopOutHost's close wait).
+      await _leaveDatabases().timeout(
+        const Duration(milliseconds: 1500),
+        onTimeout: () {},
+      );
+      await _channel.send(const ClosedMessage());
+    } finally {
+      // Never windowManager.destroy(): on macOS it terminates the whole app.
+      await windowManager.setPreventClose(false);
+      await windowManager.close();
+    }
   }
 }
 

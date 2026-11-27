@@ -275,7 +275,9 @@ void main() {
         async.flushMicrotasks();
         var done = false;
         host().close().then((_) => done = true);
-        async.elapse(const Duration(seconds: 3));
+        async.elapse(const Duration(seconds: 2));
+        expect(done, isFalse);
+        async.elapse(const Duration(seconds: 2));
         expect(done, isTrue);
         expect(container.read(popOutHostProvider), isFalse);
       });

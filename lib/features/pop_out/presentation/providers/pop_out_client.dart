@@ -41,15 +41,12 @@ class _WindowManagerControl implements PopOutWindowControl {
   @override
   Future<void> focus() => windowManager.focus();
 
-  // The window's own close is held back (setPreventClose) so the main
-  // window hears about it first. Dropping the hold before closing marks the
-  // close as asked for. Never windowManager.destroy(): on macOS it
-  // terminates the whole app.
+  // The window's close is held (setPreventClose), so this runs the same
+  // close as the window's own button: the pop-out lets go of the database,
+  // tells the main window, then closes (see the bootstrap's window events).
+  // Never windowManager.destroy(): on macOS it terminates the whole app.
   @override
-  Future<void> close() async {
-    await windowManager.setPreventClose(false);
-    await windowManager.close();
-  }
+  Future<void> close() => windowManager.close();
 
   @override
   Future<void> setTitle(String title) => windowManager.setTitle(title);
@@ -133,7 +130,7 @@ class PopOutClient extends Notifier<PopOutClientState> {
         _gate.noteReceived(diveId, seconds);
         ref.read(profileReviewProvider(diveId).notifier).state = seconds;
       case PrefsMessage(:final values):
-        unawaited(_applyPrefs(values));
+        _queuePrefs(values);
       case LockMessage(:final locked):
         state = state.copyWith(locked: locked);
       case FocusRequestMessage():
@@ -149,6 +146,30 @@ class PopOutClient extends Notifier<PopOutClientState> {
     final control = ref.read(popOutWindowControlProvider);
     await control.show();
     await control.focus();
+  }
+
+  /// The newest snapshot not applied yet. Snapshots apply one at a time and
+  /// a newer one replaces any still waiting: applied together, an older one
+  /// could write a key the newer one had already cleared.
+  Map<String, Object>? _waitingPrefs;
+  bool _applyingPrefs = false;
+
+  void _queuePrefs(Map<String, Object> values) {
+    _waitingPrefs = values;
+    if (!_applyingPrefs) unawaited(_drainPrefs());
+  }
+
+  Future<void> _drainPrefs() async {
+    _applyingPrefs = true;
+    try {
+      while (_waitingPrefs != null) {
+        final next = _waitingPrefs!;
+        _waitingPrefs = null;
+        await _applyPrefs(next);
+      }
+    } finally {
+      _applyingPrefs = false;
+    }
   }
 
   /// Makes this window's in-memory prefs match the main window's, then

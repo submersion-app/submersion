@@ -209,4 +209,18 @@ void main() {
     await pumpEventQueue();
     expect(control.calls.last, 'close');
   });
+
+  test('rapid prefs messages land in order, the newest last', () async {
+    final c = await build(launchOn('a'), settings: _CountingSettings());
+    // The first snapshot has a key the second no longer has: applied
+    // together, the second's clean-up runs before the first writes it.
+    channel.deliver(
+      const PrefsMessage({currentDiverIdKey: 'diver-2', 'display_zoom': 1.2}),
+    );
+    channel.deliver(const PrefsMessage({currentDiverIdKey: 'diver-3'}));
+    await pumpEventQueue();
+    expect(prefs.getString(currentDiverIdKey), 'diver-3');
+    expect(prefs.containsKey('display_zoom'), isFalse);
+    expect(c.read(currentDiverIdProvider), 'diver-3');
+  });
 }

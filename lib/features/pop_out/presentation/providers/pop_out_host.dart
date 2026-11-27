@@ -19,8 +19,10 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 const _log = LoggerService('PopOutHost');
 
-/// How long a close waits for the pop-out to confirm it closed.
-const _closeWait = Duration(seconds: 2);
+/// How long a close waits for the pop-out to confirm it closed: longer than
+/// the pop-out takes to let go of the database (1.5 s), shorter than the
+/// database service's before-close hook limit (4 s).
+const _closeWait = Duration(seconds: 3);
 
 /// The main window's side of the profile pop-out (issue #5078). State: open.
 final popOutHostProvider = NotifierProvider<PopOutHost, bool>(PopOutHost.new);
