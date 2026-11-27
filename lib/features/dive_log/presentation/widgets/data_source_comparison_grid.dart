@@ -15,9 +15,24 @@ part of 'data_sources_section.dart';
 /// natural width, capped at [DataSourcesSection.maxScrollingCellWidth], and
 /// the table scrolls sideways.
 class _SourceComparisonGrid extends StatelessWidget {
-  const _SourceComparisonGrid({required this.sources, required this.units});
+  const _SourceComparisonGrid({
+    required this.sources,
+    required this.units,
+    required this.viewedSourceId,
+    required this.actionsFor,
+    required this.operationReason,
+  });
   final List<DiveDataSource> sources;
   final UnitFormatter units;
+
+  /// The source being viewed (tap-to-view), whose column is marked.
+  final String? viewedSourceId;
+
+  /// The menu actions and tap-to-view for one source's column.
+  final _SourceActions Function(DiveDataSource source) actionsFor;
+
+  /// Why the menu's operations are unavailable, or null when they are.
+  final String? operationReason;
 
   static const _cellPadding = EdgeInsetsDirectional.fromSTEB(0, 6, 12, 6);
 
@@ -30,8 +45,6 @@ class _SourceComparisonGrid extends StatelessWidget {
       color: colorScheme.onSurfaceVariant,
     );
     final valueStyle = textTheme.bodyMedium;
-    final headerStyle = textTheme.labelLarge;
-    final labels = _labelsOf(context);
 
     final rows = <(String, String? Function(DiveDataSource))>[
       (
@@ -110,16 +123,31 @@ class _SourceComparisonGrid extends StatelessWidget {
             // header is left blank rather than titled "Metric".
             const SizedBox.shrink(),
             for (final s in sources)
-              Padding(
-                padding: _cellPadding,
-                child: sourceCell(
-                  Text(
-                    resolveSourceName(s, labels),
-                    style: s.isPrimary
-                        ? headerStyle?.copyWith(fontWeight: FontWeight.bold)
-                        : headerStyle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+              KeyedSubtree(
+                key: DataSourcesSection.cardKey(s.id),
+                child: Material(
+                  color: s.id == viewedSourceId
+                      ? colorScheme.surfaceContainerHighest
+                      : Colors.transparent,
+                  child: InkWell(
+                    onTap: actionsFor(s).onTap,
+                    child: Padding(
+                      // A menu button brings its own inset at the end.
+                      padding: EdgeInsetsDirectional.fromSTEB(
+                        0,
+                        2,
+                        actionsFor(s).hasMenuFor(s) ? 0 : 12,
+                        6,
+                      ),
+                      child: sourceCell(
+                        _SourceColumnHeader(
+                          source: s,
+                          isViewing: s.id == viewedSourceId,
+                          actions: actionsFor(s),
+                          operationReason: operationReason,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),

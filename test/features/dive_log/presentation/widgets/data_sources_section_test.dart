@@ -642,6 +642,124 @@ void main() {
       expect(find.text('31.0m'), findsOneWidget);
     });
 
+    // A source used to be named twice: as a table column and as a card
+    // beneath the table (#5081). Its column header is now its one entry.
+    testWidgets('a multi-source dive shows one entry per source', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              operationReason: null,
+              dataSources: [
+                _makeSource(id: 'src-1', isPrimary: true),
+                _makeSource(
+                  id: 'src-2',
+                  computerId: 'comp-2',
+                  isPrimary: false,
+                  computerModel: 'Suunto D5',
+                ),
+              ],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.watch), findsNothing);
+      expect(find.byType(Divider), findsNothing);
+      expect(find.text('Suunto D5'), findsOneWidget);
+      for (final id in ['src-1', 'src-2']) {
+        expect(
+          find.descendant(
+            of: find.byKey(DataSourcesSection.comparisonGridKey),
+            matching: find.byKey(DataSourcesSection.cardKey(id)),
+          ),
+          findsOneWidget,
+        );
+      }
+    });
+
+    testWidgets('the column header shows the model under a renamed computer', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              operationReason: null,
+              dataSources: [
+                _makeSource(
+                  id: 'src-1',
+                  isPrimary: true,
+                  computerName: 'My Perdix',
+                  computerModel: 'Shearwater Perdix 2',
+                ),
+                _makeSource(
+                  id: 'src-2',
+                  computerId: 'comp-2',
+                  isPrimary: false,
+                  computerModel: 'Suunto D5',
+                ),
+              ],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final header = find.byKey(DataSourcesSection.cardKey('src-1'));
+      for (final text in ['My Perdix', 'Shearwater Perdix 2']) {
+        expect(find.text(text), findsOneWidget);
+        expect(
+          find.descendant(of: header, matching: find.text(text)),
+          findsOneWidget,
+        );
+      }
+    });
+
+    testWidgets('a header whose menu would be empty has no menu button', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          child: SingleChildScrollView(
+            child: DataSourcesSection(
+              operationReason: null,
+              dataSources: [
+                _makeSource(id: 'src-1', isPrimary: true),
+                _makeSource(
+                  id: 'src-2',
+                  computerId: 'comp-2',
+                  isPrimary: false,
+                  computerModel: 'Suunto D5',
+                ),
+              ],
+              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
+              diveId: 'dive-1',
+              units: _units,
+              onSetPrimary: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      Finder menuIn(String id) => find.descendant(
+        of: find.byKey(DataSourcesSection.cardKey(id)),
+        matching: find.byIcon(Icons.more_vert),
+      );
+      expect(menuIn('src-1'), findsNothing);
+      expect(menuIn('src-2'), findsOneWidget);
+    });
+
     testWidgets('comparison table fits two sources at phone width', (
       tester,
     ) async {
@@ -677,6 +795,12 @@ void main() {
               diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
               diveId: 'dive-1',
               units: _units,
+              // Both headers carry chips and a menu button: the widest
+              // the two columns get.
+              viewedSourceId: 'src-1',
+              onSetPrimary: (_) {},
+              onSplit: (_) {},
+              onTapSource: (_) {},
             ),
           ),
         ),
@@ -693,6 +817,14 @@ void main() {
         tester.getRect(find.text('Garmin Descent Mk3i').first).right,
         lessThanOrEqualTo(390),
       );
+      final menus = find.descendant(
+        of: grid,
+        matching: find.byIcon(Icons.more_vert),
+      );
+      expect(menus, findsNWidgets(2));
+      for (var i = 0; i < 2; i++) {
+        expect(tester.getRect(menus.at(i)).right, lessThanOrEqualTo(390));
+      }
     });
 
     testWidgets('comparison table scrolls sideways for three or more sources', (
@@ -720,6 +852,9 @@ void main() {
               diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
               diveId: 'dive-1',
               units: _units,
+              viewedSourceId: 'src-0',
+              onSetPrimary: (_) {},
+              onSplit: (_) {},
             ),
           ),
         ),
@@ -727,6 +862,17 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
+      // A header, chips and menu button included, never widens its
+      // column past the cap: the column is the capped value plus the
+      // cells' 12 px end inset.
+      for (var i = 0; i < 3; i++) {
+        expect(
+          tester
+              .getSize(find.byKey(DataSourcesSection.cardKey('src-$i')))
+              .width,
+          lessThanOrEqualTo(DataSourcesSection.maxScrollingCellWidth + 12),
+        );
+      }
       expect(
         find.ancestor(
           of: find.byKey(DataSourcesSection.comparisonGridKey),
@@ -855,9 +1001,6 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Tap the secondary card (find by model name). The comparison grid
-      // header also renders the model name, so target the card's copy
-      // specifically (rendered after the grid in the widget tree).
       await tester.tap(find.text('Suunto D5').last);
       await tester.pumpAndSettle();
 
@@ -1333,34 +1476,7 @@ void main() {
     });
   });
 
-  group('Multi-source cards', () {
-    testWidgets('shows divider between cards', (tester) async {
-      final primary = _makeSource(id: 'src-1', isPrimary: true);
-      final secondary = _makeSource(
-        id: 'src-2',
-        isPrimary: false,
-        computerModel: 'Suunto D5',
-      );
-
-      await tester.pumpWidget(
-        testApp(
-          child: SingleChildScrollView(
-            child: DataSourcesSection(
-              operationReason: null,
-              dataSources: [primary, secondary],
-              diveCreatedAt: DateTime(2026, 3, 20, 10, 0),
-              diveId: 'dive-1',
-              units: _units,
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // One below the comparison grid, one between the two cards.
-      expect(find.byType(Divider), findsNWidgets(2));
-    });
-
+  group('Multi-source entries', () {
     testWidgets('primary card has no coloured left border', (tester) async {
       final primary = _makeSource(id: 'src-1', isPrimary: true);
       final secondary = _makeSource(
@@ -1435,7 +1551,7 @@ void main() {
       expect(splitId, equals('src-2'));
     });
 
-    testWidgets('three sources show three dividers', (tester) async {
+    testWidgets('three sources: one Primary chip, no dividers', (tester) async {
       final src1 = _makeSource(
         id: 'src-1',
         isPrimary: true,
@@ -1467,9 +1583,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Two dividers between three cards
-      // One below the comparison grid, two between the three cards.
-      expect(find.byType(Divider), findsNWidgets(3));
+      // The table is the whole body: no cards, so nothing to divide.
+      expect(find.byType(Divider), findsNothing);
       // One Primary chip; the Secondary chip is gone (#3247).
       expect(find.text('Primary'), findsOneWidget);
       expect(find.text('Secondary'), findsNothing);
