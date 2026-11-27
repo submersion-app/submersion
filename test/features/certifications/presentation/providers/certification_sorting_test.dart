@@ -328,6 +328,32 @@ void main() {
       );
     });
 
+    // The row shows the date only, so certifications stored with different
+    // times of day (an import can carry them) still tie on that date.
+    test('same shown date ties whatever the time of day', () {
+      expect(
+        order(
+          [
+            cert(
+              'rescue',
+              name: 'Rescue',
+              agency: ssi,
+              issueDate: DateTime(2023, 3, 18, 14),
+            ),
+            cert(
+              'deep',
+              name: 'Deep',
+              agency: ssi,
+              issueDate: DateTime(2023, 3, 18, 9),
+            ),
+          ],
+          CertificationSortField.dateIssued,
+          SortDirection.descending,
+        ),
+        ['deep', 'rescue'],
+      );
+    });
+
     test('identical rows order by id whatever the input order', () {
       for (final field in CertificationSortField.values) {
         expect(order([twinY, twinX], field, SortDirection.descending), [

@@ -58,6 +58,8 @@ interchange name, compared case-sensitively, so a lowercase custom agency
 sorted after every built-in), and the title key folds accents (an initial
 like "É" sorted after "z"). Two distinct agencies that show the same name
 compare by agency id, so each keeps its own block, as the grouping does.
+The date key is the calendar day the row shows, so certifications stored
+with different times of day (an import can carry them) still tie.
 
 ## Left to the builder
 

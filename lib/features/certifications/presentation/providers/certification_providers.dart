@@ -140,6 +140,7 @@ final certificationSortProvider = Provider<SortState<CertificationSortField>>(
 /// the id, so the order is total (issue #5070): Date Issued orders a day's
 /// certifications by agency then title, Agency orders by newest first then
 /// title, and Title orders by agency then newest first.
+/// Dates compare by the calendar day the row shows, not the time of day.
 /// [SortDirection.descending] is each field's reading order (newest first;
 /// A to Z for text) and [SortDirection.ascending] reverses the whole chain,
 /// tiebreakers included.
@@ -173,8 +174,18 @@ List<Certification> applyCertificationSorting(
   );
 
   // Each key compares in reading order.
-  int byDate(Certification a, Certification b) =>
-      (b.issueDate ?? DateTime(1900)).compareTo(a.issueDate ?? DateTime(1900));
+  // The date key is the calendar day the row shows (the value's own year,
+  // month and day, as the date formatter reads them), so certifications
+  // stored with different times of day still tie and fall through to the
+  // agency and title. Undated sorts as oldest.
+  DateTime dayOf(Certification c) {
+    final d = c.issueDate;
+    return d == null
+        ? DateTime.utc(1900)
+        : DateTime.utc(d.year, d.month, d.day);
+  }
+
+  int byDate(Certification a, Certification b) => dayOf(b).compareTo(dayOf(a));
   // Two agencies showing the same name stay in separate blocks, by id, as
   // the agency grouping keeps them.
   int byAgency(Certification a, Certification b) {
