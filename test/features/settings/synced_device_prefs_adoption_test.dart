@@ -225,6 +225,35 @@ void main() {
     expect(prefs.getBool(SettingsKeys.profileMetricsFollowViewport), isTrue);
   });
 
+  // v389 (issue #5069): the Time only zoom choice adopts the same way.
+  test('a Time only pick made before a diver exists is adopted', () async {
+    final container = await containerWith({
+      SettingsKeys.profileZoomTimeOnly: true,
+    });
+    expect(container.read(settingsProvider).profileZoomTimeOnly, isTrue);
+    expect((await row('d1')).profileZoomTimeOnly, isTrue);
+  });
+
+  test('a default Time only pref is not adopted', () async {
+    final container = await containerWith({
+      SettingsKeys.profileZoomTimeOnly: false,
+    });
+    expect(container.read(settingsProvider).profileZoomTimeOnly, isFalse);
+    expect((await row('d1')).profileZoomTimeOnly, isNull);
+  });
+
+  test('with no diver the Time only pref is the store', () async {
+    final container = await containerWith({
+      SettingsKeys.profileZoomTimeOnly: true,
+    }, diverId: null);
+    expect(container.read(settingsProvider).profileZoomTimeOnly, isTrue);
+    await container
+        .read(settingsProvider.notifier)
+        .setProfileMetricsFollowViewport(true);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getBool(SettingsKeys.profileZoomTimeOnly), isTrue);
+  });
+
   test('with no diver the prefs remain the store', () async {
     final container = await containerWith({
       SettingsKeys.pscrRatio: 40.0,
@@ -245,6 +274,7 @@ class _SyncRacesAdoptionRepository extends DiverSettingsRepository {
     String diverId, {
     double? pscrRatio,
     bool? profileMetricsFollowViewport,
+    bool? profileZoomTimeOnly,
   }) async {
     await DatabaseService.instance.database.customStatement(
       'UPDATE diver_settings SET pscr_ratio = 15.0, '
@@ -254,6 +284,7 @@ class _SyncRacesAdoptionRepository extends DiverSettingsRepository {
       diverId,
       pscrRatio: pscrRatio,
       profileMetricsFollowViewport: profileMetricsFollowViewport,
+      profileZoomTimeOnly: profileZoomTimeOnly,
     );
   }
 }
@@ -272,7 +303,13 @@ class _CountingProbeRepository extends DiverSettingsRepository {
   int probes = 0;
 
   @override
-  Future<({bool pscrRatio, bool profileMetricsFollowViewport})>
+  Future<
+    ({
+      bool pscrRatio,
+      bool profileMetricsFollowViewport,
+      bool profileZoomTimeOnly,
+    })
+  >
   unsetAdoptableColumns(String diverId) {
     probes++;
     return super.unsetAdoptableColumns(diverId);
