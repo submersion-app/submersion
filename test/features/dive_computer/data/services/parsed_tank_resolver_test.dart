@@ -193,31 +193,31 @@ void main() {
       },
     );
 
-    test(
-      'uses the most-breathed gas when a transmitter spans a gas switch',
-      () {
-        // Tank 0 sampled mostly on gas 1 (32%), briefly on gas 0 (99%): the
-        // tank's gas is the dominant one.
-        final parsed = makeParsedDive(
-          gasMixes: [
-            pigeon.GasMix(index: 0, o2Percent: 99.0, hePercent: 0.0),
-            pigeon.GasMix(index: 1, o2Percent: 32.0, hePercent: 0.0),
-          ],
-          tanks: [pigeon.TankInfo(index: 0, gasMixIndex: unknownGasMixIndex)],
-          samples: [
-            sample(2, 0, 1),
-            sample(100, 0, 1),
-            sample(200, 0, 1),
-            sample(300, 0, 0),
-          ],
-        );
+    test('a transmitter spanning a gas switch with flat pressure takes the gas '
+        'it first reported on', () {
+      // Tank 0 reports on gas 1 (32%), then on gas 0 (99%) after a switch,
+      // and its pressure never falls: the first gas it reported on is its
+      // own (#5057; the pressure-drop rule lives in
+      // parsed_tank_resolver_pressure_drop_test.dart).
+      final parsed = makeParsedDive(
+        gasMixes: [
+          pigeon.GasMix(index: 0, o2Percent: 99.0, hePercent: 0.0),
+          pigeon.GasMix(index: 1, o2Percent: 32.0, hePercent: 0.0),
+        ],
+        tanks: [pigeon.TankInfo(index: 0, gasMixIndex: unknownGasMixIndex)],
+        samples: [
+          sample(2, 0, 1),
+          sample(100, 0, 1),
+          sample(200, 0, 1),
+          sample(300, 0, 0),
+        ],
+      );
 
-        final backGas = resolveParsedTanks(
-          parsed,
-        ).firstWhere((t) => t.index == 0);
-        expect(backGas.o2Percent, 32.0);
-      },
-    );
+      final backGas = resolveParsedTanks(
+        parsed,
+      ).firstWhere((t) => t.index == 0);
+      expect(backGas.o2Percent, 32.0);
+    });
 
     test('labels each transmitter with the gas breathed on its own tank', () {
       // Two transmitters (e.g. sidemount/twinset): tank 0 on gas 0 (32%),
@@ -254,24 +254,6 @@ void main() {
       expect(tanks.firstWhere((t) => t.index == 1).o2Percent, 50.0);
     });
 
-    test('breaks a sample-count tie toward the first-breathed gas', () {
-      // Equal samples on gas 1 then gas 0 for the same tank: the earliest gas
-      // (gas 1, breathed first) wins.
-      final parsed = makeParsedDive(
-        gasMixes: [
-          pigeon.GasMix(index: 0, o2Percent: 99.0, hePercent: 0.0),
-          pigeon.GasMix(index: 1, o2Percent: 32.0, hePercent: 0.0),
-        ],
-        tanks: [pigeon.TankInfo(index: 0, gasMixIndex: unknownGasMixIndex)],
-        samples: [sample(2, 0, 1), sample(100, 0, 0)],
-      );
-
-      final backGas = resolveParsedTanks(
-        parsed,
-      ).firstWhere((t) => t.index == 0);
-      expect(backGas.o2Percent, 32.0);
-    });
-
     test('honors a valid tank gasMixIndex when the computer sets it', () {
       final parsed = makeParsedDive(
         gasMixes: [
@@ -286,28 +268,6 @@ void main() {
       final tanks = resolveParsedTanks(parsed);
       final t0 = tanks.firstWhere((t) => t.index == 0);
       expect(t0.o2Percent, 50.0);
-    });
-
-    test('picks the most-breathed gas when a later gas overtakes the first', () {
-      // Tank 0 is breathed briefly on gas 0 (air) then mostly on gas 1 (32%).
-      // The dominant-gas tally must advance past the first-seen gas, so the tank
-      // is labeled 32%, not 21%.
-      final parsed = makeParsedDive(
-        gasMixes: [
-          pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0),
-          pigeon.GasMix(index: 1, o2Percent: 32.0, hePercent: 0.0),
-        ],
-        tanks: [pigeon.TankInfo(index: 0, gasMixIndex: unknownGasMixIndex)],
-        samples: [
-          sample(2, 0, 0),
-          sample(100, 0, 1),
-          sample(200, 0, 1),
-          sample(300, 0, 1),
-        ],
-      );
-
-      final t0 = resolveParsedTanks(parsed).firstWhere((t) => t.index == 0);
-      expect(t0.o2Percent, 32.0);
     });
 
     test(

@@ -12731,9 +12731,9 @@
   "diveLog_detail_sacSegments_phaseDeco": "Dekó",
   "diveLog_detail_sacSegments_timeRange": "{start}-{end} perc",
   "diveLog_detail_sacSegments_axisMinutes": "{minutes} perc",
-  "diveLog_detail_sacSegments_peak": "Csúcs {rate}, {range}",
   "diveLog_detail_sacSegments_average": "Átlag {rate}",
   "diveLog_detail_sacSegments_summaryAverage": "Átlag",
+  "diveLog_detail_sacSegments_averageMark": "átl. {rate}",
   "diveLog_detail_sacSegments_summaryPeak": "Csúcs",
   "diveLog_detail_sacSegments_summaryUsed": "Felhasznált gáz",
   "diveLog_detail_sacSegments_used": "Felhasznált",
@@ -13138,6 +13138,18 @@
       }
     }
   },
+  "equipmentCondition_exposure_lastDivedLabel": "Utolsó merülés",
+  "equipmentCondition_exposure_divesLabel": "Merülések",
+  "equipmentCondition_exposure_hoursLabel": "Órák",
+  "equipmentCondition_exposure_today": "Ma",
+  "equipmentCondition_exposure_daysAgo": "{count, plural, =1{{count} napja} other{{count} napja}}",
+  "equipmentCondition_exposure_monthsAgo": "{count, plural, =1{{count} hónapja} other{{count} hónapja}}",
+  "equipmentCondition_exposure_yearsAgo": "{count, plural, =1{{count} éve} other{{count} éve}}",
+  "equipmentCondition_exposure_lastDivedSemantic": "Utolsó merülés: {ago}, {date}",
+  "equipmentCondition_exposure_range12Months": "12 hónap",
+  "equipmentCondition_exposure_rangeAllYears": "Minden év",
+  "equipmentCondition_exposure_last12Months": "{count, plural, =0{Nincs merülés az elmúlt 12 hónapban} =1{{count} merülés az elmúlt 12 hónapban} other{{count} merülés az elmúlt 12 hónapban}}",
+  "equipmentCondition_exposure_barTooltip": "{period}\n{dives}, {hours}",
   "equipmentCondition_finding_cellOutputDeclining": "A(z) {slot}. cella kimenete {percent} százalékkal csökkent {n} merülés alatt {since} óta",
   "@equipmentCondition_finding_cellOutputDeclining": {
     "placeholders": {
@@ -19194,7 +19206,7 @@
   "info_surfaceIntervalTool_howToUse": "Adja meg az első és a második merülést és a felszíni időt. Az eredmény mutatja a minimális szünetet és a második merülés NDL-jét.",
   "info_equipment_trend_summary": "Merülésenként egy pont, így a tétel lassú változása trendként látszik az élettartama során.",
   "info_equipment_findings_summary": "Minták a tétel merüléseiben és jelentett problémáiban, amelyeket az állapotszabályok jeleztek.",
-  "info_equipment_exposure_summary": "Mennyit használták ezt a tételt, a szervizórái által használt minden egységben számolva.",
+  "info_equipment_exposure_summary": "Mennyit használták ezt a tételt, a szervizórái által használt minden egységben számolva. A diagram havonta vagy évente számolja a merüléseit, a mai napig.",
   "info_site_altitude_summary": "A hely tengerszint feletti magassága és az ottani légnyomás, amelyből a dekompressziós modell indul.",
   "info_trips_scrubberMargin_summary": "Mennyi névleges mészidő marad az út tervezett rebreatheres merüléseire.",
   "info_settings_gradientFactors_summary": "Mennyire óvatos az alkalmazás dekompressziós modellje.",

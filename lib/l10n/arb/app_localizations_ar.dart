@@ -44230,17 +44230,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'الذروة $rate عند $range';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'المتوسط $rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => 'المتوسط';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return 'المتوسط $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => 'الذروة';
@@ -45047,6 +45047,98 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'دورة بطارية واحدة',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_exposure_lastDivedLabel => 'آخر غطسة';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => 'الغطسات';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => 'الساعات';
+
+  @override
+  String get equipmentCondition_exposure_today => 'اليوم';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'منذ $count يوم',
+      many: 'منذ $count يومًا',
+      few: 'منذ $count أيام',
+      two: 'منذ يومين',
+      one: 'منذ يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'منذ $count شهر',
+      many: 'منذ $count شهرًا',
+      few: 'منذ $count أشهر',
+      two: 'منذ شهرين',
+      one: 'منذ شهر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'منذ $count سنة',
+      many: 'منذ $count سنة',
+      few: 'منذ $count سنوات',
+      two: 'منذ سنتين',
+      one: 'منذ سنة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return 'آخر غطسة $ago، في $date';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12 شهرًا';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => 'كل السنوات';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة في آخر 12 شهرًا',
+      many: '$count غطسة في آخر 12 شهرًا',
+      few: '$count غطسات في آخر 12 شهرًا',
+      two: 'غطستان في آخر 12 شهرًا',
+      one: 'غطسة واحدة في آخر 12 شهرًا',
+      zero: 'لا غطسات في آخر 12 شهرًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives، $hours';
   }
 
   @override
@@ -67138,7 +67230,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get info_equipment_exposure_summary =>
-      'مقدار استخدام هذه القطعة، محسوبًا بكل وحدة تستخدمها ساعات الصيانة الخاصة بها.';
+      'مقدار استخدام هذه القطعة، محسوبًا بكل وحدة تستخدمها ساعات الصيانة الخاصة بها. يعدّ المخطط غطساتها شهريًا أو سنويًا حتى اليوم.';
 
   @override
   String get info_site_altitude_summary =>

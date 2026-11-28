@@ -11,6 +11,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/profile/surfacing_pressure.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
@@ -37,6 +38,7 @@ import 'package:submersion/features/dive_log/domain/services/series_source_owner
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_parser.dart';
+import 'package:submersion/features/dive_computer/data/services/guessed_tank_role.dart';
 import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
 import 'package:submersion/features/dive_computer/data/services/unused_oc_gas_cleanup.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_series.dart';
@@ -1169,7 +1171,23 @@ class ReparseService {
     //
     // An Avelo Hydrotank (issue #4657) the computer tagged replaces a stored
     // back gas, by the rule resync shares (see [upgradesToHydrotank]).
+    //
+    // A stored role that is only the importer's O2 guess for a gas this parse
+    // corrects follows the corrected gas (issue #5057): an older import gave
+    // a back-gas transmitter the deco gas, and its roles with it. A
+    // registered transmitter is left out: its stored role came from the
+    // diver's registry, even when it agrees with the O2 guess.
     final computerRoles = {for (final t in resolvedTanks) t.index: t.role};
+    final parsedByIndex = {
+      for (final t in parsedTanks)
+        if (matcher.match(
+              serial: t.transmitterSerial,
+              computerId: computerId,
+              index: t.index,
+            ) ==
+            null)
+          t.index: t,
+    };
     bool roleIsComputers(DiveTank existing, int index) =>
         TankRoleSource.fromName(existing.roleSource) ==
             TankRoleSource.transmitterName ||
@@ -1179,7 +1197,9 @@ class ReparseService {
           storedRole: existing.tankRole,
           storedRoleSource: existing.roleSource,
           parsedRole: computerRoles[index],
-        );
+        ) ||
+        (parsedByIndex[index] != null &&
+            roleGuessedForCorrectedGas(existing, parsedByIndex[index]!));
 
     // With the diver's switch on, sort the stored rows of unused open-circuit
     // gases before the claim (issue #3668), judged against this parse rather
@@ -1464,6 +1484,9 @@ class ReparseService {
 
     // Backfill start/end pressure from the profile when the parsed tank summary
     // didn't provide explicit values.
+    final depths = [
+      for (final s in parsed.samples) (t: s.timeSeconds, depth: s.depthMeters),
+    ];
     for (final entry in pressuresByTank.entries) {
       final tankId = tankIdsByIndex[entry.key];
       if (tankId == null) continue;
@@ -1480,10 +1503,14 @@ class ReparseService {
       if (!needStart && !needEnd) continue;
 
       // Signal dropouts at either end of the series must not become the
-      // recorded pressure (#2441).
-      final endpoints = cleanSeriesEndpoints([
+      // recorded pressure (#2441), nor a valve closed on the surface after
+      // the dive (#5000), as on a download.
+      final readings = [
         for (final p in entry.value) (t: p.timestamp, bar: p.pressure),
-      ]);
+      ];
+      final endpoints = trimTankPressureAtSurfacing
+          ? seriesEndpointsAtSurfacing(readings, depths: depths)
+          : cleanSeriesEndpoints(readings);
       if (endpoints == null) continue;
       await (db.update(db.diveTanks)..where((t) => t.id.equals(tankId))).write(
         DiveTanksCompanion(

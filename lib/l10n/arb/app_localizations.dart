@@ -68397,12 +68397,6 @@ abstract class AppLocalizations {
   /// **'{minutes} min'**
   String diveLog_detail_sacSegments_axisMinutes(String minutes);
 
-  /// Shown under the time chart when no segment is selected
-  ///
-  /// In en, this message translates to:
-  /// **'Peak {rate} at {range}'**
-  String diveLog_detail_sacSegments_peak(String rate, String range);
-
   /// Collapsed subtitle of the gas consumption by segment card
   ///
   /// In en, this message translates to:
@@ -68414,6 +68408,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Average'**
   String get diveLog_detail_sacSegments_summaryAverage;
+
+  /// Label on the line marking the dive average in the gas consumption by segment chart, such as avg 18. Keep it short: it sits inside the chart
+  ///
+  /// In en, this message translates to:
+  /// **'avg {rate}'**
+  String diveLog_detail_sacSegments_averageMark(String rate);
 
   /// Label over the highest segment rate in the gas consumption by segment card
   ///
@@ -69576,6 +69576,82 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{n, plural, =1{1 battery cycle} other{{n} battery cycles}}'**
   String equipmentCondition_exposure_cycles(int n);
+
+  /// No description provided for @equipmentCondition_exposure_lastDivedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dived'**
+  String get equipmentCondition_exposure_lastDivedLabel;
+
+  /// No description provided for @equipmentCondition_exposure_divesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get equipmentCondition_exposure_divesLabel;
+
+  /// No description provided for @equipmentCondition_exposure_hoursLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get equipmentCondition_exposure_hoursLabel;
+
+  /// No description provided for @equipmentCondition_exposure_today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get equipmentCondition_exposure_today;
+
+  /// No description provided for @equipmentCondition_exposure_daysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} day ago} other{{count} days ago}}'**
+  String equipmentCondition_exposure_daysAgo(int count);
+
+  /// No description provided for @equipmentCondition_exposure_monthsAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} month ago} other{{count} months ago}}'**
+  String equipmentCondition_exposure_monthsAgo(int count);
+
+  /// No description provided for @equipmentCondition_exposure_yearsAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} year ago} other{{count} years ago}}'**
+  String equipmentCondition_exposure_yearsAgo(int count);
+
+  /// No description provided for @equipmentCondition_exposure_lastDivedSemantic.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dived {ago}, on {date}'**
+  String equipmentCondition_exposure_lastDivedSemantic(String ago, String date);
+
+  /// No description provided for @equipmentCondition_exposure_range12Months.
+  ///
+  /// In en, this message translates to:
+  /// **'12 months'**
+  String get equipmentCondition_exposure_range12Months;
+
+  /// No description provided for @equipmentCondition_exposure_rangeAllYears.
+  ///
+  /// In en, this message translates to:
+  /// **'All years'**
+  String get equipmentCondition_exposure_rangeAllYears;
+
+  /// No description provided for @equipmentCondition_exposure_last12Months.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No dives in the last 12 months} =1{{count} dive in the last 12 months} other{{count} dives in the last 12 months}}'**
+  String equipmentCondition_exposure_last12Months(int count);
+
+  /// No description provided for @equipmentCondition_exposure_barTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'{period}\n{dives}, {hours}'**
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  );
 
   /// No description provided for @equipmentCondition_finding_cellOutputDeclining.
   ///
@@ -103380,7 +103456,7 @@ abstract class AppLocalizations {
   /// No description provided for @info_equipment_exposure_summary.
   ///
   /// In en, this message translates to:
-  /// **'How much use this item has seen, counted in each of the units its service clocks use.'**
+  /// **'How much use this item has seen, counted in each of the units its service clocks use. The chart counts its dives per month or per year, up to today.'**
   String get info_equipment_exposure_summary;
 
   /// No description provided for @info_site_altitude_summary.

@@ -229,45 +229,55 @@ void main() {
     });
   });
 
-  group('rate axis', () {
-    double columnFactor(WidgetTester tester, int index) => tester
-        .widgetList<FractionallySizedBox>(
-          find.descendant(
+  group('against the average', () {
+    /// The bar of the column at [index].
+    Rect barRect(WidgetTester tester, int index) => tester.getRect(
+      find
+          .descendant(
             of: find.byKey(SacTimeColumns.plotKey),
-            matching: find.byType(FractionallySizedBox),
-          ),
-        )
-        .elementAt(index)
-        .heightFactor!;
+            matching: find.byType(DecoratedBox),
+          )
+          .at(index),
+    );
 
-    testWidgets('labels the scale, with the unit on the top line', (
+    testWidgets('a bar rises above the average line or hangs below it', (
       tester,
     ) async {
       await pumpSacSegmentsView(tester);
 
-      expect(find.text('20 L/min'), findsOneWidget);
-      expect(find.text('10'), findsAtLeastNWidgets(1));
-      // Zero is also the first mark on the time axis.
-      expect(find.text('0'), findsNWidgets(2));
+      // 10, 20, 5 and 5 L/min against an average of 10.
+      final above = barRect(tester, 1);
+      final below = barRect(tester, 2);
+      expect(below.top, closeTo(above.bottom, 0.5));
+      expect(above.height, closeTo(below.height * 2, 0.5));
     });
 
-    testWidgets('follows the lane in view', (tester) async {
-      await pumpSacSegmentsView(
-        tester,
-        rates: sacRates(lane: GasConsumptionLane.sac),
-      );
+    testWidgets('gives each side the room its largest swing needs', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(tester);
 
-      // The summary also gives the peak; this is the axis's top label.
-      expect(
-        find.descendant(
-          of: find.byType(SacTimeColumns),
-          matching: find.text('2.0 bar/min'),
-        ),
-        findsOneWidget,
-      );
+      final chart = tester.widget<SacTimeColumns>(find.byType(SacTimeColumns));
+      expect(chart.baselineFactor, closeTo(2 / 3, 1e-9));
     });
 
-    testWidgets('follows the diver\'s units', (tester) async {
+    testWidgets('a stretch right on the average still shows a mark', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(tester);
+
+      expect(barRect(tester, 0).height, greaterThan(0));
+    });
+
+    testWidgets('names the average and the furthest swings', (tester) async {
+      await pumpSacSegmentsView(tester);
+
+      expect(find.text('avg 10.0'), findsOneWidget);
+      expect(find.text('+10.0'), findsOneWidget);
+      expect(find.text('−5.0'), findsOneWidget);
+    });
+
+    testWidgets('writes the differences in the diver\'s units', (tester) async {
       await pumpSacSegmentsView(
         tester,
         rates: SacRateDisplay(
@@ -280,7 +290,10 @@ void main() {
         ),
       );
 
-      expect(find.text('30 psi/min'), findsOneWidget);
+      // 1 bar/min is 14.5 psi/min; the peak strays as far again.
+      expect(find.text('avg 15'), findsOneWidget);
+      expect(find.text('+15'), findsOneWidget);
+      expect(find.text('−7'), findsOneWidget);
     });
 
     testWidgets('falls back to pressure when a column cannot convert', (
@@ -295,79 +308,182 @@ void main() {
         rates: sacRates(volumeFor: (id) => id == 'back' ? 10.0 : null),
       );
 
-      // The summary under the chart can read the same.
-      expect(
-        find.descendant(
-          of: find.byType(SacTimeColumns),
-          matching: find.text('2.0 bar/min'),
-        ),
-        findsOneWidget,
-      );
+      expect(find.text('avg 1.5'), findsOneWidget);
+      expect(find.text('+0.5'), findsOneWidget);
     });
 
-    testWidgets('a column reaches the value it reads on the axis', (
+    testWidgets('the average tag makes way for a short bar\'s label', (
+      tester,
+    ) async {
+      // The first stretch is the highest, by a sliver next to the last one's
+      // dip, so its label sits right on the line at the left end.
+      await pumpSacSegmentsView(
+        tester,
+        time: [
+          sacSegment(0, 5, sacRate: 1.02),
+          for (var i = 1; i < 7; i++) sacSegment(i * 5, (i + 1) * 5),
+          sacSegment(35, 40, sacRate: 0.4),
+        ],
+      );
+      final plot = tester.getRect(find.byKey(SacTimeColumns.plotKey));
+      final tag = tester.getRect(find.textContaining('avg'));
+      final label = tester.getRect(find.textContaining('+'));
+
+      expect(tag.right, closeTo(plot.right - 4, 1));
+      expect(tag.overlaps(label), isFalse);
+    });
+
+    testWidgets('a tall bar\'s label leaves the tag at the left end', (
       tester,
     ) async {
       await pumpSacSegmentsView(
         tester,
-        time: [sacSegment(0, 5, sacRate: 2.2), sacSegment(5, 10, sacRate: 1.1)],
+        time: [
+          sacSegment(0, 5, sacRate: 1.2),
+          sacSegment(5, 10),
+          sacSegment(10, 15),
+          sacSegment(15, 20),
+        ],
       );
+      final plot = tester.getRect(find.byKey(SacTimeColumns.plotKey));
+      final tag = tester.getRect(find.text('avg 10.5'));
 
-      // 22 L/min on an axis that tops out at 25.
-      expect(find.text('25 L/min'), findsOneWidget);
-      expect(columnFactor(tester, 0), closeTo(22 / 25, 1e-9));
-      expect(columnFactor(tester, 1), closeTo(11 / 25, 1e-9));
+      expect(tag.left, closeTo(plot.left + 4, 1));
+      expect(tag.overlaps(tester.getRect(find.text('+1.5'))), isFalse);
     });
 
-    testWidgets('labels every line when they fit', (tester) async {
+    testWidgets('drops the average tag when labels meet it at both ends', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(2400, 4800);
+      addTearDown(tester.view.resetPhysicalSize);
+      // At large text neither end bar lifts its label clear of the line.
       await pumpSacSegmentsView(
         tester,
-        time: [sacSegment(0, 5, sacRate: 2.2), sacSegment(5, 10, sacRate: 1.1)],
+        time: [
+          sacSegment(0, 5, sacRate: 2.0),
+          sacSegment(5, 10),
+          sacSegment(10, 15),
+          sacSegment(15, 20, sacRate: 0.5),
+        ],
+        textScaler: const TextScaler.linear(3),
       );
 
-      for (final label in ['25 L/min', '20', '15']) {
-        expect(find.text(label), findsOneWidget, reason: label);
-      }
+      expect(find.textContaining('avg'), findsNothing);
+      expect(find.text('+8.8'), findsOneWidget);
+      expect(find.text('\u22126.3'), findsOneWidget);
     });
 
-    testWidgets('the average line uses the same scale', (tester) async {
+    testWidgets('the average tag sits at the left end by default', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(tester);
+      final plot = tester.getRect(find.byKey(SacTimeColumns.plotKey));
+
+      expect(
+        tester.getRect(find.text('avg 10.0')).left,
+        closeTo(plot.left + 4, 1),
+      );
+    });
+
+    testWidgets('a long average tag makes way for a label it would reach', (
+      tester,
+    ) async {
+      // The label's column sits well past 64 px from the left end, but a
+      // long translated tag reaches further still.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 342,
+              child: SacTimeColumns(
+                columns: [
+                  for (var i = 0; i < 10; i++)
+                    SacTimeColumn(
+                      startSeconds: i * 300,
+                      durationSeconds: 300,
+                      barFactor: i == 3 ? 0.01 : 0,
+                      semanticLabel: '$i',
+                    ),
+                ],
+                baselineFactor: 0.5,
+                averageLabel: 'average 10.0',
+                barLabels: const [SacBarLabel(index: 3, text: '+0.1')],
+                activeIndex: null,
+                endLabel: (minutes) => '$minutes min',
+                onTap: (_) {},
+                onScrub: (_) {},
+                onHover: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+      final tag = tester.getRect(find.text('average 10.0'));
+      final label = tester.getRect(find.text('+0.1'));
+
+      expect(label.left, greaterThan(64));
+      expect(tag.overlaps(label), isFalse);
+      expect(tag.right, closeTo(342 - 4, 1));
+    });
+
+    testWidgets('a dive at one steady rate writes no differences', (
+      tester,
+    ) async {
       await pumpSacSegmentsView(
         tester,
-        time: [sacSegment(0, 5, sacRate: 2.2), sacSegment(5, 10, sacRate: 1.1)],
+        time: [sacSegment(0, 5), sacSegment(5, 10)],
       );
 
-      final chart = tester.widget<SacTimeColumns>(find.byType(SacTimeColumns));
-      expect(chart.averageFactor, closeTo(16.5 / 25, 1e-9));
+      expect(find.text('avg 10.0'), findsOneWidget);
+      expect(find.textContaining('+'), findsNothing);
+      expect(find.textContaining('−'), findsNothing);
     });
 
-    testWidgets('leaves the axis off a dive with no consumption', (
+    testWidgets('leaves the average unnamed on a dive with no consumption', (
       tester,
     ) async {
       await pumpSacSegmentsView(tester, time: [sacSegment(0, 5, sacRate: 0)]);
 
-      expect(
-        tester.widget<SacTimeColumns>(find.byType(SacTimeColumns)).rateTicks,
-        isEmpty,
-      );
+      expect(find.textContaining('avg'), findsNothing);
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('sits left of the plot in a right-to-left locale', (
+    testWidgets('spends no width on an axis', (tester) async {
+      await pumpSacSegmentsView(tester);
+      final plot = tester.getRect(find.byKey(SacTimeColumns.plotKey));
+      final chart = tester.getRect(find.byType(SacTimeColumns));
+
+      expect(plot.left, chart.left);
+      expect(plot.width, chart.width);
+    });
+
+    testWidgets('spans the width in a right-to-left locale too', (
       tester,
     ) async {
       await pumpSacSegmentsView(tester, locale: const Locale('ar'));
       final plot = tester.getRect(find.byKey(SacTimeColumns.plotKey));
       final chart = tester.getRect(find.byType(SacTimeColumns));
 
+      expect(plot.left, chart.left);
       expect(plot.right, chart.right);
-      expect(plot.left, greaterThan(chart.left));
+    });
+
+    testWidgets('stays compact', (tester) async {
+      await pumpSacSegmentsView(tester);
+
+      expect(
+        tester.getSize(find.byKey(SacTimeColumns.plotKey)).height,
+        lessThanOrEqualTo(100),
+      );
     });
 
     testWidgets('leaves the screen reader on the columns', (tester) async {
       final handle = tester.ensureSemantics();
       await pumpSacSegmentsView(tester);
 
-      expect(find.bySemanticsLabel('20 L/min'), findsNothing);
+      expect(find.bySemanticsLabel('+10.0'), findsNothing);
+      expect(find.bySemanticsLabel('avg 10.0'), findsNothing);
       handle.dispose();
     });
 
@@ -392,57 +508,112 @@ void main() {
     });
   });
 
-  group('rate axis at large text', () {
+  group('labels at large text', () {
     // The page scrolls; these check the chart, not the 600 point test window.
     void tallWindow(WidgetTester tester) {
       tester.view.physicalSize = const Size(2400, 4800);
       addTearDown(tester.view.resetPhysicalSize);
     }
 
-    List<Rect> rateLabels(WidgetTester tester) {
-      final plot = tester.getRect(find.byKey(SacTimeColumns.plotKey));
-      return [
-          for (final element
-              in find
-                  .descendant(
-                    of: find.byType(SacTimeColumns),
-                    matching: find.byType(Text),
-                  )
-                  .evaluate())
-            tester.getRect(find.byWidget(element.widget)),
-        ].where((rect) => rect.right < plot.left).toList()
-        ..sort((a, b) => a.top.compareTo(b.top));
-    }
-
-    for (final scale in [1.0, 1.5, 2.0, 3.0, 4.0]) {
-      testWidgets('labels stay apart at text x$scale', (tester) async {
+    for (final scale in [1.0, 1.5, 2.0, 3.0]) {
+      testWidgets('stay inside the plot at text x$scale', (tester) async {
         tallWindow(tester);
-        await pumpSacSegmentsView(
-          tester,
-          // 15 L/min rounds up to 16 in steps of 2, the most lines there are.
-          time: [sacSegment(0, 5, sacRate: 1.5)],
-          textScaler: TextScaler.linear(scale),
-        );
+        await pumpSacSegmentsView(tester, textScaler: TextScaler.linear(scale));
+        final plot = tester.getRect(find.byKey(SacTimeColumns.plotKey));
 
-        final rects = rateLabels(tester);
-        expect(rects, isNotEmpty);
-        for (var i = 1; i < rects.length; i++) {
-          expect(rects[i].top, greaterThanOrEqualTo(rects[i - 1].bottom));
+        for (final label in ['+10.0', '−5.0']) {
+          final rect = tester.getRect(find.text(label));
+          expect(rect.top, greaterThanOrEqualTo(plot.top - 0.5), reason: label);
+          expect(
+            rect.bottom,
+            lessThanOrEqualTo(plot.bottom + 0.5),
+            reason: label,
+          );
         }
       });
     }
+  });
 
-    testWidgets('keeps the top line, with its unit, as labels thin out', (
-      tester,
-    ) async {
-      tallWindow(tester);
+  group('tooltip', () {
+    Rect tooltipRect(WidgetTester tester) =>
+        tester.getRect(find.byKey(SacTimeColumns.tooltipKey));
+
+    Rect barRect(WidgetTester tester, int index) => tester.getRect(
+      find
+          .descendant(
+            of: find.byKey(SacTimeColumns.plotKey),
+            matching: find.byType(DecoratedBox),
+          )
+          .at(index),
+    );
+
+    for (final (index, minute) in [(0, 1), (1, 7), (3, 17)]) {
+      testWidgets('clears column $index, inside the chart', (tester) async {
+        await pumpSacSegmentsView(tester, selectedTimestamp: minute * 60);
+        final chart = tester.getRect(find.byType(SacTimeColumns));
+        final tooltip = tooltipRect(tester);
+        final bar = barRect(tester, index);
+
+        expect(tooltip.left, greaterThanOrEqualTo(chart.left));
+        expect(tooltip.right, lessThanOrEqualTo(chart.right));
+        expect(tooltip.overlaps(bar), isFalse, reason: 'covers its bar');
+        // Inside the plot, so the time axis drawn after it can't cover it.
+        final plot = tester.getRect(find.byKey(SacTimeColumns.plotKey));
+        expect(tooltip.top, greaterThanOrEqualTo(plot.top - 0.5));
+        expect(tooltip.bottom, lessThanOrEqualTo(plot.bottom + 0.5));
+      });
+    }
+
+    testWidgets('reads in the locale\'s direction', (tester) async {
       await pumpSacSegmentsView(
         tester,
-        time: [sacSegment(0, 5, sacRate: 1.5)],
-        textScaler: const TextScaler.linear(3),
+        selectedTimestamp: 7 * 60,
+        locale: const Locale('ar'),
       );
 
-      expect(find.text('16 L/min'), findsOneWidget);
+      final tooltip = tester.widget<Text>(
+        find.descendant(
+          of: find.byKey(SacTimeColumns.tooltipKey),
+          matching: find.byType(Text),
+        ),
+      );
+      // The average tag, the one label in the chart with words in it.
+      final tag = tester.widget<Text>(
+        find.descendant(
+          of: find.byKey(SacTimeColumns.plotKey),
+          matching: find.textContaining(
+            '\u0627\u0644\u0645\u062a\u0648\u0633\u0637',
+          ),
+        ),
+      );
+      expect(tooltip.textDirection, TextDirection.rtl);
+      expect(tag.textDirection, TextDirection.rtl);
+    });
+
+    testWidgets('wears the theme\'s tooltip colors', (tester) async {
+      await pumpSacSegmentsView(tester, selectedTimestamp: 7 * 60);
+      final scheme = Theme.of(
+        tester.element(find.byType(SacTimeColumns)),
+      ).colorScheme;
+
+      final box = tester.widget<DecoratedBox>(
+        find.descendant(
+          of: find.byKey(SacTimeColumns.tooltipKey),
+          matching: find.byType(DecoratedBox),
+        ),
+      );
+      expect((box.decoration as BoxDecoration).color, scheme.inverseSurface);
+    });
+
+    testWidgets('gives the stretch\'s rate, depth and gas on two lines', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(tester, selectedTimestamp: 7 * 60);
+
+      expect(
+        find.text('5-10 min · 20.0 L/min\n20m (0-30m) · 10 L used'),
+        findsOneWidget,
+      );
     });
   });
 
@@ -486,17 +657,17 @@ void main() {
                     SacTimeColumn(
                       startSeconds: 0,
                       durationSeconds: 1500,
-                      heightFactor: 1,
+                      barFactor: 0.5,
                       semanticLabel: 'first',
                     ),
                     SacTimeColumn(
                       startSeconds: 1500,
                       durationSeconds: 1500,
-                      heightFactor: 0.5,
+                      barFactor: -0.25,
                       semanticLabel: 'second',
                     ),
                   ],
-                  averageFactor: 0.5,
+                  baselineFactor: 0.5,
                   activeIndex: null,
                   endLabel: (minutes) => '$minutes min',
                   onTap: (_) {},
@@ -546,11 +717,11 @@ void main() {
                 SacTimeColumn(
                   startSeconds: 0,
                   durationSeconds: 3000,
-                  heightFactor: 1,
+                  barFactor: 0.5,
                   semanticLabel: 'all',
                 ),
               ],
-              averageFactor: 0.5,
+              baselineFactor: 0.5,
               activeIndex: active,
               endLabel: (minutes) {
                 if (minutes > 0) endLabels++;
@@ -584,11 +755,11 @@ void main() {
                   SacTimeColumn(
                     startSeconds: 0,
                     durationSeconds: 3000,
-                    heightFactor: 1,
+                    barFactor: 0.5,
                     semanticLabel: 'all',
                   ),
                 ],
-                averageFactor: 0.5,
+                baselineFactor: 0.5,
                 activeIndex: null,
                 endLabel: (minutes) {
                   if (minutes > 0) endLabels++;
