@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
-import 'package:submersion/features/dive_log/presentation/utils/sac_rate_axis.dart';
+import 'package:submersion/features/dive_log/presentation/utils/sac_deviation_scale.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_rate_display.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_segment_groups.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
@@ -14,7 +14,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/sac_time_colum
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The body of the Gas consumption by segment card: the dive's average, peak
-/// and gas used over time, phase and gas breakdowns of the same dive.
+/// and gas used, a chart of each stretch against the average over time, and
+/// phase and gas breakdowns of the same dive.
 ///
 /// On a wide card the time chart and the breakdowns sit side by side, so the
 /// chart does not stretch across the whole window.
@@ -138,19 +139,6 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
     return index != null && index < widget.timeSegments.length ? index : null;
   }
 
-  /// The lines of [axis]. The top one also carries the unit, as the last label
-  /// on the time axis does.
-  List<SacRateTick> _rateTicks(SacRateAxis axis, String unit) => [
-    for (final value in axis.ticks)
-      SacRateTick(
-        factor: value / axis.top,
-        label: [
-          formatFixedForDisplay(value, axis.decimals),
-          if (value == axis.top) unit,
-        ].join(' '),
-      ),
-  ];
-
   Color _phaseColor(DivePhase phase) =>
       SacSegmentColors.forPhase(phase, Theme.of(context).brightness);
 
@@ -223,20 +211,48 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
     );
   }
 
-  Widget _timeSection(int? activeIndex, SacSegment peak) {
+  /// A signed difference from the average in the chart's unit, such as `+6`
+  /// or `−3` (a true minus sign, as wide as the plus), or null where it
+  /// rounds to nothing.
+  String? _difference(double value, int decimals) {
+    final rounded = double.parse(value.abs().toStringAsFixed(decimals));
+    if (rounded == 0) return null;
+    final sign = value > 0 ? '+' : '\u2212';
+    return '$sign${formatFixedForDisplay(rounded, decimals)}';
+  }
+
+  /// The figures of [segment] for the chart's tooltip.
+  String _details(SacSegment segment) {
+    final rates = widget.rates;
+    return [
+      [
+        _timeRange(segment),
+        rates.format(segment.sacRate, tankId: segment.tankId),
+      ].join(' · '),
+      [
+        _depthWithRange(segment),
+        context.l10n.diveLog_detail_sacSegments_usedAmount(
+          rates.formatGasUsed([segment]),
+        ),
+      ].join(' · '),
+    ].join('\n');
+  }
+
+  Widget _timeSection(int? activeIndex) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final rates = widget.rates;
     final segments = widget.timeSegments;
     final tankIds = [for (final s in segments) s.tankId];
-    double comparable(SacSegment s) =>
-        rates.comparable(s.sacRate, tankId: s.tankId, among: tankIds);
-    final axis = SacRateAxis.forPeak(
-      rates.displayComparable(comparable(peak), among: tankIds),
-    );
-    double share(double value) => axis.top > 0
-        ? rates.displayComparable(value, among: tankIds) / axis.top
-        : 0;
+    double shown(double comparable) =>
+        rates.displayComparable(comparable, among: tankIds);
+    final values = [
+      for (final s in segments)
+        shown(rates.comparable(s.sacRate, tankId: s.tankId, among: tankIds)),
+    ];
+    final average = shown(rates.averageRate(segments));
+    final scale = SacDeviationScale.of(values, average: average);
+    final decimals = rates.comparableDecimals(tankIds);
 
     Color? columnColor(SacSegment segment) {
       final phase = dominantPhase(
@@ -247,7 +263,11 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
       return phase == null ? null : _phaseColor(phase);
     }
 
-    final active = activeIndex == null ? null : segments[activeIndex];
+    SacBarLabel? label(int? index) {
+      if (index == null) return null;
+      final text = _difference(values[index] - average, decimals);
+      return text == null ? null : SacBarLabel(index: index, text: text);
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -269,11 +289,11 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
         const SizedBox(height: 6),
         SacTimeColumns(
           columns: [
-            for (final segment in segments)
+            for (final (index, segment) in segments.indexed)
               SacTimeColumn(
                 startSeconds: segment.startTimestamp,
                 durationSeconds: segment.durationSeconds,
-                heightFactor: share(comparable(segment)),
+                barFactor: scale.bars[index],
                 color: columnColor(segment),
                 semanticLabel: [
                   _timeRange(segment),
@@ -282,9 +302,17 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
                 ].join(', '),
               ),
           ],
-          averageFactor: share(rates.averageRate(segments)),
-          rateTicks: _rateTicks(axis, rates.comparableUnit(tankIds)),
+          baselineFactor: scale.baseline,
+          averageLabel: average.isFinite && average > 0
+              ? l10n.diveLog_detail_sacSegments_averageMark(
+                  formatFixedForDisplay(average, decimals),
+                )
+              : null,
+          barLabels: [?label(scale.highest), ?label(scale.lowest)],
           activeIndex: activeIndex,
+          activeDetails: activeIndex == null
+              ? null
+              : _details(segments[activeIndex]),
           endLabel: (minutes) =>
               l10n.diveLog_detail_sacSegments_axisMinutes('$minutes'),
           onTap: (index) => _setPinned(_pinnedIndex == index ? null : index),
@@ -293,32 +321,6 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
           onCursorSeconds: widget.onCursorSeconds == null
               ? null
               : _reportCursor,
-        ),
-        const SizedBox(height: 8),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            child: Text(
-              active != null
-                  ? [
-                      _timeRange(active),
-                      rates.format(active.sacRate, tankId: active.tankId),
-                      _depthWithRange(active),
-                      l10n.diveLog_detail_sacSegments_usedAmount(
-                        rates.formatGasUsed([active]),
-                      ),
-                    ].join(' · ')
-                  : l10n.diveLog_detail_sacSegments_peak(
-                      _formatPeak(peak),
-                      _timeRange(peak),
-                    ),
-              style: theme.textTheme.bodySmall,
-            ),
-          ),
         ),
       ],
     );
@@ -479,7 +481,7 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
         : cursor;
     final table = _tableSection(focusTimestamp);
     final peak = segments.isEmpty ? null : _findPeak();
-    final chart = peak == null ? null : _timeSection(activeIndex, peak);
+    final chart = peak == null ? null : _timeSection(activeIndex);
 
     return LayoutBuilder(
       builder: (context, constraints) {

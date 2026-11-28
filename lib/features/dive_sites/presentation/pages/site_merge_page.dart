@@ -144,6 +144,7 @@ class _SiteMergePageState extends ConsumerState<SiteMergePage>
         children: [
           IdentitySection(
             allSites: otherSites,
+            placeNameLanguage: ref.watch(placeNameLanguageProvider),
             nameController: _nameController,
             descriptionController: _descriptionController,
             countryController: _countryController,

@@ -130,6 +130,7 @@ part 'helpers/hypercapnia_bailout_migrations.dart';
 part 'helpers/list_arrangement_migrations.dart';
 part 'helpers/pre_dive_migrations.dart';
 part 'helpers/profile_series_history_migrations.dart';
+part 'helpers/profile_zoom_migrations.dart';
 part 'helpers/quality_migrations.dart';
 part 'helpers/query_migrations.dart';
 part 'helpers/rule_migrations.dart';
