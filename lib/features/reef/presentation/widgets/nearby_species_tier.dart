@@ -125,6 +125,11 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
     if (chips.isEmpty) return const SizedBox.shrink();
 
     final hidden = chips.length - _collapsedLimit;
+    // A list that fits has no toggle and drops its expanded state with it,
+    // so records that shrink under one site (a refresh, a species leaving
+    // the catalog) and grow again open collapsed, as Spotted and Expected
+    // do. Only a field: this build already draws the collapsed list.
+    if (hidden <= 0) _expanded = false;
     final visible = _expanded ? chips : chips.take(_collapsedLimit).toList();
 
     return Column(

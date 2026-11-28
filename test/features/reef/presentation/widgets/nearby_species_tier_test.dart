@@ -215,6 +215,61 @@ void main() {
     expect(find.text('Show all 30'), findsOneWidget);
   });
 
+  // The records can change under one site (a refresh, a species leaving
+  // the catalog) without the widget changing.
+  testWidgets('opens collapsed again once its records shrink and regrow', (
+    tester,
+  ) async {
+    const location = GeoPoint(12.16, -68.28);
+    ReefPart<NearbySpecies> names(int n) => ReefPart.ok(
+      NearbySpecies(
+        unmatchedNames: [for (var i = 0; i < n; i++) 'Genus species$i'],
+      ),
+    );
+    final records = StateProvider((ref) => names(30));
+    final container = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        reefNearbySpeciesProvider(
+          location,
+        ).overrideWith((ref) async => ref.watch(records)),
+        allSpeciesProvider.overrideWith((ref) async => const [_catalogSpecies]),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: localizedMaterialApp(
+          locale: const Locale('en'),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: NearbySpeciesTier(
+                siteId: 'site-1',
+                location: location,
+                onSpeciesTap: (_) {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Show all 30'));
+    await tester.pumpAndSettle();
+    expect(find.text('Genus species29'), findsOneWidget);
+
+    container.read(records.notifier).state = names(5);
+    await tester.pumpAndSettle();
+    container.read(records.notifier).state = names(30);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Genus species29'), findsNothing);
+    expect(find.text('Show all 30'), findsOneWidget);
+  });
+
   testWidgets('does not offer a toggle when nothing is hidden', (tester) async {
     const location = GeoPoint(12.16, -68.28);
     const species = ReefPart<NearbySpecies>.ok(
