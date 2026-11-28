@@ -51,6 +51,11 @@ extension _EquipmentDetailBody on _EquipmentDetailContent {
     ];
   }
 
+  /// Whether the diver has section [id] switched on.
+  bool _sectionVisible(WidgetRef ref, EquipmentDetailSectionId id) => ref
+      .watch(settingsProvider.select((s) => s.equipmentDetailSections))
+      .any((s) => s.id == id && s.visible);
+
   /// Whether the switched-off section [id] is shown all the same: its card
   /// is open, or was brought in from the strip, in the sitting.
   bool _showsHidden(EquipmentDetailSectionId id) {
@@ -131,20 +136,24 @@ extension _EquipmentDetailBody on _EquipmentDetailContent {
     // The findings and trend cards carry their own top gap and render
     // nothing when they have nothing to say, so the page never shows a
     // blank slot for a rule engine.
+    // Switched off but brought in from the strip, only the findings come:
+    // the trends are calculated, and a hidden calculated card is not built.
     EquipmentDetailSectionId.condition => [
       _framed(
         GearItemCardId.conditionFindings,
         ConditionFindingsCard(equipment: equipment),
         topGap: 24,
       ),
-      _calculated(ConditionTrendCard(equipment: equipment)),
-      if (equipment.type == EquipmentType.rebreather)
-        _calculated(
-          ConditionTrendCard(
-            equipment: equipment,
-            kind: ConditionTrendKind.scrubberMinutes,
+      if (_sectionVisible(ref, id)) ...[
+        _calculated(ConditionTrendCard(equipment: equipment)),
+        if (equipment.type == EquipmentType.rebreather)
+          _calculated(
+            ConditionTrendCard(
+              equipment: equipment,
+              kind: ConditionTrendKind.scrubberMinutes,
+            ),
           ),
-        ),
+      ],
     ],
     EquipmentDetailSectionId.childItems => [
       _sectionGap,

@@ -134,6 +134,7 @@ Future<GearPageHarness> pumpGearPage(
   List<EquipmentFinding> findings = const [],
   List<Object> extraOverrides = const [],
   MockSettingsNotifier? settingsNotifier,
+  Locale? locale,
 }) async {
   final shown = item ?? apex;
   tester.view.physicalSize = size;
@@ -151,6 +152,7 @@ Future<GearPageHarness> pumpGearPage(
   );
   await tester.pumpWidget(
     testApp(
+      locale: locale,
       overrides: [
         ...overrides,
         validatedCurrentDiverIdProvider.overrideWith((ref) async => null),

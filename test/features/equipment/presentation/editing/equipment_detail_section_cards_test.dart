@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/equipment_detail_sections.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/equipment_detail_section_cards.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_cards.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_new_sitting.dart';
 
 EquipmentItem _item(EquipmentType type, {bool wanted = false}) => EquipmentItem(
   id: 'g1',
@@ -98,5 +99,21 @@ void main() {
       EquipmentDetailSectionId.notes,
       EquipmentDetailSectionId.documents,
     });
+  });
+
+  test('a new item opens its starter cards, less the switched-off ones', () {
+    expect(
+      newGearItemLaidOutFor(EquipmentDetailSectionConfig.defaultSections),
+      newGearItemLaidOut,
+    );
+    expect(
+      newGearItemLaidOutFor([
+        for (final s in EquipmentDetailSectionConfig.defaultSections)
+          s.id == EquipmentDetailSectionId.location
+              ? s.copyWith(visible: false)
+              : s,
+      ]),
+      ['header', 'details'],
+    );
   });
 }

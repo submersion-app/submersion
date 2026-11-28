@@ -37,8 +37,12 @@ mixin _EquipmentDetailPageCreating
     return newGearItemSeed(read, id: id);
   }
 
+  /// The starter cards, less those the diver has switched off (issue
+  /// #4975): a card laid out opens on the page, so a hidden one would show
+  /// all the same. It waits on the add strip instead.
   @override
-  List<String> newRecordLaidOut(EquipmentItem seed) => newGearItemLaidOut;
+  List<String> newRecordLaidOut(EquipmentItem seed) =>
+      newGearItemLaidOutFor(ref.read(settingsProvider).equipmentDetailSections);
 
   @override
   Future<void> applyNewRecordPrefill(EditSession<EquipmentItem> session) =>

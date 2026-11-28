@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/equipment_detail_sections.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/equipment/presentation/widgets/condition_trend_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -15,6 +16,9 @@ import 'equipment_detail_page_unlock_harness.dart';
 /// The diver arranges a gear item's cards (issue #4975): the page follows
 /// the saved order and visibility, locked and unlocked, and a hidden card
 /// that can be edited waits on the strip while the page is unlocked.
+/// The expectations are English labels, so the host is too.
+const _en = Locale('en');
+
 void main() {
   final l = AppLocalizationsEn();
 
@@ -61,7 +65,7 @@ void main() {
   testWidgets('the default order is the order the page always had', (
     tester,
   ) async {
-    await pumpGearPage(tester);
+    await pumpGearPage(tester, locale: _en);
 
     expect(topOf(tester, details), lessThan(topOf(tester, location)));
     expect(topOf(tester, location), lessThan(topOf(tester, serviceHistory)));
@@ -70,6 +74,7 @@ void main() {
   testWidgets('a saved order is applied', (tester) async {
     await pumpGearPage(
       tester,
+      locale: _en,
       settingsNotifier: settingsWith(
         withFirst(EquipmentDetailSectionId.serviceHistory),
       ),
@@ -83,6 +88,7 @@ void main() {
   ) async {
     await pumpGearPage(
       tester,
+      locale: _en,
       settingsNotifier: settingsWith(
         withFirst(EquipmentDetailSectionId.serviceHistory),
       ),
@@ -93,7 +99,7 @@ void main() {
   });
 
   testWidgets('a calculated card shows by default', (tester) async {
-    await pumpGearPage(tester);
+    await pumpGearPage(tester, locale: _en);
     expect(find.byType(ExposureCard), findsOneWidget);
   });
 
@@ -102,6 +108,7 @@ void main() {
   ) async {
     await pumpGearPage(
       tester,
+      locale: _en,
       settingsNotifier: settingsWith(
         without(EquipmentDetailSectionId.exposure),
       ),
@@ -117,6 +124,7 @@ void main() {
   ) async {
     await pumpGearPage(
       tester,
+      locale: _en,
       settingsNotifier: settingsWith(
         without(EquipmentDetailSectionId.location),
       ),
@@ -146,6 +154,7 @@ void main() {
     // The regulator has no dive computer controls, hidden or not.
     await pumpGearPage(
       tester,
+      locale: _en,
       settingsNotifier: settingsWith(
         without(EquipmentDetailSectionId.diveComputer),
       ),
@@ -159,5 +168,37 @@ void main() {
       ),
       findsNothing,
     );
+  });
+
+  testWidgets('a switched-off condition section brought in from the strip '
+      'builds no trend cards', (tester) async {
+    await pumpGearPage(
+      tester,
+      locale: _en,
+      settingsNotifier: settingsWith(
+        without(EquipmentDetailSectionId.condition),
+      ),
+    );
+    expect(find.byType(ConditionTrendCard), findsNothing);
+
+    await unlock(tester);
+    final chip = find.descendant(
+      of: find.byType(AddStrip),
+      matching: find.text('Condition'),
+    );
+    expect(chip, findsOneWidget);
+    await tester.tap(chip);
+    await tester.pumpAndSettle();
+
+    // The findings card is back; the calculated trends stay off.
+    expect(chip, findsNothing);
+    expect(find.byType(ConditionTrendCard), findsNothing);
+  });
+
+  testWidgets('the condition section shows its trend card by default', (
+    tester,
+  ) async {
+    await pumpGearPage(tester, locale: _en);
+    expect(find.byType(ConditionTrendCard), findsOneWidget);
   });
 }
