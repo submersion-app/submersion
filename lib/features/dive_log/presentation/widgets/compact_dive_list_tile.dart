@@ -365,11 +365,15 @@ class CompactDiveListTile extends ConsumerWidget {
             code: siteCountryCode,
           )
         : null;
-    // A location title already shows the country, so the label adds it only
-    // when the title does not, and the country is never spoken twice.
-    final country = siteCountry?.trim() ?? '';
-    final labelCountry = flagCode != null && !titleText.contains(country)
-        ? country
+    // The title and date slots are spoken (the stats are not), and a site
+    // location in either carries the country, so the label names the
+    // country only when neither shows it and it is never spoken twice.
+    final slotSpeaksCountry =
+        _hasSlotData &&
+        (titleField == DiveField.siteLocation ||
+            dateField == DiveField.siteLocation);
+    final labelCountry = flagCode != null && !slotSpeaksCountry
+        ? siteCountry!.trim()
         : null;
     final dateText = _buildDateText(units);
     final stat1Text = _buildStatText(stat1Field, DiveField.maxDepth, units);

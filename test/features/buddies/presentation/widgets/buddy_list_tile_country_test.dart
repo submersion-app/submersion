@@ -185,6 +185,20 @@ void main() {
     handle.dispose();
   });
 
+  testWidgets("the row's label names the country once with a Country "
+      'subtitle', (tester) async {
+    final handle = tester.ensureSemantics();
+    await pumpStandard(tester, subtitle: BuddyField.country);
+    expect(find.byKey(const ValueKey('buddy-avatar-flag')), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Italy')), findsOneWidget);
+    expect(
+      find.bySemanticsLabel(RegExp(r'Italy[\s\S]*Italy')),
+      findsNothing,
+      reason: 'the spoken subtitle already names the country',
+    );
+    handle.dispose();
+  });
+
   testWidgets('a compact row showing the country draws its flag', (
     tester,
   ) async {

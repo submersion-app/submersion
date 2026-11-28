@@ -92,8 +92,7 @@ class BuddyListTile extends ConsumerWidget {
     final subtitle = slotText(subtitleField);
     // The buddy's flag is a badge on the avatar, whatever the subtitle shows
     // (issue #5001), so the subtitle draws none and the row never shows two.
-    // The badge may be the row's only sign of the country, so the label
-    // names it, and with no country text to name there is no badge.
+    // With no country text to name there is no badge.
     final country = buddy.country?.trim() ?? '';
     final flagCode = country.isEmpty
         ? null
@@ -103,7 +102,17 @@ class BuddyListTile extends ConsumerWidget {
             country: country,
             code: buddy.countryCode,
           );
-    final label = flagCode != null
+    // The badge may be the row's only sign of the country, so the label
+    // names it, unless a spoken slot or extra field already shows it.
+    final rowShowsCountry =
+        [
+          resolveCardSlot(slots, 'title', BuddyField.buddyName),
+          subtitleField,
+          resolveCardSlot(slots, 'stat1', BuddyField.diveCount),
+          resolveCardSlot(slots, 'stat2', BuddyField.lastDive),
+        ].contains(BuddyField.country) ||
+        config.extraFields.contains(BuddyField.country);
+    final label = flagCode != null && !rowShowsCountry
         ? l10n.buddies_listTile_semanticsWithCountry(buddy.name, country)
         : buddy.name;
 

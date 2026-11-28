@@ -20,12 +20,13 @@ class _Detailed extends CardViewConfigNotifier {
 }
 
 class _Compact extends CardViewConfigNotifier {
-  _Compact(DiveField title) : super.withMode(ListViewMode.compact) {
+  _Compact(DiveField title, {DiveField date = DiveField.dateTime})
+    : super.withMode(ListViewMode.compact) {
     state = CardViewConfig(
       mode: ListViewMode.compact,
       slots: [
         CardSlotConfig(slotId: 'title', field: title),
-        const CardSlotConfig(slotId: 'date', field: DiveField.dateTime),
+        CardSlotConfig(slotId: 'date', field: date),
         const CardSlotConfig(slotId: 'stat1', field: DiveField.maxDepth),
         const CardSlotConfig(slotId: 'stat2', field: DiveField.runtime),
       ],
@@ -33,25 +34,29 @@ class _Compact extends CardViewConfigNotifier {
   }
 }
 
-DiveSummary _summary({String? country = 'Belize', String? code = 'BZ'}) =>
-    DiveSummary(
-      id: 'd1',
-      diveNumber: 142,
-      dateTime: DateTime(2026, 3, 12, 9, 40),
-      maxDepth: 38,
-      runtime: const Duration(minutes: 42),
-      siteName: 'Blue Hole',
-      siteRegion: 'Lighthouse Reef',
-      siteCountry: country,
-      siteCountryCode: code,
-      sortTimestamp: 0,
-    );
+DiveSummary _summary({
+  String siteName = 'Blue Hole',
+  String? country = 'Belize',
+  String? code = 'BZ',
+}) => DiveSummary(
+  id: 'd1',
+  diveNumber: 142,
+  dateTime: DateTime(2026, 3, 12, 9, 40),
+  maxDepth: 38,
+  runtime: const Duration(minutes: 42),
+  siteName: siteName,
+  siteRegion: 'Lighthouse Reef',
+  siteCountry: country,
+  siteCountryCode: code,
+  sortTimestamp: 0,
+);
 
 Future<void> _pump(
   WidgetTester tester,
   ListViewMode mode, {
   DiveSummary? summary,
   DiveField title = DiveField.siteName,
+  DiveField date = DiveField.dateTime,
   bool flags = true,
 }) async {
   await tester.pumpWidget(
@@ -59,7 +64,9 @@ Future<void> _pump(
       overrides: [
         ...await getBaseOverrides(),
         detailedCardConfigProvider.overrideWith((ref) => _Detailed()),
-        compactCardConfigProvider.overrideWith((ref) => _Compact(title)),
+        compactCardConfigProvider.overrideWith(
+          (ref) => _Compact(title, date: date),
+        ),
         showDiveCountryFlagsProvider.overrideWithValue(flags),
       ],
       locale: const Locale('en'),
@@ -173,6 +180,40 @@ void main() {
       find.bySemanticsLabel(RegExp(r'Belize[\s\S]*Belize')),
       findsNothing,
       reason: 'the visible title already names the country',
+    );
+    handle.dispose();
+  });
+
+  testWidgets("compact card's label names the country once when the date "
+      'slot shows the location', (tester) async {
+    final handle = tester.ensureSemantics();
+    await _pump(tester, ListViewMode.compact, date: DiveField.siteLocation);
+    expect(find.text('Lighthouse Reef, Belize'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Belize')), findsOneWidget);
+    expect(
+      find.bySemanticsLabel(RegExp(r'Belize[\s\S]*Belize')),
+      findsNothing,
+      reason: 'the spoken date slot already names the country',
+    );
+    handle.dispose();
+  });
+
+  testWidgets("compact card's label names a country the site name merely "
+      'contains', (tester) async {
+    final handle = tester.ensureSemantics();
+    await _pump(
+      tester,
+      ListViewMode.compact,
+      summary: _summary(
+        siteName: 'Indiana Wreck',
+        country: 'India',
+        code: 'IN',
+      ),
+    );
+    expect(tester.widget<CountryFlag>(find.byType(CountryFlag)).code, 'IN');
+    expect(
+      find.bySemanticsLabel(RegExp('Indiana Wreck, India')),
+      findsOneWidget,
     );
     handle.dispose();
   });
