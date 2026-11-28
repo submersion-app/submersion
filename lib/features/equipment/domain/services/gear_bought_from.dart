@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 /// The items in [items] that the buddy [buddyId] or the dive centre
@@ -24,7 +25,7 @@ List<EquipmentItem> gearBoughtFrom(
     if (da != null && db != null && da != db) return db.compareTo(da);
     if (da == null && db != null) return 1;
     if (da != null && db == null) return -1;
-    return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    return compareTextForSort(a.name, b.name);
   });
   return bought;
 }
