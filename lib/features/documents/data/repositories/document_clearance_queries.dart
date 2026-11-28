@@ -74,7 +74,7 @@ mixin _DocumentClearanceQueries {
     final current = currentClearances((await q.get()).map(documentFromRow));
     return {
       for (final MapEntry(key: holder, value: d) in current.entries)
-        holder.diverId: ?d.expiryDate,
+        ?holder.diverId: ?d.expiryDate,
     };
   }
 }

@@ -39,7 +39,7 @@ void main() {
         .insert(
           DocumentsCompanion.insert(
             id: 'insurance',
-            diverId: kDiverA,
+            diverId: const Value(kDiverA),
             type: 'insurance',
             createdAt: t,
             updatedAt: t,

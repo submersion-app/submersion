@@ -1322,6 +1322,12 @@ class SyncRepository {
       return ' WHERE site_id NOT IN (SELECT id FROM dive_sites '
           'WHERE shared_library_id IS NOT NULL)';
     }
+    // Library documents and their children (issue #4713).
+    if (table == 'documents') return ' WHERE shared_library_id IS NULL';
+    if (table == 'document_pages' || table == 'document_tags') {
+      return ' WHERE document_id NOT IN (SELECT id FROM documents '
+          'WHERE shared_library_id IS NOT NULL)';
+    }
     return '';
   }
 

@@ -671,7 +671,11 @@ mixin _SiteDetailPageEditing
     final body = builder ?? (_) => const SizedBox.shrink();
     // The reader's own cards say so. Every card keeps the one shape, so a
     // role that changes mid-sitting never rebuilds an open card's editor.
-    final private = rule == SiteReaderCard.private;
+    // The Documents card holds the library's shared documents too: each of
+    // its tiles says whose it is instead (issue #4713).
+    final private =
+        rule == SiteReaderCard.private &&
+        card.id != SiteDetailSectionId.documents.name;
     return (context) => RecordCardEdgeLabel<DiveSite>(
       label: private ? context.l10n.recordEdit_onlyYou : null,
       child: RecordCardFrame<DiveSite>(card: card, child: body(context)),

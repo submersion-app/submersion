@@ -6,23 +6,26 @@ import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/shared_library/crypto/canonical_json.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/member_clock.dart';
-import 'package:submersion/core/services/shared_library/site_document.dart';
+import 'package:submersion/core/services/shared_library/clocked_record.dart';
 
-/// What a member signs for one field of a site document (issue #2567):
-/// the library, the site, the field, its clock and a hash of its value, so
-/// a signature cannot be moved to another library, site, field or value.
+/// What a member signs for one field of a library record (issue #2567):
+/// the record kind's [domain], the library, the record, the field, its
+/// clock and a hash of its value, so a signature cannot be moved to another
+/// kind of record, library, record, field or value. A site's domain is
+/// `ssl-field:v1`, a shared document's `ssl-doc-field:v1` (issue #4713).
 List<int> fieldSignatureMessage({
+  required String domain,
   required String libraryId,
-  required String siteId,
+  required String recordId,
   required String field,
   required String hlc,
   required String memberId,
   required Object? value,
 }) => utf8.encode(
   [
-    'ssl-field:v1',
+    domain,
     libraryId,
-    siteId,
+    recordId,
     field,
     hlc,
     memberId,
@@ -30,13 +33,13 @@ List<int> fieldSignatureMessage({
   ].join('\n'),
 );
 
-Object? _valueOf(SiteDocument d, String field) =>
-    field == SiteDocument.deletedField ? d.deleted : d.fields[field];
+Object? _valueOf(ClockedRecord d, String field) =>
+    field == ClockedRecord.deletedField ? d.deleted : d.fields[field];
 
 /// [doc] with every clock of [memberId] that has no signature signed by
 /// [key]. Other members' clocks travel with their own signatures.
-Future<SiteDocument> signOwnFields(
-  SiteDocument doc, {
+Future<T> signOwnFields<T extends ClockedRecord>(
+  T doc, {
   required String libraryId,
   required String memberId,
   required LibrarySigningKey key,
@@ -48,8 +51,9 @@ Future<SiteDocument> signOwnFields(
     final sig = await LibrarySigner.sign(
       key,
       fieldSignatureMessage(
+        domain: doc.signatureDomain,
         libraryId: libraryId,
-        siteId: doc.id,
+        recordId: doc.id,
         field: e.key,
         hlc: clock.hlc.toString(),
         memberId: clock.memberId,
@@ -58,12 +62,18 @@ Future<SiteDocument> signOwnFields(
     );
     clocks[e.key] = clock.copyWith(sig: sig);
   }
-  return doc.copyWith(clocks: clocks);
+  return doc.withContent(
+        deleted: doc.deleted,
+        fields: doc.fields,
+        clocks: clocks,
+        extra: doc.extra,
+      )
+      as T;
 }
 
 Future<bool> _signedBy(
   String? key,
-  SiteDocument doc,
+  ClockedRecord doc,
   String field,
   String libraryId,
 ) async {
@@ -76,8 +86,9 @@ Future<bool> _signedBy(
   final List<int> message;
   try {
     message = fieldSignatureMessage(
+      domain: doc.signatureDomain,
       libraryId: libraryId,
-      siteId: doc.id,
+      recordId: doc.id,
       field: field,
       hlc: clock.hlc.toString(),
       memberId: clock.memberId,
@@ -99,7 +110,7 @@ Future<bool> _signedBy(
 /// stopped editing.
 Future<bool> _signedByRetired(
   List<(String, int)>? retired,
-  SiteDocument doc,
+  ClockedRecord doc,
   String field,
   String libraryId,
 ) async {
@@ -120,9 +131,9 @@ Future<bool> _signedByRetired(
 /// signature, a wrong one, an unknown signer) counts as absent, so
 /// [local]'s value wins and its next upload writes it back. Fields no newer
 /// than [local] are not checked: they change nothing here.
-Future<SiteDocument> dropUnverified(
-  SiteDocument remote, {
-  required SiteDocument local,
+Future<T> dropUnverified<T extends ClockedRecord>(
+  T remote, {
+  required T local,
   required String libraryId,
   required Map<String, String> approvedKeys,
   Map<String, String> pendingKeys = const {},
@@ -138,7 +149,7 @@ Future<SiteDocument> dropUnverified(
     final newer =
         mine == null ||
         e.value.hlc.compareTo(mine.hlc) > 0 ||
-        (e.key != SiteDocument.deletedField &&
+        (e.key != ClockedRecord.deletedField &&
             !local.fields.containsKey(e.key));
     if (!newer) continue;
     final member = e.value.memberId;
@@ -150,7 +161,7 @@ Future<SiteDocument> dropUnverified(
       continue;
     }
     final held = await _signedBy(pendingKeys[member], remote, e.key, libraryId);
-    final isDeleted = e.key == SiteDocument.deletedField;
+    final isDeleted = e.key == ClockedRecord.deletedField;
     if (held && mine != null) {
       clocks[e.key] = mine;
       if (isDeleted) {
@@ -169,38 +180,37 @@ Future<SiteDocument> dropUnverified(
   }
   // A value with no clock at all proves nothing either.
   fields.removeWhere((name, _) => !clocks.containsKey(name));
-  if (!clocks.containsKey(SiteDocument.deletedField)) deleted = local.deleted;
-  return SiteDocument(
-    id: remote.id,
-    deleted: deleted,
-    fields: fields,
-    clocks: clocks,
-    extra: remote.extra,
-  );
+  if (!clocks.containsKey(ClockedRecord.deletedField)) deleted = local.deleted;
+  return remote.withContent(
+        deleted: deleted,
+        fields: fields,
+        clocks: clocks,
+        extra: remote.extra,
+      )
+      as T;
 }
 
 /// [dropUnverified] for each `(remote, local)` pair, the pairs spread over
 /// several isolates when there are enough to pay for them: a first pull of
 /// a large library checks every field once (issue #2567).
-Future<List<SiteDocument>> dropUnverifiedAll(
-  List<(SiteDocument, SiteDocument)> pairs, {
+Future<List<T>> dropUnverifiedAll<T extends ClockedRecord>(
+  List<(T, T)> pairs, {
   required String libraryId,
   required Map<String, String> approvedKeys,
   Map<String, String> pendingKeys = const {},
   Map<String, List<(String, int)>> retiredKeys = const {},
 }) async {
-  Future<List<SiteDocument>> run(List<(SiteDocument, SiteDocument)> part) =>
-      Future.wait([
-        for (final (remote, local) in part)
-          dropUnverified(
-            remote,
-            local: local,
-            libraryId: libraryId,
-            approvedKeys: approvedKeys,
-            pendingKeys: pendingKeys,
-            retiredKeys: retiredKeys,
-          ),
-      ]);
+  Future<List<T>> run(List<(T, T)> part) => Future.wait([
+    for (final (remote, local) in part)
+      dropUnverified(
+        remote,
+        local: local,
+        libraryId: libraryId,
+        approvedKeys: approvedKeys,
+        pendingKeys: pendingKeys,
+        retiredKeys: retiredKeys,
+      ),
+  ]);
   // A browser has no isolates to spread the chunks over.
   if (pairs.length < _parallelFrom || HostPlatform.isWeb) return run(pairs);
   final workers = HostPlatform.numberOfProcessors.clamp(2, 8);
@@ -221,9 +231,9 @@ const _parallelFrom = 16;
 /// [doc] (about to be uploaded) with [remote]'s fields that are newer and
 /// signed by a member waiting for approval ([pendingKeys]) carried over,
 /// so an upload never erases an edit an owner has yet to approve.
-Future<SiteDocument> carryHeld(
-  SiteDocument doc,
-  SiteDocument remote, {
+Future<T> carryHeld<T extends ClockedRecord>(
+  T doc,
+  T remote, {
   required String libraryId,
   required Map<String, String> pendingKeys,
 }) async {
@@ -243,11 +253,17 @@ Future<SiteDocument> carryHeld(
       continue;
     }
     clocks[e.key] = e.value;
-    if (e.key == SiteDocument.deletedField) {
+    if (e.key == ClockedRecord.deletedField) {
       deleted = remote.deleted;
     } else {
       fields[e.key] = remote.fields[e.key];
     }
   }
-  return doc.copyWith(fields: fields, clocks: clocks, deleted: deleted);
+  return doc.withContent(
+        deleted: deleted,
+        fields: fields,
+        clocks: clocks,
+        extra: doc.extra,
+      )
+      as T;
 }

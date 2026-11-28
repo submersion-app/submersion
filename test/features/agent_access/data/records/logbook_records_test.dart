@@ -119,7 +119,7 @@ void main() {
           .insert(
             DocumentsCompanion.insert(
               id: 'doc-$id',
-              diverId: owner,
+              diverId: Value(owner),
               type: 'insurance',
               createdAt: t,
               updatedAt: t,

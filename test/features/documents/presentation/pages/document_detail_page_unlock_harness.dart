@@ -64,6 +64,7 @@ class FakeDocumentSave implements DocumentEditSaveService {
     required String documentId,
     required DocumentRecord Function(DocumentRecord stored) apply,
     required Iterable<String> changedCardIds,
+    String? actingDiverId,
   }) async {
     if (fail) throw StateError('the save failed');
     final before = stored.state!;

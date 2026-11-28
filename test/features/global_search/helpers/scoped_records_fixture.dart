@@ -182,7 +182,7 @@ Future<void> seedScopedRecords(
         .insert(
           DocumentsCompanion.insert(
             id: id,
-            diverId: diverId,
+            diverId: Value(diverId),
             type: 'insurance',
             title: Value('Doc $id'),
             createdAt: now,

@@ -37,6 +37,7 @@ class LibraryBackupHeader {
     this.note = '',
     required this.siteCount,
     required this.memberCount,
+    this.documentCount,
     this.contentSha256 = '',
     this.signature,
   });
@@ -55,6 +56,10 @@ class LibraryBackupHeader {
   final String note;
   final int siteCount;
   final int memberCount;
+
+  /// Shared documents held (issue #4713); null in a backup an older app
+  /// made, which a restore then leaves documents alone for.
+  final int? documentCount;
   final String contentSha256;
   final String? signature;
 
@@ -71,6 +76,7 @@ class LibraryBackupHeader {
     'note': note,
     'siteCount': siteCount,
     'memberCount': memberCount,
+    'documentCount': ?documentCount,
     'contentSha256': contentSha256,
   };
 
@@ -90,6 +96,7 @@ class LibraryBackupHeader {
         note: (json['note'] as String?) ?? '',
         siteCount: (json['siteCount'] as num?)?.toInt() ?? 0,
         memberCount: (json['memberCount'] as num?)?.toInt() ?? 0,
+        documentCount: (json['documentCount'] as num?)?.toInt(),
         contentSha256: (json['contentSha256'] as String?) ?? '',
         signature: json['signature'] as String?,
       );
@@ -108,6 +115,7 @@ class LibraryBackupHeader {
         note: note,
         siteCount: siteCount,
         memberCount: memberCount,
+        documentCount: documentCount,
         contentSha256: contentSha256 ?? this.contentSha256,
         signature: signature ?? this.signature,
       );
@@ -138,7 +146,8 @@ abstract final class LibraryBackupArchive {
   // Any id that stays one segment: no separator, control character or
   // `..` (checked below), which is all that keeps a file in its folder.
   static final _kindFile = RegExp(
-    r'^(members/member|sites/site|suggestions/suggestion)-'
+    r'^(members/member|sites/site|suggestions/suggestion|'
+    r'documents/document)-'
     r'[^/\\\x00-\x1f]+\.json$',
   );
 
@@ -148,8 +157,8 @@ abstract final class LibraryBackupArchive {
   );
 
   /// Whether [path] is one of a library's own files: a root file it keeps,
-  /// or a member card, site document or suggestion whose id stays in its
-  /// folder.
+  /// or a member card, site document, suggestion or shared document whose
+  /// id stays in its folder. Page files are never in a backup (issue #4713).
   static bool isLibraryFile(String path) =>
       _rootFiles.contains(path) ||
       _previousKeys.hasMatch(path) ||

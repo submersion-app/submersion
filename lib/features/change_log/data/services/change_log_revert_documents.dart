@@ -67,13 +67,13 @@ class ChangeLogRevertDocuments {
       final current = [for (final id in changed) ?await _documents.getById(id)];
       final settled = {
         for (final document in current)
-          if (document.type == DocumentType.medicalClearance) document.diverId,
+          if (document.type == DocumentType.medicalClearance) ?document.diverId,
       };
       final lostClearance = {
         for (final document in removed)
           if (document.type == DocumentType.medicalClearance &&
               !settled.contains(document.diverId))
-            document.diverId,
+            ?document.diverId,
       };
       final rearming = [
         ...current,

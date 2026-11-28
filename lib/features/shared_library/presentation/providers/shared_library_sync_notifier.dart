@@ -80,18 +80,8 @@ class SharedLibrarySyncNotifier extends StateNotifier<SharedLibrarySyncState> {
     });
   }
 
-  Future<bool> _hasLocalWork() async {
-    for (final library in await _store.getLibraries()) {
-      if ((await _store.dirtySites(library.id)).isNotEmpty) return true;
-      final pending = await _store.suggestions(
-        library.id,
-        direction: SharedSiteSuggestion.outgoing,
-        status: SharedSiteSuggestion.pending,
-      );
-      if (pending.isNotEmpty) return true;
-    }
-    return false;
-  }
+  // Shared documents count too (issue #4713).
+  Future<bool> _hasLocalWork() => _store.hasLocalLibraryWork();
 
   /// Every library the active profile belongs to and that is connected on
   /// this device, one after the other. A call made while one runs is

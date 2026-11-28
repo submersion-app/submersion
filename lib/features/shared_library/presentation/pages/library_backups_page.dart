@@ -250,15 +250,16 @@ class _LibraryBackupsPageState extends ConsumerState<LibraryBackupsPage> {
 
   /// One restore attempt; true when the backup needs its earlier key.
   Future<bool> _restoreOnce(LibraryBackupRecord r, String? oldSecret) async {
-    final done = context.l10n.sharedLibrary_backups_restoreDone;
+    final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     // Read now: `ref` is unusable once the page closes, which a long
     // restore leaves time for.
     final sync = ref.read(sharedLibrarySyncProvider.notifier);
     var needsKey = false;
     await _run((diverId) async {
+      final int documentsMissing;
       try {
-        await ref
+        documentsMissing = await ref
             .read(libraryRestoreServiceProvider)
             .restore(
               libraryId: _libraryId,
@@ -272,6 +273,13 @@ class _LibraryBackupsPageState extends ConsumerState<LibraryBackupsPage> {
       }
       // This device takes the restored library at once.
       await sync.syncOne(_libraryId);
+      // Shared documents whose page files were collected since the backup
+      // are left out, and the owner is told how many (issue #4713).
+      final done = documentsMissing == 0
+          ? l10n.sharedLibrary_backups_restoreDone
+          : l10n.sharedLibrary_backups_restoreDocumentsMissing(
+              documentsMissing,
+            );
       messenger.showSnackBar(SnackBar(content: Text(done)));
     });
     return needsKey;

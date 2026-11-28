@@ -145,6 +145,7 @@ part 'helpers/support_migrations.dart';
 part 'helpers/sync_migrations.dart';
 part 'helpers/tag_migrations.dart';
 part 'helpers/tdi_certification_migrations.dart';
+part 'helpers/shared_document_migrations.dart';
 part 'helpers/shared_library_migrations.dart';
 part 'helpers/track_migrations.dart';
 part 'helpers/trip_checklist_migrations.dart';

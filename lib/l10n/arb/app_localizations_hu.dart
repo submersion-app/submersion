@@ -24737,6 +24737,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get sharedLibrary_backups_restoreDone => 'A könyvtár visszaállítva';
 
   @override
+  String sharedLibrary_backups_restoreDocumentsMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'A könyvtár visszaállítva. $count megosztott dokumentumot nem sikerült visszaállítani: az oldalaik már nincsenek a tárhelyen.',
+      one:
+          'A könyvtár visszaállítva. $count megosztott dokumentumot nem sikerült visszaállítani: az oldalai már nincsenek a tárhelyen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get sharedLibrary_backups_oldKey =>
       'Ezt a mentést egy korábbi jelmondattal pecsételték le. Add meg azt a jelmondatot vagy az akkori helyreállítási kódot.';
 
@@ -66890,6 +66903,59 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'A Kompakt egy keskeny sáv állapotjelzőkkel. A Szalag az üdvözlő szalag a merülési összesítőiddel. Ezen az eszközön mentve.';
+
+  @override
+  String documents_libraryShare_switch(String library) {
+    return 'Megosztás ezzel: $library';
+  }
+
+  @override
+  String get documents_libraryShare_hint =>
+      'A könyvtár minden tagja megnyithatja';
+
+  @override
+  String documents_libraryShare_sharedWith(String library) {
+    return 'Megosztva ezzel: $library';
+  }
+
+  @override
+  String get documents_libraryShare_onlyYou => 'Csak te';
+
+  @override
+  String get documents_libraryShare_removeFromLibrary =>
+      'Eltávolítás a könyvtárból';
+
+  @override
+  String documents_libraryShare_unshareTitle(String library) {
+    return 'Megszünteted a megosztást ezzel: $library?';
+  }
+
+  @override
+  String get documents_libraryShare_unshareBody =>
+      'A többi tag a következő szinkronizáláskor elveszíti ezt a dokumentumot. Te megtartasz egy privát másolatot.';
+
+  @override
+  String get documents_libraryShare_unshareConfirm => 'Megosztás megszüntetése';
+
+  @override
+  String documents_libraryShare_removeTitle(String library) {
+    return 'Eltávolítod innen: $library?';
+  }
+
+  @override
+  String get documents_libraryShare_removeBody =>
+      'Minden tag a következő szinkronizáláskor elveszíti ezt a dokumentumot.';
+
+  @override
+  String get documents_libraryShare_removed => 'Eltávolítva a könyvtárból';
+
+  @override
+  String documents_libraryShare_lastEdited(String name, String date) {
+    return 'Utoljára szerkesztette: $name, $date';
+  }
+
+  @override
+  String get documents_filter_sharedLibraries => 'Megosztott könyvtárak';
 
   @override
   String get popOut_openProfileWindow => 'Megnyitás új ablakban';

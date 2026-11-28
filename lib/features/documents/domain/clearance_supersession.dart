@@ -4,7 +4,7 @@ import 'package:submersion/features/documents/domain/entities/document.dart';
 /// it is filed under (an instructor's student, say). A holder's clearances
 /// supersede only one another, so a buddy's renewal never silences the
 /// diver's own clearance, nor another buddy's.
-typedef ClearanceHolder = ({String diverId, String? buddyId});
+typedef ClearanceHolder = ({String? diverId, String? buddyId});
 
 ClearanceHolder clearanceHolder(Document d) => (
   diverId: d.diverId,

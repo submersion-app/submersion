@@ -166,6 +166,10 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
   late bool _personalOnly = widget.initialPersonalOnly;
   late bool _expiringOnly = widget.initialExpiringOnly;
 
+  /// Lists the documents shared with the diver's site libraries instead of
+  /// the diver's own (issue #4713).
+  bool _sharedOnly = false;
+
   /// Tags the list is filtered to, any of them matching (issue #1970).
   late Set<String> _tagIds = {?widget.initialTagId};
 
@@ -253,10 +257,19 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
       hintText: l10n.documents_search_hint,
       alwaysShown: true,
     );
+    // The chip shows while the diver has shared documents at all; the list
+    // under it follows the search like the diver's own.
+    final shared =
+        ref.watch(sharedLibraryDocumentsProvider).value ??
+        const <DocumentListEntry>[];
+    final sharedShown =
+        ref.watch(filteredSharedLibraryDocumentsProvider).value ??
+        const <DocumentListEntry>[];
     final list = all.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text(l10n.documents_error_load('$e'))),
-      data: (raw) {
+      data: (own) {
+        final raw = _sharedOnly ? sharedShown : own;
         final catalog = ref.watch(certificationCatalogSyncProvider);
         final entries = [
           for (final e in raw)
@@ -281,7 +294,10 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
           slivers: [
             // Shown whenever a filter is set, so a filter from the route can
             // always be cleared, even when only one type exists.
-            if (presentTypes.length > 1 || _type != null)
+            if (presentTypes.length > 1 ||
+                _type != null ||
+                shared.isNotEmpty ||
+                _sharedOnly)
               SliverToBoxAdapter(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -293,6 +309,19 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
                         selected: _type == null,
                         onSelected: (_) => setState(() => _type = null),
                       ),
+                      if (shared.isNotEmpty || _sharedOnly)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: FilterChip(
+                            key: const ValueKey('documents-filter-shared'),
+                            avatar: const Icon(Icons.groups_outlined, size: 18),
+                            label: Text(l10n.documents_filter_sharedLibraries),
+                            selected: _sharedOnly,
+                            showCheckmark: false,
+                            onSelected: (on) =>
+                                setState(() => _sharedOnly = on),
+                          ),
+                        ),
                       for (final t in DocumentType.values)
                         if (presentTypes.contains(t))
                           Padding(

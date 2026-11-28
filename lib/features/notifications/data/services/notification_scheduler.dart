@@ -499,14 +499,15 @@ class NotificationScheduler {
             clearanceDiversRebuilt.add(payloadDiver)) {
           await _settleClearances(payloadDiver, settings);
         }
-      } else if (!document.remindsOnExpiry) {
+      } else if (!document.remindsOnExpiry || document.diverId == null) {
+        // A library document reminds no one (issue #4713).
         await _notificationService.cancelDocumentReminders(id);
       } else if (document.diverId != diverId) {
         // Only a clearance settles its diver's others: a type change is an
         // edit's concern, not a full schedule's.
         if (document.type != DocumentType.medicalClearance) {
           await _armDocument(document, settings);
-        } else if (clearanceDiversRebuilt.add(document.diverId)) {
+        } else if (clearanceDiversRebuilt.add(document.diverId!)) {
           await updateForDocument(document, settings);
         }
       } else if (!remindingIds.contains(id)) {
@@ -534,11 +535,17 @@ class NotificationScheduler {
     AppSettings settings,
   ) async {
     if (DemoModeGate.instance.isActive) return;
+    final diverId = document.diverId;
+    if (diverId == null) {
+      // A library document reminds no one (issue #4713).
+      await _notificationService.cancelDocumentReminders(document.id);
+      return;
+    }
     if (document.type == DocumentType.medicalClearance) {
       return _updateClearances(document, settings);
     }
     await _armDocument(document, settings);
-    await _settleClearances(document.diverId, settings);
+    await _settleClearances(diverId, settings);
   }
 
   /// Re-arms [diverId]'s medical clearances from the database, so only
@@ -564,7 +571,7 @@ class NotificationScheduler {
   }
 
   Future<void> _updateClearances(Document changed, AppSettings settings) async {
-    final clearances = await _settleClearances(changed.diverId, settings);
+    final clearances = await _settleClearances(changed.diverId!, settings);
     if (!clearances.any((c) => c.id == changed.id)) {
       await _notificationService.cancelDocumentReminders(changed.id);
     }
@@ -593,7 +600,8 @@ class NotificationScheduler {
   Future<void> _armDocument(Document document, AppSettings settings) async {
     if (DemoModeGate.instance.isActive) return;
     await _notificationService.cancelDocumentReminders(document.id);
-    if (!settings.notificationsEnabled) return;
+    final diverId = document.diverId;
+    if (!settings.notificationsEnabled || diverId == null) return;
     final l10n = l10nForLocaleTag(settings.locale);
     final title = documentDisplayTitle(l10n, document);
     for (final r in documentReminderPlan(
@@ -604,7 +612,7 @@ class NotificationScheduler {
       final expiryDay = r.stage == DocumentReminderStage.expiryDay;
       await _notificationService.scheduleDocumentReminder(
         documentId: document.id,
-        diverId: document.diverId,
+        diverId: diverId,
         title: expiryDay
             ? l10n.notifications_document_expiresToday_title(title)
             : l10n.notifications_document_expiresSoon_title(title),

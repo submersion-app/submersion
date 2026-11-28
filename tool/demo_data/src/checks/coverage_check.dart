@@ -18,6 +18,7 @@ const demoCoverageExclusions = <String, String>{
   'shared_library_backups': 'shared site libraries are sealed in demo mode',
   'shared_library_members': 'shared site libraries are sealed in demo mode',
   'shared_library_memberships': 'shared site libraries are sealed in demo mode',
+  'shared_document_states': 'shared site libraries are sealed in demo mode',
   'shared_site_states': 'shared site libraries are sealed in demo mode',
   'shared_site_suggestions': 'shared site libraries are sealed in demo mode',
   'library_site_notes': 'shared site libraries are sealed in demo mode',

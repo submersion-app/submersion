@@ -24691,6 +24691,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get sharedLibrary_backups_restoreDone => 'Bibliotheek hersteld';
 
   @override
+  String sharedLibrary_backups_restoreDocumentsMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Bibliotheek hersteld. $count gedeelde documenten konden niet worden hersteld: de pagina\'s staan niet meer in de opslag.',
+      one:
+          'Bibliotheek hersteld. $count gedeeld document kon niet worden hersteld: de pagina\'s staan niet meer in de opslag.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get sharedLibrary_backups_oldKey =>
       'Deze back-up is verzegeld met een eerdere wachtwoordzin. Voer die wachtwoordzin of de herstelcode van toen in.';
 
@@ -66883,6 +66896,59 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compact is een smalle balk met statuslampjes. Banner is de welkomstbanner met je duiktotalen. Opgeslagen op dit apparaat.';
+
+  @override
+  String documents_libraryShare_switch(String library) {
+    return 'Delen met $library';
+  }
+
+  @override
+  String get documents_libraryShare_hint =>
+      'Elk lid van de bibliotheek kan het openen';
+
+  @override
+  String documents_libraryShare_sharedWith(String library) {
+    return 'Gedeeld met $library';
+  }
+
+  @override
+  String get documents_libraryShare_onlyYou => 'Alleen jij';
+
+  @override
+  String get documents_libraryShare_removeFromLibrary =>
+      'Uit de bibliotheek verwijderen';
+
+  @override
+  String documents_libraryShare_unshareTitle(String library) {
+    return 'Niet meer delen met $library?';
+  }
+
+  @override
+  String get documents_libraryShare_unshareBody =>
+      'Andere leden verliezen dit document bij hun volgende synchronisatie. Jij houdt een privékopie.';
+
+  @override
+  String get documents_libraryShare_unshareConfirm => 'Niet meer delen';
+
+  @override
+  String documents_libraryShare_removeTitle(String library) {
+    return 'Verwijderen uit $library?';
+  }
+
+  @override
+  String get documents_libraryShare_removeBody =>
+      'Alle leden verliezen dit document bij hun volgende synchronisatie.';
+
+  @override
+  String get documents_libraryShare_removed => 'Uit de bibliotheek verwijderd';
+
+  @override
+  String documents_libraryShare_lastEdited(String name, String date) {
+    return 'Laatst bewerkt door $name, $date';
+  }
+
+  @override
+  String get documents_filter_sharedLibraries => 'Gedeelde bibliotheken';
 
   @override
   String get popOut_openProfileWindow => 'Openen in een nieuw venster';

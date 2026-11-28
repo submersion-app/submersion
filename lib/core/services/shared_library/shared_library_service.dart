@@ -1,20 +1,28 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/shared_library/clocked_record.dart';
+import 'package:submersion/core/services/shared_library/crypto/canonical_json.dart';
 import 'package:submersion/core/services/shared_library/crypto/roles_trust.dart';
 import 'package:submersion/core/services/shared_library/crypto/field_signatures.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
 import 'package:submersion/core/services/shared_library/crypto/suggestion_signatures.dart';
 import 'package:submersion/core/services/shared_library/library_details_service.dart';
+import 'package:submersion/core/services/shared_library/library_document_bridge.dart';
+import 'package:submersion/core/services/shared_library/library_document_record.dart';
+import 'package:submersion/core/services/shared_library/library_document_stamper.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/core/services/shared_library/library_site_notes.dart';
 import 'package:submersion/core/services/shared_library/library_sync_error.dart';
 import 'package:submersion/core/services/shared_library/member_removal.dart';
+import 'package:submersion/core/services/shared_library/shared_document_state.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
@@ -25,6 +33,7 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
+part 'shared_library_document_sync.dart';
 part 'shared_library_sync_parts.dart';
 part 'shared_library_sync_removals.dart';
 
@@ -80,12 +89,16 @@ class SharedLibraryService {
     required Future<SharedLibraryTransport> Function(SharedLibrary library)
     transportFor,
     SiteDocumentBridge? bridge,
+    LibraryDocumentBridge? documentBridge,
+    LibraryDocumentStamper? documentStamper,
     LibrarySiteRemover? remover,
     String appVersion = 'unknown',
     DateTime Function()? now,
   }) : _store = store,
        _transportFor = transportFor,
        _bridge = bridge ?? SiteDocumentBridge(),
+       _documentBridge = documentBridge ?? LibraryDocumentBridge(),
+       _documentStamper = documentStamper ?? LibraryDocumentStamper(),
        _remover = remover ?? _removeRow,
        _appVersion = appVersion,
        _now = now ?? DateTime.now;
@@ -93,11 +106,18 @@ class SharedLibraryService {
   final SharedLibraryStore _store;
   final Future<SharedLibraryTransport> Function(SharedLibrary) _transportFor;
   final SiteDocumentBridge _bridge;
+  final LibraryDocumentBridge _documentBridge;
+  final LibraryDocumentStamper _documentStamper;
   final LibrarySiteRemover _remover;
   final String _appVersion;
   final DateTime Function() _now;
   final _log = LoggerService.forClass(SharedLibraryService);
   final _gates = <String, Future<void>>{};
+
+  /// The page files each shared document record names, by library and
+  /// storage file, with the version of the file they were read from (issue
+  /// #4713): page collection re-reads only the records that changed.
+  final _documentPageRefs = <String, ({String version, Set<String> fileIds})>{};
 
   static Future<void> _removeRow({
     required String siteId,
@@ -472,6 +492,24 @@ class SharedLibraryService {
         }
       }
 
+      // 4b. Shared documents (issue #4713), after the sites they are filed
+      // under, so a document never arrives before its site.
+      final documents = await _syncDocuments(
+        t,
+        library,
+        membership: membership,
+        diverId: diverId,
+        judged: judged,
+        pendingKeys: pendingKeys,
+        holdWrites: holdWrites,
+        readOnly: readOnly,
+        role: roles.roleOf(membership.memberId),
+      );
+      pulled += documents.pulled;
+      pushed += documents.pushed;
+      readOnly = documents.readOnly;
+      if (documents.uploadAttempted) uploadAttempted = true;
+
       // 5. Suggestions. Read-only credentials refuse them as they refuse
       // sites: the suggestions wait, and the library reads as read-only.
       if (!holdWrites) {
@@ -667,6 +705,8 @@ class SharedLibraryService {
     final files = {
       ...await t.sealableFiles(),
       if (index != null) index.key: index.value,
+      // The backups' page lists too (issue #4713).
+      ...await t.backupPageListFiles(),
     };
     // Every file this device can open is rewritten; one under a key it
     // lacks leaves the flag for an owner who holds it.
@@ -734,6 +774,11 @@ class SharedLibraryService {
       final fields = hasRow && !(state?.deleted ?? false)
           ? outcome.remoteWon
           : merged.fields.keys.toSet();
+      // A site that arrived or came back: its documents waiting for it are
+      // read again (issue #4713).
+      if (!hasRow || (state?.deleted ?? false)) {
+        await _store.clearDocumentStampsForSite(siteId);
+      }
       if (fields.isNotEmpty) {
         await _bridge.apply(
           merged,

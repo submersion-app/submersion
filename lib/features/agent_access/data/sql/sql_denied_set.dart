@@ -31,6 +31,7 @@ const Set<String> kSqlDeniedTables = {
   'shared_library_backups',
   'shared_library_members',
   'shared_library_memberships',
+  'shared_document_states',
   'shared_site_states',
   'shared_site_suggestions',
   'sync_metadata',

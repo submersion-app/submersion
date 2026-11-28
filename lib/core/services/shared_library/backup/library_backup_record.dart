@@ -1,4 +1,5 @@
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
+import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 
 /// A library backup as the Backups list shows it (issue #2567): merged
 /// from this device's copy and the copy beside the library in storage.
@@ -17,6 +18,7 @@ class LibraryBackupRecord {
     this.sizeBytes = 0,
     this.localPath,
     this.inStorage = false,
+    this.pageFileIds = const [],
   });
 
   final String backupId;
@@ -37,6 +39,10 @@ class LibraryBackupRecord {
   final String? localPath;
   final bool inStorage;
 
+  /// The shared documents' page files this backup refers to and does not
+  /// hold (issue #4713): kept in storage while the backup is.
+  final List<String> pageFileIds;
+
   bool get onDevice => localPath != null;
 
   /// One entry of `backups/index.json`.
@@ -51,6 +57,7 @@ class LibraryBackupRecord {
     'siteCount': siteCount,
     'memberCount': memberCount,
     'sizeBytes': sizeBytes,
+    if (pageFileIds.isNotEmpty) 'pageFileIds': pageFileIds,
   };
 
   static final _fileName = RegExp(r'^[A-Za-z0-9][A-Za-z0-9._-]{0,200}$');
@@ -82,6 +89,7 @@ class LibraryBackupRecord {
     if (siteCount == null || memberCount == null || sizeBytes == null) {
       return null;
     }
+    final pages = raw['pageFileIds'];
     return LibraryBackupRecord(
       backupId: id,
       libraryId: libraryId,
@@ -95,6 +103,11 @@ class LibraryBackupRecord {
       memberCount: memberCount,
       sizeBytes: sizeBytes,
       inStorage: true,
+      pageFileIds: [
+        if (pages is List)
+          for (final f in pages)
+            if (f is String && SharedLibraryTransport.isSafeFileId(f)) f,
+      ],
     );
   }
 
@@ -116,5 +129,6 @@ class LibraryBackupRecord {
     sizeBytes: sizeBytes,
     localPath: localPath ?? this.localPath,
     inStorage: inStorage ?? this.inStorage,
+    pageFileIds: pageFileIds,
   );
 }

@@ -47,7 +47,12 @@ mixin _DocumentDetailPageEditing
   Future<void> saveSitting(EditSession<DocumentRecord> session) async {
     final service = ref.read(documentEditSaveServiceProvider);
     final mutations = ref.read(documentMutationsProvider);
+    // The profile editing, whose library role decides (issue #4713).
+    final actingDiverId = await ref.read(
+      validatedCurrentDiverIdProvider.future,
+    );
     final result = await service.save(
+      actingDiverId: actingDiverId,
       // The document the sitting was opened on, whatever the page shows by
       // the time the write is asked for.
       documentId: session.stored.id,

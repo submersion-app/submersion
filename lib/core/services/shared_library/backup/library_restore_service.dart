@@ -9,6 +9,7 @@ import 'package:submersion/core/services/shared_library/backup/library_backup_se
 import 'package:submersion/core/services/shared_library/crypto/field_signatures.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
+import 'package:submersion/core/services/shared_library/library_document_record.dart';
 import 'package:submersion/core/services/shared_library/member_clock.dart';
 import 'package:submersion/core/services/shared_library/member_removal.dart';
 import 'package:submersion/core/services/shared_library/shared_library_membership_service.dart';
@@ -20,6 +21,8 @@ import 'package:submersion/core/services/sync/crypto/keyslots.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+
+part 'library_restore_documents.dart';
 
 /// The backup was sealed under a key the library no longer uses: the
 /// passphrase or recovery code of that time opens it.
@@ -71,8 +74,9 @@ class LibraryRestoreService {
 
   /// Restores [backupId] over the library. Owners only. A pinned backup of
   /// the library as it stands is made first. [oldSecret] opens a backup
-  /// sealed under an earlier key.
-  Future<void> restore({
+  /// sealed under an earlier key. Returns how many shared documents could
+  /// not be restored because their page files are gone (issue #4713).
+  Future<int> restore({
     required String libraryId,
     required String diverId,
     required String backupId,
@@ -155,6 +159,18 @@ class LibraryRestoreService {
         // Fields count when signed by a member trusted then or now.
         signers: [backupRoles, roles],
       );
+      // A backup an older app made holds no documents: the library's stay
+      // as they are.
+      final documentsMissing = contents.header.documentCount == null
+          ? 0
+          : await _restoreDocuments(
+              t,
+              library.id,
+              me.memberId,
+              key,
+              opened,
+              signers: [backupRoles, roles],
+            );
       final restored = await _memberships.writeSignedRoles(
         library,
         t,
@@ -188,6 +204,7 @@ class LibraryRestoreService {
       }
       await _store.clearRemoteStamps(libraryId);
       await _store.replaceMembers(libraryId, await t.listMembers());
+      return documentsMissing;
     });
   }
 

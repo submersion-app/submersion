@@ -24830,6 +24830,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sharedLibrary_backups_restoreDone => 'Biblioteca restaurada';
 
   @override
+  String sharedLibrary_backups_restoreDocumentsMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Biblioteca restaurada. $count documentos partilhados não puderam ser restaurados: as suas páginas já não estão no armazenamento.',
+      one:
+          'Biblioteca restaurada. $count documento partilhado não pôde ser restaurado: as suas páginas já não estão no armazenamento.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get sharedLibrary_backups_oldKey =>
       'Esta cópia foi selada com uma frase-passe anterior. Introduza essa frase-passe ou o código de recuperação dessa altura.';
 
@@ -67256,6 +67269,59 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compacto é uma barra estreita com luzes de status. Faixa é a faixa de boas-vindas com seus totais de mergulho. Salvo neste dispositivo.';
+
+  @override
+  String documents_libraryShare_switch(String library) {
+    return 'Partilhar com $library';
+  }
+
+  @override
+  String get documents_libraryShare_hint =>
+      'Qualquer membro da biblioteca pode abri-lo';
+
+  @override
+  String documents_libraryShare_sharedWith(String library) {
+    return 'Partilhado com $library';
+  }
+
+  @override
+  String get documents_libraryShare_onlyYou => 'Só tu';
+
+  @override
+  String get documents_libraryShare_removeFromLibrary =>
+      'Remover da biblioteca';
+
+  @override
+  String documents_libraryShare_unshareTitle(String library) {
+    return 'Deixar de partilhar com $library?';
+  }
+
+  @override
+  String get documents_libraryShare_unshareBody =>
+      'Os outros membros perdem este documento na próxima sincronização. Ficas com uma cópia privada.';
+
+  @override
+  String get documents_libraryShare_unshareConfirm => 'Deixar de partilhar';
+
+  @override
+  String documents_libraryShare_removeTitle(String library) {
+    return 'Remover de $library?';
+  }
+
+  @override
+  String get documents_libraryShare_removeBody =>
+      'Todos os membros perdem este documento na próxima sincronização.';
+
+  @override
+  String get documents_libraryShare_removed => 'Removido da biblioteca';
+
+  @override
+  String documents_libraryShare_lastEdited(String name, String date) {
+    return 'Última edição por $name, $date';
+  }
+
+  @override
+  String get documents_filter_sharedLibraries => 'Bibliotecas partilhadas';
 
   @override
   String get popOut_openProfileWindow => 'Abrir em uma nova janela';

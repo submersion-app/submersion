@@ -129,6 +129,7 @@ class LibraryBackupService {
       note: sealed ? '' : note.trim(),
       siteCount: _count(files, SharedLibraryLayout.sitesDir),
       memberCount: _count(files, SharedLibraryLayout.membersDir),
+      documentCount: _count(files, SharedLibraryLayout.documentsDir),
     );
     final zip = await LibraryBackupArchive.build(
       files: files,
@@ -150,11 +151,15 @@ class LibraryBackupService {
       memberCount: header.memberCount,
       sizeBytes: zip.length,
       localPath: local,
+      pageFileIds: await _pageFileIdsOf(t, files),
     );
     var uploaded = false;
     try {
       await t.writeBackup(name, zip);
       uploaded = true;
+      // Before the index lists it, so garbage collection never sees the
+      // backup without the page files it needs.
+      await t.writeBackupPages(header.backupId, record.pageFileIds);
       final listed = record.copyWith(inStorage: true);
       await _updateIndex(
         t,
@@ -275,6 +280,31 @@ class LibraryBackupService {
     }
   }
 
+  /// The page files the library's shared documents name now: what a
+  /// backup of it needs kept in storage (issue #4713).
+  /// The page files the document records in [files], the archived
+  /// snapshot itself, name: an edit after the snapshot cannot change them.
+  /// A record that cannot be read may name any file, so then every page
+  /// file in storage is kept for this backup.
+  static Future<List<String>> _pageFileIdsOf(
+    SharedLibraryTransport t,
+    Map<String, Uint8List> files,
+  ) async {
+    final ids = <String>{};
+    for (final e in files.entries) {
+      if (!e.key.startsWith('${SharedLibraryLayout.documentsDir}/')) continue;
+      final doc = await t.documentInSnapshot(e.key, e.value);
+      if (doc == null) {
+        return [
+          for (final f in await t.listPageFiles())
+            SharedLibraryTransport.pageFileIdOf(f),
+        ]..sort();
+      }
+      if (!doc.deleted) ids.addAll(doc.pageRefs.map((r) => r.fileId));
+    }
+    return ids.toList()..sort();
+  }
+
   static int _count(Map<String, Uint8List> files, String dir) =>
       files.keys.where((k) => k.startsWith('$dir/')).length;
 
@@ -391,6 +421,7 @@ class LibraryBackupService {
         diverId,
         (index) => {...index}..remove(backupId),
         alsoDeleteFile: record.fileName,
+        alsoDeletePagesOf: backupId,
       );
     }
   }
@@ -468,9 +499,11 @@ class LibraryBackupService {
     )
     change, {
     String? alsoDeleteFile,
+    String? alsoDeletePagesOf,
   }) async {
     final (library, t, me, key, roles) = await _asOwner(libraryId, diverId);
     if (alsoDeleteFile != null) await t.deleteBackup(alsoDeleteFile);
+    if (alsoDeletePagesOf != null) await t.deleteBackupPages(alsoDeletePagesOf);
     await _updateIndex(t, me, key, roles, change, library: library);
   }
 

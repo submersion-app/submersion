@@ -1,7 +1,9 @@
+import 'package:drift/drift.dart' show Variable;
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/shared_library/library_document_stamper.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -19,17 +21,25 @@ String detachedSiteId(String siteId) => const Uuid().v5(
 
 /// A library site leaving this device (issue #2567): when the library's
 /// tombstone arrives, when a referent deletes it here, or when the member
-/// leaves. A site that any dive or plan links to survives as a personal
-/// site under a new id, with dives, plans, media, features, species, types
-/// and tags re-pointed, so an undelete in the library can never collide
-/// with it. A site nothing links to is removed, with no personal tombstone.
+/// leaves. A site that any dive or plan links to, or that holds a private
+/// document of a profile here (issue #4713), survives as a personal site
+/// under a new id, with dives, plans, media, documents, features, species,
+/// types and tags re-pointed, so an undelete in the library can never
+/// collide with it; its shared documents stay as private copies. A site
+/// nothing links to is removed with its shared documents, with no personal
+/// tombstone.
 class SiteDetacher {
-  SiteDetacher({SharedLibraryStore? store, SiteRepository? sites})
-    : _store = store ?? SharedLibraryStore(),
-      _sites = sites ?? SiteRepository();
+  SiteDetacher({
+    SharedLibraryStore? store,
+    SiteRepository? sites,
+    LibraryDocumentStamper? documents,
+  }) : _store = store ?? SharedLibraryStore(),
+       _sites = sites ?? SiteRepository(),
+       _documents = documents ?? LibraryDocumentStamper(store: store);
 
   final SharedLibraryStore _store;
   final SiteRepository _sites;
+  final LibraryDocumentStamper _documents;
   AppDatabase get _db => DatabaseService.instance.database;
 
   /// Returns the id of the personal copy, or null when the site was removed
@@ -45,7 +55,8 @@ class SiteDetacher {
       if (!keepState) await _store.deleteSiteState(siteId);
       return null;
     }
-    if (!await _sites.hasLinks(siteId)) {
+    if (!await _sites.hasLinks(siteId) &&
+        !await _holdsPrivateDocuments(siteId)) {
       await _sites.deleteSite(siteId, logTombstones: false);
       if (!keepState) await _store.deleteSiteState(siteId);
       return null;
@@ -67,6 +78,11 @@ class SiteDetacher {
           ),
         );
       }
+      // Shared documents stay as the diver's own, filed on the site until
+      // the relink below moves them with the rest.
+      for (final documentId in await _sharedDocumentsOf(siteId)) {
+        await _documents.keepAsPrivate(documentId, ownerDiverId);
+      }
       await _sites.relinkSiteReferences(from: siteId, to: newId);
       await _sites.deleteSite(
         siteId,
@@ -78,4 +94,28 @@ class SiteDetacher {
     SyncEventBus.notifyLocalChange();
     return newId;
   }
+
+  /// Whether a profile here has a private document filed on [siteId]:
+  /// removing the site would delete it on every device of that profile.
+  Future<bool> _holdsPrivateDocuments(String siteId) async =>
+      (await _db
+              .customSelect(
+                'SELECT 1 FROM documents WHERE site_id = ? '
+                'AND shared_library_id IS NULL LIMIT 1',
+                variables: [Variable.withString(siteId)],
+              )
+              .get())
+          .isNotEmpty;
+
+  Future<List<String>> _sharedDocumentsOf(String siteId) async => [
+    for (final r
+        in await _db
+            .customSelect(
+              'SELECT id FROM documents WHERE site_id = ? '
+              'AND shared_library_id IS NOT NULL',
+              variables: [Variable.withString(siteId)],
+            )
+            .get())
+      r.read<String>('id'),
+  ];
 }

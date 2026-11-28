@@ -179,5 +179,10 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v383 backstop: species covers and practice (issue #5027; synced,
     // idempotent).
     await _assertSpeciesRevampSchema();
+
+    // v395 backstop: shared library documents (issue #4713; idempotent,
+    // the rebuild is skipped once diver_id is nullable). After the v289
+    // backstop, which creates the library tables.
+    await _assertSharedDocumentSchema();
   }
 }

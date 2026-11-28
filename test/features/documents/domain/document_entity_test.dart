@@ -23,6 +23,38 @@ void main() {
     expect(cleared.issuer, isNull);
   });
 
+  test('a shared library document has no diver and is shared', () {
+    final shared = base.copyWith(diverId: null, sharedLibraryId: 'L');
+    expect(shared.diverId, isNull);
+    expect(shared.sharedLibraryId, 'L');
+    expect(shared.isShared, isTrue);
+    expect(base.isShared, isFalse);
+  });
+
+  test('copyWith clears sharedLibraryId with null', () {
+    final shared = base.copyWith(sharedLibraryId: 'L');
+    final back = shared.copyWith(sharedLibraryId: null, diverId: 'd');
+    expect(back.sharedLibraryId, isNull);
+    expect(back, base);
+  });
+
+  test('a page keeps its library file id until told otherwise', () {
+    final page = DocumentPage(
+      id: 'p',
+      documentId: 'a',
+      pageIndex: 0,
+      fileName: 'a.pdf',
+      mimeType: 'application/pdf',
+      sizeBytes: 1,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+      libraryFileId: 'f1',
+    );
+    expect(page.copyWith(pageIndex: 1).libraryFileId, 'f1');
+    expect(page.copyWith(clearLibraryFileId: true).libraryFileId, isNull);
+    expect(page.withoutBytes().libraryFileId, 'f1');
+  });
+
   test('copyWith without arguments keeps nullable fields', () {
     expect(base.copyWith(), base);
   });

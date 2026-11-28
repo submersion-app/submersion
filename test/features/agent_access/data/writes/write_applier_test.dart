@@ -496,7 +496,7 @@ void main() {
         .insert(
           DocumentsCompanion.insert(
             id: 'doc-1',
-            diverId: kDiverA,
+            diverId: const Value(kDiverA),
             diveId: const Value('d1'),
             type: 'other',
             createdAt: t,
@@ -546,7 +546,7 @@ void main() {
         .insert(
           DocumentsCompanion.insert(
             id: 'doc-cert',
-            diverId: kDiverA,
+            diverId: const Value(kDiverA),
             certificationId: const Value('c1'),
             type: 'other',
             createdAt: t,

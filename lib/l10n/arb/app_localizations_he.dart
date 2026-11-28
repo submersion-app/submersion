@@ -24297,6 +24297,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get sharedLibrary_backups_restoreDone => 'הספרייה שוחזרה';
 
   @override
+  String sharedLibrary_backups_restoreDocumentsMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'הספרייה שוחזרה. לא ניתן היה לשחזר $count מסמכים משותפים: הדפים שלהם כבר אינם באחסון.',
+      one:
+          'הספרייה שוחזרה. לא ניתן היה לשחזר מסמך משותף אחד: הדפים שלו כבר אינם באחסון.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get sharedLibrary_backups_oldKey =>
       'הגיבוי הזה נחתם במשפט סיסמה קודם. הזינו את משפט הסיסמה ההוא או את קוד השחזור מאותה עת.';
 
@@ -65916,6 +65929,57 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'דחוס הוא סרגל צר עם נורות מצב. באנר הוא באנר הפתיחה עם סיכומי הצלילות שלך. נשמר במכשיר זה.';
+
+  @override
+  String documents_libraryShare_switch(String library) {
+    return 'שיתוף עם $library';
+  }
+
+  @override
+  String get documents_libraryShare_hint => 'כל חברי הספרייה יכולים לפתוח אותו';
+
+  @override
+  String documents_libraryShare_sharedWith(String library) {
+    return 'משותף עם $library';
+  }
+
+  @override
+  String get documents_libraryShare_onlyYou => 'רק את/ה';
+
+  @override
+  String get documents_libraryShare_removeFromLibrary => 'הסרה מהספרייה';
+
+  @override
+  String documents_libraryShare_unshareTitle(String library) {
+    return 'להפסיק לשתף עם $library?';
+  }
+
+  @override
+  String get documents_libraryShare_unshareBody =>
+      'שאר החברים יאבדו את המסמך בסנכרון הבא שלהם. נשאר אצלך עותק פרטי.';
+
+  @override
+  String get documents_libraryShare_unshareConfirm => 'הפסקת שיתוף';
+
+  @override
+  String documents_libraryShare_removeTitle(String library) {
+    return 'להסיר מ-$library?';
+  }
+
+  @override
+  String get documents_libraryShare_removeBody =>
+      'כל החברים יאבדו את המסמך בסנכרון הבא שלהם.';
+
+  @override
+  String get documents_libraryShare_removed => 'הוסר מהספרייה';
+
+  @override
+  String documents_libraryShare_lastEdited(String name, String date) {
+    return 'נערך לאחרונה על ידי $name, $date';
+  }
+
+  @override
+  String get documents_filter_sharedLibraries => 'ספריות משותפות';
 
   @override
   String get popOut_openProfileWindow => 'פתיחה בחלון חדש';

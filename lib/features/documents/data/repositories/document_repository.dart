@@ -165,7 +165,14 @@ class DocumentRepository with _DocumentClearanceQueries {
     return row == null ? null : documentFromRow(row);
   }
 
-  /// The documents [owner] holds, optionally only [diverId]'s.
+  /// SQL for "a shared site library [viewer] belongs to" (issue #4713);
+  /// [viewer] is a placeholder or a column.
+  static String _libraryOfMember(String viewer) =>
+      'shared_library_id IN (SELECT library_id FROM '
+      'shared_library_memberships WHERE diver_id = $viewer)';
+
+  /// The documents [owner] holds, optionally only those [diverId] sees: its
+  /// own, and the ones shared with a site library it belongs to.
   Future<List<Document>> getForOwner(
     DocumentOwner owner, {
     String? diverId,
@@ -176,13 +183,16 @@ class DocumentRepository with _DocumentClearanceQueries {
       return _db
           .customSelect(
             'SELECT * FROM documents WHERE $column = ? '
-            '${diverId == null ? '' : 'AND diver_id = ? '}'
+            '${diverId == null ? '' : 'AND (diver_id = ? OR ${_libraryOfMember('?')}) '}'
             'ORDER BY ${_documentOrder()}',
             variables: [
               Variable.withString(owner.id!),
-              if (diverId != null) Variable.withString(diverId),
+              if (diverId != null) ...[
+                Variable.withString(diverId),
+                Variable.withString(diverId),
+              ],
             ],
-            readsFrom: {_db.documents},
+            readsFrom: {_db.documents, _db.sharedLibraryMemberships},
           )
           .map((r) => documentFromRow(_db.documents.map(r.data)))
           .get();
@@ -217,6 +227,11 @@ class DocumentRepository with _DocumentClearanceQueries {
       [diverId, ...ids],
     );
   }
+
+  /// The documents shared with the site libraries [diverId] belongs to,
+  /// with their site's name as the owner label (issue #4713).
+  Future<List<DocumentListEntry>> getSharedForDiver(String diverId) =>
+      _entries('d.${_libraryOfMember('?')}', [diverId]);
 
   /// One document with its owner label, for the detail page.
   Future<DocumentListEntry?> getEntryById(String id) async =>
@@ -328,6 +343,7 @@ class DocumentRepository with _DocumentClearanceQueries {
         t.createdAt,
         t.updatedAt,
         t.hlc,
+        t.libraryFileId,
       ])
       ..where(t.documentId.equals(documentId))
       ..orderBy([OrderingTerm(expression: t.pageIndex)]);
@@ -345,6 +361,7 @@ class DocumentRepository with _DocumentClearanceQueries {
           createdAt: DateTime.fromMillisecondsSinceEpoch(r.read(t.createdAt)!),
           updatedAt: DateTime.fromMillisecondsSinceEpoch(r.read(t.updatedAt)!),
           hlc: r.read(t.hlc),
+          libraryFileId: r.read(t.libraryFileId),
         ),
     ];
   }
@@ -381,18 +398,25 @@ class DocumentRepository with _DocumentClearanceQueries {
     );
     try {
       await _db.transaction(() async {
-        if (doc.isPrimary) {
-          await _clearOtherPrimaries(doc.diverId, id, nowMs);
+        // A library document has no diver, so no primary to clear.
+        final primaryOf = doc.isPrimary ? doc.diverId : null;
+        if (primaryOf != null) {
+          await _clearOtherPrimaries(primaryOf, id, nowMs);
         }
         await _db
             .into(_db.documents)
             .insertOnConflictUpdate(documentCompanion(doc, updatedAt: nowMs));
-        await _syncRepository.markRecordPending(
-          entityType: _docEntity,
-          recordId: id,
-          localUpdatedAt: nowMs,
-        );
-        await _replacePages(id, pages, nowMs);
+        // A shared library document travels by its library, never by the
+        // personal sync (issue #4713): no clock, no tombstones.
+        final library = doc.isShared;
+        if (!library) {
+          await _syncRepository.markRecordPending(
+            entityType: _docEntity,
+            recordId: id,
+            localUpdatedAt: nowMs,
+          );
+        }
+        await _replacePages(id, pages, nowMs, library: library);
         if (tagIds != null) {
           await _tagLinks.replaceTags(id, tagIds, notify: false);
         }
@@ -441,8 +465,9 @@ class DocumentRepository with _DocumentClearanceQueries {
   Future<void> _replacePages(
     String documentId,
     List<DocumentPage> pages,
-    int now,
-  ) async {
+    int now, {
+    bool library = false,
+  }) async {
     // Without content: a stored page's bytes are read only to compare them
     // with a replacement of the same size.
     final existing = {
@@ -497,14 +522,18 @@ class DocumentRepository with _DocumentClearanceQueries {
                 bytes: Value(bytes),
                 createdAt: Value(old?.createdAt.millisecondsSinceEpoch ?? now),
                 updatedAt: Value(now),
+                // New bytes are a new library file (issue #4713).
+                libraryFileId: const Value(null),
               ),
             );
       }
-      await _syncRepository.markRecordPending(
-        entityType: _pageEntity,
-        recordId: pageId,
-        localUpdatedAt: now,
-      );
+      if (!library) {
+        await _syncRepository.markRecordPending(
+          entityType: _pageEntity,
+          recordId: pageId,
+          localUpdatedAt: now,
+        );
+      }
     }
     final gone = [
       for (final id in existing.keys)
@@ -512,6 +541,7 @@ class DocumentRepository with _DocumentClearanceQueries {
     ];
     if (gone.isEmpty) return;
     await (_db.delete(_db.documentPages)..where((t) => t.id.isIn(gone))).go();
+    if (library) return;
     await _syncRepository.logDeletions(
       entityType: _pageEntity,
       recordIds: gone,
@@ -546,6 +576,24 @@ class DocumentRepository with _DocumentClearanceQueries {
     if (ids.isEmpty) return;
     // Read before the rows go: afterwards nothing says whose they were.
     final clearances = await _clearancesByDiverOf(ids);
+    // A shared library document was never on the personal-sync wire: its
+    // rows go without a tombstone (issue #4713).
+    final library = await _libraryAmong(ids);
+    if (library.isNotEmpty) {
+      for (final chunk in library.toList().slices(_inListChunk)) {
+        await (_db.delete(
+          _db.documentTags,
+        )..where((t) => t.documentId.isIn(chunk))).go();
+        await (_db.delete(
+          _db.documentPages,
+        )..where((t) => t.documentId.isIn(chunk))).go();
+        await (_db.delete(_db.documents)..where((t) => t.id.isIn(chunk))).go();
+      }
+      ids = [
+        for (final id in ids)
+          if (!library.contains(id)) id,
+      ];
+    }
     final pageIds = <String>[];
     for (final chunk in ids.slices(_inListChunk)) {
       pageIds.addAll(
@@ -601,7 +649,13 @@ class DocumentRepository with _DocumentClearanceQueries {
     List<String> fromIds,
     String toId,
   ) async {
-    final moves = await _ownersOf(kind, fromIds);
+    final found = await _ownersOf(kind, fromIds);
+    // A shared library document stays filed on its library site.
+    final library = await _libraryAmong(found.keys.toList());
+    final moves = {
+      for (final e in found.entries)
+        if (!library.contains(e.key)) e.key: e.value,
+    };
     await _setOwners(kind, {for (final id in moves.keys) id: toId});
     return moves;
   }
@@ -628,6 +682,11 @@ class DocumentRepository with _DocumentClearanceQueries {
     String? ownerId,
   ) async {
     if (documentIds.isEmpty) return;
+    // A shared library document never moves to another owner (issue #4713).
+    final library = await _libraryAmong(documentIds);
+    if (library.isNotEmpty) {
+      throw StateError('shared library documents keep their site: $library');
+    }
     final now = DateTime.now().millisecondsSinceEpoch;
     final columns = {for (final c in kDocumentOwnerColumns.values) c};
     final ownerColumn = kDocumentOwnerColumns[kind]!;
@@ -647,6 +706,23 @@ class DocumentRepository with _DocumentClearanceQueries {
         );
       }
     });
+  }
+
+  /// The shared library documents among [ids].
+  Future<Set<String>> _libraryAmong(List<String> ids) async {
+    final out = <String>{};
+    for (final chunk in ids.slices(_inListChunk)) {
+      final rows =
+          await (_db.selectOnly(_db.documents)
+                ..addColumns([_db.documents.id])
+                ..where(
+                  _db.documents.id.isIn(chunk) &
+                      _db.documents.sharedLibraryId.isNotNull(),
+                ))
+              .get();
+      out.addAll(rows.map((r) => r.read(_db.documents.id)!));
+    }
+    return out;
   }
 
   Future<Map<String, String>> _ownersOf(
@@ -770,7 +846,10 @@ class DocumentRepository with _DocumentClearanceQueries {
     if (diverId != null) q.where((t) => t.diverId.equals(diverId));
     final out = <String, Document>{};
     for (final row in await q.get()) {
-      out.putIfAbsent(row.diverId, () => documentFromRow(row));
+      // A library document has no diver: never anyone's primary policy.
+      final rowDiver = row.diverId;
+      if (rowDiver == null) continue;
+      out.putIfAbsent(rowDiver, () => documentFromRow(row));
     }
     return out;
   }

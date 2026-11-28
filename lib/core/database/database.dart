@@ -321,6 +321,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SharedLibraryMembers,
     SharedLibraryMemberships,
     SharedSiteStates,
+    // Shared library documents (v388, issue #4713)
+    SharedDocumentStates,
     SharedSiteSuggestions,
     SharedLibraryBackups,
     LibrarySiteNotes,
@@ -338,7 +340,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 394;
+  static const int currentSchemaVersion = 395;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1843,6 +1845,12 @@ class AppDatabase extends _$AppDatabase {
     // v394: tank_presets.rated_capacity_cuft, the rated capacity a copy of a
     // built-in preset keeps (issue #800). Nullable; the floor does not move.
     394,
+    // v395: documents shared through a shared site library (issue #4713):
+    // documents.diver_id nullable (table rebuild), documents.
+    // shared_library_id, document_pages.library_file_id and the device-local
+    // shared_document_states. Library rows never travel by personal sync,
+    // so the floor does not move.
+    395,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
