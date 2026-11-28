@@ -25,6 +25,24 @@ bool _documentEditedSince(
       );
 }
 
+/// The library's page files, listed once per sync and only when a pulled
+/// document needs one: one folder listing, however many pages a first pull
+/// brings.
+class _PageFiles {
+  _PageFiles(this._t);
+
+  final SharedLibraryTransport _t;
+  Map<String, CloudFileInfo>? _byId;
+
+  Future<CloudFileInfo?> find(String fileId) async {
+    final byId = _byId ??= {
+      for (final f in await _t.listPageFiles())
+        SharedLibraryTransport.pageFileIdOf(f): f,
+    };
+    return byId[fileId];
+  }
+}
+
 extension _DocumentSync on SharedLibraryService {
   /// The page files the backups listed in storage refer to (issue #4713).
   /// An unsigned index only keeps more files, never fewer, so its entries
@@ -136,6 +154,7 @@ extension _DocumentSync on SharedLibraryService {
     final files = await t.listDocuments();
     var pulled = 0;
     final deferred = <String>{};
+    final pageFiles = _PageFiles(t);
     for (final f in files) {
       final id = SharedLibraryTransport.documentIdOf(f);
       final stamp = f.modifiedTime.toUtc().toIso8601String();
@@ -181,6 +200,7 @@ extension _DocumentSync on SharedLibraryService {
         stamp: stamp,
         diverId: diverId,
         t: t,
+        pageFiles: pageFiles,
       );
       // Not merged (a page file not fetched): its rows are not what the
       // folder holds, so this sync must not upload them over it.
@@ -235,6 +255,7 @@ extension _DocumentSync on SharedLibraryService {
     required String stamp,
     required String diverId,
     required SharedLibraryTransport t,
+    required _PageFiles pageFiles,
   }) async {
     final id = remote.id;
     // The site a document is filed under never changes.
@@ -289,7 +310,7 @@ extension _DocumentSync on SharedLibraryService {
     if (fields.isNotEmpty) {
       final Map<String, Uint8List> bytes;
       if (fields.contains('pages')) {
-        final fetched = await _fetchPages(t, id, merged.pageRefs);
+        final fetched = await _fetchPages(t, pageFiles, id, merged.pageRefs);
         // Not every page could be fetched: nothing shows half a document.
         // The stamp is not recorded, so the next sync reads it again.
         if (fetched == null) return null;
@@ -322,6 +343,7 @@ extension _DocumentSync on SharedLibraryService {
   /// missing, unreadable or does not match.
   Future<Map<String, Uint8List>?> _fetchPages(
     SharedLibraryTransport t,
+    _PageFiles pageFiles,
     String documentId,
     List<LibraryPageRef> refs,
   ) async {
@@ -329,7 +351,7 @@ extension _DocumentSync on SharedLibraryService {
     final out = <String, Uint8List>{};
     for (final ref in refs) {
       if (held.contains(ref.fileId)) continue;
-      final file = await t.findPageFile(ref.fileId);
+      final file = await pageFiles.find(ref.fileId);
       if (file == null) {
         _log.warning('Page file ${ref.fileId} of $documentId not there yet');
         return null;
@@ -405,7 +427,7 @@ extension _DocumentSync on SharedLibraryService {
             if (stored.contains(ref.fileId)) continue;
             final bytes = await _documentBridge.heldPageBytes(ref.fileId);
             if (bytes == null) continue;
-            await t.writePageFile(ref.fileId, bytes);
+            await t.writePageFile(ref.fileId, bytes, checked: true);
             stored.add(ref.fileId);
           }
         }

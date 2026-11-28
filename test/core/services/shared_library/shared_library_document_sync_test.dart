@@ -344,4 +344,26 @@ void main() {
     expect((await store.getDocumentState(id))!.dirty, isTrue);
     expect(documentUploads(), 0);
   });
+
+  test("a first pull lists the storage the same number of times however "
+      'many documents it brings', () async {
+    Future<int> listingsFor(int documents) async {
+      cloud = FakeCloudStorageProvider();
+      await seedTestLibrary(cloud);
+      final a = await libraryDevice(cloud, 'a');
+      await addLibrarySite('s1', 'a');
+      for (var i = 0; i < documents; i++) {
+        await addSharedDocument('s1', 'a', bytes: [i, 1], title: 'Doc $i');
+      }
+      await a.sync('L', diverId: 'd-a');
+      final b = await libraryDevice(cloud, 'b');
+      final before = cloud.operationLog.where((e) => e == 'list').length;
+      await b.sync('L', diverId: 'd-b');
+      return cloud.operationLog.where((e) => e == 'list').length - before;
+    }
+
+    final one = await listingsFor(1);
+    final five = await listingsFor(5);
+    expect(five, one);
+  });
 }

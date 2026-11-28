@@ -111,12 +111,17 @@ extension SharedLibraryTransportDocuments on SharedLibraryTransport {
 
   /// Writes [plain] as `pages/<pageFileId>.bin`, in the library's current
   /// form. A page file never changes once written (a new scan gets a new
-  /// id), so one already there is left as it is.
-  Future<void> writePageFile(String pageFileId, Uint8List plain) async {
+  /// id), so one already there is left as it is. [checked] skips that
+  /// look when the caller listed the folder already.
+  Future<void> writePageFile(
+    String pageFileId,
+    Uint8List plain, {
+    bool checked = false,
+  }) async {
     if (!SharedLibraryTransport.isSafeFileId(pageFileId)) {
       throw ArgumentError.value(pageFileId, 'pageFileId', 'not a file id');
     }
-    if (await findPageFile(pageFileId) != null) return;
+    if (!checked && await findPageFile(pageFileId) != null) return;
     final name = SharedLibraryTransport.pageFileName(pageFileId);
     await _provider.uploadFile(
       await _seal('${SharedLibraryLayout.pagesDir}/$name', plain),
