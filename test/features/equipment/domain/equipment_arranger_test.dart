@@ -39,12 +39,13 @@ void main() {
       typeLabel: english,
     );
 
+    // English labels: BCD, Cylinder, Regulator (#5106).
     expect(groups.map((g) => g.type).toList(), [
       EquipmentType.bcd,
-      EquipmentType.regulator,
       EquipmentType.tank,
+      EquipmentType.regulator,
     ]);
-    expect(groups[1].items.map((i) => i.name).toList(), ['Apeks', 'Aqualung']);
+    expect(groups[2].items.map((i) => i.name).toList(), ['Apeks', 'Aqualung']);
   });
 
   test('alphabetical follows the injected label, not the English name', () {
@@ -98,9 +99,9 @@ void main() {
     expect(groups.single.type, isNull);
     expect(groups.single.items.map((i) => i.name).toList(), [
       'Zeagle',
+      'Faber',
       'Apeks',
       'Aqualung',
-      'Faber',
     ]);
   });
 
@@ -145,7 +146,7 @@ void main() {
     );
 
     expect(groups.first.type, EquipmentType.bcd);
-    expect(groups[1].items.map((i) => i.name).toList(), ['Aqualung', 'Apeks']);
+    expect(groups[2].items.map((i) => i.name).toList(), ['Aqualung', 'Apeks']);
   });
 
   test('items with no date sort last in both directions', () {
@@ -254,9 +255,9 @@ void main() {
       typeLabel: english,
     );
 
-    // Types reversed (Tank, Regulator, BCD) but names still ascend inside.
-    expect(groups.first.type, EquipmentType.tank);
-    expect(groups[1].items.map((i) => i.name).toList(), ['Apeks', 'Aqualung']);
+    // Types reversed (Regulator, Cylinder, BCD) but names still ascend inside.
+    expect(groups.first.type, EquipmentType.regulator);
+    expect(groups[0].items.map((i) => i.name).toList(), ['Apeks', 'Aqualung']);
   });
 
   test('reverse alphabetical type order', () {
@@ -267,8 +268,8 @@ void main() {
     );
 
     expect(groups.map((g) => g.type).toList(), [
-      EquipmentType.tank,
       EquipmentType.regulator,
+      EquipmentType.tank,
       EquipmentType.bcd,
     ]);
   });
@@ -338,10 +339,10 @@ void main() {
 
       expect(groups.map((g) => g.type).toList(), [
         EquipmentType.bcd,
-        EquipmentType.regulator,
         EquipmentType.tank,
+        EquipmentType.regulator,
       ]);
-      expect(groups[1].items.map((i) => i.name).toList(), [
+      expect(groups[2].items.map((i) => i.name).toList(), [
         'Aqualung',
         'Apeks',
       ]);
@@ -358,9 +359,9 @@ void main() {
       expect(groups.single.type, isNull);
       expect(groups.single.items.map((i) => i.name).toList(), [
         'Zeagle', // BCD
+        'Faber', // Cylinder
         'Aqualung', // Regulator
         'Apeks', // Regulator
-        'Faber', // Tank
       ]);
     });
 
