@@ -191,6 +191,7 @@ class TankPresetRepository {
               displayName: Value(preset.displayName),
               volumeLiters: Value(preset.volumeLiters),
               workingPressureBar: Value(preset.workingPressureBar),
+              ratedCapacityCuft: Value(preset.ratedCapacityCuft),
               material: Value(preset.material.name),
               description: Value(preset.description),
               sortOrder: Value(
@@ -246,6 +247,7 @@ class TankPresetRepository {
           displayName: Value(preset.displayName),
           volumeLiters: Value(preset.volumeLiters),
           workingPressureBar: Value(preset.workingPressureBar),
+          ratedCapacityCuft: Value(preset.ratedCapacityCuft),
           material: Value(preset.material.name),
           description: Value(preset.description),
           sortOrder: Value(preset.sortOrder),
@@ -326,6 +328,7 @@ class TankPresetRepository {
       isBuiltIn: false, // Custom presets from DB are never built-in
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
+      ratedCapacityCuft: row.ratedCapacityCuft,
     );
   }
 

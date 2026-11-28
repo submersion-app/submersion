@@ -19,7 +19,7 @@ void main() {
         TankBaseConfiguration.twinBackmount: 'Twin backmount',
         TankBaseConfiguration.singleBackmount: 'Single backmount',
         TankBaseConfiguration.other: 'Other',
-        TankBaseConfiguration.noTanks: 'No tanks logged',
+        TankBaseConfiguration.noTanks: 'No cylinders logged',
       },
     );
   });

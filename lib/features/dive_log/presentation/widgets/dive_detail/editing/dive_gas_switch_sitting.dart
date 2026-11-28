@@ -117,7 +117,7 @@ List<GasSwitchWithTank>? sittingGasSwitchesWithTanks(
       if (tanks[g.tankId] case final tank?)
         GasSwitchWithTank(
           gasSwitch: g,
-          tankName: tank.name ?? 'Tank ${tank.order + 1}',
+          tankName: tank.name ?? 'Cylinder ${tank.order + 1}',
           gasMix: tank.gasMix.name,
           o2Fraction: tank.gasMix.o2 / 100.0,
           heFraction: tank.gasMix.he / 100.0,

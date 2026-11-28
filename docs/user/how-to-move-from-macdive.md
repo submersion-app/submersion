@@ -8,7 +8,7 @@ Submersion reads MacDive's own database file directly, which brings across more 
 
 | Comes across | Does not come across |
 |---|---|
-| Dives with their profiles, gases and tanks | Marine life (critters) and dive events |
+| Dives with their profiles, gases and cylinders | Marine life (critters) and dive events |
 | Dive sites, with GPS, country and region | Certification card images |
 | Buddies, dive masters and dive operators | MacDive logbooks (saved searches): recreate them as dive filters |
 | Gear, with purchase and service details | |

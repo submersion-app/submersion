@@ -370,6 +370,12 @@ extension RungsFromV340 on AppDatabase {
     if (from < 393) await _backfillWingInspectionServiceKind();
     if (from < 393) await reportProgress();
 
+    // v394 (issue #800): tank_presets.rated_capacity_cuft, the rated capacity
+    // a copy of a built-in preset keeps. Nullable, no backfill, re-asserted
+    // in beforeOpen; the floor does not move.
+    if (from < 394) await _assertTankPresetRatedCapacityColumn();
+    if (from < 394) await reportProgress();
+
     // v395 (issue #5040): a dive reads its site's altitude and water type
     // rather than a copy, so the copies linking a site made (a value equal
     // to the site's) are cleared, and an empty entry or exit method is

@@ -10981,6 +10981,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Kezdőnyomás';
 
   @override
+  String get diveLog_tank_managePresets => 'Sablonok kezelése';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'Palack előre beállítás';
 
   @override
@@ -14371,6 +14374,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentType_harness => 'Heveder';
 
   @override
+  String get equipment_searchWords_cylinder => 'tartály, henger, stage, pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'tartálypánt, cam band';
+
+  @override
   String get enum_equipmentType_tankBand => 'Palackpánt';
 
   @override
@@ -16952,6 +16961,54 @@ class AppLocalizationsHu extends AppLocalizations {
       'A csatlakoztatott búvárcomputer vagy jeladó megtartja a típusát.';
 
   @override
+  String get equipment_suggest_link =>
+      'Nincs megfelelő típus? Javasolj kategóriát';
+
+  @override
+  String get equipment_suggest_title => 'Kategória javaslása';
+
+  @override
+  String get equipment_suggest_intro =>
+      'Ez egy előre kitöltött funkciókérést nyit meg a GitHubon. Átnézed, és a böngésződből küldöd be.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'Mit javasolsz?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'Új felszereléstípus';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'Egy típus új változata';
+
+  @override
+  String get equipment_suggest_nameLabel => 'Név';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'Ennek a változata';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel =>
+      'Legközelebbi meglévő típus';
+
+  @override
+  String get equipment_suggest_parentNone => 'Nincs';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'Miért van rá szükség?';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'Miben különbözik a meglévő típusoktól?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'Ez az eszköz legyen a példa ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'Megnyitás a GitHubon';
+
+  @override
   String get equipment_edit_useCustomReminders =>
       'Egyedi emlékeztetők használata';
 
@@ -18366,6 +18423,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_consumption_diveTime => 'Merülési idő';
 
   @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. Figyelem: meghaladja a palack kapacitását',
+      'other': '',
+    });
+    return 'Gázfogyasztás: $volume $volumeSymbol, $pressure $pressureSymbol$_temp0';
+  }
+
+  @override
   String gasCalculators_consumption_exceedsTank(
     Object pressure,
     Object symbol,
@@ -19612,9 +19684,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get marineLife_suggest_couldNotOpen =>
       'Nem sikerült megnyitni a böngészőt';
-
-  @override
-  String get marineLife_suggest_copyLink => 'Link másolása';
 
   @override
   String get marineLife_editCard_photos => 'Fotók';
@@ -27897,6 +27966,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_volumeL => 'Térfogat';
 
   @override
+  String get settings_conflict_field_ratedCapacityCuft => 'Névleges kapacitás';
+
+  @override
   String get settings_conflict_field_volumeLiters => 'Térfogat';
 
   @override
@@ -29374,7 +29446,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'Kevesebb név. Kb. $percent%-ban helyes';
+    return 'Kevesebb név. Kb. $percent%-ban helyes fotókon';
   }
 
   @override
@@ -29383,12 +29455,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'Több név. Kb. $percent%-ban helyes';
+    return 'Több név. Kb. $percent%-ban helyes fotókon';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'A legtöbb név. Kb. $percent%-ban helyes';
+    return 'A legtöbb név. Kb. $percent%-ban helyes fotókon';
   }
 
   @override
@@ -39518,6 +39590,19 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String tankPresets_deleted(Object name) {
     return '\"$name\" törölve';
+  }
+
+  @override
+  String get tankPresets_duplicatePreset => 'Másolás';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (másolat)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name ($number. másolat)';
   }
 
   @override
@@ -56238,8 +56323,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_species_suggested => 'Javaslatok';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
+  String media_species_suggestedChipLabel(String name) {
+    return 'Javaslat: $name';
   }
 
   @override

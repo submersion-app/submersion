@@ -10595,6 +10595,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_tank_label_startPressure => '開始圧';
 
   @override
+  String get diveLog_tank_managePresets => 'プリセットを管理';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'タンクのプリセット';
 
   @override
@@ -13887,6 +13890,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get enum_equipmentType_harness => 'ハーネス';
 
   @override
+  String get equipment_searchWords_cylinder => 'ボンベ, シリンダー, ボトル, ステージ, ポニー';
+
+  @override
+  String get equipment_searchWords_tankBand => 'ボンベバンド, カムバンド';
+
+  @override
   String get enum_equipmentType_tankBand => 'タンクバンド';
 
   @override
@@ -16421,6 +16430,51 @@ class AppLocalizationsJa extends AppLocalizations {
       '接続済みのダイブコンピューターやトランスミッターの種類は変更できません。';
 
   @override
+  String get equipment_suggest_link => '合う種類がありませんか？カテゴリーを提案';
+
+  @override
+  String get equipment_suggest_title => 'カテゴリーを提案';
+
+  @override
+  String get equipment_suggest_intro =>
+      '入力済みの機能リクエストがGitHubで開きます。内容を確認し、ブラウザーから投稿してください。';
+
+  @override
+  String get equipment_suggest_kindQuestion => '何を提案しますか？';
+
+  @override
+  String get equipment_suggest_kindCategory => '新しい器材の種類';
+
+  @override
+  String get equipment_suggest_kindSubcategory => '既存の種類の新しいタイプ';
+
+  @override
+  String get equipment_suggest_nameLabel => '名前';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => '親となる種類';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => '最も近い既存の種類';
+
+  @override
+  String get equipment_suggest_parentNone => 'なし';
+
+  @override
+  String get equipment_suggest_reasonLabel => '必要な理由';
+
+  @override
+  String get equipment_suggest_reasonHint => '既存の種類とどう違いますか？';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'この器材を例として含める（$example）';
+  }
+
+  @override
+  String get equipment_suggest_open => 'GitHubで開く';
+
+  @override
   String get equipment_edit_useCustomReminders => 'カスタムリマインダーを使用';
 
   @override
@@ -17783,6 +17837,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gasCalculators_consumption_diveTime => '潜水時間';
 
   @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '。警告: タンク容量を超えています',
+      'other': '',
+    });
+    return 'ガス消費量: $volume $volumeSymbol、$pressure $pressureSymbol$_temp0';
+  }
+
+  @override
   String gasCalculators_consumption_exceedsTank(
     Object pressure,
     Object symbol,
@@ -18969,9 +19038,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => 'ブラウザを開けませんでした';
-
-  @override
-  String get marineLife_suggest_copyLink => 'リンクをコピー';
 
   @override
   String get marineLife_editCard_photos => '写真';
@@ -24809,7 +24875,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_conflict_field_bookmarkRef => 'ファイルへのアクセス';
 
   @override
-  String get settings_conflict_field_bottleLabel => 'ボトル番号';
+  String get settings_conflict_field_bottleLabel => 'タンク番号';
 
   @override
   String get settings_conflict_field_buddyListViewMode => 'バディ一覧の表示';
@@ -26822,6 +26888,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_conflict_field_volumeL => '容量';
 
   @override
+  String get settings_conflict_field_ratedCapacityCuft => '定格容量';
+
+  @override
   String get settings_conflict_field_volumeLiters => '容量';
 
   @override
@@ -28253,7 +28322,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return '候補は最少。正解率は約$percent%';
+    return '候補は最少。写真での正解率は約$percent%';
   }
 
   @override
@@ -28261,12 +28330,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return '候補は多め。正解率は約$percent%';
+    return '候補は多め。写真での正解率は約$percent%';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return '候補は最多。正解率は約$percent%';
+    return '候補は最多。写真での正解率は約$percent%';
   }
 
   @override
@@ -35228,7 +35297,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String trips_cylinders_bottle(String label) {
-    return 'ボトル$label';
+    return 'タンク$label';
   }
 
   @override
@@ -35351,7 +35420,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trips_cylinders_fill_analyzedHe => 'He分析値（%）';
 
   @override
-  String get trips_cylinders_fill_bottle => 'ボトル番号';
+  String get trips_cylinders_fill_bottle => 'タンク番号';
 
   @override
   String get trips_cylinders_fill_cost => '料金';
@@ -38034,6 +38103,19 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String tankPresets_deleted(Object name) {
     return '「$name」を削除しました';
+  }
+
+  @override
+  String get tankPresets_duplicatePreset => '複製';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name（コピー）';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name（コピー $number）';
   }
 
   @override
@@ -54243,8 +54325,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_species_suggested => '候補';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
+  String media_species_suggestedChipLabel(String name) {
+    return '候補：$name';
   }
 
   @override

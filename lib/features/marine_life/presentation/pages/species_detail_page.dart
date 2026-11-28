@@ -265,12 +265,21 @@ class _SpeciesDetailPageState extends ConsumerState<SpeciesDetailPage>
     WidgetRef ref,
     Species species,
   ) async {
-    final info = await ref.read(packageInfoProvider.future);
+    // The language on screen: the stored setting is usually 'system'.
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    // A version that cannot be read (the web build fetches version.json)
+    // must not stop the suggestion from opening.
+    String appVersion;
+    try {
+      appVersion = formatAppVersion(await ref.read(packageInfoProvider.future));
+    } catch (_) {
+      appVersion = 'unknown';
+    }
     if (!context.mounted) return;
     final uri = buildSpeciesSuggestionUrl(
       species: species,
-      locale: ref.read(localeProvider),
-      appVersion: formatAppVersion(info),
+      locale: locale,
+      appVersion: appVersion,
     );
     await launchSpeciesSuggestion(
       context,

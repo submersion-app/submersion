@@ -38,7 +38,7 @@ You chose metric or imperial units when you first set up Submersion. To change t
 
 **Switch everything at once.** Under **Quick Select**, tap **Metric** or **Imperial**. The seven units listed below it in the same card (depth, temperature, pressure, volume, weight, altitude and distance) all change together. Nothing else on the page changes with them.
 
-**Mix and match.** In the same card, tap a unit to pick it on its own. For example, keep metres for depth but use **PSI** for tank pressure. **Quick Select** then shows **Custom** by itself; tapping **Custom** does nothing on its own.
+**Mix and match.** In the same card, tap a unit to pick it on its own. For example, keep metres for depth but use **PSI** for cylinder pressure. **Quick Select** then shows **Custom** by itself; tapping **Custom** does nothing on its own.
 
 **Set the time and date format.** Under **Time & Date**, tap **Time Format** to choose **12-hour** or **24-hour**, and **Date Format** to choose how dates are written. Each choice shows an example.
 

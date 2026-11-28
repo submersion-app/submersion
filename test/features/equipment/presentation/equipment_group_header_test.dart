@@ -37,8 +37,8 @@ void main() {
     await pumpHeader(tester, EquipmentType.tank);
 
     expect(
-      tester.getSemantics(find.text('Tank')),
-      isSemantics(label: 'Tank', isHeader: true),
+      tester.getSemantics(find.text('Cylinder')),
+      isSemantics(label: 'Cylinder', isHeader: true),
     );
 
     handle.dispose();

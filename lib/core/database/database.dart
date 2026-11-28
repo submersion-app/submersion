@@ -1845,6 +1845,9 @@ class AppDatabase extends _$AppDatabase {
     // v393: the built-in BCD/wing inspection kind applies to wings (issue
     // #5110). Built-in reference data never syncs; the floor does not move.
     393,
+    // v394: tank_presets.rated_capacity_cuft, the rated capacity a copy of a
+    // built-in preset keeps (issue #800). Nullable; the floor does not move.
+    394,
     // v395 (issue #5040): a dive reads its site's altitude and water type;
     // the copies linking a site made are cleared and an empty entry or exit
     // method is filled from a site listing one. The floor rises to 395 (see

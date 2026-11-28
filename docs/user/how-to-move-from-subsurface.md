@@ -1,6 +1,6 @@
 # Moving from Subsurface to Submersion
 
-When you finish this guide, your Subsurface logbook will be in Submersion: your dives with their full profiles, trips, sites, buddies, tanks and photos.
+When you finish this guide, your Subsurface logbook will be in Submersion: your dives with their full profiles, trips, sites, buddies, cylinders and photos.
 
 Submersion reads Subsurface's own XML logbook, so nothing has to be converted on the way.
 
@@ -13,7 +13,7 @@ Submersion reads Subsurface's own XML logbook, so nothing has to be converted on
 | Trips, with their names and notes | Several divers in one logbook |
 | Dive sites, with GPS, country and region | |
 | Buddies and dive masters | |
-| Tanks, with gases, roles and pressures | |
+| Cylinders, with gases, roles and pressures | |
 | Tags, ratings, visibility, current and notes | |
 | Photos linked to your dives | |
 
