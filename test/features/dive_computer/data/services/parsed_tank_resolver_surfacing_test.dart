@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
+import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 
 /// Issue #1092: a rebreather's oxygen cylinder keeps bleeding down through the
 /// constant mass flow orifice after the valve is closed on the surface, and the
@@ -174,6 +175,73 @@ void main() {
 
     test('trims by default so a caller cannot forget', () {
       expect(resolveParsedTanks(bleedingOxygenDive()).single.endPressure, 41.0);
+    });
+
+    // A live download is parsed before the diver it is filed under is known
+    // (issue #5000), so the tank keeps both readings for the import to pick
+    // from with that diver's switch.
+    group('keeps both end pressures for the import to choose from', () {
+      for (final trim in [true, false]) {
+        test('with trimming ${trim ? 'on' : 'off'}', () {
+          final tank = resolveParsedTanks(
+            bleedingOxygenDive(),
+            trimAtSurfacing: trim,
+          ).single;
+
+          expect(
+            tank.surfacingEnd,
+            const SurfacingEndPressure(asLogged: 4.0, atSurfacing: 41.0),
+          );
+        });
+      }
+
+      test('none when the surfacing rule changes nothing', () {
+        final parsed = makeParsedDive(
+          gasMixes: [pigeon.GasMix(index: 0, o2Percent: 21.0, hePercent: 0.0)],
+          tanks: [
+            pigeon.TankInfo(
+              index: 0,
+              gasMixIndex: 0,
+              startPressureBar: 200.0,
+              endPressureBar: 60.0,
+            ),
+          ],
+          samples: [
+            sample(0, 0.0, pressure: 200.0),
+            sample(600, 30.0, pressure: 120.0),
+            sample(2400, 3.0, pressure: 60.0),
+          ],
+        );
+
+        expect(resolveParsedTanks(parsed).single.surfacingEnd, isNull);
+      });
+    });
+
+    group('DownloadedTank.endPressureFor', () {
+      const tank = DownloadedTank(
+        index: 0,
+        o2Percent: 100.0,
+        endPressure: 41.0,
+        surfacingEnd: SurfacingEndPressure(asLogged: 4.0, atSurfacing: 41.0),
+      );
+
+      test('reads at surfacing when asked', () {
+        expect(tank.endPressureFor(atSurfacing: true).endPressure, 41.0);
+      });
+
+      test('reads as logged when not', () {
+        expect(tank.endPressureFor(atSurfacing: false).endPressure, 4.0);
+      });
+
+      test('leaves a tank with no surfacing choice alone', () {
+        const plain = DownloadedTank(
+          index: 0,
+          o2Percent: 21.0,
+          endPressure: 60.0,
+        );
+
+        expect(plain.endPressureFor(atSurfacing: false), same(plain));
+      });
     });
   });
 }
