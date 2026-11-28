@@ -58,7 +58,10 @@ mixin _EquipmentDetailPageCreating
     final service = ref.read(gearItemEditSaveServiceProvider);
     final equipment = ref.read(equipmentRepositoryProvider);
     final read = ref.read;
-    var item = gearItemToSave(session.stored, session.applyTo(session.stored));
+    var item = gearItemCatalogueAtSave(
+      gearItemToSave(session.stored, session.applyTo(session.stored)),
+      ref.read(equipmentCatalogueProvider).value ?? EquipmentCatalogue.empty,
+    );
     final diverId =
         item.diverId ?? await newRecordDiverId(read, record: 'gear item');
     item = item.copyWith(diverId: diverId);

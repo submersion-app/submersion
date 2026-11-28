@@ -10,6 +10,8 @@ import 'package:submersion/features/dive_computer/presentation/providers/clock_s
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/editing/record_document_links_sitting.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_catalogue_providers.dart';
+import 'package:submersion/features/equipment/domain/catalogue/equipment_catalogue.dart';
 import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/equipment_shares_sharing_adapter.dart';
@@ -73,6 +75,8 @@ mixin GearItemSittingHost<W extends ConsumerStatefulWidget>
   Future<void> saveSitting(EditSession<EquipmentItem> session) async {
     // Read before the write: the page can be gone by the time it is done.
     final service = ref.read(gearItemEditSaveServiceProvider);
+    final catalogue =
+        ref.read(equipmentCatalogueProvider).value ?? EquipmentCatalogue.empty;
     final container = ProviderScope.containerOf(context, listen: false);
     // Read now: the sitting ends with the Save.
     final clockSync = heldClockSync(session);
@@ -86,7 +90,10 @@ mixin GearItemSittingHost<W extends ConsumerStatefulWidget>
         // The item the sitting was opened on, whatever the page shows by
         // the time the write is asked for.
         equipmentId: session.stored.id,
-        apply: (stored) => gearItemToSave(stored, session.applyTo(stored)),
+        apply: (stored) => gearItemCatalogueAtSave(
+          gearItemToSave(stored, session.applyTo(stored)),
+          catalogue,
+        ),
         changedCardIds: session.changedCardIds,
         alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,
         alsoWriteIsAChange: session.hasHeldChanges,

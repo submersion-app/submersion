@@ -57,6 +57,19 @@ class GearItemEditSaveService {
             after.coverMediaId != before.coverMediaId) {
           await _photos.setCover(equipmentId, after.coverMediaId);
         }
+        // The catalogue link and answers have their own write: the update
+        // never touches them, so no other path can drop them (#5118).
+        if (before != null &&
+            after != null &&
+            (after.catalogueId != before.catalogueId ||
+                after.catalogueAnswers != before.catalogueAnswers)) {
+          await _equipment.setCatalogueLink(
+            equipmentId,
+            catalogueId: after.catalogueId,
+            answers: after.catalogueAnswers,
+            notify: false,
+          );
+        }
       },
       alsoWriteIsAChange: alsoWriteIsAChange,
     );

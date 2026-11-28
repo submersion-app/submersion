@@ -1,10 +1,13 @@
 import 'package:collection/collection.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/catalogue/equipment_catalogue.dart';
+import 'package:submersion/features/equipment/domain/catalogue/equipment_catalogue_offer.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_fitting.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_catalogue_answers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
@@ -44,6 +47,8 @@ EquipmentItem _with(
   Object? customReminderDays = _keep,
   Object? parentEquipmentId = _keep,
   Object? coverMediaId = _keep,
+  Object? catalogueId = _keep,
+  EquipmentCatalogueAnswers? catalogueAnswers,
 }) => EquipmentItem(
   id: e.id,
   diverId: e.diverId,
@@ -68,6 +73,8 @@ EquipmentItem _with(
   customReminderDays: _or<List<int>>(customReminderDays, e.customReminderDays),
   parentEquipmentId: _or<String>(parentEquipmentId, e.parentEquipmentId),
   coverMediaId: _or<String>(coverMediaId, e.coverMediaId),
+  catalogueId: _or<String>(catalogueId, e.catalogueId),
+  catalogueAnswers: catalogueAnswers ?? e.catalogueAnswers,
   createdAt: e.createdAt,
 );
 
@@ -254,6 +261,37 @@ final gearCoverField = EditField<EquipmentItem, String?>(
   read: (e) => e.coverMediaId,
   write: (e, v) => _with(e, coverMediaId: v),
 );
+
+/// The equipment catalogue record the item is (issue #5118). Set by
+/// applying a catalogue review, cleared by Unlink or by a Save whose brand
+/// and model no longer name the record; never typed.
+final gearCatalogueIdField = EditField<EquipmentItem, String?>(
+  id: 'catalogueId',
+  cardId: _details,
+  read: (e) => e.catalogueId,
+  write: (e, v) => _with(e, catalogueId: v),
+);
+
+/// What the diver settled about catalogue records for the item: "Not this
+/// model", and empty fields left unticked (issue #5118).
+final gearCatalogueAnswersField =
+    EditField<EquipmentItem, EquipmentCatalogueAnswers>(
+      id: 'catalogueAnswers',
+      cardId: _details,
+      read: (e) => e.catalogueAnswers,
+      write: (e, v) => _with(e, catalogueAnswers: v),
+    );
+
+/// [item] with the catalogue link it keeps at Save: dropped when [catalogue]
+/// holds the linked record and the item's brand and model no longer name
+/// it ([catalogueIdAfterRename]). The values taken from it stay.
+EquipmentItem gearItemCatalogueAtSave(
+  EquipmentItem item,
+  EquipmentCatalogue catalogue,
+) {
+  final kept = catalogueIdAfterRename(item, catalogue);
+  return kept == item.catalogueId ? item : _with(item, catalogueId: kept);
+}
 
 final gearNotesField = EditField<EquipmentItem, String>(
   id: 'notes',
