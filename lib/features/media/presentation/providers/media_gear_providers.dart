@@ -41,7 +41,7 @@ final gearOnDiveProvider = FutureProvider.family<Set<String>, String>((
   diveId,
 ) async {
   ref.invalidateSelfWhen(
-    ref.read(diveRepositoryProvider).watchTables(_diveGearTables),
+    ref.read(diveRepositoryProvider).watchTables(_gearUsageTables),
   );
   return ref.watch(mediaGearRepositoryProvider).gearOnDive(diveId);
 });
@@ -60,3 +60,7 @@ final equipmentDiveIdsProvider = FutureProvider.family<List<String>, String>((
 });
 
 const _diveGearTables = {'dives', 'dive_equipment', 'dive_tanks'};
+
+/// What `gearUsageForDives` reads: [_diveGearTables] plus `transmitters`,
+/// which resolves a tank's transmitter serial to its item.
+const _gearUsageTables = {..._diveGearTables, 'transmitters'};
