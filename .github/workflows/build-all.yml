@@ -968,10 +968,11 @@ jobs:
   build-android:
     name: Build Android
     runs-on: ubuntu-latest
-    # A normal run takes 24-25 minutes (two full release builds, APK and AAB),
-    # so a 30-minute cap left no room for a slow runner: Beta run 34482861977
-    # was killed mid-AAB at 30m with every other platform green.
-    timeout-minutes: 45
+    # Two full release builds (APK and AAB) now take 30-37 minutes on a normal
+    # runner. A 30-minute cap killed Beta run 34482861977 mid-AAB, and the
+    # 45-minute cap that replaced it killed Beta run 46147050739 mid-AAB too,
+    # with every other platform green both times.
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
