@@ -19801,10 +19801,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get media_photoPicker_files_allOnSite => 'Put all on a site';
+  String get media_photoPicker_files_allOnSite => '全部放到潜点';
 
   @override
-  String get media_photoPicker_files_allUnplaced => 'Keep all without a place';
+  String get media_photoPicker_files_allUnplaced => '全部不指定位置保留';
 
   @override
   String get media_photoPicker_files_addToDiveTooltip => '添加到此潜水';
@@ -20414,104 +20414,99 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_import_review_chooseDive => '选择潜水';
 
   @override
-  String get media_import_review_keepUnplaced => 'Keep without a place';
+  String get media_import_review_keepUnplaced => '不指定位置保留';
 
   @override
-  String get media_import_review_unplaced =>
-      'Keep in the library, no dive or site';
+  String get media_import_review_unplaced => '保留在媒体库中,不关联潜水或潜点';
 
   @override
-  String get media_import_review_allOnSite => 'Put the rest on a site';
+  String get media_import_review_allOnSite => '其余放到潜点';
 
   @override
-  String get media_import_review_allUnplaced => 'Keep the rest without a place';
+  String get media_import_review_allUnplaced => '其余不指定位置保留';
 
   @override
   String get media_console_sources => '来源';
 
   @override
-  String get media_console_identify => 'Identify species';
+  String get media_console_identify => '识别物种';
 
   @override
-  String get media_identify_notKeptBanner =>
-      'Not in your library. Nothing is kept unless you keep it.';
+  String get media_identify_notKeptBanner => '不在您的媒体库中。除非您保留,否则不会保存任何内容。';
 
   @override
-  String get media_identify_keep => 'Keep';
+  String get media_identify_keep => '保留';
 
   @override
-  String get media_identify_kept => 'Kept in your library';
+  String get media_identify_kept => '已保留在您的媒体库中';
 
   @override
-  String get media_identify_leaveTitle => 'Leave without keeping?';
+  String get media_identify_leaveTitle => '不保留就离开?';
 
   @override
-  String get media_identify_leaveBody =>
-      'The species you chose on files you have not kept will be lost.';
+  String get media_identify_leaveBody => '您在未保留的文件上选择的物种将会丢失。';
 
   @override
-  String get media_identify_leave => 'Leave';
+  String get media_identify_leave => '离开';
 
   @override
-  String get media_identify_keepTitle => 'Keep in your library';
+  String get media_identify_keepTitle => '保留在您的媒体库中';
 
   @override
-  String get media_identify_keepOnDive => 'Put on a dive';
+  String get media_identify_keepOnDive => '放到一次潜水';
 
   @override
-  String get media_identify_keepOnSite => 'Put on a site';
+  String get media_identify_keepOnSite => '放到一个潜点';
 
   @override
-  String get media_identify_keepUnplaced => 'Keep without a place';
+  String get media_identify_keepUnplaced => '不指定位置保留';
 
   @override
-  String get media_identify_keepThis => 'This file';
+  String get media_identify_keepThis => '此文件';
 
   @override
-  String get media_identify_keepAll => 'All files not kept yet';
+  String get media_identify_keepAll => '所有尚未保留的文件';
 
   @override
-  String get media_identify_cameraTitle => 'Identify';
+  String get media_identify_cameraTitle => '识别';
 
   @override
-  String get media_identify_photo => 'Photo';
+  String get media_identify_photo => '照片';
 
   @override
-  String get media_identify_video => 'Video';
+  String get media_identify_video => '视频';
 
   @override
-  String get media_identify_namesOn => 'Names';
+  String get media_identify_namesOn => '名称';
 
   @override
-  String get media_identify_noLocation =>
-      'Suggestions only, from anywhere: your location is not used.';
+  String get media_identify_noLocation => '仅为建议,不限地区:不使用您的位置。';
 
   @override
-  String get media_identify_namesPaused =>
-      'Names paused: the device is low on memory.';
+  String get media_identify_namesPaused => '名称已暂停:设备内存不足。';
 
   @override
   String get media_identify_cameraDenied =>
-      'Submersion can\'t use the camera. Allow camera access in Settings, or pick files instead.';
+      'Submersion 无法使用相机。请在设置中允许访问相机,或改为选择文件。';
 
   @override
-  String get media_identify_pickFiles => 'Pick files';
+  String get media_identify_pickFiles => '选择文件';
 
   @override
-  String get media_identify_takePhoto => 'Take photo';
+  String get media_identify_takePhoto => '拍照';
 
   @override
-  String get media_identify_record => 'Record';
+  String get media_identify_record => '录制';
 
   @override
-  String get media_identify_stop => 'Stop';
+  String get media_identify_stop => '停止';
 
   @override
-  String get media_identify_captures => 'Photos and clips taken';
+  String get media_identify_captures => '已拍摄的照片和片段';
 
   @override
   String media_identify_keepFailed(String name) {
-    return '$name could not be kept';
+    return '无法保留 $name';
   }
 
   @override

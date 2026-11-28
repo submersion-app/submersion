@@ -20396,10 +20396,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get media_photoPicker_files_allOnSite => 'Put all on a site';
+  String get media_photoPicker_files_allOnSite => 'לשים הכול באתר צלילה';
 
   @override
-  String get media_photoPicker_files_allUnplaced => 'Keep all without a place';
+  String get media_photoPicker_files_allUnplaced => 'לשמור הכול ללא מקום';
 
   @override
   String get media_photoPicker_files_addToDiveTooltip => 'הוספה לצלילה זו';
@@ -21033,104 +21033,101 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_import_review_chooseDive => 'בחירת צלילה';
 
   @override
-  String get media_import_review_keepUnplaced => 'Keep without a place';
+  String get media_import_review_keepUnplaced => 'שמירה ללא מקום';
 
   @override
-  String get media_import_review_unplaced =>
-      'Keep in the library, no dive or site';
+  String get media_import_review_unplaced => 'שמירה בספרייה, ללא צלילה או אתר';
 
   @override
-  String get media_import_review_allOnSite => 'Put the rest on a site';
+  String get media_import_review_allOnSite => 'לשים את השאר באתר צלילה';
 
   @override
-  String get media_import_review_allUnplaced => 'Keep the rest without a place';
+  String get media_import_review_allUnplaced => 'לשמור את השאר ללא מקום';
 
   @override
   String get media_console_sources => 'מקורות';
 
   @override
-  String get media_console_identify => 'Identify species';
+  String get media_console_identify => 'זיהוי מינים';
 
   @override
   String get media_identify_notKeptBanner =>
-      'Not in your library. Nothing is kept unless you keep it.';
+      'לא בספרייה שלך. שום דבר לא נשמר אלא אם תשמור אותו.';
 
   @override
-  String get media_identify_keep => 'Keep';
+  String get media_identify_keep => 'שמירה';
 
   @override
-  String get media_identify_kept => 'Kept in your library';
+  String get media_identify_kept => 'נשמר בספרייה שלך';
 
   @override
-  String get media_identify_leaveTitle => 'Leave without keeping?';
+  String get media_identify_leaveTitle => 'לצאת בלי לשמור?';
 
   @override
-  String get media_identify_leaveBody =>
-      'The species you chose on files you have not kept will be lost.';
+  String get media_identify_leaveBody => 'המינים שבחרת בקבצים שלא נשמרו יאבדו.';
 
   @override
-  String get media_identify_leave => 'Leave';
+  String get media_identify_leave => 'יציאה';
 
   @override
-  String get media_identify_keepTitle => 'Keep in your library';
+  String get media_identify_keepTitle => 'שמירה בספרייה שלך';
 
   @override
-  String get media_identify_keepOnDive => 'Put on a dive';
+  String get media_identify_keepOnDive => 'לשים בצלילה';
 
   @override
-  String get media_identify_keepOnSite => 'Put on a site';
+  String get media_identify_keepOnSite => 'לשים באתר צלילה';
 
   @override
-  String get media_identify_keepUnplaced => 'Keep without a place';
+  String get media_identify_keepUnplaced => 'שמירה ללא מקום';
 
   @override
-  String get media_identify_keepThis => 'This file';
+  String get media_identify_keepThis => 'הקובץ הזה';
 
   @override
-  String get media_identify_keepAll => 'All files not kept yet';
+  String get media_identify_keepAll => 'כל הקבצים שעדיין לא נשמרו';
 
   @override
-  String get media_identify_cameraTitle => 'Identify';
+  String get media_identify_cameraTitle => 'זיהוי';
 
   @override
-  String get media_identify_photo => 'Photo';
+  String get media_identify_photo => 'תמונה';
 
   @override
-  String get media_identify_video => 'Video';
+  String get media_identify_video => 'וידאו';
 
   @override
-  String get media_identify_namesOn => 'Names';
+  String get media_identify_namesOn => 'שמות';
 
   @override
   String get media_identify_noLocation =>
-      'Suggestions only, from anywhere: your location is not used.';
+      'הצעות בלבד, מכל מקום: המיקום שלך אינו בשימוש.';
 
   @override
-  String get media_identify_namesPaused =>
-      'Names paused: the device is low on memory.';
+  String get media_identify_namesPaused => 'השמות מושהים: חסר זיכרון במכשיר.';
 
   @override
   String get media_identify_cameraDenied =>
-      'Submersion can\'t use the camera. Allow camera access in Settings, or pick files instead.';
+      'ל-Submersion אין גישה למצלמה. אפשר גישה למצלמה בהגדרות, או בחר קבצים במקום.';
 
   @override
-  String get media_identify_pickFiles => 'Pick files';
+  String get media_identify_pickFiles => 'בחירת קבצים';
 
   @override
-  String get media_identify_takePhoto => 'Take photo';
+  String get media_identify_takePhoto => 'צילום תמונה';
 
   @override
-  String get media_identify_record => 'Record';
+  String get media_identify_record => 'הקלטה';
 
   @override
-  String get media_identify_stop => 'Stop';
+  String get media_identify_stop => 'עצירה';
 
   @override
-  String get media_identify_captures => 'Photos and clips taken';
+  String get media_identify_captures => 'תמונות וקטעים שצולמו';
 
   @override
   String media_identify_keepFailed(String name) {
-    return '$name could not be kept';
+    return 'לא ניתן היה לשמור את $name';
   }
 
   @override

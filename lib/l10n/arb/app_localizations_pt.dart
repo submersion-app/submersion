@@ -20836,10 +20836,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get media_photoPicker_files_allOnSite => 'Put all on a site';
+  String get media_photoPicker_files_allOnSite => 'Colocar tudo num local';
 
   @override
-  String get media_photoPicker_files_allUnplaced => 'Keep all without a place';
+  String get media_photoPicker_files_allUnplaced => 'Manter tudo sem lugar';
 
   @override
   String get media_photoPicker_files_addToDiveTooltip =>
@@ -21498,104 +21498,104 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_import_review_chooseDive => 'Escolher mergulho';
 
   @override
-  String get media_import_review_keepUnplaced => 'Keep without a place';
+  String get media_import_review_keepUnplaced => 'Manter sem lugar';
 
   @override
   String get media_import_review_unplaced =>
-      'Keep in the library, no dive or site';
+      'Manter na biblioteca, sem mergulho nem local';
 
   @override
-  String get media_import_review_allOnSite => 'Put the rest on a site';
+  String get media_import_review_allOnSite => 'Colocar o resto num local';
 
   @override
-  String get media_import_review_allUnplaced => 'Keep the rest without a place';
+  String get media_import_review_allUnplaced => 'Manter o resto sem lugar';
 
   @override
   String get media_console_sources => 'Origens';
 
   @override
-  String get media_console_identify => 'Identify species';
+  String get media_console_identify => 'Identificar espécies';
 
   @override
   String get media_identify_notKeptBanner =>
-      'Not in your library. Nothing is kept unless you keep it.';
+      'Não está na sua biblioteca. Nada é mantido a menos que o mantenha.';
 
   @override
-  String get media_identify_keep => 'Keep';
+  String get media_identify_keep => 'Manter';
 
   @override
-  String get media_identify_kept => 'Kept in your library';
+  String get media_identify_kept => 'Mantido na sua biblioteca';
 
   @override
-  String get media_identify_leaveTitle => 'Leave without keeping?';
+  String get media_identify_leaveTitle => 'Sair sem manter?';
 
   @override
   String get media_identify_leaveBody =>
-      'The species you chose on files you have not kept will be lost.';
+      'As espécies escolhidas em ficheiros não mantidos serão perdidas.';
 
   @override
-  String get media_identify_leave => 'Leave';
+  String get media_identify_leave => 'Sair';
 
   @override
-  String get media_identify_keepTitle => 'Keep in your library';
+  String get media_identify_keepTitle => 'Manter na sua biblioteca';
 
   @override
-  String get media_identify_keepOnDive => 'Put on a dive';
+  String get media_identify_keepOnDive => 'Colocar num mergulho';
 
   @override
-  String get media_identify_keepOnSite => 'Put on a site';
+  String get media_identify_keepOnSite => 'Colocar num local';
 
   @override
-  String get media_identify_keepUnplaced => 'Keep without a place';
+  String get media_identify_keepUnplaced => 'Manter sem lugar';
 
   @override
-  String get media_identify_keepThis => 'This file';
+  String get media_identify_keepThis => 'Este ficheiro';
 
   @override
-  String get media_identify_keepAll => 'All files not kept yet';
+  String get media_identify_keepAll => 'Todos os ficheiros ainda não mantidos';
 
   @override
-  String get media_identify_cameraTitle => 'Identify';
+  String get media_identify_cameraTitle => 'Identificar';
 
   @override
-  String get media_identify_photo => 'Photo';
+  String get media_identify_photo => 'Foto';
 
   @override
-  String get media_identify_video => 'Video';
+  String get media_identify_video => 'Vídeo';
 
   @override
-  String get media_identify_namesOn => 'Names';
+  String get media_identify_namesOn => 'Nomes';
 
   @override
   String get media_identify_noLocation =>
-      'Suggestions only, from anywhere: your location is not used.';
+      'Apenas sugestões, de qualquer lugar: a sua localização não é usada.';
 
   @override
   String get media_identify_namesPaused =>
-      'Names paused: the device is low on memory.';
+      'Nomes em pausa: o dispositivo tem pouca memória.';
 
   @override
   String get media_identify_cameraDenied =>
-      'Submersion can\'t use the camera. Allow camera access in Settings, or pick files instead.';
+      'O Submersion não pode usar a câmara. Permita o acesso à câmara nas Definições ou escolha ficheiros.';
 
   @override
-  String get media_identify_pickFiles => 'Pick files';
+  String get media_identify_pickFiles => 'Escolher ficheiros';
 
   @override
-  String get media_identify_takePhoto => 'Take photo';
+  String get media_identify_takePhoto => 'Tirar foto';
 
   @override
-  String get media_identify_record => 'Record';
+  String get media_identify_record => 'Gravar';
 
   @override
-  String get media_identify_stop => 'Stop';
+  String get media_identify_stop => 'Parar';
 
   @override
-  String get media_identify_captures => 'Photos and clips taken';
+  String get media_identify_captures => 'Fotos e clipes tirados';
 
   @override
   String media_identify_keepFailed(String name) {
-    return '$name could not be kept';
+    return 'Não foi possível manter $name';
   }
 
   @override

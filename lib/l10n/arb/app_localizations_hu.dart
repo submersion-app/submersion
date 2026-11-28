@@ -20752,10 +20752,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get media_photoPicker_files_allOnSite => 'Put all on a site';
+  String get media_photoPicker_files_allOnSite => 'Mindet egy merülőhelyre';
 
   @override
-  String get media_photoPicker_files_allUnplaced => 'Keep all without a place';
+  String get media_photoPicker_files_allUnplaced =>
+      'Mindet hely nélkül megtartani';
 
   @override
   String get media_photoPicker_files_addToDiveTooltip =>
@@ -21409,104 +21410,105 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_import_review_chooseDive => 'Merülés kiválasztása';
 
   @override
-  String get media_import_review_keepUnplaced => 'Keep without a place';
+  String get media_import_review_keepUnplaced => 'Megtartás hely nélkül';
 
   @override
   String get media_import_review_unplaced =>
-      'Keep in the library, no dive or site';
+      'Megtartás a könyvtárban, merülés és merülőhely nélkül';
 
   @override
-  String get media_import_review_allOnSite => 'Put the rest on a site';
+  String get media_import_review_allOnSite => 'A többit egy merülőhelyre';
 
   @override
-  String get media_import_review_allUnplaced => 'Keep the rest without a place';
+  String get media_import_review_allUnplaced =>
+      'A többit hely nélkül megtartani';
 
   @override
   String get media_console_sources => 'Források';
 
   @override
-  String get media_console_identify => 'Identify species';
+  String get media_console_identify => 'Fajok azonosítása';
 
   @override
   String get media_identify_notKeptBanner =>
-      'Not in your library. Nothing is kept unless you keep it.';
+      'Nincs a könyvtáradban. Semmi sem marad meg, hacsak meg nem tartod.';
 
   @override
-  String get media_identify_keep => 'Keep';
+  String get media_identify_keep => 'Megtartás';
 
   @override
-  String get media_identify_kept => 'Kept in your library';
+  String get media_identify_kept => 'Megtartva a könyvtáradban';
 
   @override
-  String get media_identify_leaveTitle => 'Leave without keeping?';
+  String get media_identify_leaveTitle => 'Kilépsz megtartás nélkül?';
 
   @override
   String get media_identify_leaveBody =>
-      'The species you chose on files you have not kept will be lost.';
+      'A meg nem tartott fájlokon választott fajok elvesznek.';
 
   @override
-  String get media_identify_leave => 'Leave';
+  String get media_identify_leave => 'Kilépés';
 
   @override
-  String get media_identify_keepTitle => 'Keep in your library';
+  String get media_identify_keepTitle => 'Megtartás a könyvtáradban';
 
   @override
-  String get media_identify_keepOnDive => 'Put on a dive';
+  String get media_identify_keepOnDive => 'Merülésre tenni';
 
   @override
-  String get media_identify_keepOnSite => 'Put on a site';
+  String get media_identify_keepOnSite => 'Merülőhelyre tenni';
 
   @override
-  String get media_identify_keepUnplaced => 'Keep without a place';
+  String get media_identify_keepUnplaced => 'Megtartás hely nélkül';
 
   @override
-  String get media_identify_keepThis => 'This file';
+  String get media_identify_keepThis => 'Ez a fájl';
 
   @override
-  String get media_identify_keepAll => 'All files not kept yet';
+  String get media_identify_keepAll => 'Minden még meg nem tartott fájl';
 
   @override
-  String get media_identify_cameraTitle => 'Identify';
+  String get media_identify_cameraTitle => 'Azonosítás';
 
   @override
-  String get media_identify_photo => 'Photo';
+  String get media_identify_photo => 'Fotó';
 
   @override
-  String get media_identify_video => 'Video';
+  String get media_identify_video => 'Videó';
 
   @override
-  String get media_identify_namesOn => 'Names';
+  String get media_identify_namesOn => 'Nevek';
 
   @override
   String get media_identify_noLocation =>
-      'Suggestions only, from anywhere: your location is not used.';
+      'Csak javaslatok, bárhonnan: a helyzeted nincs felhasználva.';
 
   @override
   String get media_identify_namesPaused =>
-      'Names paused: the device is low on memory.';
+      'Nevek szüneteltetve: kevés a memória az eszközön.';
 
   @override
   String get media_identify_cameraDenied =>
-      'Submersion can\'t use the camera. Allow camera access in Settings, or pick files instead.';
+      'A Submersion nem tudja használni a kamerát. Engedélyezd a kamera-hozzáférést a Beállításokban, vagy válassz inkább fájlokat.';
 
   @override
-  String get media_identify_pickFiles => 'Pick files';
+  String get media_identify_pickFiles => 'Fájlok választása';
 
   @override
-  String get media_identify_takePhoto => 'Take photo';
+  String get media_identify_takePhoto => 'Fotó készítése';
 
   @override
-  String get media_identify_record => 'Record';
+  String get media_identify_record => 'Felvétel';
 
   @override
-  String get media_identify_stop => 'Stop';
+  String get media_identify_stop => 'Leállítás';
 
   @override
-  String get media_identify_captures => 'Photos and clips taken';
+  String get media_identify_captures => 'Készített fotók és klipek';
 
   @override
   String media_identify_keepFailed(String name) {
-    return '$name could not be kept';
+    return '$name nem tartható meg';
   }
 
   @override
