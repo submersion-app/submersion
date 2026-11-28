@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
+import 'package:submersion/features/settings/presentation/widgets/equipment_catalogue_updates_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/equipment_default_view_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -55,6 +56,7 @@ class ManageSectionContent extends StatelessWidget {
                 route: '/equipment/locations',
               ),
               const EquipmentDefaultViewTile(),
+              const EquipmentCatalogueUpdatesTile(),
             ],
           ),
           _ManageGroup(

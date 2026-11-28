@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/features/equipment/data/catalogue/equipment_catalogue_attribution.dart';
 import 'package:submersion/features/species_id/data/engines/onnx/onnx_runtime_attribution.dart';
 import 'package:submersion/core/network/proxy/proxy_controller.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
@@ -37,6 +38,7 @@ void registerBundledLicenses() {
   SeaAreaService.registerLicense();
   BathymetryAttribution.registerLicense();
   SiteCatalogueAttribution.registerLicense();
+  EquipmentCatalogueAttribution.registerLicense();
   OnnxRuntimeAttribution.registerLicense();
   BrandTypography.registerLicense();
 }
