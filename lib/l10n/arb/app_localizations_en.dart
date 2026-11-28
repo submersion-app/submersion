@@ -31475,12 +31475,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_units_gasConsumption => 'Gas consumption';
 
   @override
-  String get settings_units_defaultCurrency => 'Default Currency';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'Default Currency';
-
-  @override
   String get settings_units_temperature => 'Temperature';
 
   @override
@@ -66265,6 +66259,54 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compact is a slim bar with status lights. Banner is the welcome banner with your dive totals. Saved on this device.';
+
+  @override
+  String get currencyPicker_searchHint => 'Search by code or name';
+
+  @override
+  String get currencyPicker_section_preferred => 'Preferred';
+
+  @override
+  String get currencyPicker_section_all => 'All currencies';
+
+  @override
+  String get currencyPicker_noMatches => 'No currency matches';
+
+  @override
+  String get settings_currencies_title => 'Currencies';
+
+  @override
+  String get settings_currencies_subtitle =>
+      'Default currency and the ones listed first in pickers';
+
+  @override
+  String get settings_currencies_enabled => 'Enabled currencies';
+
+  @override
+  String get settings_currencies_enabledHint =>
+      'Listed first in every currency picker, in this order. Drag to reorder. Tap the star to choose the default.';
+
+  @override
+  String get settings_currencies_other => 'Other currencies';
+
+  @override
+  String get settings_currencies_default => 'Default';
+
+  @override
+  String get settings_currencies_setDefault => 'Set as default currency';
+
+  @override
+  String get settings_currencies_reset => 'Reset to defaults';
+
+  @override
+  String get settings_currencies_resetDone => 'Enabled currencies reset';
+
+  @override
+  String get settings_currencies_undo => 'Undo';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'Enabled currencies';
 
   @override
   String get popOut_openProfileWindow => 'Open in a new window';

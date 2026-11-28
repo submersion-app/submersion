@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/core/utils/currency_catalog.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -392,6 +394,28 @@ void main() {
     expect(entries.first.value, 'ISK');
   });
 
+  testWidgets('the menu offers the preferred currencies, then every other ISO '
+      'currency (issue #4997)', (tester) async {
+    await pumpEditor(
+      tester,
+      regulator.copyWith(purchasePrice: 150, purchaseCurrency: 'EUR'),
+    );
+
+    final codes = [
+      for (final entry
+          in tester
+              .widget<DropdownMenu<String>>(currencyMenu)
+              .dropdownMenuEntries)
+        entry.value,
+    ];
+    expect(
+      codes.take(kDefaultPreferredCurrencyCodes.length),
+      kDefaultPreferredCurrencyCodes,
+    );
+    expect(codes, contains('BRL'));
+    expect(codes, hasLength(kIsoCurrencies.length));
+  });
+
   testWidgets('a currency cleared falls back to the diver default, not '
       'USD', (tester) async {
     final session = await pumpEditor(
@@ -407,6 +431,64 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(session.working.purchaseCurrency, 'NOK');
+  });
+
+  testWidgets('a currency name typed is saved as its code', (tester) async {
+    final session = await pumpEditor(
+      tester,
+      regulator.copyWith(purchasePrice: 150, purchaseCurrency: 'EUR'),
+    );
+
+    await tester.enterText(
+      find.descendant(of: currencyMenu, matching: find.byType(TextField)),
+      'real',
+    );
+    await tester.pumpAndSettle();
+
+    expect(session.working.purchaseCurrency, 'BRL');
+  });
+
+  testWidgets('a name matching several currencies keeps the stored code', (
+    tester,
+  ) async {
+    final session = await pumpEditor(
+      tester,
+      regulator.copyWith(purchasePrice: 150, purchaseCurrency: 'EUR'),
+    );
+
+    await tester.enterText(
+      find.descendant(of: currencyMenu, matching: find.byType(TextField)),
+      'pound',
+    );
+    await tester.pumpAndSettle();
+
+    expect(session.working.purchaseCurrency, 'EUR');
+  });
+
+  testWidgets('Enter after a currency name picks that currency', (
+    tester,
+  ) async {
+    final session = await pumpEditor(
+      tester,
+      regulator.copyWith(purchasePrice: 150, purchaseCurrency: 'EUR'),
+    );
+    final field = find.descendant(
+      of: currencyMenu,
+      matching: find.byType(TextField),
+    );
+
+    await tester.tap(field);
+    await tester.pumpAndSettle();
+    await tester.enterText(field, 'real');
+    await tester.pumpAndSettle();
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<DropdownMenu<String>>(currencyMenu).controller?.text,
+      'BRL',
+    );
+    expect(session.working.purchaseCurrency, 'BRL');
   });
 
   testWidgets('a purchase date is picked, and cleared', (tester) async {

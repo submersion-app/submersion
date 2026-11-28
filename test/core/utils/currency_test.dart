@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/core/utils/currency_catalog.dart';
 
 void main() {
   // currencySymbol/formatMoney resolve against Intl.defaultLocale, a process
@@ -39,8 +40,8 @@ void main() {
       expect(currencySymbol('ZZZ'), 'ZZZ');
     });
 
-    test('every preset code resolves to a non-empty symbol', () {
-      for (final code in kCommonCurrencyCodes) {
+    test('every default preferred code resolves to a non-empty symbol', () {
+      for (final code in kDefaultPreferredCurrencyCodes) {
         expect(
           currencySymbol(code),
           isNotEmpty,
@@ -140,24 +141,118 @@ void main() {
 
   group('currencyCodesWith', () {
     test('returns the presets unchanged for a preset code', () {
-      expect(currencyCodesWith('EUR'), kCommonCurrencyCodes);
+      expect(currencyCodesWith('EUR'), kDefaultPreferredCurrencyCodes);
     });
 
     test('returns the presets unchanged for a blank or null code', () {
-      expect(currencyCodesWith(''), kCommonCurrencyCodes);
-      expect(currencyCodesWith('   '), kCommonCurrencyCodes);
-      expect(currencyCodesWith(null), kCommonCurrencyCodes);
+      expect(currencyCodesWith(''), kDefaultPreferredCurrencyCodes);
+      expect(currencyCodesWith('   '), kDefaultPreferredCurrencyCodes);
+      expect(currencyCodesWith(null), kDefaultPreferredCurrencyCodes);
     });
 
     test('leads with a non-preset code so it stays selectable', () {
       final codes = currencyCodesWith('ISK');
       expect(codes.first, 'ISK');
-      expect(codes.sublist(1), kCommonCurrencyCodes);
+      expect(codes.sublist(1), kDefaultPreferredCurrencyCodes);
     });
 
     test('normalises case and whitespace before comparing', () {
-      expect(currencyCodesWith(' eur '), kCommonCurrencyCodes);
+      expect(currencyCodesWith(' eur '), kDefaultPreferredCurrencyCodes);
       expect(currencyCodesWith(' isk ').first, 'ISK');
+    });
+  });
+
+  group('currencyCodesWith with a preferred list', () {
+    test('follows the given list instead of the defaults', () {
+      expect(currencyCodesWith('BRL', preferred: const ['BRL', 'EUR']), [
+        'BRL',
+        'EUR',
+      ]);
+    });
+
+    test('leads with a current code outside the preferred list', () {
+      expect(currencyCodesWith('usd', preferred: const ['BRL']), [
+        'USD',
+        'BRL',
+      ]);
+    });
+
+    test('an empty preferred list offers just the current code', () {
+      expect(currencyCodesWith('EUR', preferred: const []), ['EUR']);
+      expect(currencyCodesWith(null, preferred: const []), isEmpty);
+    });
+  });
+
+  group('allCurrencyCodesWith', () {
+    test('lists the preferred codes first, then the rest of the catalog', () {
+      final codes = allCurrencyCodesWith(null, preferred: const ['BRL', 'EUR']);
+      expect(codes.take(2), ['BRL', 'EUR']);
+      expect(codes, hasLength(kIsoCurrencies.length));
+      expect(codes.toSet(), hasLength(codes.length));
+      final rest = codes.skip(2).toList();
+      expect(rest, [...rest]..sort());
+    });
+
+    test('keeps a current code outside the catalog', () {
+      final codes = allCurrencyCodesWith('xau', preferred: const ['EUR']);
+      expect(codes.take(2), ['XAU', 'EUR']);
+      expect(codes, hasLength(kIsoCurrencies.length + 1));
+    });
+
+    test('offers the Brazilian real with the defaults (issue #4997)', () {
+      expect(allCurrencyCodesWith(null), contains('BRL'));
+    });
+  });
+
+  group('normalizePreferredCurrencyCodes', () {
+    test('trims, upper-cases and drops repeats, keeping first places', () {
+      expect(normalizePreferredCurrencyCodes([' brl', 'EUR', 'brl ', 'usd']), [
+        'BRL',
+        'EUR',
+        'USD',
+      ]);
+    });
+
+    test('drops anything that is not a three-letter code', () {
+      expect(
+        normalizePreferredCurrencyCodes(['', 'EU', 'EURO', 'E1R', 'CHF']),
+        ['CHF'],
+      );
+    });
+  });
+
+  group('currencyMatchesQuery', () {
+    test('a blank query matches everything', () {
+      expect(currencyMatchesQuery('BRL', ''), isTrue);
+      expect(currencyMatchesQuery('ZZZ', '  '), isTrue);
+    });
+
+    test('matches the code, ignoring case', () {
+      expect(currencyMatchesQuery('BRL', 'br'), isTrue);
+      expect(currencyMatchesQuery('BRL', 'EU'), isFalse);
+    });
+
+    test('matches the English name, ignoring case', () {
+      expect(currencyMatchesQuery('BRL', 'Real'), isTrue);
+      expect(currencyMatchesQuery('PLN', 'złoty'), isTrue);
+      expect(currencyMatchesQuery('BRL', 'peso'), isFalse);
+    });
+
+    test('ignores Latin accents in the name and in the query', () {
+      expect(currencyMatchesQuery('PLN', 'zloty'), isTrue);
+      expect(currencyMatchesQuery('CRC', 'colon'), isTrue);
+      expect(currencyMatchesQuery('VND', 'dong'), isTrue);
+      expect(currencyMatchesQuery('MNT', 'tugrug'), isFalse);
+      expect(currencyMatchesQuery('MNT', 'togrog'), isTrue);
+      expect(currencyMatchesQuery('TOP', 'paanga'), isTrue);
+      expect(currencyMatchesQuery('TOP', "Pa'anga"), isTrue);
+      expect(currencyMatchesQuery('ISK', 'KRÓNA'), isTrue);
+      expect(currencyMatchesQuery('PLN', 'Złoty'), isTrue);
+    });
+
+    test('a code outside the catalog matches by code only', () {
+      expect(currencyMatchesQuery('XAU', 'xa'), isTrue);
+      expect(currencyMatchesQuery('XAU', 'gold'), isFalse);
     });
   });
 
@@ -209,21 +304,51 @@ void main() {
     });
   });
 
-  test('kCommonCurrencyCodes covers the major currencies', () {
-    expect(kCommonCurrencyCodes, containsAll(['USD', 'EUR', 'GBP', 'CHF']));
-  });
-
-  test('kCommonCurrencyCodes offers the Polish zloty', () {
-    expect(kCommonCurrencyCodes, contains('PLN'));
-  });
-
-  test('kCommonCurrencyCodes has no duplicates and is upper-case', () {
+  test('kDefaultPreferredCurrencyCodes covers the major currencies', () {
     expect(
-      kCommonCurrencyCodes.toSet(),
-      hasLength(kCommonCurrencyCodes.length),
+      kDefaultPreferredCurrencyCodes,
+      containsAll(['USD', 'EUR', 'GBP', 'CHF']),
     );
-    for (final code in kCommonCurrencyCodes) {
-      expect(code, code.toUpperCase());
-    }
+  });
+
+  test('kDefaultPreferredCurrencyCodes offers the Polish zloty', () {
+    expect(kDefaultPreferredCurrencyCodes, contains('PLN'));
+  });
+
+  test(
+    'kDefaultPreferredCurrencyCodes has no duplicates and is upper-case',
+    () {
+      expect(
+        kDefaultPreferredCurrencyCodes.toSet(),
+        hasLength(kDefaultPreferredCurrencyCodes.length),
+      );
+      for (final code in kDefaultPreferredCurrencyCodes) {
+        expect(code, code.toUpperCase());
+      }
+    },
+  );
+
+  group('resolveTypedCurrency', () {
+    test('a code, in any case, is itself', () {
+      expect(resolveTypedCurrency(' brl '), 'BRL');
+      expect(resolveTypedCurrency('XAU'), 'XAU');
+    });
+
+    test('a name matching one currency is its code', () {
+      expect(resolveTypedCurrency('real'), 'BRL');
+      expect(resolveTypedCurrency('yen'), 'JPY');
+      expect(resolveTypedCurrency('Zloty'), 'PLN');
+    });
+
+    test('a name matching several currencies, or none, is no code', () {
+      expect(resolveTypedCurrency('pound'), isNull);
+      expect(resolveTypedCurrency('dollar'), isNull);
+      expect(resolveTypedCurrency('qqqq'), isNull);
+      expect(resolveTypedCurrency('  '), isNull);
+    });
+
+    test('three letters naming several currencies are no code', () {
+      expect(resolveTypedCurrency('won'), isNull);
+    });
   });
 }

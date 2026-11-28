@@ -19,6 +19,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_div
 import 'package:submersion/features/equipment/presentation/widgets/equipment_sharing_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/currency_picker.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
@@ -126,7 +127,13 @@ class _GearItemDetailsEditorState extends ConsumerState<GearItemDetailsEditor> {
     final now = _session.valueOf(gearPriceField);
     _session.set(gearPriceField, (
       price: now.price,
-      currency: gearCurrencyOrDefault(_currency.text, _fallbackCurrency),
+      currency: gearCurrencyOrDefault(
+        _currency.text,
+        _fallbackCurrency,
+        unresolved: _initialCurrency.trim().isEmpty
+            ? _fallbackCurrency
+            : _initialCurrency,
+      ),
     ));
   }
 
@@ -301,25 +308,24 @@ class _GearItemDetailsEditorState extends ConsumerState<GearItemDetailsEditor> {
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  // Common currencies as presets; any ISO code can still be
-                  // typed.
+                  // Every ISO currency, the diver's preferred ones first,
+                  // searchable by code or name; any other code can still be
+                  // typed. The stored code leads the list when it is not a
+                  // preferred one, so it stays visible and re-selectable.
                   child: DropdownMenu<String>(
                     controller: _currency,
                     expandedInsets: EdgeInsets.zero,
                     requestFocusOnTap: true,
                     enableFilter: true,
+                    filterCallback: filterCurrencyMenuEntries,
+                    searchCallback: searchCurrencyMenuEntries,
                     label: Text(l10n.equipment_edit_currencyLabel),
-                    dropdownMenuEntries: [
-                      for (final code in currencyCodesWith(_initialCurrency))
-                        DropdownMenuEntry(
-                          value: code,
-                          label: code,
-                          leadingIcon: SizedBox(
-                            width: 28,
-                            child: Center(child: Text(currencySymbol(code))),
-                          ),
-                        ),
-                    ],
+                    dropdownMenuEntries: currencyMenuEntries(
+                      allCurrencyCodesWith(
+                        _initialCurrency,
+                        preferred: ref.watch(preferredCurrencyCodesProvider),
+                      ),
+                    ),
                   ),
                 ),
               ],

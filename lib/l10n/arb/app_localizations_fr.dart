@@ -32075,12 +32075,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_units_gasConsumption => 'Consommation de gaz';
 
   @override
-  String get settings_units_defaultCurrency => 'Devise par défaut';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'Devise par défaut';
-
-  @override
   String get settings_units_temperature => 'Température';
 
   @override
@@ -67416,6 +67410,55 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compact est une barre fine avec des voyants d\'état. Bannière est la bannière d\'accueil avec vos totaux de plongée. Enregistré sur cet appareil.';
+
+  @override
+  String get currencyPicker_searchHint => 'Rechercher par code ou nom';
+
+  @override
+  String get currencyPicker_section_preferred => 'Préférées';
+
+  @override
+  String get currencyPicker_section_all => 'Toutes les devises';
+
+  @override
+  String get currencyPicker_noMatches => 'Aucune devise ne correspond';
+
+  @override
+  String get settings_currencies_title => 'Devises';
+
+  @override
+  String get settings_currencies_subtitle =>
+      'Devise par défaut et celles proposées en premier';
+
+  @override
+  String get settings_currencies_enabled => 'Devises activées';
+
+  @override
+  String get settings_currencies_enabledHint =>
+      'Proposées en premier dans chaque sélecteur de devise, dans cet ordre. Faites glisser pour réordonner. Touchez l\'étoile pour choisir la devise par défaut.';
+
+  @override
+  String get settings_currencies_other => 'Autres devises';
+
+  @override
+  String get settings_currencies_default => 'Par défaut';
+
+  @override
+  String get settings_currencies_setDefault =>
+      'Définir comme devise par défaut';
+
+  @override
+  String get settings_currencies_reset => 'Rétablir les valeurs par défaut';
+
+  @override
+  String get settings_currencies_resetDone => 'Devises activées réinitialisées';
+
+  @override
+  String get settings_currencies_undo => 'Annuler';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'Devises activées';
 
   @override
   String get popOut_openProfileWindow => 'Ouvrir dans une nouvelle fenêtre';

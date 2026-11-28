@@ -31833,12 +31833,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_units_gasConsumption => 'Gázfogyasztás';
 
   @override
-  String get settings_units_defaultCurrency => 'Alapértelmezett pénznem';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'Alapértelmezett pénznem';
-
-  @override
   String get settings_units_temperature => 'Hőmérséklet';
 
   @override
@@ -66890,6 +66884,56 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'A Kompakt egy keskeny sáv állapotjelzőkkel. A Szalag az üdvözlő szalag a merülési összesítőiddel. Ezen az eszközön mentve.';
+
+  @override
+  String get currencyPicker_searchHint => 'Keresés kód vagy név szerint';
+
+  @override
+  String get currencyPicker_section_preferred => 'Előnyben részesített';
+
+  @override
+  String get currencyPicker_section_all => 'Összes pénznem';
+
+  @override
+  String get currencyPicker_noMatches => 'Nincs egyező pénznem';
+
+  @override
+  String get settings_currencies_title => 'Pénznemek';
+
+  @override
+  String get settings_currencies_subtitle =>
+      'Alapértelmezett pénznem és az elsőként felkínáltak';
+
+  @override
+  String get settings_currencies_enabled => 'Engedélyezett pénznemek';
+
+  @override
+  String get settings_currencies_enabledHint =>
+      'Minden pénznemválasztóban elsőként, ebben a sorrendben jelennek meg. Húzd az átrendezéshez. Koppints a csillagra az alapértelmezett kiválasztásához.';
+
+  @override
+  String get settings_currencies_other => 'További pénznemek';
+
+  @override
+  String get settings_currencies_default => 'Alapértelmezett';
+
+  @override
+  String get settings_currencies_setDefault =>
+      'Beállítás alapértelmezett pénznemként';
+
+  @override
+  String get settings_currencies_reset => 'Alapértelmezések visszaállítása';
+
+  @override
+  String get settings_currencies_resetDone =>
+      'Engedélyezett pénznemek visszaállítva';
+
+  @override
+  String get settings_currencies_undo => 'Visszavonás';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'Engedélyezett pénznemek';
 
   @override
   String get popOut_openProfileWindow => 'Megnyitás új ablakban';

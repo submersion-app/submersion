@@ -32010,12 +32010,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_units_gasConsumption => 'Consumo di gas';
 
   @override
-  String get settings_units_defaultCurrency => 'Valuta predefinita';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'Valuta predefinita';
-
-  @override
   String get settings_units_temperature => 'Temperatura';
 
   @override
@@ -67287,6 +67281,55 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compatta è una barra sottile con le spie di stato. Banner è il banner di benvenuto con i totali delle tue immersioni. Salvato su questo dispositivo.';
+
+  @override
+  String get currencyPicker_searchHint => 'Cerca per codice o nome';
+
+  @override
+  String get currencyPicker_section_preferred => 'Preferite';
+
+  @override
+  String get currencyPicker_section_all => 'Tutte le valute';
+
+  @override
+  String get currencyPicker_noMatches => 'Nessuna valuta corrisponde';
+
+  @override
+  String get settings_currencies_title => 'Valute';
+
+  @override
+  String get settings_currencies_subtitle =>
+      'Valuta predefinita e quelle elencate per prime';
+
+  @override
+  String get settings_currencies_enabled => 'Valute attivate';
+
+  @override
+  String get settings_currencies_enabledHint =>
+      'Elencate per prime in ogni selettore di valuta, in quest\'ordine. Trascina per riordinare. Tocca la stella per scegliere quella predefinita.';
+
+  @override
+  String get settings_currencies_other => 'Altre valute';
+
+  @override
+  String get settings_currencies_default => 'Predefinita';
+
+  @override
+  String get settings_currencies_setDefault =>
+      'Imposta come valuta predefinita';
+
+  @override
+  String get settings_currencies_reset => 'Ripristina predefinite';
+
+  @override
+  String get settings_currencies_resetDone => 'Valute attivate ripristinate';
+
+  @override
+  String get settings_currencies_undo => 'Annulla';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'Valute attivate';
 
   @override
   String get popOut_openProfileWindow => 'Apri in una nuova finestra';

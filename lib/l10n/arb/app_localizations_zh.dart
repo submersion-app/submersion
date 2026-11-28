@@ -30113,12 +30113,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_units_gasConsumption => '气体消耗';
 
   @override
-  String get settings_units_defaultCurrency => '默认货币';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => '默认货币';
-
-  @override
   String get settings_units_temperature => '温度';
 
   @override
@@ -63048,6 +63042,52 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       '紧凑是带状态灯的窄栏。横幅是显示潜水总计的欢迎横幅。保存在此设备上。';
+
+  @override
+  String get currencyPicker_searchHint => '按代码或名称搜索';
+
+  @override
+  String get currencyPicker_section_preferred => '首选';
+
+  @override
+  String get currencyPicker_section_all => '所有货币';
+
+  @override
+  String get currencyPicker_noMatches => '没有匹配的货币';
+
+  @override
+  String get settings_currencies_title => '货币';
+
+  @override
+  String get settings_currencies_subtitle => '默认货币及在选择器中优先列出的货币';
+
+  @override
+  String get settings_currencies_enabled => '已启用的货币';
+
+  @override
+  String get settings_currencies_enabledHint =>
+      '按此顺序列在每个货币选择器的最前面。拖动以重新排序。点按星标即可设为默认货币。';
+
+  @override
+  String get settings_currencies_other => '其他货币';
+
+  @override
+  String get settings_currencies_default => '默认';
+
+  @override
+  String get settings_currencies_setDefault => '设为默认货币';
+
+  @override
+  String get settings_currencies_reset => '恢复默认';
+
+  @override
+  String get settings_currencies_resetDone => '已重置启用的货币';
+
+  @override
+  String get settings_currencies_undo => '撤销';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes => '已启用的货币';
 
   @override
   String get popOut_openProfileWindow => '在新窗口中打开';

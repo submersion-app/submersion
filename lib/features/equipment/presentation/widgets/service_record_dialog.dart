@@ -6,6 +6,7 @@ import 'package:submersion/core/built_ins/visible_built_ins.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/features/settings/presentation/widgets/currency_picker.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
@@ -176,16 +177,20 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
     }
   }
 
-  /// Codes the currency dropdown offers.
+  /// Codes the currency dropdown offers: every catalog code, the diver's
+  /// preferred ones first.
   ///
-  /// [currencyCodesWith] leads with one code outside the presets; the live
-  /// value is added too, because a default resolved from a kind or schedule
-  /// can be an ISO code the presets do not carry, and it must remain visible
-  /// and re-selectable rather than silently missing from the list.
+  /// [allCurrencyCodesWith] leads with the stored code when it is not a
+  /// preferred one; the live value is added too, because a default resolved
+  /// from a kind or schedule can be a code outside the catalog, and it must
+  /// remain visible and re-selectable rather than silently missing.
   List<String> _currencyOptions() {
-    final codes = currencyCodesWith(_initialCurrencyCode);
-    final live = _currencyController.text.trim().toUpperCase();
-    if (live.isEmpty || codes.contains(live)) return codes;
+    final codes = allCurrencyCodesWith(
+      _initialCurrencyCode,
+      preferred: ref.watch(preferredCurrencyCodesProvider),
+    );
+    final live = resolveTypedCurrency(_currencyController.text);
+    if (live == null || codes.contains(live)) return codes;
     return [live, ...codes];
   }
 
@@ -455,31 +460,24 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      // Editable dropdown: common currencies as presets, but
-                      // any ISO code can still be typed. The stored code leads
-                      // the list when it is outside the presets.
+                      // Editable dropdown over every ISO currency, the
+                      // diver's preferred ones first, searchable by code or
+                      // name; any other code can still be typed. The stored
+                      // code leads the list when it is not a preferred one.
                       child: DropdownMenu<String>(
                         controller: _currencyController,
                         expandedInsets: EdgeInsets.zero,
                         requestFocusOnTap: true,
                         enableFilter: true,
+                        filterCallback: filterCurrencyMenuEntries,
+                        searchCallback: searchCurrencyMenuEntries,
                         label: Text(
                           context.l10n.equipment_serviceDialog_currencyLabel,
                         ),
                         onSelected: (_) => _currencyTouched = true,
-                        dropdownMenuEntries: [
-                          for (final code in _currencyOptions())
-                            DropdownMenuEntry(
-                              value: code,
-                              label: code,
-                              leadingIcon: SizedBox(
-                                width: 28,
-                                child: Center(
-                                  child: Text(currencySymbol(code)),
-                                ),
-                              ),
-                            ),
-                        ],
+                        dropdownMenuEntries: currencyMenuEntries(
+                          _currencyOptions(),
+                        ),
                       ),
                     ),
                   ],
@@ -618,9 +616,14 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
           NumberValue(:final value) => value,
           NumberBlank() || NumberInvalid() => null,
         },
+        // A name is never stored as a code: text naming several currencies
+        // or none keeps the code the dialog opened with.
         currency: _currencyController.text.trim().isEmpty
             ? _fallbackCurrencyCode()
-            : _currencyController.text.trim().toUpperCase(),
+            : resolveTypedCurrency(_currencyController.text) ??
+                  (_initialCurrencyCode.trim().isEmpty
+                      ? _fallbackCurrencyCode()
+                      : _initialCurrencyCode.trim().toUpperCase()),
         nextServiceDue: _nextServiceDue,
         notes: _notesController.text.trim(),
         createdAt: widget.existingRecord?.createdAt ?? now,

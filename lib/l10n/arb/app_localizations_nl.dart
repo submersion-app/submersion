@@ -31795,12 +31795,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_units_gasConsumption => 'Gasverbruik';
 
   @override
-  String get settings_units_defaultCurrency => 'Standaardvaluta';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'Standaardvaluta';
-
-  @override
   String get settings_units_temperature => 'Temperatuur';
 
   @override
@@ -66883,6 +66877,54 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compact is een smalle balk met statuslampjes. Banner is de welkomstbanner met je duiktotalen. Opgeslagen op dit apparaat.';
+
+  @override
+  String get currencyPicker_searchHint => 'Zoeken op code of naam';
+
+  @override
+  String get currencyPicker_section_preferred => 'Voorkeur';
+
+  @override
+  String get currencyPicker_section_all => 'Alle valuta';
+
+  @override
+  String get currencyPicker_noMatches => 'Geen valuta gevonden';
+
+  @override
+  String get settings_currencies_title => 'Valuta\'s';
+
+  @override
+  String get settings_currencies_subtitle =>
+      'Standaardvaluta en de valuta\'s die bovenaan staan';
+
+  @override
+  String get settings_currencies_enabled => 'Ingeschakelde valuta\'s';
+
+  @override
+  String get settings_currencies_enabledHint =>
+      'Staan bovenaan in elke valutakeuze, in deze volgorde. Sleep om te herschikken. Tik op de ster om de standaardvaluta te kiezen.';
+
+  @override
+  String get settings_currencies_other => 'Overige valuta\'s';
+
+  @override
+  String get settings_currencies_default => 'Standaard';
+
+  @override
+  String get settings_currencies_setDefault => 'Als standaardvaluta instellen';
+
+  @override
+  String get settings_currencies_reset => 'Standaardwaarden herstellen';
+
+  @override
+  String get settings_currencies_resetDone => 'Ingeschakelde valuta hersteld';
+
+  @override
+  String get settings_currencies_undo => 'Ongedaan maken';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'Ingeschakelde valuta\'s';
 
   @override
   String get popOut_openProfileWindow => 'Openen in een nieuw venster';

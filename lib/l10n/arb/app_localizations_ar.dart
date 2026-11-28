@@ -32321,12 +32321,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_units_gasConsumption => 'استهلاك الغاز';
 
   @override
-  String get settings_units_defaultCurrency => 'العملة الافتراضية';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'العملة الافتراضية';
-
-  @override
   String get settings_units_temperature => 'درجة الحرارة';
 
   @override
@@ -68325,6 +68319,55 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'المضغوط شريط رفيع مع مؤشرات الحالة. اللافتة هي لافتة الترحيب مع إجماليات غوصك. يُحفظ على هذا الجهاز.';
+
+  @override
+  String get currencyPicker_searchHint => 'ابحث بالرمز أو الاسم';
+
+  @override
+  String get currencyPicker_section_preferred => 'المفضلة';
+
+  @override
+  String get currencyPicker_section_all => 'جميع العملات';
+
+  @override
+  String get currencyPicker_noMatches => 'لا توجد عملة مطابقة';
+
+  @override
+  String get settings_currencies_title => 'العملات';
+
+  @override
+  String get settings_currencies_subtitle =>
+      'العملة الافتراضية والعملات التي تظهر أولاً في أدوات الاختيار';
+
+  @override
+  String get settings_currencies_enabled => 'العملات المفعّلة';
+
+  @override
+  String get settings_currencies_enabledHint =>
+      'تظهر أولاً في كل أداة لاختيار العملة، بهذا الترتيب. اسحب لإعادة الترتيب. اضغط على النجمة لاختيار العملة الافتراضية.';
+
+  @override
+  String get settings_currencies_other => 'عملات أخرى';
+
+  @override
+  String get settings_currencies_default => 'افتراضية';
+
+  @override
+  String get settings_currencies_setDefault => 'تعيين كعملة افتراضية';
+
+  @override
+  String get settings_currencies_reset => 'استعادة الإعدادات الافتراضية';
+
+  @override
+  String get settings_currencies_resetDone =>
+      'تمت إعادة تعيين العملات المفعّلة';
+
+  @override
+  String get settings_currencies_undo => 'تراجع';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'العملات المفعّلة';
 
   @override
   String get popOut_openProfileWindow => 'فتح في نافذة جديدة';

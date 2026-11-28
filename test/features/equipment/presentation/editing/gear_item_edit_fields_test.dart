@@ -285,8 +285,10 @@ void main() {
     });
 
     test('a blank currency falls back to the default', () {
-      expect(gearCurrencyOrDefault('  ', 'EUR'), 'EUR');
-      expect(gearCurrencyOrDefault(' gbp ', 'EUR'), 'gbp');
+      expect(gearCurrencyOrDefault('  ', 'EUR', unresolved: 'CHF'), 'EUR');
+      expect(gearCurrencyOrDefault(' gbp ', 'EUR', unresolved: 'CHF'), 'GBP');
+      expect(gearCurrencyOrDefault('real', 'EUR', unresolved: 'CHF'), 'BRL');
+      expect(gearCurrencyOrDefault('pound', 'EUR', unresolved: 'CHF'), 'CHF');
     });
 
     test('blank optional text stores none', () {

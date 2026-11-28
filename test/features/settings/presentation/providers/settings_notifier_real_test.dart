@@ -8,6 +8,7 @@ import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/presentation/startup_brightness.dart';
 import 'package:submersion/core/presentation/startup_theme.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -365,6 +366,32 @@ void main() {
         DistanceUnit.kilometers,
       );
       expect(container.read(settingsProvider).unitPreset, UnitPreset.metric);
+    });
+
+    test('setPreferredCurrencyCodes normalises and keeps the order '
+        '(issue #4997)', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(
+        container.read(preferredCurrencyCodesProvider),
+        kDefaultPreferredCurrencyCodes,
+      );
+
+      await container.read(settingsProvider.notifier).setPreferredCurrencyCodes(
+        [' brl', 'EUR', 'brl', 'nope'],
+      );
+      expect(container.read(settingsProvider).preferredCurrencyCodes, [
+        'BRL',
+        'EUR',
+      ]);
+      expect(container.read(preferredCurrencyCodesProvider), ['BRL', 'EUR']);
+
+      // An empty list is a real choice, not a reset to the defaults.
+      await container
+          .read(settingsProvider.notifier)
+          .setPreferredCurrencyCodes(const []);
+      expect(container.read(preferredCurrencyCodesProvider), isEmpty);
     });
 
     test('setDefaultCurrency accepts a code outside the presets', () async {

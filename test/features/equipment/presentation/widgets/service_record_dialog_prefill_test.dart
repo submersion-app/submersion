@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
@@ -322,19 +323,63 @@ void main() {
       expect(currencyText(tester), 'GBP');
     });
 
-    testWidgets('a resolved code outside the presets stays selectable', (
+    testWidgets('a currency name typed is saved as its code, and never '
+        'offered as one', (tester) async {
+      ServiceRecord? saved;
+      await pumpDialog(tester, kindCost: 60, onSave: (r) async => saved = r);
+
+      final field = find.descendant(
+        of: find.byType(DropdownMenu<String>),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(field, 'real');
+      await tester.pumpAndSettle();
+      expect(find.text('REAL'), findsNothing);
+
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+
+      expect(saved!.currency, 'BRL');
+    });
+
+    testWidgets('a name matching several currencies keeps the code the '
+        'dialog opened with', (tester) async {
+      ServiceRecord? saved;
+      await pumpDialog(tester, kindCost: 60, onSave: (r) async => saved = r);
+
+      await tester.enterText(
+        find.descendant(
+          of: find.byType(DropdownMenu<String>),
+          matching: find.byType(TextField),
+        ),
+        'pound',
+      );
+      await tester.pumpAndSettle();
+      // Close the menu of matches, which covers the Add button.
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Add'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+
+      expect(saved!.currency, isNot('POUND'));
+      expect(saved!.currency, hasLength(3));
+    });
+
+    testWidgets('a resolved code outside the catalog stays selectable', (
       tester,
     ) async {
-      // currencyCodesWith only leads with the STORED code, so a default
+      // allCurrencyCodesWith only leads with the STORED code, so a default
       // resolved from a kind could otherwise be missing from the menu.
-      await pumpDialog(tester, kindCost: 60, kindCurrency: 'ISK');
+      await pumpDialog(tester, kindCost: 60, kindCurrency: 'XAU');
 
-      expect(currencyText(tester), 'ISK');
+      expect(currencyText(tester), 'XAU');
 
       await tester.tap(find.byType(DropdownMenu<String>));
       await tester.pumpAndSettle();
 
-      expect(find.text('ISK'), findsWidgets);
+      expect(find.text('XAU'), findsWidgets);
     });
   });
 }

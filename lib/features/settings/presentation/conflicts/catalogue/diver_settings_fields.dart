@@ -451,6 +451,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_hasAcceptedPlanningDisclaimer,
     FieldKind.boolean,
   ),
+  'preferredCurrencyCodes': ConflictField(
+    (l) => l.settings_conflict_field_preferredCurrencyCodes,
+    FieldKind.opaque,
+  ),
   'favouriteDiveTypeIds': ConflictField(
     (l) => l.settings_conflict_field_favouriteDiveTypeIds,
     FieldKind.opaque,

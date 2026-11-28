@@ -31203,12 +31203,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_units_gasConsumption => 'צריכת גז';
 
   @override
-  String get settings_units_defaultCurrency => 'מטבע ברירת מחדל';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'מטבע ברירת מחדל';
-
-  @override
   String get settings_units_temperature => 'טמפרטורה';
 
   @override
@@ -65916,6 +65910,53 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'דחוס הוא סרגל צר עם נורות מצב. באנר הוא באנר הפתיחה עם סיכומי הצלילות שלך. נשמר במכשיר זה.';
+
+  @override
+  String get currencyPicker_searchHint => 'חיפוש לפי קוד או שם';
+
+  @override
+  String get currencyPicker_section_preferred => 'מועדפים';
+
+  @override
+  String get currencyPicker_section_all => 'כל המטבעות';
+
+  @override
+  String get currencyPicker_noMatches => 'אין מטבע תואם';
+
+  @override
+  String get settings_currencies_title => 'מטבעות';
+
+  @override
+  String get settings_currencies_subtitle =>
+      'מטבע ברירת המחדל והמטבעות שמופיעים ראשונים';
+
+  @override
+  String get settings_currencies_enabled => 'מטבעות מופעלים';
+
+  @override
+  String get settings_currencies_enabledHint =>
+      'מופיעים ראשונים בכל בורר מטבע, בסדר הזה. גררו כדי לשנות את הסדר. הקישו על הכוכב כדי לבחור את ברירת המחדל.';
+
+  @override
+  String get settings_currencies_other => 'מטבעות נוספים';
+
+  @override
+  String get settings_currencies_default => 'ברירת מחדל';
+
+  @override
+  String get settings_currencies_setDefault => 'הגדרה כמטבע ברירת המחדל';
+
+  @override
+  String get settings_currencies_reset => 'איפוס לברירות המחדל';
+
+  @override
+  String get settings_currencies_resetDone => 'המטבעות המופעלים אופסו';
+
+  @override
+  String get settings_currencies_undo => 'ביטול';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes => 'מטבעות מופעלים';
 
   @override
   String get popOut_openProfileWindow => 'פתיחה בחלון חדש';

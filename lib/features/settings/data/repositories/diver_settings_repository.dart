@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show listEquals;
+import 'package:flutter/material.dart';
+
 import 'package:drift/drift.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -11,13 +14,13 @@ import 'package:submersion/features/settings/data/repositories/profile_metric_co
 import 'package:submersion/core/built_ins/hidden_built_ins_codec.dart';
 import 'package:submersion/core/constants/place_name_language.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
-import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
+import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
@@ -273,6 +276,9 @@ class DiverSettingsRepository {
                 gasModel: Value(s.gasModel.name),
                 defaultPlannerWaterType: Value(s.defaultPlannerWaterType.name),
                 defaultCurrency: Value(s.defaultCurrency),
+                preferredCurrencyCodes: Value(
+                  encodePreferredCurrencyCodes(s.preferredCurrencyCodes),
+                ),
                 visibilityScalePreset: Value(s.visibilityScalePreset.name),
                 visibilityScaleExcellentM: Value(s.visibilityScaleExcellentM),
                 visibilityScaleGoodM: Value(s.visibilityScaleGoodM),
@@ -691,6 +697,9 @@ class DiverSettingsRepository {
       gasModel: Value(settings.gasModel.name),
       defaultPlannerWaterType: Value(settings.defaultPlannerWaterType.name),
       defaultCurrency: Value(settings.defaultCurrency),
+      preferredCurrencyCodes: Value(
+        encodePreferredCurrencyCodes(settings.preferredCurrencyCodes),
+      ),
       visibilityScalePreset: Value(settings.visibilityScalePreset.name),
       visibilityScaleExcellentM: Value(settings.visibilityScaleExcellentM),
       visibilityScaleGoodM: Value(settings.visibilityScaleGoodM),
@@ -989,6 +998,9 @@ class DiverSettingsRepository {
           PlannerWaterType.values.asNameMap()[row.defaultPlannerWaterType] ??
           PlannerWaterType.salt,
       defaultCurrency: row.defaultCurrency,
+      preferredCurrencyCodes: decodePreferredCurrencyCodes(
+        row.preferredCurrencyCodes,
+      ),
       visibilityScalePreset: _parseVisibilityScalePreset(
         row.visibilityScalePreset,
       ),
@@ -1400,5 +1412,34 @@ Set<String> _decodeDisabledRules(String? raw) {
     return decoded.whereType<String>().toSet();
   } on FormatException {
     return const {};
+  }
+}
+
+/// JSON-encodes the preferred currencies in their order; null when they are
+/// the built-in defaults, so a diver who never chose keeps following them.
+@visibleForTesting
+String? encodePreferredCurrencyCodes(List<String> codes) {
+  if (listEquals(codes, kDefaultPreferredCurrencyCodes)) return null;
+  return jsonEncode(codes);
+}
+
+/// The preferred currencies stored in [raw]: the built-in defaults for null
+/// or a malformed value (a bad sync payload must not empty every picker), and
+/// the normalised codes otherwise, an empty list included.
+@visibleForTesting
+List<String> decodePreferredCurrencyCodes(String? raw) {
+  if (raw == null || raw.isEmpty) return kDefaultPreferredCurrencyCodes;
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is! List) return kDefaultPreferredCurrencyCodes;
+    final codes = normalizePreferredCurrencyCodes(decoded.whereType<String>());
+    // Only a stored `[]` means "none"; a list whose every entry is invalid
+    // is malformed.
+    if (codes.isEmpty && decoded.isNotEmpty) {
+      return kDefaultPreferredCurrencyCodes;
+    }
+    return List.unmodifiable(codes);
+  } on FormatException {
+    return kDefaultPreferredCurrencyCodes;
   }
 }

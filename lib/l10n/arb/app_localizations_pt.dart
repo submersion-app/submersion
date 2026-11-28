@@ -31977,12 +31977,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_units_gasConsumption => 'Consumo de gás';
 
   @override
-  String get settings_units_defaultCurrency => 'Moeda padrão';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'Moeda padrão';
-
-  @override
   String get settings_units_temperature => 'Temperatura';
 
   @override
@@ -67256,6 +67250,54 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compacto é uma barra estreita com luzes de status. Faixa é a faixa de boas-vindas com seus totais de mergulho. Salvo neste dispositivo.';
+
+  @override
+  String get currencyPicker_searchHint => 'Pesquisar por código ou nome';
+
+  @override
+  String get currencyPicker_section_preferred => 'Preferidas';
+
+  @override
+  String get currencyPicker_section_all => 'Todas as moedas';
+
+  @override
+  String get currencyPicker_noMatches => 'Nenhuma moeda corresponde';
+
+  @override
+  String get settings_currencies_title => 'Moedas';
+
+  @override
+  String get settings_currencies_subtitle =>
+      'Moeda padrão e as que aparecem primeiro nos seletores';
+
+  @override
+  String get settings_currencies_enabled => 'Moedas ativadas';
+
+  @override
+  String get settings_currencies_enabledHint =>
+      'Aparecem primeiro em cada seletor de moeda, nesta ordem. Arraste para reordenar. Toque na estrela para escolher a padrão.';
+
+  @override
+  String get settings_currencies_other => 'Outras moedas';
+
+  @override
+  String get settings_currencies_default => 'Padrão';
+
+  @override
+  String get settings_currencies_setDefault => 'Definir como moeda padrão';
+
+  @override
+  String get settings_currencies_reset => 'Restaurar padrões';
+
+  @override
+  String get settings_currencies_resetDone => 'Moedas ativadas redefinidas';
+
+  @override
+  String get settings_currencies_undo => 'Desfazer';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'Moedas ativadas';
 
   @override
   String get popOut_openProfileWindow => 'Abrir em uma nova janela';

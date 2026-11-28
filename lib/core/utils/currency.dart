@@ -1,8 +1,11 @@
 import 'package:intl/intl.dart';
 
-/// Common currency codes offered as presets in pickers. Free-text entry still
-/// allows any other ISO 4217 code.
-const List<String> kCommonCurrencyCodes = [
+import 'package:submersion/core/text/fuzzy_match.dart';
+import 'package:submersion/core/utils/currency_catalog.dart';
+
+/// The preferred currencies a diver starts with, listed first in every
+/// currency picker until they choose their own in Settings.
+const List<String> kDefaultPreferredCurrencyCodes = [
   'USD',
   'EUR',
   'GBP',
@@ -23,17 +26,86 @@ const List<String> kCommonCurrencyCodes = [
   'ZAR',
 ];
 
-/// The preset codes, with [currentCode] prepended when it is a real code
-/// outside the presets. Free-text entry means a stored currency can be
-/// anything; without this it would vanish from every picker that offers only
-/// the presets, leaving the current value unselectable.
-List<String> currencyCodesWith(String? currentCode) {
-  final current = (currentCode ?? '').trim().toUpperCase();
-  if (current.isEmpty || kCommonCurrencyCodes.contains(current)) {
-    return kCommonCurrencyCodes;
-  }
-  return [current, ...kCommonCurrencyCodes];
+final RegExp _currencyCodePattern = RegExp(r'^[A-Z]{3}$');
+
+/// [codes] trimmed and upper-cased, with anything that is not a three-letter
+/// code and every repeat dropped. The first occurrence keeps its place.
+List<String> normalizePreferredCurrencyCodes(Iterable<String> codes) {
+  final seen = <String>{};
+  return [
+    for (final raw in codes)
+      if (raw.trim().toUpperCase() case final code
+          when _currencyCodePattern.hasMatch(code) && seen.add(code))
+        code,
+  ];
 }
+
+/// The [preferred] codes, with [currentCode] prepended when it is a real code
+/// outside them. Free-text entry means a stored currency can be anything;
+/// without this it would vanish from every picker that leads with the
+/// preferred list, leaving the current value unselectable.
+List<String> currencyCodesWith(
+  String? currentCode, {
+  List<String> preferred = kDefaultPreferredCurrencyCodes,
+}) {
+  final current = (currentCode ?? '').trim().toUpperCase();
+  if (current.isEmpty || preferred.contains(current)) {
+    return preferred;
+  }
+  return [current, ...preferred];
+}
+
+/// Every code a picker offers: [currencyCodesWith] first, then the rest of
+/// the ISO 4217 catalog in code order.
+List<String> allCurrencyCodesWith(
+  String? currentCode, {
+  List<String> preferred = kDefaultPreferredCurrencyCodes,
+}) {
+  final leading = currencyCodesWith(currentCode, preferred: preferred);
+  final listed = leading.toSet();
+  return [
+    ...leading,
+    for (final currency in kIsoCurrencies)
+      if (!listed.contains(currency.code)) currency.code,
+  ];
+}
+
+/// Whether [code] matches a search for [query]: by code or by English name,
+/// ignoring case, Latin accents and apostrophes. A blank query matches
+/// everything.
+bool currencyMatchesQuery(String code, String query) {
+  final needle = _foldCurrencySearch(query.trim());
+  if (needle.isEmpty) return true;
+  if (code.toLowerCase().contains(needle)) return true;
+  final name = isoCurrencyName(code);
+  return name != null && _foldCurrencySearch(name).contains(needle);
+}
+
+/// The currency code that [typed] text in a currency field stands for: a
+/// catalog code in any case is itself, a name matching one catalog currency
+/// is its code ("real" is BRL), and other three letters matching no name are
+/// taken as a code outside the catalog. Null for blank text and for text
+/// matching several currencies ("pound") or nothing a code could be.
+String? resolveTypedCurrency(String typed) {
+  final text = typed.trim();
+  if (text.isEmpty) return null;
+  final upper = text.toUpperCase();
+  if (isoCurrencyName(upper) != null) return upper;
+  final matches = [
+    for (final currency in kIsoCurrencies)
+      if (currencyMatchesQuery(currency.code, text)) currency.code,
+  ];
+  if (matches.length == 1) return matches.single;
+  if (matches.isEmpty && _currencyCodePattern.hasMatch(upper)) return upper;
+  return null;
+}
+
+/// [text] folded by [foldForSearch], without apostrophes or the ʻokina, so
+/// "paanga" finds the Tongan paʻanga.
+String _foldCurrencySearch(String text) =>
+    foldForSearch(text).replaceAll(_apostrophes, '');
+
+final _apostrophes = RegExp("['\u2019\u02BB]");
 
 /// The symbol for [currencyCode] (e.g. 'EUR' -> '€'), falling back to the
 /// upper-cased code itself for anything intl doesn't recognise (or an empty

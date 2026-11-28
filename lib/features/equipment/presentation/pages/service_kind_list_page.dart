@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/features/settings/presentation/widgets/currency_picker.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
@@ -518,27 +518,15 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
                 // Full width rather than sharing a row with the price: the
                 // inherit entry is a sentence, not a 3-letter code, and it
                 // overflowed a half-width dropdown even in English.
-                DropdownButtonFormField<String?>(
+                // The inherit entry is what makes a chosen currency clearable
+                // again; without it there is no way back to "inherit the
+                // diver's default".
+                CurrencyPickerField(
                   key: const Key('service-kind-default-currency'),
-                  initialValue: _defaultCurrency,
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    labelText: l10n.equipment_serviceKinds_defaultCurrencyLabel,
-                  ),
-                  items: [
-                    // The null entry is what makes a chosen currency clearable
-                    // again; without it there is no way back to "inherit the
-                    // diver's default".
-                    DropdownMenuItem<String?>(
-                      value: null,
-                      child: Text(
-                        l10n.equipment_serviceKinds_defaultCurrencyInherit,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    for (final code in currencyCodesWith(_defaultCurrency))
-                      DropdownMenuItem<String?>(value: code, child: Text(code)),
-                  ],
+                  value: _defaultCurrency,
+                  label: l10n.equipment_serviceKinds_defaultCurrencyLabel,
+                  inheritLabel:
+                      l10n.equipment_serviceKinds_defaultCurrencyInherit,
                   onChanged: (value) =>
                       setState(() => _defaultCurrency = value),
                 ),

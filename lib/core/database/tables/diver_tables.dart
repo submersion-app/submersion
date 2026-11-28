@@ -121,6 +121,11 @@ class DiverSettings extends Table {
       text().withDefault(const Constant('salt'))();
   TextColumn get defaultCurrency => text().withDefault(const Constant('USD'))();
 
+  /// v395: the currencies this diver lists first in every currency picker, a
+  /// JSON list of ISO 4217 codes in the diver's order (issue #4997). Null
+  /// means the built-in defaults; an empty list means none.
+  TextColumn get preferredCurrencyCodes => text().nullable()();
+
   /// v144: per-diver calibration deciding which measured distances count as
   /// excellent/good/moderate/poor visibility.
   ///

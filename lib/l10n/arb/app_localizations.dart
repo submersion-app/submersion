@@ -50755,18 +50755,6 @@ abstract class AppLocalizations {
   /// **'Gas consumption'**
   String get settings_units_gasConsumption;
 
-  /// No description provided for @settings_units_defaultCurrency.
-  ///
-  /// In en, this message translates to:
-  /// **'Default Currency'**
-  String get settings_units_defaultCurrency;
-
-  /// No description provided for @settings_units_dialog_defaultCurrency.
-  ///
-  /// In en, this message translates to:
-  /// **'Default Currency'**
-  String get settings_units_dialog_defaultCurrency;
-
   /// No description provided for @settings_units_temperature.
   ///
   /// In en, this message translates to:
@@ -105084,6 +105072,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Compact is a slim bar with status lights. Banner is the welcome banner with your dive totals. Saved on this device.'**
   String get settings_homeHeader_description;
+
+  /// Hint in the search field of the currency picker, which searches ISO currency codes and their English names
+  ///
+  /// In en, this message translates to:
+  /// **'Search by code or name'**
+  String get currencyPicker_searchHint;
+
+  /// Heading in the currency picker above the diver's preferred currencies
+  ///
+  /// In en, this message translates to:
+  /// **'Preferred'**
+  String get currencyPicker_section_preferred;
+
+  /// Heading in the currency picker above the rest of the ISO 4217 currency catalog
+  ///
+  /// In en, this message translates to:
+  /// **'All currencies'**
+  String get currencyPicker_section_all;
+
+  /// Shown in the currency picker when the search matches no currency
+  ///
+  /// In en, this message translates to:
+  /// **'No currency matches'**
+  String get currencyPicker_noMatches;
+
+  /// Settings row and page title for choosing the default currency and the currencies listed first in every currency picker
+  ///
+  /// In en, this message translates to:
+  /// **'Currencies'**
+  String get settings_currencies_title;
+
+  /// Explains the currencies settings row
+  ///
+  /// In en, this message translates to:
+  /// **'Default currency and the ones listed first in pickers'**
+  String get settings_currencies_subtitle;
+
+  /// Currencies page: heading over the currencies every picker lists first
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled currencies'**
+  String get settings_currencies_enabled;
+
+  /// Currencies page: explains the enabled list, its order and the default star
+  ///
+  /// In en, this message translates to:
+  /// **'Listed first in every currency picker, in this order. Drag to reorder. Tap the star to choose the default.'**
+  String get settings_currencies_enabledHint;
+
+  /// Currencies page: heading over the rest of the ISO 4217 catalog
+  ///
+  /// In en, this message translates to:
+  /// **'Other currencies'**
+  String get settings_currencies_other;
+
+  /// Currencies page: marks the default currency in its row
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get settings_currencies_default;
+
+  /// Currencies page: tooltip of the star that makes a currency the default
+  ///
+  /// In en, this message translates to:
+  /// **'Set as default currency'**
+  String get settings_currencies_setDefault;
+
+  /// Currencies page: app bar button that restores the built-in enabled currencies
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to defaults'**
+  String get settings_currencies_reset;
+
+  /// Currencies page: snack bar shown after Reset restores the built-in enabled currencies
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled currencies reset'**
+  String get settings_currencies_resetDone;
+
+  /// Currencies page: snack bar action that restores the enabled currencies from before Reset
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get settings_currencies_undo;
+
+  /// Sync conflict dialog label for the enabled currencies a diver lists first in the currency pickers
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled currencies'**
+  String get settings_conflict_field_preferredCurrencyCodes;
 
   /// Dive profile card: button opening the profile in its own desktop window
   ///

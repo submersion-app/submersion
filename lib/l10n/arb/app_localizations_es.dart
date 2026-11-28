@@ -32017,12 +32017,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_units_gasConsumption => 'Consumo de gas';
 
   @override
-  String get settings_units_defaultCurrency => 'Moneda predeterminada';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'Moneda predeterminada';
-
-  @override
   String get settings_units_temperature => 'Temperatura';
 
   @override
@@ -67327,6 +67321,55 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compacto es una barra estrecha con luces de estado. Banner es el banner de bienvenida con tus totales de inmersión. Se guarda en este dispositivo.';
+
+  @override
+  String get currencyPicker_searchHint => 'Buscar por código o nombre';
+
+  @override
+  String get currencyPicker_section_preferred => 'Preferidas';
+
+  @override
+  String get currencyPicker_section_all => 'Todas las monedas';
+
+  @override
+  String get currencyPicker_noMatches => 'Ninguna moneda coincide';
+
+  @override
+  String get settings_currencies_title => 'Monedas';
+
+  @override
+  String get settings_currencies_subtitle =>
+      'Moneda predeterminada y las que aparecen primero en los selectores';
+
+  @override
+  String get settings_currencies_enabled => 'Monedas activadas';
+
+  @override
+  String get settings_currencies_enabledHint =>
+      'Aparecen primero en cada selector de moneda, en este orden. Arrastra para reordenar. Toca la estrella para elegir la predeterminada.';
+
+  @override
+  String get settings_currencies_other => 'Otras monedas';
+
+  @override
+  String get settings_currencies_default => 'Predeterminada';
+
+  @override
+  String get settings_currencies_setDefault =>
+      'Establecer como moneda predeterminada';
+
+  @override
+  String get settings_currencies_reset => 'Restablecer valores predeterminados';
+
+  @override
+  String get settings_currencies_resetDone => 'Monedas activadas restablecidas';
+
+  @override
+  String get settings_currencies_undo => 'Deshacer';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'Monedas activadas';
 
   @override
   String get popOut_openProfileWindow => 'Abrir en una ventana nueva';

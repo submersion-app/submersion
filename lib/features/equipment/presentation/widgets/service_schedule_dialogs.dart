@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/features/settings/presentation/widgets/currency_picker.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
@@ -377,22 +377,12 @@ class _ScheduleOverrideDialogState
               const SizedBox(height: 12),
               // The currency this item's price is in. Null inherits the kind's,
               // then the diver's default, matching how the cost resolves.
-              DropdownButtonFormField<String?>(
+              CurrencyPickerField(
                 key: const Key('service-schedule-default-currency'),
-                initialValue: _defaultCurrency,
-                decoration: InputDecoration(
-                  labelText: l10n.equipment_scheduleDialog_defaultCurrencyLabel,
-                ),
-                items: [
-                  DropdownMenuItem<String?>(
-                    value: null,
-                    child: Text(
-                      l10n.equipment_serviceKinds_defaultCurrencyInherit,
-                    ),
-                  ),
-                  for (final code in currencyCodesWith(_defaultCurrency))
-                    DropdownMenuItem<String?>(value: code, child: Text(code)),
-                ],
+                value: _defaultCurrency,
+                label: l10n.equipment_scheduleDialog_defaultCurrencyLabel,
+                inheritLabel:
+                    l10n.equipment_serviceKinds_defaultCurrencyInherit,
                 onChanged: (value) => setState(() => _defaultCurrency = value),
               ),
               const SizedBox(height: 12),

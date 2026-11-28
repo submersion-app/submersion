@@ -31934,12 +31934,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_units_gasConsumption => 'Gasverbrauch';
 
   @override
-  String get settings_units_defaultCurrency => 'Standardwährung';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'Standardwährung';
-
-  @override
   String get settings_units_temperature => 'Temperatur';
 
   @override
@@ -67147,6 +67141,55 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Kompakt ist eine schmale Leiste mit Statusanzeigen. Banner ist das Begrüßungsbanner mit deinen Tauchsummen. Wird auf diesem Gerät gespeichert.';
+
+  @override
+  String get currencyPicker_searchHint => 'Nach Code oder Name suchen';
+
+  @override
+  String get currencyPicker_section_preferred => 'Bevorzugt';
+
+  @override
+  String get currencyPicker_section_all => 'Alle Währungen';
+
+  @override
+  String get currencyPicker_noMatches => 'Keine passende Währung';
+
+  @override
+  String get settings_currencies_title => 'Währungen';
+
+  @override
+  String get settings_currencies_subtitle =>
+      'Standardwährung und die zuerst gelisteten Währungen';
+
+  @override
+  String get settings_currencies_enabled => 'Aktivierte Währungen';
+
+  @override
+  String get settings_currencies_enabledHint =>
+      'Stehen in jeder Währungsauswahl oben, in dieser Reihenfolge. Zum Sortieren ziehen. Stern antippen, um die Standardwährung festzulegen.';
+
+  @override
+  String get settings_currencies_other => 'Weitere Währungen';
+
+  @override
+  String get settings_currencies_default => 'Standard';
+
+  @override
+  String get settings_currencies_setDefault => 'Als Standardwährung festlegen';
+
+  @override
+  String get settings_currencies_reset => 'Auf Standard zurücksetzen';
+
+  @override
+  String get settings_currencies_resetDone =>
+      'Aktivierte Währungen zurückgesetzt';
+
+  @override
+  String get settings_currencies_undo => 'Rückgängig';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes =>
+      'Aktivierte Währungen';
 
   @override
   String get popOut_openProfileWindow => 'In neuem Fenster öffnen';

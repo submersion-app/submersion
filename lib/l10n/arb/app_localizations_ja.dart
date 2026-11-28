@@ -30601,12 +30601,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_units_gasConsumption => 'ガス消費';
 
   @override
-  String get settings_units_defaultCurrency => 'デフォルトの通貨';
-
-  @override
-  String get settings_units_dialog_defaultCurrency => 'デフォルトの通貨';
-
-  @override
   String get settings_units_temperature => '温度';
 
   @override
@@ -64559,6 +64553,52 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'コンパクトはステータスランプ付きの細いバーです。バナーはダイブの合計を表示するウェルカムバナーです。この端末に保存されます。';
+
+  @override
+  String get currencyPicker_searchHint => 'コードまたは名前で検索';
+
+  @override
+  String get currencyPicker_section_preferred => '優先';
+
+  @override
+  String get currencyPicker_section_all => 'すべての通貨';
+
+  @override
+  String get currencyPicker_noMatches => '一致する通貨はありません';
+
+  @override
+  String get settings_currencies_title => '通貨';
+
+  @override
+  String get settings_currencies_subtitle => '既定の通貨と、選択肢の先頭に表示する通貨';
+
+  @override
+  String get settings_currencies_enabled => '有効な通貨';
+
+  @override
+  String get settings_currencies_enabledHint =>
+      'すべての通貨選択で、この順に先頭に表示されます。ドラッグで並べ替えます。星をタップすると既定の通貨になります。';
+
+  @override
+  String get settings_currencies_other => 'その他の通貨';
+
+  @override
+  String get settings_currencies_default => '既定';
+
+  @override
+  String get settings_currencies_setDefault => '既定の通貨に設定';
+
+  @override
+  String get settings_currencies_reset => 'デフォルトに戻す';
+
+  @override
+  String get settings_currencies_resetDone => '有効な通貨をリセットしました';
+
+  @override
+  String get settings_currencies_undo => '元に戻す';
+
+  @override
+  String get settings_conflict_field_preferredCurrencyCodes => '有効な通貨';
 
   @override
   String get popOut_openProfileWindow => '新しいウィンドウで開く';
