@@ -16662,6 +16662,51 @@ class AppLocalizationsHe extends AppLocalizations {
       'מחשב צלילה או משדר מחוברים שומרים על הסוג שלהם.';
 
   @override
+  String get equipment_suggest_link => 'לא מוצאים סוג מתאים? הציעו קטגוריה';
+
+  @override
+  String get equipment_suggest_title => 'הצעת קטגוריה';
+
+  @override
+  String get equipment_suggest_intro =>
+      'תיפתח ב-GitHub בקשת תכונה ממולאת מראש. בודקים אותה ומפרסמים אותה מהדפדפן.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'מה ההצעה?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'סוג ציוד חדש';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'גרסה חדשה של סוג קיים';
+
+  @override
+  String get equipment_suggest_nameLabel => 'שם';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'גרסה של';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => 'הסוג הקיים הקרוב ביותר';
+
+  @override
+  String get equipment_suggest_parentNone => 'ללא';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'למה זה נחוץ?';
+
+  @override
+  String get equipment_suggest_reasonHint => 'במה זה שונה מהסוגים הקיימים?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'לכלול את הפריט הזה כדוגמה ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'פתיחה ב-GitHub';
+
+  @override
   String get equipment_edit_useCustomReminders => 'השתמש בתזכורות מותאמות';
 
   @override
@@ -19250,9 +19295,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => 'לא ניתן לפתוח את הדפדפן';
-
-  @override
-  String get marineLife_suggest_copyLink => 'העתקת קישור';
 
   @override
   String get marineLife_editCard_photos => 'תמונות';

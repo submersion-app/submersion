@@ -17007,6 +17007,54 @@ class AppLocalizationsPt extends AppLocalizations {
       'Um computador de mergulho ou transmissor conectado mantém seu tipo.';
 
   @override
+  String get equipment_suggest_link =>
+      'Nenhum tipo serve? Sugira uma categoria';
+
+  @override
+  String get equipment_suggest_title => 'Sugerir uma categoria';
+
+  @override
+  String get equipment_suggest_intro =>
+      'Isso abre uma solicitação de recurso pré-preenchida no GitHub. Você a revisa e a publica pelo seu navegador.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'O que você está sugerindo?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'Novo tipo de equipamento';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'Nova variante de um tipo';
+
+  @override
+  String get equipment_suggest_nameLabel => 'Nome';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'Uma variante de';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel =>
+      'Tipo existente mais próximo';
+
+  @override
+  String get equipment_suggest_parentNone => 'Nenhum';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'Por que é necessário?';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'O que a diferencia dos tipos existentes?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'Incluir este item como exemplo ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'Abrir no GitHub';
+
+  @override
   String get equipment_edit_useCustomReminders =>
       'Usar Lembretes Personalizados';
 
@@ -19675,9 +19723,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get marineLife_suggest_couldNotOpen =>
       'Não foi possível abrir o navegador';
-
-  @override
-  String get marineLife_suggest_copyLink => 'Copiar link';
 
   @override
   String get marineLife_editCard_photos => 'Fotos';

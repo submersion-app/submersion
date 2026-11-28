@@ -16952,6 +16952,54 @@ class AppLocalizationsHu extends AppLocalizations {
       'A csatlakoztatott búvárcomputer vagy jeladó megtartja a típusát.';
 
   @override
+  String get equipment_suggest_link =>
+      'Nincs megfelelő típus? Javasolj kategóriát';
+
+  @override
+  String get equipment_suggest_title => 'Kategória javaslása';
+
+  @override
+  String get equipment_suggest_intro =>
+      'Ez egy előre kitöltött funkciókérést nyit meg a GitHubon. Átnézed, és a böngésződből küldöd be.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'Mit javasolsz?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'Új felszereléstípus';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'Egy típus új változata';
+
+  @override
+  String get equipment_suggest_nameLabel => 'Név';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'Ennek a változata';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel =>
+      'Legközelebbi meglévő típus';
+
+  @override
+  String get equipment_suggest_parentNone => 'Nincs';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'Miért van rá szükség?';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'Miben különbözik a meglévő típusoktól?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'Ez az eszköz legyen a példa ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'Megnyitás a GitHubon';
+
+  @override
   String get equipment_edit_useCustomReminders =>
       'Egyedi emlékeztetők használata';
 
@@ -19612,9 +19660,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get marineLife_suggest_couldNotOpen =>
       'Nem sikerült megnyitni a böngészőt';
-
-  @override
-  String get marineLife_suggest_copyLink => 'Link másolása';
 
   @override
   String get marineLife_editCard_photos => 'Fotók';

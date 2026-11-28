@@ -16421,6 +16421,51 @@ class AppLocalizationsJa extends AppLocalizations {
       '接続済みのダイブコンピューターやトランスミッターの種類は変更できません。';
 
   @override
+  String get equipment_suggest_link => '合う種類がありませんか？カテゴリーを提案';
+
+  @override
+  String get equipment_suggest_title => 'カテゴリーを提案';
+
+  @override
+  String get equipment_suggest_intro =>
+      '入力済みの機能リクエストがGitHubで開きます。内容を確認し、ブラウザーから投稿してください。';
+
+  @override
+  String get equipment_suggest_kindQuestion => '何を提案しますか？';
+
+  @override
+  String get equipment_suggest_kindCategory => '新しい器材の種類';
+
+  @override
+  String get equipment_suggest_kindSubcategory => '既存の種類の新しいタイプ';
+
+  @override
+  String get equipment_suggest_nameLabel => '名前';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => '親となる種類';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => '最も近い既存の種類';
+
+  @override
+  String get equipment_suggest_parentNone => 'なし';
+
+  @override
+  String get equipment_suggest_reasonLabel => '必要な理由';
+
+  @override
+  String get equipment_suggest_reasonHint => '既存の種類とどう違いますか？';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'この器材を例として含める（$example）';
+  }
+
+  @override
+  String get equipment_suggest_open => 'GitHubで開く';
+
+  @override
   String get equipment_edit_useCustomReminders => 'カスタムリマインダーを使用';
 
   @override
@@ -18969,9 +19014,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => 'ブラウザを開けませんでした';
-
-  @override
-  String get marineLife_suggest_copyLink => 'リンクをコピー';
 
   @override
   String get marineLife_editCard_photos => '写真';
