@@ -244,6 +244,8 @@ void main() {
       windows.failNextOpen = true;
       await expectLater(host().openOrFocus(), throwsA(anything));
       expect(container.read(popOutHostProvider), isFalse);
+      // Hold changes apply in order, so the release lands after the hold.
+      await pumpEventQueue();
       expect(otherWindowHolds.last, isFalse);
       // And the next press opens normally.
       await host().openOrFocus();
