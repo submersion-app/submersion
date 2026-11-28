@@ -55,12 +55,14 @@ class _SiteLocationCardEditorState
   final Map<String, FieldTextBinding<DiveSite, String?>> _bindings = {};
   bool _busy = false;
 
-  /// The place-name suggestions, kept until the sites, the country or the
-  /// region change: the rows rebuild on every keystroke and caret move.
+  /// The place-name suggestions, kept until the sites, the country, the
+  /// region or the place-name language change: the rows rebuild on every
+  /// keystroke and caret move.
   ({
     List<DiveSite> sites,
     String country,
     String region,
+    String language,
     _PlaceSuggestions lists,
   })?
   _suggested;
@@ -69,22 +71,30 @@ class _SiteLocationCardEditorState
     List<DiveSite> sites,
     String country,
     String region,
+    String language,
   ) {
     final kept = _suggested;
     if (kept != null &&
         identical(kept.sites, sites) &&
         kept.country == country &&
-        kept.region == region) {
+        kept.region == region &&
+        kept.language == language) {
       return kept.lists;
     }
     final lists = (
-      countries: suggestedCountries(sites),
+      countries: suggestedCountries(sites, language: language),
       regions: suggestedRegions(sites, country),
       cities: suggestedCities(sites, country, region),
       islands: suggestedIslands(sites, country),
       waters: suggestedBodiesOfWater(sites, country),
     );
-    _suggested = (sites: sites, country: country, region: region, lists: lists);
+    _suggested = (
+      sites: sites,
+      country: country,
+      region: region,
+      language: language,
+      lists: lists,
+    );
     return lists;
   }
 
@@ -261,6 +271,7 @@ class _SiteLocationCardEditorState
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final allSites = ref.watch(sitesProvider).value ?? const <DiveSite>[];
+    final language = ref.watch(placeNameLanguageProvider);
     // Only what depends on other values is rebuilt as they change: the
     // suggestion lists follow the country and region rows, and the lookup
     // follows the position.
@@ -272,7 +283,7 @@ class _SiteLocationCardEditorState
       builder: (context, _) {
         final country = _session.valueOf(siteCountryField) ?? '';
         final region = _session.valueOf(siteRegionField) ?? '';
-        final suggested = _suggestionsFor(allSites, country, region);
+        final suggested = _suggestionsFor(allSites, country, region, language);
         Widget place(
           EditField<DiveSite, String?> field,
           String label,

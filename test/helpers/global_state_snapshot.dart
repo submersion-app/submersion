@@ -28,7 +28,7 @@ const _watchedChannels = [
 
 /// The process-wide state a test file may replace, recorded at one moment.
 ///
-/// A generated test bundle (scripts/bundle_tests.py, issue #2500) takes one
+/// A generated test bundle (scripts/testing/bundle_tests.py, issue #2500) takes one
 /// before each file's tests and checks after them that the file put back
 /// everything it changed. It is the runtime counterpart of
 /// `test/architecture/test_global_state_restored_test.dart`, which catches

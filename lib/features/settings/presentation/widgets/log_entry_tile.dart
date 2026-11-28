@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 
 /// A single log entry row in the debug log viewer.
-class LogEntryTile extends StatelessWidget {
+///
+/// The stamp is the entry's date in the diver's date format followed by a
+/// fixed 24-hour `HH:mm:ss.SSS` time, so a log that spans several days reads
+/// unambiguously (#4993).
+class LogEntryTile extends ConsumerWidget {
   final LogEntry entry;
 
   const LogEntryTile({super.key, required this.entry});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final formatter = ref.watch(unitFormatterProvider);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -46,7 +53,8 @@ class LogEntryTile extends StatelessWidget {
           const SizedBox(width: 6),
           // Timestamp
           Text(
-            _formatTimestamp(entry.timestamp),
+            '${formatter.formatDate(entry.timestamp)} '
+            '${_formatTime(entry.timestamp)}',
             style: TextStyle(
               fontSize: 11,
               color: colorScheme.onSurfaceVariant,
@@ -66,7 +74,9 @@ class LogEntryTile extends StatelessWidget {
     );
   }
 
-  static String _formatTimestamp(DateTime ts) {
+  /// Fixed 24-hour time with milliseconds, whatever the diver's time format:
+  /// the millisecond ordering is what a debug log is read for.
+  static String _formatTime(DateTime ts) {
     return '${ts.hour.toString().padLeft(2, '0')}:'
         '${ts.minute.toString().padLeft(2, '0')}:'
         '${ts.second.toString().padLeft(2, '0')}.'

@@ -156,6 +156,6 @@ target_link_libraries(libdc_jni PRIVATE divecomputer log)
 # app the instant a download starts (issue #318). DO NOT REMOVE: this plugin's
 # Gradle (AGP 8.1.0, no explicit ndkVersion) resolves a pre-r28 NDK, which is
 # exactly how v1.5.5.107 shipped a 4 KB-aligned lib. The flag forces 16 KB
-# regardless of NDK version, and scripts/check_16kb_alignment.py fails CI if a
+# regardless of NDK version, and scripts/checks/check_16kb_alignment.py fails CI if a
 # misaligned native lib ever ships again.
 target_link_options(libdc_jni PRIVATE "-Wl,-z,max-page-size=16384")

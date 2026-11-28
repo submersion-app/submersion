@@ -11,7 +11,7 @@ import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_par
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_withdrawal.dart';
 
 /// The format contract of the catalogue release the app ships, copied from
-/// the release by its intake PR (scripts/site_catalogue_intake.py). A
+/// the release by its intake PR (scripts/datasets/site_catalogue/site_catalogue_intake.py). A
 /// release whose contract the app cannot read fails here, in that PR, before
 /// it reaches a build.
 Map<String, dynamic> _read(String name) =>

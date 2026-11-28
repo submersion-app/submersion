@@ -8795,10 +8795,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => '气瓶压力';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport => '保持叠加层在视图内';
+  String get diveLog_chartOption_tooltipFollowsCursor => '提示框跟随光标';
 
   @override
-  String get diveLog_chartOption_tooltipFollowsCursor => '提示框跟随光标';
+  String get diveLog_chartOption_zoom => '缩放';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify => '双轴，放大叠加层';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView => '双轴，保持叠加层在视图内';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => '仅时间';
+
+  @override
+  String get diveLog_chartOption_rightAxis => '右轴';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(估算)';
@@ -16197,6 +16209,51 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_typeLockedHelper => '已连接的潜水电脑或发射器会保留其类型。';
 
   @override
+  String get equipment_suggest_link => '找不到合适的类型？建议一个类别';
+
+  @override
+  String get equipment_suggest_title => '建议类别';
+
+  @override
+  String get equipment_suggest_intro =>
+      '这会在 GitHub 上打开一个预填好的功能请求。你可以检查后从浏览器提交。';
+
+  @override
+  String get equipment_suggest_kindQuestion => '你要建议什么？';
+
+  @override
+  String get equipment_suggest_kindCategory => '新的装备类型';
+
+  @override
+  String get equipment_suggest_kindSubcategory => '现有类型的新款式';
+
+  @override
+  String get equipment_suggest_nameLabel => '名称';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => '所属类型';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => '最接近的现有类型';
+
+  @override
+  String get equipment_suggest_parentNone => '无';
+
+  @override
+  String get equipment_suggest_reasonLabel => '为什么需要它？';
+
+  @override
+  String get equipment_suggest_reasonHint => '它与现有类型有何不同？';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return '将此装备作为示例（$example）';
+  }
+
+  @override
+  String get equipment_suggest_open => '在 GitHub 中打开';
+
+  @override
   String get equipment_edit_useCustomReminders => '使用自定义提醒';
 
   @override
@@ -18692,9 +18749,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => '无法打开浏览器';
-
-  @override
-  String get marineLife_suggest_copyLink => '复制链接';
 
   @override
   String get marineLife_editCard_photos => '照片';
@@ -22729,8 +22783,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_metricsFollowViewport => '缩放时保持叠加层在视图内';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      '将 NDL、ppO2 等叠加层适配到可见区域，而不是随深度轴一起放大';
+  String get settings_appearance_profileZoom => '缩放';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict => '剖面缩放：仅时间';
 
   @override
   String get settings_appearance_rightYAxisMetric => '右Y轴指标';
@@ -41035,17 +41091,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return '峰值 $rate（$range）';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return '平均 $rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => '平均';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return '平均 $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => '峰值';
@@ -41789,6 +41845,82 @@ class AppLocalizationsZh extends AppLocalizations {
       one: '1 次电池循环',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_exposure_lastDivedLabel => '上次潜水';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => '潜水次数';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => '小时';
+
+  @override
+  String get equipmentCondition_exposure_today => '今天';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 天前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个月前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 年前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return '上次潜水：$ago，$date';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12 个月';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => '全部年份';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '过去 12 个月 $count 次潜水',
+      zero: '过去 12 个月没有潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives，$hours';
   }
 
   @override
@@ -53097,6 +53229,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get media_species_nextSighting => '下一次目击';
+
+  @override
   String get media_species_openSpeciesPage => '物种页面';
 
   @override
@@ -62003,7 +62138,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get info_equipment_findings_summary => '状态规则在该装备的潜水和已报告问题中标记出的规律。';
 
   @override
-  String get info_equipment_exposure_summary => '该装备的使用量，按其保养计时使用的各种单位统计。';
+  String get info_equipment_exposure_summary =>
+      '该装备的使用量，按其保养计时使用的各种单位统计。图表按月或按年统计其潜水次数，截至今天。';
 
   @override
   String get info_site_altitude_summary => '潜点的海拔高度及当地气压，减压模型以此为起点。';

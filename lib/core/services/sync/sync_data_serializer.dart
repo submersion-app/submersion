@@ -11988,7 +11988,13 @@ class SyncDataSerializer {
   /// #3482) is never cleared once written: a peer that has none yet has
   /// simply not seen it.
   static const Map<String, Set<String>> _nullMeansUnsetKeys = {
-    'diverSettings': {'pscrRatio', 'profileMetricsFollowViewport'},
+    // profileZoomTimeOnly (v389, issue #5069) pairs with the viewport
+    // choice and follows the same rule.
+    'diverSettings': {
+      'pscrRatio',
+      'profileMetricsFollowViewport',
+      'profileZoomTimeOnly',
+    },
     'connectedAccounts': {'location'},
     'mediaStores': {'accountId'},
   };

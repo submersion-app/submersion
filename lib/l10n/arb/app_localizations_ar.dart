@@ -9399,12 +9399,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'ضغوط الأسطوانات';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'إبقاء الطبقات الإضافية ضمن العرض';
-
-  @override
   String get diveLog_chartOption_tooltipFollowsCursor =>
       'تلميح الأداة يتبع المؤشر';
+
+  @override
+  String get diveLog_chartOption_zoom => 'التكبير';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify =>
+      'كلا المحورين، تكبير الطبقات الإضافية';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView =>
+      'كلا المحورين، إبقاء الطبقات الإضافية ضمن العرض';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => 'الوقت فقط';
+
+  @override
+  String get diveLog_chartOption_rightAxis => 'المحور الأيمن';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(تقديري)';
@@ -17252,6 +17265,52 @@ class AppLocalizationsAr extends AppLocalizations {
       'يحتفظ حاسوب الغوص أو جهاز الإرسال المتصل بنوعه.';
 
   @override
+  String get equipment_suggest_link => 'لا يوجد نوع مناسب؟ اقترح فئة';
+
+  @override
+  String get equipment_suggest_title => 'اقتراح فئة';
+
+  @override
+  String get equipment_suggest_intro =>
+      'يفتح هذا طلب ميزة معبأً مسبقاً على GitHub. تراجعه وتنشره من متصفحك.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'ماذا تقترح؟';
+
+  @override
+  String get equipment_suggest_kindCategory => 'نوع معدات جديد';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'صنف جديد من نوع موجود';
+
+  @override
+  String get equipment_suggest_nameLabel => 'الاسم';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'صنف من';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => 'أقرب نوع موجود';
+
+  @override
+  String get equipment_suggest_parentNone => 'لا شيء';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'لماذا هو مطلوب؟';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'ما الذي يميزه عن الأنواع الموجودة؟';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'تضمين هذه القطعة كمثال ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'فتح في GitHub';
+
+  @override
   String get equipment_edit_useCustomReminders => 'استخدام تذكيرات مخصصة';
 
   @override
@@ -19940,9 +19999,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => 'تعذر فتح المتصفح';
-
-  @override
-  String get marineLife_suggest_copyLink => 'نسخ الرابط';
 
   @override
   String get marineLife_editCard_photos => 'الصور';
@@ -24371,8 +24427,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'إبقاء الطبقات الإضافية ضمن العرض عند التكبير';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'ملاءمة الطبقات الإضافية مثل NDL وppO2 مع المنطقة المرئية بدلاً من تكبيرها مع محور العمق';
+  String get settings_appearance_profileZoom => 'التكبير';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict =>
+      'تكبير المخطط: الوقت فقط';
 
   @override
   String get settings_appearance_rightYAxisMetric => 'مقياس المحور الأيمن';
@@ -44230,17 +44289,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'الذروة $rate عند $range';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'المتوسط $rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => 'المتوسط';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return 'المتوسط $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => 'الذروة';
@@ -45047,6 +45106,98 @@ class AppLocalizationsAr extends AppLocalizations {
       one: 'دورة بطارية واحدة',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_exposure_lastDivedLabel => 'آخر غطسة';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => 'الغطسات';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => 'الساعات';
+
+  @override
+  String get equipmentCondition_exposure_today => 'اليوم';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'منذ $count يوم',
+      many: 'منذ $count يومًا',
+      few: 'منذ $count أيام',
+      two: 'منذ يومين',
+      one: 'منذ يوم واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'منذ $count شهر',
+      many: 'منذ $count شهرًا',
+      few: 'منذ $count أشهر',
+      two: 'منذ شهرين',
+      one: 'منذ شهر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'منذ $count سنة',
+      many: 'منذ $count سنة',
+      few: 'منذ $count سنوات',
+      two: 'منذ سنتين',
+      one: 'منذ سنة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return 'آخر غطسة $ago، في $date';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12 شهرًا';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => 'كل السنوات';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسة في آخر 12 شهرًا',
+      many: '$count غطسة في آخر 12 شهرًا',
+      few: '$count غطسات في آخر 12 شهرًا',
+      two: 'غطستان في آخر 12 شهرًا',
+      one: 'غطسة واحدة في آخر 12 شهرًا',
+      zero: 'لا غطسات في آخر 12 شهرًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives، $hours';
   }
 
   @override
@@ -57505,6 +57656,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get media_species_nextSighting => 'المشاهدة التالية';
+
+  @override
   String get media_species_openSpeciesPage => 'صفحة النوع';
 
   @override
@@ -67138,7 +67292,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get info_equipment_exposure_summary =>
-      'مقدار استخدام هذه القطعة، محسوبًا بكل وحدة تستخدمها ساعات الصيانة الخاصة بها.';
+      'مقدار استخدام هذه القطعة، محسوبًا بكل وحدة تستخدمها ساعات الصيانة الخاصة بها. يعدّ المخطط غطساتها شهريًا أو سنويًا حتى اليوم.';
 
   @override
   String get info_site_altitude_summary =>

@@ -123,7 +123,11 @@ class _Harness {
     );
   }
 
-  void open({List<String>? initialFilePaths, MediaAttachTarget? target}) {
+  void open({
+    List<String>? initialFilePaths,
+    MediaAttachTarget? target,
+    Set<String> initialFolderPaths = const {},
+  }) {
     navigatorKey.currentState!.push(
       MaterialPageRoute<void>(
         builder: (_) => PhotoPickerPage(
@@ -131,6 +135,7 @@ class _Harness {
           endTime: DateTime.utc(2024, 1, 1, 11),
           target: target,
           initialFilePaths: initialFilePaths,
+          initialFolderPaths: initialFolderPaths,
         ),
       ),
     );
@@ -168,6 +173,21 @@ void main() {
 
     expect(find.byType(FilesTab), findsOneWidget);
     expect(h.filesTab.state.files.map((f) => f.sourcePath), _dropped);
+  });
+
+  // Issue #5063: a dive takes the unplaced files of a dropped folder only
+  // once they are assigned, so the staging has to know where they came from.
+  testWidgets('a dropped folder is staged as a folder scan', (tester) async {
+    final h = _Harness();
+    await tester.pumpWidget(h.build());
+    h.open(
+      initialFilePaths: _dropped,
+      target: const SiteAttachTarget('site-1'),
+      initialFolderPaths: _dropped.toSet(),
+    );
+    await _settle(tester);
+
+    expect(h.filesTab.state.folderPaths, _dropped.toSet());
   });
 
   testWidgets(

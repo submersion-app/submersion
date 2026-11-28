@@ -10,13 +10,13 @@ import 'package:flutter/widgets.dart';
 /// a reel, a kick scooter for a DPV. Issue #1189 reported the result as icons
 /// that "don't really fit the equipment".
 ///
-/// The constants below are drawn in `tool/equipment_glyphs.py` and compiled
+/// The constants below are drawn in `scripts/artwork/equipment_glyphs.py` and compiled
 /// into `assets/fonts/submersion-equipment.ttf` by
-/// `tool/build_equipment_icon_font.py`. Regenerate with:
+/// `scripts/artwork/build_equipment_icon_font.py`. Regenerate with:
 ///
 /// ```sh
 /// pip install fonttools
-/// python3 tool/build_equipment_icon_font.py --verify
+/// python3 scripts/artwork/build_equipment_icon_font.py --verify
 /// ```
 ///
 /// Shipping them as a font rather than as SVG assets or custom painters keeps
@@ -26,7 +26,7 @@ import 'package:flutter/widgets.dart';
 /// icon tree-shaker subsets the font at build time.
 ///
 /// Code points sit in the Unicode Private Use Area and are assigned in the
-/// declaration order of `tool/equipment_glyphs.py`. They are baked into the
+/// declaration order of `scripts/artwork/equipment_glyphs.py`. They are baked into the
 /// committed font, so reordering that file without rebuilding the font would
 /// silently swap glyphs.
 abstract final class SubmersionIcons {

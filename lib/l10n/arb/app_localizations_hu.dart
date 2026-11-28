@@ -9248,12 +9248,25 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'Palacknyomások';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'Rétegek nézetben tartása';
-
-  @override
   String get diveLog_chartOption_tooltipFollowsCursor =>
       'A tooltip követi a kurzort';
+
+  @override
+  String get diveLog_chartOption_zoom => 'Nagyítás';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify =>
+      'Mindkét tengely, rétegek nagyítása';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView =>
+      'Mindkét tengely, rétegek nézetben tartása';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => 'Csak idő';
+
+  @override
+  String get diveLog_chartOption_rightAxis => 'Jobb tengely';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(becs.)';
@@ -16939,6 +16952,54 @@ class AppLocalizationsHu extends AppLocalizations {
       'A csatlakoztatott búvárcomputer vagy jeladó megtartja a típusát.';
 
   @override
+  String get equipment_suggest_link =>
+      'Nincs megfelelő típus? Javasolj kategóriát';
+
+  @override
+  String get equipment_suggest_title => 'Kategória javaslása';
+
+  @override
+  String get equipment_suggest_intro =>
+      'Ez egy előre kitöltött funkciókérést nyit meg a GitHubon. Átnézed, és a böngésződből küldöd be.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'Mit javasolsz?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'Új felszereléstípus';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'Egy típus új változata';
+
+  @override
+  String get equipment_suggest_nameLabel => 'Név';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'Ennek a változata';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel =>
+      'Legközelebbi meglévő típus';
+
+  @override
+  String get equipment_suggest_parentNone => 'Nincs';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'Miért van rá szükség?';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'Miben különbözik a meglévő típusoktól?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'Ez az eszköz legyen a példa ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'Megnyitás a GitHubon';
+
+  @override
   String get equipment_edit_useCustomReminders =>
       'Egyedi emlékeztetők használata';
 
@@ -19599,9 +19660,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get marineLife_suggest_couldNotOpen =>
       'Nem sikerült megnyitni a böngészőt';
-
-  @override
-  String get marineLife_suggest_copyLink => 'Link másolása';
 
   @override
   String get marineLife_editCard_photos => 'Fotók';
@@ -23865,8 +23923,11 @@ class AppLocalizationsHu extends AppLocalizations {
       'Rétegek nézetben tartása nagyításkor';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'Az olyan rétegek, mint az NDL és a ppO2, a látható területhez igazodjanak, ahelyett hogy a mélységtengellyel együtt nagyítódnának';
+  String get settings_appearance_profileZoom => 'Nagyítás';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict =>
+      'Profilnagyítás: csak idő';
 
   @override
   String get settings_appearance_rightYAxisMetric => 'Jobb Y-tengely metrika';
@@ -43382,17 +43443,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'Csúcs $rate, $range';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Átlag $rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => 'Átlag';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return 'átl. $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => 'Csúcs';
@@ -44173,6 +44234,86 @@ class AppLocalizationsHu extends AppLocalizations {
       one: '1 akkumulátorciklus',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_exposure_lastDivedLabel => 'Utolsó merülés';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => 'Merülések';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => 'Órák';
+
+  @override
+  String get equipmentCondition_exposure_today => 'Ma';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count napja',
+      one: '$count napja',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hónapja',
+      one: '$count hónapja',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éve',
+      one: '$count éve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return 'Utolsó merülés: $ago, $date';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12 hónap';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => 'Minden év';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés az elmúlt 12 hónapban',
+      one: '$count merülés az elmúlt 12 hónapban',
+      zero: 'Nincs merülés az elmúlt 12 hónapban',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives, $hours';
   }
 
   @override
@@ -56332,6 +56473,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get media_species_nextSighting => 'Következő észlelés';
+
+  @override
   String get media_species_openSpeciesPage => 'Fajoldal';
 
   @override
@@ -65747,7 +65891,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get info_equipment_exposure_summary =>
-      'Mennyit használták ezt a tételt, a szervizórái által használt minden egységben számolva.';
+      'Mennyit használták ezt a tételt, a szervizórái által használt minden egységben számolva. A diagram havonta vagy évente számolja a merüléseit, a mai napig.';
 
   @override
   String get info_site_altitude_summary =>
