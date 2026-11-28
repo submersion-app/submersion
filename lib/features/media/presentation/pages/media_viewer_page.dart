@@ -18,6 +18,8 @@ import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     show GeoPoint;
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart'
+    show siteProvider;
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
@@ -374,6 +376,12 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     final diveAsync = currentDiveId == null
         ? const AsyncValue<Dive?>.data(null)
         : ref.watch(diveProvider(currentDiveId));
+    // Media placed on a site and no dive (issue #5122): its site is the
+    // only place it has, for limiting marine life names.
+    final ownSiteId = currentDiveId == null ? hydratedItem?.siteId : null;
+    final ownSiteLocation = ownSiteId == null
+        ? null
+        : ref.watch(siteProvider(ownSiteId)).value?.location;
     final units = ref.watch(unitFormatterProvider);
     final settings = ref.watch(
       settingsProvider.select(
@@ -578,7 +586,11 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                     IdentificationTrigger(
                       key: const ValueKey('media_identification_trigger'),
                       item: currentItem,
-                      location: _photoLocation(currentItem, diveAsync.value),
+                      location: _photoLocation(
+                        currentItem,
+                        diveAsync.value,
+                        ownSite: ownSiteLocation,
+                      ),
                     ),
 
                     // The controls; while unlocked the bar never hides: it
@@ -597,7 +609,11 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                         perdixToggleAvailable: perdixToggleAvailable,
                         perdixEnabled: settings.perdixOverlayEnabled,
                         storedPhoto: storedPhoto,
-                        location: _photoLocation(currentItem, diveAsync.value),
+                        location: _photoLocation(
+                          currentItem,
+                          diveAsync.value,
+                          ownSite: ownSiteLocation,
+                        ),
                       ),
 
                       // What colour correction the item is drawn with.

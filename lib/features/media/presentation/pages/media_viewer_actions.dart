@@ -91,21 +91,24 @@ extension _ViewerActions on _MediaViewerPageState {
     return holdTimeChoice(held, item.id, choice, automatic);
   }
 
+  /// Where [item] was taken, for limiting marine life names to the species
+  /// recorded there (issue #4668): its own position, else its dive's site,
+  /// else where the dive's computer logged its entry, else the site the
+  /// media itself is placed on ([ownSite], issue #5122).
+  GeoPoint? _photoLocation(MediaItem item, Dive? dive, {GeoPoint? ownSite}) =>
+      mediaLocation(
+        item,
+        siteLocation: dive?.site?.location,
+        entryLocation: dive?.entryLocation,
+        ownSiteLocation: ownSite,
+      );
+
   /// Computes and saves the missing [MediaEnrichment] rows for [diveId], the
   /// same idempotent backfill dive detail runs on open.
   ///
   /// Media linked from a local file gets a row but no enrichment, and until
   /// now only dive detail ever closed that gap: a photo could show its depth
   /// and profile marker there and nothing at all in the Media section.
-  /// Where [item] was taken, for limiting marine life names to the species
-  /// recorded there (issue #4668): its own position, else its dive's site,
-  /// else where the dive's computer logged its entry.
-  GeoPoint? _photoLocation(MediaItem item, Dive? dive) => mediaLocation(
-    item,
-    siteLocation: dive?.site?.location,
-    entryLocation: dive?.entryLocation,
-  );
-
   void _backfillEnrichment(String diveId) {
     if (!_enrichAttempted.add(diveId)) return;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
