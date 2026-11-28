@@ -62483,7 +62483,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_term_trimProfile_body =>
-      'ダイブコンピューターが自身の傾きとして記録した角度です。プラスは頭が上、マイナスは頭が下、0は水平です。腕時計型では体だけでなく前腕の向きも反映し、トリム計算機の推定値ではありません。';
+      'ダイブコンピューターが自身の傾きとして記録した角度で、プラスは頭が上、マイナスは頭が下、0は水平です。腕時計型では体だけでなく前腕の向きも反映し、トリム計算機の推定値ではありません。';
 
   @override
   String get info_term_hypercapnia_label => '高炭酸ガス血症';
