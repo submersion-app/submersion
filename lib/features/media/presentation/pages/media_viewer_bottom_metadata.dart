@@ -22,7 +22,8 @@ extension _ViewerBottomPanel on _MediaViewerPageState {
       onSpeciesMoment: item.isVideo ? (at) => _showMomentAt(item, at) : null,
       sitting: photoSitting,
       locked: photoLocked,
-      onSuggestionTap: photoSitting == null
+      // Off while an Unlink is held, as the toolbar's Species is (#5126).
+      onSuggestionTap: photoSitting == null || !photoEditable
           ? null
           : () {
               // Read at the tap, as Tag species does.

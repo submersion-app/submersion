@@ -6,6 +6,7 @@ import 'package:submersion/features/media/data/repositories/media_repository.dar
 import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/widgets/media_info_panel.dart';
+import 'package:submersion/features/media/presentation/widgets/media_species_chips_row.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -156,6 +157,20 @@ void main() {
       tester.widget<MediaInfoPanel>(find.byType(MediaInfoPanel)).readOnly,
       isTrue,
     );
+  });
+
+  testWidgets('a held unlink stops species suggestions opening the sheet', (
+    tester,
+  ) async {
+    await open(tester);
+    await tapUnlock(tester);
+    MediaSpeciesChipsRow chips() =>
+        tester.widget<MediaSpeciesChipsRow>(find.byType(MediaSpeciesChipsRow));
+    expect(chips().onSuggestionTap, isNotNull);
+
+    await holdUnlink(tester);
+
+    expect(chips().onSuggestionTap, isNull);
   });
 
   testWidgets('Undo drops the hold', (tester) async {

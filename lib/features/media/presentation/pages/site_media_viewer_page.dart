@@ -412,14 +412,13 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                       ),
                       _BottomMetadataOverlay(
                         item: currentItem,
-                        // Above the caption and date, so it never covers
-                        // them however tall they grow (issue #5126).
+                        // Above the caption and date (issue #5126).
                         above: photoUnlinkHeld
                             ? MediaViewerUnlinkStrip(
                                 message: unlinkScope == ViewerUnlinkScope.site
                                     ? context.l10n.media_viewer_unlinkHeldSite
                                     : context.l10n.media_viewer_unlinkHeldDive,
-                                onUndo: undoPhotoUnlink,
+                                onUndo: photoUnlinkUndo,
                               )
                             : null,
                       ),

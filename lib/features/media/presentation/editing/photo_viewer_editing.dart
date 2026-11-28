@@ -107,12 +107,16 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     if (session != null) undoViewerUnlink(session);
   }
 
+  /// The strip's Undo: none while a save runs, which keeps the Unlink.
+  VoidCallback? get photoUnlinkUndo =>
+      photoEditController.isSaving ? null : undoPhotoUnlink;
+
   /// Items this viewer's own saved Unlink has taken away. A list the caller
   /// keeps live drops them by itself; one it handed over as a snapshot (the
   /// library, the map, gear) would otherwise keep showing an item that is
   /// gone, so the viewer leaves these out.
   Set<String> get unlinkedPhotoIds => _unlinked;
-  final Set<String> _unlinked = {};
+  Set<String> _unlinked = const {};
 
   /// Told once a save that carried the Unlink of [mediaId] has committed,
   /// after it has joined [unlinkedPhotoIds].
@@ -365,7 +369,7 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     final saved = await controller.save();
     final error = controller.saveError;
     if (saved && unlinked != null && mounted) {
-      setState(() => _unlinked.add(unlinked));
+      setState(() => _unlinked = {..._unlinked, unlinked});
       onPhotoUnlinked(unlinked);
     }
     if (saved || error == null) return;

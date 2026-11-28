@@ -33,7 +33,7 @@ extension _ViewerUnlink on _MediaViewerPageState {
     return PositionedUnlinkStrip(
       bottom: (panelShown ? _bottomPanelHeight : 0) + 16,
       message: _unlinkHeldMessageFor(context, scope),
-      onUndo: undoPhotoUnlink,
+      onUndo: photoUnlinkUndo,
     );
   }
 
