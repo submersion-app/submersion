@@ -653,6 +653,55 @@ void main() {
       expect(find.widgetWithText(TextFormField, german), findsOneWidget);
     });
 
+    testWidgets('a duplicated custom preset keeps its own name and '
+        'description (#800)', (tester) async {
+      await pumpEditor(
+        tester,
+        duplicateFromId: 'p1',
+        metric: true,
+        locale: const Locale('en'),
+      );
+      expect(find.widgetWithText(TextFormField, 'AL80 (copy)'), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, 'Test'), findsOneWidget);
+    });
+
+    testWidgets('a built-in with no translation keeps its stored name and '
+        'description (#800)', (tester) async {
+      final odd = TankPresetEntity(
+        id: 'odd_slug',
+        name: 'odd_slug',
+        displayName: 'Odd',
+        volumeLiters: 3,
+        workingPressureBar: 200,
+        material: TankMaterial.steel,
+        description: 'Plain words',
+        isBuiltIn: true,
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+      await pumpEditor(
+        tester,
+        duplicateFromId: 'odd_slug',
+        repoPreset: odd,
+        metric: true,
+        locale: const Locale('en'),
+      );
+      expect(find.widgetWithText(TextFormField, 'Odd (copy)'), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, 'Plain words'), findsOneWidget);
+    });
+
+    testWidgets('a duplicate whose source fails to load says so and leaves '
+        'the new preset empty (#800)', (tester) async {
+      await pumpEditor(
+        tester,
+        duplicateFromId: 'p1',
+        failLoad: true,
+        locale: const Locale('en'),
+      );
+      expect(find.textContaining('database closed'), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, 'AL80 (copy)'), findsNothing);
+    });
+
     testWidgets('a new preset opens on the tinted bar from its first frame', (
       tester,
     ) async {

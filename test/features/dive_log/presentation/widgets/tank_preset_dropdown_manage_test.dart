@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_preset_dropdown.dart';
@@ -93,5 +94,49 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a built-in preset with no translation shows its stored name', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final odd = TankPresetEntity(
+      id: 'odd_slug',
+      name: 'odd_slug',
+      displayName: 'Odd preset',
+      volumeLiters: 3,
+      workingPressureBar: 200,
+      material: TankMaterial.steel,
+      isBuiltIn: true,
+      createdAt: DateTime(2024),
+      updatedAt: DateTime(2024),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          tankPresetsProvider.overrideWith((ref) => Future.value([odd])),
+        ].cast(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: TankPresetDropdown(
+              presetName: null,
+              cylinders: const [],
+              onPresetChanged: (_) {},
+              onCylinderChosen: (_) {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(TankPresetDropdown));
+    await tester.pumpAndSettle();
+    expect(find.text('Odd preset'), findsWidgets);
   });
 }
