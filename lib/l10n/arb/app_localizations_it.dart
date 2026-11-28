@@ -21965,6 +21965,37 @@ class AppLocalizationsIt extends AppLocalizations {
       'Spostato in un\'altra immersione dopo lo sblocco. Annulla, poi sbloccalo di nuovo.';
 
   @override
+  String get media_viewer_unlinkFromDive => 'Scollega dall\'immersione';
+
+  @override
+  String get media_viewer_unlinkFromSite => 'Scollega dal sito';
+
+  @override
+  String get media_viewer_unlinkFromGear => 'Scollega dall\'attrezzatura';
+
+  @override
+  String get media_viewer_unlink => 'Scollega';
+
+  @override
+  String get media_viewer_unlinkHeldDive =>
+      'Verrà scollegato da questa immersione al salvataggio';
+
+  @override
+  String get media_viewer_unlinkHeldSite =>
+      'Verrà scollegato da questo sito al salvataggio';
+
+  @override
+  String get media_viewer_unlinkHeldGear =>
+      'Verrà scollegato da questa attrezzatura al salvataggio';
+
+  @override
+  String get media_viewer_unlinkHeldLibrary =>
+      'Verrà rimosso dalla tua libreria al salvataggio';
+
+  @override
+  String get media_viewer_unlinkUndo => 'Annulla';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'Il file trovato è stato modificato o spostato nel frattempo. Trovalo di nuovo o annulla.';
 
@@ -56443,6 +56474,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_editCard_color => 'Colore';
+
+  @override
+  String get media_editCard_unlink => 'Scollega';
 
   @override
   String get media_editCard_details => 'Dettagli';

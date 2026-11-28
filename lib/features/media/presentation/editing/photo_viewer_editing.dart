@@ -13,8 +13,10 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/editing/photo_held_writes.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_editing_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/viewer_unlink_confirm.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -63,6 +65,45 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   /// unlock at all (a browser) is always here, so nothing there falls back
   /// to writing at once.
   bool get photoLocked => !photoUnlocked;
+
+  /// What this viewer's Unlink unlinks from (issue #5126); null offers none.
+  ViewerUnlinkScope? get unlinkScope => null;
+
+  /// Whether the sitting holds the photo's Unlink.
+  bool get photoUnlinkHeld => viewerUnlinkHeld(photoSitting);
+
+  /// Whether the photo's own changes can be made: unlocked, with no Unlink
+  /// held, since a photo about to go takes no more edits.
+  bool get photoEditable => photoUnlocked && !photoUnlinkHeld;
+
+  /// Whether Unlink is offered on [item] now.
+  bool canUnlinkPhoto(MediaItem item) =>
+      photoUnlocked &&
+      !photoUnlinkHeld &&
+      viewerOffersUnlink(unlinkScope, item);
+
+  /// Asks, then holds unlinking the photo on screen until Save.
+  Future<void> unlinkPhotoHeld(MediaItem item) async {
+    final scope = unlinkScope;
+    if (scope == null || !canUnlinkPhoto(item)) return;
+    final read = ref.read;
+    if (!await confirmViewerUnlink(context, ref, scope, item.id)) return;
+    // The sitting may have ended, or moved on, while the dialog was up.
+    final session = photoSitting;
+    if (!mounted || session == null || session.stored.item.id != item.id) {
+      return;
+    }
+    holdViewerUnlink(session, viewerUnlinkWriters(scope, read));
+  }
+
+  /// Drops the held Unlink, keeping every other change.
+  void undoPhotoUnlink() {
+    final session = photoSitting;
+    if (session != null) undoViewerUnlink(session);
+  }
+
+  /// Told once a save that carried the Unlink of [mediaId] has committed.
+  void onPhotoUnlinked(String mediaId) {}
 
   /// The photo the sitting is over.
   String? get _sittingId => photoSitting?.stored.item.id;
@@ -307,8 +348,10 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
     final controller = photoEditController;
+    final unlinked = photoUnlinkHeld ? _sittingId : null;
     final saved = await controller.save();
     final error = controller.saveError;
+    if (saved && unlinked != null && mounted) onPhotoUnlinked(unlinked);
     if (saved || error == null) return;
     // Deleted while the save ran: the sitting is over, as when the photo
     // goes at any other moment.
@@ -334,6 +377,9 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     final diverId = ref.read(validatedCurrentDiverIdProvider.future);
     final changed = session.changedCardIds;
     final diveId = session.stored.item.diveId;
+    // Read before the write: the remote delete an Unlink held waits for the
+    // commit, and the sitting is gone by the time anything else could ask.
+    final drainUnlink = viewerUnlinkDrain(session);
     // A held relink's new bookmark is taken back if the write does not
     // commit.
     await undoRelinkOnFailure(
@@ -354,12 +400,12 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
     // The write is committed. What a relink left for now (the upload of
     // different bytes, the cache's drop) and placing the dive's photos
     // again are each best effort: a failure here is not a failed save.
-    for (final step in relinkAfterCommit(session)) {
+    for (final step in [...relinkAfterCommit(session), ?drainUnlink]) {
       try {
         await step();
       } catch (error, stackTrace) {
         _log.error(
-          "A relink's work after its committed save failed",
+          'Work left for after a committed save (a relink, an unlink) failed',
           error: error,
           stackTrace: stackTrace,
         );

@@ -21487,6 +21487,33 @@ class AppLocalizationsHe extends AppLocalizations {
       'הועבר לצלילה אחרת מאז ביטול הנעילה. בטל, ואז בטל שוב את הנעילה.';
 
   @override
+  String get media_viewer_unlinkFromDive => 'בטל קישור לצלילה';
+
+  @override
+  String get media_viewer_unlinkFromSite => 'בטל קישור לאתר';
+
+  @override
+  String get media_viewer_unlinkFromGear => 'בטל קישור לציוד';
+
+  @override
+  String get media_viewer_unlink => 'בטל קישור';
+
+  @override
+  String get media_viewer_unlinkHeldDive => 'הקישור לצלילה זו יבוטל בשמירה';
+
+  @override
+  String get media_viewer_unlinkHeldSite => 'הקישור לאתר זה יבוטל בשמירה';
+
+  @override
+  String get media_viewer_unlinkHeldGear => 'הקישור לפריט ציוד זה יבוטל בשמירה';
+
+  @override
+  String get media_viewer_unlinkHeldLibrary => 'יוסר מהספרייה שלך בשמירה';
+
+  @override
+  String get media_viewer_unlinkUndo => 'ביטול';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'הקובץ שאותר השתנה או הועבר מאז. אתר אותו שוב או בטל.';
 
@@ -55263,6 +55290,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_editCard_color => 'צבע';
+
+  @override
+  String get media_editCard_unlink => 'בטל קישור';
 
   @override
   String get media_editCard_details => 'פרטים';

@@ -21960,6 +21960,37 @@ class AppLocalizationsPt extends AppLocalizations {
       'Movido para outro mergulho desde que o desbloqueou. Cancele e desbloqueie-o novamente.';
 
   @override
+  String get media_viewer_unlinkFromDive => 'Desvincular do mergulho';
+
+  @override
+  String get media_viewer_unlinkFromSite => 'Desvincular do local';
+
+  @override
+  String get media_viewer_unlinkFromGear => 'Desvincular do equipamento';
+
+  @override
+  String get media_viewer_unlink => 'Desvincular';
+
+  @override
+  String get media_viewer_unlinkHeldDive =>
+      'Será desvinculado deste mergulho ao guardar';
+
+  @override
+  String get media_viewer_unlinkHeldSite =>
+      'Será desvinculado deste local ao guardar';
+
+  @override
+  String get media_viewer_unlinkHeldGear =>
+      'Será desvinculado deste equipamento ao guardar';
+
+  @override
+  String get media_viewer_unlinkHeldLibrary =>
+      'Será removido da sua biblioteca ao guardar';
+
+  @override
+  String get media_viewer_unlinkUndo => 'Desfazer';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'O arquivo localizado foi alterado ou movido desde então. Localize-o novamente ou cancele.';
 
@@ -56427,6 +56458,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_editCard_color => 'Cor';
+
+  @override
+  String get media_editCard_unlink => 'Desvincular';
 
   @override
   String get media_editCard_details => 'Detalhes';

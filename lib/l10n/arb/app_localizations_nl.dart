@@ -21831,6 +21831,37 @@ class AppLocalizationsNl extends AppLocalizations {
       'Verplaatst naar een andere duik sinds je het ontgrendelde. Annuleer en ontgrendel het opnieuw.';
 
   @override
+  String get media_viewer_unlinkFromDive => 'Ontkoppelen van duik';
+
+  @override
+  String get media_viewer_unlinkFromSite => 'Ontkoppelen van duikstek';
+
+  @override
+  String get media_viewer_unlinkFromGear => 'Ontkoppelen van uitrusting';
+
+  @override
+  String get media_viewer_unlink => 'Ontkoppelen';
+
+  @override
+  String get media_viewer_unlinkHeldDive =>
+      'Wordt bij opslaan ontkoppeld van deze duik';
+
+  @override
+  String get media_viewer_unlinkHeldSite =>
+      'Wordt bij opslaan ontkoppeld van deze duikstek';
+
+  @override
+  String get media_viewer_unlinkHeldGear =>
+      'Wordt bij opslaan ontkoppeld van dit uitrustingsstuk';
+
+  @override
+  String get media_viewer_unlinkHeldLibrary =>
+      'Wordt bij opslaan uit je bibliotheek verwijderd';
+
+  @override
+  String get media_viewer_unlinkUndo => 'Ongedaan maken';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'Het gevonden bestand is sindsdien gewijzigd of verplaatst. Zoek het opnieuw of annuleer.';
 
@@ -56092,6 +56123,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_editCard_color => 'Kleur';
+
+  @override
+  String get media_editCard_unlink => 'Ontkoppelen';
 
   @override
   String get media_editCard_details => 'Details';

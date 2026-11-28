@@ -22352,6 +22352,34 @@ class AppLocalizationsAr extends AppLocalizations {
       'نُقل إلى غطسة أخرى منذ إلغاء القفل. ألغِ، ثم ألغِ القفل مرة أخرى.';
 
   @override
+  String get media_viewer_unlinkFromDive => 'إلغاء الربط بالغطسة';
+
+  @override
+  String get media_viewer_unlinkFromSite => 'إلغاء الربط بالموقع';
+
+  @override
+  String get media_viewer_unlinkFromGear => 'إلغاء الربط بالمعدات';
+
+  @override
+  String get media_viewer_unlink => 'إلغاء الربط';
+
+  @override
+  String get media_viewer_unlinkHeldDive => 'سيُلغى ربطه بهذه الغطسة عند الحفظ';
+
+  @override
+  String get media_viewer_unlinkHeldSite => 'سيُلغى ربطه بهذا الموقع عند الحفظ';
+
+  @override
+  String get media_viewer_unlinkHeldGear =>
+      'سيُلغى ربطه بقطعة المعدات هذه عند الحفظ';
+
+  @override
+  String get media_viewer_unlinkHeldLibrary => 'سيُزال من مكتبتك عند الحفظ';
+
+  @override
+  String get media_viewer_unlinkUndo => 'تراجع';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'تغيّر الملف المحدد أو نُقل منذ ذلك الحين. حدّد موقعه مرة أخرى أو ألغِ.';
 
@@ -57271,6 +57299,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_editCard_color => 'اللون';
+
+  @override
+  String get media_editCard_unlink => 'إلغاء الربط';
 
   @override
   String get media_editCard_details => 'التفاصيل';

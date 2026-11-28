@@ -22013,6 +22013,37 @@ class AppLocalizationsFr extends AppLocalizations {
       'Déplacé vers une autre plongée depuis le déverrouillage. Annulez, puis déverrouillez à nouveau.';
 
   @override
+  String get media_viewer_unlinkFromDive => 'Dissocier de la plongée';
+
+  @override
+  String get media_viewer_unlinkFromSite => 'Dissocier du site';
+
+  @override
+  String get media_viewer_unlinkFromGear => 'Dissocier de l\'équipement';
+
+  @override
+  String get media_viewer_unlink => 'Dissocier';
+
+  @override
+  String get media_viewer_unlinkHeldDive =>
+      'Sera dissocié de cette plongée à l\'enregistrement';
+
+  @override
+  String get media_viewer_unlinkHeldSite =>
+      'Sera dissocié de ce site à l\'enregistrement';
+
+  @override
+  String get media_viewer_unlinkHeldGear =>
+      'Sera dissocié de cet équipement à l\'enregistrement';
+
+  @override
+  String get media_viewer_unlinkHeldLibrary =>
+      'Sera retiré de votre bibliothèque à l\'enregistrement';
+
+  @override
+  String get media_viewer_unlinkUndo => 'Annuler';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'Le fichier localisé a été modifié ou déplacé depuis. Localisez-le à nouveau ou annulez.';
 
@@ -56561,6 +56592,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get media_editCard_color => 'Couleur';
+
+  @override
+  String get media_editCard_unlink => 'Dissocier';
 
   @override
   String get media_editCard_details => 'Détails';

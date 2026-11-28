@@ -20855,6 +20855,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_viewer_movedWhileEditing => '自解锁后已移至另一次潜水。请取消，然后重新解锁。';
 
   @override
+  String get media_viewer_unlinkFromDive => '取消与潜水的关联';
+
+  @override
+  String get media_viewer_unlinkFromSite => '取消与潜点的关联';
+
+  @override
+  String get media_viewer_unlinkFromGear => '取消与装备的关联';
+
+  @override
+  String get media_viewer_unlink => '取消关联';
+
+  @override
+  String get media_viewer_unlinkHeldDive => '保存时将取消与此潜水的关联';
+
+  @override
+  String get media_viewer_unlinkHeldSite => '保存时将取消与此潜点的关联';
+
+  @override
+  String get media_viewer_unlinkHeldGear => '保存时将取消与此装备的关联';
+
+  @override
+  String get media_viewer_unlinkHeldLibrary => '保存时将从您的媒体库中移除';
+
+  @override
+  String get media_viewer_unlinkUndo => '撤消';
+
+  @override
   String get media_viewer_locatedFileChanged => '找到的文件此后已更改或移动。请重新查找，或取消。';
 
   @override
@@ -52894,6 +52921,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_editCard_color => '颜色';
+
+  @override
+  String get media_editCard_unlink => '取消关联';
 
   @override
   String get media_editCard_details => '详情';
