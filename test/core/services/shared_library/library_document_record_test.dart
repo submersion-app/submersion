@@ -89,7 +89,7 @@ void main() {
 
   test('toJson writes formatVersion 2 and the signature domain is its own', () {
     expect(doc.toJson()['formatVersion'], 2);
-    expect(doc.signatureDomain, 'ssl-doc-field:v1');
+    expect(doc.signatureDomain, 'ssl-doc-field:v1\nsite1');
     expect(
       jsonDecode(utf8.decode(LibraryDocumentRecord.encode(doc)))['siteId'],
       'site1',

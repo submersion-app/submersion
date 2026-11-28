@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/shared_library/clocked_record.dart';
 import 'package:submersion/core/services/shared_library/crypto/field_signatures.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_signer.dart';
+import 'package:submersion/core/services/shared_library/library_document_record.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/site_document.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
@@ -137,4 +138,41 @@ void main() {
     expect(out.merged.fields['title'], 'New');
     expect(out.remoteWon, {'title'});
   });
+
+  test(
+    'a document refiled under another site loses its signed fields',
+    () async {
+      final doc = await signOwnFields(
+        LibraryDocumentRecord(
+          id: 'x1',
+          siteId: 's1',
+          fields: const {'title': 'Access'},
+          clocks: {'title': clock(10)},
+        ),
+        libraryId: 'L',
+        memberId: 'm1',
+        key: key,
+      );
+      final kept = await dropUnverified(
+        doc,
+        local: const LibraryDocumentRecord(id: 'x1', siteId: 's1'),
+        libraryId: 'L',
+        approvedKeys: {'m1': key.publicKey},
+      );
+      expect(kept.fields['title'], 'Access');
+      final moved = LibraryDocumentRecord(
+        id: 'x1',
+        siteId: 's2',
+        fields: doc.fields,
+        clocks: doc.clocks,
+      );
+      final checked = await dropUnverified(
+        moved,
+        local: const LibraryDocumentRecord(id: 'x1', siteId: 's2'),
+        libraryId: 'L',
+        approvedKeys: {'m1': key.publicKey},
+      );
+      expect(checked.fields.containsKey('title'), isFalse);
+    },
+  );
 }

@@ -36,8 +36,11 @@ class LibraryDocumentRecord extends ClockedRecord {
   /// site field signature cannot be replayed onto a document.
   static const String signatureTag = 'ssl-doc-field:v1';
 
+  /// The tag and the site the document is filed under: [siteId] is not a
+  /// clocked field, so it is bound into every field's signature instead,
+  /// and a record moved to another site in storage proves nothing.
   @override
-  String get signatureDomain => signatureTag;
+  String get signatureDomain => '$signatureTag\n$siteId';
 
   static const String deletedField = ClockedRecord.deletedField;
 
