@@ -27,16 +27,13 @@ const String _revisionKey = 'gear.catalogue.revision';
 int gearCatalogueRevision(EditSession<EquipmentItem> session) =>
     session.isDisposed ? 0 : session.recall<int>(_revisionKey) ?? 0;
 
-bool _blank(String? value) => value == null || value.trim().isEmpty;
-
 /// Holds in the sitting what the diver chose in the review of [offer]:
 /// written only by the editor's Save, gone with a Cancel.
 ///
 /// Apply sets each ticked field, links the item, and records the empty
-/// fields left unticked as declined for the record. A ticked empty field
-/// is set only while it is still empty: a value the diver typed after the
-/// sheet opened stays. A ticked differing field is set: the diver chose it
-/// beside their own. Not this model records that answer, and unlinks an
+/// fields left unticked as declined for the record. A ticked field is set
+/// only while it still holds the value the sheet showed beside the
+/// record's: a value that changed after the sheet opened stays. Not this model records that answer, and unlinks an
 /// item linked to the record.
 void holdGearCatalogueReview(
   EditSession<EquipmentItem> session,
@@ -58,19 +55,21 @@ void holdGearCatalogueReview(
         if (!ticked.contains(row.fieldName)) continue;
         switch (row.kind) {
           case CatalogueOfferFieldKind.brand:
-            if (!row.startTicked || _blank(session.valueOf(gearBrandField))) {
+            if (catalogueComparableText(session.valueOf(gearBrandField)) ==
+                row.itemValue) {
               session.set(gearBrandField, record.manufacturer);
             }
           case CatalogueOfferFieldKind.model:
-            if (!row.startTicked || _blank(session.valueOf(gearModelField))) {
+            if (catalogueComparableText(session.valueOf(gearModelField)) ==
+                row.itemValue) {
               session.set(gearModelField, record.model);
             }
           case CatalogueOfferFieldKind.attribute:
             final field = gearAttributeField(row.fieldName);
             final current = session.valueOf(field);
             final value = record.attributeFor(row.fieldName);
-            if (value == null) continue;
-            if (row.startTicked && current != null && current.hasContent) {
+            if (value == null ||
+                catalogueComparableValue(current) != row.itemValue) {
               continue;
             }
             session.set(

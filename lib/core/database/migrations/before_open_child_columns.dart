@@ -117,7 +117,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // whole row.
     await _assertDiveCenterLogoColumn();
 
-    // v388: equipment.catalogue_id and equipment.catalogue_answers (issue
+    // v394: equipment.catalogue_id and equipment.catalogue_answers (issue
     // #5118). Every equipment read selects the whole row.
     await _assertEquipmentCatalogueColumns();
   }

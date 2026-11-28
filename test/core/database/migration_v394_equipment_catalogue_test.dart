@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v388: equipment.catalogue_id and equipment.catalogue_answers, an
+/// Schema v394: equipment.catalogue_id and equipment.catalogue_answers, an
 /// item's link to its equipment catalogue record and what the diver settled
 /// about catalogue records for it (issue #5118). Nullable, never backfilled.
 void main() {
@@ -41,10 +41,10 @@ void main() {
           .map((row) => row.read<String>('name'))
           .toList();
 
-  test('v388 is in the ladder and keeps the floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(388));
-    expect(AppDatabase.migrationVersions, contains(388));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(388));
+  test('v394 is in the ladder and keeps the floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(394));
+    expect(AppDatabase.migrationVersions, contains(394));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(394));
   });
 
   test('upgrading adds the columns and leaves existing rows empty', () async {

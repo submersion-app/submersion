@@ -63,13 +63,18 @@ String? _blankToNull(String? value) {
 
 /// The comparable value of an item's curated attribute, or null when the
 /// item has none with content.
-Object? _attributeValue(EquipmentItem item, String key) {
-  final attr = item.attributes.firstWhereOrNull(
-    (a) => !a.isCustom && a.key == key,
-  );
-  if (attr == null || !attr.hasContent) return null;
-  return _valueOf(attr);
-}
+Object? _attributeValue(EquipmentItem item, String key) =>
+    catalogueComparableValue(
+      item.attributes.firstWhereOrNull((a) => !a.isCustom && a.key == key),
+    );
+
+/// An attribute's value as an offer row holds it ([CatalogueOfferRow.itemValue]),
+/// or null when it has no content.
+Object? catalogueComparableValue(EquipmentAttribute? attr) =>
+    attr == null || !attr.hasContent ? null : _valueOf(attr);
+
+/// A brand or model as an offer row holds it: trimmed, or null when blank.
+String? catalogueComparableText(String? value) => _blankToNull(value);
 
 Object? _valueOf(EquipmentAttribute attr) =>
     _blankToNull(attr.valueText) ?? attr.valueNum;

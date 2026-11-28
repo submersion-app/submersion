@@ -153,4 +153,28 @@ void main() {
       'shearwater-perdix-2',
     });
   });
+
+  test(
+    'a ticked differing value keeps a value changed after the sheet opened',
+    () {
+      session = EditSession(_item(attributes: [_console]));
+      final offer = offerFor(session.working, _perdix);
+      // The value changes in the sitting after the comparison was made.
+      session.set(
+        gearAttributeField('mount'),
+        const EquipmentAttribute(
+          id: 'a',
+          equipmentId: 'e1',
+          key: 'mount',
+          valueText: 'hud',
+        ),
+      );
+      holdGearCatalogueReview(
+        session,
+        offer,
+        const GearCatalogueApply({'mount'}),
+      );
+      expect(_text(session, 'mount'), 'hud');
+    },
+  );
 }
