@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -39,6 +40,7 @@ final _notes = EditField<_Rec, String>(
 const _field = ValueKey('a field');
 const _otherField = ValueKey('a field on a page above');
 const _secondField = ValueKey('a second field');
+const _readOnlyField = ValueKey('a read-only field');
 
 /// The app as it runs: a router, so the system Back goes through its back
 /// button dispatcher before any route hears of it. Home pushes the guarded
@@ -76,6 +78,7 @@ Future<RecordEditController<_Rec>> _open(
               children: [
                 const TextField(key: _field),
                 const TextField(key: _secondField),
+                const TextField(key: _readOnlyField, readOnly: true),
                 TextButton(
                   onPressed: () => Navigator.of(context).push(
                     MaterialPageRoute<void>(
@@ -242,6 +245,35 @@ void main() {
     controller.unlock(const _Rec());
     controller.session!.set(_notes, 'changed');
     await _typeIn(tester, _field, keyboardUp: false);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Discard changes?'), findsOneWidget);
+  });
+
+  testWidgets('a Back right after a hardware keyboard moves focus to a '
+      'field, which opens no keyboard, asks', (tester) async {
+    final controller = await _open(tester);
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'changed');
+    await tester.sendKeyEvent(LogicalKeyboardKey.shiftLeft);
+    await _typeIn(tester, _field, keyboardUp: false, settle: false);
+
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Discard changes?'), findsOneWidget);
+  });
+
+  testWidgets('a Back right after tapping a read-only field, which opens no '
+      'keyboard, asks', (tester) async {
+    final controller = await _open(tester);
+    controller.unlock(const _Rec());
+    controller.session!.set(_notes, 'changed');
+    await tester.tap(find.byKey(_readOnlyField));
+    await tester.pump();
+    expect(_focused(tester, _readOnlyField), isTrue);
 
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();

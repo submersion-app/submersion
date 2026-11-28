@@ -184,12 +184,17 @@ class _SystemBackClosesKeyboardState extends State<_SystemBackClosesKeyboard>
     _keyboardMoved();
   }
 
-  /// A field taking focus with the keyboard down is the keyboard about to
-  /// open, before the window has moved. With it already up, moving from
-  /// field to field moves nothing, and the next Back is the diver's.
+  /// A field tapped with the keyboard down is the keyboard about to open,
+  /// before the window has moved. With it already up, moving from field to
+  /// field moves nothing, and the next Back is the diver's. So is a Back
+  /// after a field opens no keyboard: a read-only one, or one reached with a
+  /// mouse or a hardware keyboard, which the focus highlight mode tells.
   void _onFocusChanged() {
     if (!mounted || View.of(context).viewInsets.bottom > 0) return;
-    if (_page.hasFocus && _isField(FocusManager.instance.primaryFocus)) {
+    if (FocusManager.instance.highlightMode != FocusHighlightMode.touch) {
+      return;
+    }
+    if (_page.hasFocus && _opensKeyboard(FocusManager.instance.primaryFocus)) {
       _keyboardMoved();
     }
   }
@@ -205,8 +210,18 @@ class _SystemBackClosesKeyboardState extends State<_SystemBackClosesKeyboard>
       (ModalRoute.of(context)?.isCurrent ?? true) &&
       FocusScope.of(context).hasFocus;
 
-  static bool _isField(FocusNode? node) =>
-      node?.context?.findAncestorStateOfType<EditableTextState>() != null;
+  static bool _isField(FocusNode? node) => _editable(node) != null;
+
+  static EditableTextState? _editable(FocusNode? node) =>
+      node?.context?.findAncestorStateOfType<EditableTextState>();
+
+  /// Whether focus on [node] puts the on-screen keyboard up.
+  static bool _opensKeyboard(FocusNode? node) {
+    final field = _editable(node)?.widget;
+    return field != null &&
+        !field.readOnly &&
+        field.keyboardType != TextInputType.none;
+  }
 
   Future<bool> _onSystemBack() async {
     // The keyboard is opening or closing: the Back came with it, not from
