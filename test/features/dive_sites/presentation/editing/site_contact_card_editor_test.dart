@@ -53,6 +53,13 @@ void main() {
     expect(keyboard('email'), TextInputType.emailAddress);
     expect(keyboard('website'), TextInputType.url);
     expect(tester.widget<EditableText>(field('address')).maxLines, 4);
+    // The address spans lines, so Return starts a new one (review).
+    expect(keyboard('address'), TextInputType.multiline);
+    await tester.showKeyboard(field('address'));
+    expect(
+      tester.testTextInput.setClientArgs!['inputAction'],
+      TextInputAction.newline.toString(),
+    );
   });
 
   testWidgets('a bad email or website is refused, with the reason', (

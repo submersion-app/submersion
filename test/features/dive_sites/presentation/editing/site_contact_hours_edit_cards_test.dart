@@ -81,5 +81,10 @@ void main() {
       ),
       isFalse,
     );
+    // Hours from a newer version with nothing this one reads (review).
+    expect(
+      hours.isEmpty(site.copyWith(openingHours: OpeningHours.empty)),
+      isTrue,
+    );
   });
 }

@@ -65,19 +65,60 @@ Future<void> openSiteDirections(
   );
 }
 
-/// A phone number as a `tel:` link: digits, with a leading plus kept. A
-/// "(0)" written after the country code is the national trunk digit, not
-/// part of the international number, and anything from the first letter or
-/// `#` on is an extension ("ext. 12", "x7"), which a dialler cannot take.
+/// A phone number as a `tel:` link: its digits, with a plus before them
+/// kept.
+///
+/// - A "(0)" written after the country code is the national trunk digit,
+///   not part of the international number.
+/// - An extension after a marker ("ext. 12", "x7", "#12") is dropped: a
+///   dialler cannot take it.
+/// - Capitals are a vanity number's letters ("1-800-SCUBA-GO") and dial
+///   their keypad digits; the first word with a small letter after the
+///   digits ("(office)") ends the number, and a label before them ("Tel:")
+///   is skipped.
 Uri phoneUri(String phone) {
-  final trimmed = phone.trim().replaceAll(RegExp(r'\(\s*0\s*\)'), '');
-  final number = trimmed.split(RegExp(r'[A-Za-z#]')).first;
-  final digits = number.replaceAll(RegExp(r'[^0-9]'), '');
-  return Uri(
-    scheme: 'tel',
-    path: trimmed.startsWith('+') ? '+$digits' : digits,
-  );
+  final text = phone
+      .trim()
+      .replaceAll(RegExp(r'\(\s*0\s*\)'), '')
+      .replaceFirst(_phoneExtension, '');
+  final first = text.indexOf(RegExp(r'\d'));
+  if (first < 0) return Uri(scheme: 'tel', path: '');
+  final plus = RegExp(r'\+\s*$').hasMatch(text.substring(0, first));
+  final rest = text.substring(first);
+  final note = RegExp(r'[A-Za-z]*[a-z][A-Za-z]*').firstMatch(rest);
+  final number = note == null ? rest : rest.substring(0, note.start);
+  final digits = StringBuffer();
+  for (final char in number.split('')) {
+    if (RegExp(r'\d').hasMatch(char)) {
+      digits.write(char);
+    } else if (_keypad[char] case final digit?) {
+      digits.write(digit);
+    }
+  }
+  return Uri(scheme: 'tel', path: plus ? '+$digits' : '$digits');
 }
+
+/// An extension at the end of a number, after its marker. An X inside a
+/// word ("FIX") is a vanity letter, so the marker must not follow a letter.
+final RegExp _phoneExtension = RegExp(
+  r'\s*(?:(?<![A-Za-z])(?:ext|extn|extension|x)\.?|#)\s*\d*\s*$',
+  caseSensitive: false,
+);
+
+/// The digit each capital shares a key with on a phone keypad.
+final Map<String, String> _keypad = {
+  for (final (letters, digit) in const [
+    ('ABC', '2'),
+    ('DEF', '3'),
+    ('GHI', '4'),
+    ('JKL', '5'),
+    ('MNO', '6'),
+    ('PQRS', '7'),
+    ('TUV', '8'),
+    ('WXYZ', '9'),
+  ])
+    for (final letter in letters.split('')) letter: digit,
+};
 
 /// A website as shown: no scheme, no trailing slash.
 String displayWebsite(String website) => website

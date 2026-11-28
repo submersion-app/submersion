@@ -153,13 +153,13 @@ void main() {
             'opening_hours': {
               'schedules': [
                 {
+                  'name': '  Summer ',
                   'days': {
                     'sat': [
+                      [900, 960],
                       [600, 840],
-                      [900, 800],
                     ],
                   },
-                  'junk': 1,
                 },
               ],
             },
@@ -173,13 +173,75 @@ void main() {
         'alwaysOpen': false,
         'schedules': [
           {
+            'name': 'Summer',
             'days': {
               'sat': [
                 [600, 840],
+                [900, 960],
               ],
             },
           },
         ],
+      });
+    });
+
+    // Validated, not trimmed to what reads: a part left out would change
+    // what the site says without the agent knowing (review).
+    group('opening hours with a part that cannot be read are refused', () {
+      Object? parse(Object? raw) => writes.fields['opening_hours']!.parse(raw);
+      Map<String, Object?> withSchedule(Map<String, Object?> schedule) => {
+        'v': 1,
+        'schedules': [schedule],
+      };
+
+      test('a range that closes before it opens', () {
+        expect(
+          () => parse(
+            withSchedule({
+              'days': {
+                'sat': [
+                  [900, 800],
+                ],
+              },
+            }),
+          ),
+          throwsA(isA<FieldRefusal>()),
+        );
+      });
+
+      test('a season it cannot read', () {
+        expect(
+          () => parse(
+            withSchedule({
+              'season': {'start': '4-1', 'end': '10-31'},
+              'days': {'sat': '24h'},
+            }),
+          ),
+          throwsA(isA<FieldRefusal>()),
+        );
+      });
+
+      test('a day or key it does not know', () {
+        expect(
+          () => parse(
+            withSchedule({
+              'days': {'monday': '24h'},
+            }),
+          ),
+          throwsA(isA<FieldRefusal>()),
+        );
+        expect(
+          () => parse({'v': 1, 'always_open': true, 'alwaysOpen': true}),
+          throwsA(isA<FieldRefusal>()),
+        );
+      });
+
+      // A newer version would be stored as sent, unchecked.
+      test('a version other than this one', () {
+        expect(
+          () => parse({'v': 2, 'alwaysOpen': true}),
+          throwsA(isA<FieldRefusal>()),
+        );
       });
     });
   });

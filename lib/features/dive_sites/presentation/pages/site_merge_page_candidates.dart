@@ -169,7 +169,7 @@ mixin _SiteMergeCandidates on _SiteMergeFields {
     _openingHours = _pick(
       'openingHours',
       _openingHoursCandidates,
-      (v) => v != null,
+      (v) => v != null && !v.isEmpty,
     );
 
     // Each site's whole list is one candidate (issue #2054); lists are

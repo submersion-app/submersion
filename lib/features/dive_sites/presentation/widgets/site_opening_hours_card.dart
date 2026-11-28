@@ -38,7 +38,8 @@ class SiteOpeningHoursCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hours = site.openingHours;
-    if (hours == null) return const SizedBox.shrink();
+    // Hours from a newer version can hold nothing this one shows.
+    if (hours == null || hours.isEmpty) return const SizedBox.shrink();
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final units = ref.watch(unitFormatterProvider);

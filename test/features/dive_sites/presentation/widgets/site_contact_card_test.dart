@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/util/maps_link.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/features/dive_sites/presentation/helpers/site_link_la
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_contact_card.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
@@ -147,14 +149,22 @@ void main() {
   });
 
   group('on the site page', () {
-    Future<void> pumpPage(WidgetTester tester, DiveSite site) async {
+    Future<void> pumpPage(
+      WidgetTester tester,
+      DiveSite site, {
+      AppSettings? settings,
+    }) async {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(600, 900);
       addTearDown(tester.view.reset);
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            ...await getBaseOverrides(),
+            ...await getBaseOverrides(
+              settingsNotifier: settings == null
+                  ? null
+                  : MockSettingsNotifier(settings),
+            ),
             ...overrides(),
             siteProvider(site.id).overrideWith((_) async => site),
             siteDiveCountProvider(site.id).overrideWith((_) async => 0),
@@ -196,6 +206,36 @@ void main() {
       expect(launched.single.toString(), 'geo:12.1,-68.9?q=12.1,-68.9(Pier)');
     });
 
+    // With the Contact card switched off, the pin is the only place left
+    // for directions; they still go to the address (review).
+    testWidgets('a hidden Contact card leaves directions on the pin', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        stoney,
+        settings: AppSettings(
+          siteDetailSections: [
+            for (final s in SiteDetailSectionConfig.defaultSections)
+              s.id == SiteDetailSectionId.contact
+                  ? SiteDetailSectionConfig(id: s.id, visible: false)
+                  : s,
+          ],
+        ),
+      );
+
+      final button = find.byKey(const ValueKey('site_location_directions'));
+      await tester.scrollUntilVisible(
+        button,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(find.byType(SiteContactCard), findsNothing);
+      await tester.tap(button);
+      await tester.pump();
+      expect(launched.single.queryParameters['q'], 'Stoney Cove, LE9 4DW');
+    });
+
     testWidgets('a site with an address shows the card, not the pin button', (
       tester,
     ) async {
@@ -222,6 +262,26 @@ void main() {
     test('stops before an extension', () {
       expect(phoneUri('01455 273089 ext. 12').toString(), 'tel:01455273089');
       expect(phoneUri('+1 555-0100 x7').toString(), 'tel:+15550100');
+      expect(phoneUri('+1 555-0100 X7').toString(), 'tel:+15550100');
+      expect(phoneUri('01455 273089 #12').toString(), 'tel:01455273089');
+    });
+
+    // A vanity number dials its keypad digits, not the digits before its
+    // first letter (review).
+    test('dials the keypad digits of a vanity number', () {
+      expect(phoneUri('1-800-SCUBA-GO').toString(), 'tel:18007282246');
+      expect(phoneUri('+1 800 DIVE NOW').toString(), 'tel:+18003483669');
+      // A letter X inside a word is a digit, not an extension.
+      expect(phoneUri('1-800-FIX-TANK').toString(), 'tel:18003498265');
+    });
+
+    test('stops at a note after the number, and skips a label before it', () {
+      expect(
+        phoneUri('+44 1455 273089 (office)').toString(),
+        'tel:+441455273089',
+      );
+      expect(phoneUri('Tel: +44 1455 273089').toString(), 'tel:+441455273089');
+      expect(phoneUri('+1 (555) 010-0100').toString(), 'tel:+15550100100');
     });
   });
 }

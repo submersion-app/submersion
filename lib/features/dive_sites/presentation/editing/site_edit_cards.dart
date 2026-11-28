@@ -153,7 +153,8 @@ final Map<SiteDetailSectionId, EditCard<DiveSite>> siteEditCards = {
       size: 20,
       color: Theme.of(context).colorScheme.primary,
     ),
-    isEmpty: (site) => site.openingHours == null,
+    // Hours from a newer version can hold nothing this one shows.
+    isEmpty: (site) => site.openingHours?.isEmpty ?? true,
     isValid: siteOpeningHoursIsValid,
     editorBuilder: (context, session) =>
         SiteOpeningHoursCardEditor(session: session),

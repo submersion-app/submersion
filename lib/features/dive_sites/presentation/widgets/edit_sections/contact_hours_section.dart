@@ -58,7 +58,7 @@ class ContactHoursSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final hours = openingHours;
-    final hoursSummary = hours == null
+    final hoursSummary = hours == null || hours.isEmpty
         ? l10n.diveSites_hours_noSchedule
         : openingHoursSummary(l10n, hours);
     final extras = openingHoursExtras;
@@ -72,7 +72,9 @@ class ContactHoursSection extends StatelessWidget {
           key: 'address',
           label: l10n.diveSites_edit_contact_address_label,
           controller: addressController,
-          keyboard: TextInputType.streetAddress,
+          // The address spans lines: Return must start a new one, which
+          // only the multiline keyboard does.
+          keyboard: TextInputType.multiline,
           maxLines: 3,
         ),
         _row(

@@ -1399,8 +1399,8 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
                           : null,
                     ),
                   ),
-                  if (SitePinDirectionsButton.shownFor(site))
-                    SitePinDirectionsButton(site: site),
+                  // It decides for itself, from the section settings.
+                  if (site.hasCoordinates) SitePinDirectionsButton(site: site),
                 ],
               ),
             ],

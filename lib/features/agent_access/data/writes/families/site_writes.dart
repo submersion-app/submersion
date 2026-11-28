@@ -479,11 +479,27 @@ class SiteWrites extends WritableEntry {
   }
 }
 
-/// An agent's opening hours object, read the way the app reads stored hours
-/// and written back in the stored form; one with nothing readable in it is
-/// refused, since null is how hours are cleared.
+/// An agent's opening hours object, validated and written back in the
+/// stored form. Refused when any part cannot be read (rather than saved
+/// without it, which would change what the site says unseen), when it is
+/// not this version (a newer one is stored as sent), or when it holds
+/// nothing, since null is how hours are cleared.
 Map<String, Object?> _openingHoursJson(Map<String, Object?> raw) {
-  final encoded = encodeOpeningHours(decodeOpeningHours(jsonEncode(raw)));
+  final version = raw['v'];
+  if (version != null && version != 1) {
+    throw FieldRefusal(
+      'Opening hours are written as version 1; this is version $version.',
+    );
+  }
+  final dropped = <String>[];
+  final hours = decodeOpeningHours(jsonEncode(raw), onDrop: dropped.add);
+  if (dropped.isNotEmpty) {
+    throw FieldRefusal(
+      'These opening hours have parts that cannot be read: '
+      '${dropped.join('; ')}.',
+    );
+  }
+  final encoded = encodeOpeningHours(hours);
   if (encoded == null) {
     throw const FieldRefusal(
       'These opening hours hold nothing readable; send null to clear them.',

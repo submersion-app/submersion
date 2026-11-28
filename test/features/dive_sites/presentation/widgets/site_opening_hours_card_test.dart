@@ -54,6 +54,16 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  // Hours from a newer version with nothing this one reads (review).
+  testWidgets('hours with nothing to show leave no card', (tester) async {
+    await pumpCard(
+      tester,
+      const DiveSite(id: 's', name: 'S', openingHours: OpeningHours.empty),
+      now: DateTime.utc(2026, 7, 4, 12),
+    );
+    expect(find.byType(Card), findsNothing);
+  });
+
   testWidgets('open now is read in the site time zone', (tester) async {
     // Saturday 28 Nov 2026 15:00 UTC is 10:00 in Florida (UTC-5): open,
     // though the same instant in London is 15:00, after closing.

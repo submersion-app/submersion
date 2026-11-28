@@ -70,7 +70,7 @@ String _format(
       return units.formatDate(day);
     case FieldKind.openingHours:
       final hours = value is String ? decodeOpeningHours(value) : null;
-      return hours == null
+      return hours == null || hours.isEmpty
           ? l10n.settings_conflict_changed
           : openingHoursSummary(l10n, hours);
     case FieldKind.timeOfDay:

@@ -96,7 +96,9 @@ class _SiteContactCardEditorState extends State<SiteContactCardEditor> {
           siteAddressField,
           label: l10n.diveSites_edit_contact_address_label,
           hint: l10n.diveSites_edit_contact_address_hint,
-          keyboard: TextInputType.streetAddress,
+          // The address spans lines: Return must start a new one, which
+          // only the multiline keyboard does.
+          keyboard: TextInputType.multiline,
           maxLines: 4,
         ),
         row(

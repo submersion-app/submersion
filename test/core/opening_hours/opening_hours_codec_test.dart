@@ -162,6 +162,21 @@ void main() {
       expect(map.containsKey('holidays'), isFalse);
     });
 
+    // Nothing this version reads is still something to keep (review).
+    test('with nothing this version reads is kept, and shows as none', () {
+      const raw = '{"v":2,"holidays":["12-25"]}';
+      final hours = decodeOpeningHours(raw);
+      expect(hours, isNotNull);
+      expect(hours!.isEmpty, isTrue);
+      expect(encodeOpeningHours(hours), raw);
+    });
+
+    test('reports no unknown keys: they are its own', () {
+      final dropped = <String>[];
+      decodeOpeningHours(newer(), onDrop: dropped.add);
+      expect(dropped, isEmpty);
+    });
+
     test('a v1 value is re-encoded, not kept as stored', () {
       final map =
           jsonDecode(encodeOpeningHours(_specExample())!)
@@ -169,6 +184,62 @@ void main() {
       map['foo'] = 1;
       final hours = decodeOpeningHours(jsonEncode(map));
       expect(jsonDecode(encodeOpeningHours(hours)!), isNot(contains('foo')));
+    });
+  });
+
+  // What decoding leaves out, for a caller that must refuse it (review).
+  group('onDrop', () {
+    List<String> dropsOf(Object json) {
+      final dropped = <String>[];
+      decodeOpeningHours(jsonEncode(json), onDrop: dropped.add);
+      return dropped;
+    }
+
+    test('reports a bad range, season or day', () {
+      expect(
+        dropsOf({
+          'v': 1,
+          'schedules': [
+            {
+              'season': {'start': '4-1', 'end': '10-31'},
+              'days': {
+                'sat': [
+                  [900, 800],
+                ],
+                'sun': 'closed',
+              },
+            },
+          ],
+        }),
+        hasLength(3),
+      );
+    });
+
+    test('reports a key this version does not know', () {
+      expect(
+        dropsOf({
+          'v': 1,
+          'always_open': true,
+          'schedules': [
+            {
+              'seasons': <String, Object?>{},
+              'days': {
+                'monday': [
+                  [540, 1020],
+                ],
+              },
+            },
+          ],
+        }),
+        hasLength(3),
+      );
+    });
+
+    test('reports nothing for a clean value', () {
+      expect(
+        dropsOf(jsonDecode(encodeOpeningHours(_specExample())!) as Map),
+        [],
+      );
     });
   });
 
