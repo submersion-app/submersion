@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/sync/held_media_export.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/nearby/nearby_carrier.dart';
@@ -208,6 +209,37 @@ void main() {
     expect(phone.engine.recordedApplied.single.high, fakeHlc(50, 'L'));
     expect(pOut.applied, 1);
   });
+
+  // Issue #5122: media kept with no place stays away from a peer whose
+  // build would delete it, and goes to one that keeps it.
+  for (final (schema, holds) in [
+    (heldMediaSchemaVersion - 1, true),
+    (heldMediaSchemaVersion, false),
+  ]) {
+    test(
+      'a delta to a peer at schema $schema holds kept media: $holds',
+      () async {
+        final laptop = await device(
+          'L',
+          peerId: 'P',
+          marks: {'L': fakeHlc(50, 'L')},
+        );
+        final phone = await device(
+          'P',
+          peerId: 'L',
+          identity: _id('P', schema: schema),
+          marks: {'L': fakeHlc(20, 'L')},
+          marksAfterApply: {'L': fakeHlc(50, 'L')},
+        );
+        laptop.engine.delta = fakeTagsPayload([('new', fakeHlc(50, 'L'))]);
+
+        final (lOut, _) = await session(laptop, phone);
+
+        expect(lOut.error, isNull);
+        expect(laptop.engine.holdRequests, [holds]);
+      },
+    );
+  }
 
   test(
     'a caught-up pair exchanges nothing but still records the session',

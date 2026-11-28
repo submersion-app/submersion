@@ -68,8 +68,15 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
   @override
   Future<int> deltaBlobBytes(String watermark) async => blobBytes;
 
+  /// The `holdUnplacedMedia` each export was asked for, in order.
+  final holdRequests = <bool>[];
+
   @override
-  Future<SyncPayload> exportDelta(String watermark) async {
+  Future<SyncPayload> exportDelta(
+    String watermark, {
+    bool holdUnplacedMedia = true,
+  }) async {
+    holdRequests.add(holdUnplacedMedia);
     exportDeltaCalls.add(watermark);
     return delta!;
   }
@@ -78,7 +85,8 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
   Duration exportDelay = Duration.zero;
 
   @override
-  Future<StreamedBase> exportFull() async {
+  Future<StreamedBase> exportFull({bool holdUnplacedMedia = true}) async {
+    holdRequests.add(holdUnplacedMedia);
     exportFullCalls++;
     if (exportDelay > Duration.zero) await Future<void>.delayed(exportDelay);
     final file = File(

@@ -29,11 +29,17 @@ abstract class NearbySyncEngine {
 
   int get maxDeltaBlobBytes;
 
-  Future<SyncPayload> exportDelta(String watermark);
+  /// [holdUnplacedMedia] leaves out media kept with no place, for a peer
+  /// whose build would delete it (issue #5122).
+  Future<SyncPayload> exportDelta(
+    String watermark, {
+    bool holdUnplacedMedia = true,
+  });
 
   /// A full copy, gzipped as it streams so it is never on disk plain as
   /// well (issue #4256). The caller owns and deletes the file.
-  Future<StreamedBase> exportFull();
+  /// [holdUnplacedMedia] as in [exportDelta].
+  Future<StreamedBase> exportFull({bool holdUnplacedMedia = true});
 
   Future<NearbyApplyResult> applyPayload(
     SyncPayload payload, {
@@ -137,22 +143,27 @@ class DatabaseNearbySyncEngine implements NearbySyncEngine {
       _serializer.pendingSeriesBlobBytes(watermark);
 
   @override
-  Future<SyncPayload> exportDelta(String watermark) async =>
-      _serializer.exportChangeset(
-        deviceId: await _repo.getDeviceId(),
-        hlcWatermark: watermark,
-        deletions: await _repo.getAllDeletions(),
-        epochId: await _epochId(),
-        childrenByOwnClock: true,
-      );
-
-  @override
-  Future<StreamedBase> exportFull() async => _serializer.exportBaseToTempFile(
+  Future<SyncPayload> exportDelta(
+    String watermark, {
+    bool holdUnplacedMedia = true,
+  }) async => _serializer.exportChangeset(
     deviceId: await _repo.getDeviceId(),
+    hlcWatermark: watermark,
     deletions: await _repo.getAllDeletions(),
     epochId: await _epochId(),
-    gzipped: true,
+    childrenByOwnClock: true,
+    holdUnplacedMedia: holdUnplacedMedia,
   );
+
+  @override
+  Future<StreamedBase> exportFull({bool holdUnplacedMedia = true}) async =>
+      _serializer.exportBaseToTempFile(
+        deviceId: await _repo.getDeviceId(),
+        deletions: await _repo.getAllDeletions(),
+        epochId: await _epochId(),
+        gzipped: true,
+        holdUnplacedMedia: holdUnplacedMedia,
+      );
 
   Future<DateTime?> _lastSync(String peerDeviceId) async {
     final at = (await _peers.get(peerDeviceId))?.lastSyncedAt;

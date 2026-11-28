@@ -107,6 +107,11 @@ class ChangesetWriter {
     /// nothing to say writes none, and a heartbeat reports none: it re-carries
     /// a nonce it read back and never minted.
     Future<void> Function(String nonce)? onManifestNonce,
+
+    /// Leaves media kept with no place, and its children, out of the export
+    /// (issue #5122): on unless the caller knows no device in the library
+    /// would delete them. See `held_media_export.dart`.
+    bool holdUnplacedMedia = true,
   }) async {
     final providerId = provider.providerId;
     final ownManifest = await _readOwnManifest(provider, folderId, deviceId);
@@ -205,6 +210,7 @@ class ChangesetWriter {
           epochId: epochId,
           uploadNonce: uploadNonce,
           seq: newSeq,
+          holdUnplacedMedia: holdUnplacedMedia,
         );
         rowCount = base.rowCount;
         // Nothing to say -- except under [forceBase], where the point of the
@@ -333,6 +339,7 @@ class ChangesetWriter {
       // A relayed child edit (a tank on an older dive) is not pending here,
       // and its parent sits below the floor: only its own clock finds it.
       childrenByOwnClock: relaying,
+      holdUnplacedMedia: holdUnplacedMedia,
     );
     if (_isEmpty(payload)) {
       await _clearRelayFloorRead(providerId, relayFloor);
@@ -460,6 +467,7 @@ class ChangesetWriter {
         deviceName: deviceName,
         appliedPeerHlc: appliedPeerHlc,
         onBasePartUploaded: onBasePartUploaded,
+        holdUnplacedMedia: holdUnplacedMedia,
         onManifestNonce: onManifestNonce,
       );
       return ChangesetWriteResult(ChangesetWriteKind.compacted, compSeq, now);
@@ -573,6 +581,11 @@ class ChangesetWriter {
     String? deviceName,
     void Function(int uploaded, int total)? onBasePartUploaded,
     Future<void> Function(String nonce)? onManifestNonce,
+
+    /// Leaves media kept with no place, and its children, out of the export
+    /// (issue #5122): on unless the caller knows no device in the library
+    /// would delete them. See `held_media_export.dart`.
+    bool holdUnplacedMedia = true,
   }) async {
     // The fresh base must carry the full deletion log: a peer that still holds
     // a since-deleted record and cold-starts from this base (its prior
@@ -592,6 +605,7 @@ class ChangesetWriter {
       epochId: epochId,
       uploadNonce: uploadNonce,
       seq: compSeq,
+      holdUnplacedMedia: holdUnplacedMedia,
     );
     final BasePartUploadResult upload;
     try {

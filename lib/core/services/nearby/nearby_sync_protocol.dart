@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/services/sync/held_media_export.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/nearby_crypto.dart';
@@ -490,13 +491,22 @@ class NearbySyncProtocol {
         kind = NearbyExportKind.full;
       }
     }
+    // Media kept with no place stays away from a peer whose build would
+    // delete it (issue #5122). A full copy kept for reuse is this peer's
+    // own, and a peer never moves to an older build, so reusing one is safe.
+    // Rows the cloud held back earlier reach a newer peer here only once
+    // the cloud releases them (which stamps them again) or in a full copy.
+    final holdUnplacedMedia =
+        _channel.peer.schemaVersion < heldMediaSchemaVersion;
     switch (kind) {
       case NearbyExportKind.nothing:
         return null;
       case NearbyExportKind.full:
         final reused = await _files.reusableFull(_peerId);
         if (reused != null) return reused;
-        final base = await _engine.exportFull();
+        final base = await _engine.exportFull(
+          holdUnplacedMedia: holdUnplacedMedia,
+        );
         final exported = File(base.path);
         try {
           return await _files.prepareFull(_peerId, const Uuid().v4(), exported);
@@ -508,7 +518,10 @@ class NearbySyncProtocol {
         }
       case NearbyExportKind.delta:
         final payload = await NearbyExportPlanner.filterByWriter(
-          await _engine.exportDelta(from!),
+          await _engine.exportDelta(
+            from!,
+            holdUnplacedMedia: holdUnplacedMedia,
+          ),
           theirs,
         );
         if (_isEmpty(payload)) return null;
