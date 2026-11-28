@@ -42699,7 +42699,37 @@ class AppLocalizationsDe extends AppLocalizations {
       'Von Quittung oder Etikett, nicht die Seriennummer';
 
   @override
-  String get attrLabel_retailer => 'Händler';
+  String get settings_conflict_ref_soldBy => 'Verkauft von';
+
+  @override
+  String get equipment_seller_kindBuddy => 'Buddy';
+
+  @override
+  String get equipment_seller_kindDiveCenter => 'Tauchbasis';
+
+  @override
+  String equipment_seller_keepTyped(String name) {
+    return '„$name“ wie eingegeben übernehmen';
+  }
+
+  @override
+  String get equipment_seller_clear => 'Verkäufer entfernen';
+
+  @override
+  String equipment_boughtFrom_title(String name) {
+    return 'Gekauft von $name';
+  }
+
+  @override
+  String get equipment_boughtHere_title => 'Hier gekauft';
+
+  @override
+  String equipment_boughtFrom_showAll(int count) {
+    return 'Alle anzeigen ($count)';
+  }
+
+  @override
+  String get attrLabel_retailer => 'Verkäufer';
 
   @override
   String get attrLabel_product_url => 'Weblink';

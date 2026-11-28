@@ -3587,6 +3587,10 @@ class SyncService {
     // in. Nullable: deleting the parent orphans the child, never drops it.
     'equipment': [
       (field: 'parentEquipmentId', parent: 'equipment', nullable: true),
+      // v397: who sold the item (issue #5140). Cleared, not skipped: the
+      // item outlives its seller, whose name stays in `retailer`.
+      (field: 'sellerBuddyId', parent: 'buddies', nullable: true),
+      (field: 'sellerDiveCenterId', parent: 'diveCenters', nullable: true),
     ],
     'diveTanks': [
       (field: 'diveId', parent: 'dives', nullable: false),

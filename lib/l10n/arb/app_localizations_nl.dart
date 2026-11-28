@@ -42510,6 +42510,36 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrHelper_sku => 'Van de bon of het etiket, niet het serienummer';
 
   @override
+  String get settings_conflict_ref_soldBy => 'Verkocht door';
+
+  @override
+  String get equipment_seller_kindBuddy => 'Buddy';
+
+  @override
+  String get equipment_seller_kindDiveCenter => 'Duikcentrum';
+
+  @override
+  String equipment_seller_keepTyped(String name) {
+    return '\"$name\" behouden zoals getypt';
+  }
+
+  @override
+  String get equipment_seller_clear => 'Verkoper wissen';
+
+  @override
+  String equipment_boughtFrom_title(String name) {
+    return 'Gekocht van $name';
+  }
+
+  @override
+  String get equipment_boughtHere_title => 'Hier gekocht';
+
+  @override
+  String equipment_boughtFrom_showAll(int count) {
+    return 'Alles tonen ($count)';
+  }
+
+  @override
   String get attrLabel_retailer => 'Verkoper';
 
   @override

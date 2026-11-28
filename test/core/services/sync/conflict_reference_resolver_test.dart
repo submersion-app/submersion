@@ -170,6 +170,9 @@ void main() {
       ('diveEquipment', 'viaEquipmentId'): 'equipment',
       ('diveEquipment', 'viaSetId'): 'equipmentSets',
       ('equipment', 'parentEquipmentId'): 'equipment',
+      // Who sold a gear item (issue #5140).
+      ('equipment', 'sellerBuddyId'): 'buddies',
+      ('equipment', 'sellerDiveCenterId'): 'diveCenters',
       ('equipmentComponents', 'componentEquipmentId'): 'equipment',
       ('transmitters', 'transmitterEquipmentId'): 'equipment',
       ('tripEquipment', 'bagEquipmentId'): 'equipment',

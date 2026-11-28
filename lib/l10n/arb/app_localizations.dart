@@ -66798,10 +66798,58 @@ abstract class AppLocalizations {
   /// **'From the receipt or product label, not the serial number'**
   String get attrHelper_sku;
 
+  /// Conflict dialog label for the buddy or dive center a gear item was bought from
+  ///
+  /// In en, this message translates to:
+  /// **'Sold by'**
+  String get settings_conflict_ref_soldBy;
+
+  /// Tag on a Seller suggestion that is one of the diver's buddies
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy'**
+  String get equipment_seller_kindBuddy;
+
+  /// Tag on a Seller suggestion that is a saved dive center
+  ///
+  /// In en, this message translates to:
+  /// **'Dive center'**
+  String get equipment_seller_kindDiveCenter;
+
+  /// Seller suggestion that keeps the typed text as the seller name instead of linking a buddy or dive center
+  ///
+  /// In en, this message translates to:
+  /// **'Keep \"{name}\" as typed'**
+  String equipment_seller_keepTyped(String name);
+
+  /// Tooltip of the button that removes the linked seller from a gear item
+  ///
+  /// In en, this message translates to:
+  /// **'Clear seller'**
+  String get equipment_seller_clear;
+
+  /// Heading on a buddy page above the gear bought from that buddy
+  ///
+  /// In en, this message translates to:
+  /// **'Bought from {name}'**
+  String equipment_boughtFrom_title(String name);
+
+  /// Heading on a dive center page above the gear bought there
+  ///
+  /// In en, this message translates to:
+  /// **'Bought here'**
+  String get equipment_boughtHere_title;
+
+  /// Button that expands the bought-gear list to every item; count is the total
+  ///
+  /// In en, this message translates to:
+  /// **'Show all ({count})'**
+  String equipment_boughtFrom_showAll(int count);
+
   /// No description provided for @attrLabel_retailer.
   ///
   /// In en, this message translates to:
-  /// **'Retailer'**
+  /// **'Seller'**
   String get attrLabel_retailer;
 
   /// No description provided for @attrLabel_product_url.

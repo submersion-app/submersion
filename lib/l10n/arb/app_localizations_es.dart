@@ -42818,6 +42818,36 @@ class AppLocalizationsEs extends AppLocalizations {
       'Del recibo o la etiqueta, no el número de serie';
 
   @override
+  String get settings_conflict_ref_soldBy => 'Vendido por';
+
+  @override
+  String get equipment_seller_kindBuddy => 'Compañero';
+
+  @override
+  String get equipment_seller_kindDiveCenter => 'Centro de buceo';
+
+  @override
+  String equipment_seller_keepTyped(String name) {
+    return 'Mantener «$name» tal cual';
+  }
+
+  @override
+  String get equipment_seller_clear => 'Quitar vendedor';
+
+  @override
+  String equipment_boughtFrom_title(String name) {
+    return 'Comprado a $name';
+  }
+
+  @override
+  String get equipment_boughtHere_title => 'Comprado aquí';
+
+  @override
+  String equipment_boughtFrom_showAll(int count) {
+    return 'Mostrar todo ($count)';
+  }
+
+  @override
   String get attrLabel_retailer => 'Vendedor';
 
   @override

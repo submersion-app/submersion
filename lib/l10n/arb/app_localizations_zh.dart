@@ -40193,7 +40193,37 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrHelper_sku => '见收据或标签，并非序列编号';
 
   @override
-  String get attrLabel_retailer => '零售商';
+  String get settings_conflict_ref_soldBy => '卖家';
+
+  @override
+  String get equipment_seller_kindBuddy => '潜伴';
+
+  @override
+  String get equipment_seller_kindDiveCenter => '潜店';
+
+  @override
+  String equipment_seller_keepTyped(String name) {
+    return '保留输入的“$name”';
+  }
+
+  @override
+  String get equipment_seller_clear => '清除卖家';
+
+  @override
+  String equipment_boughtFrom_title(String name) {
+    return '从$name购买';
+  }
+
+  @override
+  String get equipment_boughtHere_title => '在此购买';
+
+  @override
+  String equipment_boughtFrom_showAll(int count) {
+    return '显示全部（$count）';
+  }
+
+  @override
+  String get attrLabel_retailer => '卖家';
 
   @override
   String get attrLabel_product_url => '网页链接';

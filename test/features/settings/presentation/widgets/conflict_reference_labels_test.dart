@@ -165,6 +165,8 @@ void main() {
         ('componentEquipmentId', 'equipment', 'Component'),
         ('transmitterEquipmentId', 'equipment', 'Transmitter'),
         ('bagEquipmentId', 'equipment', 'Packed in'),
+        ('sellerBuddyId', 'buddies', 'Sold by'),
+        ('sellerDiveCenterId', 'diveCenters', 'Sold by'),
         ('linkedDiverId', 'divers', 'Same person as'),
       ]) {
         expect(

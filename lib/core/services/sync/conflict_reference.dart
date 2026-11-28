@@ -146,6 +146,9 @@ class ConflictReferenceResolver {
     'viaEquipmentId': 'equipment',
     'viaSetId': 'equipmentSets',
     'parentEquipmentId': 'equipment',
+    // Who sold a gear item (issue #5140).
+    'sellerBuddyId': 'buddies',
+    'sellerDiveCenterId': 'diveCenters',
     'cylinderAId': 'equipment',
     'cylinderBId': 'equipment',
     'componentEquipmentId': 'equipment',

@@ -49,5 +49,8 @@ EquipmentItem cloneFormSeed(
     customReminderEnabled: source.customReminderEnabled,
     customReminderDays: source.customReminderDays,
     parentEquipmentId: source.parentEquipmentId,
+    // With the retailer name it stands beside (issue #5140).
+    sellerBuddyId: source.sellerBuddyId,
+    sellerDiveCenterId: source.sellerDiveCenterId,
   );
 }
