@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_seller_rules.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_color_queries.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_visibility_queries.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
@@ -354,6 +355,8 @@ class EquipmentRepository {
     EquipmentItem equipment, {
     bool notify = true,
   }) async {
+    // One seller at most (issue #5140).
+    await applySellerRules(_db, stored: null, next: equipment);
     try {
       _log.info('Creating equipment: ${equipment.name}');
       final id = equipment.id.isEmpty ? _uuid.v4() : equipment.id;
@@ -511,10 +514,14 @@ class EquipmentRepository {
       _db.transaction(action);
 
   /// Update equipment. [notify] as for [createEquipment].
-  Future<void> updateEquipment(
-    EquipmentItem equipment, {
-    bool notify = true,
-  }) async {
+  Future<void> updateEquipment(EquipmentItem item, {bool notify = true}) async {
+    // A retailer changed by anything but the Seller field drops the seller
+    // links (issue #5140).
+    final equipment = await applySellerRules(
+      _db,
+      stored: await getEquipmentById(item.id),
+      next: item,
+    );
     try {
       _log.info('Updating equipment: ${equipment.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
