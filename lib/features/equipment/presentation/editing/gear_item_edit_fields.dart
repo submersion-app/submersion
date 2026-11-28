@@ -284,11 +284,20 @@ final gearCatalogueAnswersField =
 
 /// [item] with the catalogue link it keeps at Save: dropped when [catalogue]
 /// holds the linked record and the item's brand and model no longer name
-/// it ([catalogueIdAfterRename]). The values taken from it stay.
+/// it ([catalogueIdAfterRename]). The values taken from it stay. With
+/// [stored], the rule applies only when the sitting changed the brand or
+/// the model: a later catalogue that respells a model must not unlink an
+/// item whose name the diver did not touch.
 EquipmentItem gearItemCatalogueAtSave(
   EquipmentItem item,
-  EquipmentCatalogue catalogue,
-) {
+  EquipmentCatalogue catalogue, {
+  EquipmentItem? stored,
+}) {
+  if (stored != null &&
+      _sameText(stored.brand, item.brand) &&
+      _sameText(stored.model, item.model)) {
+    return item;
+  }
   final kept = catalogueIdAfterRename(item, catalogue);
   return kept == item.catalogueId ? item : _with(item, catalogueId: kept);
 }

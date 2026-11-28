@@ -93,6 +93,7 @@ mixin GearItemSittingHost<W extends ConsumerStatefulWidget>
         apply: (stored) => gearItemCatalogueAtSave(
           gearItemToSave(stored, session.applyTo(stored)),
           catalogue,
+          stored: stored,
         ),
         changedCardIds: session.changedCardIds,
         alsoWrite: session.hasHeldWrites ? session.runHeldWrites : null,

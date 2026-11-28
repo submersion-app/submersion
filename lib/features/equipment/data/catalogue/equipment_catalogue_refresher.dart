@@ -7,7 +7,7 @@ import 'package:submersion/features/equipment/domain/catalogue/equipment_catalog
 
 const _log = LoggerService('EquipmentCatalogueRefresher');
 
-/// When the last good download happened, in Unix milliseconds. Per device.
+/// When the last download was tried, in Unix milliseconds. Per device.
 const String kEquipmentCatalogueFetchedAtKey = 'equipment_catalogue_fetched_at';
 
 /// How far ahead of this device's clock a catalogue's `generatedAt` may be
@@ -73,6 +73,13 @@ class EquipmentCatalogueRefresher {
             kEquipmentCatalogueRefreshInterval) {
       return false;
     }
+    // Any attempt counts toward the day: a 404, an unreadable file or no
+    // network waits until tomorrow too, so a failing release is not asked
+    // for on every resume.
+    await _prefs.setInt(
+      kEquipmentCatalogueFetchedAtKey,
+      now.millisecondsSinceEpoch,
+    );
     try {
       final body = await _fetch();
       if (body == null) {
@@ -95,10 +102,6 @@ class EquipmentCatalogueRefresher {
         return false;
       }
       await _writeCache(body);
-      await _prefs.setInt(
-        kEquipmentCatalogueFetchedAtKey,
-        now.millisecondsSinceEpoch,
-      );
       return true;
     } on Exception catch (e) {
       _log.warning('Equipment catalogue download failed: $e');

@@ -82,7 +82,9 @@ class GearManufacturerCard extends ConsumerWidget {
                     key: const ValueKey('gear-manufacturer-menu'),
                     itemBuilder: (_) => [
                       PopupMenuItem<void>(
-                        onTap: () => _unlink(ref),
+                        onTap: () => _unlink(
+                          ProviderScope.containerOf(context, listen: false),
+                        ),
                         child: Text(l10n.equipment_manufacturer_unlink),
                       ),
                     ],
@@ -109,14 +111,17 @@ class GearManufacturerCard extends ConsumerWidget {
 
   /// Clears the link through the item's save service, so it is one History
   /// entry like any edit; the values taken from the record stay.
-  Future<void> _unlink(WidgetRef ref) async {
-    final service = ref.read(gearItemEditSaveServiceProvider);
+  ///
+  /// Through [container], taken before the write: the card may be gone by
+  /// the time it finishes (it hides once the link is cleared).
+  Future<void> _unlink(ProviderContainer container) async {
+    final service = container.read(gearItemEditSaveServiceProvider);
     await service.save(
       equipmentId: item.id,
       apply: (stored) => gearCatalogueIdField.write(stored, null),
       changedCardIds: [GearItemCardId.details.name],
     );
-    ref.invalidate(equipmentItemProvider(item.id));
+    container.invalidate(equipmentItemProvider(item.id));
   }
 }
 

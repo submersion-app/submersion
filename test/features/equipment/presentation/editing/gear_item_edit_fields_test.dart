@@ -56,6 +56,40 @@ void main() {
     );
   });
 
+  test('a Save that leaves brand and model alone keeps the link', () {
+    final catalogue = EquipmentCatalogue(
+      EquipmentCatalogueFile(
+        format: 1,
+        generatedAt: DateTime.utc(2026, 11, 27),
+        records: const [
+          EquipmentCatalogueRecord(
+            id: 'shearwater-perdix-2',
+            manufacturer: 'Shearwater',
+            model: 'Perdix 2',
+            type: EquipmentType.computer,
+          ),
+        ],
+      ),
+    );
+    // Typed under a spelling a later catalogue no longer lists.
+    const stored = EquipmentItem(
+      id: 'e1',
+      name: 'Perdix',
+      type: EquipmentType.computer,
+      brand: 'Shearwater',
+      model: 'Perdix II',
+      catalogueId: 'shearwater-perdix-2',
+    );
+    expect(
+      gearItemCatalogueAtSave(
+        gearNotesField.write(stored, 'new note'),
+        catalogue,
+        stored: stored,
+      ).catalogueId,
+      'shearwater-perdix-2',
+    );
+  });
+
   test('editing any field keeps the catalogue link and answers', () {
     final answers = EquipmentCatalogueAnswers.empty.withNotSame('mares-quad');
     final item = EquipmentItem(

@@ -124,7 +124,13 @@ void main() {
     test('keeps the cache when the body is malformed', () async {
       expect(await refresher(body: '{nope').refreshIfDue(), isFalse);
       expect(written, isEmpty);
-      expect(prefs.getInt(kEquipmentCatalogueFetchedAtKey), isNull);
+    });
+
+    test('an attempt that keeps nothing still waits a day', () async {
+      expect(await refresher().refreshIfDue(), isFalse);
+      expect(fetches, 1);
+      expect(await refresher().refreshIfDue(), isFalse);
+      expect(fetches, 1);
     });
 
     test('keeps the cache when the format is unsupported', () async {
@@ -173,13 +179,19 @@ void main() {
       expect(written, isEmpty);
     });
 
-    test('a failed download is swallowed and retried next time', () async {
-      expect(
-        await refresher(error: Exception('offline')).refreshIfDue(),
-        isFalse,
-      );
-      expect(written, isEmpty);
-      expect(prefs.getInt(kEquipmentCatalogueFetchedAtKey), isNull);
-    });
+    test(
+      'a failed download is swallowed and tried again a day later',
+      () async {
+        expect(
+          await refresher(error: Exception('offline')).refreshIfDue(),
+          isFalse,
+        );
+        expect(written, isEmpty);
+        expect(
+          prefs.getInt(kEquipmentCatalogueFetchedAtKey),
+          now.millisecondsSinceEpoch,
+        );
+      },
+    );
   });
 }
