@@ -28,8 +28,10 @@ final libraryDocumentStamperProvider = Provider<LibraryDocumentStamper>(
 /// personal site, or a library the profile does not belong to.
 final siteLibraryViewProvider =
     FutureProvider.family<DocumentLibraryView?, String>((ref, siteId) async {
-      // Roles, names and read-only state change with each library sync.
+      // Roles, names and read-only state change with each library sync, and
+      // a personal site joins a library with its first library state.
       await ref.watch(sharedLibrariesProvider.future);
+      await ref.watch(siteLibraryStateProvider(siteId).future);
       final libraryId = await ref
           .watch(libraryDocumentStamperProvider)
           .libraryOfSite(siteId);
@@ -48,11 +50,8 @@ final siteLibraryViewProvider =
 
 /// This device's library state of shared document [documentId]: who last
 /// edited it, and when.
-final documentLibraryStateProvider =
-    StreamProvider.family<SharedDocumentState?, String>((
-      ref,
-      documentId,
-    ) async* {
+final documentLibraryStateProvider = StreamProvider.autoDispose
+    .family<SharedDocumentState?, String>((ref, documentId) async* {
       final store = ref.watch(sharedLibraryStoreProvider);
       yield await store.getDocumentState(documentId);
       await for (final _ in store.watchDocumentStates()) {

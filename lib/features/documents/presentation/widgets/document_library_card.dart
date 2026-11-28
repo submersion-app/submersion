@@ -59,10 +59,25 @@ class DocumentLibraryCard extends ConsumerWidget {
         subtitle: Text(attribution ?? l10n.documents_libraryShare_hint),
         value: document.isShared,
         onChanged: enabled
-            ? (on) => on ? _share(ref, view) : _unshare(context, ref, view)
+            ? (on) => _guarded(
+                context,
+                on ? _share(ref, view) : _unshare(context, ref, view),
+              )
             : null,
       ),
     );
+  }
+
+  /// Runs [action], saying so when it fails (the site left the library
+  /// meanwhile, say) rather than leaving the switch silently unchanged.
+  Future<void> _guarded(BuildContext context, Future<void> action) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.l10n.common_error_tryAgain;
+    try {
+      await action;
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+    }
   }
 
   /// "Last edited by NAME, DATE" from the newest clock, or null.

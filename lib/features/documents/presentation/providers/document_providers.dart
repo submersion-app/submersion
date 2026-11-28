@@ -8,6 +8,7 @@ import 'package:submersion/features/documents/query/document_query_entity.dart';
 import 'package:submersion/features/query/presentation/providers/narrow_by_ids.dart';
 import 'package:submersion/core/database/compaction/database_compaction_monitor.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/document_expiry.dart';
@@ -77,6 +78,22 @@ final filteredDocumentsProvider = Provider<AsyncValue<List<DocumentListEntry>>>(
   ),
 );
 
+/// [documentQueryEntity] without its diver scope: a shared library
+/// document belongs to no diver. The list it narrows is already the
+/// diver's libraries' documents, so nothing else is reached.
+final _sharedDocumentQueryEntity = QueryEntity(
+  subject: documentQueryEntity.subject,
+  table: documentQueryEntity.table,
+  idColumn: documentQueryEntity.idColumn,
+  scopesHopsToDiver: documentQueryEntity.scopesHopsToDiver,
+  fields: documentQueryEntity.fields,
+  relations: documentQueryEntity.relations,
+  textSearchSql: documentQueryEntity.textSearchSql,
+  textSearchTables: documentQueryEntity.textSearchTables,
+  textSearchExpansions: documentQueryEntity.textSearchExpansions,
+  plainWords: documentQueryEntity.plainWords,
+);
+
 /// [sharedLibraryDocumentsProvider] narrowed by the Documents page's query,
 /// as [filteredDocumentsProvider] narrows the diver's own (issue #4713).
 final filteredSharedLibraryDocumentsProvider =
@@ -84,7 +101,7 @@ final filteredSharedLibraryDocumentsProvider =
       (ref) => narrowByQuery(
         ref,
         ref.watch(sharedLibraryDocumentsProvider),
-        documentQueryEntity,
+        _sharedDocumentQueryEntity,
         ref.watch(documentQueryProvider),
         (e) => e.document.id,
       ),
