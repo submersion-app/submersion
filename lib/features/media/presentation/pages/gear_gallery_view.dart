@@ -20,6 +20,7 @@ import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 
 /// Media's Equipment gallery (issue #3355): every photo of the gear the
 /// viewing diver can see, identification and check-in photos alike, grouped
@@ -80,6 +81,7 @@ class _GearGalleryViewState extends ConsumerState<GearGalleryView> {
       context,
       group.items,
       item.id,
+      unlinkScope: ViewerUnlinkScope.gear,
       captionFor: (m) => switch (checkIns[m.observationId]) {
         final o? => l10n.equipment_photos_checkInCaption(
           o.displayTitle(l10n),

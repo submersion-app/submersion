@@ -22151,6 +22151,49 @@ class AppLocalizationsHu extends AppLocalizations {
       'A feloldás óta egy másik merülésre került. Válaszd a Mégse gombot, majd oldd fel újra.';
 
   @override
+  String get media_viewer_unlinkFromDive => 'Leválasztás a merülésről';
+
+  @override
+  String get media_viewer_unlinkFromSite => 'Leválasztás a merülőhelyről';
+
+  @override
+  String get media_viewer_unlinkFromGear => 'Leválasztás a felszerelésről';
+
+  @override
+  String get media_viewer_unlink => 'Leválasztás';
+
+  @override
+  String get media_viewer_unlinkHeldDive =>
+      'Mentéskor leválik erről a merülésről';
+
+  @override
+  String get media_viewer_unlinkHeldSite =>
+      'Mentéskor leválik erről a merülőhelyről';
+
+  @override
+  String get media_viewer_unlinkHeldGear =>
+      'Mentéskor leválik erről a felszerelésről';
+
+  @override
+  String get media_viewer_unlinkHeldLibrary =>
+      'Mentéskor kikerül a médiatárból';
+
+  @override
+  String get media_viewer_unlinkUndo => 'Visszavonás';
+
+  @override
+  String get media_viewer_unlinkConfirmDiveBody =>
+      'Eltávolítja ezt az elemet a médiatárból, a felhőmásolatokkal és bélyegképekkel együtt, kivéve ha egy merülőhely vagy felszerelés még használja. Az eredeti fájl érintetlen marad.';
+
+  @override
+  String get media_viewer_unlinkConfirmSiteBody =>
+      'Eltávolítja ezt az elemet a médiatárból, a felhőmásolatokkal és bélyegképekkel együtt, kivéve ha egy merülés vagy felszerelés még használja. Az eredeti fájl érintetlen marad.';
+
+  @override
+  String get media_viewer_unlinkConfirmGearBody =>
+      'Eltávolítja ezt az elemet a médiatárból, a felhőmásolatokkal és bélyegképekkel együtt, kivéve ha egy merülés vagy merülőhely még használja. Az eredeti fájl érintetlen marad.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'A megtalált fájl azóta megváltozott vagy máshová került. Keresd meg újra, vagy válaszd a Mégse gombot.';
 
@@ -56567,6 +56610,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_editCard_color => 'Szín';
+
+  @override
+  String get media_editCard_unlink => 'Leválasztás';
 
   @override
   String get media_editCard_details => 'Részletek';

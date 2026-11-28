@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
+import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
 import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -80,6 +82,22 @@ void main() {
     expect(find.text('XTX50 regulator'), findsOneWidget);
     expect(find.text('2 photos'), findsOneWidget);
     expect(find.byType(MediaThumbnailTile), findsNWidgets(2));
+  });
+
+  testWidgets('a photo opens the viewer unlinking from its gear (#5126)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(await host(data: groups));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(MediaThumbnailTile).first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(
+      tester.widget<MediaViewerPage>(find.byType(MediaViewerPage)).unlinkScope,
+      ViewerUnlinkScope.gear,
+    );
   });
 
   testWidgets('check-in photos carry the badge', (tester) async {

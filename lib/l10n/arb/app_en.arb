@@ -14000,6 +14000,54 @@
   "@media_viewer_movedWhileEditing": {
     "description": "Shown when Save is refused because the photo or video being edited was moved to another dive (on another device, or by a sync) after the diver unlocked it. Cancel ends the sitting; unlocking again starts one on the new dive."
   },
+  "media_viewer_unlinkFromDive": "Unlink from dive",
+  "@media_viewer_unlinkFromDive": {
+    "description": "Media viewer editing bar action, opened from a dive: unlinks the photo or video from its dive at Save."
+  },
+  "media_viewer_unlinkFromSite": "Unlink from site",
+  "@media_viewer_unlinkFromSite": {
+    "description": "Media viewer editing bar action, opened from a site's media: unlinks the item from the site at Save."
+  },
+  "media_viewer_unlinkFromGear": "Unlink from gear",
+  "@media_viewer_unlinkFromGear": {
+    "description": "Media viewer editing bar action, opened from gear photos: unlinks the item from the gear item at Save."
+  },
+  "media_viewer_unlink": "Unlink",
+  "@media_viewer_unlink": {
+    "description": "Media viewer editing bar action, opened from the media library or map: removes the item from the library at Save."
+  },
+  "media_viewer_unlinkHeldDive": "Will be unlinked from this dive when you save",
+  "@media_viewer_unlinkHeldDive": {
+    "description": "Strip over a photo whose unlink from its dive is held until the diver saves."
+  },
+  "media_viewer_unlinkHeldSite": "Will be unlinked from this site when you save",
+  "@media_viewer_unlinkHeldSite": {
+    "description": "Strip over an item whose unlink from its site is held until the diver saves."
+  },
+  "media_viewer_unlinkHeldGear": "Will be unlinked from this gear item when you save",
+  "@media_viewer_unlinkHeldGear": {
+    "description": "Strip over an item whose unlink from its gear item is held until the diver saves."
+  },
+  "media_viewer_unlinkHeldLibrary": "Will be removed from your library when you save",
+  "@media_viewer_unlinkHeldLibrary": {
+    "description": "Strip over an item whose removal from the library is held until the diver saves."
+  },
+  "media_viewer_unlinkUndo": "Undo",
+  "@media_viewer_unlinkUndo": {
+    "description": "Button on that strip: drops the held unlink and keeps the item."
+  },
+  "media_viewer_unlinkConfirmDiveBody": "Removes this item from your library, along with its cloud copies and thumbnails, unless a dive site or gear item still uses it. Your original file is not affected.",
+  "@media_viewer_unlinkConfirmDiveBody": {
+    "description": "Body of the media viewer's question before it holds unlinking the one item on screen from its dive. An item a dive site or gear item still uses is kept, with only its dive link cleared."
+  },
+  "media_viewer_unlinkConfirmSiteBody": "Removes this item from your library, along with its cloud copies and thumbnails, unless a dive or gear item still uses it. Your original file is not affected.",
+  "@media_viewer_unlinkConfirmSiteBody": {
+    "description": "Body of the media viewer's question before it holds unlinking the one item on screen from its site. An item a dive or gear item still uses is kept, with only its site link cleared."
+  },
+  "media_viewer_unlinkConfirmGearBody": "Removes this item from your library, along with its cloud copies and thumbnails, unless a dive or dive site still uses it. Your original file is not affected.",
+  "@media_viewer_unlinkConfirmGearBody": {
+    "description": "Body of the media viewer's question before it holds unlinking the one item on screen from its gear item. An item a dive or dive site still uses is kept, with only its gear link cleared."
+  },
   "media_viewer_locatedFileChanged": "The file you located has changed or moved since. Locate it again, or cancel.",
   "@media_viewer_locatedFileChanged": {
     "description": "Shown when Save is refused because the file found with Locate file was deleted, moved or edited after it was found. Locating it again holds the file as it is now; Cancel drops the relink."
@@ -34078,6 +34126,10 @@
   "media_editCard_color": "Color",
   "@media_editCard_color": {
     "description": "What a photo's editing sitting changed, in its History entry: its colour adjustment."
+  },
+  "media_editCard_unlink": "Unlink",
+  "@media_editCard_unlink": {
+    "description": "What a photo's editing sitting changed, in its History entry: it was unlinked."
   },
   "media_editCard_details": "Details",
   "@media_editCard_details": {

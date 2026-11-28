@@ -193,6 +193,8 @@ class MediaViewerToolbar extends ConsumerWidget {
     this.onReupload,
     this.onAdjustColor,
     this.onUnlock,
+    this.onUnlinkMedia,
+    this.unlinkLabel,
     this.writeControls = true,
     this.writeMetadataDisabledReason,
     this.editBar,
@@ -247,6 +249,13 @@ class MediaViewerToolbar extends ConsumerWidget {
 
   /// Unlocks the photo for editing (issue #4527); null offers no lock.
   final VoidCallback? onUnlock;
+
+  /// Holds unlinking the item, from the editing bar (issue #5126); null
+  /// offers no Unlink.
+  final VoidCallback? onUnlinkMedia;
+
+  /// What the Unlink action is called: what it unlinks the item from.
+  final String? unlinkLabel;
 
   /// Whether the actions that change the photo (species, people, adjust
   /// colour) are offered: false while the photo is locked.
@@ -392,6 +401,16 @@ class MediaViewerToolbar extends ConsumerWidget {
         // points at it (or at the overflow button when shared from the menu).
         onPressed: (anchor) => onShare(shareAnchorFrom(anchor)),
       ),
+      // Last of all, so a phone keeps the actions it showed before this was
+      // added, and Unlink waits in the overflow menu (issue #5126).
+      if (onUnlinkMedia != null && !readOnly && editBar != null)
+        MediaViewerAction(
+          id: 'unlink',
+          icon: Icons.link_off,
+          label: unlinkLabel ?? l10n.media_viewer_unlink,
+          priority: 10,
+          onPressed: (_) => onUnlinkMedia!(),
+        ),
       if (onReupload != null && !readOnly)
         MediaViewerAction(
           id: 'reupload',

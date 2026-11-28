@@ -179,6 +179,7 @@ String _photoChangeName(AppLocalizations l, String id) => switch (id) {
   photoDetailsCardId => l.media_editCard_details,
   photoTagsCardId => l.media_info_tags,
   photoFileCardId => l.media_info_fileSection,
+  photoUnlinkCardId => l.media_editCard_unlink,
   _ => id,
 };
 

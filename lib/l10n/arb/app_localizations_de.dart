@@ -22223,6 +22223,49 @@ class AppLocalizationsDe extends AppLocalizations {
       'Seit dem Entsperren in einen anderen Tauchgang verschoben. Brich ab und entsperre erneut.';
 
   @override
+  String get media_viewer_unlinkFromDive => 'Vom Tauchgang trennen';
+
+  @override
+  String get media_viewer_unlinkFromSite => 'Vom Tauchplatz trennen';
+
+  @override
+  String get media_viewer_unlinkFromGear => 'Von der Ausrüstung trennen';
+
+  @override
+  String get media_viewer_unlink => 'Trennen';
+
+  @override
+  String get media_viewer_unlinkHeldDive =>
+      'Wird beim Speichern vom Tauchgang getrennt';
+
+  @override
+  String get media_viewer_unlinkHeldSite =>
+      'Wird beim Speichern vom Tauchplatz getrennt';
+
+  @override
+  String get media_viewer_unlinkHeldGear =>
+      'Wird beim Speichern vom Ausrüstungsteil getrennt';
+
+  @override
+  String get media_viewer_unlinkHeldLibrary =>
+      'Wird beim Speichern aus deiner Mediathek entfernt';
+
+  @override
+  String get media_viewer_unlinkUndo => 'Rückgängig';
+
+  @override
+  String get media_viewer_unlinkConfirmDiveBody =>
+      'Entfernt dieses Element samt Cloud-Kopien und Miniaturansichten aus deiner Mediathek, außer ein Tauchplatz oder Ausrüstungsteil verwendet es noch. Deine Originaldatei bleibt unberührt.';
+
+  @override
+  String get media_viewer_unlinkConfirmSiteBody =>
+      'Entfernt dieses Element samt Cloud-Kopien und Miniaturansichten aus deiner Mediathek, außer ein Tauchgang oder Ausrüstungsteil verwendet es noch. Deine Originaldatei bleibt unberührt.';
+
+  @override
+  String get media_viewer_unlinkConfirmGearBody =>
+      'Entfernt dieses Element samt Cloud-Kopien und Miniaturansichten aus deiner Mediathek, außer ein Tauchgang oder Tauchplatz verwendet es noch. Deine Originaldatei bleibt unberührt.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'Die gefundene Datei wurde seitdem geändert oder verschoben. Suche sie erneut oder brich ab.';
 
@@ -56765,6 +56808,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_editCard_color => 'Farbe';
+
+  @override
+  String get media_editCard_unlink => 'Trennen';
 
   @override
   String get media_editCard_details => 'Details';

@@ -21916,6 +21916,49 @@ class AppLocalizationsEn extends AppLocalizations {
       'Moved to another dive since you unlocked it. Cancel, then unlock it again.';
 
   @override
+  String get media_viewer_unlinkFromDive => 'Unlink from dive';
+
+  @override
+  String get media_viewer_unlinkFromSite => 'Unlink from site';
+
+  @override
+  String get media_viewer_unlinkFromGear => 'Unlink from gear';
+
+  @override
+  String get media_viewer_unlink => 'Unlink';
+
+  @override
+  String get media_viewer_unlinkHeldDive =>
+      'Will be unlinked from this dive when you save';
+
+  @override
+  String get media_viewer_unlinkHeldSite =>
+      'Will be unlinked from this site when you save';
+
+  @override
+  String get media_viewer_unlinkHeldGear =>
+      'Will be unlinked from this gear item when you save';
+
+  @override
+  String get media_viewer_unlinkHeldLibrary =>
+      'Will be removed from your library when you save';
+
+  @override
+  String get media_viewer_unlinkUndo => 'Undo';
+
+  @override
+  String get media_viewer_unlinkConfirmDiveBody =>
+      'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive site or gear item still uses it. Your original file is not affected.';
+
+  @override
+  String get media_viewer_unlinkConfirmSiteBody =>
+      'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive or gear item still uses it. Your original file is not affected.';
+
+  @override
+  String get media_viewer_unlinkConfirmGearBody =>
+      'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive or dive site still uses it. Your original file is not affected.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'The file you located has changed or moved since. Locate it again, or cancel.';
 
@@ -56021,6 +56064,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_editCard_color => 'Color';
+
+  @override
+  String get media_editCard_unlink => 'Unlink';
 
   @override
   String get media_editCard_details => 'Details';

@@ -701,6 +701,7 @@ class _RecordingPhotoSave extends Fake implements PhotoEditSaveService {
     bool alsoWriteIsAChange = false,
     ({String? id})? diveAtStart,
     String? siteAtStart,
+    String? equipmentAtStart,
   }) async {
     saves.add([...changedCardIds, 'site:$siteAtStart']);
     return null;

@@ -414,6 +414,7 @@ class _SlowSave extends Fake implements PhotoEditSaveService {
     bool alsoWriteIsAChange = false,
     ({String? id})? diveAtStart,
     String? siteAtStart,
+    String? equipmentAtStart,
   }) async {
     await release;
     return null;
@@ -433,5 +434,6 @@ class _GoneSave extends Fake implements PhotoEditSaveService {
     bool alsoWriteIsAChange = false,
     ({String? id})? diveAtStart,
     String? siteAtStart,
+    String? equipmentAtStart,
   }) async => throw PhotoGoneError(mediaId);
 }

@@ -49,6 +49,9 @@ class _PhotoGallery extends ConsumerStatefulWidget {
   /// The species the viewer follows (issue #5084), for the fullscreen bar.
   final String? focusSpeciesId;
 
+  /// Dimmed: the item's Unlink is held until Save (issue #5126).
+  final bool dimmed;
+
   const _PhotoGallery({
     required this.mediaList,
     required this.pageController,
@@ -67,6 +70,7 @@ class _PhotoGallery extends ConsumerStatefulWidget {
     this.hideIdentifications = false,
     this.videoControlsInset = 0,
     this.focusSpeciesId,
+    this.dimmed = false,
   });
 
   @override
@@ -117,7 +121,7 @@ class _PhotoGalleryState extends ConsumerState<_PhotoGallery> {
   Widget build(BuildContext context) {
     final mediaList = widget.mediaList;
     final people = widget.people;
-    return PhotoViewGallery.builder(
+    final gallery = PhotoViewGallery.builder(
       // Tag mode holds the page still, so dragging a box never swipes.
       scrollPhysics: people.active || widget.pagingLocked
           ? const NeverScrollableScrollPhysics()
@@ -146,6 +150,8 @@ class _PhotoGalleryState extends ConsumerState<_PhotoGallery> {
               minScale: PhotoViewComputedScale.contained,
               maxScale: PhotoViewComputedScale.contained,
               child: _ConnectorVideoItem(
+                // A page that comes to show another video starts afresh.
+                key: ValueKey(item.id),
                 item: item,
                 sitting: people.sitting,
                 fullscreen: widget.fullscreen,
@@ -158,6 +164,10 @@ class _PhotoGalleryState extends ConsumerState<_PhotoGallery> {
             minScale: PhotoViewComputedScale.contained,
             maxScale: PhotoViewComputedScale.contained, // No zoom for videos
             child: _VideoItem(
+              // Pages are built by index: when the list shifts under one (a
+              // saved Unlink, a delete elsewhere), the video now there gets a
+              // player of its own rather than the last one's (issue #5126).
+              key: ValueKey(item.id),
               item: item,
               isCurrent: index == widget.currentIndex,
               showOverlay: widget.showOverlay,
@@ -203,6 +213,9 @@ class _PhotoGalleryState extends ConsumerState<_PhotoGallery> {
       loadingBuilder: (context, event) =>
           const Center(child: CircularProgressIndicator(color: Colors.white54)),
     );
+    // Always wrapped, so dimming never changes the tree above the pager and
+    // costs it its pages; at full opacity it paints straight through.
+    return Opacity(opacity: widget.dimmed ? 0.45 : 1, child: gallery);
   }
 }
 
@@ -386,6 +399,7 @@ class _ConnectorVideoItem extends ConsumerWidget {
   final EditSession<PhotoRecord>? sitting;
 
   const _ConnectorVideoItem({
+    super.key,
     required this.item,
     this.sitting,
     this.fullscreen = false,

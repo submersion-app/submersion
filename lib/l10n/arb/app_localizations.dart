@@ -34977,6 +34977,78 @@ abstract class AppLocalizations {
   /// **'Moved to another dive since you unlocked it. Cancel, then unlock it again.'**
   String get media_viewer_movedWhileEditing;
 
+  /// Media viewer editing bar action, opened from a dive: unlinks the photo or video from its dive at Save.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink from dive'**
+  String get media_viewer_unlinkFromDive;
+
+  /// Media viewer editing bar action, opened from a site's media: unlinks the item from the site at Save.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink from site'**
+  String get media_viewer_unlinkFromSite;
+
+  /// Media viewer editing bar action, opened from gear photos: unlinks the item from the gear item at Save.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink from gear'**
+  String get media_viewer_unlinkFromGear;
+
+  /// Media viewer editing bar action, opened from the media library or map: removes the item from the library at Save.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get media_viewer_unlink;
+
+  /// Strip over a photo whose unlink from its dive is held until the diver saves.
+  ///
+  /// In en, this message translates to:
+  /// **'Will be unlinked from this dive when you save'**
+  String get media_viewer_unlinkHeldDive;
+
+  /// Strip over an item whose unlink from its site is held until the diver saves.
+  ///
+  /// In en, this message translates to:
+  /// **'Will be unlinked from this site when you save'**
+  String get media_viewer_unlinkHeldSite;
+
+  /// Strip over an item whose unlink from its gear item is held until the diver saves.
+  ///
+  /// In en, this message translates to:
+  /// **'Will be unlinked from this gear item when you save'**
+  String get media_viewer_unlinkHeldGear;
+
+  /// Strip over an item whose removal from the library is held until the diver saves.
+  ///
+  /// In en, this message translates to:
+  /// **'Will be removed from your library when you save'**
+  String get media_viewer_unlinkHeldLibrary;
+
+  /// Button on that strip: drops the held unlink and keeps the item.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get media_viewer_unlinkUndo;
+
+  /// Body of the media viewer's question before it holds unlinking the one item on screen from its dive. An item a dive site or gear item still uses is kept, with only its dive link cleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive site or gear item still uses it. Your original file is not affected.'**
+  String get media_viewer_unlinkConfirmDiveBody;
+
+  /// Body of the media viewer's question before it holds unlinking the one item on screen from its site. An item a dive or gear item still uses is kept, with only its site link cleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive or gear item still uses it. Your original file is not affected.'**
+  String get media_viewer_unlinkConfirmSiteBody;
+
+  /// Body of the media viewer's question before it holds unlinking the one item on screen from its gear item. An item a dive or dive site still uses is kept, with only its gear link cleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive or dive site still uses it. Your original file is not affected.'**
+  String get media_viewer_unlinkConfirmGearBody;
+
   /// Shown when Save is refused because the file found with Locate file was deleted, moved or edited after it was found. Locating it again holds the file as it is now; Cancel drops the relink.
   ///
   /// In en, this message translates to:
@@ -88997,6 +89069,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Color'**
   String get media_editCard_color;
+
+  /// What a photo's editing sitting changed, in its History entry: it was unlinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get media_editCard_unlink;
 
   /// What a photo's editing sitting changed, in its History entry: a site attachment's category and display size.
   ///

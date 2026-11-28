@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 
 /// Species-scoped wrapper around [MediaViewerPage]: resolves every photo
 /// tagged with the species reactively, then hands off. The viewer internals
@@ -32,6 +33,7 @@ class SpeciesPhotoViewerPage extends ConsumerWidget {
         initialMediaId: initialMediaId,
         // The gallery spans dives, so the viewer offers the jump to each.
         showGoToDive: true,
+        unlinkScope: ViewerUnlinkScope.dive,
       ),
       loading: () => const Scaffold(
         backgroundColor: Colors.black,

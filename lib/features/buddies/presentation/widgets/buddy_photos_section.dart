@@ -8,6 +8,7 @@ import 'package:submersion/features/media/presentation/pages/media_viewer_page.d
 import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 
 /// The photos and videos a buddy is tagged in (issue #1745), on the buddy
 /// page beside "Shared dives": the newest [maxTiles] in a three-column grid
@@ -77,6 +78,7 @@ class BuddyPhotosSection extends ConsumerWidget {
                           mediaList: items,
                           initialMediaId: item.id,
                           showGoToDive: true,
+                          unlinkScope: ViewerUnlinkScope.dive,
                         ),
                       ),
                     ),

@@ -21436,6 +21436,45 @@ class AppLocalizationsJa extends AppLocalizations {
       'ロックを解除した後に別のダイブへ移動されました。キャンセルしてから、もう一度ロックを解除してください。';
 
   @override
+  String get media_viewer_unlinkFromDive => 'ダイブとのリンクを解除';
+
+  @override
+  String get media_viewer_unlinkFromSite => 'ポイントとのリンクを解除';
+
+  @override
+  String get media_viewer_unlinkFromGear => '器材とのリンクを解除';
+
+  @override
+  String get media_viewer_unlink => 'リンクを解除';
+
+  @override
+  String get media_viewer_unlinkHeldDive => '保存するとこのダイブとのリンクが解除されます';
+
+  @override
+  String get media_viewer_unlinkHeldSite => '保存するとこのポイントとのリンクが解除されます';
+
+  @override
+  String get media_viewer_unlinkHeldGear => '保存するとこの器材とのリンクが解除されます';
+
+  @override
+  String get media_viewer_unlinkHeldLibrary => '保存するとライブラリから削除されます';
+
+  @override
+  String get media_viewer_unlinkUndo => '元に戻す';
+
+  @override
+  String get media_viewer_unlinkConfirmDiveBody =>
+      'このアイテムを、クラウド上のコピーやサムネイルとともにライブラリから削除します。ダイブサイトまたは器材で使用中の場合は残ります。元のファイルには影響しません。';
+
+  @override
+  String get media_viewer_unlinkConfirmSiteBody =>
+      'このアイテムを、クラウド上のコピーやサムネイルとともにライブラリから削除します。ダイブまたは器材で使用中の場合は残ります。元のファイルには影響しません。';
+
+  @override
+  String get media_viewer_unlinkConfirmGearBody =>
+      'このアイテムを、クラウド上のコピーやサムネイルとともにライブラリから削除します。ダイブまたはダイブサイトで使用中の場合は残ります。元のファイルには影響しません。';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       '指定したファイルはその後変更または移動されています。もう一度指定するか、キャンセルしてください。';
 
@@ -54555,6 +54594,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get media_editCard_color => '色';
+
+  @override
+  String get media_editCard_unlink => 'リンクを解除';
 
   @override
   String get media_editCard_details => '詳細';

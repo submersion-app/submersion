@@ -12,6 +12,7 @@ import 'package:submersion/features/media/presentation/pages/media_viewer_launch
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 
 /// The check-in editor's photos (issue #3355): what backs up this finding.
 ///
@@ -154,7 +155,12 @@ class CheckInPhotosRow extends ConsumerWidget {
                   fit: StackFit.expand,
                   children: [
                     GestureDetector(
-                      onTap: () => openMediaViewer(context, photos, photo.id),
+                      onTap: () => openMediaViewer(
+                        context,
+                        photos,
+                        photo.id,
+                        unlinkScope: ViewerUnlinkScope.gear,
+                      ),
                       child: MediaThumbnailTile(
                         item: photo,
                         settings: settings,

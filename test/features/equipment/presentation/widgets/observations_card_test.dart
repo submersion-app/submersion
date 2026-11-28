@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_near_miss_action.dart';
@@ -189,6 +191,26 @@ void main() {
     expect(find.byKey(const ValueKey('checkin_strip_o1')), findsOneWidget);
     expect(find.byKey(const ValueKey('checkin_strip_o2')), findsNothing);
     expect(find.byType(MediaThumbnailTile), findsNWidgets(2));
+
+    // Its photo opens the viewer unlinking from the gear item (#5126).
+    // The tile's own tap, called directly: the card's test harness does
+    // not route a simulated tap through to it.
+    tester
+        .widget<GestureDetector>(
+          find
+              .ancestor(
+                of: find.byType(MediaThumbnailTile).first,
+                matching: find.byType(GestureDetector),
+              )
+              .first,
+        )
+        .onTap!();
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(
+      tester.widget<MediaViewerPage>(find.byType(MediaViewerPage)).unlinkScope,
+      ViewerUnlinkScope.gear,
+    );
   });
 
   testWidgets('empty state names the section', (tester) async {

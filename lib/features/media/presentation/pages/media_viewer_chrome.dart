@@ -48,7 +48,8 @@ extension _ViewerChrome on _MediaViewerPageState {
           onShowInfo: () => showMediaInfoSheet(
             context,
             currentItem,
-            readOnly: photoLocked,
+            // Read-only too while an Unlink is held: the item is going.
+            readOnly: !photoEditable,
             sitting: photoSitting,
           ),
           // A photo held only in a dive's sitting has no row for the store to
@@ -73,7 +74,15 @@ extension _ViewerChrome on _MediaViewerPageState {
           onUnlock: !photoUnlocked && canUnlock(currentItem, storedPhoto)
               ? () => unlockPhoto(storedPhoto!)
               : null,
-          writeControls: !photoLocked,
+          onUnlinkMedia: canUnlinkPhoto(currentItem)
+              ? () => unawaited(unlinkPhotoHeld(currentItem))
+              : null,
+          unlinkLabel: switch (unlinkScope) {
+            final scope? => _unlinkLabelFor(context, scope),
+            null => null,
+          },
+          // Off while an Unlink is held: the photo is about to go.
+          writeControls: photoEditable,
           editBar: photoUnlocked
               ? MediaViewerEditBar(
                   title: currentItem.isVideo

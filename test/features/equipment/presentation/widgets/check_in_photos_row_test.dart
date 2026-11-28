@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
+import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
+import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/check_in_photos_row.dart';
@@ -61,6 +64,33 @@ void main() {
           const CheckInPhotosRow(equipmentId: 'reg-1', observationId: 'obs-1'),
     ),
   );
+
+  testWidgets('a photo opens the viewer unlinking from its gear (#5126)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(await host(photos: [photo]));
+    await tester.pumpAndSettle();
+
+    // The tile's own tap, called directly: a simulated tap does not reach
+    // it through this harness.
+    tester
+        .widget<GestureDetector>(
+          find
+              .ancestor(
+                of: find.byType(MediaThumbnailTile).first,
+                matching: find.byType(GestureDetector),
+              )
+              .first,
+        )
+        .onTap!();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(
+      tester.widget<MediaViewerPage>(find.byType(MediaViewerPage)).unlinkScope,
+      ViewerUnlinkScope.gear,
+    );
+  });
 
   testWidgets('the remove control is easy to hit yet leaves the tile', (
     tester,

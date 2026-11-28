@@ -10,6 +10,7 @@ import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/domain/entities/site_attachment_category.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/pages/site_media_viewer_page.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
@@ -159,5 +160,140 @@ void main() {
     expect(find.byKey(const ValueKey('viewer_unlock')), findsOneWidget);
     expect(find.byTooltip('Adjust color'), findsNothing);
     expect(find.byTooltip('Edit details'), findsNothing);
+  });
+
+  group('unlink (#5126)', () {
+    late RowDeletingCoordinator coordinator;
+    setUp(() => coordinator = RowDeletingCoordinator());
+
+    Future<void> pumpSiteUnlinkable(WidgetTester tester) => pumpViewerApp(
+      tester,
+      pushedFrom(
+        const SiteMediaViewerPage(
+          siteId: 's1',
+          initialMediaId: 'a1',
+          scope: SiteViewerScope.attachments,
+        ),
+      ),
+      overrides: [
+        mediaDeletionCoordinatorProvider.overrideWithValue(coordinator),
+      ],
+    );
+
+    Future<void> holdUnlink(WidgetTester tester) async {
+      await tester.tap(find.byKey(const ValueKey('viewer_unlink')));
+      await settleViewer(tester);
+      await tester.tap(find.byKey(const ValueKey('viewer_unlink_confirm')));
+      await settleViewer(tester);
+    }
+
+    testWidgets('held: the strip says the site, editing goes quiet', (
+      tester,
+    ) async {
+      await pumpSiteUnlinkable(tester);
+      await openPushed(tester);
+      await tapUnlock(tester);
+      expect(find.byTooltip('Unlink from site'), findsOneWidget);
+
+      await holdUnlink(tester);
+
+      expect(find.byKey(const ValueKey('viewer_unlink_strip')), findsOneWidget);
+      expect(
+        find.text('Will be unlinked from this site when you save'),
+        findsOneWidget,
+      );
+      expect(find.byTooltip('Adjust color'), findsNothing);
+      expect(find.byTooltip('Edit details'), findsNothing);
+      expect(find.byKey(const ValueKey('viewer_unlink')), findsNothing);
+    });
+
+    testWidgets('the dive photos taken here unlink from their dive', (
+      tester,
+    ) async {
+      await tester.runAsync(() async {
+        await insertTestDiver('me');
+        await insertTestDive(
+          id: 'd1',
+          at: DateTime(2024, 1, 10, 9),
+          siteId: 's1',
+          diverId: 'me',
+        );
+        await insertTestMedia(
+          id: 'p1',
+          diveId: 'd1',
+          takenAt: DateTime(2024, 1, 10, 9, 2),
+        );
+      });
+      await pumpViewerApp(
+        tester,
+        const SiteMediaViewerPage(
+          siteId: 's1',
+          initialMediaId: 'p1',
+          scope: SiteViewerScope.divePhotos,
+        ),
+      );
+      await tapUnlock(tester);
+
+      expect(find.byTooltip('Unlink from dive'), findsOneWidget);
+      expect(find.byTooltip('Unlink from site'), findsNothing);
+    });
+
+    testWidgets('Save unlinks it, and the next attachment shows', (
+      tester,
+    ) async {
+      await pumpSiteUnlinkable(tester);
+      await openPushed(tester);
+      await tapUnlock(tester);
+      await holdUnlink(tester);
+
+      await tester.tap(find.text('Save'));
+      await settleViewer(tester, rounds: 10);
+
+      expect(coordinator.deleted, ['a1']);
+      expect(
+        await tester.runAsync(() => MediaRepository().getMediaById('a1')),
+        isNull,
+      );
+      expect(find.text('1 / 1'), findsOneWidget);
+    });
+
+    testWidgets('moved to another site meanwhile, Save unlinks nothing', (
+      tester,
+    ) async {
+      await pumpSiteUnlinkable(tester);
+      await openPushed(tester);
+      await tapUnlock(tester);
+      await holdUnlink(tester);
+      await tester.runAsync(() async {
+        await insertTestSite('s2', 'Shark Point');
+        await db.customStatement(
+          "UPDATE media SET site_id = 's2' WHERE id = 'a1'",
+        );
+      });
+      await settleViewer(tester);
+
+      await tester.tap(find.text('Save'));
+      await settleViewer(tester, rounds: 10);
+
+      expect(coordinator.deleted, isEmpty);
+      expect((await stored(tester, 'a1')).siteId, 's2');
+    });
+
+    testWidgets('the only attachment closes the viewer', (tester) async {
+      await tester.runAsync(
+        () => MediaRepository().deleteMultipleMedia(['a2']),
+      );
+      await pumpSiteUnlinkable(tester);
+      await openPushed(tester);
+      await tapUnlock(tester);
+      await holdUnlink(tester);
+
+      await tester.tap(find.text('Save'));
+      await settleViewer(tester, rounds: 10);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SiteMediaViewerPage), findsNothing);
+      expect(find.text('open'), findsOneWidget);
+    });
   });
 }

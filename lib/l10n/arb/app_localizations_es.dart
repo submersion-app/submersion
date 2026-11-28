@@ -22236,6 +22236,49 @@ class AppLocalizationsEs extends AppLocalizations {
       'Se movió a otra inmersión desde que lo desbloqueaste. Cancela y vuelve a desbloquearlo.';
 
   @override
+  String get media_viewer_unlinkFromDive => 'Desvincular del buceo';
+
+  @override
+  String get media_viewer_unlinkFromSite => 'Desvincular del punto de buceo';
+
+  @override
+  String get media_viewer_unlinkFromGear => 'Desvincular del equipo';
+
+  @override
+  String get media_viewer_unlink => 'Desvincular';
+
+  @override
+  String get media_viewer_unlinkHeldDive =>
+      'Se desvinculará de este buceo al guardar';
+
+  @override
+  String get media_viewer_unlinkHeldSite =>
+      'Se desvinculará de este punto de buceo al guardar';
+
+  @override
+  String get media_viewer_unlinkHeldGear =>
+      'Se desvinculará de este equipo al guardar';
+
+  @override
+  String get media_viewer_unlinkHeldLibrary =>
+      'Se quitará de tu biblioteca al guardar';
+
+  @override
+  String get media_viewer_unlinkUndo => 'Deshacer';
+
+  @override
+  String get media_viewer_unlinkConfirmDiveBody =>
+      'Elimina este elemento de tu biblioteca, junto con sus copias en la nube y miniaturas, salvo que un sitio de buceo o un equipo aún lo use. Tu archivo original no se ve afectado.';
+
+  @override
+  String get media_viewer_unlinkConfirmSiteBody =>
+      'Elimina este elemento de tu biblioteca, junto con sus copias en la nube y miniaturas, salvo que un buceo o un equipo aún lo use. Tu archivo original no se ve afectado.';
+
+  @override
+  String get media_viewer_unlinkConfirmGearBody =>
+      'Elimina este elemento de tu biblioteca, junto con sus copias en la nube y miniaturas, salvo que un buceo o un sitio de buceo aún lo use. Tu archivo original no se ve afectado.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'El archivo encontrado ha cambiado o se ha movido desde entonces. Búscalo de nuevo o cancela.';
 
@@ -56948,6 +56991,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_editCard_color => 'Color';
+
+  @override
+  String get media_editCard_unlink => 'Desvincular';
 
   @override
   String get media_editCard_details => 'Detalles';

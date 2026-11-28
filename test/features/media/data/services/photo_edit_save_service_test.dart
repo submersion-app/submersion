@@ -13,6 +13,8 @@ import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_color_adjustment_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
@@ -411,6 +413,43 @@ void main() {
       expect((await stored('a1')).item.siteCategory, isNull);
     },
   );
+
+  // A gear photo's sitting in a viewer whose Unlink unlinks from its gear
+  // item (issue #5126): one moved to another item before Save is no longer
+  // that item's, so nothing is written to it.
+  test('a gear photo moved to another item before Save: gone', () async {
+    final repo = EquipmentRepository();
+    final reg = await repo.createEquipment(
+      const EquipmentItem(id: '', name: 'Reg', type: EquipmentType.regulator),
+    );
+    final bcd = await repo.createEquipment(
+      const EquipmentItem(id: '', name: 'BCD', type: EquipmentType.bcd),
+    );
+    await insertTestMedia(id: 'g1');
+    await db.customStatement('UPDATE media SET equipment_id = ? WHERE id = ?', [
+      reg.id,
+      'g1',
+    ]);
+    final session = await sitting('g1');
+    session.set(photoColorField, const ColorAdjustment(warmth: 0.3));
+    await db.customStatement('UPDATE media SET equipment_id = ? WHERE id = ?', [
+      bcd.id,
+      'g1',
+    ]);
+
+    await expectLater(
+      serviceWith().save(
+        mediaId: 'g1',
+        diverId: 'me',
+        apply: session.applyTo,
+        changedCardIds: session.changedCardIds,
+        equipmentAtStart: reg.id,
+      ),
+      throwsA(isA<PhotoGoneError>()),
+    );
+
+    expect((await stored('g1')).item.colorAdjustment, isNull);
+  });
 
   test('a site attachment still the site\'s saves its details', () async {
     await insertTestMedia(id: 'a1', siteId: 's1', fileType: 'document');
