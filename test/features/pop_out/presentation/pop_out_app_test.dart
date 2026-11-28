@@ -72,6 +72,10 @@ void main() {
   testWidgets('a window that could not reach the logbook says so', (
     tester,
   ) async {
+    // It has no settings to take a language from, so it follows the
+    // system's: pinned here so the English text is what shows.
+    tester.platformDispatcher.localesTestValue = const [Locale('en', 'US')];
+    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
     await tester.pumpWidget(const PopOutConnectFailedApp());
     await tester.pumpAndSettle();
 

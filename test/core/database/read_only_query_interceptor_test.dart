@@ -109,6 +109,29 @@ void main() {
     expect(info, isNotEmpty);
   });
 
+  test('a reading pragma given a value in parentheses is refused', () async {
+    // `PRAGMA journal_mode(WAL)` sets, exactly like `= WAL`; only the
+    // pragmas whose argument names a table or index read with one.
+    for (final pragma in [
+      'PRAGMA journal_mode(DELETE)',
+      'PRAGMA user_version(7)',
+      'PRAGMA foreign_keys(0)',
+      'PRAGMA main.application_id(3)',
+    ]) {
+      await expectLater(
+        readOnly.customSelect(pragma).get(),
+        throwsA(isA<ReadOnlyViolation>()),
+        reason: pragma,
+      );
+    }
+    final version = await writer
+        .customSelect('PRAGMA user_version')
+        .getSingle();
+    expect(version.read<int>('user_version'), writer.schemaVersion);
+    final indexes = await readOnly.customSelect('PRAGMA index_list(t)').get();
+    expect(indexes, isA<List<QueryRow>>());
+  });
+
   test('a refusal is reported to the callback', () async {
     final reported = <String>[];
     final reporting = _TinyDb(

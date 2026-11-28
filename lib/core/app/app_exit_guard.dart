@@ -96,18 +96,26 @@ class AppExitGuard {
     return _WindowCloseHold(otherWindowCloseRequested).prevent;
   }
 
+  /// The last hold change, so the next one waits for it.
+  Future<void> _holdChange = Future<void>.value();
+
   /// Another of the app's windows opened ([open] true) or the last one
-  /// closed.
-  Future<void> otherWindowsOpen(bool open) async {
-    try {
-      await _holdForOtherWindows(open);
-    } catch (error, stackTrace) {
-      _log.warning(
-        'Could not change whether the main window may close',
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
+  /// closed. Changes apply in the order made: a pop-out closed and reopened
+  /// at once must not have its release land after the new hold.
+  Future<void> otherWindowsOpen(bool open) {
+    final change = _holdChange.then((_) async {
+      try {
+        await _holdForOtherWindows(open);
+      } catch (error, stackTrace) {
+        _log.warning(
+          'Could not change whether the main window may close',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
+    });
+    _holdChange = change;
+    return change;
   }
 
   /// The main window was closed while another window is open: quit, through

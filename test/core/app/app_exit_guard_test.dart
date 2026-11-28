@@ -340,6 +340,47 @@ void main() {
       expect(holds, [true, false]);
     });
 
+    test('a hold change waits for the one before it', () async {
+      // A pop-out closed and reopened at once: the release must not land
+      // after the new hold and leave the main window unguarded.
+      final started = <bool>[];
+      final release = Completer<void>();
+      final guard = AppExitGuard(
+        retryExit: () async => calls.add('retry'),
+        preventWindowClose: (_) async {},
+        holdForOtherWindows: (hold) async {
+          started.add(hold);
+          if (!hold) await release.future;
+        },
+      );
+
+      final releasing = guard.otherWindowsOpen(false);
+      final holding = guard.otherWindowsOpen(true);
+      await pumpEventQueue();
+      expect(started, [false]);
+
+      release.complete();
+      await Future.wait([releasing, holding]);
+      expect(started, [false, true]);
+    });
+
+    test('a failed hold change does not stop the next one', () async {
+      final started = <bool>[];
+      final guard = AppExitGuard(
+        retryExit: () async => calls.add('retry'),
+        preventWindowClose: (_) async {},
+        holdForOtherWindows: (hold) async {
+          started.add(hold);
+          if (!hold) throw StateError('no window');
+        },
+      );
+
+      await guard.otherWindowsOpen(false);
+      await guard.otherWindowsOpen(true);
+
+      expect(started, [false, true]);
+    });
+
     test('closing the main window then quits through the guard', () async {
       final guard = AppExitGuard(
         retryExit: () async => calls.add('retry'),

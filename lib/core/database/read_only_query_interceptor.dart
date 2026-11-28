@@ -31,12 +31,13 @@ class ReadOnlyQueryInterceptor extends QueryInterceptor {
     caseSensitive: false,
   );
   static final _pragma = RegExp(
-    r'^\s*PRAGMA\s+(?:\w+\.)?(\w+)\s*(?:\([^)]*\))?\s*;?\s*$',
+    r'^\s*PRAGMA\s+(?:\w+\.)?(\w+)\s*(\([^)]*\))?\s*;?\s*$',
     caseSensitive: false,
   );
 
-  /// Pragmas that only report. Others (optimize, wal_checkpoint,
-  /// incremental_vacuum, any with "=") change the database.
+  /// Pragmas that only report when given no value. Given one, with "=" or
+  /// in parentheses (`journal_mode(WAL)`), most of them set it. Others
+  /// (optimize, wal_checkpoint, incremental_vacuum) change the database.
   static const _readingPragmas = {
     'application_id',
     'cipher_version',
@@ -45,22 +46,27 @@ class ReadOnlyQueryInterceptor extends QueryInterceptor {
     'data_version',
     'database_list',
     'encoding',
-    'foreign_key_list',
     'foreign_keys',
     'freelist_count',
     'function_list',
-    'index_info',
-    'index_list',
-    'index_xinfo',
     'journal_mode',
     'page_count',
     'page_size',
     'pragma_list',
     'schema_version',
-    'table_info',
     'table_list',
-    'table_xinfo',
     'user_version',
+  };
+
+  /// Pragmas whose argument names the table or index to report on, so they
+  /// read with one.
+  static const _readingPragmasOfATable = {
+    'foreign_key_list',
+    'index_info',
+    'index_list',
+    'index_xinfo',
+    'table_info',
+    'table_xinfo',
   };
 
   /// A second statement after a `;`, which sqlite runs too.
@@ -71,8 +77,11 @@ class ReadOnlyQueryInterceptor extends QueryInterceptor {
     if (_select.hasMatch(statement)) return true;
     if (_with.hasMatch(statement)) return !_writeVerb.hasMatch(statement);
     final pragma = _pragma.firstMatch(statement);
-    return pragma != null &&
-        _readingPragmas.contains(pragma.group(1)!.toLowerCase());
+    if (pragma == null) return false;
+    final name = pragma.group(1)!.toLowerCase();
+    return pragma.group(2) == null
+        ? _readingPragmas.contains(name)
+        : _readingPragmasOfATable.contains(name);
   }
 
   Never _refuse(String statement) {
