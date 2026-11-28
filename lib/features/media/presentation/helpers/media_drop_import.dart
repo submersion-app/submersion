@@ -15,14 +15,17 @@ import 'package:submersion/features/media/presentation/pages/media_import_view.d
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
-/// Imports photos and videos dropped onto the app window.
+/// Imports photos and videos dropped onto the app window. [folderPaths] names
+/// the paths found in dropped folders, whose files a dive takes only once they
+/// are placed (see `FilesTabState.folderPaths`).
 typedef MediaDropHandler =
     Future<void> Function(
       BuildContext context,
       WidgetRef ref,
       MediaDropDestination destination,
-      List<String> paths,
-    );
+      List<String> paths, {
+      Set<String> folderPaths,
+    });
 
 /// Opens the importer [destination] names, with the dropped [paths] staged
 /// in the picker's Files tab for review: the same importer the dive, site or
@@ -40,8 +43,9 @@ Future<void> importDroppedMedia(
   BuildContext context,
   WidgetRef ref,
   MediaDropDestination destination,
-  List<String> paths,
-) async {
+  List<String> paths, {
+  Set<String> folderPaths = const {},
+}) async {
   final target = destination.target;
   if (target is SiteAttachTarget) {
     final page = ref.read(siteEditingPageProvider);
@@ -71,7 +75,16 @@ Future<void> importDroppedMedia(
     case DiveDropAnswer.hold:
       final session = open!.session;
       open.showMediaCard();
-      await _holdDropped(context, ref, session, paths);
+      // coverage:ignore-start
+      // Ends in showPhotoPicker, like _holdDropped below; see the note there.
+      await _holdDropped(
+        context,
+        ref,
+        session,
+        paths,
+        folderPaths: folderPaths,
+      );
+    // coverage:ignore-end
   }
 }
 
@@ -86,13 +99,15 @@ Future<void> _holdDropped(
   BuildContext context,
   WidgetRef ref,
   EditSession<Dive> session,
-  List<String> paths,
-) async {
+  List<String> paths, {
+  required Set<String> folderPaths,
+}) async {
   await PhotoImportHelper.importPhotosForDive(
     context: context,
     ref: ref,
     dive: session.working,
     initialFilePaths: paths,
+    initialFolderPaths: folderPaths,
     onHold: (adds) => addMediaToSitting(session, adds),
   );
 }

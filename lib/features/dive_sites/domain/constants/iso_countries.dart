@@ -1,5 +1,9 @@
 /// English short names of countries (ISO 3166), used as fallback suggestions
-/// for the dive-site country field. Reference data; kept alphabetically sorted.
+/// for the dive-site and buddy country fields. Reference data; kept
+/// alphabetically sorted. Each must name one country to countryCodeFor, so
+/// the list can be offered in the diver's place-name language (issue #5019).
+/// Plain "Congo" could be either Congo, so countryCodeFor reads it as none
+/// and the Republic is written in full.
 const List<String> isoCountryNames = [
   'Afghanistan',
   'Albania',
@@ -39,7 +43,6 @@ const List<String> isoCountryNames = [
   'China',
   'Colombia',
   'Comoros',
-  'Congo',
   'Costa Rica',
   'Croatia',
   'Cuba',
@@ -142,6 +145,7 @@ const List<String> isoCountryNames = [
   'Poland',
   'Portugal',
   'Qatar',
+  'Republic of the Congo',
   'Romania',
   'Russia',
   'Rwanda',

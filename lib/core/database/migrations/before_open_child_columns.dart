@@ -23,7 +23,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v287: dive_tanks.passport_id (issue #2650).
     await _assertTankPassportIdColumn();
 
-    // v388: service_records.firmware_version (issue #5104). Every service
+    // v395: service_records.firmware_version (issue #5104). Every service
     // record read selects the whole row, for the same reason.
     await _assertFirmwareRecordColumn();
 

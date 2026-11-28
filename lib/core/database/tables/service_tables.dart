@@ -129,7 +129,7 @@ class ServiceRecords extends Table {
   IntColumn get nextServiceDue => integer().nullable()();
   TextColumn get notes => text().withDefault(const Constant(''))();
 
-  /// v388: the version a firmware update installed (issue #5104); null for
+  /// v395: the version a firmware update installed (issue #5104); null for
   /// every other kind of record.
   TextColumn get firmwareVersion => text().nullable()();
   IntColumn get createdAt => integer()();

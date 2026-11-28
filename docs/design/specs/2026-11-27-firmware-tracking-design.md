@@ -319,3 +319,5 @@ they disagree, this section wins.
 - **Equipment table:** a Firmware column (appended last), showing the
   installed version and "(update: …)" when a newer release is listed.
 - **UDDF backups** carry a firmware record's version (`firmwareversion`).
+- **Schema version** is v395, not v388: open pull requests claim 388 to
+  394, so this one takes the next free number, as main's v389 did.

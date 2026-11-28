@@ -357,10 +357,18 @@ extension RungsFromV340 on AppDatabase {
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
 
-    // v388 (issue #5104): service_records.firmware_version, the version a
+    // v389 (issue #5069): diver_settings.profile_zoom_time_only, the profile
+    // chart's Time only zoom choice. Nullable, no backfill, re-asserted in
+    // beforeOpen; the floor does not move. Numbered 389 because open work
+    // claims 388.
+    if (from < 389) await _assertProfileZoomTimeOnlyColumn();
+    if (from < 389) await reportProgress();
+
+    // v395 (issue #5104): service_records.firmware_version, the version a
     // firmware update installed. Column only, no backfill; re-asserted in
-    // beforeOpen. The floor does not move.
-    if (from < 388) await _assertFirmwareRecordColumn();
-    if (from < 388) await reportProgress();
+    // beforeOpen. The floor does not move. Numbered 395 because open work
+    // claims 388 to 394.
+    if (from < 395) await _assertFirmwareRecordColumn();
+    if (from < 395) await reportProgress();
   }
 }

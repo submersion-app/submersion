@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v388: `service_records.firmware_version` (TEXT, nullable), the
+/// Schema v395: `service_records.firmware_version` (TEXT, nullable), the
 /// version a firmware update installed (issue #5104). Nullable, no backfill,
 /// so the sync floor holds.
 void main() {
@@ -38,23 +38,23 @@ void main() {
               .getSingle())
           .data;
 
-  test('v388 is in the ladder and keeps the floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(388));
-    expect(AppDatabase.migrationVersions, contains(388));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(388));
+  test('v395 is in the ladder and keeps the floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(395));
+    expect(AppDatabase.migrationVersions, contains(395));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(395));
   });
 
   test(
-    'upgrading from v387 leaves existing records without a version',
+    'upgrading from v394 leaves existing records without a version',
     () async {
-      final db = AppDatabase(dbAt(387));
+      final db = AppDatabase(dbAt(394));
       addTearDown(db.close);
       expect(await stored(db), {'firmware_version': null});
     },
   );
 
   test('a database already carrying the column keeps its value', () async {
-    final db = AppDatabase(dbAt(387, withColumn: true));
+    final db = AppDatabase(dbAt(394, withColumn: true));
     addTearDown(db.close);
     expect(await stored(db), {'firmware_version': 'V95'});
   });
