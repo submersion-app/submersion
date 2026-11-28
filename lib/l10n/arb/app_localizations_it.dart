@@ -56757,6 +56757,9 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get media_species_nextSighting => 'Avvistamento successivo';
+
+  @override
   String get media_species_openSpeciesPage => 'Pagina della specie';
 
   @override

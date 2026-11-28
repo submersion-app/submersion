@@ -40,7 +40,7 @@ packages/libdivecomputer_plugin/android/.cxx/
 packages/libdivecomputer_plugin/macos/build/
 packages/libdivecomputer_plugin/ios/build/
 
-# Web build inputs: fetched and compiled by scripts/build_web.sh, never committed
+# Web build inputs: fetched and compiled by scripts/web/build_web.sh, never committed
 web/sqlite3.wasm
 web/sqlite3.wasm.download
 web/drift_worker.js*
@@ -90,5 +90,5 @@ scripts/sample_data/
 # Swift Package Manager workspace state — project uses CocoaPods (SPM disabled)
 **/xcshareddata/swiftpm/
 
-# Test bundles, generated per run by scripts/bundle_tests.py (issue #2500)
+# Test bundles, generated per run by scripts/testing/bundle_tests.py (issue #2500)
 test/.bundles/

@@ -727,7 +727,7 @@ as a liability.
 
 | Asset | Requirement | Status |
 |---|---|---|
-| App icon | 512 x 512 PNG, 32-bit, under 1 MB, no transparency | Derive from `flutter_launcher_icons.yaml` source art |
+| App icon | 512 x 512 PNG, 32-bit, under 1 MB, no transparency | Derive from the `flutter_launcher_icons` source art in `pubspec.yaml` |
 | Feature graphic | 1024 x 500 PNG or JPEG, no transparency, no alpha | **Needs creating.** The README banner at `assets/brand/readme-banner.png` is the obvious starting point, reflowed to 1024 x 500 |
 | Phone screenshots | 2 to 8 required. 16:9 or 9:16, each side 320 to 3840 px | `docs/assets/screenshots/readme/` holds 20 candidates, but they are desktop or composite layouts. **Needs real Android phone captures** |
 | 7-inch tablet screenshots | Optional, up to 8 | Recommended: the app supports tablets and Play surfaces a "not designed for tablets" notice without them |

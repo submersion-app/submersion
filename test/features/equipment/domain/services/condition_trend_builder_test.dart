@@ -183,6 +183,22 @@ void main() {
     expect(trend.series[1].points.map((p) => p.diveId), ['d1']);
   });
 
+  test('a standalone wing gets minimum temperature like a BCD', () {
+    // Issue #5110: a wing carries the same inflator a BCD does.
+    for (final type in [EquipmentType.bcd, EquipmentType.wing]) {
+      final trend = buildConditionTrend(
+        item: EquipmentItem(id: 'w', name: 'Wing', type: type),
+        parent: null,
+        samples: [sample('d1', 1, temp: 8), sample('d2', 2, temp: 21)],
+        summariesByDive: const {},
+        observations: const [],
+        transmitterSerials: const {},
+      );
+      expect(trend?.kind, ConditionTrendKind.minTemperature, reason: '$type');
+      expect(trend!.series[0].points.map((p) => p.value), [8, 21]);
+    }
+  });
+
   test('a mask has no trend', () {
     expect(
       buildConditionTrend(

@@ -30,10 +30,14 @@ List<MediaIdentification> cropsOfSpecies(
   );
 }
 
+/// One stretch of a video in which a species was seen, in milliseconds
+/// from the start.
+typedef VideoStretch = ({int startMs, int endMs});
+
 /// When in a video [tracks] were seen (issue #5032): one stretch per run
 /// of tracks that overlap or start within [gapMs] of the last one's end,
 /// in time order. Photos have no time and are left out.
-List<({int startMs, int endMs})> videoStretches(
+List<VideoStretch> videoStretches(
   List<MediaIdentification> tracks, {
   int gapMs = 1000,
 }) {
@@ -41,7 +45,7 @@ List<({int startMs, int endMs})> videoStretches(
     for (final t in tracks)
       if (t.startMs != null && t.endMs != null) (t.startMs!, t.endMs!),
   ]..sort((a, b) => a.$1.compareTo(b.$1));
-  final stretches = <({int startMs, int endMs})>[];
+  final stretches = <VideoStretch>[];
   for (final (start, end) in timed) {
     final last = stretches.lastOrNull;
     if (last != null && start <= last.endMs + gapMs) {
@@ -54,4 +58,20 @@ List<({int startMs, int endMs})> videoStretches(
     }
   }
   return stretches;
+}
+
+/// Where the Next sighting button goes from [positionMs] (issue #5084): the
+/// first of [stretches] starting more than [leadMs] after it, so a press
+/// while sitting on a sighting, or just short of one, moves on rather than
+/// staying; after the last, the first again. Null when there are none.
+int? nextStretchStart(
+  List<VideoStretch> stretches,
+  int positionMs, {
+  int leadMs = 500,
+}) {
+  if (stretches.isEmpty) return null;
+  for (final s in stretches) {
+    if (s.startMs > positionMs + leadMs) return s.startMs;
+  }
+  return stretches.first.startMs;
 }

@@ -40,12 +40,12 @@ The quickest full run bundles the suite (see
 [Shared Isolates in CI](#shared-isolates-in-ci)):
 
 ```bash
-scripts/run_all_tests.sh
+scripts/testing/run_all_tests.sh
 ```
 
 It runs from the repository root wherever you start it, excludes performance
 tests, and passes options to `flutter test`, such as
-`scripts/run_all_tests.sh --coverage`. The whole suite goes to one
+`scripts/testing/run_all_tests.sh --coverage`. The whole suite goes to one
 `flutter test` call, so a coverage report covers all of it. It takes options
 only: to run particular files, use `flutter test <paths>`. `TEST_CONCURRENCY=N`
 sets the number of parallel test isolates (default: the core count, at most
@@ -490,8 +490,8 @@ depends on the direction or size of the offset.
 that made the cost of a run follow the number of test files, so the test job
 runs bundles instead: generated entrypoints that import many test files and
 call each one's `main()` inside a group named after the file
-(`scripts/bundle_tests.py`, issue #2500). A full local run with
-`scripts/run_all_tests.sh` (or `RUN_ALL_TESTS=1` on a push) uses bundles too, of
+(`scripts/testing/bundle_tests.py`, issue #2500). A full local run with
+`scripts/testing/run_all_tests.sh` (or `RUN_ALL_TESTS=1` on a push) uses bundles too, of
 up to 40 files so they spread evenly over the local workers (issue #2512).
 
 The pre-push hook's run of the affected test files stays unbundled below 100
@@ -503,14 +503,14 @@ on the mix, since database and migration tests stay slow however they load. At
 `-j 16`, an even sample of 522 files went from about 6 minutes to about 2, a real
 424-file push from 293 to 268 seconds, and 86 files took the same either way,
 but about 3 minutes in 40-file bundles, which is why the size follows the worker
-count. `scripts/run_all_tests.sh` raises the limit for plain tests from 2 to 5
+count. `scripts/testing/run_all_tests.sh` raises the limit for plain tests from 2 to 5
 minutes, because on a very busy machine a slow test can reach 2 minutes in a
 bundle. The same variable works by hand, with the list named by an absolute path:
 
 ```bash
 list="$(mktemp)"
 printf '%s\n' test/a_test.dart test/b_test.dart > "$list"
-TEST_FILES_FROM="$list" scripts/run_all_tests.sh
+TEST_FILES_FROM="$list" scripts/testing/run_all_tests.sh
 ```
 
 ### The rule: put back what you replace
@@ -581,13 +581,13 @@ A shared isolate exposes four more things:
 
 ```bash
 # The bundle that runs a given test file:
-flutter test $(python3 scripts/bundle_tests.py --containing test/path/to/my_test.dart)
+flutter test $(python3 scripts/testing/bundle_tests.py --containing test/path/to/my_test.dart)
 
 # A whole CI shard. The shard count is TOTAL_SHARDS in .github/workflows/ci.yaml:
-flutter test --exclude-tags performance $(python3 scripts/bundle_tests.py --shard 2 --total-shards 6)
+flutter test --exclude-tags performance $(python3 scripts/testing/bundle_tests.py --shard 2 --total-shards 6)
 
 # Exactly these files, in this order, in one isolate:
-flutter test $(python3 scripts/bundle_tests.py --files test/a_test.dart test/b_test.dart)
+flutter test $(python3 scripts/testing/bundle_tests.py --files test/a_test.dart test/b_test.dart)
 ```
 
 A failure names the file it came from: every test in a bundle sits in a group
@@ -661,7 +661,7 @@ still there when the trimmed selection is not worth waiting for.
 A pull request's CI tests the merge of the branch into `main`, so a failure on
 `main` turns every open pull request red too. When a required job fails on a
 pull request, `CI Success` compares each failed job with the same job in
-`main`'s CI/CD run (`scripts/report_inherited_failures.py`) and annotates it:
+`main`'s CI/CD run (`scripts/testing/report_inherited_failures.py`) and annotates it:
 
 | Annotation | Meaning |
 |---|---|
@@ -734,7 +734,7 @@ from the Script Tests job for the scripts in its `guards` list
 ### What counts
 
 Before each test shard uploads its report, CI removes the lines of trivial
-members (`scripts/filter_trivial_coverage.py`):
+members (`scripts/testing/filter_trivial_coverage.py`):
 
 - `copyWith`, when its body only copies fields into a constructor
   (`name: name ?? this.name`, `name: this.name`);
@@ -756,7 +756,7 @@ target no longer asks for one.
 
 ```bash
 flutter test --coverage test/path/to/the/tests/you/changed
-python3 scripts/filter_trivial_coverage.py coverage/lcov.info
+python3 scripts/testing/filter_trivial_coverage.py coverage/lcov.info
 ```
 
 Then compare the lines your change adds (`git diff --unified=0 origin/main...HEAD -- lib/`)

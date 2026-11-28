@@ -197,8 +197,11 @@ const String kSeedBuiltInServiceKindsSql = '''
     UNION ALL SELECT 'transmitter-battery', 'Transmitter battery',
            '["transmitter","battery"]', 365, NULL, 250.0, 1, 'replacement',
            '{}'
-    UNION ALL SELECT 'bcd-inspection', 'BCD/wing inspection', '["bcd"]',
-           365, NULL, NULL, 1, 'inspection', '{}'
+    -- v393 (issue #5110): a standalone wing is the bladder, inflator and
+    -- OPV this inspection covers, so it is named alongside the BCD;
+    -- kBackfillWingInspectionServiceKindSql holds the same list.
+    UNION ALL SELECT 'bcd-inspection', 'BCD/wing inspection',
+           '["bcd","wing"]', 365, NULL, NULL, 1, 'inspection', '{}'
     UNION ALL SELECT 'drysuit-seals', 'Drysuit seals', '["drysuit"]',
            730, NULL, NULL, 0, 'repair', '{"saltHours":200}'
     -- A scrubber is consumed by loop time, not by the calendar, so this is
@@ -237,6 +240,22 @@ const String kBackfillRegulatorPartServiceKindsSql = '''
         THEN '["tank","regulator","firstStage","secondStage"]'
       ELSE applicable_types END
   WHERE is_built_in = 1 AND id IN ('regulator-service', 'o2-clean')
+''';
+
+/// v393 (issue #5110): the built-in "BCD/wing inspection" kind also applies
+/// to wings. It named only `bcd`, so a standalone wing could be offered
+/// nothing but "General service". A backplate and a harness are hardware,
+/// not the bladder the inspection checks, and stay out.
+///
+/// One-time, from the v393 rung only (fresh installs get the same list from
+/// [kSeedBuiltInServiceKindsSql]). Gated on is_built_in, so a diver's own
+/// kind keeps the types they chose; built-ins are read-only, so this
+/// overrides no choice. updated_at is left alone: built-ins are reference
+/// data that sync never exports. Held in step with the seed by
+/// migration_v393_wing_inspection_service_kind_test.
+const String kBackfillWingInspectionServiceKindSql = '''
+  UPDATE service_kinds SET applicable_types = '["bcd","wing"]'
+  WHERE is_built_in = 1 AND id = 'bcd-inspection'
 ''';
 
 /// v202: exposure defaults for the built-in kinds on existing installs.

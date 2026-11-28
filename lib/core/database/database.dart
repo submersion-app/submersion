@@ -1842,11 +1842,14 @@ class AppDatabase extends _$AppDatabase {
     // only zoom choice (issue #5069). Nullable, no backfill; the floor does
     // not move. Numbered 389 because open work claims 388.
     389,
+    // v393: the built-in BCD/wing inspection kind applies to wings (issue
+    // #5110). Built-in reference data never syncs; the floor does not move.
+    393,
     // v395 (issue #5040): a dive reads its site's altitude and water type;
     // the copies linking a site made are cleared and an empty entry or exit
     // method is filled from a site listing one. The floor rises to 395 (see
-    // minimumCompatibleSchemaVersion). Numbered 395 because open work
-    // claims 388 and 390 to 394.
+    // minimumCompatibleSchemaVersion). Numbered 395 because main and open
+    // work hold 388 to 394.
     395,
   ];
 

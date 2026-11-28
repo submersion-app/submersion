@@ -235,7 +235,7 @@ line it covers:
   the step runs under `SyncCoordinator.joinAcrossTabs`, which no tab's sync
   runs beside.
 - **Opened in a browser.** When the change shows on a screen a browser
-  reaches, build with `scripts/build_web.sh`, serve with
+  reaches, build with `scripts/web/build_web.sh`, serve with
   `python3 scripts/web/serve_bundle.py --dir build/web --port 8080` and
   look.
 
