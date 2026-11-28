@@ -19,7 +19,9 @@ import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart
 /// linked to the item as showing it. Apart from the Photos card, so a dive
 /// shot never mixes with the item's reference photos or becomes its cover.
 ///
-/// Shows two rows; Show all opens the rest. While the card is open
+/// Shows two rows, reading only their photos; Show all opens the rest a
+/// page at a time, so an item linked to thousands opens at once. While the
+/// card is open
 /// ([editing]), Link photos and each photo's unlink are held in the item's
 /// sitting until Save; a closed card shows what a sitting holds ([shown]).
 class EquipmentDivePhotosSection extends ConsumerWidget {
@@ -61,19 +63,19 @@ class EquipmentDivePhotosSection extends ConsumerWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final stored = ref.watch(linkedMediaForEquipmentProvider(equipment.id));
-    final visibleIds = <String>{
-      for (final m in stored.value ?? const <MediaItem>[]) m.id,
-    };
+    final stored = ref.watch(linkedMediaIdsForEquipmentProvider(equipment.id));
     final held = session == null
         ? null
-        : gearItemDivePhotosShown(session, visibleIds: visibleIds);
-    final photosAsync = held != null
-        ? AsyncValue<List<MediaItem>>.data(held)
+        : gearItemDivePhotosShown(
+            session,
+            visibleIds: stored.value ?? const <String>[],
+          );
+    final idsAsync = held != null
+        ? AsyncValue<List<String>>.data(held)
         : stored;
     final canAct =
         editing != null && ref.watch(deviceCapabilitiesProvider).mediaAttach;
-    final photos = photosAsync.value ?? const <MediaItem>[];
+    final ids = idsAsync.value ?? const <String>[];
 
     return Card(
       child: Padding(
@@ -94,11 +96,11 @@ class EquipmentDivePhotosSection extends ConsumerWidget {
                     style: theme.textTheme.titleMedium,
                   ),
                 ),
-                if (photos.isNotEmpty)
+                if (ids.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(right: 4),
                     child: Text(
-                      '${photos.length}',
+                      '${ids.length}',
                       style: theme.textTheme.labelLarge?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -112,14 +114,14 @@ class EquipmentDivePhotosSection extends ConsumerWidget {
                     tooltip: l10n.equipment_divePhotos_link,
                     // Offered once the card knows which links it shows.
                     onPressed: stored.hasValue
-                        ? () => _link(context, photos)
+                        ? () => _link(context, ids)
                         : null,
                   ),
               ],
             ),
             const SizedBox(height: 12),
-            photosAsync.when(
-              data: (photos) => photos.isEmpty
+            idsAsync.when(
+              data: (ids) => ids.isEmpty
                   ? MediaEmptyState(
                       icon: Icons.photo_camera_back_outlined,
                       message: l10n.equipment_divePhotos_empty,
@@ -128,12 +130,10 @@ class EquipmentDivePhotosSection extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _Grid(
-                          photos: photos.take(maxTiles).toList(),
-                          onTap: (item) =>
-                              openMediaViewer(context, photos, item.id),
+                          ids: ids.take(maxTiles).toList(),
                           onUnlink: canAct ? _unlink : null,
                         ),
-                        if (photos.length > maxTiles)
+                        if (ids.length > maxTiles)
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
@@ -142,14 +142,12 @@ class EquipmentDivePhotosSection extends ConsumerWidget {
                                 MaterialPageRoute<void>(
                                   builder: (_) => EquipmentDivePhotosPage(
                                     itemName: equipment.name,
-                                    photos: photos,
+                                    ids: ids,
                                   ),
                                 ),
                               ),
                               child: Text(
-                                l10n.equipment_divePhotos_showAll(
-                                  photos.length,
-                                ),
+                                l10n.equipment_divePhotos_showAll(ids.length),
                               ),
                             ),
                           ),
@@ -172,7 +170,7 @@ class EquipmentDivePhotosSection extends ConsumerWidget {
 
   /// The sitting's list with [keep] in place of the photos the card shows:
   /// the links the diver cannot see stay as they are.
-  void _replaceShown(List<MediaItem> shownNow, List<MediaItem> keep) {
+  void _replaceShown(List<String> shownNow, List<String> keep) {
     final session = editing;
     if (session == null || session.isDisposed || session.isFrozen) return;
     final current = gearItemDivePhotosList.current(session);
@@ -183,13 +181,13 @@ class EquipmentDivePhotosSection extends ConsumerWidget {
     );
   }
 
-  void _unlink(MediaItem item) {
+  void _unlink(String mediaId) {
     final session = editing;
     if (session == null || session.isDisposed || session.isFrozen) return;
-    unlinkHeldPhoto(session, item.id);
+    unlinkHeldPhoto(session, mediaId);
   }
 
-  Future<void> _link(BuildContext context, List<MediaItem> shownNow) async {
+  Future<void> _link(BuildContext context, List<String> shownNow) async {
     final session = editing;
     if (session == null) return;
     // The list must be read before it can be changed.
@@ -198,25 +196,29 @@ class EquipmentDivePhotosSection extends ConsumerWidget {
     final picked = await showGearPhotoLinkSheet(
       context,
       item: equipment,
-      linked: shownNow,
+      linkedIds: shownNow,
     );
     if (picked == null) return;
     _replaceShown(shownNow, picked);
   }
 }
 
+/// The card's tiles: the photos of [ids], read as one page.
 class _Grid extends ConsumerWidget {
-  const _Grid({required this.photos, required this.onTap, this.onUnlink});
+  const _Grid({required this.ids, this.onUnlink});
 
-  final List<MediaItem> photos;
-  final void Function(MediaItem) onTap;
-  final void Function(MediaItem)? onUnlink;
+  final List<String> ids;
+  final void Function(String mediaId)? onUnlink;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(unitFormatterProvider).settings;
     final l10n = context.l10n;
     final colorScheme = Theme.of(context).colorScheme;
+    final page =
+        ref.watch(mediaInOrderProvider(mediaPageKey(ids))).value ??
+        const <MediaItem>[];
+    final byId = {for (final m in page) m.id: m};
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -225,33 +227,37 @@ class _Grid extends ConsumerWidget {
         crossAxisSpacing: 8,
         mainAxisSpacing: 8,
       ),
-      itemCount: photos.length,
+      itemCount: ids.length,
       itemBuilder: (context, index) {
-        final item = photos[index];
+        final id = ids[index];
+        final item = byId[id];
         return Stack(
           fit: StackFit.expand,
           children: [
-            GestureDetector(
-              onTap: () => onTap(item),
-              child: MediaThumbnailTile(
-                item: item,
-                settings: settings,
-                isSelectionMode: false,
-                isSelected: false,
-                semanticsLabel: l10n.equipment_photos_photoLabel,
+            if (item == null)
+              ColoredBox(color: colorScheme.surfaceContainerHighest)
+            else
+              GestureDetector(
+                onTap: () => openMediaViewer(context, page, item.id),
+                child: MediaThumbnailTile(
+                  item: item,
+                  settings: settings,
+                  isSelectionMode: false,
+                  isSelected: false,
+                  semanticsLabel: l10n.equipment_photos_photoLabel,
+                ),
               ),
-            ),
             if (onUnlink case final unlink?)
               Positioned(
                 top: 0,
                 right: 0,
                 child: IconButton.filledTonal(
-                  key: ValueKey('equipment_divePhotos_unlink_${item.id}'),
+                  key: ValueKey('equipment_divePhotos_unlink_$id'),
                   visualDensity: VisualDensity.compact,
                   iconSize: 16,
                   tooltip: l10n.equipment_divePhotos_unlink,
                   icon: Icon(Icons.link_off, color: colorScheme.error),
-                  onPressed: () => unlink(item),
+                  onPressed: () => unlink(id),
                 ),
               ),
           ],

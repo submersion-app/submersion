@@ -105,23 +105,19 @@ void main() {
     });
   });
 
-  test("linkedMediaFor hides another diver's dive photos and shows dive-less "
-      'photos', () async {
+  test("linkedMediaIdsFor hides another diver's dive photos and shows "
+      'dive-less photos', () async {
     await repo.addGear(['m1', 'm2', 'm3'], ['e1']);
-    final ids = [
-      for (final m in await repo.linkedMediaFor('e1', diverId: 'owner')) m.id,
-    ];
+    final ids = await repo.linkedMediaIdsFor('e1', diverId: 'owner');
     expect(ids, ['m3', 'm1'], reason: 'newest first');
     expect(await repo.mediaIdsFor('e1'), unorderedEquals(['m1', 'm2', 'm3']));
   });
 
-  test('linkedMediaFor leaves out documents and gear photos', () async {
+  test('linkedMediaIdsFor leaves out documents and gear photos', () async {
     await media('doc', fileType: 'document');
     await media('gear', equipmentId: 'e1');
     await repo.addGear(['m3', 'doc', 'gear'], ['e1']);
-    final ids = [
-      for (final m in await repo.linkedMediaFor('e1', diverId: null)) m.id,
-    ];
+    final ids = await repo.linkedMediaIdsFor('e1', diverId: null);
     expect(ids, ['m3']);
   });
 

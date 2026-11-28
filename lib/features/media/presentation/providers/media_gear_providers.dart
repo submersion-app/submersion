@@ -22,10 +22,11 @@ final gearIdsForMediaProvider = FutureProvider.family<List<String>, String>((
   return repository.gearIdsFor(mediaId);
 });
 
-/// The photos linked to one gear item that the active diver can see, newest
-/// first.
-final linkedMediaForEquipmentProvider =
-    FutureProvider.family<List<MediaItem>, String>((ref, equipmentId) async {
+/// The ids of the photos linked to one gear item that the active diver can
+/// see, newest first. Ids only: [mediaInOrderProvider] reads the rows of the
+/// few a page draws.
+final linkedMediaIdsForEquipmentProvider =
+    FutureProvider.family<List<String>, String>((ref, equipmentId) async {
       final repository = ref.watch(mediaGearRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchChanges());
       ref.invalidateSelfWhen(
@@ -36,7 +37,25 @@ final linkedMediaForEquipmentProvider =
         ref.read(diveRepositoryProvider).watchTables(const {'dives'}),
       );
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
-      return repository.linkedMediaFor(equipmentId, diverId: diverId);
+      return repository.linkedMediaIdsFor(equipmentId, diverId: diverId);
+    });
+
+/// The key [mediaInOrderProvider] takes for [ids]: a family argument must
+/// compare by value, which a list does not.
+String mediaPageKey(List<String> ids) => ids.join('\n');
+
+/// The photos whose ids [key] lists ([mediaPageKey]), in that order; an id
+/// with no row is left out. One page of a gear item's In dive photos.
+final mediaInOrderProvider = FutureProvider.autoDispose
+    .family<List<MediaItem>, String>((ref, key) async {
+      final repository = ref.watch(mediaRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchMediaChanges());
+      if (key.isEmpty) return const [];
+      final ids = key.split('\n');
+      final byId = {
+        for (final m in await repository.getMediaByIds(ids)) m.id: m,
+      };
+      return [for (final id in ids) ?byId[id]];
     });
 
 /// The gear used on one dive, every way gear reaches a dive.

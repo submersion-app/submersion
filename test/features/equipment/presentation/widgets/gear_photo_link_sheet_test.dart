@@ -84,21 +84,21 @@ void main() {
     type: EquipmentType.drysuit,
   );
 
-  Future<List<MediaItem>?> open(
+  Future<List<String>?> open(
     WidgetTester tester, {
     List<String> diveIds = const ['d2', 'd1'],
     List<MediaItem> onDives = const [],
     _DivePhotos? divePhotos,
     List<List<MediaItem>>? libraryPages,
     List<MediaItem> library = const [],
-    List<MediaItem> linked = const [],
+    List<String> linkedIds = const [],
     Object? diveIdsError,
     Future<void> Function()? act,
   }) async {
     tester.view.physicalSize = const Size(600, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    List<MediaItem>? result;
+    List<String>? result;
     await tester.pumpWidget(
       await mediaTestApp(
         overrides: [
@@ -126,7 +126,7 @@ void main() {
               onPressed: () async => result = await showGearPhotoLinkSheet(
                 context,
                 item: drysuit,
-                linked: linked,
+                linkedIds: linkedIds,
               ),
               child: const Text('open'),
             ),
@@ -251,7 +251,7 @@ void main() {
     final result = await open(
       tester,
       onDives: [a, b],
-      linked: [a],
+      linkedIds: const ['a'],
       act: () async {
         await tester.tap(find.byKey(const ValueKey('gear_photo_link_tile_a')));
         await tester.tap(find.byKey(const ValueKey('gear_photo_link_tile_b')));
@@ -261,7 +261,7 @@ void main() {
         await tester.pumpAndSettle();
       },
     );
-    expect([for (final m in result!) m.id], ['b']);
+    expect(result, ['b']);
   });
 
   testWidgets('All photos loads on when a page leaves the sheet unfilled', (

@@ -3,55 +3,53 @@ import 'package:submersion/features/dive_sites/presentation/editing/site_classif
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/media/data/repositories/media_gear_repository.dart';
-import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 
-/// The photos linked to a gear item (issue #5046), held in its page's
-/// sitting: linked and unlinked on the In dive photos card, written at Save.
+/// The ids of the photos linked to a gear item (issue #5046), held in its
+/// page's sitting: linked and unlinked on the In dive photos card, written
+/// at Save.
 ///
-/// Reads every linked photo, whoever's dive it is on; the card shows only
-/// those the diver can see ([gearItemDivePhotosShown]). A photo the card
-/// never showed is never removed from the list, so Save keeps its link,
-/// and only the difference is written, onto the links as stored then.
-final gearItemDivePhotosList = SittingList<EquipmentItem, MediaItem>(
+/// Ids only, so an item linked to thousands of photos opens without reading
+/// them: the card reads the rows of the few it draws. Holds every linked
+/// photo, whoever's dive it is on; the card shows only those the diver can
+/// see ([gearItemDivePhotosShown]). A photo the card never showed is never
+/// removed from the list, so Save keeps its link, and only the difference
+/// is written, onto the links as stored then.
+final gearItemDivePhotosList = SittingList<EquipmentItem, String>(
   key: 'equipment.divePhotos',
   cardId: GearItemCardId.divePhotos.name,
-  read: (item) => MediaGearRepository().linkedMediaFor(item.id, diverId: null),
+  read: (item) => MediaGearRepository().mediaIdsFor(item.id),
   write: (item, loaded, current) async {
     final repository = MediaGearRepository();
     final now = await repository.mediaIdsFor(item.id);
-    final merged = mergedIds(
-      stored: now,
-      loaded: [for (final m in loaded) m.id],
-      current: [for (final m in current) m.id],
-    );
+    final merged = mergedIds(stored: now, loaded: loaded, current: current);
     // Nothing to write when a sync made the same change meanwhile.
     if (sameIdSets(merged, now, (id) => id)) return false;
     await repository.replaceMedia(item.id, merged, notify: false);
     return true;
   },
-  same: (a, b) => sameIdSets(a, b, (m) => m.id),
+  same: (a, b) => sameIdSets(a, b, (id) => id),
 );
 
 /// [current] with [keep] in place of the photos the card showed
 /// ([shownNow]): links the diver cannot see stay, and no photo is listed
 /// twice, even when the picker opened before the card knew what it showed.
-List<MediaItem> replaceShownLinks({
-  required List<MediaItem> current,
-  required List<MediaItem> shownNow,
-  required List<MediaItem> keep,
+List<String> replaceShownLinks({
+  required List<String> current,
+  required List<String> shownNow,
+  required List<String> keep,
 }) {
-  final shownIds = {for (final m in shownNow) m.id};
-  final keepIds = {for (final m in keep) m.id};
+  final shown = shownNow.toSet();
+  final kept = keep.toSet();
   final seen = <String>{};
   return [
-    for (final m in [
-      for (final m in current)
-        if (!shownIds.contains(m.id) && !keepIds.contains(m.id)) m,
+    for (final id in [
+      for (final id in current)
+        if (!shown.contains(id) && !kept.contains(id)) id,
       ...keep,
     ])
-      if (seen.add(m.id)) m,
+      if (seen.add(id)) id,
   ];
 }
 
@@ -65,26 +63,29 @@ Future<void> unlinkHeldPhoto(
   final current = await gearItemDivePhotosList.currentOrRead(session);
   if (current == null || session.isDisposed || session.isFrozen) return;
   gearItemDivePhotosList.set(session, [
-    for (final m in current)
-      if (m.id != mediaId) m,
+    for (final id in current)
+      if (id != mediaId) id,
   ]);
 }
 
-/// The photos the card shows from [session]'s list: those the diver can
-/// see ([visibleIds], the stored links the Library scope lets through),
-/// and every photo linked in this sitting, which the picker only offers
-/// from what the diver can see. Null until the list has been read.
-List<MediaItem>? gearItemDivePhotosShown(
+/// The photos the card shows from [session]'s list, newest link first: each
+/// photo linked in this sitting (the picker offers only what the diver can
+/// see), then the stored links the diver can see ([visibleIds], newest
+/// first) that the sitting still holds. Null until the list has been read.
+List<String>? gearItemDivePhotosShown(
   EditSession<EquipmentItem> session, {
-  required Set<String> visibleIds,
+  required List<String> visibleIds,
 }) {
   final current = gearItemDivePhotosList.current(session);
   if (current == null) return null;
-  final loaded = {
-    for (final m in gearItemDivePhotosList.loaded(session) ?? const []) m.id,
-  };
+  final loaded = {...?gearItemDivePhotosList.loaded(session)};
+  final visible = visibleIds.toSet();
+  final held = current.toSet();
   return [
-    for (final m in current)
-      if (visibleIds.contains(m.id) || !loaded.contains(m.id)) m,
+    // Once each: a photo also linked elsewhere since takes its stored place.
+    for (final id in current.reversed)
+      if (!loaded.contains(id) && !visible.contains(id)) id,
+    for (final id in visibleIds)
+      if (held.contains(id)) id,
   ];
 }

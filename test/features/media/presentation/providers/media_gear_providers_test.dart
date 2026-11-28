@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_gear_repository.dart';
-import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_gear_providers.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -22,7 +21,7 @@ class _CountingGear extends MediaGearRepository {
   }
 
   @override
-  Future<List<MediaItem>> linkedMediaFor(
+  Future<List<String>> linkedMediaIdsFor(
     String equipmentId, {
     required String? diverId,
   }) async {
@@ -73,15 +72,15 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
-    container.listen(linkedMediaForEquipmentProvider('e1'), (_, _) {});
-    await container.read(linkedMediaForEquipmentProvider('e1').future);
+    container.listen(linkedMediaIdsForEquipmentProvider('e1'), (_, _) {});
+    await container.read(linkedMediaIdsForEquipmentProvider('e1').future);
     expect(gear.linkedReads, 1);
 
     // An update, as a change of owner is: a delete would also reach the
     // media rows through their ON DELETE SET NULL.
     db.notifyUpdates({TableUpdate.onTable(db.dives, kind: UpdateKind.update)});
     await Future<void>.delayed(const Duration(milliseconds: 500));
-    await container.read(linkedMediaForEquipmentProvider('e1').future);
+    await container.read(linkedMediaIdsForEquipmentProvider('e1').future);
 
     expect(gear.linkedReads, 2);
   });

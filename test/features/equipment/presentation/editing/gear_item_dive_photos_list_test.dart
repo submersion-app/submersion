@@ -4,9 +4,6 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_dive_photos_list.dart';
 import 'package:submersion/features/media/data/repositories/media_gear_repository.dart';
-import 'package:submersion/features/media/data/repositories/media_repository.dart';
-import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -65,10 +62,7 @@ void main() {
 
       await unlinkHeldPhoto(session, 'm1');
 
-      expect(
-        [for (final m in gearItemDivePhotosList.current(session)!) m.id],
-        ['m2'],
-      );
+      expect(gearItemDivePhotosList.current(session), ['m2']);
     },
   );
 
@@ -78,8 +72,7 @@ void main() {
     addTearDown(session.dispose);
     final loaded = (await gearItemDivePhotosList.currentOrRead(session))!;
 
-    final m3 = (await MediaRepository().getMediaById('m3'))!;
-    gearItemDivePhotosList.set(session, [...loaded, m3]);
+    gearItemDivePhotosList.set(session, [...loaded, 'm3']);
     expect(await gear.mediaIdsFor('e1'), ['m1'], reason: 'held until Save');
 
     await db.transaction(session.runHeldWrites);
@@ -92,13 +85,13 @@ void main() {
     final session = EditSession<EquipmentItem>(item);
     addTearDown(session.dispose);
     await gearItemDivePhotosList.currentOrRead(session);
-    final shown = gearItemDivePhotosShown(session, visibleIds: {'m1'})!;
-    expect([for (final m in shown) m.id], ['m1']);
+    final shown = gearItemDivePhotosShown(session, visibleIds: ['m1'])!;
+    expect(shown, ['m1']);
 
     // The diver unlinks the one photo they can see.
     gearItemDivePhotosList.set(session, [
-      for (final m in gearItemDivePhotosList.current(session)!)
-        if (m.id != 'm1') m,
+      for (final id in gearItemDivePhotosList.current(session)!)
+        if (id != 'm1') id,
     ]);
     await db.transaction(session.runHeldWrites);
 
@@ -112,8 +105,7 @@ void main() {
       final session = EditSession<EquipmentItem>(item);
       addTearDown(session.dispose);
       final loaded = (await gearItemDivePhotosList.currentOrRead(session))!;
-      final m3 = (await MediaRepository().getMediaById('m3'))!;
-      gearItemDivePhotosList.set(session, [...loaded, m3]);
+      gearItemDivePhotosList.set(session, [...loaded, 'm3']);
       // Another device links m2 meanwhile.
       await gear.addGear(['m2'], ['e1']);
 
@@ -124,23 +116,32 @@ void main() {
   );
 
   test('replaceShownLinks never lists a photo twice', () {
-    final current = [
-      for (final id in ['hidden', 'a']) _item(id),
-    ];
     final next = replaceShownLinks(
-      current: current,
+      current: const ['hidden', 'a'],
       shownNow: const [],
-      keep: [_item('a'), _item('b')],
+      keep: const ['a', 'b'],
     );
-    expect([for (final m in next) m.id], ['hidden', 'a', 'b']);
+    expect(next, ['hidden', 'a', 'b']);
+  });
+
+  test('the card shows photos linked in the sitting first, then the stored '
+      'ones it can see, newest first', () async {
+    await gear.addGear(['m1', 'm2', 'wife-photo'], ['e1']);
+    final session = EditSession<EquipmentItem>(item);
+    addTearDown(session.dispose);
+    final loaded = (await gearItemDivePhotosList.currentOrRead(session))!;
+    gearItemDivePhotosList.set(session, [...loaded, 'm3']);
+
+    expect(gearItemDivePhotosShown(session, visibleIds: ['m2', 'm1']), [
+      'm3',
+      'm2',
+      'm1',
+    ]);
+    // Linked elsewhere since, m3 is now stored and seen: listed once.
+    expect(gearItemDivePhotosShown(session, visibleIds: ['m3', 'm2', 'm1']), [
+      'm3',
+      'm2',
+      'm1',
+    ]);
   });
 }
-
-MediaItem _item(String id) => MediaItem(
-  id: id,
-  mediaType: MediaType.photo,
-  sourceType: MediaSourceType.localFile,
-  takenAt: DateTime(2026),
-  createdAt: DateTime(2026),
-  updatedAt: DateTime(2026),
-);

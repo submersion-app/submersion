@@ -9,7 +9,6 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_sql.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
-import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 
 /// Gear items linked to photos and videos (issue #5046): "this photo shows
@@ -157,16 +156,18 @@ class MediaGearRepository {
     if (notify) SyncEventBus.notifyLocalChange();
   }
 
-  /// The linkable photos linked to [equipmentId] that [diverId] can see,
-  /// newest first: a photo on another diver's dive is left out, a photo on
-  /// no dive is kept, as the Library scopes them. A null [diverId] sees all.
-  Future<List<MediaItem>> linkedMediaFor(
+  /// The ids of the linkable photos linked to [equipmentId] that [diverId]
+  /// can see, newest first: a photo on another diver's dive is left out, a
+  /// photo on no dive is kept, as the Library scopes them. A null [diverId]
+  /// sees all. Ids only, so an item linked to thousands of photos costs one
+  /// narrow read; callers read the rows of the photos they draw.
+  Future<List<String>> linkedMediaIdsFor(
     String equipmentId, {
     required String? diverId,
   }) async {
     final rows = await _db
         .customSelect(
-          'SELECT m.* FROM media m '
+          'SELECT m.id AS id FROM media m '
           'JOIN media_equipment l ON l.media_id = m.id '
           'LEFT JOIN dives d ON d.id = m.dive_id '
           'WHERE l.equipment_id = ?1 AND $linkableSql '
@@ -179,7 +180,7 @@ class MediaGearRepository {
           readsFrom: {_db.media, _db.mediaEquipment, _db.dives},
         )
         .get();
-    return [for (final r in rows) mediaItemFromRow(_db.media.map(r.data))];
+    return [for (final r in rows) r.read<String>('id')];
   }
 
   /// Every photo id linked to [equipmentId]. Unscoped.

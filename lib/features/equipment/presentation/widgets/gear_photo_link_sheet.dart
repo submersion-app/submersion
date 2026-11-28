@@ -13,13 +13,13 @@ import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Opens the photo picker for linking photos to [item] (issue #5046), with
-/// the photos already [linked] checked. Returns the photos checked when the
-/// diver applies, or null when they back out.
-Future<List<MediaItem>?> showGearPhotoLinkSheet(
+/// the photos of [linkedIds] checked. Returns the ids checked when the
+/// diver applies, the linked ones first, or null when they back out.
+Future<List<String>?> showGearPhotoLinkSheet(
   BuildContext context, {
   required EquipmentItem item,
-  required List<MediaItem> linked,
-}) => showModalBottomSheet<List<MediaItem>>(
+  required List<String> linkedIds,
+}) => showModalBottomSheet<List<String>>(
   context: context,
   isScrollControlled: true,
   useSafeArea: true,
@@ -30,7 +30,7 @@ Future<List<MediaItem>?> showGearPhotoLinkSheet(
     expand: false,
     builder: (_, controller) => GearPhotoLinkSheet(
       item: item,
-      linked: linked,
+      linkedIds: linkedIds,
       scrollController: controller,
     ),
   ),
@@ -45,12 +45,14 @@ class GearPhotoLinkSheet extends ConsumerStatefulWidget {
   const GearPhotoLinkSheet({
     super.key,
     required this.item,
-    required this.linked,
+    required this.linkedIds,
     required this.scrollController,
   });
 
   final EquipmentItem item;
-  final List<MediaItem> linked;
+
+  /// The photos already linked, checked when the sheet opens.
+  final List<String> linkedIds;
   final ScrollController scrollController;
 
   @override
@@ -73,11 +75,10 @@ class _GearPhotoLinkSheetState extends ConsumerState<GearPhotoLinkSheet> {
   /// How close to the end of the list the next page is read, in pixels.
   static const _loadAhead = 600.0;
 
-  late final Set<String> _initial = {for (final m in widget.linked) m.id};
-  late final Set<String> _checked = {..._initial};
-  late final Map<String, MediaItem> _known = {
-    for (final m in widget.linked) m.id: m,
-  };
+  late final Set<String> _initial = {...widget.linkedIds};
+
+  /// In the order checked, so the photos linked here keep it.
+  late Set<String> _checked = {..._initial};
 
   /// Null until the item's dives are known; then whether All photos shows.
   bool? _allPhotos;
@@ -169,21 +170,20 @@ class _GearPhotoLinkSheetState extends ConsumerState<GearPhotoLinkSheet> {
       _initial.difference(_checked).length;
 
   void _toggle(MediaItem item) => setState(() {
-    _known[item.id] = item;
-    if (!_checked.remove(item.id)) _checked.add(item.id);
+    _checked = _checked.contains(item.id)
+        ? {
+            for (final id in _checked)
+              if (id != item.id) id,
+          }
+        : {..._checked, item.id};
   });
 
-  void _apply() {
-    final kept = [
-      for (final m in widget.linked)
-        if (_checked.contains(m.id)) m,
-    ];
-    final added = [
-      for (final id in _checked)
-        if (!_initial.contains(id)) ?_known[id],
-    ];
-    Navigator.of(context).pop([...kept, ...added]);
-  }
+  void _apply() => Navigator.of(context).pop([
+    for (final id in widget.linkedIds)
+      if (_checked.contains(id)) id,
+    for (final id in _checked)
+      if (!_initial.contains(id)) id,
+  ]);
 
   @override
   Widget build(BuildContext context) {

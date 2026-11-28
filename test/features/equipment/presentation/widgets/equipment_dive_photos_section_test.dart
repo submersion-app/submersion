@@ -29,16 +29,24 @@ void main() {
     WidgetTester tester, {
     List<MediaItem> linked = const [],
     EditSession<EquipmentItem>? editing,
+    List<List<String>>? asked,
   }) async {
+    final byId = {for (final m in linked) m.id: m};
     tester.view.physicalSize = const Size(500, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       await mediaTestApp(
         overrides: [
-          linkedMediaForEquipmentProvider(
+          linkedMediaIdsForEquipmentProvider(
             'e1',
-          ).overrideWith((ref) async => linked),
+          ).overrideWith((ref) async => [for (final m in linked) m.id]),
+          // Records each page of photo rows read.
+          mediaInOrderProvider.overrideWith((ref, key) async {
+            final ids = key.isEmpty ? const <String>[] : key.split('\n');
+            asked?.add(ids);
+            return [for (final id in ids) ?byId[id]];
+          }),
         ],
         home: Scaffold(
           body: SingleChildScrollView(
@@ -106,7 +114,7 @@ void main() {
     addTearDown(session.dispose);
     // The list as read from the store: both photos linked.
     gearItemDivePhotosList.loadNone(session);
-    gearItemDivePhotosList.set(session, photos(2));
+    gearItemDivePhotosList.set(session, ['m0', 'm1']);
     await pump(tester, linked: photos(2), editing: session);
 
     await tester.tap(
@@ -115,9 +123,30 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(MediaThumbnailTile), findsOneWidget);
+    expect(gearItemDivePhotosList.current(session), ['m1']);
+  });
+
+  testWidgets('the card reads the rows of its tiles only, and Show all a '
+      'page at a time', (tester) async {
+    final asked = <List<String>>[];
+    await pump(tester, linked: photos(130), asked: asked);
+    expect(find.text('130'), findsOneWidget, reason: 'the count is every link');
+    expect(asked, isNotEmpty);
+    expect(asked.every((ids) => ids.length <= 8), isTrue);
+
+    asked.clear();
+    await tester.tap(find.text('Show all (130)'));
+    await tester.pumpAndSettle();
+    expect(find.byType(EquipmentDivePhotosPage), findsOneWidget);
+    expect(asked, isNotEmpty);
     expect(
-      [for (final m in gearItemDivePhotosList.current(session)!) m.id],
-      ['m1'],
+      asked.every((ids) => ids.length <= EquipmentDivePhotosPage.pageSize),
+      isTrue,
+    );
+    expect(
+      asked.expand((ids) => ids),
+      isNot(contains('m129')),
+      reason: 'a page past the screen is not read',
     );
   });
 }
