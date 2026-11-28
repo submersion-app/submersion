@@ -382,6 +382,21 @@ void main() {
       expect(profile[1].computerRmv, isNull);
     });
 
+    test('maps the trim angle (absent stays null) (#5098)', () {
+      final parsed = makeParsedDive(
+        fingerprint: 'trim1',
+        samples: [
+          pigeon.ProfileSample(timeSeconds: 0, depthMeters: 3.0, trim: -13.0),
+          pigeon.ProfileSample(timeSeconds: 10, depthMeters: 4.0),
+        ],
+      );
+
+      final profile = parsedDiveToDownloaded(parsed).profile;
+
+      expect(profile[0].trim, -13.0);
+      expect(profile[1].trim, isNull);
+    });
+
     test('carries heading into domain ProfileSample', () {
       final parsed = makeParsedDive(
         fingerprint: 'heading-test',

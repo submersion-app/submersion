@@ -2955,6 +2955,7 @@ class DiveComputerRepository {
         aveloBuoyancy: p.aveloBuoyancy,
         aveloGasRemaining: p.aveloGasRemaining,
         computerRmv: p.computerRmv,
+        trim: p.trim,
       );
 
   /// Calculate bottom time (seconds) from profile points.
@@ -3179,6 +3180,9 @@ class ProfilePointData {
   final int? aveloGasRemaining;
   final double? computerRmv;
 
+  /// The computer's own pitch in degrees, positive head up (issue #5098).
+  final double? trim;
+
   const ProfilePointData({
     required this.timestamp,
     required this.depth,
@@ -3216,6 +3220,7 @@ class ProfilePointData {
     this.aveloBuoyancy,
     this.aveloGasRemaining,
     this.computerRmv,
+    this.trim,
   });
 }
 

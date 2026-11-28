@@ -800,6 +800,7 @@ class DiveReimportService {
             aveloBuoyancy: _asDouble(p['aveloBuoyancy']),
             aveloGasRemaining: p['aveloGasRemaining'] as int?,
             computerRmv: _asDouble(p['computerRmv']),
+            trim: _asDouble(p['trim']),
           ),
       ],
       now: now.millisecondsSinceEpoch,

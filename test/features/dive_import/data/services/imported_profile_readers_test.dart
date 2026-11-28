@@ -36,6 +36,25 @@ void main() {
       expect(point.computerRmv, 10.68);
     });
 
+    test('carries the trim angle, including a whole number (#5098)', () {
+      expect(
+        profilePointFromImport({
+          'timestamp': 0,
+          'depth': 3.0,
+          'trim': -13.5,
+        }).trim,
+        -13.5,
+      );
+      expect(
+        profilePointFromImport({'timestamp': 0, 'depth': 3.0, 'trim': 5}).trim,
+        5.0,
+      );
+      expect(
+        profilePointFromImport({'timestamp': 0, 'depth': 3.0}).trim,
+        isNull,
+      );
+    });
+
     test('reads a whole-number Avelo value written as an int', () {
       final point = profilePointFromImport({
         'timestamp': 60,

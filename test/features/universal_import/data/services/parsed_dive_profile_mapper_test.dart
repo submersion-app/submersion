@@ -28,6 +28,18 @@ void main() {
       expect(maps[1].containsKey('aveloGasRemaining'), isFalse);
       expect(maps[1].containsKey('computerRmv'), isFalse);
     });
+
+    test('carries trim under its own key (#5098)', () {
+      final maps = ParsedDiveProfileMapper.samples(
+        _dive(const [], [
+          pigeon.ProfileSample(timeSeconds: 0, depthMeters: 3.0, trim: -13.0),
+          pigeon.ProfileSample(timeSeconds: 10, depthMeters: 4.0),
+        ]),
+      );
+
+      expect(maps[0]['trim'], -13.0);
+      expect(maps[1].containsKey('trim'), isFalse);
+    });
   });
 
   group('ParsedDiveProfileMapper.gasSwitches', () {

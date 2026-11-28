@@ -778,6 +778,7 @@ void main() {
               'aveloBuoyancy': -0.393,
               'aveloGasRemaining': 100,
               'computerRmv': 10.68,
+              'trim': -13.0,
             },
             {'timestamp': 60, 'depth': 9.0},
           ],
@@ -791,7 +792,9 @@ void main() {
       expect(samples[0].aveloBuoyancy, -0.393);
       expect(samples[0].aveloGasRemaining, 100);
       expect(samples[0].computerRmv, 10.68);
+      expect(samples[0].trim, -13.0);
       expect(samples[1].aveloGasRemaining, isNull);
+      expect(samples[1].trim, isNull);
     });
 
     test('a profile the diver hand-edited survives the resync', () async {

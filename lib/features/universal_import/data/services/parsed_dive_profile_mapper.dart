@@ -101,6 +101,10 @@ class ParsedDiveProfileMapper {
       if (s.computerRmv != null) {
         sampleMap['computerRmv'] = s.computerRmv;
       }
+      // Halcyon Symbios trim angle (issue #5098).
+      if (s.trim != null) {
+        sampleMap['trim'] = s.trim;
+      }
       if (s.heartRate != null) {
         sampleMap['heartRate'] = s.heartRate;
       }

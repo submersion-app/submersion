@@ -63,6 +63,7 @@ DiveProfilePoint profilePointFromImport(
   aveloBuoyancy: asDoubleOrNull(p['aveloBuoyancy']),
   aveloGasRemaining: p['aveloGasRemaining'] as int?,
   computerRmv: asDoubleOrNull(p['computerRmv']),
+  trim: asDoubleOrNull(p['trim']),
 );
 
 /// The per-tank pressure readings in parsed profile samples, keyed by the id

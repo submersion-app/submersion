@@ -45,6 +45,7 @@ void main() {
         aveloBuoyancy: -0.393,
         aveloGasRemaining: 100,
         computerRmv: 10.68,
+        trim: -13.0,
       ),
       ProfileSample(timeSeconds: 60, depth: 4.0),
     ],
@@ -55,7 +56,9 @@ void main() {
     expect(points[0].aveloBuoyancy, -0.393);
     expect(points[0].aveloGasRemaining, 100);
     expect(points[0].computerRmv, 10.68);
+    expect(points[0].trim, -13.0);
     expect(points[1].aveloBuoyancy, isNull);
+    expect(points[1].trim, isNull);
   });
 
   test('an imported profile stores the Avelo fields', () async {
@@ -71,7 +74,9 @@ void main() {
     expect(merged[0].aveloBuoyancy, -0.393);
     expect(merged[0].aveloGasRemaining, 100);
     expect(merged[0].computerRmv, 10.68);
+    expect(merged[0].trim, -13.0);
     expect(merged[1].aveloGasRemaining, isNull);
+    expect(merged[1].trim, isNull);
     expect(merged[1].computerRmv, isNull);
   });
 }

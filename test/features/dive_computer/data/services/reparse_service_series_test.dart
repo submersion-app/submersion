@@ -333,4 +333,24 @@ void main() {
     expect(samples[1].aveloGasRemaining, isNull);
     expect(samples[1].computerRmv, isNull);
   });
+
+  test(
+    'the trim angle reaches the stored series on re-parse (#5098)',
+    () async {
+      await seedDive();
+      await apply(
+        makeParsedDive(
+          samples: [
+            pigeon.ProfileSample(timeSeconds: 0, depthMeters: 3.0, trim: -13.0),
+            pigeon.ProfileSample(timeSeconds: 60, depthMeters: 9.0),
+          ],
+        ),
+      );
+      final samples = (await profileSeries.getSeriesForDive(
+        'dive-1',
+      )).single.samples;
+      expect(samples[0].trim, -13.0);
+      expect(samples[1].trim, isNull);
+    },
+  );
 }
