@@ -65845,4 +65845,80 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compact is a slim bar with status lights. Banner is the welcome banner with your dive totals. Saved on this device.';
+
+  @override
+  String get equipment_catalogue_offerLine =>
+      'Built-in equipment catalogue has details for this model';
+
+  @override
+  String get equipment_catalogue_review => 'Review';
+
+  @override
+  String equipment_catalogue_sheetSource(String publisher, String date) {
+    return 'From $publisher, checked $date';
+  }
+
+  @override
+  String get equipment_catalogue_publisher_manufacturer => 'the manufacturer';
+
+  @override
+  String get equipment_catalogue_publisher_libdivecomputer => 'libdivecomputer';
+
+  @override
+  String get equipment_catalogue_publisher_thirdParty => 'a third party';
+
+  @override
+  String get equipment_catalogue_col_yours => 'Yours';
+
+  @override
+  String get equipment_catalogue_col_catalogue => 'Catalogue';
+
+  @override
+  String get equipment_catalogue_none => 'None';
+
+  @override
+  String get equipment_catalogue_linksNote =>
+      'Manufacturer links show on the gear page once linked.';
+
+  @override
+  String get equipment_catalogue_notThisModel => 'Not this model';
+
+  @override
+  String equipment_catalogue_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Apply $count',
+      one: 'Apply 1',
+      zero: 'Link only',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_catalogue_nothingToFill =>
+      'Your values already match this model. Linking it shows the manufacturer\'s links on the gear page.';
+
+  @override
+  String get equipment_manufacturer_title => 'From the manufacturer';
+
+  @override
+  String get equipment_manufacturer_product => 'Product page';
+
+  @override
+  String get equipment_manufacturer_manual => 'Manual';
+
+  @override
+  String get equipment_manufacturer_support => 'Support';
+
+  @override
+  String get equipment_manufacturer_unlink => 'Unlink from catalogue';
+
+  @override
+  String get settings_equipmentCatalogue_title =>
+      'Download equipment catalogue updates';
+
+  @override
+  String get settings_equipmentCatalogue_subtitle =>
+      'Checks GitHub at most once a day. Nothing about you or your gear is sent.';
 }

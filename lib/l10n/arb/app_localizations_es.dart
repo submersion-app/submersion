@@ -66907,4 +66907,80 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compacto es una barra estrecha con luces de estado. Banner es el banner de bienvenida con tus totales de inmersión. Se guarda en este dispositivo.';
+
+  @override
+  String get equipment_catalogue_offerLine =>
+      'El catálogo de equipo integrado tiene datos de este modelo';
+
+  @override
+  String get equipment_catalogue_review => 'Revisar';
+
+  @override
+  String equipment_catalogue_sheetSource(String publisher, String date) {
+    return 'De $publisher, comprobado el $date';
+  }
+
+  @override
+  String get equipment_catalogue_publisher_manufacturer => 'el fabricante';
+
+  @override
+  String get equipment_catalogue_publisher_libdivecomputer => 'libdivecomputer';
+
+  @override
+  String get equipment_catalogue_publisher_thirdParty => 'un tercero';
+
+  @override
+  String get equipment_catalogue_col_yours => 'Tus datos';
+
+  @override
+  String get equipment_catalogue_col_catalogue => 'Catálogo';
+
+  @override
+  String get equipment_catalogue_none => 'Ninguno';
+
+  @override
+  String get equipment_catalogue_linksNote =>
+      'Los enlaces del fabricante aparecen en la página del equipo una vez vinculado.';
+
+  @override
+  String get equipment_catalogue_notThisModel => 'No es este modelo';
+
+  @override
+  String equipment_catalogue_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Aplicar $count',
+      one: 'Aplicar 1',
+      zero: 'Solo vincular',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_catalogue_nothingToFill =>
+      'Tus valores ya coinciden con este modelo. Al vincularlo, la página del equipo muestra los enlaces del fabricante.';
+
+  @override
+  String get equipment_manufacturer_title => 'Del fabricante';
+
+  @override
+  String get equipment_manufacturer_product => 'Página del producto';
+
+  @override
+  String get equipment_manufacturer_manual => 'Manual';
+
+  @override
+  String get equipment_manufacturer_support => 'Soporte';
+
+  @override
+  String get equipment_manufacturer_unlink => 'Desvincular del catálogo';
+
+  @override
+  String get settings_equipmentCatalogue_title =>
+      'Descargar actualizaciones del catálogo de equipo';
+
+  @override
+  String get settings_equipmentCatalogue_subtitle =>
+      'Consulta GitHub como mucho una vez al día. No se envía nada sobre ti ni sobre tu equipo.';
 }

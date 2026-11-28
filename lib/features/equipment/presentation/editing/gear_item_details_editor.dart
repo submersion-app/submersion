@@ -9,12 +9,14 @@ import 'package:submersion/features/equipment/domain/constants/equipment_attribu
 import 'package:submersion/features/equipment/domain/constants/equipment_fitting.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_catalogue_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_owned_for.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_attribute_form_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/gear_catalogue_name_row.dart';
+import 'package:submersion/features/equipment/presentation/widgets/gear_catalogue_offer_line.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_custom_fields_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_dive_time_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_sharing_row.dart';
@@ -168,7 +170,12 @@ class _GearItemDetailsEditorState extends ConsumerState<GearItemDetailsEditor> {
         final purchaseDate = _session.valueOf(gearPurchaseDateField);
         Widget attributeSection(AttributeGroup group) =>
             EquipmentAttributeFormSection(
-              key: ValueKey('gear-attrs-${group.name}-${type.name}'),
+              // A catalogue review sets values the inputs took once: a new
+              // revision rebuilds them (issue #5118).
+              key: ValueKey(
+                'gear-attrs-${group.name}-${type.name}-'
+                '${gearCatalogueRevision(_session)}',
+              ),
               type: type,
               group: group,
               values: attributes,
@@ -211,6 +218,8 @@ class _GearItemDetailsEditorState extends ConsumerState<GearItemDetailsEditor> {
               brand: _brand.controller,
               model: _model.controller,
             ),
+            // The catalogue has the model typed (issue #5118).
+            GearCatalogueOfferLine(session: _session),
             const SizedBox(height: 16),
             attributeSection(AttributeGroup.spec),
             // The item's colour and its place on the figure (#2326, #4493).

@@ -64160,4 +64160,77 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'コンパクトはステータスランプ付きの細いバーです。バナーはダイブの合計を表示するウェルカムバナーです。この端末に保存されます。';
+
+  @override
+  String get equipment_catalogue_offerLine => '内蔵の器材カタログにこのモデルの情報があります';
+
+  @override
+  String get equipment_catalogue_review => '確認';
+
+  @override
+  String equipment_catalogue_sheetSource(String publisher, String date) {
+    return '$publisherより、$dateに確認';
+  }
+
+  @override
+  String get equipment_catalogue_publisher_manufacturer => 'メーカー';
+
+  @override
+  String get equipment_catalogue_publisher_libdivecomputer => 'libdivecomputer';
+
+  @override
+  String get equipment_catalogue_publisher_thirdParty => '第三者';
+
+  @override
+  String get equipment_catalogue_col_yours => '現在の値';
+
+  @override
+  String get equipment_catalogue_col_catalogue => 'カタログ';
+
+  @override
+  String get equipment_catalogue_none => 'なし';
+
+  @override
+  String get equipment_catalogue_linksNote => 'リンクすると、器材ページにメーカーのリンクが表示されます。';
+
+  @override
+  String get equipment_catalogue_notThisModel => 'このモデルではない';
+
+  @override
+  String equipment_catalogue_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件を適用',
+      one: '1件を適用',
+      zero: 'リンクのみ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_catalogue_nothingToFill =>
+      '値はすでにこのモデルと一致しています。リンクすると、器材ページにメーカーのリンクが表示されます。';
+
+  @override
+  String get equipment_manufacturer_title => 'メーカー情報';
+
+  @override
+  String get equipment_manufacturer_product => '製品ページ';
+
+  @override
+  String get equipment_manufacturer_manual => 'マニュアル';
+
+  @override
+  String get equipment_manufacturer_support => 'サポート';
+
+  @override
+  String get equipment_manufacturer_unlink => 'カタログとのリンクを解除';
+
+  @override
+  String get settings_equipmentCatalogue_title => '器材カタログの更新をダウンロード';
+
+  @override
+  String get settings_equipmentCatalogue_subtitle =>
+      'GitHubの確認は1日1回まで。あなたや器材に関する情報は送信されません。';
 }

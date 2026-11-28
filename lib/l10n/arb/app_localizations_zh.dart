@@ -62649,4 +62649,77 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       '紧凑是带状态灯的窄栏。横幅是显示潜水总计的欢迎横幅。保存在此设备上。';
+
+  @override
+  String get equipment_catalogue_offerLine => '内置装备目录中有此型号的资料';
+
+  @override
+  String get equipment_catalogue_review => '查看';
+
+  @override
+  String equipment_catalogue_sheetSource(String publisher, String date) {
+    return '来自$publisher，核实于$date';
+  }
+
+  @override
+  String get equipment_catalogue_publisher_manufacturer => '制造商';
+
+  @override
+  String get equipment_catalogue_publisher_libdivecomputer => 'libdivecomputer';
+
+  @override
+  String get equipment_catalogue_publisher_thirdParty => '第三方';
+
+  @override
+  String get equipment_catalogue_col_yours => '你的值';
+
+  @override
+  String get equipment_catalogue_col_catalogue => '目录';
+
+  @override
+  String get equipment_catalogue_none => '无';
+
+  @override
+  String get equipment_catalogue_linksNote => '关联后，装备页面会显示制造商链接。';
+
+  @override
+  String get equipment_catalogue_notThisModel => '不是这个型号';
+
+  @override
+  String equipment_catalogue_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '应用 $count 项',
+      one: '应用 1 项',
+      zero: '仅关联',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_catalogue_nothingToFill =>
+      '你的数值已与此型号一致。关联后，装备页面会显示制造商链接。';
+
+  @override
+  String get equipment_manufacturer_title => '制造商信息';
+
+  @override
+  String get equipment_manufacturer_product => '产品页面';
+
+  @override
+  String get equipment_manufacturer_manual => '手册';
+
+  @override
+  String get equipment_manufacturer_support => '支持';
+
+  @override
+  String get equipment_manufacturer_unlink => '取消与目录的关联';
+
+  @override
+  String get settings_equipmentCatalogue_title => '下载装备目录更新';
+
+  @override
+  String get settings_equipmentCatalogue_subtitle =>
+      '每天最多检查一次 GitHub。不会发送任何关于你或你的装备的信息。';
 }

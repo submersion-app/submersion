@@ -66466,4 +66466,80 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compact is een smalle balk met statuslampjes. Banner is de welkomstbanner met je duiktotalen. Opgeslagen op dit apparaat.';
+
+  @override
+  String get equipment_catalogue_offerLine =>
+      'De ingebouwde uitrustingscatalogus heeft gegevens over dit model';
+
+  @override
+  String get equipment_catalogue_review => 'Bekijken';
+
+  @override
+  String equipment_catalogue_sheetSource(String publisher, String date) {
+    return 'Van $publisher, gecontroleerd op $date';
+  }
+
+  @override
+  String get equipment_catalogue_publisher_manufacturer => 'de fabrikant';
+
+  @override
+  String get equipment_catalogue_publisher_libdivecomputer => 'libdivecomputer';
+
+  @override
+  String get equipment_catalogue_publisher_thirdParty => 'een derde partij';
+
+  @override
+  String get equipment_catalogue_col_yours => 'Jouw waarden';
+
+  @override
+  String get equipment_catalogue_col_catalogue => 'Catalogus';
+
+  @override
+  String get equipment_catalogue_none => 'Geen';
+
+  @override
+  String get equipment_catalogue_linksNote =>
+      'Links van de fabrikant verschijnen na koppelen op de uitrustingspagina.';
+
+  @override
+  String get equipment_catalogue_notThisModel => 'Niet dit model';
+
+  @override
+  String equipment_catalogue_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count toepassen',
+      one: '1 toepassen',
+      zero: 'Alleen koppelen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_catalogue_nothingToFill =>
+      'Je waarden komen al overeen met dit model. Na koppelen toont de uitrustingspagina de links van de fabrikant.';
+
+  @override
+  String get equipment_manufacturer_title => 'Van de fabrikant';
+
+  @override
+  String get equipment_manufacturer_product => 'Productpagina';
+
+  @override
+  String get equipment_manufacturer_manual => 'Handleiding';
+
+  @override
+  String get equipment_manufacturer_support => 'Ondersteuning';
+
+  @override
+  String get equipment_manufacturer_unlink => 'Ontkoppelen van catalogus';
+
+  @override
+  String get settings_equipmentCatalogue_title =>
+      'Updates van de uitrustingscatalogus downloaden';
+
+  @override
+  String get settings_equipmentCatalogue_subtitle =>
+      'Controleert GitHub hooguit eenmaal per dag. Er wordt niets over jou of je uitrusting verzonden.';
 }

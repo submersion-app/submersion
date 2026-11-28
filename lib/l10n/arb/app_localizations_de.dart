@@ -66728,4 +66728,80 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Kompakt ist eine schmale Leiste mit Statusanzeigen. Banner ist das Begrüßungsbanner mit deinen Tauchsummen. Wird auf diesem Gerät gespeichert.';
+
+  @override
+  String get equipment_catalogue_offerLine =>
+      'Der integrierte Ausrüstungskatalog hat Angaben zu diesem Modell';
+
+  @override
+  String get equipment_catalogue_review => 'Prüfen';
+
+  @override
+  String equipment_catalogue_sheetSource(String publisher, String date) {
+    return 'Von $publisher, geprüft am $date';
+  }
+
+  @override
+  String get equipment_catalogue_publisher_manufacturer => 'dem Hersteller';
+
+  @override
+  String get equipment_catalogue_publisher_libdivecomputer => 'libdivecomputer';
+
+  @override
+  String get equipment_catalogue_publisher_thirdParty => 'einem Dritten';
+
+  @override
+  String get equipment_catalogue_col_yours => 'Deine';
+
+  @override
+  String get equipment_catalogue_col_catalogue => 'Katalog';
+
+  @override
+  String get equipment_catalogue_none => 'Keine';
+
+  @override
+  String get equipment_catalogue_linksNote =>
+      'Herstellerlinks erscheinen nach dem Verknüpfen auf der Ausrüstungsseite.';
+
+  @override
+  String get equipment_catalogue_notThisModel => 'Nicht dieses Modell';
+
+  @override
+  String equipment_catalogue_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count übernehmen',
+      one: '1 übernehmen',
+      zero: 'Nur verknüpfen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_catalogue_nothingToFill =>
+      'Deine Werte passen bereits zu diesem Modell. Nach dem Verknüpfen erscheinen die Herstellerlinks auf der Ausrüstungsseite.';
+
+  @override
+  String get equipment_manufacturer_title => 'Vom Hersteller';
+
+  @override
+  String get equipment_manufacturer_product => 'Produktseite';
+
+  @override
+  String get equipment_manufacturer_manual => 'Handbuch';
+
+  @override
+  String get equipment_manufacturer_support => 'Support';
+
+  @override
+  String get equipment_manufacturer_unlink => 'Verknüpfung zum Katalog lösen';
+
+  @override
+  String get settings_equipmentCatalogue_title =>
+      'Updates des Ausrüstungskatalogs laden';
+
+  @override
+  String get settings_equipmentCatalogue_subtitle =>
+      'Prüft höchstens einmal am Tag bei GitHub. Nichts über dich oder deine Ausrüstung wird gesendet.';
 }
