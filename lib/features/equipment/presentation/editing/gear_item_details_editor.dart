@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_owned_for.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_attribute_form_section.dart';
+import 'package:submersion/features/equipment/presentation/widgets/gear_catalogue_name_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_custom_fields_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_dive_time_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_sharing_row.dart';
@@ -205,30 +206,10 @@ class _GearItemDetailsEditorState extends ConsumerState<GearItemDetailsEditor> {
               _ParentPicker(session: _session, type: type),
               const SizedBox(height: 16),
             ],
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    key: const ValueKey('gear-edit-brand'),
-                    controller: _brand.controller,
-                    decoration: InputDecoration(
-                      labelText: l10n.equipment_edit_brandLabel,
-                      prefixIcon: const Icon(Icons.business),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextField(
-                    key: const ValueKey('gear-edit-model'),
-                    controller: _model.controller,
-                    decoration: InputDecoration(
-                      labelText: l10n.equipment_edit_modelLabel,
-                      prefixIcon: const Icon(Icons.info_outline),
-                    ),
-                  ),
-                ),
-              ],
+            GearCatalogueNameRow(
+              type: type,
+              brand: _brand.controller,
+              model: _model.controller,
             ),
             const SizedBox(height: 16),
             attributeSection(AttributeGroup.spec),
