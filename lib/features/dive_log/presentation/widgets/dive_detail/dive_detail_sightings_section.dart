@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_sightings_sitting.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_sighting_row.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_sightings_list.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/presentation/pages/dive_species_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
@@ -81,22 +81,24 @@ class DiveSightingsSection extends ConsumerWidget {
                             ),
                     ),
                     const Divider(),
-                    for (final sighting in sightings)
-                      DiveSightingRow(
-                        sighting: sighting,
-                        photoCount: photoCounts[sighting.speciesId] ?? 0,
-                        onOpen: () =>
-                            context.push('/species/${sighting.speciesId}'),
-                        onOpenPhotos: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            fullscreenDialog: true,
-                            builder: (_) => DiveSpeciesPhotoViewerPage(
-                              diveId: dive.id,
-                              speciesId: sighting.speciesId,
-                            ),
+                    // Two columns when wide, and a long list collapsed
+                    // (issue #5067). Keyed by dive: each dive opens collapsed.
+                    DiveSightingsList(
+                      key: ValueKey(dive.id),
+                      sightings: sightings,
+                      photoCounts: photoCounts,
+                      onOpen: (sighting) =>
+                          context.push('/species/${sighting.speciesId}'),
+                      onOpenPhotos: (sighting) => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          fullscreenDialog: true,
+                          builder: (_) => DiveSpeciesPhotoViewerPage(
+                            diveId: dive.id,
+                            speciesId: sighting.speciesId,
                           ),
                         ),
                       ),
+                    ),
                     if (panel) DiveFindSpeciesPanel(dive: dive),
                     if (prompt) const SpeciesDownloadPrompt(),
                   ],

@@ -8,6 +8,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_operation_gate.dart';
 
+part 'data_source_column_header.dart';
 part 'data_source_comparison_grid.dart';
 
 /// Localized fallback labels for [resolveSourceName], shared by the
@@ -46,10 +47,10 @@ String _timeRangeText(
 /// - **No sources:** Shows a "Manual Entry" card with pen icon and creation date.
 /// - **Single source:** Shows the source card with device info, a provenance
 ///   list and one metrics row.
-/// - **Multi-source (N):** A comparison table carries every per-source
-///   number and provenance detail; the cards beneath it carry identity,
-///   status and actions only, so no value is printed twice (issues #3247,
-///   #3281).
+/// - **Multi-source (N):** A comparison table with one column per source
+///   carries every per-source number and provenance detail (issues #3247,
+///   #3281), and each column header carries that source's identity, chips
+///   and menu, so every source appears exactly once (issue #5081).
 ///
 /// Section-wide actions (Compare in 3D, Separate combined dives) live in a
 /// menu in the section header, reachable whether or not the section is
@@ -67,7 +68,8 @@ class DataSourcesSection extends StatefulWidget {
   /// screen.
   static const double maxScrollingCellWidth = 200;
 
-  /// The card for one source.
+  /// The one entry for a source: its card on a single-source dive, its
+  /// column header in the comparison table on a multi-source dive.
   static Key cardKey(String sourceId) => Key('data-source-card-$sourceId');
 
   final List<DiveDataSource> dataSources;
@@ -173,6 +175,32 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
         (s) => s.id != source.id && s.computerId == source.computerId,
       );
 
+  _SourceActions _actionsFor(
+    DiveDataSource source, {
+    required bool isMultiSource,
+  }) {
+    return _SourceActions(
+      onSetPrimary: widget.onSetPrimary != null
+          ? () => widget.onSetPrimary!(source.id)
+          : null,
+      onSplit: widget.onSplit != null && isMultiSource
+          ? () => widget.onSplit!(source.id)
+          : null,
+      // Two sources of one computer cannot be told apart, so removal
+      // refuses them; the menu does not offer it.
+      onRemove:
+          widget.onRemove != null && isMultiSource && !_sharesComputer(source)
+          ? () => widget.onRemove!(
+              source.id,
+              resolveSourceName(source, _labelsOf(context)),
+            )
+          : null,
+      onTap: widget.onTapSource != null
+          ? () => widget.onTapSource!(source.id)
+          : null,
+    );
+  }
+
   List<Widget> _buildChildren(bool isMultiSource) {
     if (widget.dataSources.isEmpty) {
       return [
@@ -183,50 +211,30 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
       ];
     }
 
-    final children = <Widget>[];
+    // A multi-source dive shows each source once, as a column of the
+    // comparison table whose header carries the source's chips and menu
+    // (#5081).
     if (isMultiSource) {
-      children.add(
-        _SourceComparisonGrid(sources: widget.dataSources, units: widget.units),
-      );
-      children.add(const Divider(height: 1));
-    }
-    for (var i = 0; i < widget.dataSources.length; i++) {
-      final source = widget.dataSources[i];
-      if (i > 0) {
-        children.add(const Divider(height: 1));
-      }
-      children.add(
-        _DataSourceCard(
-          source: source,
+      return [
+        _SourceComparisonGrid(
+          sources: widget.dataSources,
           units: widget.units,
-          isMultiSource: isMultiSource,
-          isViewing: widget.viewedSourceId == source.id,
-          onSetPrimary: widget.onSetPrimary != null
-              ? () => widget.onSetPrimary!(source.id)
-              : null,
-          onSplit: widget.onSplit != null && isMultiSource
-              ? () => widget.onSplit!(source.id)
-              : null,
-          // Two sources of one computer cannot be told apart, so removal
-          // refuses them; the menu does not offer it.
-          onRemove:
-              widget.onRemove != null &&
-                  isMultiSource &&
-                  !_sharesComputer(source)
-              ? () => widget.onRemove!(
-                  source.id,
-                  resolveSourceName(source, _labelsOf(context)),
-                )
-              : null,
-          onTap: widget.onTapSource != null
-              ? () => widget.onTapSource!(source.id)
-              : null,
+          viewedSourceId: widget.viewedSourceId,
+          actionsFor: (s) => _actionsFor(s, isMultiSource: true),
           operationReason: widget.operationReason,
         ),
-      );
+      ];
     }
 
-    return children;
+    final source = widget.dataSources.single;
+    return [
+      _DataSourceCard(
+        source: source,
+        units: widget.units,
+        actions: _actionsFor(source, isMultiSource: false),
+        operationReason: widget.operationReason,
+      ),
+    ];
   }
 }
 
@@ -368,32 +376,20 @@ class _ManualEntryCard extends StatelessWidget {
 // Data Source Card
 // ---------------------------------------------------------------------------
 
-enum _SourceMenuAction { setPrimary, split, remove }
-
-/// Card for a single [DiveDataSource]: identity, status chips and the
-/// per-source menu. On a single-source dive it also carries the provenance
-/// list and metrics row that the comparison grid shows for multi-source
-/// dives.
+/// Card for the one [DiveDataSource] of a single-source dive: identity, the
+/// per-source menu, the provenance list and one metrics row. A multi-source
+/// dive has no cards; each source is a column of the comparison table
+/// instead (#5081).
 class _DataSourceCard extends StatelessWidget {
   final DiveDataSource source;
   final UnitFormatter units;
-  final bool isMultiSource;
-  final bool isViewing;
-  final VoidCallback? onSetPrimary;
-  final VoidCallback? onSplit;
-  final VoidCallback? onRemove;
-  final VoidCallback? onTap;
+  final _SourceActions actions;
   final String? operationReason;
 
   const _DataSourceCard({
     required this.source,
     required this.units,
-    required this.isMultiSource,
-    required this.isViewing,
-    this.onSetPrimary,
-    this.onSplit,
-    this.onRemove,
-    this.onTap,
+    required this.actions,
     required this.operationReason,
   });
 
@@ -401,52 +397,15 @@ class _DataSourceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-
-    // When the header shows the computer's friendly name, surface the model
-    // beneath it -- but only when it adds information (i.e. the friendly name
-    // was customized away from the model). Un-renamed computers, whose name
-    // defaults to the model, get no redundant subtitle.
-    final modelSubtitle =
-        source.computerName != null &&
-            source.computerModel != null &&
-            source.computerModel != source.computerName
-        ? source.computerModel
-        : null;
-
-    // The icon shows only when the menu would have an entry: a lone
-    // primary source has none, and an icon over an empty menu opens
-    // nothing (#2974).
-    final canSetPrimary = !source.isPrimary && onSetPrimary != null;
-    final canSplit = onSplit != null;
-    final canRemove = onRemove != null;
-    final hasOverflowMenu = canSetPrimary || canSplit || canRemove;
-
-    final chips = <Widget>[
-      if (isMultiSource && source.isPrimary)
-        _Badge(
-          label: context.l10n.diveLog_computerSource_badge_primary,
-          color: colorScheme.primaryContainer,
-        ),
-      if (isMultiSource && isViewing)
-        _Badge(
-          label: context.l10n.diveLog_sources_badge_viewing,
-          color: colorScheme.tertiaryContainer,
-        ),
-    ];
+    final modelSubtitle = _modelSubtitle(source);
+    final hasOverflowMenu = actions.hasMenuFor(source);
 
     return KeyedSubtree(
       key: DataSourcesSection.cardKey(source.id),
       child: Material(
-        // The viewed card is tinted with an opaque theme role rather than a
-        // translucent overlay, so it reads the same on every preset.
-        // Gated like the Viewing chip: a stale viewed id on a dive that has
-        // dropped to one source would otherwise tint a card with no chip to
-        // say why.
-        color: isMultiSource && isViewing
-            ? colorScheme.surfaceContainerHighest
-            : Colors.transparent,
+        color: Colors.transparent,
         child: InkWell(
-          onTap: onTap,
+          onTap: actions.onTap,
           child: Padding(
             padding: EdgeInsetsDirectional.fromSTEB(
               16,
@@ -465,22 +424,12 @@ class _DataSourceCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  resolveSourceName(source, _labelsOf(context)),
-                                  style: textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              for (final chip in chips) ...[
-                                const SizedBox(width: 6),
-                                chip,
-                              ],
-                            ],
+                          Text(
+                            resolveSourceName(source, _labelsOf(context)),
+                            style: textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                           if (modelSubtitle != null)
                             Text(
@@ -494,70 +443,29 @@ class _DataSourceCard extends StatelessWidget {
                       ),
                     ),
                     if (hasOverflowMenu)
-                      PopupMenuButton<_SourceMenuAction>(
-                        icon: const Icon(Icons.more_vert, size: 20),
-                        iconSize: 20,
-                        onSelected: (action) {
-                          switch (action) {
-                            case _SourceMenuAction.setPrimary:
-                              onSetPrimary?.call();
-                            case _SourceMenuAction.split:
-                              onSplit?.call();
-                            case _SourceMenuAction.remove:
-                              onRemove?.call();
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          if (operationReason case final reason?)
-                            recordOperationCaption<_SourceMenuAction>(
-                              context,
-                              reason,
-                            ),
-                          if (canSetPrimary)
-                            _menuItem(
-                              _SourceMenuAction.setPrimary,
-                              Icons.star_outline,
-                              context.l10n.diveLog_sources_menu_setPrimary,
-                              enabled: operationReason == null,
-                            ),
-                          if (canSplit)
-                            _menuItem(
-                              _SourceMenuAction.split,
-                              Icons.call_split,
-                              context.l10n.diveLog_sources_menu_split,
-                              enabled: operationReason == null,
-                            ),
-                          if (canRemove)
-                            _menuItem(
-                              _SourceMenuAction.remove,
-                              Icons.delete_outline,
-                              context.l10n.diveLog_sources_menu_remove,
-                              enabled: operationReason == null,
-                            ),
-                        ],
+                      _SourceMenuButton(
+                        source: source,
+                        actions: actions,
+                        operationReason: operationReason,
                       ),
                   ],
                 ),
-                // A multi-source dive shows provenance and metrics in the
-                // comparison table, so its card stops at the header.
-                if (!isMultiSource) ...[
-                  const SizedBox(height: 8),
-                  Padding(
-                    // The header trims its end inset to seat the menu
-                    // button; the body below it keeps the full 16.
-                    padding: EdgeInsetsDirectional.only(
-                      end: hasOverflowMenu ? 12 : 0,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _ProvenanceList(source: source, units: units),
-                        const SizedBox(height: 12),
-                        _MetricsRow(source: source, units: units),
-                      ],
-                    ),
+                const SizedBox(height: 8),
+                Padding(
+                  // The header trims its end inset to seat the menu
+                  // button; the body below it keeps the full 16.
+                  padding: EdgeInsetsDirectional.only(
+                    end: hasOverflowMenu ? 12 : 0,
                   ),
-                ],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _ProvenanceList(source: source, units: units),
+                      const SizedBox(height: 12),
+                      _MetricsRow(source: source, units: units),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

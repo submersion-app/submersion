@@ -7,6 +7,7 @@ import 'package:image/image.dart' as img;
 import 'package:pdfrx/pdfrx.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/media/data/services/pdf_in_memory.dart';
 
 /// Signature of the PDF page-1 render seam, injectable so tests do not need
 /// a pdfium binary. Matches [PdfPageRenderer.renderFirstPageJpeg].
@@ -36,6 +37,13 @@ class PdfPageRenderer {
   /// bundled pdfium via [pdfrxFlutterInitialize]; pure-Dart test hosts can
   /// substitute [pdfrxInitialize] (which fetches a host pdfium build).
   static Future<void> Function() initializer = pdfrxFlutterInitialize;
+
+  /// Opens a bytes source, in memory up to [inMemoryPdfLimitBytes], so
+  /// pdfium does not wait on the main isolate for each block (issue #4785);
+  /// readable so a test can pin it.
+  @visibleForTesting
+  static const Future<PdfDocument> Function(Uint8List bytes) openBytes =
+      openInMemoryPdf;
 
   /// JPEG-encodes a BGRA page bitmap on a background isolate.
   ///
@@ -102,9 +110,13 @@ class PdfPageRenderer {
         await initializer();
         _initialized = true;
       }
+      // Opening needs pdfium, which only PDFIUM_PATH hosts load in tests;
+      // pdf_page_renderer_test pins openBytes itself.
+      // coverage:ignore-start
       document = file != null
           ? await PdfDocument.openFile(file.path)
-          : await PdfDocument.openData(bytes!);
+          : await openBytes(bytes!);
+      // coverage:ignore-end
       if (document.pages.isEmpty) return null;
       final pageImage = await renderWholePage(document.pages[0], maxDimension);
       if (pageImage == null) return null;

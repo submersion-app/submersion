@@ -9,6 +9,7 @@ import 'package:submersion/features/signatures/presentation/widgets/buddy_signat
 import 'package:submersion/features/signatures/presentation/widgets/buddy_signature_request_sheet.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 /// Section displaying buddy signatures for a dive
 class BuddySignaturesSection extends ConsumerWidget {
@@ -86,52 +87,7 @@ class BuddySignaturesSection extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    ExcludeSemantics(
-                      child: Icon(
-                        Icons.draw_outlined,
-                        size: 20,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      context.l10n.signatures_title,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ],
-                ),
-                if (signedCount > 0)
-                  Semantics(
-                    label: context.l10n.signatures_signedCountSemantics(
-                      signedCount,
-                      buddies.length,
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '$signedCount/${buddies.length}',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+            _header(context, signedCount: signedCount, total: buddies.length),
             const Divider(),
             ...buddies.map((bwr) {
               final sig = signatureMap[bwr.buddy.id];
@@ -151,11 +107,63 @@ class BuddySignaturesSection extends ConsumerWidget {
     );
   }
 
+  /// The card's title row, drawn while its reads load too: while the dive
+  /// is unlocked it carries the pencil that opens the Signatures card, the
+  /// only way to ask a buddy to sign (issue #5061), and a slow read must not
+  /// take it away.
+  Widget _header(
+    BuildContext context, {
+    required int signedCount,
+    required int total,
+  }) {
+    return RecordCardHeader(
+      leading: ExcludeSemantics(
+        child: Icon(
+          Icons.draw_outlined,
+          size: 20,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      ),
+      title: context.l10n.signatures_title,
+      trailing: signedCount > 0
+          ? Semantics(
+              label: context.l10n.signatures_signedCountSemantics(
+                signedCount,
+                total,
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '$signedCount/$total',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              ),
+            )
+          : null,
+    );
+  }
+
   Widget _buildLoadingSection(BuildContext context) {
-    return const Card(
+    return Card(
       child: Padding(
-        padding: EdgeInsets.all(32),
-        child: Center(child: CircularProgressIndicator()),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _header(context, signedCount: 0, total: 0),
+            const Divider(),
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          ],
+        ),
       ),
     );
   }

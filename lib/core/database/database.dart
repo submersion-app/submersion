@@ -1830,6 +1830,10 @@ class AppDatabase extends _$AppDatabase {
     // depth and a plan's no-switch flag (issue #3793). Additive and
     // defaulted; the floor does not move.
     387,
+    // v389: diver_settings.profile_zoom_time_only, the profile chart's Time
+    // only zoom choice (issue #5069). Nullable, no backfill; the floor does
+    // not move. Numbered 389 because open work claims 388.
+    389,
     // v393: the built-in BCD/wing inspection kind applies to wings (issue
     // #5110). Built-in reference data never syncs; the floor does not move.
     393,
