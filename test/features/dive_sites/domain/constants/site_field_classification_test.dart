@@ -16,9 +16,16 @@ void main() {
 
   test('the new fields are appended after every existing member', () {
     // Saved layouts store members by name, so these must come last.
+    // Later additions (the contact columns, issue #5073) follow them.
     const values = SiteField.values;
-    expect(values[values.length - 2], SiteField.siteTypes);
-    expect(values.last, SiteField.tags);
+    expect(SiteField.tags.index, SiteField.siteTypes.index + 1);
+    expect(SiteField.siteTypes.index, SiteField.averageDuration.index + 1);
+    expect(values.sublist(values.length - 4), const [
+      SiteField.address,
+      SiteField.phone,
+      SiteField.email,
+      SiteField.website,
+    ]);
     expect(SiteField.siteTypes.categoryName, 'details');
     expect(SiteField.tags.categoryName, 'details');
     expect(SiteField.siteTypes.sortable, isFalse);

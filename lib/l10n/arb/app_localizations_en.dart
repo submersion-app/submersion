@@ -11862,6 +11862,142 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_detail_section_access => 'Access & Logistics';
 
   @override
+  String get diveSites_detail_section_contact => 'Contact';
+
+  @override
+  String get diveSites_detail_section_openingHours => 'Opening Hours';
+
+  @override
+  String get diveSites_contact_mapsFailed => 'Could not open maps';
+
+  @override
+  String get diveSites_contact_linkFailed => 'Could not open the link';
+
+  @override
+  String get diveSites_contact_directions => 'Directions';
+
+  @override
+  String get diveSites_contact_address => 'Address';
+
+  @override
+  String get diveSites_contact_phone => 'Phone';
+
+  @override
+  String get diveSites_contact_email => 'Email';
+
+  @override
+  String get diveSites_contact_website => 'Website';
+
+  @override
+  String get diveSites_hours_alwaysOpen => 'Open 24/7';
+
+  @override
+  String get diveSites_hours_addSchedule => 'Add schedule';
+
+  @override
+  String get diveSites_hours_scheduleName => 'Name';
+
+  @override
+  String get diveSites_hours_scheduleName_hint => 'Summer';
+
+  @override
+  String get diveSites_hours_seasonal => 'Seasonal';
+
+  @override
+  String get diveSites_hours_seasonFrom => 'From';
+
+  @override
+  String get diveSites_hours_seasonTo => 'To';
+
+  @override
+  String get diveSites_hours_deleteSchedule => 'Delete schedule';
+
+  @override
+  String get diveSites_hours_closed => 'Closed';
+
+  @override
+  String get diveSites_hours_open24h => 'Open 24 hours';
+
+  @override
+  String get diveSites_hours_kindHours => 'Hours';
+
+  @override
+  String get diveSites_hours_addRange => 'Add hours';
+
+  @override
+  String get diveSites_hours_removeRange => 'Remove hours';
+
+  @override
+  String get diveSites_hours_copyDay => 'Copy to other days';
+
+  @override
+  String diveSites_hours_copyTitle(String day) {
+    return 'Copy $day to';
+  }
+
+  @override
+  String get diveSites_hours_selectAll => 'Select all';
+
+  @override
+  String get diveSites_hours_copy => 'Copy';
+
+  @override
+  String get diveSites_hours_note => 'Note';
+
+  @override
+  String get diveSites_hours_note_hint =>
+      'Book slots by phone, closed public holidays';
+
+  @override
+  String get diveSites_hours_invalid =>
+      'Some hours overlap or close before they open';
+
+  @override
+  String get diveSites_hours_noSchedule => 'No weekly hours yet';
+
+  @override
+  String diveSites_hours_openUntil(String time) {
+    return 'Open now, closes $time';
+  }
+
+  @override
+  String get diveSites_hours_openNoClose => 'Open now';
+
+  @override
+  String diveSites_hours_closedOpensAt(String when) {
+    return 'Closed, opens $when';
+  }
+
+  @override
+  String diveSites_hours_closedForSeason(String date) {
+    return 'Closed for the season, opens $date';
+  }
+
+  @override
+  String get diveSites_hours_closedNow => 'Closed';
+
+  @override
+  String diveSites_hours_span(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String diveSites_hours_namedSeason(String name, String season) {
+    return '$name, $season';
+  }
+
+  @override
+  String diveSites_merge_hoursSchedules(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count schedules',
+      one: '$count schedule',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_detail_section_altitude => 'Altitude';
 
   @override
@@ -11975,6 +12111,38 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveSites_edit_access_parkingInfo_hint =>
       'Parking availability, fees, tips';
+
+  @override
+  String get diveSites_edit_contact_address_label => 'Address';
+
+  @override
+  String get diveSites_edit_contact_address_hint => 'Street, town and postcode';
+
+  @override
+  String get diveSites_edit_contact_phone_label => 'Phone';
+
+  @override
+  String get diveSites_edit_contact_phone_hint => 'Booking or owner number';
+
+  @override
+  String get diveSites_edit_contact_email_label => 'Email';
+
+  @override
+  String get diveSites_edit_contact_email_hint => 'name@example.com';
+
+  @override
+  String get diveSites_edit_contact_website_label => 'Website';
+
+  @override
+  String get diveSites_edit_contact_website_hint => 'example.com';
+
+  @override
+  String get diveSites_edit_contact_emailInvalid =>
+      'Enter an email address like name@example.com';
+
+  @override
+  String get diveSites_edit_contact_websiteInvalid =>
+      'Enter a web address like example.com';
 
   @override
   String get diveSites_edit_access_parkingInfo_label => 'Parking Information';
@@ -23517,6 +23685,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Entry and exit, parking, mooring, access notes';
 
   @override
+  String get siteDetailSection_contact_description =>
+      'Address, phone, email and website';
+
+  @override
+  String get siteDetailSection_openingHours_description =>
+      'Opening days and hours, by season';
+
+  @override
   String get siteDetailSection_notes_description => 'Your notes about the site';
 
   @override
@@ -26773,6 +26949,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_parkingInfo => 'Parking';
+
+  @override
+  String get settings_conflict_field_address => 'Address';
+
+  @override
+  String get settings_conflict_field_openingHours => 'Opening hours';
 
   @override
   String get settings_conflict_field_passportId => 'Cylinder passport';
@@ -46477,6 +46659,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_siteField_mooringNumber => 'Mooring Number';
 
   @override
+  String get enum_siteField_address => 'Address';
+
+  @override
+  String get enum_siteField_phone => 'Phone';
+
+  @override
+  String get enum_siteField_email => 'Email';
+
+  @override
+  String get enum_siteField_website => 'Website';
+
+  @override
   String get enum_siteField_hazards => 'Hazards';
 
   @override
@@ -46550,6 +46744,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_siteField_mooringNumber_short => 'Mooring';
+
+  @override
+  String get enum_siteField_address_short => 'Address';
+
+  @override
+  String get enum_siteField_phone_short => 'Phone';
+
+  @override
+  String get enum_siteField_email_short => 'Email';
+
+  @override
+  String get enum_siteField_website_short => 'Web';
 
   @override
   String get enum_siteField_hazards_short => 'Hazards';

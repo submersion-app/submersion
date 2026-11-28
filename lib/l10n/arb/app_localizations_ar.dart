@@ -12214,6 +12214,145 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_detail_section_access => 'الوصول والخدمات اللوجستية';
 
   @override
+  String get diveSites_detail_section_contact => 'معلومات الاتصال';
+
+  @override
+  String get diveSites_detail_section_openingHours => 'ساعات العمل';
+
+  @override
+  String get diveSites_contact_mapsFailed => 'تعذّر فتح الخرائط';
+
+  @override
+  String get diveSites_contact_linkFailed => 'تعذّر فتح الرابط';
+
+  @override
+  String get diveSites_contact_directions => 'الاتجاهات';
+
+  @override
+  String get diveSites_contact_address => 'العنوان';
+
+  @override
+  String get diveSites_contact_phone => 'الهاتف';
+
+  @override
+  String get diveSites_contact_email => 'البريد الإلكتروني';
+
+  @override
+  String get diveSites_contact_website => 'الموقع الإلكتروني';
+
+  @override
+  String get diveSites_hours_alwaysOpen => 'مفتوح على مدار الساعة طوال الأسبوع';
+
+  @override
+  String get diveSites_hours_addSchedule => 'إضافة جدول';
+
+  @override
+  String get diveSites_hours_scheduleName => 'الاسم';
+
+  @override
+  String get diveSites_hours_scheduleName_hint => 'الصيف';
+
+  @override
+  String get diveSites_hours_seasonal => 'موسمي';
+
+  @override
+  String get diveSites_hours_seasonFrom => 'من';
+
+  @override
+  String get diveSites_hours_seasonTo => 'إلى';
+
+  @override
+  String get diveSites_hours_deleteSchedule => 'حذف الجدول';
+
+  @override
+  String get diveSites_hours_closed => 'مغلق';
+
+  @override
+  String get diveSites_hours_open24h => 'مفتوح 24 ساعة';
+
+  @override
+  String get diveSites_hours_kindHours => 'الساعات';
+
+  @override
+  String get diveSites_hours_addRange => 'إضافة ساعات';
+
+  @override
+  String get diveSites_hours_removeRange => 'إزالة ساعات';
+
+  @override
+  String get diveSites_hours_copyDay => 'النسخ إلى أيام أخرى';
+
+  @override
+  String diveSites_hours_copyTitle(String day) {
+    return 'نسخ $day إلى';
+  }
+
+  @override
+  String get diveSites_hours_selectAll => 'تحديد الكل';
+
+  @override
+  String get diveSites_hours_copy => 'نسخ';
+
+  @override
+  String get diveSites_hours_note => 'ملاحظة';
+
+  @override
+  String get diveSites_hours_note_hint =>
+      'احجز المواعيد بالهاتف، مغلق في العطل الرسمية';
+
+  @override
+  String get diveSites_hours_invalid =>
+      'بعض الساعات متداخلة أو تنتهي قبل أن تبدأ';
+
+  @override
+  String get diveSites_hours_noSchedule => 'لا توجد ساعات أسبوعية بعد';
+
+  @override
+  String diveSites_hours_openUntil(String time) {
+    return 'مفتوح الآن، يغلق $time';
+  }
+
+  @override
+  String get diveSites_hours_openNoClose => 'مفتوح الآن';
+
+  @override
+  String diveSites_hours_closedOpensAt(String when) {
+    return 'مغلق، يفتح $when';
+  }
+
+  @override
+  String diveSites_hours_closedForSeason(String date) {
+    return 'مغلق لانتهاء الموسم، يفتح $date';
+  }
+
+  @override
+  String get diveSites_hours_closedNow => 'مغلق';
+
+  @override
+  String diveSites_hours_span(String from, String to) {
+    return '$from إلى $to';
+  }
+
+  @override
+  String diveSites_hours_namedSeason(String name, String season) {
+    return '$name، $season';
+  }
+
+  @override
+  String diveSites_merge_hoursSchedules(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count جدول',
+      many: '$count جدولًا',
+      few: '$count جداول',
+      two: 'جدولان',
+      one: 'جدول واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_detail_section_altitude => 'الارتفاع';
 
   @override
@@ -12329,6 +12468,39 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveSites_edit_access_parkingInfo_hint =>
       'توفر مواقف السيارات، الرسوم، النصائح';
+
+  @override
+  String get diveSites_edit_contact_address_label => 'العنوان';
+
+  @override
+  String get diveSites_edit_contact_address_hint =>
+      'الشارع والمدينة والرمز البريدي';
+
+  @override
+  String get diveSites_edit_contact_phone_label => 'الهاتف';
+
+  @override
+  String get diveSites_edit_contact_phone_hint => 'رقم الحجز أو المالك';
+
+  @override
+  String get diveSites_edit_contact_email_label => 'البريد الإلكتروني';
+
+  @override
+  String get diveSites_edit_contact_email_hint => 'name@example.com';
+
+  @override
+  String get diveSites_edit_contact_website_label => 'الموقع الإلكتروني';
+
+  @override
+  String get diveSites_edit_contact_website_hint => 'example.com';
+
+  @override
+  String get diveSites_edit_contact_emailInvalid =>
+      'أدخل بريدًا إلكترونيًا مثل name@example.com';
+
+  @override
+  String get diveSites_edit_contact_websiteInvalid =>
+      'أدخل عنوان ويب مثل example.com';
 
   @override
   String get diveSites_edit_access_parkingInfo_label => 'معلومات موقف السيارات';
@@ -24272,6 +24444,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'الدخول والخروج، مواقف السيارات، الرسو، ملاحظات الوصول';
 
   @override
+  String get siteDetailSection_contact_description =>
+      'العنوان والهاتف والبريد الإلكتروني والموقع الإلكتروني';
+
+  @override
+  String get siteDetailSection_openingHours_description =>
+      'أيام وساعات العمل حسب الموسم';
+
+  @override
   String get siteDetailSection_notes_description => 'ملاحظاتك عن الموقع';
 
   @override
@@ -27555,6 +27735,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_parkingInfo => 'موقف السيارات';
+
+  @override
+  String get settings_conflict_field_address => 'العنوان';
+
+  @override
+  String get settings_conflict_field_openingHours => 'ساعات العمل';
 
   @override
   String get settings_conflict_field_passportId => 'جواز الأسطوانة';
@@ -47943,6 +48129,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_siteField_mooringNumber => 'رقم المرسى';
 
   @override
+  String get enum_siteField_address => 'العنوان';
+
+  @override
+  String get enum_siteField_phone => 'الهاتف';
+
+  @override
+  String get enum_siteField_email => 'البريد الإلكتروني';
+
+  @override
+  String get enum_siteField_website => 'الموقع الإلكتروني';
+
+  @override
   String get enum_siteField_hazards => 'المخاطر';
 
   @override
@@ -48016,6 +48214,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_siteField_mooringNumber_short => 'المرسى';
+
+  @override
+  String get enum_siteField_address_short => 'العنوان';
+
+  @override
+  String get enum_siteField_phone_short => 'الهاتف';
+
+  @override
+  String get enum_siteField_email_short => 'البريد';
+
+  @override
+  String get enum_siteField_website_short => 'الموقع';
 
   @override
   String get enum_siteField_hazards_short => 'المخاطر';

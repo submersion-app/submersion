@@ -11785,6 +11785,141 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_detail_section_access => 'גישה ולוגיסטיקה';
 
   @override
+  String get diveSites_detail_section_contact => 'פרטי קשר';
+
+  @override
+  String get diveSites_detail_section_openingHours => 'שעות פתיחה';
+
+  @override
+  String get diveSites_contact_mapsFailed => 'לא ניתן לפתוח את המפות';
+
+  @override
+  String get diveSites_contact_linkFailed => 'לא ניתן לפתוח את הקישור';
+
+  @override
+  String get diveSites_contact_directions => 'מסלול';
+
+  @override
+  String get diveSites_contact_address => 'כתובת';
+
+  @override
+  String get diveSites_contact_phone => 'טלפון';
+
+  @override
+  String get diveSites_contact_email => 'דוא\"ל';
+
+  @override
+  String get diveSites_contact_website => 'אתר';
+
+  @override
+  String get diveSites_hours_alwaysOpen => 'פתוח 24/7';
+
+  @override
+  String get diveSites_hours_addSchedule => 'הוספת לוח זמנים';
+
+  @override
+  String get diveSites_hours_scheduleName => 'שם';
+
+  @override
+  String get diveSites_hours_scheduleName_hint => 'קיץ';
+
+  @override
+  String get diveSites_hours_seasonal => 'עונתי';
+
+  @override
+  String get diveSites_hours_seasonFrom => 'מ-';
+
+  @override
+  String get diveSites_hours_seasonTo => 'עד';
+
+  @override
+  String get diveSites_hours_deleteSchedule => 'מחיקת לוח זמנים';
+
+  @override
+  String get diveSites_hours_closed => 'סגור';
+
+  @override
+  String get diveSites_hours_open24h => 'פתוח 24 שעות';
+
+  @override
+  String get diveSites_hours_kindHours => 'שעות';
+
+  @override
+  String get diveSites_hours_addRange => 'הוספת שעות';
+
+  @override
+  String get diveSites_hours_removeRange => 'הסרת שעות';
+
+  @override
+  String get diveSites_hours_copyDay => 'העתקה לימים אחרים';
+
+  @override
+  String diveSites_hours_copyTitle(String day) {
+    return 'העתקת $day אל';
+  }
+
+  @override
+  String get diveSites_hours_selectAll => 'בחירת הכל';
+
+  @override
+  String get diveSites_hours_copy => 'העתקה';
+
+  @override
+  String get diveSites_hours_note => 'הערה';
+
+  @override
+  String get diveSites_hours_note_hint => 'הזמנת משבצות בטלפון, סגור בחגים';
+
+  @override
+  String get diveSites_hours_invalid =>
+      'חלק מהשעות חופפות או נסגרות לפני שהן נפתחות';
+
+  @override
+  String get diveSites_hours_noSchedule => 'עדיין אין שעות שבועיות';
+
+  @override
+  String diveSites_hours_openUntil(String time) {
+    return 'פתוח עכשיו, נסגר ב-$time';
+  }
+
+  @override
+  String get diveSites_hours_openNoClose => 'פתוח עכשיו';
+
+  @override
+  String diveSites_hours_closedOpensAt(String when) {
+    return 'סגור, נפתח $when';
+  }
+
+  @override
+  String diveSites_hours_closedForSeason(String date) {
+    return 'סגור לעונה, נפתח ב-$date';
+  }
+
+  @override
+  String get diveSites_hours_closedNow => 'סגור';
+
+  @override
+  String diveSites_hours_span(String from, String to) {
+    return '$from עד $to';
+  }
+
+  @override
+  String diveSites_hours_namedSeason(String name, String season) {
+    return '$name, $season';
+  }
+
+  @override
+  String diveSites_merge_hoursSchedules(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count לוחות זמנים',
+      one: 'לוח זמנים אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_detail_section_altitude => 'גובה';
 
   @override
@@ -11897,6 +12032,38 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveSites_edit_access_parkingInfo_hint =>
       'זמינות חניה, עלויות, טיפים';
+
+  @override
+  String get diveSites_edit_contact_address_label => 'כתובת';
+
+  @override
+  String get diveSites_edit_contact_address_hint => 'רחוב, עיר ומיקוד';
+
+  @override
+  String get diveSites_edit_contact_phone_label => 'טלפון';
+
+  @override
+  String get diveSites_edit_contact_phone_hint => 'מספר להזמנות או של הבעלים';
+
+  @override
+  String get diveSites_edit_contact_email_label => 'דוא\"ל';
+
+  @override
+  String get diveSites_edit_contact_email_hint => 'name@example.com';
+
+  @override
+  String get diveSites_edit_contact_website_label => 'אתר';
+
+  @override
+  String get diveSites_edit_contact_website_hint => 'example.com';
+
+  @override
+  String get diveSites_edit_contact_emailInvalid =>
+      'יש להזין כתובת דוא\"ל כמו name@example.com';
+
+  @override
+  String get diveSites_edit_contact_websiteInvalid =>
+      'יש להזין כתובת אינטרנט כמו example.com';
 
   @override
   String get diveSites_edit_access_parkingInfo_label => 'מידע על חניה';
@@ -23347,6 +23514,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'כניסה ויציאה, חניה, עגינה, הערות גישה';
 
   @override
+  String get siteDetailSection_contact_description =>
+      'כתובת, טלפון, דוא\"ל ואתר';
+
+  @override
+  String get siteDetailSection_openingHours_description =>
+      'ימי ושעות פתיחה, לפי עונה';
+
+  @override
   String get siteDetailSection_notes_description => 'ההערות שלך על האתר';
 
   @override
@@ -26551,6 +26726,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_parkingInfo => 'חניה';
+
+  @override
+  String get settings_conflict_field_address => 'כתובת';
+
+  @override
+  String get settings_conflict_field_openingHours => 'שעות פתיחה';
 
   @override
   String get settings_conflict_field_passportId => 'דרכון הבלון';
@@ -46113,6 +46294,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_siteField_mooringNumber => 'מספר עגינה';
 
   @override
+  String get enum_siteField_address => 'כתובת';
+
+  @override
+  String get enum_siteField_phone => 'טלפון';
+
+  @override
+  String get enum_siteField_email => 'דוא\"ל';
+
+  @override
+  String get enum_siteField_website => 'אתר';
+
+  @override
   String get enum_siteField_hazards => 'סכנות';
 
   @override
@@ -46186,6 +46379,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_siteField_mooringNumber_short => 'עגינה';
+
+  @override
+  String get enum_siteField_address_short => 'כתובת';
+
+  @override
+  String get enum_siteField_phone_short => 'טלפון';
+
+  @override
+  String get enum_siteField_email_short => 'דוא\"ל';
+
+  @override
+  String get enum_siteField_website_short => 'אתר';
 
   @override
   String get enum_siteField_hazards_short => 'סכנות';

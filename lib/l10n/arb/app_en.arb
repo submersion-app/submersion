@@ -7423,6 +7423,114 @@
   "diveSites_detail_rating_notRated": "Not rated",
   "diveSites_detail_rating_value": "{rating} out of 5",
   "diveSites_detail_section_access": "Access & Logistics",
+  "diveSites_detail_section_contact": "Contact",
+  "diveSites_detail_section_openingHours": "Opening Hours",
+  "diveSites_contact_mapsFailed": "Could not open maps",
+  "diveSites_contact_linkFailed": "Could not open the link",
+  "diveSites_contact_directions": "Directions",
+  "diveSites_contact_address": "Address",
+  "diveSites_contact_phone": "Phone",
+  "diveSites_contact_email": "Email",
+  "diveSites_contact_website": "Website",
+  "diveSites_hours_alwaysOpen": "Open 24/7",
+  "diveSites_hours_addSchedule": "Add schedule",
+  "diveSites_hours_scheduleName": "Name",
+  "diveSites_hours_scheduleName_hint": "Summer",
+  "diveSites_hours_seasonal": "Seasonal",
+  "diveSites_hours_seasonFrom": "From",
+  "diveSites_hours_seasonTo": "To",
+  "diveSites_hours_deleteSchedule": "Delete schedule",
+  "diveSites_hours_closed": "Closed",
+  "diveSites_hours_open24h": "Open 24 hours",
+  "diveSites_hours_kindHours": "Hours",
+  "diveSites_hours_addRange": "Add hours",
+  "diveSites_hours_removeRange": "Remove hours",
+  "diveSites_hours_copyDay": "Copy to other days",
+  "diveSites_hours_copyTitle": "Copy {day} to",
+  "@diveSites_hours_copyTitle": {
+    "description": "Title of the dialog that copies one weekday's opening hours to other days.",
+    "placeholders": {
+      "day": {
+        "type": "String",
+        "example": "Saturday"
+      }
+    }
+  },
+  "diveSites_hours_selectAll": "Select all",
+  "diveSites_hours_copy": "Copy",
+  "diveSites_hours_note": "Note",
+  "diveSites_hours_note_hint": "Book slots by phone, closed public holidays",
+  "diveSites_hours_invalid": "Some hours overlap or close before they open",
+  "diveSites_hours_noSchedule": "No weekly hours yet",
+  "diveSites_hours_openUntil": "Open now, closes {time}",
+  "@diveSites_hours_openUntil": {
+    "description": "Status line on a dive site's opening hours card.",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "17:00"
+      }
+    }
+  },
+  "diveSites_hours_openNoClose": "Open now",
+  "diveSites_hours_closedOpensAt": "Closed, opens {when}",
+  "@diveSites_hours_closedOpensAt": {
+    "description": "Status line when a dive site is closed; when is a time, or a weekday and time.",
+    "placeholders": {
+      "when": {
+        "type": "String",
+        "example": "Sat 10:00"
+      }
+    }
+  },
+  "diveSites_hours_closedForSeason": "Closed for the season, opens {date}",
+  "@diveSites_hours_closedForSeason": {
+    "description": "Status line when no seasonal schedule applies today.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Apr 1"
+      }
+    }
+  },
+  "diveSites_hours_closedNow": "Closed",
+  "diveSites_hours_span": "{from} to {to}",
+  "@diveSites_hours_span": {
+    "description": "A run of weekdays or a season, from one end to the other.",
+    "placeholders": {
+      "from": {
+        "type": "String",
+        "example": "Mon"
+      },
+      "to": {
+        "type": "String",
+        "example": "Fri"
+      }
+    }
+  },
+  "diveSites_hours_namedSeason": "{name}, {season}",
+  "@diveSites_hours_namedSeason": {
+    "description": "A named seasonal schedule and its dates.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Summer"
+      },
+      "season": {
+        "type": "String",
+        "example": "Apr 1 to Oct 31"
+      }
+    }
+  },
+  "diveSites_merge_hoursSchedules": "{count, plural, =1{{count} schedule} other{{count} schedules}}",
+  "@diveSites_merge_hoursSchedules": {
+    "description": "Opening hours on the merge page, as a count of weekly schedules.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveSites_detail_section_altitude": "Altitude",
   "diveSites_detail_section_depthRange": "Depth Range",
   "diveSites_detail_section_description": "Description",
@@ -7459,6 +7567,16 @@
   "diveSites_edit_access_mooringNumber_hint": "e.g., Buoy #12",
   "diveSites_edit_access_mooringNumber_label": "Mooring Number",
   "diveSites_edit_access_parkingInfo_hint": "Parking availability, fees, tips",
+  "diveSites_edit_contact_address_label": "Address",
+  "diveSites_edit_contact_address_hint": "Street, town and postcode",
+  "diveSites_edit_contact_phone_label": "Phone",
+  "diveSites_edit_contact_phone_hint": "Booking or owner number",
+  "diveSites_edit_contact_email_label": "Email",
+  "diveSites_edit_contact_email_hint": "name@example.com",
+  "diveSites_edit_contact_website_label": "Website",
+  "diveSites_edit_contact_website_hint": "example.com",
+  "diveSites_edit_contact_emailInvalid": "Enter an email address like name@example.com",
+  "diveSites_edit_contact_websiteInvalid": "Enter a web address like example.com",
   "diveSites_edit_access_parkingInfo_label": "Parking Information",
   "diveSites_edit_access_entryMethod_label": "Entry Method",
   "@diveSites_edit_access_entryMethod_label": {
@@ -15226,6 +15344,8 @@
   "siteDetailSection_rating_description": "Your rating of the site",
   "siteDetailSection_hazards_description": "Hazards and safety notes",
   "siteDetailSection_access_description": "Entry and exit, parking, mooring, access notes",
+  "siteDetailSection_contact_description": "Address, phone, email and website",
+  "siteDetailSection_openingHours_description": "Opening days and hours, by season",
   "siteDetailSection_notes_description": "Your notes about the site",
   "settings_siteDetailSections_title": "Site Detail Sections",
   "settings_appearance_header_siteDetails": "Site Details",
@@ -16485,6 +16605,8 @@
   "settings_conflict_field_overnightHrvMs": "Overnight heart rate variability",
   "settings_conflict_field_params": "Details",
   "settings_conflict_field_parkingInfo": "Parking",
+  "settings_conflict_field_address": "Address",
+  "settings_conflict_field_openingHours": "Opening hours",
   "settings_conflict_field_passportId": "Cylinder passport",
   "settings_conflict_field_phone": "Phone",
   "settings_conflict_field_photo": "Photo",
@@ -29108,6 +29230,10 @@
   "enum_siteField_entryType": "Entry Type",
   "enum_siteField_bestSeason": "Best Season",
   "enum_siteField_mooringNumber": "Mooring Number",
+  "enum_siteField_address": "Address",
+  "enum_siteField_phone": "Phone",
+  "enum_siteField_email": "Email",
+  "enum_siteField_website": "Website",
   "enum_siteField_hazards": "Hazards",
   "enum_siteField_rating": "Rating",
   "enum_siteField_notes": "Notes",
@@ -29139,6 +29265,10 @@
   },
   "enum_siteField_bestSeason_short": "Season",
   "enum_siteField_mooringNumber_short": "Mooring",
+  "enum_siteField_address_short": "Address",
+  "enum_siteField_phone_short": "Phone",
+  "enum_siteField_email_short": "Email",
+  "enum_siteField_website_short": "Web",
   "enum_siteField_hazards_short": "Hazards",
   "enum_siteField_rating_short": "Rating",
   "enum_siteField_notes_short": "Notes",

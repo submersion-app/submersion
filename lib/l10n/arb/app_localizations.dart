@@ -19122,6 +19122,234 @@ abstract class AppLocalizations {
   /// **'Access & Logistics'**
   String get diveSites_detail_section_access;
 
+  /// No description provided for @diveSites_detail_section_contact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get diveSites_detail_section_contact;
+
+  /// No description provided for @diveSites_detail_section_openingHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening Hours'**
+  String get diveSites_detail_section_openingHours;
+
+  /// No description provided for @diveSites_contact_mapsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open maps'**
+  String get diveSites_contact_mapsFailed;
+
+  /// No description provided for @diveSites_contact_linkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the link'**
+  String get diveSites_contact_linkFailed;
+
+  /// No description provided for @diveSites_contact_directions.
+  ///
+  /// In en, this message translates to:
+  /// **'Directions'**
+  String get diveSites_contact_directions;
+
+  /// No description provided for @diveSites_contact_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get diveSites_contact_address;
+
+  /// No description provided for @diveSites_contact_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get diveSites_contact_phone;
+
+  /// No description provided for @diveSites_contact_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get diveSites_contact_email;
+
+  /// No description provided for @diveSites_contact_website.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get diveSites_contact_website;
+
+  /// No description provided for @diveSites_hours_alwaysOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open 24/7'**
+  String get diveSites_hours_alwaysOpen;
+
+  /// No description provided for @diveSites_hours_addSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Add schedule'**
+  String get diveSites_hours_addSchedule;
+
+  /// No description provided for @diveSites_hours_scheduleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get diveSites_hours_scheduleName;
+
+  /// No description provided for @diveSites_hours_scheduleName_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Summer'**
+  String get diveSites_hours_scheduleName_hint;
+
+  /// No description provided for @diveSites_hours_seasonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Seasonal'**
+  String get diveSites_hours_seasonal;
+
+  /// No description provided for @diveSites_hours_seasonFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get diveSites_hours_seasonFrom;
+
+  /// No description provided for @diveSites_hours_seasonTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get diveSites_hours_seasonTo;
+
+  /// No description provided for @diveSites_hours_deleteSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete schedule'**
+  String get diveSites_hours_deleteSchedule;
+
+  /// No description provided for @diveSites_hours_closed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get diveSites_hours_closed;
+
+  /// No description provided for @diveSites_hours_open24h.
+  ///
+  /// In en, this message translates to:
+  /// **'Open 24 hours'**
+  String get diveSites_hours_open24h;
+
+  /// No description provided for @diveSites_hours_kindHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get diveSites_hours_kindHours;
+
+  /// No description provided for @diveSites_hours_addRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Add hours'**
+  String get diveSites_hours_addRange;
+
+  /// No description provided for @diveSites_hours_removeRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove hours'**
+  String get diveSites_hours_removeRange;
+
+  /// No description provided for @diveSites_hours_copyDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy to other days'**
+  String get diveSites_hours_copyDay;
+
+  /// Title of the dialog that copies one weekday's opening hours to other days.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy {day} to'**
+  String diveSites_hours_copyTitle(String day);
+
+  /// No description provided for @diveSites_hours_selectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get diveSites_hours_selectAll;
+
+  /// No description provided for @diveSites_hours_copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get diveSites_hours_copy;
+
+  /// No description provided for @diveSites_hours_note.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get diveSites_hours_note;
+
+  /// No description provided for @diveSites_hours_note_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Book slots by phone, closed public holidays'**
+  String get diveSites_hours_note_hint;
+
+  /// No description provided for @diveSites_hours_invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Some hours overlap or close before they open'**
+  String get diveSites_hours_invalid;
+
+  /// No description provided for @diveSites_hours_noSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'No weekly hours yet'**
+  String get diveSites_hours_noSchedule;
+
+  /// Status line on a dive site's opening hours card.
+  ///
+  /// In en, this message translates to:
+  /// **'Open now, closes {time}'**
+  String diveSites_hours_openUntil(String time);
+
+  /// No description provided for @diveSites_hours_openNoClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Open now'**
+  String get diveSites_hours_openNoClose;
+
+  /// Status line when a dive site is closed; when is a time, or a weekday and time.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed, opens {when}'**
+  String diveSites_hours_closedOpensAt(String when);
+
+  /// Status line when no seasonal schedule applies today.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed for the season, opens {date}'**
+  String diveSites_hours_closedForSeason(String date);
+
+  /// No description provided for @diveSites_hours_closedNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get diveSites_hours_closedNow;
+
+  /// A run of weekdays or a season, from one end to the other.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String diveSites_hours_span(String from, String to);
+
+  /// A named seasonal schedule and its dates.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, {season}'**
+  String diveSites_hours_namedSeason(String name, String season);
+
+  /// Opening hours on the merge page, as a count of weekly schedules.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} schedule} other{{count} schedules}}'**
+  String diveSites_merge_hoursSchedules(int count);
+
   /// No description provided for @diveSites_detail_section_altitude.
   ///
   /// In en, this message translates to:
@@ -19319,6 +19547,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Parking availability, fees, tips'**
   String get diveSites_edit_access_parkingInfo_hint;
+
+  /// No description provided for @diveSites_edit_contact_address_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get diveSites_edit_contact_address_label;
+
+  /// No description provided for @diveSites_edit_contact_address_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Street, town and postcode'**
+  String get diveSites_edit_contact_address_hint;
+
+  /// No description provided for @diveSites_edit_contact_phone_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get diveSites_edit_contact_phone_label;
+
+  /// No description provided for @diveSites_edit_contact_phone_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking or owner number'**
+  String get diveSites_edit_contact_phone_hint;
+
+  /// No description provided for @diveSites_edit_contact_email_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get diveSites_edit_contact_email_label;
+
+  /// No description provided for @diveSites_edit_contact_email_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'name@example.com'**
+  String get diveSites_edit_contact_email_hint;
+
+  /// No description provided for @diveSites_edit_contact_website_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get diveSites_edit_contact_website_label;
+
+  /// No description provided for @diveSites_edit_contact_website_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'example.com'**
+  String get diveSites_edit_contact_website_hint;
+
+  /// No description provided for @diveSites_edit_contact_emailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an email address like name@example.com'**
+  String get diveSites_edit_contact_emailInvalid;
+
+  /// No description provided for @diveSites_edit_contact_websiteInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a web address like example.com'**
+  String get diveSites_edit_contact_websiteInvalid;
 
   /// No description provided for @diveSites_edit_access_parkingInfo_label.
   ///
@@ -37479,6 +37767,18 @@ abstract class AppLocalizations {
   /// **'Entry and exit, parking, mooring, access notes'**
   String get siteDetailSection_access_description;
 
+  /// No description provided for @siteDetailSection_contact_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Address, phone, email and website'**
+  String get siteDetailSection_contact_description;
+
+  /// No description provided for @siteDetailSection_openingHours_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening days and hours, by season'**
+  String get siteDetailSection_openingHours_description;
+
   /// No description provided for @siteDetailSection_notes_description.
   ///
   /// In en, this message translates to:
@@ -42845,6 +43145,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Parking'**
   String get settings_conflict_field_parkingInfo;
+
+  /// No description provided for @settings_conflict_field_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get settings_conflict_field_address;
+
+  /// No description provided for @settings_conflict_field_openingHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening hours'**
+  String get settings_conflict_field_openingHours;
 
   /// No description provided for @settings_conflict_field_passportId.
   ///
@@ -73648,6 +73960,30 @@ abstract class AppLocalizations {
   /// **'Mooring Number'**
   String get enum_siteField_mooringNumber;
 
+  /// No description provided for @enum_siteField_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get enum_siteField_address;
+
+  /// No description provided for @enum_siteField_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get enum_siteField_phone;
+
+  /// No description provided for @enum_siteField_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get enum_siteField_email;
+
+  /// No description provided for @enum_siteField_website.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get enum_siteField_website;
+
   /// No description provided for @enum_siteField_hazards.
   ///
   /// In en, this message translates to:
@@ -73797,6 +74133,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mooring'**
   String get enum_siteField_mooringNumber_short;
+
+  /// No description provided for @enum_siteField_address_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get enum_siteField_address_short;
+
+  /// No description provided for @enum_siteField_phone_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get enum_siteField_phone_short;
+
+  /// No description provided for @enum_siteField_email_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get enum_siteField_email_short;
+
+  /// No description provided for @enum_siteField_website_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Web'**
+  String get enum_siteField_website_short;
 
   /// No description provided for @enum_siteField_hazards_short.
   ///

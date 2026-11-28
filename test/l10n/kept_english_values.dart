@@ -80,6 +80,8 @@ const Map<String, String> keptEnglishValues = {
   'decoCalculator_ppO2Danger@fr': _sameWord,
   'dive3d_tissue_tooltipHalfTime': _units,
   'diveCenters_hint_email': _exampleAddress,
+  'diveSites_edit_contact_email_hint': _exampleAddress,
+  'diveSites_edit_contact_website_hint': _exampleAddress,
   'diveCenters_hint_website': _exampleAddress,
   'diveComputer_connectionType_ble': _technology,
   'diveComputer_connectionType_wifi': _technology,
