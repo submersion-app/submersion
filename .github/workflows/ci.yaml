@@ -9,9 +9,13 @@ on:
 permissions:
   contents: read
 
+# A newer push to a PR branch supersedes the running check, so cancel it there.
+# On main, let every run finish: Beta (beta.yml) starts only from a CI/CD run on
+# main that succeeded, and when merges landed minutes apart each push cancelled
+# the run before it, so one run in a day reached success and no beta shipped.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   FLUTTER_VERSION_FILE: '.github/flutter-version.txt'
