@@ -1,0 +1,14 @@
+# Limits each generator to the files that use it; a cold build runs about 4x
+# faster. A new @riverpod file or a Drift table outside lib/core/database/
+# must be listed here, or its part file is not generated.
+targets:
+  $default:
+    builders:
+      drift_dev:
+        generate_for:
+          - lib/core/database/**
+      riverpod_generator:
+        generate_for:
+          - lib/features/dive_log/presentation/providers/profile_legend_provider.dart
+      json_serializable:
+        enabled: false
