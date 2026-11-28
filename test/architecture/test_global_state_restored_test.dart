@@ -37,7 +37,7 @@ import 'global_state_scanner.dart';
 ///   `addTearDown(tester.view.reset)`, which puts back both. This rule is
 ///   file-wide, since a pump helper usually registers the reset for the test.
 void main() {
-  /// Written by `scripts/bundle_tests.py` and never checked in.
+  /// Written by `scripts/testing/bundle_tests.py` and never checked in.
   bool isGenerated(String path) => path.startsWith('test/.bundles/');
 
   /// Files that replace a global on purpose, each with the reason.

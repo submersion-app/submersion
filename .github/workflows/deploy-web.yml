@@ -153,7 +153,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           sparse-checkout: |
-            scripts/check_web_bundle.py
+            scripts/checks/check_web_bundle.py
             scripts/web/stage_hosted_site.py
           sparse-checkout-cone-mode: false
           # The deploy's own credential is the only one git should send; a

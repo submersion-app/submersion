@@ -17,6 +17,7 @@ class IdentitySection extends StatelessWidget {
   const IdentitySection({
     super.key,
     required this.allSites,
+    required this.placeNameLanguage,
     required this.nameController,
     required this.descriptionController,
     required this.countryController,
@@ -30,6 +31,10 @@ class IdentitySection extends StatelessWidget {
   });
 
   final List<DiveSite> allSites;
+
+  /// The diver's place-name language, which the country suggestions not yet
+  /// used are named in (issue #5019).
+  final String placeNameLanguage;
   final TextEditingController nameController;
   final TextEditingController descriptionController;
   final TextEditingController countryController;
@@ -125,7 +130,10 @@ class IdentitySection extends StatelessWidget {
           key: 'country',
           label: l10n.diveSites_edit_field_country_label,
           controller: countryController,
-          suggestions: suggestedCountries(allSites),
+          suggestions: suggestedCountries(
+            allSites,
+            language: placeNameLanguage,
+          ),
         ),
         ValueListenableBuilder<TextEditingValue>(
           valueListenable: countryController,

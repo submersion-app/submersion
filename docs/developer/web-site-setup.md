@@ -16,7 +16,7 @@ Every beta is served the same way at <https://beta.web.submersion.app>
 ## How it works
 
 - **The build.** `build-all.yml`'s web job passes the repository variable
-  `GOOGLE_WEB_CLIENT_ID` to `scripts/build_web.sh`, with
+  `GOOGLE_WEB_CLIENT_ID` to `scripts/web/build_web.sh`, with
   `GOOGLE_WEB_CLIENT_ORIGINS=https://web.submersion.app,https://beta.web.submersion.app`.
   The app uses the client only at those addresses, so one
   `Submersion-<tag>-Web.zip` serves both sites and self-hosters. The client goes in when the beta is

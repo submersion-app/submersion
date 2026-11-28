@@ -6,7 +6,7 @@
 /// previous cell with the low bytes before the high bytes, all deflated.
 /// Neighbouring cells carry nearly the same values, so this packs the grid
 /// to under a third of its decoded size while every file stays readable on
-/// its own. `scripts/tide/fes_grid_format.py` documents the layout and
+/// its own. `scripts/datasets/tide/fes_grid_format.py` documents the layout and
 /// writes it.
 ///
 /// Inflating a file and rebuilding its planes cost about the same, so on a

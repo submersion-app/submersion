@@ -12,6 +12,7 @@ import 'package:submersion/features/media/presentation/editing/photo_viewer_edit
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/media/presentation/providers/media_bytes_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/attachment_details_sheet.dart';
+import 'package:submersion/features/media/presentation/widgets/in_memory_pdf_viewer.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
@@ -92,7 +93,10 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage>
                 if (snapshot.connectionState != ConnectionState.done) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                return PdfViewer.data(
+                // Reached only once pdfium has loaded, which flutter_test
+                // cannot do; in_memory_pdf_viewer_test covers the viewer.
+                // coverage:ignore-start
+                return inMemoryPdfViewer(
                   resolved.bytes!,
                   sourceName: widget.item.id,
                   params: PdfViewerParams(
@@ -102,6 +106,7 @@ class _DocumentViewerPageState extends ConsumerState<DocumentViewerPage>
                         _UnavailableState(item: widget.item),
                   ),
                 );
+                // coverage:ignore-end
               },
             );
           },

@@ -83,7 +83,7 @@ and the bundle check refuses them.
 ## Building
 
 ```bash
-scripts/build_web.sh
+scripts/web/build_web.sh
 ```
 
 That is the one entry: fetch `sqlite3.wasm`, compile the workers,
@@ -91,7 +91,7 @@ That is the one entry: fetch `sqlite3.wasm`, compile the workers,
 `flutter_service_worker.js` (Flutter writes it whatever the strategy; the
 bootstrap registers nothing, and a cached bundle is what a self-hoster who
 replaces the files must not get), copy the hosting files from
-`web_hosting/`, and run `scripts/check_web_bundle.py`. The check fails on a
+`web_hosting/`, and run `scripts/checks/check_web_bundle.py`. The check fails on a
 missing file, a `sqlite3.wasm` that is not the lock's build, a service
 worker, or a source or sidecar in the bundle.
 
@@ -100,7 +100,7 @@ Submersion's own site builds in its Google web client:
 ```bash
 GOOGLE_WEB_CLIENT_ID=<id>.apps.googleusercontent.com \
 GOOGLE_WEB_CLIENT_ORIGINS=https://<the site's address> \
-  scripts/build_web.sh
+  scripts/web/build_web.sh
 ```
 
 The client must be a "Web application" client in the same Google Cloud
@@ -317,7 +317,7 @@ changing how the web app uses its database.
 
 ## CI
 
-- `web-build` runs `scripts/build_web.sh`, builds the bundle's Dockerfile
+- `web-build` runs `scripts/web/build_web.sh`, builds the bundle's Dockerfile
   once so it cannot rot (never pushed) and uploads `build/web` as the
   `web-bundle` artifact.
 - `web-tests` starts two MinIO containers (one admitting every origin, one

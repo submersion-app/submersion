@@ -7,7 +7,7 @@
 #4481). This script does the parts worth testing, for either site:
 
 `stage` unzips the bundle into an empty folder, refusing any entry that
-would land outside it, runs `scripts/check_web_bundle.py` on the result,
+would land outside it, runs `scripts/checks/check_web_bundle.py` on the result,
 and adds the two files Pages needs: `CNAME`, which keeps the custom domain
 across a force-pushed deploy, and `.nojekyll`, which serves the files as
 they are. It also looks for Submersion's Google web client and the site's
@@ -41,7 +41,7 @@ import zipfile
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _spec = importlib.util.spec_from_file_location(
     "check_web_bundle",
-    os.path.join(os.path.dirname(_HERE), "check_web_bundle.py"),
+    os.path.join(os.path.dirname(_HERE), "checks", "check_web_bundle.py"),
 )
 check_web_bundle = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(check_web_bundle)

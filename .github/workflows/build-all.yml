@@ -69,7 +69,7 @@ env:
 #
 # Every job here runs repo-controlled code before it produces artifacts that
 # ship: build_runner generators, package build hooks (the package:sqlite3 hook
-# downloads and installs SQLCipher), and the scripts/check_*.py guards. Whatever
+# downloads and installs SQLCipher), and the scripts/checks/check_*.py guards. Whatever
 # a job restores from a cache is therefore part of the release supply chain, so
 # these two properties are chosen rather than inherited.
 #
@@ -538,7 +538,7 @@ jobs:
         # in the Release directory, so a native asset missing here ships to
         # every user and takes the app down at startup (issue #1129). Windows
         # runners expose the interpreter as `python`, not `python3`.
-        run: python scripts/check_bundled_native_assets.py build\windows\x64\runner\Release
+        run: python scripts/checks/check_bundled_native_assets.py build\windows\x64\runner\Release
 
       - name: Build Windows installer
         env:
@@ -642,12 +642,12 @@ jobs:
       # is why the job is pinned and why "Check glibc floor" runs below
       # (issue #3523). Move the pin only together with the docs.
       #
-      # binutils supplies readelf for scripts/linux_package_deps.py and
-      # scripts/check_glibc_floor.py; the hosted image already has it, and it
+      # binutils supplies readelf for scripts/release/linux_package_deps.py and
+      # scripts/checks/check_glibc_floor.py; the hosted image already has it, and it
       # is named here so a future image change cannot remove it silently.
       - name: Install Linux dependencies
         run: |
-          sudo python3 scripts/apt_mirror.py
+          sudo python3 scripts/ci/apt_mirror.py
           sudo apt-get update -y
           sudo apt-get install -y \
             clang cmake ninja-build pkg-config \
@@ -711,7 +711,7 @@ jobs:
         # Runs before the tarball is rolled, for the same reason as the Windows
         # job: a missing native asset is invisible until a user launches the
         # app (issue #1129).
-        run: python3 scripts/check_bundled_native_assets.py build/linux/x64/release/bundle
+        run: python3 scripts/checks/check_bundled_native_assets.py build/linux/x64/release/bundle
 
       - name: Check glibc floor
         # Fails if anything in the bundle needs a newer glibc than the 2.38
@@ -719,7 +719,7 @@ jobs:
         # that floor without failing any build step, and the package install
         # check below cannot see it because it tests on the runner's own
         # release (issue #3523). Runs before the tarball and packages exist.
-        run: python3 scripts/check_glibc_floor.py build/linux/x64/release/bundle
+        run: python3 scripts/checks/check_glibc_floor.py build/linux/x64/release/bundle
 
       - name: Install packaging tools
         run: |
@@ -753,8 +753,8 @@ jobs:
           cp scripts/release/linux_tarball_extras/install.sh "$BUNDLE/"
           cp scripts/release/linux_tarball_extras/uninstall.sh "$BUNDLE/"
           chmod +x "$BUNDLE/install.sh" "$BUNDLE/uninstall.sh"
-          cp scripts/data/linux_soname_map.json "$BUNDLE/deps.json"
-          python3 scripts/gen_udev_rules.py \
+          cp scripts/release/linux_soname_map.json "$BUNDLE/deps.json"
+          python3 scripts/release/gen_udev_rules.py \
             packages/libdivecomputer_plugin/third_party/libdivecomputer/src/descriptor.c \
             > "$BUNDLE/60-submersion-divecomputers.rules"
           cd "$BUNDLE"
@@ -770,7 +770,7 @@ jobs:
             Submersion-*.rpm
           retention-days: 5
 
-  # The browser app (issue #4121): scripts/build_web.sh, then the bundle
+  # The browser app (issue #4121): scripts/web/build_web.sh, then the bundle
   # zipped with its hosting files for the release page. No image is
   # published; the zip carries a Dockerfile for anyone who wants one.
   build-web:
@@ -843,7 +843,7 @@ jobs:
         env:
           GOOGLE_WEB_CLIENT_ID: ${{ vars.GOOGLE_WEB_CLIENT_ID }}
           GOOGLE_WEB_CLIENT_ORIGINS: https://web.submersion.app,https://beta.web.submersion.app
-        run: scripts/build_web.sh
+        run: scripts/web/build_web.sh
 
       - name: Zip the bundle
         env:
@@ -1089,7 +1089,7 @@ jobs:
       # native library is not 16 KB-aligned, in either the APK or the AAB.
       - name: Verify 16 KB native library alignment
         run: |
-          python3 scripts/check_16kb_alignment.py \
+          python3 scripts/checks/check_16kb_alignment.py \
             build/app/outputs/flutter-apk/app-release.apk \
             build/app/outputs/bundle/release/app-release.aab
 
@@ -1105,7 +1105,7 @@ jobs:
       # fingerprint is generated at random.
       - name: Verify APK signing certificate is a registered OAuth client
         run: |
-          python3 scripts/check_apk_signing_cert.py \
+          python3 scripts/checks/check_apk_signing_cert.py \
             build/app/outputs/flutter-apk/app-release.apk
 
       # Guards against issue #433: sqlite3_flutter_libs 0.6.0+eol (an empty
@@ -1114,7 +1114,7 @@ jobs:
       # publishing if a required native library is missing from the APK or AAB.
       - name: Verify required native libraries are bundled
         run: |
-          python3 scripts/check_native_libs_present.py \
+          python3 scripts/checks/check_native_libs_present.py \
             build/app/outputs/flutter-apk/app-release.apk \
             build/app/outputs/bundle/release/app-release.aab
 

@@ -224,4 +224,147 @@ void main() {
       );
     });
   });
+
+  group('seriesEndpointsAtSurfacing', () {
+    // A 30 minute dive: down at 60 s, back on the surface after 1800 s.
+    const depths = [
+      (t: 0, depth: 0.0),
+      (t: 60, depth: 12.0),
+      (t: 1740, depth: 3.0),
+      (t: 1800, depth: 0.5),
+      (t: 1830, depth: 0.0),
+      (t: 1860, depth: 0.0),
+    ];
+
+    test('ends at surfacing when the valve was closed on the surface', () {
+      // Issue #5000: a Suunto Nautic kept logging after the dive and caught
+      // the diver closing the valve, so the series ends at 0 bar.
+      final readings = [
+        (t: 0, bar: 205.0),
+        (t: 900, bar: 150.0),
+        (t: 1740, bar: 103.0),
+        (t: 1830, bar: 0.0),
+        (t: 1860, bar: 0.0),
+      ];
+
+      final endpoints = seriesEndpointsAtSurfacing(readings, depths: depths);
+
+      expect(endpoints, (start: 205.0, end: 103.0));
+    });
+
+    test('ends at surfacing when the regulator bled down slowly', () {
+      final readings = [
+        (t: 0, bar: 205.0),
+        (t: 1740, bar: 103.0),
+        (t: 1830, bar: 60.0),
+        (t: 1860, bar: 12.0),
+      ];
+
+      expect(seriesEndpointsAtSurfacing(readings, depths: depths), (
+        start: 205.0,
+        end: 103.0,
+      ));
+    });
+
+    test('keeps the last reading when nothing was logged after surfacing', () {
+      final readings = [(t: 0, bar: 205.0), (t: 1740, bar: 103.0)];
+
+      expect(seriesEndpointsAtSurfacing(readings, depths: depths), (
+        start: 205.0,
+        end: 103.0,
+      ));
+    });
+
+    test('keeps a tail that reads above the surfacing reading', () {
+      // A cylinder warming in the sun gains pressure on the surface; the
+      // rule only ever raises an end pressure, as for a reported one.
+      final readings = [
+        (t: 0, bar: 205.0),
+        (t: 1740, bar: 103.0),
+        (t: 1860, bar: 106.0),
+      ];
+
+      expect(seriesEndpointsAtSurfacing(readings, depths: depths), (
+        start: 205.0,
+        end: 106.0,
+      ));
+    });
+
+    test('passes over a dropout at the surfacing reading', () {
+      final readings = [
+        (t: 0, bar: 205.0),
+        (t: 1700, bar: 104.0),
+        (t: 1740, bar: 0.0),
+        (t: 1800, bar: 103.0),
+        (t: 1860, bar: 0.0),
+      ];
+
+      // The 0 bar at 1740 s recovers, so it is a dropout; the reading before
+      // it is the last one at or before surfacing.
+      expect(seriesEndpointsAtSurfacing(readings, depths: depths), (
+        start: 205.0,
+        end: 104.0,
+      ));
+    });
+
+    test('measures from the last descent after a surface break', () {
+      const twoDescents = [
+        (t: 0, depth: 0.0),
+        (t: 60, depth: 12.0),
+        (t: 900, depth: 0.0),
+        (t: 960, depth: 8.0),
+        (t: 1740, depth: 3.0),
+        (t: 1830, depth: 0.0),
+      ];
+      final readings = [
+        (t: 0, bar: 205.0),
+        (t: 900, bar: 150.0),
+        (t: 1740, bar: 103.0),
+        (t: 1830, bar: 0.0),
+      ];
+
+      expect(seriesEndpointsAtSurfacing(readings, depths: twoDescents), (
+        start: 205.0,
+        end: 103.0,
+      ));
+    });
+
+    test('reads the series alone when the profile never left the surface', () {
+      final readings = [(t: 0, bar: 205.0), (t: 1830, bar: 0.0)];
+
+      expect(
+        seriesEndpointsAtSurfacing(
+          readings,
+          depths: const [(t: 0, depth: 0.0), (t: 1830, depth: 0.2)],
+        ),
+        (start: 205.0, end: 0.0),
+      );
+    });
+
+    test('reads the series alone when it starts after surfacing', () {
+      final readings = [(t: 1830, bar: 103.0), (t: 1860, bar: 0.0)];
+
+      expect(seriesEndpointsAtSurfacing(readings, depths: depths), (
+        start: 103.0,
+        end: 0.0,
+      ));
+    });
+
+    test('accepts readings out of time order', () {
+      final readings = [
+        (t: 1830, bar: 0.0),
+        (t: 0, bar: 205.0),
+        (t: 1740, bar: 103.0),
+      ];
+
+      expect(seriesEndpointsAtSurfacing(readings, depths: depths), (
+        start: 205.0,
+        end: 103.0,
+      ));
+    });
+
+    test('returns null for an empty series', () {
+      expect(seriesEndpointsAtSurfacing(const [], depths: depths), isNull);
+    });
+  });
 }

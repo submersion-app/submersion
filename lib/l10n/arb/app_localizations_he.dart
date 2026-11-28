@@ -9065,12 +9065,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'לחצי מיכלים';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'שמירת שכבות העל בתצוגה';
-
-  @override
   String get diveLog_chartOption_tooltipFollowsCursor =>
       'הרמז הצף עוקב אחר הסמן';
+
+  @override
+  String get diveLog_chartOption_zoom => 'זום';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify => 'שני הצירים, הגדלת שכבות העל';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView =>
+      'שני הצירים, שמירת שכבות העל בתצוגה';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => 'זמן בלבד';
+
+  @override
+  String get diveLog_chartOption_rightAxis => 'ציר ימני';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(משוער)';
@@ -23446,8 +23458,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'שמירת שכבות העל בתצוגה בעת זום';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'התאמת שכבות על כגון NDL ו-ppO2 לאזור הנראה במקום להגדיל אותן יחד עם ציר העומק';
+  String get settings_appearance_profileZoom => 'זום';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict =>
+      'זום פרופיל: זמן בלבד';
 
   @override
   String get settings_appearance_rightYAxisMetric => 'מדד ציר Y ימני';
@@ -42606,17 +42621,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'שיא $rate ב-$range';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'ממוצע $rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => 'ממוצע';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return 'ממוצע $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => 'שיא';
@@ -43379,6 +43394,89 @@ class AppLocalizationsHe extends AppLocalizations {
       one: 'מחזור סוללה אחד',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_exposure_lastDivedLabel => 'צלילה אחרונה';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => 'צלילות';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => 'שעות';
+
+  @override
+  String get equipmentCondition_exposure_today => 'היום';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לפני $count ימים',
+      two: 'לפני יומיים',
+      one: 'לפני יום',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לפני $count חודשים',
+      two: 'לפני חודשיים',
+      one: 'לפני חודש',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לפני $count שנים',
+      two: 'לפני שנתיים',
+      one: 'לפני שנה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return 'צלילה אחרונה: $ago, ב-$date';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12 חודשים';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => 'כל השנים';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות ב-12 החודשים האחרונים',
+      one: 'צלילה אחת ב-12 החודשים האחרונים',
+      zero: 'אין צלילות ב-12 החודשים האחרונים',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives, $hours';
   }
 
   @override
@@ -55489,6 +55587,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get media_species_nextSighting => 'התצפית הבאה';
+
+  @override
   String get media_species_openSpeciesPage => 'דף המין';
 
   @override
@@ -64798,7 +64899,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_equipment_exposure_summary =>
-      'כמה שימוש עבר הפריט הזה, נספר בכל יחידה ששעוני השירות שלו משתמשים בה.';
+      'כמה שימוש עבר הפריט הזה, נספר בכל יחידה ששעוני השירות שלו משתמשים בה. התרשים סופר את הצלילות שלו לפי חודש או לפי שנה, עד היום.';
 
   @override
   String get info_site_altitude_summary =>

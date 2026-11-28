@@ -220,7 +220,7 @@ reading `main` directly, so a merged change appears within a few minutes.
   path.
 - No em-dashes and no emoji.
 
-`python3 scripts/check_docs_links.py` checks the links, anchors, sidebar
+`python3 scripts/checks/check_docs_links.py` checks the links, anchors, sidebar
 and folder rules; CI runs it on every pull request.
 
 ## Code Review
