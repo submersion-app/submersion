@@ -126,14 +126,20 @@ database connection and a cross-process channel, strictly worse than (1).
 ### Shared cursor
 
 - The shared position is the dive time in seconds, not a sample index, since
-  each window builds its own chart series. The main window's cursor is
-  `profileTrackingIndexProvider(diveId)` (an index into the chart profile,
-  converted with the existing `setProfileCursorSeconds` helpers); the
-  pop-out's is the fullscreen page's `profileReviewProvider(diveId)`.
+  each window builds its own chart series. The main window's detail chart
+  cursor is `profileTrackingIndexProvider(diveId)` (an index into the chart
+  profile, converted with the existing `setProfileCursorSeconds` helpers);
+  its own fullscreen view's, like the pop-out's, is the fullscreen page's
+  `profileReviewProvider(diveId)`, already in seconds. Both main-window
+  cursors are shared (the fullscreen one was added after review).
 - Scrubbing either window moves the other window's cursor when both show the
   same dive. Clearing the cursor (pointer leaves the chart) clears it in both.
-- Updates are coalesced to at most one message per frame per direction, and
-  each window ignores a position it just sent, so there is no echo loop.
+- Updates are coalesced to at most one message per frame per direction.
+- There is no echo loop: each window drops the landings of the position it
+  just received, and any repeat of what it last sent. One received position
+  can land twice in the main window (exactly in its fullscreen view, snapped
+  to a sample in the detail chart beneath); the diver's own move forgets any
+  landing still expected.
 - When the two windows show different dives (pinned, or following lags a
   moment during a switch), positions are not exchanged.
 
