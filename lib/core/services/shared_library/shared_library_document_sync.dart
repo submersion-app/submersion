@@ -280,6 +280,12 @@ extension _DocumentSync on SharedLibraryService {
       await record(parked: false);
       return false;
     }
+    if (fields.isNotEmpty &&
+        !await _documentBridge.mayAdopt(merged, libraryId)) {
+      _log.warning('Library document $id would take over another row; skipped');
+      await record(parked: false);
+      return false;
+    }
     if (fields.isNotEmpty) {
       final Map<String, Uint8List> bytes;
       if (fields.contains('pages')) {

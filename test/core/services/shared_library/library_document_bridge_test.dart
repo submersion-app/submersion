@@ -296,4 +296,79 @@ void main() {
       9,
     ]);
   });
+
+  group('mayAdopt', () {
+    test('a new id, or a row of this library, may be written', () async {
+      expect(await bridge.mayAdopt(incoming(), 'L'), isTrue);
+      await bridge.apply(
+        incoming(),
+        libraryId: 'L',
+        vocabularyDiverId: 'd1',
+        pageBytesByFileId: {
+          'f1': Uint8List.fromList([7, 8, 9]),
+        },
+      );
+      expect(await bridge.mayAdopt(incoming(), 'L'), isTrue);
+    });
+
+    test('a row of another library is never taken over', () async {
+      await bridge.apply(
+        incoming(),
+        libraryId: 'L',
+        vocabularyDiverId: 'd1',
+        pageBytesByFileId: {
+          'f1': Uint8List.fromList([7, 8, 9]),
+        },
+      );
+      expect(await bridge.mayAdopt(incoming(), 'L2'), isFalse);
+    });
+
+    test("the diver's own document on this library's site may be adopted, "
+        'one filed elsewhere may not', () async {
+      await db.customStatement(
+        'INSERT INTO dive_sites (id, name, created_at, updated_at) '
+        "VALUES ('mine', 'Mine', 0, 0)",
+      );
+      for (final (id, site) in [('doc1', 's1'), ('copy', 'mine')]) {
+        await DocumentRepository().save(
+          Document(
+            id: id,
+            diverId: 'd1',
+            owner: DocumentOwner(DocumentOwnerKind.site, site),
+            type: DocumentType.map,
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+          const [],
+        );
+      }
+      expect(await bridge.mayAdopt(incoming(), 'L'), isTrue);
+      final copy = LibraryDocumentRecord(
+        id: 'copy',
+        siteId: 's1',
+        fields: incoming().fields,
+      );
+      expect(await bridge.mayAdopt(copy, 'L'), isFalse);
+    });
+
+    test("a page id of another document's page is refused", () async {
+      final other = await savedDoc();
+      final pageId = (await DocumentRepository().getPages(other)).first.id;
+      final record = LibraryDocumentRecord(
+        id: 'doc9',
+        siteId: 's1',
+        fields: {
+          ...incoming().fields,
+          'pages': [
+            {
+              ...(incoming().fields['pages']! as List).single
+                  as Map<String, Object?>,
+              'id': pageId,
+            },
+          ],
+        },
+      );
+      expect(await bridge.mayAdopt(record, 'L'), isFalse);
+    });
+  });
 }

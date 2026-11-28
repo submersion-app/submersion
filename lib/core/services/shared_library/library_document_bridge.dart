@@ -84,6 +84,37 @@ class LibraryDocumentBridge {
     );
   }
 
+  /// Whether [doc] may be written here for [libraryId]: a new id, a row of
+  /// this library, or the diver's own document filed on a site of it (its
+  /// share arriving from another device). Never a row of another library,
+  /// a private copy filed elsewhere, or a page of another document: a
+  /// record of one library must not take over what is not its own.
+  Future<bool> mayAdopt(LibraryDocumentRecord doc, String libraryId) async {
+    final row = await (_db.select(
+      _db.documents,
+    )..where((t) => t.id.equals(doc.id))).getSingleOrNull();
+    if (row != null) {
+      final owner = row.sharedLibraryId;
+      if (owner != null && owner != libraryId) return false;
+      if (owner == null) {
+        final siteId = row.siteId;
+        if (siteId == null) return false;
+        final site = await (_db.select(
+          _db.diveSites,
+        )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+        if (site?.sharedLibraryId != libraryId) return false;
+      }
+    }
+    final pageIds = [for (final r in doc.pageRefs) r.id];
+    if (pageIds.isEmpty) return true;
+    final clash =
+        await (_db.select(_db.documentPages)..where(
+              (t) => t.id.isIn(pageIds) & t.documentId.equals(doc.id).not(),
+            ))
+            .get();
+    return clash.isEmpty;
+  }
+
   /// The library files whose bytes [documentId]'s pages already hold.
   Future<Set<String>> heldFileIds(String documentId) async {
     final t = _db.documentPages;
