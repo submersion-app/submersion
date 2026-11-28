@@ -49,7 +49,9 @@ class ScratchKeeper {
     required SpeciesTaggingService tagging,
     required Future<MediaItem> Function(MediaItem scratchItem) linkFile,
     Future<void> Function(MediaItem kept)? afterKeep,
+    void Function(String mediaId)? onMediaCreated,
   }) : _session = session,
+       _onMediaCreated = onMediaCreated,
        _media = media,
        _identifications = identifications,
        _embeddings = embeddings,
@@ -75,6 +77,10 @@ class ScratchKeeper {
   final SpeciesTaggingService _tagging;
   final Future<MediaItem> Function(MediaItem scratchItem) _linkFile;
   final Future<void> Function(MediaItem kept)? _afterKeep;
+
+  /// Told each kept row's id, as an import tells it: the media store
+  /// queues the file for upload.
+  final void Function(String mediaId)? _onMediaCreated;
   final MediaIdentificationRepository _scratchIdentifications;
   final IdentificationEmbeddingRepository _scratchEmbeddings;
   final SpeciesRepository _scratchSpecies;
@@ -143,6 +149,7 @@ class ScratchKeeper {
       }
       rethrow;
     }
+    _onMediaCreated?.call(saved.id);
     return saved.id;
   }
 

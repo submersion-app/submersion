@@ -339,6 +339,24 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    testWidgets('a row whose fetch failed is part of the rest', (tester) async {
+      await tester.pumpWidget(
+        host(
+          [candidate('a', t3, error: 'Not found (404)')],
+          {t3: none},
+          allowUnplaced: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(allUnplaced);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Import 1 items'));
+      await tester.pump();
+      expect(confirmed, {'a': const UnplacedAttachTarget()});
+      await tester.pumpAndSettle();
+    });
+
     testWidgets('the bar is hidden when every row has a target', (
       tester,
     ) async {

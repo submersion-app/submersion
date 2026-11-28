@@ -33,6 +33,7 @@ void main() {
   late IdentificationCropStore realCrops;
   late ScratchKeeper keeper;
   final linked = <String>[];
+  final enqueued = <String>[];
   final gone = <String>{};
 
   MediaItem scratchItem(String id) => MediaItem(
@@ -72,6 +73,7 @@ void main() {
       table: IdentificationCropRepository(),
     );
     linked.clear();
+    enqueued.clear();
     gone.clear();
     keeper = ScratchKeeper(
       session: session,
@@ -85,6 +87,7 @@ void main() {
         media: MediaRepository(),
         species: SpeciesRepository(),
       ),
+      onMediaCreated: enqueued.add,
       linkFile: (item) async {
         if (gone.contains(item.id)) {
           throw ScratchFileGone(item.originalFilename!);
@@ -197,6 +200,22 @@ void main() {
     expect(row.siteId, 's1');
     expect(row.retainInLibrary, isFalse);
   });
+
+  test(
+    'a kept file is queued for the media store; a failed one is not',
+    () async {
+      final result = await keeper.keep([a], const UnplacedAttachTarget(), {});
+      await keeper.keep(
+        [b],
+        const UnplacedAttachTarget(),
+        {
+          b: [chip('sp_nowhere')],
+        },
+      );
+
+      expect(enqueued, [result.keptIds[a]]);
+    },
+  );
 
   test('keeping twice makes one row', () async {
     await keeper.keep([a], const UnplacedAttachTarget(), {});

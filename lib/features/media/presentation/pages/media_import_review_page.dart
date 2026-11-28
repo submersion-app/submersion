@@ -192,11 +192,11 @@ class _MediaImportReviewPageState extends ConsumerState<MediaImportReviewPage> {
       rows.add((c, s, target));
     }
     // The rest: what no match, pick or bulk action has placed yet. A row the
-    // diver unchecked stays out of it.
+    // diver unchecked stays out of it. A failed fetch is in it: such a row is
+    // still written, with its diagnostics, as the row menu allows.
     final rest = [
       for (final (c, _, target) in rows)
-        if (target == null && !_overrides.containsKey(c.key) && c.error == null)
-          c,
+        if (target == null && !_overrides.containsKey(c.key)) c,
     ];
 
     return Scaffold(

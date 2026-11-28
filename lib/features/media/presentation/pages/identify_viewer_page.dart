@@ -25,6 +25,7 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/keep_sheet.dart';
+import 'package:submersion/features/media_store/presentation/providers/media_store_enqueue_provider.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/scratch/scratch_scope.dart';
 import 'package:submersion/features/species_id/presentation/widgets/species_download_prompt.dart';
@@ -188,6 +189,8 @@ class _IdentifyViewerPageState extends ConsumerState<IdentifyViewerPage> {
     species: ref.read(speciesRepositoryProvider),
     tagging: ref.read(speciesTaggingServiceProvider),
     linkFile: _linkFile,
+    // Uploaded to the media store as any imported file is.
+    onMediaCreated: ref.read(mediaStoreEnqueueProvider),
     // As an import would: confident names are tagged if the diver has
     // that on.
     afterKeep: (kept) => ref
