@@ -27807,7 +27807,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return '名称最少。约 $percent% 正确';
+    return '名称最少。照片上约 $percent% 正确';
   }
 
   @override
@@ -27815,12 +27815,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return '名称更多。约 $percent% 正确';
+    return '名称更多。照片上约 $percent% 正确';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return '名称最多。约 $percent% 正确';
+    return '名称最多。照片上约 $percent% 正确';
   }
 
   @override
@@ -52915,11 +52915,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_species_suggested => '建议';
-
-  @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
-  }
 
   @override
   String media_species_suggestedCount(String name, int count) {

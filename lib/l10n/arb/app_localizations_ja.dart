@@ -28239,7 +28239,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return '候補は最少。正解率は約$percent%';
+    return '候補は最少。写真での正解率は約$percent%';
   }
 
   @override
@@ -28247,12 +28247,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return '候補は多め。正解率は約$percent%';
+    return '候補は多め。写真での正解率は約$percent%';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return '候補は最多。正解率は約$percent%';
+    return '候補は最多。写真での正解率は約$percent%';
   }
 
   @override
@@ -54151,11 +54151,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get media_species_suggested => '候補';
-
-  @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
-  }
 
   @override
   String media_species_suggestedCount(String name, int count) {

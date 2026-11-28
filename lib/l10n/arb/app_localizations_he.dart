@@ -28783,7 +28783,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'פחות שמות. כ-$percent% נכונים';
+    return 'פחות שמות. כ-$percent% נכונים בתמונות';
   }
 
   @override
@@ -28792,12 +28792,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'יותר שמות. כ-$percent% נכונים';
+    return 'יותר שמות. כ-$percent% נכונים בתמונות';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'הכי הרבה שמות. כ-$percent% נכונים';
+    return 'הכי הרבה שמות. כ-$percent% נכונים בתמונות';
   }
 
   @override
@@ -55285,11 +55285,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_species_suggested => 'הצעות';
-
-  @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
-  }
 
   @override
   String media_species_suggestedCount(String name, int count) {
