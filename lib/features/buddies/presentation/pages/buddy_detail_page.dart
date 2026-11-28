@@ -23,6 +23,7 @@ import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_favorite_button.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_gear_section.dart';
+import 'package:submersion/features/equipment/presentation/widgets/gear_bought_from_section.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_photos_section.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_shared_dives_section.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_card_details_section.dart';
@@ -312,6 +313,12 @@ class _BuddyDetailContent extends ConsumerWidget {
                 buddy: buddy,
                 shown: host.maybeEditController?.session,
               ),
+            ),
+          // Gear bought from them (issue #5140); nothing when there is none.
+          if (!_creating)
+            GearBoughtFromSection(
+              buddyId: buddy.id,
+              title: context.l10n.equipment_boughtFrom_title(buddy.name),
             ),
 
           // Notes

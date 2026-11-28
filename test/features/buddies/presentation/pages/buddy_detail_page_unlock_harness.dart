@@ -14,6 +14,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -104,6 +105,7 @@ Future<BuddyPageHarness> pumpBuddyPage(
   VoidCallback? onSittingEnded,
   List<Certification> certifications = const [],
   List<Object> extraOverrides = const [],
+  List<EquipmentItem> equipment = const [],
 }) async {
   final shown = buddy ?? alex;
   tester.view.physicalSize = size;
@@ -134,7 +136,7 @@ Future<BuddyPageHarness> pumpBuddyPage(
           shown.id,
         ).overrideWith((ref) async => certifications),
         mediaForBuddyProvider(shown.id).overrideWith((ref) async => const []),
-        allEquipmentProvider.overrideWith((ref) async => const []),
+        allEquipmentProvider.overrideWith((ref) async => equipment),
         currentEquipmentLocationsProvider.overrideWith(
           (ref) async => const <String, EquipmentLocation>{},
         ),
