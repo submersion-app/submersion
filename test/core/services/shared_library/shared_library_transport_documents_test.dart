@@ -2,11 +2,34 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/shared_library/crypto/library_cipher.dart';
 import 'package:submersion/core/services/shared_library/library_document_record.dart';
 import 'package:submersion/core/services/shared_library/shared_library_transport.dart';
 
 import '../../../helpers/fake_cloud_storage_provider.dart';
+
+/// Read-only WebDAV credentials: no new folder can be made, and a lookup
+/// finds none of the folders the library does not have yet.
+class _ReadOnlyCloud extends FakeCloudStorageProvider implements FolderLookup {
+  static const _absent = {'documents', 'pages'};
+
+  @override
+  Future<String> createFolder(String folderName, {String? parentFolderId}) {
+    if (_absent.contains(folderName)) {
+      throw const CloudStorageException('403 Forbidden (test)');
+    }
+    return super.createFolder(folderName, parentFolderId: parentFolderId);
+  }
+
+  @override
+  Future<String?> findFolder(
+    String folderName, {
+    String? parentFolderId,
+  }) async => _absent.contains(folderName)
+      ? null
+      : super.createFolder(folderName, parentFolderId: parentFolderId);
+}
 
 void main() {
   late FakeCloudStorageProvider cloud;
@@ -118,5 +141,17 @@ void main() {
     final existing = SharedLibraryTransport(cloud, prefix: 'documents');
     await existing.writeManifest({'id': 'L', 'formatVersion': 2});
     expect(await existing.readManifest(), isNotNull);
+  });
+
+  test('a reader with read-only credentials lists no documents rather than '
+      'failing when the folders do not exist yet', () async {
+    final readOnly = SharedLibraryTransport(
+      _ReadOnlyCloud(),
+      prefix: 'site-sync',
+    );
+    expect(await readOnly.listDocuments(), isEmpty);
+    expect(await readOnly.listPageFiles(), isEmpty);
+    expect(await readOnly.findPageFile('f1'), isNull);
+    expect((await readOnly.sealableFiles()).keys, isEmpty);
   });
 }

@@ -15,8 +15,25 @@ extension SharedLibraryTransportDocuments on SharedLibraryTransport {
     parentFolderId: await _rootId(),
   );
 
-  Future<List<CloudFileInfo>> listDocuments() async =>
-      _listKind(await _documentsId(), SharedLibraryTransport._documentPrefix);
+  /// [dir]'s folder when it exists, looked up without creating it: a
+  /// reader's read-only credentials refuse a new folder (WebDAV's MKCOL),
+  /// and a library has neither folder until its first shared document.
+  /// Null when it does not exist yet.
+  Future<String?> _existingFolder(String dir) async {
+    final root = await _rootId();
+    return switch (_provider) {
+      final FolderLookup lookup => lookup.findFolder(dir, parentFolderId: root),
+      // S3 has no folders: its createFolder only names one.
+      final provider => provider.createFolder(dir, parentFolderId: root),
+    };
+  }
+
+  Future<List<CloudFileInfo>> listDocuments() async {
+    final folder =
+        _documents ?? await _existingFolder(SharedLibraryLayout.documentsDir);
+    if (folder == null) return const [];
+    return _listKind(folder, SharedLibraryTransport._documentPrefix);
+  }
 
   Future<LibraryDocumentRecord> readDocument(String fileId) async =>
       LibraryDocumentRecord.decode(
@@ -56,7 +73,9 @@ extension SharedLibraryTransportDocuments on SharedLibraryTransport {
   /// Every page file directly in the pages folder whose name this app could
   /// have written.
   Future<List<CloudFileInfo>> listPageFiles() async {
-    final folder = await _pagesId();
+    final folder =
+        _pages ?? await _existingFolder(SharedLibraryLayout.pagesDir);
+    if (folder == null) return const [];
     final files = await _provider.listFiles(folderId: folder);
     return [
       for (final f in files)
@@ -83,8 +102,12 @@ extension SharedLibraryTransportDocuments on SharedLibraryTransport {
   );
 
   /// The stored page file named [pageFileId], or null when there is none.
-  Future<CloudFileInfo?> findPageFile(String pageFileId) async =>
-      _find(await _pagesId(), SharedLibraryTransport.pageFileName(pageFileId));
+  Future<CloudFileInfo?> findPageFile(String pageFileId) async {
+    final folder =
+        _pages ?? await _existingFolder(SharedLibraryLayout.pagesDir);
+    if (folder == null) return null;
+    return _find(folder, SharedLibraryTransport.pageFileName(pageFileId));
+  }
 
   /// Writes [plain] as `pages/<pageFileId>.bin`, in the library's current
   /// form. A page file never changes once written (a new scan gets a new
