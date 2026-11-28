@@ -55607,6 +55607,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get media_species_nextSighting => 'התצפית הבאה';
+
+  @override
   String get media_species_openSpeciesPage => 'דף המין';
 
   @override

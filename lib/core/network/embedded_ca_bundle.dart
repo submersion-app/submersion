@@ -1,5 +1,5 @@
 // GENERATED FILE - DO NOT EDIT BY HAND.
-// Regenerate with: python3 scripts/gen_embedded_ca_bundle.py
+// Regenerate with: python3 scripts/codegen/gen_embedded_ca_bundle.py
 // Source: https://curl.se/ca/cacert.pem (121 root certificates).
 //
 // Public root CA baseline for Windows TLS verification. Always merged

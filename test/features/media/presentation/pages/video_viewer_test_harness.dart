@@ -179,6 +179,7 @@ Future<FakeVideoPlatform> pumpVideoViewer(
   List<MediaItem>? mediaList,
   FakeVideoPlatform? platform,
   Duration? initialVideoPosition,
+  String? focusSpeciesId,
 }) async {
   final player = platform ?? FakeVideoPlatform();
   useVideoPlatform(player);
@@ -205,6 +206,7 @@ Future<FakeVideoPlatform> pumpVideoViewer(
             mediaList: mediaList ?? [video('v1')],
             initialMediaId: 'v1',
             initialVideoPosition: initialVideoPosition,
+            focusSpeciesId: focusSpeciesId,
           ),
         ),
       ),

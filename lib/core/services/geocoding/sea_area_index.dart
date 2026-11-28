@@ -8,7 +8,7 @@ import 'package:submersion/core/services/geocoding/sea_area.dart';
 /// peninsula, a mountain range, a stream). Almost every dive happens in salt
 /// water, so the body-of-water field stayed empty for most sites. The table
 /// behind this index is the IHO's own "Limits of Oceans & Seas", generated
-/// by `scripts/sea_area_harvester.py`.
+/// by `scripts/datasets/sea_areas/sea_area_harvester.py`.
 ///
 /// Being asset-resident, it also answers on a boat with no signal.
 class SeaAreaIndex {

@@ -33966,6 +33966,8 @@
   "@media_species_seenStretch": {"description": "A stretch of a video where a species was seen, as player times such as 0:04 to 0:31 (issue #5032).", "placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
   "media_species_playFrom": "Play from {time}",
   "@media_species_playFrom": {"description": "Screen reader label of a time on a species' crop sheet: tapping it plays the video from there (issue #5032).", "placeholders": {"time": {"type": "String"}}},
+  "media_species_nextSighting": "Next sighting",
+  "@media_species_nextSighting": {"description": "Button on a video's controls, in the viewer opened from a species on a dive, that jumps to the next time that species was seen in the video (issue #5084)."},
   "media_species_openSpeciesPage": "Species page",
   "@media_species_openSpeciesPage": {"description": "Button on a species' crop sheet that opens the species page (issue #5024)."},
   "media_species_cropThumb": "Image {index} of {count}",

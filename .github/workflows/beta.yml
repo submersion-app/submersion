@@ -119,7 +119,7 @@ jobs:
             case "$f" in
               .github/flutter-version.txt) code=true ;;
               .github/*) ;;
-              *.md|docs/*|LICENSE*|.gitignore|.gitattributes|.editorconfig|codecov.yml|hooks/*) ;;
+              *.md|docs/*|LICENSE*|.gitignore|.gitattributes|.editorconfig|hooks/*) ;;
               *.png|*.jpg|*.jpeg|*.gif|*.svg|*.webp|*.ico) ;;
               *) code=true ;;
             esac
@@ -210,7 +210,7 @@ jobs:
         run: |
           set -euo pipefail
           cp artifacts/beta-notes.md release-notes.md
-          ./scripts/generate_release_notes_html.sh < release-notes.md > release-notes.html
+          ./scripts/release/generate_release_notes_html.sh < release-notes.md > release-notes.html
 
       - name: Generate checksums and metadata
         env:
@@ -264,7 +264,7 @@ jobs:
           curl -fsSL -o stable-appcast.xml \
             "https://github.com/${{ github.repository }}/releases/latest/download/appcast.xml" \
             || : > stable-appcast.xml
-          ./scripts/generate_appcast_beta.sh "$VERSION" "$BUILD_NUMBER" "$DATE" \
+          ./scripts/release/generate_appcast_beta.sh "$VERSION" "$BUILD_NUMBER" "$DATE" \
             "${BASE}/Submersion-${TAG_NAME}-macOS.dmg" \
             "${BASE}/Submersion-${TAG_NAME}-Windows-Setup.exe" \
             release-notes.html stable-appcast.xml > appcast-beta.xml
@@ -588,12 +588,12 @@ jobs:
   # Five red Beta runs in eleven hours went unnoticed until someone read the
   # Actions list (#2598). This job opens one rolling issue when any job above
   # fails, comments on it while it stays open, and closes it once a run
-  # publishes on every lane; scripts/beta_failure_alert.py has the details.
+  # publishes on every lane; scripts/bots/beta_failure_alert.py has the details.
   #
   # It needs every job in this workflow, not just the store lanes:
   # needs.*.result sees only the jobs listed here, and a failed build or
   # precheck skips every lane rather than failing it. A job added without being
-  # listed fails scripts/beta_failure_alert_test.py.
+  # listed fails scripts/bots/beta_failure_alert_test.py.
   #
   # The condition runs it only on a failure, a cancellation or a fully
   # published run, so the many runs gated off by precheck stay "skipped" in the
@@ -638,4 +638,4 @@ jobs:
           BETA_TAG: ${{ needs.precheck.outputs.tag }}
           BETA_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
           BETA_ALERT_ASSIGNEE: ${{ vars.BETA_ALERT_ASSIGNEE }}
-        run: python3 scripts/beta_failure_alert.py
+        run: python3 scripts/bots/beta_failure_alert.py

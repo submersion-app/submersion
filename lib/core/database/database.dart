@@ -338,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 390;
+  static const int currentSchemaVersion = 394;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1834,9 +1834,12 @@ class AppDatabase extends _$AppDatabase {
     // only zoom choice (issue #5069). Nullable, no backfill; the floor does
     // not move. Numbered 389 because open work claims 388.
     389,
-    // v390: tank_presets.rated_capacity_cuft, the rated capacity a copy of a
+    // v393: the built-in BCD/wing inspection kind applies to wings (issue
+    // #5110). Built-in reference data never syncs; the floor does not move.
+    393,
+    // v394: tank_presets.rated_capacity_cuft, the rated capacity a copy of a
     // built-in preset keeps (issue #800). Nullable; the floor does not move.
-    390,
+    394,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -30,6 +30,8 @@ void main() {
     expect(viewer.mediaList.map((m) => m.id).toList(), ['p1', 'p2']);
     expect(viewer.initialMediaId, 'p1');
     expect(viewer.showGoToDive, isFalse);
+    // Its videos open at the species' sightings (issue #5084).
+    expect(viewer.focusSpeciesId, 'sp_x');
   });
 
   testWidgets('honours an explicit initial photo', (tester) async {

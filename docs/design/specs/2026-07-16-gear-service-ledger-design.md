@@ -62,7 +62,7 @@ Seeded built-ins:
 | Regulator service | regulator | 365 d OR 100 dives | yes |
 | Computer battery | computer | 730 d | yes |
 | Transmitter battery | transmitter | 365 d | yes |
-| BCD/wing inspection | bcd | 365 d | yes |
+| BCD/wing inspection | bcd, wing | 365 d | yes |
 | Drysuit seals | drysuit | 730 d | no |
 | General service | (any) | none | no (migration target for legacy intervals) |
 
