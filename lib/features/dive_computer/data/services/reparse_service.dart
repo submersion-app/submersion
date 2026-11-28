@@ -1177,12 +1177,23 @@ class ReparseService {
     //
     // A stored role that is only the importer's O2 guess for a gas this parse
     // corrects follows the corrected gas (issue #5057): an older import gave
-    // a back-gas transmitter the deco gas, and its roles with it.
+    // a back-gas transmitter the deco gas, and its roles with it. A
+    // registered transmitter is left out: its stored role came from the
+    // diver's registry, even when it agrees with the O2 guess.
     final hydrotanks = {
       for (final t in resolvedTanks)
         if (t.role == TankRole.hydrotank.name) t.index,
     };
-    final parsedByIndex = {for (final t in parsedTanks) t.index: t};
+    final parsedByIndex = {
+      for (final t in parsedTanks)
+        if (matcher.match(
+              serial: t.transmitterSerial,
+              computerId: computerId,
+              index: t.index,
+            ) ==
+            null)
+          t.index: t,
+    };
     bool roleIsComputers(DiveTank existing, int index) =>
         TankRoleSource.fromName(existing.roleSource) ==
             TankRoleSource.transmitterName ||

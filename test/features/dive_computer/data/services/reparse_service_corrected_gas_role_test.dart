@@ -2,9 +2,12 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
+import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
+import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 
 /// Issue #5057: a back-gas transmitter used to import with the deco gas when
 /// the deco outlasted the bottom phase, and the importer gave each cylinder
@@ -92,6 +95,7 @@ void main() {
           gasMixIndex: unknownGasMixIndex,
           startPressureBar: 220.0,
           endPressureBar: 110.0,
+          transmitterSerial: 109623,
         ),
       ],
       gasMixes: [
@@ -133,15 +137,21 @@ void main() {
     await store('tank-1', 1, 18.0, 45.0, trimixRole);
   }
 
-  Future<void> reparse() => ReparseService(db: db).applyParsedUpdate(
-    diveId: 'dive-1',
-    sourceRowId: 'src-1',
-    parsed: parse(),
-    descriptorVendor: 'Shearwater',
-    descriptorProduct: 'Perdix 2',
-    descriptorModel: 0,
-    libdivecomputerVersion: null,
-  );
+  Future<void> reparse({TransmitterMatcher? registry}) =>
+      ReparseService(
+        db: db,
+        transmitterMatcherLoader: registry == null
+            ? null
+            : () async => registry,
+      ).applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: parse(),
+        descriptorVendor: 'Shearwater',
+        descriptorProduct: 'Perdix 2',
+        descriptorModel: 0,
+        libdivecomputerVersion: null,
+      );
 
   Future<DiveTank> row(String id) =>
       (db.select(db.diveTanks)..where((t) => t.id.equals(id))).getSingle();
@@ -181,5 +191,29 @@ void main() {
     final switches = await db.select(db.gasSwitches).get();
     expect(switches, hasLength(1));
     expect(switches.single.tankId, 'tank-1');
+  });
+
+  test('a registered transmitter keeps its stored role', () async {
+    // A role on a registered transmitter came from the diver's registry, not
+    // from the importer's O2 guess, even when the two agree. The entry has
+    // changed since the import; an existing row keeps what it was given.
+    await storeOldImport();
+    final registry = TransmitterMatcher.fromEntries([
+      Transmitter(
+        id: 'e1',
+        transmitterSerial: '109623',
+        label: 'Back',
+        role: TankRole.stage,
+        createdAt: DateTime.utc(2026, 9, 1),
+        updatedAt: DateTime.utc(2026, 9, 1),
+      ),
+    ]);
+
+    await reparse(registry: registry);
+
+    final transmitter = await row('tank-0');
+    expect(transmitter.o2Percent, 18.0);
+    expect(transmitter.tankRole, 'deco');
+    expect((await row('tank-1')).tankRole, 'deco');
   });
 }
