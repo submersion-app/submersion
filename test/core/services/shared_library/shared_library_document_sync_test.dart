@@ -144,6 +144,43 @@ void main() {
     expect(await transport().listPageFiles(), hasLength(3));
   });
 
+  test("a page file not fetched keeps an editor's push from overwriting "
+      'newer edits', () async {
+    await seedTestLibrary(cloud, owners: {'a', 'b'});
+    final id = await ownerShares();
+    var b = await libraryDevice(cloud, 'b', file: fileOf('b'));
+    await b.sync('L', diverId: 'd-b');
+    // b's own edit, not yet sent.
+    await LibraryDocumentStamper().stamp(id, {'title'}, actingDiverId: 'd-b');
+
+    final a = await libraryDevice(cloud, 'a', file: fileOf('a'));
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+    final repo = DocumentRepository();
+    await repo.save(
+      (await repo.getById(id))!.copyWith(notes: 'North slipway'),
+      [
+        testPage([9, 9]),
+      ],
+    );
+    await LibraryDocumentStamper().stamp(id, {
+      'pages',
+      'notes',
+    }, actingDiverId: 'd-a');
+    await a.sync('L', diverId: 'd-a');
+    final t = transport();
+    final newest = await t.readDocument((await t.listDocuments()).single.id);
+    final newFile = newest.pageRefs.single.fileId;
+    // b cannot fetch a's new scan yet.
+    await t.deletePageFile((await t.findPageFile(newFile))!.id);
+
+    b = await libraryDevice(cloud, 'b', file: fileOf('b'));
+    await b.sync('L', diverId: 'd-b');
+    final after = await t.readDocument((await t.listDocuments()).single.id);
+    expect(after.fields['notes'], 'North slipway');
+    expect(after.pageRefs.single.fileId, newFile);
+    expect((await SharedLibraryStore().getDocumentState(id))!.dirty, isTrue);
+  });
+
   test('a document of a deleted site is not shown nor read again', () async {
     await seedTestLibrary(cloud);
     final id = await ownerShares();

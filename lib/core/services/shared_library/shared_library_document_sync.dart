@@ -154,7 +154,7 @@ extension _DocumentSync on SharedLibraryService {
         deferred.add(id);
         continue;
       }
-      if (await _mergeRemoteDocument(
+      final changed = await _mergeRemoteDocument(
         libraryId,
         local: local,
         remote: checked,
@@ -163,7 +163,12 @@ extension _DocumentSync on SharedLibraryService {
         stamp: stamp,
         diverId: diverId,
         t: t,
-      )) {
+      );
+      // Not merged (a page file not fetched): its rows are not what the
+      // folder holds, so this sync must not upload them over it.
+      if (changed == null) {
+        deferred.add(id);
+      } else if (changed) {
         pulled++;
       }
     }
@@ -202,8 +207,8 @@ extension _DocumentSync on SharedLibraryService {
   /// library site this device holds, and only with every page: one whose
   /// site was deleted, or has not arrived, is recorded and waits; one whose
   /// pages cannot all be fetched is left for the next sync. Returns true
-  /// when the local rows changed.
-  Future<bool> _mergeRemoteDocument(
+  /// when the local rows changed, and null when it was not merged at all.
+  Future<bool?> _mergeRemoteDocument(
     String libraryId, {
     required LibraryDocumentRecord local,
     required LibraryDocumentRecord remote,
@@ -263,7 +268,7 @@ extension _DocumentSync on SharedLibraryService {
         final fetched = await _fetchPages(t, id, merged.pageRefs);
         // Not every page could be fetched: nothing shows half a document.
         // The stamp is not recorded, so the next sync reads it again.
-        if (fetched == null) return false;
+        if (fetched == null) return null;
         bytes = fetched;
       } else {
         bytes = const {};
