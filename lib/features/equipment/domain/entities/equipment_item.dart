@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/features/equipment/domain/entities/equipment_catalogue_answers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
@@ -39,6 +40,12 @@ class EquipmentItem extends Equatable {
   /// by an item's save.
   final String? coverMediaId;
 
+  /// The equipment catalogue record this item is (issue #5118), or null.
+  final String? catalogueId;
+
+  /// What the diver settled about catalogue records for this item.
+  final EquipmentCatalogueAnswers catalogueAnswers;
+
   /// Row creation time (null for entities built before persistence); used as
   /// the last anchor fallback for service clocks.
   final DateTime? createdAt;
@@ -64,6 +71,8 @@ class EquipmentItem extends Equatable {
     this.customReminderDays,
     this.parentEquipmentId,
     this.coverMediaId,
+    this.catalogueId,
+    this.catalogueAnswers = EquipmentCatalogueAnswers.empty,
     this.createdAt,
   });
 
@@ -284,6 +293,9 @@ class EquipmentItem extends Equatable {
     bool clearParentEquipmentId = false,
     String? coverMediaId,
     bool clearCoverMediaId = false,
+    String? catalogueId,
+    bool clearCatalogueId = false,
+    EquipmentCatalogueAnswers? catalogueAnswers,
     DateTime? createdAt,
   }) {
     return EquipmentItem(
@@ -312,6 +324,8 @@ class EquipmentItem extends Equatable {
       coverMediaId: clearCoverMediaId
           ? null
           : (coverMediaId ?? this.coverMediaId),
+      catalogueId: clearCatalogueId ? null : (catalogueId ?? this.catalogueId),
+      catalogueAnswers: catalogueAnswers ?? this.catalogueAnswers,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -338,6 +352,8 @@ class EquipmentItem extends Equatable {
     customReminderDays,
     parentEquipmentId,
     coverMediaId,
+    catalogueId,
+    catalogueAnswers,
     createdAt,
   ];
 }

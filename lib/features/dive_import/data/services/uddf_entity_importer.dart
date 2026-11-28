@@ -67,6 +67,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_catalogue_answers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_catalogue_answers.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
@@ -429,8 +430,8 @@ class UddfEntityImporter {
        _placeNameLanguage = placeNameLanguage,
        _importedFiles = importedFiles ?? ImportedFileRepository();
 
-  /// A payload site's link to the built-in catalogue record it was adopted
-  /// from, or null when the file carries none.
+  /// A payload site's or item's link to its built-in catalogue record, or
+  /// null when the file carries none.
   static String? _catalogueIdOf(Map<String, dynamic> siteData) {
     final value = siteData['catalogueId'];
     if (value is! String) return null;
@@ -1161,6 +1162,10 @@ class UddfEntityImporter {
         serviceIntervalDays: equipData['serviceIntervalDays'] as int?,
         notes: equipData['notes'] as String? ?? '',
         isActive: equipData['isActive'] as bool? ?? true,
+        catalogueId: _catalogueIdOf(equipData),
+        catalogueAnswers: EquipmentCatalogueAnswers.decode(
+          equipData['catalogueAnswers'] as String?,
+        ),
         attributes: [
           if (size != null)
             EquipmentAttribute.curated(

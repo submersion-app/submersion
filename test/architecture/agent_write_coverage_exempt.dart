@@ -196,6 +196,11 @@ final exempt = <String, String>{
         'as fields through updateSite; the catalogue link and the answers '
         'it also writes are the app\'s bookkeeping about a built-in '
         'record, not a record of the diver\'s diving',
+  // Linking a gear item to the built-in equipment catalogue (issue #5118).
+  '$gear/equipment_repository_impl.dart:setCatalogueLink':
+      'the catalogue link and answers are the app\'s bookkeeping about a '
+      'built-in record, not a record of the diver\'s diving; the values a '
+      'review fills are fields equipment covers through updateEquipment',
   // Bulk shortcuts.
   for (final method in const [
     'lib/features/buddies/data/repositories/buddy_merge_repository.dart:bulkDeleteBuddies',

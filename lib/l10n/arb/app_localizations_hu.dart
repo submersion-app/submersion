@@ -66892,6 +66892,87 @@ class AppLocalizationsHu extends AppLocalizations {
       'A Kompakt egy keskeny sáv állapotjelzőkkel. A Szalag az üdvözlő szalag a merülési összesítőiddel. Ezen az eszközön mentve.';
 
   @override
+  String get equipment_catalogue_offerLine =>
+      'A beépített felszereléskatalógus adatokat tartalmaz erről a modellről';
+
+  @override
+  String get equipment_catalogue_review => 'Átnézés';
+
+  @override
+  String equipment_catalogue_sheetSource(String publisher, String date) {
+    return 'Forrás: $publisher, ellenőrizve: $date';
+  }
+
+  @override
+  String get equipment_catalogue_publisher_manufacturer => 'a gyártó';
+
+  @override
+  String get equipment_catalogue_publisher_libdivecomputer => 'libdivecomputer';
+
+  @override
+  String get equipment_catalogue_publisher_thirdParty => 'harmadik fél';
+
+  @override
+  String get equipment_catalogue_col_yours => 'Saját';
+
+  @override
+  String get equipment_catalogue_col_catalogue => 'Katalógus';
+
+  @override
+  String get equipment_catalogue_none => 'Nincs';
+
+  @override
+  String get equipment_catalogue_linksNote =>
+      'A gyártói hivatkozások összekapcsolás után a felszerelés oldalán jelennek meg.';
+
+  @override
+  String get equipment_catalogue_notThisModel => 'Nem ez a modell';
+
+  @override
+  String equipment_catalogue_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count alkalmazása',
+      one: '$count alkalmazása',
+      zero: 'Csak összekapcsolás',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_catalogue_nothingToFill =>
+      'Az értékeid már egyeznek ezzel a modellel. Összekapcsolás után a felszerelés oldala mutatja a gyártói hivatkozásokat.';
+
+  @override
+  String get equipment_manufacturer_title => 'A gyártótól';
+
+  @override
+  String get equipment_manufacturer_product => 'Termékoldal';
+
+  @override
+  String get equipment_manufacturer_manual => 'Kézikönyv';
+
+  @override
+  String get equipment_manufacturer_support => 'Támogatás';
+
+  @override
+  String get equipment_manufacturer_unlink => 'Leválasztás a katalógusról';
+
+  @override
+  String get settings_equipmentCatalogue_title =>
+      'A felszereléskatalógus frissítéseinek letöltése';
+
+  @override
+  String get settings_equipmentCatalogue_subtitle =>
+      'Legfeljebb naponta egyszer ellenőrzi a GitHubot. Rólad vagy a felszerelésedről semmit nem küld.';
+
+  @override
+  String equipment_manufacturer_checked(String date) {
+    return 'Ellenőrizve: $date';
+  }
+
+  @override
   String get popOut_openProfileWindow => 'Megnyitás új ablakban';
 
   @override

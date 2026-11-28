@@ -60,6 +60,16 @@ class Equipment extends Table {
   /// key: a peer can delete the photo, and a reader treats an id with no
   /// row as none.
   TextColumn get coverMediaId => text().nullable()();
+
+  /// The equipment catalogue record this item is (v397, issue #5118). Written
+  /// only by applying a catalogue review or unlinking, never by an ordinary
+  /// edit. No foreign key: the catalogue lives outside the database.
+  TextColumn get catalogueId => text().nullable()();
+
+  /// What the diver has settled about equipment catalogue records for this
+  /// item, as JSON: records that are not this item and fields left empty
+  /// when offered (v397, issue #5118).
+  TextColumn get catalogueAnswers => text().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

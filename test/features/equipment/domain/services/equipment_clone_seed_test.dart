@@ -3,11 +3,28 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_catalogue_answers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_clone_seed.dart';
 
 /// The form a clone starts from (issue #3184).
 void main() {
+  test('a clone is the same catalogue model as its source', () {
+    final answers = EquipmentCatalogueAnswers.empty.withNotSame('mares-quad');
+    final seed = cloneFormSeed(
+      EquipmentItem(
+        id: 'e1',
+        name: 'Perdix',
+        type: EquipmentType.computer,
+        catalogueId: 'shearwater-perdix-2',
+        catalogueAnswers: answers,
+      ),
+      copyName: (n) => '$n copy',
+    );
+    expect(seed.catalogueId, 'shearwater-perdix-2');
+    expect(seed.catalogueAnswers, answers);
+  });
+
   final source = EquipmentItem(
     id: 'src',
     diverId: 'owner',

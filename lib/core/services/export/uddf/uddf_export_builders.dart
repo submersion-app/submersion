@@ -953,6 +953,18 @@ class UddfExportBuilders {
                             when itemIds.contains(parent)) {
                           builder.element('parentref', nest: 'equip_$parent');
                         }
+                        // The equipment catalogue record the item is and
+                        // what the diver settled about catalogue records
+                        // for it (issue #5118). Nothing else in the file
+                        // can rebuild either.
+                        if (item.catalogueId case final id?
+                            when id.isNotEmpty) {
+                          builder.element('catalogueid', nest: id);
+                        }
+                        if (item.catalogueAnswers.encode()
+                            case final answers?) {
+                          builder.element('catalogueanswers', nest: answers);
+                        }
                         final mine =
                             observationsByItem[item.id] ??
                             const <EquipmentObservation>[];

@@ -65918,6 +65918,87 @@ class AppLocalizationsHe extends AppLocalizations {
       'דחוס הוא סרגל צר עם נורות מצב. באנר הוא באנר הפתיחה עם סיכומי הצלילות שלך. נשמר במכשיר זה.';
 
   @override
+  String get equipment_catalogue_offerLine =>
+      'בקטלוג הציוד המובנה יש פרטים על הדגם הזה';
+
+  @override
+  String get equipment_catalogue_review => 'עיון';
+
+  @override
+  String equipment_catalogue_sheetSource(String publisher, String date) {
+    return 'מאת $publisher, נבדק ב-$date';
+  }
+
+  @override
+  String get equipment_catalogue_publisher_manufacturer => 'היצרן';
+
+  @override
+  String get equipment_catalogue_publisher_libdivecomputer => 'libdivecomputer';
+
+  @override
+  String get equipment_catalogue_publisher_thirdParty => 'צד שלישי';
+
+  @override
+  String get equipment_catalogue_col_yours => 'שלך';
+
+  @override
+  String get equipment_catalogue_col_catalogue => 'קטלוג';
+
+  @override
+  String get equipment_catalogue_none => 'אין';
+
+  @override
+  String get equipment_catalogue_linksNote =>
+      'קישורי היצרן יופיעו בדף הציוד לאחר הקישור.';
+
+  @override
+  String get equipment_catalogue_notThisModel => 'לא הדגם הזה';
+
+  @override
+  String equipment_catalogue_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'החלת $count',
+      one: 'החלת $count',
+      zero: 'קישור בלבד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_catalogue_nothingToFill =>
+      'הערכים שלך כבר תואמים לדגם הזה. לאחר הקישור, דף הציוד יציג את קישורי היצרן.';
+
+  @override
+  String get equipment_manufacturer_title => 'מאת היצרן';
+
+  @override
+  String get equipment_manufacturer_product => 'דף המוצר';
+
+  @override
+  String get equipment_manufacturer_manual => 'מדריך';
+
+  @override
+  String get equipment_manufacturer_support => 'תמיכה';
+
+  @override
+  String get equipment_manufacturer_unlink => 'ביטול הקישור לקטלוג';
+
+  @override
+  String get settings_equipmentCatalogue_title =>
+      'הורדת עדכונים של קטלוג הציוד';
+
+  @override
+  String get settings_equipmentCatalogue_subtitle =>
+      'בודק ב-GitHub לכל היותר פעם ביום. שום מידע עליך או על הציוד שלך לא נשלח.';
+
+  @override
+  String equipment_manufacturer_checked(String date) {
+    return 'נבדק ב-$date';
+  }
+
+  @override
   String get popOut_openProfileWindow => 'פתיחה בחלון חדש';
 
   @override

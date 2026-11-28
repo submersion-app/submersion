@@ -508,6 +508,8 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'equipment': {
     'buoyancy_kg': 'Buoyancy metadata: net in-water buoyancy in kg (positive floats), and dry weight in kg (feeds displacement scaling)',
+    'catalogue_answers': 'What the diver has settled about equipment catalogue records for this item, as JSON: records that are not this item and fields left empty when offered',
+    'catalogue_id': 'The equipment catalogue record this item is',
     'cover_media_id': 'The media row chosen to represent this item in the equipment list and page header',
     'custom_reminder_days': 'JSON array override, e.g. "[7, 30]"',
     'custom_reminder_enabled': 'Notification overrides',

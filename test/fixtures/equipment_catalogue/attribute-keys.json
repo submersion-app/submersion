@@ -1,0 +1,999 @@
+{
+  "regulator": {
+    "connection": {
+      "kind": "choice",
+      "choices": [
+        "din",
+        "yoke"
+      ]
+    },
+    "cold_water_rated": {
+      "kind": "flag"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "firstStage": {
+    "connection": {
+      "kind": "choice",
+      "choices": [
+        "din",
+        "yoke"
+      ]
+    },
+    "cold_water_rated": {
+      "kind": "flag"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "secondStage": {
+    "cold_water_rated": {
+      "kind": "flag"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "hose": {
+    "hose_type": {
+      "kind": "choice",
+      "choices": [
+        "lp",
+        "hp",
+        "lpi"
+      ]
+    },
+    "hose_length_m": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "bcd": {
+    "bcd_style": {
+      "kind": "choice",
+      "choices": [
+        "jacket",
+        "back_inflate",
+        "wing",
+        "sidemount"
+      ]
+    },
+    "lift_capacity_kg": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "backplate": {
+    "plate_material": {
+      "kind": "choice",
+      "choices": [
+        "steel",
+        "aluminum",
+        "titanium",
+        "carbon_fiber"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "wing": {
+    "lift_capacity_kg": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "harness": {
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "tankBand": {
+    "band_style": {
+      "kind": "choice",
+      "choices": [
+        "cam_strap",
+        "stainless_band"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "weightPocket": {
+    "weight_style": {
+      "kind": "choice",
+      "choices": [
+        "belt",
+        "integrated",
+        "trim"
+      ]
+    },
+    "pocket_capacity_kg": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "gearPocket": {
+    "pocket_mount": {
+      "kind": "choice",
+      "choices": [
+        "harness",
+        "waist_belt",
+        "thigh"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "wetsuit": {
+    "thickness_mm": {
+      "kind": "thickness"
+    },
+    "suit_style": {
+      "kind": "choice",
+      "choices": [
+        "full",
+        "shorty",
+        "two_piece",
+        "semi_dry"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "drysuit": {
+    "shell_material": {
+      "kind": "choice",
+      "choices": [
+        "trilaminate",
+        "neoprene",
+        "crushed_neoprene",
+        "vulcanized_rubber"
+      ]
+    },
+    "seal_type": {
+      "kind": "choice",
+      "choices": [
+        "latex",
+        "silicone",
+        "neoprene"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "undersuit": {
+    "insulation_level": {
+      "kind": "choice",
+      "choices": [
+        "light",
+        "mid",
+        "heavy",
+        "extreme"
+      ]
+    },
+    "fill_material": {
+      "kind": "choice",
+      "choices": [
+        "thinsulate",
+        "primaloft",
+        "hollowfibre",
+        "fleece",
+        "merino",
+        "polypropylene"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "baselayer": {
+    "insulation_level": {
+      "kind": "choice",
+      "choices": [
+        "light",
+        "mid",
+        "heavy",
+        "extreme"
+      ]
+    },
+    "fill_material": {
+      "kind": "choice",
+      "choices": [
+        "thinsulate",
+        "primaloft",
+        "hollowfibre",
+        "fleece",
+        "merino",
+        "polypropylene"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "rashGuard": {
+    "sleeve_length": {
+      "kind": "choice",
+      "choices": [
+        "short",
+        "long",
+        "sleeveless"
+      ]
+    },
+    "upf_rating": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "vest": {
+    "thickness_mm": {
+      "kind": "thickness"
+    },
+    "hooded": {
+      "kind": "flag"
+    },
+    "vest_layer": {
+      "kind": "choice",
+      "choices": [
+        "over_suit",
+        "under_suit"
+      ]
+    },
+    "vest_closure": {
+      "kind": "choice",
+      "choices": [
+        "front_zip",
+        "side_zip",
+        "pullover"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "fins": {
+    "heel_type": {
+      "kind": "choice",
+      "choices": [
+        "open_heel",
+        "full_foot"
+      ]
+    },
+    "blade_style": {
+      "kind": "choice",
+      "choices": [
+        "paddle",
+        "split",
+        "vented"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "mask": {
+    "lens_config": {
+      "kind": "choice",
+      "choices": [
+        "single",
+        "twin",
+        "frameless"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "snorkel": {
+    "snorkel_type": {
+      "kind": "choice",
+      "choices": [
+        "classic",
+        "semi_dry",
+        "dry",
+        "foldable"
+      ]
+    },
+    "purge_valve": {
+      "kind": "flag"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "computer": {
+    "mount": {
+      "kind": "choice",
+      "choices": [
+        "wrist",
+        "console",
+        "hud"
+      ]
+    },
+    "connectivity": {
+      "kind": "choice",
+      "choices": [
+        "ble",
+        "usb",
+        "infrared",
+        "none"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "transmitter": {
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "instrument": {
+    "instrument_type": {
+      "kind": "choice",
+      "choices": [
+        "spg",
+        "depth_gauge",
+        "bottom_timer",
+        "console",
+        "gas_analyzer",
+        "thermometer"
+      ]
+    },
+    "gauge_max_pressure_bar": {
+      "kind": "number"
+    },
+    "depth_rating_m": {
+      "kind": "number"
+    },
+    "mount": {
+      "kind": "choice",
+      "choices": [
+        "wrist",
+        "console",
+        "hud"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "compass": {
+    "compass_type": {
+      "kind": "choice",
+      "choices": [
+        "analog",
+        "digital"
+      ]
+    },
+    "balance_zone": {
+      "kind": "choice",
+      "choices": [
+        "northern",
+        "southern",
+        "global"
+      ]
+    },
+    "tilt_tolerance_deg": {
+      "kind": "number"
+    },
+    "mount": {
+      "kind": "choice",
+      "choices": [
+        "wrist",
+        "console",
+        "hud"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "tank": {
+    "volume_l": {
+      "kind": "number"
+    },
+    "working_pressure_bar": {
+      "kind": "number"
+    },
+    "tank_material": {
+      "kind": "choice",
+      "choices": [
+        "aluminum",
+        "steel",
+        "carbon_composite"
+      ]
+    },
+    "valve_type": {
+      "kind": "choice",
+      "choices": [
+        "din",
+        "yoke",
+        "convertible"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "rebreather": {
+    "unit_type": {
+      "kind": "choice",
+      "choices": [
+        "eccr",
+        "mccr",
+        "hccr",
+        "scr_cmf",
+        "scr_pascr",
+        "scr_escr"
+      ]
+    },
+    "mount_configuration": {
+      "kind": "choice",
+      "choices": [
+        "back",
+        "chest",
+        "sidemount"
+      ]
+    },
+    "scrubber_type": {
+      "kind": "choice",
+      "choices": [
+        "axial",
+        "radial"
+      ]
+    },
+    "scrubber_duration_h": {
+      "kind": "number"
+    },
+    "o2_cell_count": {
+      "kind": "number"
+    },
+    "diluent_cylinder_l": {
+      "kind": "number"
+    },
+    "o2_cylinder_l": {
+      "kind": "number"
+    },
+    "depth_rating_m": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "weights": {
+    "weight_style": {
+      "kind": "choice",
+      "choices": [
+        "belt",
+        "integrated",
+        "trim",
+        "ankle"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "light": {
+    "lumens": {
+      "kind": "number"
+    },
+    "beam_type": {
+      "kind": "choice",
+      "choices": [
+        "spot",
+        "flood",
+        "adjustable"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "camera": {
+    "depth_rating_m": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "lens": {
+    "lens_type": {
+      "kind": "choice",
+      "choices": [
+        "camera_lens",
+        "wet_lens",
+        "diopter"
+      ]
+    },
+    "focal_length_mm": {
+      "kind": "focalLength"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "port": {
+    "port_type": {
+      "kind": "choice",
+      "choices": [
+        "dome",
+        "flat",
+        "macro"
+      ]
+    },
+    "depth_rating_m": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "housing": {
+    "depth_rating_m": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "trayHandle": {
+    "tray_style": {
+      "kind": "choice",
+      "choices": [
+        "single_handle",
+        "double_handle",
+        "pistol_grip"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "armClamp": {
+    "arm_length_m": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "strobe": {
+    "depth_rating_m": {
+      "kind": "number"
+    },
+    "guide_number_m": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "videoLight": {
+    "lumens": {
+      "kind": "number"
+    },
+    "beam_type": {
+      "kind": "choice",
+      "choices": [
+        "spot",
+        "flood",
+        "adjustable"
+      ]
+    },
+    "depth_rating_m": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "floatArm": {
+    "lift_capacity_kg": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "smb": {
+    "smb_type": {
+      "kind": "choice",
+      "choices": [
+        "open",
+        "closed"
+      ]
+    },
+    "length_m": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "reel": {
+    "reel_type": {
+      "kind": "choice",
+      "choices": [
+        "spool",
+        "ratchet"
+      ]
+    },
+    "line_length_m": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "knife": {
+    "blade_material": {
+      "kind": "choice",
+      "choices": [
+        "stainless",
+        "titanium"
+      ]
+    },
+    "tip_type": {
+      "kind": "choice",
+      "choices": [
+        "pointed",
+        "blunt",
+        "line_cutter"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "tool": {
+    "tool_type": {
+      "kind": "choice",
+      "choices": [
+        "hand_tool",
+        "o_ring_kit",
+        "save_a_dive_kit",
+        "torque_wrench",
+        "spares_kit"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "hood": {
+    "thickness_mm": {
+      "kind": "thickness"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "gloves": {
+    "thickness_mm": {
+      "kind": "thickness"
+    },
+    "glove_type": {
+      "kind": "choice",
+      "choices": [
+        "five_finger",
+        "three_finger",
+        "mitt",
+        "dry",
+        "dry_liner",
+        "utility"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "boots": {
+    "thickness_mm": {
+      "kind": "thickness"
+    },
+    "sole_type": {
+      "kind": "choice",
+      "choices": [
+        "hard",
+        "soft"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "socks": {
+    "thickness_mm": {
+      "kind": "thickness"
+    },
+    "sock_type": {
+      "kind": "choice",
+      "choices": [
+        "neoprene",
+        "drysuit"
+      ]
+    },
+    "fill_material": {
+      "kind": "choice",
+      "choices": [
+        "thinsulate",
+        "primaloft",
+        "hollowfibre",
+        "fleece",
+        "merino",
+        "polypropylene"
+      ]
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "dpv": {
+    "dpv_style": {
+      "kind": "choice",
+      "choices": [
+        "tow_behind",
+        "ride_on",
+        "handheld"
+      ]
+    },
+    "burn_time_h": {
+      "kind": "number"
+    },
+    "battery_type": {
+      "kind": "choice",
+      "choices": [
+        "lithium_ion",
+        "nimh",
+        "lead_acid",
+        "alkaline",
+        "lithium_primary"
+      ]
+    },
+    "battery_capacity_wh": {
+      "kind": "number"
+    },
+    "motor_type": {
+      "kind": "choice",
+      "choices": [
+        "brushless",
+        "brushed"
+      ]
+    },
+    "speed_mps": {
+      "kind": "number"
+    },
+    "tow_speed_factor": {
+      "kind": "number"
+    },
+    "tow_burn_factor": {
+      "kind": "number"
+    },
+    "depth_rating_m": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "bag": {
+    "bag_style": {
+      "kind": "choice",
+      "choices": [
+        "duffel",
+        "roller",
+        "backpack",
+        "mesh",
+        "dry_bag",
+        "regulator_bag",
+        "catch_bag"
+      ]
+    },
+    "capacity_l": {
+      "kind": "number"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "o2Cell": {
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "battery": {
+    "battery_type": {
+      "kind": "choice",
+      "choices": [
+        "lithium_ion",
+        "nimh",
+        "lead_acid",
+        "alkaline",
+        "lithium_primary"
+      ]
+    },
+    "rechargeable": {
+      "kind": "flag"
+    },
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  },
+  "other": {
+    "buoyancy_kg": {
+      "kind": "number"
+    },
+    "dry_weight_kg": {
+      "kind": "number"
+    }
+  }
+}

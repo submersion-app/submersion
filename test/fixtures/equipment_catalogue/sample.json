@@ -1,0 +1,68 @@
+{
+  "format": 1,
+  "generatedAt": "2026-11-27T00:00:00Z",
+  "records": [
+    {
+      "id": "example-perdix-2",
+      "manufacturer": "Shearwater",
+      "manufacturerAliases": ["Shearwater Research"],
+      "model": "Perdix 2",
+      "aliases": ["Perdix2"],
+      "equipmentType": "computer",
+      "attributes": { "connectivity": "ble", "mount": "wrist" },
+      "links": {
+        "product": "https://example.com/perdix-2",
+        "manual": "https://example.com/perdix-2/manual.pdf",
+        "support": "https://example.com/support"
+      },
+      "firmwareId": "example-perdix-2",
+      "sources": [
+        {
+          "url": "https://example.com/perdix-2",
+          "publisher": "manufacturer",
+          "checked": "2026-11-27",
+          "fields": ["links.product", "links.manual", "links.support", "attributes.mount"]
+        },
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-27",
+          "fields": ["manufacturer", "model", "equipmentType", "attributes.connectivity"]
+        }
+      ]
+    },
+    {
+      "id": "example-puck-lite",
+      "manufacturer": "Mares",
+      "model": "Puck Lite",
+      "equipmentType": "computer",
+      "attributes": { "connectivity": "infrared" },
+      "firmwareId": "example-puck-pro-ultra",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-27",
+          "fields": ["manufacturer", "model", "equipmentType", "attributes.connectivity"]
+        }
+      ]
+    },
+    {
+      "id": "example-quad-light",
+      "manufacturer": "Example Lights",
+      "model": "Quad",
+      "equipmentType": "light",
+      "attributes": { "lumens": 1200, "beam_type": "spot" },
+      "links": { "product": "https://example.com/quad" },
+      "sources": [
+        {
+          "url": "https://example.com/quad",
+          "publisher": "manufacturer",
+          "checked": "2026-11-27",
+          "fields": ["manufacturer", "model", "equipmentType", "attributes.lumens", "attributes.beam_type", "links.product"]
+        }
+      ],
+      "futureField": "ignored by the app"
+    }
+  ]
+}

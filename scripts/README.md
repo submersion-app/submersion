@@ -213,6 +213,8 @@ with its inputs and fixtures.
   area index.
 - `scripts/datasets/site_catalogue/site_catalogue_intake.py`: takes a site
   catalogue release into the app.
+- `scripts/datasets/equipment_catalogue/equipment_catalogue_intake.py`: takes
+  an equipment catalogue release into the app.
 - `scripts/datasets/geography/generate_country_names.py`: generates the
   country name table for site countries.
 - `scripts/datasets/tide/extract_fes_grid.py`: extracts the bundled FES2022

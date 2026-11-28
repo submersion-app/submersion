@@ -27,7 +27,7 @@ moving it included, waits for that **Save** and adds one entry to its
 | **Status** | Where the item stands (see the statuses below) |
 | **Installed in** | For an O2 cell or a battery, the item it is fitted to |
 | **Name** | Your label, for example "My Primary Regulator" |
-| **Brand** / **Model** | Manufacturer and product |
+| **Brand** / **Model** | Manufacturer and product. Both suggest names as you type, from your own gear and the built-in equipment catalogue (see below). |
 | Type-specific fields | For example a cylinder's volume, working pressure and material, or a suit's thickness. Some types also have a colour, used when the gear is drawn on the diver figure. A cylinder's **Worn as** (back mount, sidemount left or right, or stage) puts it there on the figure. |
 | **Position on figure** | For gear the figure can draw in more than one place, where to draw it: for example a light in the left hand or clipped to the chest. **Automatic** lets the figure choose. |
 | **Serial Number** | For warranty and service records |
@@ -37,6 +37,37 @@ moving it included, waits for that **Save** and adds one entry to its
 | **Location** | Where the item is kept (new items only; an existing item changes place with **Move**) |
 | **Advanced** | **Custom fields**: any key and value you want to keep with the item |
 | **Notifications (Optional)** | Per-item reminder settings (see [Service reminders](#service-reminders)) |
+
+### The built-in equipment catalogue
+
+Submersion ships a catalogue of gear models: every dive computer
+libdivecomputer can download, and more types over time. For each model it
+knows the type, some facts the maker publishes (such as how a dive
+computer connects), and links to the maker's product, manual and support
+pages, with the page each fact was read from.
+
+- As you type a **Brand**, the field suggests your own brands first, then
+  the catalogue's makers. With a brand typed, **Model** suggests that
+  maker's models of the item's type. Picking a name only fills in the
+  spelling; you can always type your own.
+- When the brand and model are a catalogue model, a line under them says
+  the catalogue has details for it. Tap **Review** to see them beside your
+  own values. A field you have left empty is ticked; a field where your
+  value differs is shown unticked, so it changes only if you tick it.
+  **Apply** fills in what you ticked and links the item to the model.
+  **Not this model** hides the suggestion for this item.
+- Nothing is saved until you tap **Save**; **Cancel** drops it all. Fields
+  you left unticked while they were empty are not offered again.
+- A linked item shows a **From the manufacturer** card on its page with the
+  maker's links. They come from the catalogue, not your item, so a
+  corrected link reaches you with the next catalogue update. **Unlink from
+  catalogue**, in the card's menu, removes the link and keeps your values.
+  Changing a linked item's brand or model to another model also unlinks it
+  at **Save**.
+- The app downloads newer catalogue releases at most once a day, sending
+  nothing about you or your gear. Turn this off in **Settings > Manage >
+  Download equipment catalogue updates**; the copy that came with the app
+  still works. The web app uses the copy it was deployed with.
 
 ### Equipment types
 

@@ -68327,6 +68327,90 @@ class AppLocalizationsAr extends AppLocalizations {
       'المضغوط شريط رفيع مع مؤشرات الحالة. اللافتة هي لافتة الترحيب مع إجماليات غوصك. يُحفظ على هذا الجهاز.';
 
   @override
+  String get equipment_catalogue_offerLine =>
+      'يحتوي كتالوج المعدات المدمج على تفاصيل لهذا الطراز';
+
+  @override
+  String get equipment_catalogue_review => 'مراجعة';
+
+  @override
+  String equipment_catalogue_sheetSource(String publisher, String date) {
+    return 'من $publisher، تم التحقق في $date';
+  }
+
+  @override
+  String get equipment_catalogue_publisher_manufacturer => 'الشركة المصنعة';
+
+  @override
+  String get equipment_catalogue_publisher_libdivecomputer => 'libdivecomputer';
+
+  @override
+  String get equipment_catalogue_publisher_thirdParty => 'طرف ثالث';
+
+  @override
+  String get equipment_catalogue_col_yours => 'قيمك';
+
+  @override
+  String get equipment_catalogue_col_catalogue => 'الكتالوج';
+
+  @override
+  String get equipment_catalogue_none => 'لا شيء';
+
+  @override
+  String get equipment_catalogue_linksNote =>
+      'تظهر روابط الشركة المصنعة في صفحة المعدات بعد الربط.';
+
+  @override
+  String get equipment_catalogue_notThisModel => 'ليس هذا الطراز';
+
+  @override
+  String equipment_catalogue_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تطبيق $count',
+      many: 'تطبيق $count',
+      few: 'تطبيق $count',
+      two: 'تطبيق $count',
+      one: 'تطبيق $count',
+      zero: 'ربط فقط',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_catalogue_nothingToFill =>
+      'قيمك تطابق هذا الطراز بالفعل. بعد الربط تعرض صفحة المعدات روابط الشركة المصنعة.';
+
+  @override
+  String get equipment_manufacturer_title => 'من الشركة المصنعة';
+
+  @override
+  String get equipment_manufacturer_product => 'صفحة المنتج';
+
+  @override
+  String get equipment_manufacturer_manual => 'الدليل';
+
+  @override
+  String get equipment_manufacturer_support => 'الدعم';
+
+  @override
+  String get equipment_manufacturer_unlink => 'إلغاء الربط بالكتالوج';
+
+  @override
+  String get settings_equipmentCatalogue_title =>
+      'تنزيل تحديثات كتالوج المعدات';
+
+  @override
+  String get settings_equipmentCatalogue_subtitle =>
+      'يتحقق من GitHub مرة واحدة يوميًا على الأكثر. لا يُرسل أي شيء عنك أو عن معداتك.';
+
+  @override
+  String equipment_manufacturer_checked(String date) {
+    return 'تم التحقق في $date';
+  }
+
+  @override
   String get popOut_openProfileWindow => 'فتح في نافذة جديدة';
 
   @override

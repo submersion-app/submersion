@@ -49,5 +49,9 @@ EquipmentItem cloneFormSeed(
     customReminderEnabled: source.customReminderEnabled,
     customReminderDays: source.customReminderDays,
     parentEquipmentId: source.parentEquipmentId,
+    // A clone is the same model, so it keeps the catalogue link and the
+    // answers about it (issue #5118).
+    catalogueId: source.catalogueId,
+    catalogueAnswers: source.catalogueAnswers,
   );
 }

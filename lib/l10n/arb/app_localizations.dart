@@ -105085,6 +105085,132 @@ abstract class AppLocalizations {
   /// **'Compact is a slim bar with status lights. Banner is the welcome banner with your dive totals. Saved on this device.'**
   String get settings_homeHeader_description;
 
+  /// No description provided for @equipment_catalogue_offerLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in equipment catalogue has details for this model'**
+  String get equipment_catalogue_offerLine;
+
+  /// No description provided for @equipment_catalogue_review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get equipment_catalogue_review;
+
+  /// No description provided for @equipment_catalogue_sheetSource.
+  ///
+  /// In en, this message translates to:
+  /// **'From {publisher}, checked {date}'**
+  String equipment_catalogue_sheetSource(String publisher, String date);
+
+  /// No description provided for @equipment_catalogue_publisher_manufacturer.
+  ///
+  /// In en, this message translates to:
+  /// **'the manufacturer'**
+  String get equipment_catalogue_publisher_manufacturer;
+
+  /// No description provided for @equipment_catalogue_publisher_libdivecomputer.
+  ///
+  /// In en, this message translates to:
+  /// **'libdivecomputer'**
+  String get equipment_catalogue_publisher_libdivecomputer;
+
+  /// No description provided for @equipment_catalogue_publisher_thirdParty.
+  ///
+  /// In en, this message translates to:
+  /// **'a third party'**
+  String get equipment_catalogue_publisher_thirdParty;
+
+  /// No description provided for @equipment_catalogue_col_yours.
+  ///
+  /// In en, this message translates to:
+  /// **'Yours'**
+  String get equipment_catalogue_col_yours;
+
+  /// No description provided for @equipment_catalogue_col_catalogue.
+  ///
+  /// In en, this message translates to:
+  /// **'Catalogue'**
+  String get equipment_catalogue_col_catalogue;
+
+  /// No description provided for @equipment_catalogue_none.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get equipment_catalogue_none;
+
+  /// No description provided for @equipment_catalogue_linksNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Manufacturer links show on the gear page once linked.'**
+  String get equipment_catalogue_linksNote;
+
+  /// No description provided for @equipment_catalogue_notThisModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Not this model'**
+  String get equipment_catalogue_notThisModel;
+
+  /// No description provided for @equipment_catalogue_apply.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Link only} =1{Apply {count}} other{Apply {count}}}'**
+  String equipment_catalogue_apply(int count);
+
+  /// No description provided for @equipment_catalogue_nothingToFill.
+  ///
+  /// In en, this message translates to:
+  /// **'Your values already match this model. Linking it shows the manufacturer\'s links on the gear page.'**
+  String get equipment_catalogue_nothingToFill;
+
+  /// No description provided for @equipment_manufacturer_title.
+  ///
+  /// In en, this message translates to:
+  /// **'From the manufacturer'**
+  String get equipment_manufacturer_title;
+
+  /// No description provided for @equipment_manufacturer_product.
+  ///
+  /// In en, this message translates to:
+  /// **'Product page'**
+  String get equipment_manufacturer_product;
+
+  /// No description provided for @equipment_manufacturer_manual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get equipment_manufacturer_manual;
+
+  /// No description provided for @equipment_manufacturer_support.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get equipment_manufacturer_support;
+
+  /// No description provided for @equipment_manufacturer_unlink.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink from catalogue'**
+  String get equipment_manufacturer_unlink;
+
+  /// No description provided for @settings_equipmentCatalogue_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Download equipment catalogue updates'**
+  String get settings_equipmentCatalogue_title;
+
+  /// No description provided for @settings_equipmentCatalogue_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Checks GitHub at most once a day. Nothing about you or your gear is sent.'**
+  String get settings_equipmentCatalogue_subtitle;
+
+  /// No description provided for @equipment_manufacturer_checked.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked {date}'**
+  String equipment_manufacturer_checked(String date);
+
   /// Dive profile card: button opening the profile in its own desktop window
   ///
   /// In en, this message translates to:

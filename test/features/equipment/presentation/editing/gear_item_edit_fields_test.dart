@@ -1,8 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/catalogue/equipment_catalogue.dart';
+import 'package:submersion/features/equipment/domain/catalogue/equipment_catalogue_record.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_catalogue_answers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -10,6 +13,122 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 /// The gear item page's fields and the rules its form keeps (issue #4527,
 /// phase 3, plan 6).
 void main() {
+  test('at Save a link the brand and model no longer name is dropped', () {
+    final catalogue = EquipmentCatalogue(
+      EquipmentCatalogueFile(
+        format: 1,
+        generatedAt: DateTime.utc(2026, 11, 27),
+        records: const [
+          EquipmentCatalogueRecord(
+            id: 'shearwater-perdix-2',
+            manufacturer: 'Shearwater',
+            model: 'Perdix 2',
+            type: EquipmentType.computer,
+          ),
+        ],
+      ),
+    );
+    const linked = EquipmentItem(
+      id: 'e1',
+      name: 'Perdix',
+      type: EquipmentType.computer,
+      brand: 'Shearwater',
+      model: 'Perdix 2',
+      catalogueId: 'shearwater-perdix-2',
+    );
+    expect(
+      gearItemCatalogueAtSave(linked, catalogue).catalogueId,
+      'shearwater-perdix-2',
+    );
+    expect(
+      gearItemCatalogueAtSave(
+        gearModelField.write(linked, 'Teric'),
+        catalogue,
+      ).catalogueId,
+      isNull,
+    );
+    expect(
+      gearItemCatalogueAtSave(
+        gearModelField.write(linked, 'Teric'),
+        EquipmentCatalogue.empty,
+      ).catalogueId,
+      'shearwater-perdix-2',
+    );
+  });
+
+  test('a Save that leaves brand and model alone keeps the link', () {
+    final catalogue = EquipmentCatalogue(
+      EquipmentCatalogueFile(
+        format: 1,
+        generatedAt: DateTime.utc(2026, 11, 27),
+        records: const [
+          EquipmentCatalogueRecord(
+            id: 'shearwater-perdix-2',
+            manufacturer: 'Shearwater',
+            model: 'Perdix 2',
+            type: EquipmentType.computer,
+          ),
+        ],
+      ),
+    );
+    // Typed under a spelling a later catalogue no longer lists.
+    const stored = EquipmentItem(
+      id: 'e1',
+      name: 'Perdix',
+      type: EquipmentType.computer,
+      brand: 'Shearwater',
+      model: 'Perdix II',
+      catalogueId: 'shearwater-perdix-2',
+    );
+    expect(
+      gearItemCatalogueAtSave(
+        gearNotesField.write(stored, 'new note'),
+        catalogue,
+        stored: stored,
+      ).catalogueId,
+      'shearwater-perdix-2',
+    );
+  });
+
+  test('editing any field keeps the catalogue link and answers', () {
+    final answers = EquipmentCatalogueAnswers.empty.withNotSame('mares-quad');
+    final item = EquipmentItem(
+      id: 'e1',
+      name: 'Perdix',
+      type: EquipmentType.computer,
+      catalogueId: 'shearwater-perdix-2',
+      catalogueAnswers: answers,
+    );
+    for (final edited in [
+      gearNameField.write(item, 'Renamed'),
+      gearBrandField.write(item, 'Shearwater'),
+      gearSerialField.write(item, 'S1'),
+      gearNotesField.write(item, 'note'),
+      gearAttributeField('mount').write(item, null),
+    ]) {
+      expect(edited.catalogueId, 'shearwater-perdix-2');
+      expect(edited.catalogueAnswers, answers);
+    }
+  });
+
+  test('the catalogue fields read and write the link and answers', () {
+    const item = EquipmentItem(
+      id: 'e1',
+      name: 'Perdix',
+      type: EquipmentType.computer,
+    );
+    final linked = gearCatalogueIdField.write(item, 'shearwater-perdix-2');
+    expect(gearCatalogueIdField.read(linked), 'shearwater-perdix-2');
+    expect(gearCatalogueIdField.write(linked, null).catalogueId, isNull);
+    final answers = EquipmentCatalogueAnswers.empty.withNotSame('x');
+    expect(
+      gearCatalogueAnswersField.read(
+        gearCatalogueAnswersField.write(item, answers),
+      ),
+      answers,
+    );
+  });
+
   const regulator = EquipmentItem(
     id: 'g1',
     diverId: 'd1',
