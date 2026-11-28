@@ -29,6 +29,7 @@ import 'package:submersion/features/dive_log/data/repositories/stored_tank_seria
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/features/universal_import/data/services/tank_pressure_glitch_normalizer.dart';
+import 'package:submersion/features/dive_import/data/services/resync_tank_identity.dart';
 
 /// Outcome of one [DiveReimportService.applyReimport] call.
 class DiveReimportResult {
@@ -537,8 +538,10 @@ class DiveReimportService {
     // paired by position apart from another (issue #4665). Only a file with
     // a Hydrotank needs it.
     final importedStarts =
-        tanksData.any((t) => _roleName(t['role']) == TankRole.hydrotank.name)
-        ? _backGasImportStarts(diveData, tanksData)
+        tanksData.any(
+          (t) => parsedTankRoleName(t['role']) == TankRole.hydrotank.name,
+        )
+        ? backGasImportStartPressures(diveData, tanksData)
         : const <double?>[];
 
     final idsByIndex = <String>[];
@@ -561,7 +564,7 @@ class DiveReimportService {
       );
       // The file's role, as a parser writes it (an enum or its name); a name
       // this build does not know is none.
-      final fileRole = _roleName(t['role']);
+      final fileRole = parsedTankRoleName(t['role']);
 
       final row = matched[i];
       if (row != null) {
@@ -600,7 +603,7 @@ class DiveReimportService {
             // Cloud tanks carry no order, so the row must be the same
             // cylinder, not just the one at that position.
             tankRole:
-                _sameCylinder(row, serial, [
+                isSameStoredCylinder(row, serial, [
                       startPressure,
                       i < importedStarts.length ? importedStarts[i] : null,
                     ]) &&
@@ -648,55 +651,6 @@ class DiveReimportService {
     }
 
     return _ParsedTanks.from(tanksData: tanksData, idsByIndex: idsByIndex);
-  }
-
-  /// The name of a role a parser wrote as a [TankRole] or its name; a name
-  /// this build does not know is none.
-  static String? _roleName(Object? role) => switch (role) {
-    final TankRole r => r.name,
-    final String name => TankRole.values.asNameMap()[name]?.name,
-    _ => null,
-  };
-
-  /// Each file tank's start pressure as the import stored it while it took
-  /// every tank for back gas: resync deglitches with the file's Hydrotank
-  /// role, which spares a pump-in at the start, while before the Hydrotank
-  /// role the import's deglitch read that pump-in as a lead-in glitch.
-  static List<double?> _backGasImportStarts(
-    Map<String, dynamic> diveData,
-    List<Map<String, dynamic>> tanksData,
-  ) {
-    final asImported = deglitchDiveTankPressures({
-      ...diveData,
-      'tanks': [
-        for (final t in tanksData)
-          {
-            for (final e in t.entries)
-              if (e.key != 'role') e.key: e.value,
-          },
-      ],
-    });
-    return [
-      for (final t in asImported['tanks'] as List)
-        _asDouble((t as Map)['startPressure']),
-    ];
-  }
-
-  /// Whether stored [row] is the cylinder a file tank with [serial] reads:
-  /// the same transmitter when both name one, else a start pressure that
-  /// agrees with one of [startPressures].
-  static bool _sameCylinder(
-    DiveTank row,
-    String? serial,
-    List<double?> startPressures,
-  ) {
-    final storedSerial = normalizeTransmitterSerial(row.transmitterSerial);
-    if (storedSerial != null && serial != null) return storedSerial == serial;
-    final stored = row.startPressure;
-    if (stored == null) return false;
-    return startPressures.any(
-      (p) => p != null && sameCylinderStartPressure(stored, p),
-    );
   }
 
   /// Full replace when `gasSwitches` is present (no stable key to match

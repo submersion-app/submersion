@@ -47,6 +47,24 @@ the role.
 3. **New cylinders.** A cylinder the file has and the dive lacks is inserted
    with the file's role, not the back-gas default.
 
+### Added during review
+
+4. **Same cylinder only.** Shearwater Cloud tanks carry no order, so resync
+   pairs them with stored cylinders by position, and a diver who removed,
+   added or swapped a cylinder shifts that pairing. The upgrade lands only
+   when the stored row is the file tank's cylinder: the transmitter serials
+   match, or the stored start pressure agrees (within 1 bar) with the
+   file's, raw or as the import stored it. Equal cylinder counts are no
+   proof and are not used.
+5. **Resync deglitches as import does.** Import replaces a start or end
+   pressure taken from a signal dropout or lead-in reading (issue #2441);
+   resync did not, so any resync could put one back. Resync now runs the
+   same deglitch on the file's tank pressures before writing them. Because
+   the old import read the Hydrotank as back gas, its deglitch could take an
+   Avelo pump-in at the start for a lead-in glitch; the same-cylinder test
+   in point 4 re-runs that deglitch with the tank read as back gas to
+   recover the start pressure the import stored.
+
 ## Known limit
 
 A diver who sets a Hydrotank back to back gas by hand sees it upgraded again
