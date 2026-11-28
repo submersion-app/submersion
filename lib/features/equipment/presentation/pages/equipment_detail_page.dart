@@ -59,6 +59,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/features/equipment/presentation/utils/equipment_owned_for.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_transfer_gate.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
+import 'package:submersion/features/equipment/presentation/widgets/gear_manufacturer_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/children_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
@@ -382,6 +383,9 @@ class _EquipmentDetailContent extends ConsumerWidget {
             _buildDetailsSection(context, ref, equipment, units),
           ),
           const SizedBox(height: 24),
+          // The manufacturer's pages from the equipment catalogue (issue
+          // #5118). Brings its own bottom gap: no room when it is hidden.
+          _calculated(GearManufacturerCard(item: equipment)),
           if (equipment.type == EquipmentType.transmitter) ...[
             TransmitterSection(equipmentId: equipmentId),
             const SizedBox(height: 24),
