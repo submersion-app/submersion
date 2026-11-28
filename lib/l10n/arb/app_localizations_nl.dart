@@ -21862,6 +21862,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_viewer_unlinkUndo => 'Ongedaan maken';
 
   @override
+  String get media_viewer_unlinkConfirmDiveBody =>
+      'Verwijdert dit item uit je bibliotheek, samen met de cloudkopieën en miniaturen, tenzij een duikstek het nog gebruikt. Je originele bestand blijft ongemoeid.';
+
+  @override
+  String get media_viewer_unlinkConfirmSiteBody =>
+      'Verwijdert dit item uit je bibliotheek, samen met de cloudkopieën en miniaturen, tenzij een duik het nog gebruikt. Je originele bestand blijft ongemoeid.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'Het gevonden bestand is sindsdien gewijzigd of verplaatst. Zoek het opnieuw of annuleer.';
 

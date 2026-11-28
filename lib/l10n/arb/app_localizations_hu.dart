@@ -21900,6 +21900,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_viewer_unlinkUndo => 'Visszavonás';
 
   @override
+  String get media_viewer_unlinkConfirmDiveBody =>
+      'Eltávolítja ezt az elemet a médiatárból, a felhőmásolatokkal és bélyegképekkel együtt, kivéve ha egy merülőhely még használja. Az eredeti fájl érintetlen marad.';
+
+  @override
+  String get media_viewer_unlinkConfirmSiteBody =>
+      'Eltávolítja ezt az elemet a médiatárból, a felhőmásolatokkal és bélyegképekkel együtt, kivéve ha egy merülés még használja. Az eredeti fájl érintetlen marad.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'A megtalált fájl azóta megváltozott vagy máshová került. Keresd meg újra, vagy válaszd a Mégse gombot.';
 

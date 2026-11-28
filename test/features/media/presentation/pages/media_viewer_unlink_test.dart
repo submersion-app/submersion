@@ -104,6 +104,15 @@ void main() {
     expect(find.byKey(const ValueKey('viewer_unlock')), findsNothing);
   });
 
+  testWidgets('the question speaks of one item', (tester) async {
+    await open(tester);
+    await tapUnlock(tester);
+    await tester.tap(unlinkAction());
+    await settleViewer(tester);
+
+    expect(find.text(l10n.media_viewer_unlinkConfirmDiveBody), findsOneWidget);
+  });
+
   testWidgets('cancelling the question holds nothing', (tester) async {
     await open(tester);
     await tapUnlock(tester);

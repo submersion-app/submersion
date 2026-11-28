@@ -13843,6 +13843,14 @@
   "@media_viewer_unlinkUndo": {
     "description": "Button on that strip: drops the held unlink and keeps the item."
   },
+  "media_viewer_unlinkConfirmDiveBody": "Removes this item from your library, along with its cloud copies and thumbnails, unless a dive site still uses it. Your original file is not affected.",
+  "@media_viewer_unlinkConfirmDiveBody": {
+    "description": "Body of the media viewer's question before it holds unlinking the one item on screen from its dive. A photo a dive site still uses is kept, with only its dive link cleared."
+  },
+  "media_viewer_unlinkConfirmSiteBody": "Removes this item from your library, along with its cloud copies and thumbnails, unless a dive still uses it. Your original file is not affected.",
+  "@media_viewer_unlinkConfirmSiteBody": {
+    "description": "Body of the media viewer's question before it holds unlinking the one item on screen from its site. An item a dive still uses is kept, with only its site link cleared."
+  },
   "media_viewer_locatedFileChanged": "The file you located has changed or moved since. Locate it again, or cancel.",
   "@media_viewer_locatedFileChanged": {
     "description": "Shown when Save is refused because the file found with Locate file was deleted, moved or edited after it was found. Locating it again holds the file as it is now; Cancel drops the relink."

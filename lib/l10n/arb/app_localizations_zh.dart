@@ -20882,6 +20882,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_viewer_unlinkUndo => '撤消';
 
   @override
+  String get media_viewer_unlinkConfirmDiveBody =>
+      '从您的媒体库中移除此项目，包括其云端副本和缩略图，除非潜点仍在使用它。您的原始文件不受影响。';
+
+  @override
+  String get media_viewer_unlinkConfirmSiteBody =>
+      '从您的媒体库中移除此项目，包括其云端副本和缩略图，除非潜水仍在使用它。您的原始文件不受影响。';
+
+  @override
   String get media_viewer_locatedFileChanged => '找到的文件此后已更改或移动。请重新查找，或取消。';
 
   @override

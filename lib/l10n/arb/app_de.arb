@@ -6454,6 +6454,8 @@
   "media_viewer_unlinkHeldGear": "Wird beim Speichern vom Ausrüstungsteil getrennt",
   "media_viewer_unlinkHeldLibrary": "Wird beim Speichern aus deiner Mediathek entfernt",
   "media_viewer_unlinkUndo": "Rückgängig",
+  "media_viewer_unlinkConfirmDiveBody": "Entfernt dieses Element samt Cloud-Kopien und Miniaturansichten aus deiner Mediathek, außer ein Tauchplatz verwendet es noch. Deine Originaldatei bleibt unberührt.",
+  "media_viewer_unlinkConfirmSiteBody": "Entfernt dieses Element samt Cloud-Kopien und Miniaturansichten aus deiner Mediathek, außer ein Tauchgang verwendet es noch. Deine Originaldatei bleibt unberührt.",
   "media_viewer_locatedFileChanged": "Die gefundene Datei wurde seitdem geändert oder verschoben. Suche sie erneut oder brich ab.",
   "media_viewer_exitFullscreen": "Vollbild beenden",
   "media_viewer_moreOptions": "Weitere Optionen",

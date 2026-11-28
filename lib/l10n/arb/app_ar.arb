@@ -6328,6 +6328,8 @@
   "media_viewer_unlinkHeldGear": "سيُلغى ربطه بقطعة المعدات هذه عند الحفظ",
   "media_viewer_unlinkHeldLibrary": "سيُزال من مكتبتك عند الحفظ",
   "media_viewer_unlinkUndo": "تراجع",
+  "media_viewer_unlinkConfirmDiveBody": "يزيل هذا العنصر من مكتبتك مع نسخه السحابية وصوره المصغرة، ما لم يكن موقع غوص لا يزال يستخدمه. لن يتأثر ملفك الأصلي.",
+  "media_viewer_unlinkConfirmSiteBody": "يزيل هذا العنصر من مكتبتك مع نسخه السحابية وصوره المصغرة، ما لم تكن غطسة لا تزال تستخدمه. لن يتأثر ملفك الأصلي.",
   "media_viewer_locatedFileChanged": "تغيّر الملف المحدد أو نُقل منذ ذلك الحين. حدّد موقعه مرة أخرى أو ألغِ.",
   "media_viewer_exitFullscreen": "الخروج من ملء الشاشة",
   "media_viewer_moreOptions": "المزيد من الخيارات",

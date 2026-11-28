@@ -22380,6 +22380,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_viewer_unlinkUndo => 'تراجع';
 
   @override
+  String get media_viewer_unlinkConfirmDiveBody =>
+      'يزيل هذا العنصر من مكتبتك مع نسخه السحابية وصوره المصغرة، ما لم يكن موقع غوص لا يزال يستخدمه. لن يتأثر ملفك الأصلي.';
+
+  @override
+  String get media_viewer_unlinkConfirmSiteBody =>
+      'يزيل هذا العنصر من مكتبتك مع نسخه السحابية وصوره المصغرة، ما لم تكن غطسة لا تزال تستخدمه. لن يتأثر ملفك الأصلي.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'تغيّر الملف المحدد أو نُقل منذ ذلك الحين. حدّد موقعه مرة أخرى أو ألغِ.';
 

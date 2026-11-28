@@ -21668,6 +21668,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_viewer_unlinkUndo => 'Undo';
 
   @override
+  String get media_viewer_unlinkConfirmDiveBody =>
+      'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive site still uses it. Your original file is not affected.';
+
+  @override
+  String get media_viewer_unlinkConfirmSiteBody =>
+      'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive still uses it. Your original file is not affected.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'The file you located has changed or moved since. Locate it again, or cancel.';
 

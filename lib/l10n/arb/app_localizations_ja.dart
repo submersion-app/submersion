@@ -21192,6 +21192,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_viewer_unlinkUndo => '元に戻す';
 
   @override
+  String get media_viewer_unlinkConfirmDiveBody =>
+      'このアイテムを、クラウド上のコピーやサムネイルとともにライブラリから削除します。ダイブサイトで使用中の場合は残ります。元のファイルには影響しません。';
+
+  @override
+  String get media_viewer_unlinkConfirmSiteBody =>
+      'このアイテムを、クラウド上のコピーやサムネイルとともにライブラリから削除します。ダイブで使用中の場合は残ります。元のファイルには影響しません。';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       '指定したファイルはその後変更または移動されています。もう一度指定するか、キャンセルしてください。';
 

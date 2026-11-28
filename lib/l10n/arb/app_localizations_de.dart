@@ -21970,6 +21970,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_viewer_unlinkUndo => 'Rückgängig';
 
   @override
+  String get media_viewer_unlinkConfirmDiveBody =>
+      'Entfernt dieses Element samt Cloud-Kopien und Miniaturansichten aus deiner Mediathek, außer ein Tauchplatz verwendet es noch. Deine Originaldatei bleibt unberührt.';
+
+  @override
+  String get media_viewer_unlinkConfirmSiteBody =>
+      'Entfernt dieses Element samt Cloud-Kopien und Miniaturansichten aus deiner Mediathek, außer ein Tauchgang verwendet es noch. Deine Originaldatei bleibt unberührt.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'Die gefundene Datei wurde seitdem geändert oder verschoben. Suche sie erneut oder brich ab.';
 

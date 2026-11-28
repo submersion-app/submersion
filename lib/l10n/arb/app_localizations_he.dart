@@ -21514,6 +21514,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_viewer_unlinkUndo => 'ביטול';
 
   @override
+  String get media_viewer_unlinkConfirmDiveBody =>
+      'מסיר פריט זה מהספרייה שלך, יחד עם העותקים בענן והתמונות הממוזערות, אלא אם אתר צלילה עדיין משתמש בו. קובץ המקור שלך לא ייפגע.';
+
+  @override
+  String get media_viewer_unlinkConfirmSiteBody =>
+      'מסיר פריט זה מהספרייה שלך, יחד עם העותקים בענן והתמונות הממוזערות, אלא אם צלילה עדיין משתמשת בו. קובץ המקור שלך לא ייפגע.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'הקובץ שאותר השתנה או הועבר מאז. אתר אותו שוב או בטל.';
 

@@ -22044,6 +22044,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_viewer_unlinkUndo => 'Annuler';
 
   @override
+  String get media_viewer_unlinkConfirmDiveBody =>
+      'Retire ce média de votre bibliothèque, ainsi que ses copies cloud et miniatures, sauf si un site de plongée l\'utilise encore. Votre fichier original n\'est pas affecté.';
+
+  @override
+  String get media_viewer_unlinkConfirmSiteBody =>
+      'Retire ce média de votre bibliothèque, ainsi que ses copies cloud et miniatures, sauf si une plongée l\'utilise encore. Votre fichier original n\'est pas affecté.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'Le fichier localisé a été modifié ou déplacé depuis. Localisez-le à nouveau ou annulez.';
 

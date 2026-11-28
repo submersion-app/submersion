@@ -10,9 +10,10 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 const _log = LoggerService('ViewerUnlinkConfirm', category: LogCategory.media);
 
-/// Asks before the media viewer holds an Unlink (issue #5126), worded as the
-/// Unlink of the screen [scope] names asks: a dive's or a site's Media card,
-/// the library's selection bar, or a gear item's Remove. Where the item
+/// Asks before the media viewer holds an Unlink (issue #5126), as the Unlink
+/// of the screen [scope] names asks (a dive's or a site's Media card, the
+/// library's selection bar, or a gear item's Remove), worded for the one
+/// item on screen. Where the item
 /// would leave the library with a caption or favorite on it, says those are
 /// lost, as the library's does.
 Future<bool> confirmViewerUnlink(
@@ -59,7 +60,7 @@ Future<bool> _ask(
   final (title, body, action) = switch (scope) {
     ViewerUnlinkScope.site => (
       l10n.media_siteMediaSection_unlinkSelectedTitle(1),
-      l10n.media_siteMediaSection_unlinkSelectedContent(1),
+      l10n.media_viewer_unlinkConfirmSiteBody,
       l10n.media_diveMediaSection_unlinkButton,
     ),
     ViewerUnlinkScope.library => (
@@ -69,7 +70,7 @@ Future<bool> _ask(
     ),
     _ => (
       l10n.media_diveMediaSection_unlinkSelectedTitle(1),
-      l10n.media_diveMediaSection_unlinkSelectedContent(1),
+      l10n.media_viewer_unlinkConfirmDiveBody,
       l10n.media_diveMediaSection_unlinkButton,
     ),
   };

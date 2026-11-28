@@ -21996,6 +21996,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_viewer_unlinkUndo => 'Annulla';
 
   @override
+  String get media_viewer_unlinkConfirmDiveBody =>
+      'Rimuove questo elemento dalla libreria, insieme alle copie nel cloud e alle miniature, a meno che un sito di immersione lo usi ancora. Il file originale non viene toccato.';
+
+  @override
+  String get media_viewer_unlinkConfirmSiteBody =>
+      'Rimuove questo elemento dalla libreria, insieme alle copie nel cloud e alle miniature, a meno che un\'immersione lo usi ancora. Il file originale non viene toccato.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'Il file trovato è stato modificato o spostato nel frattempo. Trovalo di nuovo o annulla.';
 
