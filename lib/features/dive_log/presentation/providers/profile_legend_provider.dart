@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:submersion/core/constants/o2_cell_unit.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/constants/profile_zoom_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -141,6 +142,17 @@ class ProfileLegendState {
   /// a series toggle, so it is excluded from [activeSecondaryCount].
   final bool metricsFollowViewport;
 
+  /// Whether zooming scales the time axis alone, keeping the whole depth range
+  /// (issue #5069). Seeds from [AppSettings.profileZoomTimeOnly]; with
+  /// [metricsFollowViewport] it makes up this session's [zoomMode].
+  final bool zoomTimeOnly;
+
+  /// This session's Zoom choice, read from the two flags.
+  ProfileZoomMode get zoomMode => ProfileZoomMode.fromFlags(
+    timeOnly: zoomTimeOnly,
+    followViewport: metricsFollowViewport,
+  );
+
   /// Whether the fullscreen profile's cursor tooltip follows the mouse
   /// (or playback position) versus staying docked in a fixed corner. The
   /// fixed placement never occludes the plot near the cursor, at the cost
@@ -210,6 +222,7 @@ class ProfileLegendState {
       'display': false,
     },
     this.metricsFollowViewport = false,
+    this.zoomTimeOnly = false,
     this.tooltipFollowsCursor = true,
   });
 
@@ -312,6 +325,7 @@ class ProfileLegendState {
     bool? showGas,
     Map<String, bool>? sectionExpanded,
     bool? metricsFollowViewport,
+    bool? zoomTimeOnly,
     bool? tooltipFollowsCursor,
   }) {
     return ProfileLegendState(
@@ -370,6 +384,7 @@ class ProfileLegendState {
       sectionExpanded: sectionExpanded ?? this.sectionExpanded,
       metricsFollowViewport:
           metricsFollowViewport ?? this.metricsFollowViewport,
+      zoomTimeOnly: zoomTimeOnly ?? this.zoomTimeOnly,
       tooltipFollowsCursor: tooltipFollowsCursor ?? this.tooltipFollowsCursor,
     );
   }
@@ -428,6 +443,7 @@ class ProfileLegendState {
           mapEquals(showTankPressure, other.showTankPressure) &&
           showGas == other.showGas &&
           metricsFollowViewport == other.metricsFollowViewport &&
+          zoomTimeOnly == other.zoomTimeOnly &&
           tooltipFollowsCursor == other.tooltipFollowsCursor &&
           mapEquals(sectionExpanded, other.sectionExpanded);
 
@@ -479,11 +495,16 @@ class ProfileLegendState {
     cnsSource,
     decoStopSource,
     gtrSource,
-    ...showTankPressure.entries,
+    Object.hashAllUnordered(
+      showTankPressure.entries.map((e) => Object.hash(e.key, e.value)),
+    ),
     showGas,
     metricsFollowViewport,
+    zoomTimeOnly,
     tooltipFollowsCursor,
-    ...sectionExpanded.entries,
+    Object.hashAllUnordered(
+      sectionExpanded.entries.map((e) => Object.hash(e.key, e.value)),
+    ),
   ]);
 }
 
@@ -547,6 +568,7 @@ class ProfileLegend extends _$ProfileLegend {
           defaultCnsSource: s.defaultCnsSource,
           defaultDecoStopSource: s.defaultDecoStopSource,
           profileMetricsFollowViewport: s.profileMetricsFollowViewport,
+          profileZoomTimeOnly: s.profileZoomTimeOnly,
         ),
       ),
     );
@@ -611,13 +633,25 @@ class ProfileLegend extends _$ProfileLegend {
       decoStopSource: settings.defaultDecoStopSource,
       gtrSource: settings.defaultGtrSource,
       metricsFollowViewport: settings.profileMetricsFollowViewport,
+      zoomTimeOnly: settings.profileZoomTimeOnly,
     );
   }
 
-  /// Flip the overlay scaling mode for this chart session only, leaving the
-  /// saved default untouched.
-  void toggleMetricsFollowViewport() {
-    state = state.copyWith(metricsFollowViewport: !state.metricsFollowViewport);
+  /// Choose what zooming scales for this chart session only, leaving the
+  /// saved default untouched. Time only keeps the viewport flag, so going
+  /// back to a both-axes mode restores it.
+  void setZoomMode(ProfileZoomMode mode) {
+    state = switch (mode) {
+      ProfileZoomMode.timeOnly => state.copyWith(zoomTimeOnly: true),
+      ProfileZoomMode.keepOverlaysInView => state.copyWith(
+        zoomTimeOnly: false,
+        metricsFollowViewport: true,
+      ),
+      ProfileZoomMode.magnifyOverlays => state.copyWith(
+        zoomTimeOnly: false,
+        metricsFollowViewport: false,
+      ),
+    };
   }
 
   /// Flip the fullscreen tooltip between cursor-following and a fixed,

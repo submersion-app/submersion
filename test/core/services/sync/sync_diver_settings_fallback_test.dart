@@ -683,7 +683,7 @@ void main() {
     expect(row.defaultShowComputerRmv, isFalse);
   });
 
-  test('applies a pre-v388 diver_settings payload missing the trim line '
+  test('applies a pre-v390 diver_settings payload missing the trim line '
       'default', () async {
     await db.customStatement('PRAGMA foreign_keys = OFF');
 
@@ -701,7 +701,7 @@ void main() {
     final exported = await serializer.fetchRecord('diverSettings', 'ds-trim');
     expect(exported, isNotNull);
 
-    // A peer still on v387 exports neither. The visibility column is NOT
+    // A peer still on v389 exports neither. The visibility column is NOT
     // NULL, so an unseeded import would throw in DiverSetting.fromJson
     // (#5098).
     final legacy = Map<String, dynamic>.from(exported!)

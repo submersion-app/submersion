@@ -377,6 +377,39 @@ class ProfileSample {
   });
 }
 
+/// A cylinder end pressure that the "Tank pressure at surfacing" setting
+/// changes: what the computer logged, and the reading when the diver surfaced
+/// (issue #1092).
+///
+/// A live download is parsed before the diver it is filed under is known, so
+/// the tank keeps both and the import picks one with that diver's setting
+/// (issue #5000).
+class SurfacingEndPressure {
+  const SurfacingEndPressure({
+    required this.asLogged,
+    required this.atSurfacing,
+  });
+
+  /// The end pressure as the computer reported it, in bar.
+  final double asLogged;
+
+  /// The cylinder's reading when the diver surfaced, in bar.
+  final double atSurfacing;
+
+  @override
+  bool operator ==(Object other) =>
+      other is SurfacingEndPressure &&
+      other.asLogged == asLogged &&
+      other.atSurfacing == atSurfacing;
+
+  @override
+  int get hashCode => Object.hash(asLogged, atSurfacing);
+
+  @override
+  String toString() =>
+      'SurfacingEndPressure(asLogged: $asLogged, atSurfacing: $atSurfacing)';
+}
+
 /// Tank/cylinder information from the dive computer.
 class DownloadedTank {
   /// Tank index (0-based)
@@ -425,6 +458,11 @@ class DownloadedTank {
   /// bailout transmitter claim has seen it.
   final bool unusedOcGas;
 
+  /// Both end pressures when the surfacing setting decides between them, or
+  /// null when it changes nothing. [endPressure] holds the one the setting
+  /// read at parse time chose; [endPressureFor] picks again with another.
+  final SurfacingEndPressure? surfacingEnd;
+
   const DownloadedTank({
     required this.index,
     required this.o2Percent,
@@ -437,7 +475,19 @@ class DownloadedTank {
     this.transmitterSerial,
     this.mixRecorded = true,
     this.unusedOcGas = false,
+    this.surfacingEnd,
   });
+
+  /// This tank with its end pressure read at surfacing or as logged, as
+  /// [atSurfacing] asks: the "Tank pressure at surfacing" setting of the diver
+  /// the dive is filed under. The same tank when [surfacingEnd] is null.
+  DownloadedTank endPressureFor({required bool atSurfacing}) {
+    final choice = surfacingEnd;
+    if (choice == null) return this;
+    return copyWith(
+      endPressure: atSurfacing ? choice.atSurfacing : choice.asLogged,
+    );
+  }
 
   DownloadedTank copyWith({
     int? index,
@@ -451,6 +501,7 @@ class DownloadedTank {
     String? transmitterSerial,
     bool? mixRecorded,
     bool? unusedOcGas,
+    SurfacingEndPressure? surfacingEnd,
   }) => DownloadedTank(
     index: index ?? this.index,
     o2Percent: o2Percent ?? this.o2Percent,
@@ -463,6 +514,7 @@ class DownloadedTank {
     transmitterSerial: transmitterSerial ?? this.transmitterSerial,
     mixRecorded: mixRecorded ?? this.mixRecorded,
     unusedOcGas: unusedOcGas ?? this.unusedOcGas,
+    surfacingEnd: surfacingEnd ?? this.surfacingEnd,
   );
 
   /// Whether this is air (21% O2)

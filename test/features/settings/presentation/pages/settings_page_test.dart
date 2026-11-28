@@ -69,6 +69,7 @@ import 'package:submersion/features/settings/presentation/widgets/appearance_set
 import 'package:submersion/features/settings/presentation/widgets/nav_customization_tile.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
+import 'package:submersion/core/constants/profile_zoom_mode.dart';
 
 import '../../../../support/fake_app_settings_repository.dart';
 
@@ -943,6 +944,15 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setProfileMetricsFollowViewport(bool value) async =>
       state = state.copyWith(profileMetricsFollowViewport: value);
+
+  @override
+  Future<void> setProfileZoomMode(ProfileZoomMode mode) async =>
+      state = state.copyWith(
+        profileZoomTimeOnly: mode == ProfileZoomMode.timeOnly,
+        profileMetricsFollowViewport: mode == ProfileZoomMode.timeOnly
+            ? state.profileMetricsFollowViewport
+            : mode == ProfileZoomMode.keepOverlaysInView,
+      );
 
   @override
   Future<void> setPerdixOverlayEnabled(bool value) async =>

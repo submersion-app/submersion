@@ -25,6 +25,7 @@ import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/constants/profile_zoom_mode.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
@@ -192,6 +193,10 @@ class SettingsKeys {
   // when zoomed. Per-diver since v262; see [pscrRatio].
   static const String profileMetricsFollowViewport =
       'profile_metrics_follow_viewport';
+
+  // Whether the profile chart zooms time alone (issue #5069). Per-diver
+  // since v389, stored and adopted like [profileMetricsFollowViewport].
+  static const String profileZoomTimeOnly = 'profile_zoom_time_only';
 
   // Which unit the O2 cell traces are drawn in when a dive carries both
   // (device-local, a viewing preference stored directly in
@@ -845,6 +850,18 @@ class AppSettings implements UnitFormatterSettings {
   /// (synced) since v262. See MetricBand.
   final bool profileMetricsFollowViewport;
 
+  /// Whether zooming the dive profile chart scales the time axis alone,
+  /// keeping the whole depth range (issue #5069). Wins over
+  /// [profileMetricsFollowViewport], which it pairs with as one Zoom choice.
+  /// Per-diver (synced) since v389.
+  final bool profileZoomTimeOnly;
+
+  /// The Zoom choice the two flags above stand for.
+  ProfileZoomMode get profileZoomMode => ProfileZoomMode.fromFlags(
+    timeOnly: profileZoomTimeOnly,
+    followViewport: profileMetricsFollowViewport,
+  );
+
   /// Unit for the per-cell O2 traces on dives that log both a calibrated ppO2
   /// and the raw cell output. The two are the same measurement one calibration
   /// constant apart, so only one is drawn.
@@ -1085,6 +1102,7 @@ class AppSettings implements UnitFormatterSettings {
     this.homeHeaderStylePhone,
     this.homeHeaderStyleWide,
     this.profileMetricsFollowViewport = false,
+    this.profileZoomTimeOnly = false,
     this.o2CellUnit = O2CellUnit.ppO2,
     this.counterdiffusionShowAll = false,
     this.perdixOverlayEnabled = false,
@@ -1340,6 +1358,7 @@ class AppSettings implements UnitFormatterSettings {
     String? homeHeaderStylePhone,
     String? homeHeaderStyleWide,
     bool? profileMetricsFollowViewport,
+    bool? profileZoomTimeOnly,
     O2CellUnit? o2CellUnit,
     bool? counterdiffusionShowAll,
     bool? perdixOverlayEnabled,
@@ -1631,6 +1650,7 @@ class AppSettings implements UnitFormatterSettings {
       homeHeaderStyleWide: homeHeaderStyleWide ?? this.homeHeaderStyleWide,
       profileMetricsFollowViewport:
           profileMetricsFollowViewport ?? this.profileMetricsFollowViewport,
+      profileZoomTimeOnly: profileZoomTimeOnly ?? this.profileZoomTimeOnly,
       o2CellUnit: o2CellUnit ?? this.o2CellUnit,
       counterdiffusionShowAll:
           counterdiffusionShowAll ?? this.counterdiffusionShowAll,
@@ -1986,6 +2006,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final followViewportPref = prefs.getBool(
       SettingsKeys.profileMetricsFollowViewport,
     );
+    // The Time only zoom choice (v389, issue #5069) follows the same rule.
+    final zoomTimeOnlyPref = prefs.getBool(SettingsKeys.profileZoomTimeOnly);
     final o2CellUnit = O2CellUnit.values.firstWhere(
       (u) => u.name == prefs.getString(SettingsKeys.o2CellUnit),
       orElse: () => O2CellUnit.ppO2,
@@ -2017,6 +2039,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         homeHeaderStyleWide: homeHeaderStyleWide,
         pscrRatio: pscrRatioPref ?? 100.0,
         profileMetricsFollowViewport: followViewportPref ?? false,
+        profileZoomTimeOnly: zoomTimeOnlyPref ?? false,
         o2CellUnit: o2CellUnit,
         counterdiffusionShowAll: counterdiffusionShowAll,
         perdixOverlayEnabled: perdixOverlayEnabled,
@@ -2049,13 +2072,27 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         followViewportPref != defaults.profileMetricsFollowViewport
         ? followViewportPref
         : null;
+    final zoomTimeOnlyCandidate =
+        zoomTimeOnlyPref != defaults.profileZoomTimeOnly
+        ? zoomTimeOnlyPref
+        : null;
     // Nothing to adopt (no pref, or only defaults): skip the row read.
-    final unset = pscrRatioCandidate == null && followViewportCandidate == null
-        ? (pscrRatio: false, profileMetricsFollowViewport: false)
+    final unset =
+        pscrRatioCandidate == null &&
+            followViewportCandidate == null &&
+            zoomTimeOnlyCandidate == null
+        ? (
+            pscrRatio: false,
+            profileMetricsFollowViewport: false,
+            profileZoomTimeOnly: false,
+          )
         : await _repository.unsetAdoptableColumns(diverId);
     final adoptPscrRatio = unset.pscrRatio ? pscrRatioCandidate : null;
     final adoptFollowViewport = unset.profileMetricsFollowViewport
         ? followViewportCandidate
+        : null;
+    final adoptZoomTimeOnly = unset.profileZoomTimeOnly
+        ? zoomTimeOnlyCandidate
         : null;
 
     // Load settings from database
@@ -2064,11 +2101,15 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     // write only fills columns still null, so whenever one was attempted
     // re-read the row: a sync may have filled a column since [created] was
     // read, and then the write lands nothing but the row has still moved.
-    final adopting = adoptPscrRatio != null || adoptFollowViewport != null;
+    final adopting =
+        adoptPscrRatio != null ||
+        adoptFollowViewport != null ||
+        adoptZoomTimeOnly != null;
     await _repository.adoptDeviceLocalValues(
       diverId,
       pscrRatio: adoptPscrRatio,
       profileMetricsFollowViewport: adoptFollowViewport,
+      profileZoomTimeOnly: adoptZoomTimeOnly,
     );
     final settings = adopting
         ? await _repository.getSettingsForDiver(diverId) ?? created
@@ -2223,6 +2264,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
           await prefs.setBool(
             SettingsKeys.profileMetricsFollowViewport,
             state.profileMetricsFollowViewport,
+          );
+          await prefs.setBool(
+            SettingsKeys.profileZoomTimeOnly,
+            state.profileZoomTimeOnly,
           );
         }
         // No diver yet: the device-local pref is the seascape knobs' only
@@ -3520,6 +3565,22 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setProfileMetricsFollowViewport(bool value) =>
       _update((s) => s.copyWith(profileMetricsFollowViewport: value));
+
+  /// Saves the Zoom choice as the pair of flags it stands for. Time only
+  /// leaves the viewport flag alone, so going back restores it.
+  Future<void> setProfileZoomMode(ProfileZoomMode mode) => _update(
+    (s) => switch (mode) {
+      ProfileZoomMode.timeOnly => s.copyWith(profileZoomTimeOnly: true),
+      ProfileZoomMode.keepOverlaysInView => s.copyWith(
+        profileZoomTimeOnly: false,
+        profileMetricsFollowViewport: true,
+      ),
+      ProfileZoomMode.magnifyOverlays => s.copyWith(
+        profileZoomTimeOnly: false,
+        profileMetricsFollowViewport: false,
+      ),
+    },
+  );
 
   Future<void> setO2CellUnit(O2CellUnit value) =>
       _update((s) => s.copyWith(o2CellUnit: value));

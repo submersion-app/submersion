@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v388: the default visibility and the palette colour of the trim
+/// Schema v390: the default visibility and the palette colour of the trim
 /// line on the dive profile (issue #5098): `default_show_trim` and
 /// `profile_color_trim`. Defaulted off or null, no backfill, so the sync
 /// floor holds.
@@ -39,14 +39,14 @@ void main() {
               .getSingle())
           .data;
 
-  test('v388 is in the ladder and keeps the floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(388));
-    expect(AppDatabase.migrationVersions, contains(388));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(388));
+  test('v390 is in the ladder and keeps the floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(390));
+    expect(AppDatabase.migrationVersions, contains(390));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(390));
   });
 
-  test('upgrading from v387 adds the columns off and uncoloured', () async {
-    final db = AppDatabase(dbAt(387));
+  test('upgrading from v389 adds the columns off and uncoloured', () async {
+    final db = AppDatabase(dbAt(389));
     addTearDown(db.close);
     expect(await stored(db), {
       'default_show_trim': 0,
@@ -55,7 +55,7 @@ void main() {
   });
 
   test('the upgraded visibility column is a boolean', () async {
-    final db = AppDatabase(dbAt(387));
+    final db = AppDatabase(dbAt(389));
     addTearDown(db.close);
     await stored(db);
     await expectLater(
@@ -65,7 +65,7 @@ void main() {
   });
 
   test('a database already carrying the columns keeps its values', () async {
-    final db = AppDatabase(dbAt(387, withColumns: true));
+    final db = AppDatabase(dbAt(389, withColumns: true));
     addTearDown(db.close);
     expect(await stored(db), {
       'default_show_trim': 1,

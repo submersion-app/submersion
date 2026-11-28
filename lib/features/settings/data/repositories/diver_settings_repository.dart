@@ -140,12 +140,19 @@ class DiverSettingsRepository {
   /// Which of the diver's settings columns that adopt a device-local pref
   /// (v262, issue #2948) have never held a value. A missing row counts as
   /// unset for both: the load creates it with both columns null.
-  Future<({bool pscrRatio, bool profileMetricsFollowViewport})>
+  Future<
+    ({
+      bool pscrRatio,
+      bool profileMetricsFollowViewport,
+      bool profileZoomTimeOnly,
+    })
+  >
   unsetAdoptableColumns(String diverId) async {
     final row = await _rowFor(diverId);
     return (
       pscrRatio: row?.pscrRatio == null,
       profileMetricsFollowViewport: row?.profileMetricsFollowViewport == null,
+      profileZoomTimeOnly: row?.profileZoomTimeOnly == null,
     );
   }
 
@@ -160,8 +167,11 @@ class DiverSettingsRepository {
     String diverId, {
     double? pscrRatio,
     bool? profileMetricsFollowViewport,
+    bool? profileZoomTimeOnly,
   }) async {
-    if (pscrRatio == null && profileMetricsFollowViewport == null) {
+    if (pscrRatio == null &&
+        profileMetricsFollowViewport == null &&
+        profileZoomTimeOnly == null) {
       return false;
     }
     try {
@@ -197,6 +207,20 @@ class DiverSettingsRepository {
                       profileMetricsFollowViewport: Value(
                         profileMetricsFollowViewport,
                       ),
+                      updatedAt: Value(now),
+                    ),
+                  );
+        }
+        if (profileZoomTimeOnly != null) {
+          written +=
+              await (_db.update(_db.diverSettings)..where(
+                    (t) =>
+                        t.diverId.equals(diverId) &
+                        t.profileZoomTimeOnly.isNull(),
+                  ))
+                  .write(
+                    DiverSettingsCompanion(
+                      profileZoomTimeOnly: Value(profileZoomTimeOnly),
                       updatedAt: Value(now),
                     ),
                   );
@@ -772,6 +796,7 @@ class DiverSettingsRepository {
       profileMetricsFollowViewport: Value(
         settings.profileMetricsFollowViewport,
       ),
+      profileZoomTimeOnly: Value(settings.profileZoomTimeOnly),
       mapStyle: Value(settings.mapStyle.name),
       siteMatchSensitivity: Value(settings.siteMatchSensitivity.name),
       trimTankPressureAtSurfacing: Value(settings.trimTankPressureAtSurfacing),
@@ -1073,6 +1098,8 @@ class DiverSettingsRepository {
       profileMetricsFollowViewport:
           row.profileMetricsFollowViewport ??
           _defaults.profileMetricsFollowViewport,
+      profileZoomTimeOnly:
+          row.profileZoomTimeOnly ?? _defaults.profileZoomTimeOnly,
       mapStyle: MapStyle.fromName(row.mapStyle),
       siteMatchSensitivity: SiteMatchSensitivity.fromName(
         row.siteMatchSensitivity,

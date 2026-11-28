@@ -23,6 +23,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/sac_time_columns.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -1674,8 +1675,8 @@ void main() {
         await tester.pump();
         await tester.pump(const Duration(seconds: 1));
 
-        // Good analysis -> the single time segment is read out.
-        expect(find.textContaining('at 0-5 min'), findsOneWidget);
+        // Good analysis -> the single time segment is charted.
+        expect(find.byType(SacTimeColumns), findsOneWidget);
 
         // Flip to a non-null analysis carrying an EMPTY segment list.
         final container = ProviderScope.containerOf(
@@ -1694,7 +1695,7 @@ void main() {
           reason: 'card stays visible on a non-null empty-segments analysis',
         );
         expect(
-          find.textContaining('at 0-5 min'),
+          find.byType(SacTimeColumns),
           findsOneWidget,
           reason:
               'an empty (non-null) segment list must fall back to the cached '

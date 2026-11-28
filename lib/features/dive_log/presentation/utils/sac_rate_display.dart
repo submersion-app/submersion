@@ -85,6 +85,10 @@ class SacRateDisplay {
       ? units.convertRmv(value)
       : units.convertSac(value);
 
+  /// The decimals [formatComparable] writes for entries on [among].
+  int comparableDecimals(Iterable<String?> among) =>
+      among.every(readsInVolume) ? units.rmvDecimals : units.sacDecimals;
+
   /// The unit [formatComparable] writes for entries on [among].
   String comparableUnit(Iterable<String?> among) =>
       among.every(readsInVolume) ? units.rmvSymbol : units.sacSymbol;

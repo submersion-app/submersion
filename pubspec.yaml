@@ -4,7 +4,11 @@ publish_to: 'none'
 version: 1.8.7+135
 
 environment:
+  # The language version stays at 3.10: raising this floor moves every file
+  # to 3.13 and its lints. The toolchain floor is set by the flutter line.
   sdk: ^3.10.0
+  # pdfrx 2.13.1 and its pdfium packages need Flutter 3.47 (Dart 3.13).
+  flutter: ">=3.47.0"
 
 dependencies:
   flutter:
@@ -177,7 +181,13 @@ dependencies:
   universal_ble: ^3.1.0
   flutter_web_auth_2: ^5.0.3
   local_auth: ^3.0.2
-  pdfrx: ^2.4.7
+  # 2.6.0 (pdfrx_engine 0.6.0) fixed a lost wake-up in pdfium's on-demand
+  # reads on Windows that hung the PDF worker for good (issue #4785). The app
+  # also loads PDF bytes up to 64 MB in memory through the
+  # maxSizeToCacheOnMemory option of PdfDocumentRefData and
+  # PdfDocument.openData, which 2.4.7 lacked; 2.13.1 is the release that
+  # change was tested against.
+  pdfrx: ^2.13.1
   # Keeps the screen awake while a blocking sync-maintenance dialog is up: a
   # phone that locks mid-wipe suspends the work behind it (issue #1194).
   wakelock_plus: ^1.7.0

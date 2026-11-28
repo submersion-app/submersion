@@ -178,6 +178,38 @@ void main() {
     );
   });
 
+  // The dive page's header card lays the pencil over its corner and keeps
+  // this much room for it (issue #4888), so it must match what is drawn.
+  group('sizeOf', () {
+    Size sizeOf(WidgetTester tester) =>
+        RecordCardPencil.sizeOf(tester.element(find.byType(RecordCardPencil)));
+
+    testWidgets('none with no frame or while locked', (tester) async {
+      await tester.pumpWidget(_host(null));
+      expect(sizeOf(tester), Size.zero);
+
+      await tester.pumpWidget(_host(_controller()));
+      expect(sizeOf(tester), Size.zero);
+    });
+
+    for (final scale in const [0.85, 1.0, 2.0]) {
+      testWidgets('unlocked, the drawn size at text scale $scale', (
+        tester,
+      ) async {
+        final controller = _controller()..unlock('Blue Corner');
+        await tester.pumpWidget(
+          MediaQuery(
+            data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+            child: _host(controller),
+          ),
+        );
+
+        expect(sizeOf(tester).isEmpty, isFalse);
+        expect(sizeOf(tester), tester.getSize(find.byType(RecordCardPencil)));
+      });
+    }
+  });
+
   // A card's own title row (an icon and a titleMedium title) is one 24
   // point line, and the pencil arriving on unlock must not make it taller.
   testWidgets('unlocking keeps a title row\'s height', (tester) async {

@@ -27,9 +27,10 @@ String formatRightAxisTick(
   double value,
   UnitFormatter units, {
   double? tickStep,
+  int minDecimals = 0,
 }) {
   final display = _displayValue(metric, value, units);
-  var decimals = _baseDecimals(metric);
+  var decimals = math.max(_baseDecimals(metric), minDecimals);
   if (tickStep != null && tickStep.isFinite && tickStep != 0) {
     final displayStep =
         (_displayValue(metric, value + tickStep, units) - display).abs();
@@ -38,10 +39,12 @@ String formatRightAxisTick(
   // A tick on the zero line can unmap to -1e-13, which would print "-0".
   final rounded = double.parse(display.toStringAsFixed(decimals));
   final label = formatFixedForDisplay(rounded == 0 ? 0 : display, decimals);
-  // Net buoyancy reads by its sign: buoyant above 0, heavy below (#4593);
-  // so does trim: head up above flat, head down below (#5098).
+  // Net buoyancy reads by its sign: buoyant above 0, heavy below (#4593).
+  // So does ascent rate, like its bars: ascents above 0 (#5069), and trim:
+  // head up above flat, head down below (#5098).
   if ((metric == ProfileRightAxisMetric.buoyancy ||
           metric == ProfileRightAxisMetric.aveloBuoyancy ||
+          metric == ProfileRightAxisMetric.ascentRate ||
           metric == ProfileRightAxisMetric.trim) &&
       rounded > 0) {
     return '+$label';

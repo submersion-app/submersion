@@ -457,6 +457,13 @@ class DiverSettings extends Table {
   /// SettingsNotifier). Null reads as off and 100.
   BoolColumn get profileMetricsFollowViewport => boolean().nullable()();
   RealColumn get pscrRatio => real().nullable()();
+
+  /// v389 (issue #5069): the profile chart zooms time alone. Pairs with
+  /// [profileMetricsFollowViewport] as one Zoom choice, so it has the same
+  /// shape: nullable ON PURPOSE, null marking a row that has never held a
+  /// value, adopted from this device's pref like the pair above. Null reads
+  /// as off.
+  BoolColumn get profileZoomTimeOnly => boolean().nullable()();
   // Map style (v67)
   TextColumn get mapStyle =>
       text().withDefault(const Constant('openStreetMap'))();
@@ -529,7 +536,7 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(false))();
   BoolColumn get defaultShowComputerRmv =>
       boolean().withDefault(const Constant(false))();
-  // v388: default visibility for the trim line on the dive profile, the
+  // v390: default visibility for the trim line on the dive profile, the
   // angle a computer such as the Halcyon Symbios logs (issue #5098).
   BoolColumn get defaultShowTrim =>
       boolean().withDefault(const Constant(false))();
@@ -601,7 +608,7 @@ class DiverSettings extends Table {
   IntColumn get profileColorAveloBuoyancy => integer().nullable()();
   IntColumn get profileColorAveloGasRemaining => integer().nullable()();
   IntColumn get profileColorComputerRmv => integer().nullable()();
-  // v388: the trim line (issue #5098).
+  // v390: the trim line (issue #5098).
   IntColumn get profileColorTrim => integer().nullable()();
   // coverage:ignore-end
   // Data source badge visibility (v55)

@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/profile_colors/profile
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_palette.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_options_dialog_rows.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/chart_options_display_rows.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/counterdiffusion_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
@@ -680,12 +681,17 @@ class ChartOptionsDialog extends StatelessWidget {
         legendState: legendState,
         legendNotifier: legendNotifier,
         children: [
-          buildBehaviorItem(
+          buildZoomModeRow(
             context,
-            label: context.l10n.diveLog_chartOption_metricsFollowViewport,
-            isEnabled: legendState.metricsFollowViewport,
-            onTap: legendNotifier.toggleMetricsFollowViewport,
+            legendState: legendState,
+            legendNotifier: legendNotifier,
           ),
+          if (config.rightAxisChoices.isNotEmpty)
+            buildRightAxisRow(
+              context,
+              config: config,
+              legendNotifier: legendNotifier,
+            ),
           buildBehaviorItem(
             context,
             label: context.l10n.diveLog_chartOption_tooltipFollowsCursor,

@@ -58,7 +58,7 @@ void main() {
         ProfileRightAxisMetric.pressure: '13',
         ProfileRightAxisMetric.heartRate: '13',
         ProfileRightAxisMetric.sac: '12.5',
-        ProfileRightAxisMetric.ascentRate: '13',
+        ProfileRightAxisMetric.ascentRate: '+13',
         ProfileRightAxisMetric.ndl: '0',
         ProfileRightAxisMetric.ppO2: '12.5',
         ProfileRightAxisMetric.ppN2: '12.5',
@@ -103,6 +103,14 @@ void main() {
       addTearDown(() => Intl.defaultLocale = previous);
       Intl.defaultLocale = 'de';
       expect(tick(ProfileRightAxisMetric.temperature, 30.7, step: 0.3), '30,7');
+    });
+
+    // Ascent rate (issue #5069) reads by its sign like the bars it labels:
+    // ascents above zero, descents below.
+    test('ascent rate ticks carry a + sign above zero', () {
+      expect(tick(ProfileRightAxisMetric.ascentRate, 9, step: 3), '+9');
+      expect(tick(ProfileRightAxisMetric.ascentRate, 0, step: 3), '0');
+      expect(tick(ProfileRightAxisMetric.ascentRate, -9, step: 3), '-9');
     });
 
     test('measures the step in display units', () {
