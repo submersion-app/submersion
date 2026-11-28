@@ -15,9 +15,11 @@ import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
+import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
@@ -41,6 +43,29 @@ class _Unavailable implements MediaSourceResolver {
   }) => resolve(item);
   @override
   Future<VerifyResult> verify(MediaItem item) async => VerifyResult.available;
+}
+
+/// Deletes the rows as the real deletion coordinator ends up doing, without
+/// its queue database, and counts the drains (issue #5126).
+class RowDeletingCoordinator implements MediaDeletionCoordinator {
+  final List<String> deleted = [];
+  int drains = 0;
+
+  @override
+  Future<void> deleteMultipleMedia(
+    List<String> ids, {
+    bool holdRemoteDelete = false,
+    bool deferDrain = false,
+  }) async {
+    deleted.addAll(ids);
+    await MediaRepository().deleteMultipleMedia(ids);
+  }
+
+  @override
+  Future<void> drainHeldDeletes() async => drains++;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// A dive whose profile lets a photo be placed in time.
@@ -158,6 +183,8 @@ Future<void> pumpViewer(
   bool showGoToDive = false,
   Size size = const Size(1280, 800),
   bool browser = false,
+  ViewerUnlinkScope? unlinkScope,
+  List<Override> overrides = const [],
 }) async {
   final items = await tester.runAsync(() => storedMedia(ids));
   await pumpViewerApp(
@@ -166,9 +193,11 @@ Future<void> pumpViewer(
       mediaList: items!,
       initialMediaId: initial,
       showGoToDive: showGoToDive,
+      unlinkScope: unlinkScope,
     ),
     size: size,
     browser: browser,
+    overrides: overrides,
   );
 }
 

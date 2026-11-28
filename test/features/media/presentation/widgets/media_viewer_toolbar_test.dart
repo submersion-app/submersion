@@ -71,6 +71,7 @@ void main() {
       double textScale = 1.0,
       bool browser = false,
       bool unlockable = false,
+      bool unlinkable = false,
       bool writeControls = true,
       String? writeMetadataDisabledReason,
       bool editing = false,
@@ -145,6 +146,10 @@ void main() {
                           onUnlock: unlockable
                               ? () => calls.add('unlock')
                               : null,
+                          onUnlinkMedia: unlinkable
+                              ? () => calls.add('unlink')
+                              : null,
+                          unlinkLabel: 'Unlink from dive',
                           writeControls: writeControls,
                           writeMetadataDisabledReason:
                               writeMetadataDisabledReason,
@@ -171,6 +176,53 @@ void main() {
       await tester.pump();
       return calls;
     }
+
+    group('unlink (#5126)', () {
+      testWidgets('is drawn only in the editing bar', (tester) async {
+        await pumpFull(tester, 1280, unlinkable: true);
+        expect(find.byKey(const ValueKey('viewer_unlink')), findsNothing);
+
+        final calls = await pumpFull(
+          tester,
+          1280,
+          unlinkable: true,
+          editing: true,
+        );
+        expect(find.byKey(const ValueKey('viewer_unlink')), findsOneWidget);
+        expect(find.byTooltip('Unlink from dive'), findsOneWidget);
+        await tester.tap(find.byKey(const ValueKey('viewer_unlink')));
+        expect(calls, ['unlink']);
+      });
+
+      testWidgets('none without a callback', (tester) async {
+        await pumpFull(tester, 1280, editing: true);
+        expect(find.byKey(const ValueKey('viewer_unlink')), findsNothing);
+      });
+
+      testWidgets('a browser never draws it', (tester) async {
+        await pumpFull(
+          tester,
+          1280,
+          unlinkable: true,
+          editing: true,
+          browser: true,
+        );
+        expect(find.byKey(const ValueKey('viewer_unlink')), findsNothing);
+      });
+
+      testWidgets('on a phone it goes to the overflow menu first', (
+        tester,
+      ) async {
+        await pumpFull(tester, 430, unlinkable: true, editing: true);
+        expect(find.byKey(const ValueKey('viewer_unlink')), findsNothing);
+        await tester.tap(find.byKey(const ValueKey('viewer_overflow')));
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const ValueKey('viewer_menu_unlink')),
+          findsOneWidget,
+        );
+      });
+    });
 
     testWidgets('a browser keeps only the viewing actions (#4121)', (
       tester,

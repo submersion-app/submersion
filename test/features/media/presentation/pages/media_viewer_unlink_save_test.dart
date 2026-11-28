@@ -9,7 +9,6 @@ import 'package:submersion/features/media/presentation/editing/photo_edit_fields
 import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
-import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -19,35 +18,12 @@ import '../../../../helpers/test_database.dart';
 import '../../data/repositories/species_photo_fixtures.dart';
 import 'media_viewer_unlock_harness.dart';
 
-/// Deletes the rows as the real coordinator ends up doing, without its
-/// queue database, and counts the drains.
-class _RowDeletingCoordinator implements MediaDeletionCoordinator {
-  final List<String> deleted = [];
-  int drains = 0;
-
-  @override
-  Future<void> deleteMultipleMedia(
-    List<String> ids, {
-    bool holdRemoteDelete = false,
-    bool deferDrain = false,
-  }) async {
-    deleted.addAll(ids);
-    await MediaRepository().deleteMultipleMedia(ids);
-  }
-
-  @override
-  Future<void> drainHeldDeletes() async => drains++;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 /// Saving the media viewer's held Unlink (issue #5126).
 void main() {
   turnOffMarineLifeIdForEachTest();
 
   late AppDatabase db;
-  late _RowDeletingCoordinator coordinator;
+  late RowDeletingCoordinator coordinator;
 
   setUp(() async {
     db = await setUpTestDatabase();
@@ -60,7 +36,7 @@ void main() {
       siteId: 's1',
       takenAt: DateTime(2024, 1, 10, 9, 2),
     );
-    coordinator = _RowDeletingCoordinator();
+    coordinator = RowDeletingCoordinator();
   });
 
   tearDown(tearDownTestDatabase);

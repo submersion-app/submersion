@@ -32,6 +32,7 @@ import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
 import 'package:submersion/features/media/presentation/editing/photo_viewer_editing.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
 import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
@@ -62,6 +63,7 @@ import 'package:submersion/features/media/presentation/widgets/people_tags/video
 import 'package:submersion/features/media/presentation/widgets/media_viewer_caption.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_list_sheet.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
+import 'package:submersion/features/media/presentation/widgets/media_viewer_unlink_strip.dart';
 import 'package:submersion/features/media/presentation/widgets/video_color_filter.dart';
 import 'package:submersion/features/media/presentation/widgets/video_controls_auto_hide.dart';
 import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
@@ -92,6 +94,7 @@ part 'media_viewer_chrome.dart';
 part 'media_viewer_gallery.dart';
 part 'media_viewer_keyboard.dart';
 part 'media_viewer_perdix.dart';
+part 'media_viewer_unlink.dart';
 part 'media_viewer_video_item.dart';
 part 'media_viewer_write_metadata.dart';
 
@@ -124,6 +127,9 @@ class MediaViewerPage extends ConsumerStatefulWidget {
   /// moment (issue #5027). Applied once, to that item only.
   final Duration? initialVideoPosition;
 
+  /// What Unlink unlinks the item from (issue #5126); null offers none.
+  final ViewerUnlinkScope? unlinkScope;
+
   const MediaViewerPage({
     super.key,
     required this.mediaList,
@@ -131,6 +137,7 @@ class MediaViewerPage extends ConsumerStatefulWidget {
     this.showGoToDive = false,
     this.captionFor,
     this.initialVideoPosition,
+    this.unlinkScope,
   });
 
   @override
@@ -169,8 +176,15 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   /// every wrapper at once (PhotoViewerPage, TripPhotoViewerPage,
   /// SiteMediaViewerPage, and the library view), which is what the per-caller
   /// guards kept missing.
-  List<MediaItem> get _pageableMedia =>
-      widget.mediaList.where((m) => !m.isDocument).toList();
+  List<MediaItem> get _pageableMedia => widget.mediaList
+      .where((m) => !m.isDocument && !unlinkedPhotoIds.contains(m.id))
+      .toList();
+
+  @override
+  ViewerUnlinkScope? get unlinkScope => widget.unlinkScope;
+
+  @override
+  void onPhotoUnlinked(String mediaId) => _closeWhenEmptied();
 
   final _metadataWriter = MetadataWriteService();
 
@@ -477,44 +491,48 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                 },
                 child: Stack(
                   children: [
-                    RepaintBoundary(
-                      key: galleryBoundaryKey,
-                      child: _PhotoGallery(
-                        mediaList: shownMediaList(mediaList, heldProfile),
-                        pagingLocked: photoUnlocked,
-                        pageController: _pageController,
-                        onPageChanged: (index) {
-                          // Swipes and settles both land here, which is what
-                          // re-syncs the nav target after a gesture.
-                          setState(() {
-                            _currentIndex = index;
-                            _navTargetIndex = index;
-                            selectedPeopleTagId = null;
-                          });
-                          // Controls left up on a paused video have no timer; the
-                          // next page restarts the 3-second hide so they do not
-                          // linger over a photo nobody tapped.
-                          if (isFullscreen && fullscreenControlsVisible) {
-                            revealFullscreenControls(autoHide: true);
-                          }
-                          // A mouse-move clock left by a video is not the
-                          // next page's to act on.
-                          cancelVideoOverlayClock();
-                        },
-                        showOverlay: isFullscreen
-                            ? fullscreenControlsVisible
-                            : _showOverlay || photoUnlocked,
-                        fullscreen: isFullscreen,
-                        onFullscreenTap: toggleFullscreenControls,
-                        onSetOverlay: _onSetOverlay,
-                        onVideoHoldChanged: videoHoldChanged,
-                        onVideoControllerChanged: _onVideoControllerChanged,
-                        audio: _audio,
-                        currentIndex: currentIndex,
-                        people: peopleSession,
-                        identificationsEditable: !photoLocked,
-                        hideIdentifications: pickingWhite,
-                        videoControlsInset: panelShown ? _bottomPanelHeight : 0,
+                    _dimWhileUnlinkHeld(
+                      RepaintBoundary(
+                        key: galleryBoundaryKey,
+                        child: _PhotoGallery(
+                          mediaList: shownMediaList(mediaList, heldProfile),
+                          pagingLocked: photoUnlocked,
+                          pageController: _pageController,
+                          onPageChanged: (index) {
+                            // Swipes and settles both land here, which is what
+                            // re-syncs the nav target after a gesture.
+                            setState(() {
+                              _currentIndex = index;
+                              _navTargetIndex = index;
+                              selectedPeopleTagId = null;
+                            });
+                            // Controls left up on a paused video have no timer; the
+                            // next page restarts the 3-second hide so they do not
+                            // linger over a photo nobody tapped.
+                            if (isFullscreen && fullscreenControlsVisible) {
+                              revealFullscreenControls(autoHide: true);
+                            }
+                            // A mouse-move clock left by a video is not the
+                            // next page's to act on.
+                            cancelVideoOverlayClock();
+                          },
+                          showOverlay: isFullscreen
+                              ? fullscreenControlsVisible
+                              : _showOverlay || photoUnlocked,
+                          fullscreen: isFullscreen,
+                          onFullscreenTap: toggleFullscreenControls,
+                          onSetOverlay: _onSetOverlay,
+                          onVideoHoldChanged: videoHoldChanged,
+                          onVideoControllerChanged: _onVideoControllerChanged,
+                          audio: _audio,
+                          currentIndex: currentIndex,
+                          people: peopleSession,
+                          identificationsEditable: photoEditable,
+                          hideIdentifications: pickingWhite,
+                          videoControlsInset: panelShown
+                              ? _bottomPanelHeight
+                              : 0,
+                        ),
                       ),
                     ),
 
@@ -652,7 +670,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                           settings: units.settings,
                           diveProfile: diveProfile,
                           profileLength: profileLength,
-                          photoLocked: photoLocked,
+                          photoLocked: !photoEditable,
                           siteName: diveAsync.whenOrNull(
                             data: (dive) => dive?.site?.name,
                           ),
@@ -660,6 +678,8 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                         ),
                       ],
                     ],
+
+                    ?_unlinkStrip(context, panelShown: panelShown),
 
                     // People tag mode's hint and actions (issue #1745).
                     if (taggingPeople)

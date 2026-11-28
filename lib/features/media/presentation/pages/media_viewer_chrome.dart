@@ -73,7 +73,15 @@ extension _ViewerChrome on _MediaViewerPageState {
           onUnlock: !photoUnlocked && canUnlock(currentItem, storedPhoto)
               ? () => unlockPhoto(storedPhoto!)
               : null,
-          writeControls: !photoLocked,
+          onUnlinkMedia: canUnlinkPhoto(currentItem)
+              ? () => unawaited(unlinkPhotoHeld(currentItem))
+              : null,
+          unlinkLabel: switch (unlinkScope) {
+            final scope? => _unlinkLabelFor(context, scope),
+            null => null,
+          },
+          // Off while an Unlink is held: the photo is about to go.
+          writeControls: photoEditable,
           editBar: photoUnlocked
               ? MediaViewerEditBar(
                   title: currentItem.isVideo
