@@ -54967,6 +54967,113 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get speciesBatch_findInDives => '種を検出';
+
+  @override
+  String get speciesBatch_findInLogbook => 'すべてのダイブから種を検出';
+
+  @override
+  String get speciesBatch_findInLogbookSubtitle => 'すべてのダイブの写真と動画を調べます';
+
+  @override
+  String speciesBatch_counting(int done, int total) {
+    return '写真と動画を集計中：$done/$total本のダイブ';
+  }
+
+  @override
+  String get speciesBatch_countFailed => '写真と動画を集計できませんでした。';
+
+  @override
+  String speciesBatch_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count本のダイブ',
+      one: '1本のダイブ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesBatch_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '写真と動画$count件',
+      one: '写真または動画1件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesBatch_toLookAt(String dives, String items) {
+    return '$dives、$itemsが対象です。';
+  }
+
+  @override
+  String speciesBatch_applyOnly(String dives) {
+    return '新たに調べるものはありません。$divesで見つかっている確度の高い一致にタグを付けます。';
+  }
+
+  @override
+  String get speciesBatch_nothingToDo => 'これらのダイブの写真と動画はすべて確認済みです。';
+
+  @override
+  String speciesBatch_notOnDevice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'そのうち$count件はこのデバイスにありません。',
+      one: 'そのうち1件はこのデバイスにありません。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesBatch_downloadThem => 'ダウンロードして調べる';
+
+  @override
+  String get speciesBatch_onDeviceOnly => 'このデバイスにあるものだけ';
+
+  @override
+  String get speciesBatch_takesAWhile =>
+      '時間がかかることがあります。アプリは開いたままにしてください。バックグラウンドでは検出が一時停止します。';
+
+  @override
+  String get speciesBatch_start => '開始';
+
+  @override
+  String get speciesBatch_alreadyRunning => '種の検出はすでに実行中です。進行状況はホームに表示されます。';
+
+  @override
+  String get speciesBatch_progressTitle => '種を検出中';
+
+  @override
+  String speciesBatch_progress(int dive, int dives, int done, int total) {
+    return 'ダイブ $dive/$dives ・ 写真と動画 $done/$total';
+  }
+
+  @override
+  String get speciesBatch_pausedBackground => 'アプリがバックグラウンドの間は一時停止中';
+
+  @override
+  String get speciesBatch_stopped => '種の検出を停止しました。';
+
+  @override
+  String speciesBatch_summaryNotOnDevice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'このデバイスにない$count件を除外しました。',
+      one: 'このデバイスにない1件を除外しました。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesBatch_review => '確認';
+
+  @override
   String media_species_confirmTag(String name) {
     return '$nameを確認';
   }

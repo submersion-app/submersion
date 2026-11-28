@@ -48,7 +48,12 @@ class _RecordingRun extends _FixedRun {
   final fresh = <bool>[];
 
   @override
-  Future<void> start(String diveId, {bool fresh = false}) async {
+  Future<void> start(
+    String diveId, {
+    bool fresh = false,
+    bool onDeviceOnly = false,
+    Future<String> Function()? operationId,
+  }) async {
     started.add(diveId);
     this.fresh.add(fresh);
   }

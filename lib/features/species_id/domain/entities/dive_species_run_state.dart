@@ -22,6 +22,8 @@ class DiveRunSummary extends Equatable {
     this.videos = 0,
     this.speciesTagged = 0,
     this.unreadable = 0,
+    this.notOnDevice = 0,
+    this.taggedSpeciesIds = const {},
   });
 
   /// Photos and videos looked at.
@@ -34,20 +36,39 @@ class DiveRunSummary extends Equatable {
   /// Items that could not be opened or downloaded.
   final int unreadable;
 
+  /// Items left out because they are not on this device and the diver
+  /// chose to look only at what is (issue #5127).
+  final int notOnDevice;
+
+  /// The species tagged, where the run named them (a run over many dives,
+  /// issue #5127), so a species tagged on several dives counts once.
+  final Set<String> taggedSpeciesIds;
+
   DiveRunSummary copyWith({
     int? photos,
     int? videos,
     int? speciesTagged,
     int? unreadable,
+    int? notOnDevice,
+    Set<String>? taggedSpeciesIds,
   }) => DiveRunSummary(
     photos: photos ?? this.photos,
     videos: videos ?? this.videos,
     speciesTagged: speciesTagged ?? this.speciesTagged,
     unreadable: unreadable ?? this.unreadable,
+    notOnDevice: notOnDevice ?? this.notOnDevice,
+    taggedSpeciesIds: taggedSpeciesIds ?? this.taggedSpeciesIds,
   );
 
   @override
-  List<Object?> get props => [photos, videos, speciesTagged, unreadable];
+  List<Object?> get props => [
+    photos,
+    videos,
+    speciesTagged,
+    unreadable,
+    notOnDevice,
+    taggedSpeciesIds,
+  ];
 }
 
 /// One dive's run.

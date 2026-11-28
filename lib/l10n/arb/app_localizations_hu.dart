@@ -56980,6 +56980,115 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get speciesBatch_findInDives => 'Fajok keresése';
+
+  @override
+  String get speciesBatch_findInLogbook =>
+      'Fajok keresése az összes merülésben';
+
+  @override
+  String get speciesBatch_findInLogbookSubtitle =>
+      'Átvizsgálja minden merülés fotóit és videóit';
+
+  @override
+  String speciesBatch_counting(int done, int total) {
+    return 'Fotók és videók számolása: $done / $total merülés';
+  }
+
+  @override
+  String get speciesBatch_countFailed =>
+      'A fotókat és videókat nem sikerült megszámolni.';
+
+  @override
+  String speciesBatch_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesBatch_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotó és videó',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesBatch_toLookAt(String dives, String items) {
+    return '$dives, $items vizsgálatra vár.';
+  }
+
+  @override
+  String speciesBatch_applyOnly(String dives) {
+    return 'Nincs új vizsgálnivaló. A már megtalált biztos találatok címkézve lesznek ($dives).';
+  }
+
+  @override
+  String get speciesBatch_nothingToDo =>
+      'Ezeknek a merüléseknek minden fotója és videója már át van vizsgálva.';
+
+  @override
+  String speciesBatch_notOnDevice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ebből $count nincs ezen az eszközön.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesBatch_downloadThem => 'Letöltés és vizsgálat';
+
+  @override
+  String get speciesBatch_onDeviceOnly => 'Csak ami ezen az eszközön van';
+
+  @override
+  String get speciesBatch_takesAWhile =>
+      'Ez eltarthat egy ideig. Az alkalmazásnak nyitva kell maradnia: a keresés szünetel, amíg az alkalmazás a háttérben van.';
+
+  @override
+  String get speciesBatch_start => 'Indítás';
+
+  @override
+  String get speciesBatch_alreadyRunning =>
+      'Már fut egy fajkeresés. Az előrehaladása a Főoldalon látható.';
+
+  @override
+  String get speciesBatch_progressTitle => 'Fajok keresése';
+
+  @override
+  String speciesBatch_progress(int dive, int dives, int done, int total) {
+    return '$dive. merülés / $dives · $done / $total fotó és videó';
+  }
+
+  @override
+  String get speciesBatch_pausedBackground =>
+      'Szüneteltetve, amíg az alkalmazás a háttérben van';
+
+  @override
+  String get speciesBatch_stopped => 'A fajkeresés leállítva.';
+
+  @override
+  String speciesBatch_summaryNotOnDevice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nem ezen az eszközön lévő elem kimaradt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesBatch_review => 'Ellenőrzés';
+
+  @override
   String media_species_confirmTag(String name) {
     return '$name megerősítése';
   }

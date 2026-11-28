@@ -89519,6 +89519,138 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 could not be opened.} other{{count} could not be opened.}}'**
   String speciesReview_summaryUnreadable(int count);
 
+  /// No description provided for @speciesBatch_findInDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Find species'**
+  String get speciesBatch_findInDives;
+
+  /// No description provided for @speciesBatch_findInLogbook.
+  ///
+  /// In en, this message translates to:
+  /// **'Find species in all dives'**
+  String get speciesBatch_findInLogbook;
+
+  /// No description provided for @speciesBatch_findInLogbookSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Looks at the photos and videos of every dive'**
+  String get speciesBatch_findInLogbookSubtitle;
+
+  /// No description provided for @speciesBatch_counting.
+  ///
+  /// In en, this message translates to:
+  /// **'Counting photos and videos: {done} of {total} dives'**
+  String speciesBatch_counting(int done, int total);
+
+  /// No description provided for @speciesBatch_countFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The photos and videos could not be counted.'**
+  String get speciesBatch_countFailed;
+
+  /// No description provided for @speciesBatch_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String speciesBatch_dives(int count);
+
+  /// No description provided for @speciesBatch_items.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo or video} other{{count} photos and videos}}'**
+  String speciesBatch_items(int count);
+
+  /// No description provided for @speciesBatch_toLookAt.
+  ///
+  /// In en, this message translates to:
+  /// **'{dives}, {items} to look at.'**
+  String speciesBatch_toLookAt(String dives, String items);
+
+  /// No description provided for @speciesBatch_applyOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing new to look at. Confident matches already found in {dives} will be tagged.'**
+  String speciesBatch_applyOnly(String dives);
+
+  /// No description provided for @speciesBatch_nothingToDo.
+  ///
+  /// In en, this message translates to:
+  /// **'All photos and videos of these dives are already checked.'**
+  String get speciesBatch_nothingToDo;
+
+  /// No description provided for @speciesBatch_notOnDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 of them is not on this device.} other{{count} of them are not on this device.}}'**
+  String speciesBatch_notOnDevice(int count);
+
+  /// No description provided for @speciesBatch_downloadThem.
+  ///
+  /// In en, this message translates to:
+  /// **'Download and look at them'**
+  String get speciesBatch_downloadThem;
+
+  /// No description provided for @speciesBatch_onDeviceOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only what is on this device'**
+  String get speciesBatch_onDeviceOnly;
+
+  /// No description provided for @speciesBatch_takesAWhile.
+  ///
+  /// In en, this message translates to:
+  /// **'This can take a while. Keep the app open: the search pauses while the app is in the background.'**
+  String get speciesBatch_takesAWhile;
+
+  /// No description provided for @speciesBatch_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get speciesBatch_start;
+
+  /// No description provided for @speciesBatch_alreadyRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'A search for species is already running. Its progress is shown on Home.'**
+  String get speciesBatch_alreadyRunning;
+
+  /// No description provided for @speciesBatch_progressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding species'**
+  String get speciesBatch_progressTitle;
+
+  /// No description provided for @speciesBatch_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive {dive} of {dives} · {done} of {total} photos and videos'**
+  String speciesBatch_progress(int dive, int dives, int done, int total);
+
+  /// No description provided for @speciesBatch_pausedBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused while the app is in the background'**
+  String get speciesBatch_pausedBackground;
+
+  /// No description provided for @speciesBatch_stopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Species search stopped.'**
+  String get speciesBatch_stopped;
+
+  /// No description provided for @speciesBatch_summaryNotOnDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 not on this device was left out.} other{{count} not on this device were left out.}}'**
+  String speciesBatch_summaryNotOnDevice(int count);
+
+  /// No description provided for @speciesBatch_review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get speciesBatch_review;
+
   /// No description provided for @media_species_confirmTag.
   ///
   /// In en, this message translates to:

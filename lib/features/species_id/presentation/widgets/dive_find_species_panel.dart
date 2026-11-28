@@ -13,6 +13,7 @@ import 'package:submersion/features/species_id/domain/entities/dive_species_run_
 import 'package:submersion/features/species_id/domain/entities/species_review.dart';
 import 'package:submersion/features/species_id/domain/services/auto_apply_rules.dart';
 import 'package:submersion/features/species_id/presentation/providers/dive_species_run_providers.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_batch_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_review_providers.dart';
@@ -115,6 +116,30 @@ class _DiveFindSpeciesPanelState extends ConsumerState<DiveFindSpeciesPanel> {
     DiveSpeciesRunState? run,
   ) {
     final runs = ref.read(diveSpeciesRunProvider.notifier);
+    // Waiting its turn in a run over many dives (issue #5127), which hands
+    // the dives' run one dive at a time.
+    ref.watch(speciesBatchRunProvider);
+    final pending = ref
+        .read(speciesBatchRunProvider.notifier)
+        .isPending(dive.id);
+    if ((run == null || !run.isActive) && pending) {
+      return Padding(
+        key: const ValueKey('dive_species_batch_waiting'),
+        padding: const EdgeInsets.only(top: 8),
+        child: Row(
+          children: [
+            const Padding(
+              padding: EdgeInsetsDirectional.only(end: 12),
+              child: SizedBox.square(
+                dimension: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+            Expanded(child: Text(l10n.speciesReview_waiting)),
+          ],
+        ),
+      );
+    }
     if (run != null && run.isActive) {
       final paused = run.phase == DiveRunPhase.paused;
       final hot = paused && run.pauseReason == DiveRunPause.tooHot;

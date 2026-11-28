@@ -44,16 +44,10 @@ extension Readiness on MediaIdentificationService {
       if (run == null) continue;
       final cell = _regionCell(manifest, locationOf(item));
       final madeHere = run.analysedBy == null || _madeBy(run, me);
-      final crops = await _cropsPresent(_crops, item.id, [
-        for (final i in visibleRows(
-          run,
-          stored[item.id] ?? const <MediaIdentification>[],
-        ))
-          if (!i.isPending) i,
-      ], tags: tags[item.id] ?? const []);
       // Embeddings only choose between naming again and looking again,
       // never whether there is something to do.
-      final nothingToDo = item.mediaType == MediaType.video
+      bool nothingToDo({required bool crops}) =>
+          item.mediaType == MediaType.video
           ? decideVideoRefresh(
                   run: run,
                   packVersion: manifest.packVersion,
@@ -76,7 +70,18 @@ extension Readiness on MediaIdentificationService {
                   madeHere: madeHere,
                 ) ==
                 RefreshAction.none;
-      if (nothingToDo) current.add(item.id);
+      // Missing crops only ever add work, so an item with work even with
+      // its crops counted present has work: its crops on disk are not read
+      // (issue #5127, where a whole logbook is counted).
+      if (!nothingToDo(crops: true)) continue;
+      final crops = await _cropsPresent(_crops, item.id, [
+        for (final i in visibleRows(
+          run,
+          stored[item.id] ?? const <MediaIdentification>[],
+        ))
+          if (!i.isPending) i,
+      ], tags: tags[item.id] ?? const []);
+      if (nothingToDo(crops: crops)) current.add(item.id);
     }
     return current;
   }

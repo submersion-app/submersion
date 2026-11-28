@@ -56431,6 +56431,118 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get speciesBatch_findInDives => 'Find species';
+
+  @override
+  String get speciesBatch_findInLogbook => 'Find species in all dives';
+
+  @override
+  String get speciesBatch_findInLogbookSubtitle =>
+      'Looks at the photos and videos of every dive';
+
+  @override
+  String speciesBatch_counting(int done, int total) {
+    return 'Counting photos and videos: $done of $total dives';
+  }
+
+  @override
+  String get speciesBatch_countFailed =>
+      'The photos and videos could not be counted.';
+
+  @override
+  String speciesBatch_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesBatch_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos and videos',
+      one: '1 photo or video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesBatch_toLookAt(String dives, String items) {
+    return '$dives, $items to look at.';
+  }
+
+  @override
+  String speciesBatch_applyOnly(String dives) {
+    return 'Nothing new to look at. Confident matches already found in $dives will be tagged.';
+  }
+
+  @override
+  String get speciesBatch_nothingToDo =>
+      'All photos and videos of these dives are already checked.';
+
+  @override
+  String speciesBatch_notOnDevice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count of them are not on this device.',
+      one: '1 of them is not on this device.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesBatch_downloadThem => 'Download and look at them';
+
+  @override
+  String get speciesBatch_onDeviceOnly => 'Only what is on this device';
+
+  @override
+  String get speciesBatch_takesAWhile =>
+      'This can take a while. Keep the app open: the search pauses while the app is in the background.';
+
+  @override
+  String get speciesBatch_start => 'Start';
+
+  @override
+  String get speciesBatch_alreadyRunning =>
+      'A search for species is already running. Its progress is shown on Home.';
+
+  @override
+  String get speciesBatch_progressTitle => 'Finding species';
+
+  @override
+  String speciesBatch_progress(int dive, int dives, int done, int total) {
+    return 'Dive $dive of $dives · $done of $total photos and videos';
+  }
+
+  @override
+  String get speciesBatch_pausedBackground =>
+      'Paused while the app is in the background';
+
+  @override
+  String get speciesBatch_stopped => 'Species search stopped.';
+
+  @override
+  String speciesBatch_summaryNotOnDevice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count not on this device were left out.',
+      one: '1 not on this device was left out.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesBatch_review => 'Review';
+
+  @override
   String media_species_confirmTag(String name) {
     return 'Confirm $name';
   }

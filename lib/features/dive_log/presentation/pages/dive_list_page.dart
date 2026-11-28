@@ -52,6 +52,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_card_stat
 import 'package:submersion/features/dive_log/presentation/widgets/table_column_picker.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_batch_providers.dart';
+import 'package:submersion/features/species_id/presentation/widgets/find_species_batch_flow.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -190,6 +192,9 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
     final viewMode = ref.watch(diveListViewModeProvider);
     if (viewMode == ListViewMode.table) {
       final showProfile = ref.watch(showProfilePanelProvider);
+      // Watched here, not read in the menu: the installed pack is read only
+      // once something listens (issue #5127).
+      final canFindSpecies = ref.watch(speciesBatchAvailableProvider);
 
       return TableModeLayout(
         sectionKey: 'dives',
@@ -283,6 +288,12 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
                   _DiveListPageState,
                   'fetch conditions for all dives',
                 );
+              } else if (value == 'find_species') {
+                logFailure(
+                  findSpeciesInLogbook(context),
+                  _DiveListPageState,
+                  'find species in all dives',
+                );
               } else if (value.startsWith('view_')) {
                 final mode = ListViewMode.fromName(
                   value.replaceFirst('view_', ''),
@@ -342,6 +353,20 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
                     ],
                   ),
                 ),
+                // Issue #5127: where this device can run the models.
+                if (canFindSpecies)
+                  PopupMenuItem(
+                    value: 'find_species',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.travel_explore_outlined, size: 20),
+                        const SizedBox(width: 12),
+                        Flexible(
+                          child: Text(context.l10n.speciesBatch_findInLogbook),
+                        ),
+                      ],
+                    ),
+                  ),
                 PopupMenuItem(
                   value: 'data_quality',
                   child: Row(

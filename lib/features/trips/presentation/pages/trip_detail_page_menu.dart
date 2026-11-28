@@ -24,6 +24,8 @@ extension _TripDetailMenu on _TripDetailContent {
     final reachesHere = watchReachesHere(ref, SharedItemKind.trip, trip.id);
     final controller = host.editController;
     final operationsAvailable = recordOperationsAvailable(controller);
+    // Find species in the trip's photos and videos (issue #5127).
+    final canFindSpecies = ref.watch(speciesBatchAvailableProvider);
     return PopupMenuButton<String>(
       tooltip: context.l10n.trips_detail_tooltip_moreOptions,
       onSelected: (value) async {
@@ -48,6 +50,11 @@ extension _TripDetailMenu on _TripDetailContent {
           });
         } else if (value == 'export') {
           _showExportOptions(context, ref);
+        } else if (value == 'find_species') {
+          // Every dive of the trip, its side trips' included.
+          final ids = await ref.read(diveIdsForTripProvider(trip.id).future);
+          if (!context.mounted) return;
+          await findSpeciesInDives(context, ids);
         }
       },
       itemBuilder: (context) => [
@@ -63,6 +70,17 @@ extension _TripDetailMenu on _TripDetailContent {
             ],
           ),
         ),
+        if (canFindSpecies)
+          PopupMenuItem(
+            value: 'find_species',
+            child: Row(
+              children: [
+                const Icon(Icons.travel_explore_outlined),
+                const SizedBox(width: 8),
+                Flexible(child: Text(context.l10n.speciesBatch_findInDives)),
+              ],
+            ),
+          ),
         // Delete, Remove and Unhide are whole-record operations, under the
         // lock.
         if (canDestroy == true ||

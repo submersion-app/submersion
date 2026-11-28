@@ -14,6 +14,8 @@ import 'package:submersion/features/dive_log/presentation/navigation/open_dive_l
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_batch_providers.dart';
+import 'package:submersion/features/species_id/presentation/widgets/find_species_batch_flow.dart';
 import 'package:submersion/features/divers/presentation/providers/new_record_diver.dart';
 import 'package:submersion/features/trips/data/services/trip_edit_save_service.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';

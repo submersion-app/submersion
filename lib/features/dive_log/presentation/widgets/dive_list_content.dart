@@ -44,6 +44,8 @@ import 'package:submersion/features/dive_log/presentation/helpers/dive_list_nav_
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_scrubber.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trip_group_header.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_batch_providers.dart';
+import 'package:submersion/features/species_id/presentation/widgets/find_species_batch_flow.dart';
 import 'package:submersion/features/trips/presentation/helpers/new_trip_from_selection.dart';
 import 'package:submersion/features/weather/presentation/widgets/fetch_conditions_bulk_action.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
@@ -1499,6 +1501,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   Widget build(BuildContext context) {
     final viewMode = ref.watch(diveListViewModeProvider);
     final filter = ref.watch(diveFilterProvider);
+    // Watched here so the menus, built when they open, read it loaded: the
+    // installed pack is read only once something listens (issue #5127).
+    ref.watch(speciesBatchAvailableProvider);
 
     // Table mode uses a completely different data path (full Dive objects
     // instead of DiveSummary) and renders a DiveTableView widget.
@@ -1664,6 +1669,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               context.push('/dives/match-sites');
             } else if (value == 'data_quality') {
               context.push('/dives/quality');
+            } else if (value == 'find_species') {
+              unawaited(findSpeciesInLogbook(context));
             } else if (value == 'group_trips') {
               ref.read(settingsProvider.notifier).toggleGroupTripsInDiveList();
             } else if (value == 'expand_all_trips') {
@@ -1783,6 +1790,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   ],
                 ),
               ),
+              ?_findSpeciesMenuItem(context),
             ];
           },
         ),
@@ -1860,6 +1868,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     context.push('/dives/match-sites');
                   } else if (value == 'data_quality') {
                     context.push('/dives/quality');
+                  } else if (value == 'find_species') {
+                    unawaited(findSpeciesInLogbook(context));
                   } else if (value == 'group_trips') {
                     ref
                         .read(settingsProvider.notifier)
@@ -1991,6 +2001,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                         ],
                       ),
                     ),
+                    ?_findSpeciesMenuItem(context, iconSize: 20),
                   ];
                 },
               ),
@@ -1998,6 +2009,25 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           ),
         );
       },
+    );
+  }
+
+  /// "Find species in all dives" for the list's menu (issue #5127), where
+  /// this device can run the models and a pack is installed.
+  PopupMenuItem<String>? _findSpeciesMenuItem(
+    BuildContext context, {
+    double? iconSize,
+  }) {
+    if (!ref.read(speciesBatchAvailableProvider)) return null;
+    return PopupMenuItem(
+      value: 'find_species',
+      child: Row(
+        children: [
+          Icon(Icons.travel_explore_outlined, size: iconSize),
+          const SizedBox(width: 12),
+          Flexible(child: Text(context.l10n.speciesBatch_findInLogbook)),
+        ],
+      ),
     );
   }
 
@@ -2075,6 +2105,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         ref,
         selected: () => _selectedIds.toSet(),
       ),
+      // Find species in the checked dives' photos and videos (#5127), where
+      // this device can run the models and a pack is installed.
+      if (ref.watch(speciesBatchAvailableProvider))
+        findSpeciesBulkAction(context, selected: () => _selectedIds.toSet()),
       // Logbook rules on the checked dives, previewed first (#3513). Last,
       // so the existing inline actions keep their places.
       rulesBulkAction(
