@@ -14,11 +14,15 @@ final speciesRepositoryProvider = Provider<SpeciesRepository>((ref) {
 });
 
 /// All species provider
-final allSpeciesProvider = FutureProvider<List<Species>>((ref) async {
+final allSpeciesProvider = FutureProvider<List<Species>>(readAllSpecies);
+
+/// The body of [allSpeciesProvider], also read by the Identify viewer's scope
+/// (issue #5122), where it reads that session's stores.
+Future<List<Species>> readAllSpecies(Ref ref) async {
   final repository = ref.watch(speciesRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchSpeciesChanges());
   return repository.getAllSpecies();
-});
+}
 
 /// Species by category provider
 /// Sighting counts per species, so a list can tell which species the
@@ -55,14 +59,15 @@ final speciesSearchProvider = FutureProvider.family<List<Species>, String>((
 });
 
 /// Single species provider
-final speciesProvider = FutureProvider.family<Species?, String>((
-  ref,
-  id,
-) async {
+final speciesProvider = FutureProvider.family<Species?, String>(readSpecies);
+
+/// The body of [speciesProvider], also read by the Identify viewer's scope
+/// (issue #5122), where it reads that session's stores.
+Future<Species?> readSpecies(Ref ref, String id) async {
   final repository = ref.watch(speciesRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchSpeciesChanges());
   return repository.getSpeciesById(id);
-});
+}
 
 /// Sightings for a dive provider
 final diveSightingsProvider = FutureProvider.family<List<Sighting>, String>((

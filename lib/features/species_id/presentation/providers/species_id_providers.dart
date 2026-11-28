@@ -463,64 +463,84 @@ Future<IdentificationImage?> identificationImageOf(
 /// What to offer for a photo, empty when the feature is off. Stored
 /// suggestions show whether or not a model is installed.
 final mediaSuggestionsProvider = FutureProvider.autoDispose
-    .family<List<SpeciesSuggestion>, String>((ref, mediaId) async {
-      if (!marineLifeLabelsShown) return const [];
-      final repository = ref.watch(mediaIdentificationRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchChanges());
-      ref.invalidateSelfWhen(repository.watchTagChanges());
-      final level = ref.watch(levelInForceProvider);
-      final chosen = ref.watch(namingLevelNotifierProvider);
-      return groupSuggestions(
-        await identificationsAtLevel(
-          repository,
-          mediaId,
-          level,
-          chosen: chosen,
-        ),
-        await repository.taggedSpecies(mediaId),
-      );
-    });
+    .family<List<SpeciesSuggestion>, String>(readMediaSuggestions);
+
+/// The body of [mediaSuggestionsProvider], also read by the Identify viewer's scope
+/// (issue #5122), where it reads that session's stores.
+Future<List<SpeciesSuggestion>> readMediaSuggestions(
+  Ref ref,
+  String mediaId,
+) async {
+  if (!marineLifeLabelsShown) return const [];
+  final repository = ref.watch(mediaIdentificationRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchChanges());
+  ref.invalidateSelfWhen(repository.watchTagChanges());
+  final level = ref.watch(levelInForceProvider);
+  final chosen = ref.watch(namingLevelNotifierProvider);
+  return groupSuggestions(
+    await identificationsAtLevel(repository, mediaId, level, chosen: chosen),
+    await repository.taggedSpecies(mediaId),
+  );
+}
 
 /// How far the scan of a video has got, 0 to 1, while it is being
 /// scanned; null otherwise (issue #4675).
 final mediaIdentificationProgressProvider = StreamProvider.autoDispose
-    .family<double?, String>((ref, mediaId) async* {
-      final service = ref.watch(mediaIdentificationServiceProvider);
-      yield service.progressOf(mediaId);
-      await for (final _ in service.watchActivity()) {
-        yield service.progressOf(mediaId);
-      }
-    });
+    .family<double?, String>(watchMediaIdentificationProgress);
+
+/// The body of [mediaIdentificationProgressProvider], also read by the Identify viewer's scope
+/// (issue #5122), where it reads that session's stores.
+Stream<double?> watchMediaIdentificationProgress(
+  Ref ref,
+  String mediaId,
+) async* {
+  final service = ref.watch(mediaIdentificationServiceProvider);
+  yield service.progressOf(mediaId);
+  await for (final _ in service.watchActivity()) {
+    yield service.progressOf(mediaId);
+  }
+}
 
 /// The animals followed through a video, for the labels over it (issue
 /// #4675). Empty when the feature is off.
 final videoTracksProvider = FutureProvider.autoDispose
-    .family<List<MediaIdentification>, String>((ref, mediaId) async {
-      if (!marineLifeLabelsShown) return const [];
-      final repository = ref.watch(mediaIdentificationRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchChanges());
-      final level = ref.watch(levelInForceProvider);
-      final chosen = ref.watch(namingLevelNotifierProvider);
-      return [
-        for (final i in await identificationsAtLevel(
-          repository,
-          mediaId,
-          level,
-          chosen: chosen,
-        ))
-          if (i.isTrack) i,
-      ];
-    });
+    .family<List<MediaIdentification>, String>(readVideoTracks);
+
+/// The body of [videoTracksProvider], also read by the Identify viewer's scope
+/// (issue #5122), where it reads that session's stores.
+Future<List<MediaIdentification>> readVideoTracks(
+  Ref ref,
+  String mediaId,
+) async {
+  if (!marineLifeLabelsShown) return const [];
+  final repository = ref.watch(mediaIdentificationRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchChanges());
+  final level = ref.watch(levelInForceProvider);
+  final chosen = ref.watch(namingLevelNotifierProvider);
+  return [
+    for (final i in await identificationsAtLevel(
+      repository,
+      mediaId,
+      level,
+      chosen: chosen,
+    ))
+      if (i.isTrack) i,
+  ];
+}
 
 /// Whether the photo is being analysed, or waiting to be.
 final mediaIdentificationBusyProvider = StreamProvider.autoDispose
-    .family<bool, String>((ref, mediaId) async* {
-      final service = ref.watch(mediaIdentificationServiceProvider);
-      yield service.isBusy(mediaId);
-      await for (final _ in service.watchActivity()) {
-        yield service.isBusy(mediaId);
-      }
-    });
+    .family<bool, String>(watchMediaIdentificationBusy);
+
+/// The body of [mediaIdentificationBusyProvider], also read by the Identify viewer's scope
+/// (issue #5122), where it reads that session's stores.
+Stream<bool> watchMediaIdentificationBusy(Ref ref, String mediaId) async* {
+  final service = ref.watch(mediaIdentificationServiceProvider);
+  yield service.isBusy(mediaId);
+  await for (final _ in service.watchActivity()) {
+    yield service.isBusy(mediaId);
+  }
+}
 
 /// Tags confident matches with no tap, when the setting is on (issue
 /// #4727).
@@ -558,46 +578,57 @@ final identificationCropProvider = FutureProvider.autoDispose
     .family<
       IdentificationCropImage?,
       (String mediaId, String identificationId)
-    >((ref, key) async {
-      final store = ref.watch(identificationCropStoreProvider);
-      final table = ref.watch(identificationCropRepositoryProvider);
-      ref.invalidateSelfWhen(store.watchChanges().where((id) => id == key.$1));
-      final crop = await store.read(key.$1, key.$2);
-      if (crop != null || !ref.mounted) return crop;
-      // A synced crop is written once, so only one still to come is waited
-      // for: a sync bringing other crops must not read this one again and
-      // have its picture decoded and drawn anew.
-      ref.invalidateSelfWhen(table.watchChanges());
-      // A video keeps only a few crops of each species (issue #5032): a
-      // dropped one shows the largest kept crop of its group instead.
-      final repository = ref.read(mediaIdentificationRepositoryProvider);
-      final rows = await _rowsWithoutPaths(repository, key.$1);
-      final row = rows.firstWhereOrNull((i) => i.id == key.$2);
-      if (row == null || !row.isTrack || !ref.mounted) return null;
-      // Its tags tell a track the diver accepted as another species, which
-      // falls back within that species, as the cap ranks it.
-      final tags = await repository.taggedSpecies(key.$1);
-      if (!ref.mounted) return null;
-      final present = await ref.watch(presentCropIdsProvider(key.$1).future);
-      final standIn = keptStandIn(rows, row, present, tags: tags);
-      if (standIn == null) return null;
-      return store.read(key.$1, standIn.id);
-    });
+    >(readIdentificationCrop);
+
+/// The body of [identificationCropProvider], also read by the Identify viewer's scope
+/// (issue #5122), where it reads that session's stores.
+Future<IdentificationCropImage?> readIdentificationCrop(
+  Ref ref,
+  (String mediaId, String identificationId) key,
+) async {
+  final store = ref.watch(identificationCropStoreProvider);
+  final table = ref.watch(identificationCropRepositoryProvider);
+  ref.invalidateSelfWhen(store.watchChanges().where((id) => id == key.$1));
+  final crop = await store.read(key.$1, key.$2);
+  if (crop != null || !ref.mounted) return crop;
+  // A synced crop is written once, so only one still to come is waited
+  // for: a sync bringing other crops must not read this one again and
+  // have its picture decoded and drawn anew.
+  ref.invalidateSelfWhen(table.watchChanges());
+  // A video keeps only a few crops of each species (issue #5032): a
+  // dropped one shows the largest kept crop of its group instead.
+  final repository = ref.read(mediaIdentificationRepositoryProvider);
+  final rows = await _rowsWithoutPaths(repository, key.$1);
+  final row = rows.firstWhereOrNull((i) => i.id == key.$2);
+  if (row == null || !row.isTrack || !ref.mounted) return null;
+  // Its tags tell a track the diver accepted as another species, which
+  // falls back within that species, as the cap ranks it.
+  final tags = await repository.taggedSpecies(key.$1);
+  if (!ref.mounted) return null;
+  final present = await ref.watch(presentCropIdsProvider(key.$1).future);
+  final standIn = keptStandIn(rows, row, present, tags: tags);
+  if (standIn == null) return null;
+  return store.read(key.$1, standIn.id);
+}
 
 /// The identifications of a media item that have a crop on this device, a
 /// file or a synced one (issue #5032): a video keeps only a few of each
 /// species.
 final presentCropIdsProvider = FutureProvider.autoDispose
-    .family<Set<String>, String>((ref, mediaId) async {
-      final store = ref.watch(identificationCropStoreProvider);
-      final repository = ref.watch(mediaIdentificationRepositoryProvider);
-      ref.invalidateSelfWhen(store.watchChanges().where((id) => id == mediaId));
-      ref.invalidateSelfWhen(
-        ref.watch(identificationCropRepositoryProvider).watchChanges(),
-      );
-      final rows = await _rowsWithoutPaths(repository, mediaId);
-      return store.presentAmong(mediaId, [for (final i in rows) i.id]);
-    });
+    .family<Set<String>, String>(readPresentCropIds);
+
+/// The body of [presentCropIdsProvider], also read by the Identify viewer's scope
+/// (issue #5122), where it reads that session's stores.
+Future<Set<String>> readPresentCropIds(Ref ref, String mediaId) async {
+  final store = ref.watch(identificationCropStoreProvider);
+  final repository = ref.watch(mediaIdentificationRepositoryProvider);
+  ref.invalidateSelfWhen(store.watchChanges().where((id) => id == mediaId));
+  ref.invalidateSelfWhen(
+    ref.watch(identificationCropRepositoryProvider).watchChanges(),
+  );
+  final rows = await _rowsWithoutPaths(repository, mediaId);
+  return store.presentAmong(mediaId, [for (final i in rows) i.id]);
+}
 
 /// [mediaId]'s identifications without their track paths, which only the
 /// labels over a playing video need.

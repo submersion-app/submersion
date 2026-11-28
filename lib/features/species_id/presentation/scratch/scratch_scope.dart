@@ -19,6 +19,7 @@ import 'package:submersion/features/species_id/data/services/identification_crop
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/data/services/memory_readout.dart';
 import 'package:submersion/features/species_id/data/services/suggestion_acceptor.dart';
+import 'package:submersion/features/species_id/presentation/providers/label_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 
 /// The overrides that point species identification at [session] instead of
@@ -27,7 +28,9 @@ import 'package:submersion/features/species_id/presentation/providers/species_id
 ///
 /// Every store a result, tag or species is written to is replaced here,
 /// and so is every service that writes. The providers the overlays read
-/// declare these in their `dependencies`, so they read the session too.
+/// are overridden too, with their own bodies: built in this scope, they
+/// read the session's stores. (Declaring `dependencies` on them instead
+/// would make every provider across the app that reads them throw.)
 /// Nothing applies automatically: a file not kept carries only what the
 /// diver chose.
 List<Override> scratchOverrides(ScratchSession session) => [
@@ -79,6 +82,21 @@ List<Override> scratchOverrides(ScratchSession session) => [
       deviceId: () async => null,
     ),
   ),
+  // What the overlays read, as they read it, from the stores above.
+  photoDetectionsProvider.overrideWith(readPhotoDetections),
+  videoScanStretchesProvider.overrideWith(readVideoScanStretches),
+  mediaAnalysisStatusProvider.overrideWith(readMediaAnalysisStatus),
+  mediaSuggestionsProvider.overrideWith(readMediaSuggestions),
+  mediaIdentificationProgressProvider.overrideWith(
+    watchMediaIdentificationProgress,
+  ),
+  videoTracksProvider.overrideWith(readVideoTracks),
+  mediaIdentificationBusyProvider.overrideWith(watchMediaIdentificationBusy),
+  identificationCropProvider.overrideWith(readIdentificationCrop),
+  presentCropIdsProvider.overrideWith(readPresentCropIds),
+  mediaTagChipsProvider.overrideWith(readMediaTagChips),
+  allSpeciesProvider.overrideWith(readAllSpecies),
+  speciesProvider.overrideWith(readSpecies),
   mediaIdentificationServiceProvider.overrideWith((ref) {
     final store = ref.watch(speciesPackStoreProvider);
     final identifications = ref.watch(mediaIdentificationRepositoryProvider);

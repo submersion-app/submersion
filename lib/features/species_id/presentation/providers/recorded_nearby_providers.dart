@@ -13,13 +13,18 @@ import 'package:submersion/features/species_id/domain/services/recorded_nearby.d
 import 'package:submersion/features/species_id/presentation/providers/dive_species_run_providers.dart';
 
 /// What a "Recorded nearby" list is read for: a dive, a photo's own
-/// position, or both. A Species to review row passes no photo.
-typedef NearbyListRequest = ({String? diveId, GeoPoint? photo});
+/// position, or both. A Species to review row passes no photo. [siteId] is
+/// the site media placed on no dive sits on (issue #5122), its only place
+/// when it has no position of its own.
+typedef NearbyListRequest = ({String? diveId, GeoPoint? photo, String? siteId});
 
 /// [item]'s request: its dive, and its own GPS when it has both
 /// coordinates, as naming reads a photo's position.
-NearbyListRequest nearbyRequestForMedia(MediaItem item) =>
-    (diveId: item.diveId, photo: mediaLocation(item));
+NearbyListRequest nearbyRequestForMedia(MediaItem item) => (
+  diveId: item.diveId,
+  photo: mediaLocation(item),
+  siteId: item.diveId == null ? item.siteId : null,
+);
 
 /// The "Recorded nearby" list a marine life suggestion is checked against
 /// (issue #4668): the site page's list for the place [nearbyListLocation]
@@ -49,9 +54,20 @@ final recordedNearbyListProvider = FutureProvider.autoDispose
       }
       // A dive that is gone has no site and no entry.
       final known = place != null && place.exists;
+      // Media on a site and no dive: that site's point (issue #5122).
+      GeoPoint? ownSite;
+      final siteId = request.siteId;
+      if (diveId == null && siteId != null) {
+        ref.invalidateSelfWhen(
+          ref.read(siteRepositoryProvider).watchSitesChanges(),
+        );
+        ownSite = (await ref.read(siteRepositoryProvider).getSiteById(siteId))
+            ?.location;
+        if (!ref.mounted) return null;
+      }
       final photo = request.photo;
       final point = nearbyListLocation(
-        site: known ? place.site : null,
+        site: known ? place.site : ownSite,
         // Photos a few metres apart read one list: the cache keeps one per
         // ~110 m cell anyway.
         photo: photo == null ? null : ReefCoordinateKey.quantize(photo),

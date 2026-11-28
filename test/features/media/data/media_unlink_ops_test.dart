@@ -105,24 +105,22 @@ void main() {
     await repo.unlinkFromSite(const []);
   });
 
-  test(
-    'getSweepableOrphanIds ignores a legacy retain_in_library flag',
-    () async {
-      await repo.createMedia(item('sweep-me'));
-      await repo.createMedia(item('legacy-kept'));
-      // A row a pre-upgrade build latched: the flag no longer protects it.
-      await db.customStatement(
-        'UPDATE media SET retain_in_library = 1, created_at = 0 WHERE id = ?',
-        ['legacy-kept'],
-      );
-      await db.customStatement('UPDATE media SET created_at = 0 WHERE id = ?', [
-        'sweep-me',
-      ]);
+  test('getSweepableOrphanIds spares a row kept with retain_in_library '
+      '(issue #5122)', () async {
+    await repo.createMedia(item('sweep-me'));
+    await repo.createMedia(item('legacy-kept'));
+    // Media the diver kept with no place: the flag protects it again.
+    await db.customStatement(
+      'UPDATE media SET retain_in_library = 1, created_at = 0 WHERE id = ?',
+      ['legacy-kept'],
+    );
+    await db.customStatement('UPDATE media SET created_at = 0 WHERE id = ?', [
+      'sweep-me',
+    ]);
 
-      final ids = await repo.getSweepableOrphanIds(
-        olderThan: DateTime(2026, 1, 1),
-      );
-      expect(ids.toSet(), {'sweep-me', 'legacy-kept'});
-    },
-  );
+    final ids = await repo.getSweepableOrphanIds(
+      olderThan: DateTime(2026, 1, 1),
+    );
+    expect(ids.toSet(), {'sweep-me'});
+  });
 }
