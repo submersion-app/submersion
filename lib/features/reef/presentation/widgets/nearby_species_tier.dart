@@ -10,6 +10,7 @@ import 'package:submersion/features/marine_life/presentation/widgets/species_act
 import 'package:submersion/features/marine_life/presentation/widgets/species_lookup_sheet.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
+import 'package:submersion/features/marine_life/presentation/utils/reveal_collapsed_toggle.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
@@ -59,6 +60,9 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
   static const int _collapsedLimit = 12;
 
   bool _expanded = false;
+
+  /// The Show all / Show fewer button, brought back into view on Show fewer.
+  final GlobalKey _toggleKey = GlobalKey();
 
   /// GBIF names with a lookup in flight. The lookup is a network call, so a
   /// second tap on the same chip lands long before the first has created
@@ -137,7 +141,12 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: () => setState(() => _expanded = !_expanded),
+              key: _toggleKey,
+              onPressed: () {
+                final collapsing = _expanded;
+                setState(() => _expanded = !_expanded);
+                if (collapsing) revealCollapsedToggle(_toggleKey);
+              },
               child: Text(
                 _expanded
                     ? context.l10n.reef_species_showFewer

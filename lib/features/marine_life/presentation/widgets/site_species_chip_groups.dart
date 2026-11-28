@@ -1,11 +1,11 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
+import 'package:submersion/features/marine_life/presentation/utils/reveal_collapsed_toggle.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -61,30 +61,17 @@ class _SiteSpeciesChipGroupsState extends State<SiteSpeciesChipGroups> {
   void _toggle() {
     final collapsing = _expanded;
     setState(() => _expanded = !_expanded);
-    if (collapsing) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _revealToggle());
-    }
+    if (collapsing) revealCollapsedToggle(_toggleKey);
   }
 
-  /// Show fewer at the foot of a long list takes away what was above the
-  /// reader, leaving the page scrolled past the card. When the button has
-  /// gone above the viewport, it is brought to the viewport's foot, with
-  /// the shortened list above it.
-  void _revealToggle() {
-    if (!mounted) return;
-    final toggle = _toggleKey.currentContext?.findRenderObject();
-    final position = _toggleKey.currentContext == null
-        ? null
-        : Scrollable.maybeOf(_toggleKey.currentContext!)?.position;
-    if (toggle == null || position == null) return;
-    final viewport = RenderAbstractViewport.maybeOf(toggle);
-    if (viewport == null) return;
-    final atTop = viewport.getOffsetToReveal(toggle, 0).offset;
-    if (position.pixels <= atTop) return;
-    final atFoot = viewport.getOffsetToReveal(toggle, 1).offset;
-    position.jumpTo(
-      atFoot.clamp(position.minScrollExtent, position.maxScrollExtent),
-    );
+  @override
+  void didUpdateWidget(SiteSpeciesChipGroups oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A list that fits loses its toggle, and with it the expanded state, so
+    // one that grows long again opens collapsed.
+    if (widget.species.length <= SiteSpeciesChipGroups.collapsedLimit) {
+      _expanded = false;
+    }
   }
 
   @override

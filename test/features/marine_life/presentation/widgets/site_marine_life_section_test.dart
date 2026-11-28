@@ -621,6 +621,81 @@ void main() {
       expect(toggle.bottom, lessThanOrEqualTo(600));
     });
 
+    testWidgets('again once it has shrunk to 12 or fewer and grown back', (
+      tester,
+    ) async {
+      final expected = ValueNotifier(expectedFish(20));
+      addTearDown(expected.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+            siteSpottedSpeciesProvider(
+              'site-1',
+            ).overrideWith((ref) async => const []),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: ValueListenableBuilder<List<SiteSpeciesEntry>>(
+                  valueListenable: expected,
+                  builder: (_, species, _) =>
+                      SiteMarineLifeSection(siteId: 'site-1', species: species),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final showAll = find.text(l.marineLife_speciesDetail_showAll(20));
+      await tester.ensureVisible(showAll);
+      await tester.tap(showAll);
+      await tester.pumpAndSettle();
+
+      expected.value = expectedFish(10);
+      await tester.pumpAndSettle();
+      expected.value = expectedFish(20);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Fish 19'), findsNothing);
+      expect(find.text(l.marineLife_speciesDetail_showAll(20)), findsOneWidget);
+    });
+
+    testWidgets('Recorded nearby: Show fewer at its foot keeps it in view', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await pump(
+        tester,
+        nearby: NearbySpecies(
+          matched: const [],
+          unmatchedNames: [for (var i = 0; i < 80; i++) 'Genus species$i'],
+        ),
+        below: 3000,
+      );
+
+      final showAll = find.text(l.reef_species_showAll(80));
+      await tester.ensureVisible(showAll);
+      await tester.tap(showAll);
+      await tester.pumpAndSettle();
+      final showFewer = find.text(l.reef_species_showFewer);
+      await tester.ensureVisible(showFewer);
+      await tester.pumpAndSettle();
+      await tester.tap(showFewer);
+      await tester.pumpAndSettle();
+
+      final toggle = tester.getRect(find.text(l.reef_species_showAll(80)));
+      expect(toggle.top, greaterThanOrEqualTo(0));
+      expect(toggle.bottom, lessThanOrEqualTo(600));
+    });
+
     testWidgets('again when another site opens in the same card', (
       tester,
     ) async {
