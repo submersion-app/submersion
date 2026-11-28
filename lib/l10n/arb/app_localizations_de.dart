@@ -24534,6 +24534,19 @@ class AppLocalizationsDe extends AppLocalizations {
       'Bibliothek wiederhergestellt';
 
   @override
+  String sharedLibrary_backups_restoreDocumentsMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Bibliothek wiederhergestellt. $count geteilte Dokumente konnten nicht wiederhergestellt werden, weil ihre Seiten nicht mehr im Speicher sind.',
+      one:
+          'Bibliothek wiederhergestellt. $count geteiltes Dokument konnte nicht wiederhergestellt werden, weil seine Seiten nicht mehr im Speicher sind.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get sharedLibrary_backups_oldKey =>
       'Dieses Backup wurde mit einer früheren Passphrase versiegelt. Gib diese Passphrase oder den damaligen Wiederherstellungscode ein.';
 

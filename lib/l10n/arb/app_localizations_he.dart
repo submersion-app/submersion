@@ -24032,6 +24032,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get sharedLibrary_backups_restoreDone => 'הספרייה שוחזרה';
 
   @override
+  String sharedLibrary_backups_restoreDocumentsMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'הספרייה שוחזרה. לא ניתן היה לשחזר $count מסמכים משותפים: הדפים שלהם כבר אינם באחסון.',
+      one:
+          'הספרייה שוחזרה. לא ניתן היה לשחזר מסמך משותף אחד: הדפים שלו כבר אינם באחסון.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get sharedLibrary_backups_oldKey =>
       'הגיבוי הזה נחתם במשפט סיסמה קודם. הזינו את משפט הסיסמה ההוא או את קוד השחזור מאותה עת.';
 

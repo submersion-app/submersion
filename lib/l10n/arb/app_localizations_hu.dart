@@ -24465,6 +24465,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get sharedLibrary_backups_restoreDone => 'A könyvtár visszaállítva';
 
   @override
+  String sharedLibrary_backups_restoreDocumentsMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'A könyvtár visszaállítva. $count megosztott dokumentumot nem sikerült visszaállítani: az oldalaik már nincsenek a tárhelyen.',
+      one:
+          'A könyvtár visszaállítva. $count megosztott dokumentumot nem sikerült visszaállítani: az oldalai már nincsenek a tárhelyen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get sharedLibrary_backups_oldKey =>
       'Ezt a mentést egy korábbi jelmondattal pecsételték le. Add meg azt a jelmondatot vagy az akkori helyreállítási kódot.';
 

@@ -172,6 +172,43 @@ void main() {
     expect((await documentForms()).values, everyElement(isFalse));
   });
 
+  /// Whether backup b1's page list (the fake keys files by name) is sealed.
+  Future<bool> pageListSealed() async =>
+      LibraryCipher.isSealed(await cloud.downloadFile('b1.pages.json'));
+
+  test("turning encryption on and off rewrites the backups' page lists, "
+      'which page collection reads', () async {
+    await folder().writeBackupPages('b1', ['f1']);
+    expect(await pageListSealed(), isFalse);
+    await encryption.turnOn(
+      libraryId: lib.id,
+      diverId: 'd1',
+      passphrase: 'correct horse battery',
+    );
+    expect(await pageListSealed(), isTrue);
+    await encryption.turnOff(libraryId: lib.id, diverId: 'd1');
+    expect(await pageListSealed(), isFalse);
+  });
+
+  test("an owner finishing a cut-short rewrite seals the backups' page "
+      'lists too', () async {
+    await encryption.turnOn(
+      libraryId: lib.id,
+      diverId: 'd1',
+      passphrase: 'correct horse battery',
+    );
+    // Written plain, as by a rewrite cut short before it reached the list.
+    await folder().writeBackupPages('b1', ['f1']);
+    final manifest = (await folder().readManifest())!;
+    await folder().writeManifest({
+      ...manifest,
+      SharedLibraryLayout.rewritingFlag: true,
+    });
+    final r = await syncer().sync(lib.id, diverId: 'd1');
+    expect(r.status, SharedLibrarySyncStatus.success);
+    expect(await pageListSealed(), isTrue);
+  });
+
   test('a document file left plain in an encrypted library is sealed by '
       "an editor's sync", () async {
     await diver('d2');

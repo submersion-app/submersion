@@ -6862,6 +6862,7 @@
     }
   },
   "sharedLibrary_backups_restoreDone": "Libreria ripristinata",
+  "sharedLibrary_backups_restoreDocumentsMissing": "{count, plural, one{Libreria ripristinata. {count} documento condiviso non è stato ripristinato: le sue pagine non sono più nello spazio di archiviazione.} other{Libreria ripristinata. {count} documenti condivisi non sono stati ripristinati: le loro pagine non sono più nello spazio di archiviazione.}}",
   "sharedLibrary_backups_oldKey": "Questo backup è stato sigillato con una passphrase precedente. Inserisci quella passphrase o il codice di recupero di allora.",
   "sharedLibrary_backups_empty": "Ancora nessun backup. I dispositivi dei proprietari ne creano uno ogni giorno, ed Esegui backup ora ne crea uno subito.",
   "sharedLibrary_backups_importRefused": "Questo file non è un backup di questa libreria.",

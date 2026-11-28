@@ -297,6 +297,46 @@ void main() {
     ]);
   });
 
+  test("a page another library's document holds is never taken for this "
+      'one', () async {
+    await db.customStatement(
+      'INSERT INTO dive_sites (id, name, created_at, updated_at, '
+      "shared_library_id) VALUES ('s2', 'Wreck', 0, 0, 'M')",
+    );
+    await bridge.apply(
+      incoming(),
+      libraryId: 'L',
+      vocabularyDiverId: 'd1',
+      pageBytesByFileId: {
+        'f1': Uint8List.fromList([7, 8, 9]),
+      },
+    );
+    // A record of library M naming the file id of library L's page.
+    final page = (incoming().fields['pages']! as List).single as Map;
+    final elsewhere = LibraryDocumentRecord(
+      id: 'doc2',
+      siteId: 's2',
+      fields: {
+        ...incoming().fields,
+        'pages': [
+          {...page, 'id': 'p2'},
+        ],
+      },
+      clocks: {'title': c(5)},
+    );
+    expect(await bridge.heldPageFileIds(libraryId: 'M'), isEmpty);
+    await expectLater(
+      bridge.apply(
+        elsewhere,
+        libraryId: 'M',
+        vocabularyDiverId: 'd1',
+        pageBytesByFileId: const {},
+      ),
+      throwsStateError,
+    );
+    expect(await DocumentRepository().getById('doc2'), isNull);
+  });
+
   group('mayAdopt', () {
     test('a new id, or a row of this library, may be written', () async {
       expect(await bridge.mayAdopt(incoming(), 'L'), isTrue);

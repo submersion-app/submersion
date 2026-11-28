@@ -24207,6 +24207,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sharedLibrary_backups_restoreDone => 'Library restored';
 
   @override
+  String sharedLibrary_backups_restoreDocumentsMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Library restored. $count shared documents could not be restored: their pages are no longer in storage.',
+      one:
+          'Library restored. $count shared document could not be restored: its pages are no longer in storage.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get sharedLibrary_backups_oldKey =>
       'This backup was sealed with an earlier passphrase. Enter that passphrase or the recovery code from that time.';
 

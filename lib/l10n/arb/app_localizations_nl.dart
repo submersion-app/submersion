@@ -24419,6 +24419,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get sharedLibrary_backups_restoreDone => 'Bibliotheek hersteld';
 
   @override
+  String sharedLibrary_backups_restoreDocumentsMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Bibliotheek hersteld. $count gedeelde documenten konden niet worden hersteld: de pagina\'s staan niet meer in de opslag.',
+      one:
+          'Bibliotheek hersteld. $count gedeeld document kon niet worden hersteld: de pagina\'s staan niet meer in de opslag.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get sharedLibrary_backups_oldKey =>
       'Deze back-up is verzegeld met een eerdere wachtwoordzin. Voer die wachtwoordzin of de herstelcode van toen in.';
 

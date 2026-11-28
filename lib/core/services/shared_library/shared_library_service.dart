@@ -114,6 +114,11 @@ class SharedLibraryService {
   final _log = LoggerService.forClass(SharedLibraryService);
   final _gates = <String, Future<void>>{};
 
+  /// The page files each shared document record names, by library and
+  /// storage file, with the version of the file they were read from (issue
+  /// #4713): page collection re-reads only the records that changed.
+  final _documentPageRefs = <String, ({String version, Set<String> fileIds})>{};
+
   static Future<void> _removeRow({
     required String siteId,
     required String ownerDiverId,
@@ -700,6 +705,8 @@ class SharedLibraryService {
     final files = {
       ...await t.sealableFiles(),
       if (index != null) index.key: index.value,
+      // The backups' page lists too (issue #4713).
+      ...await t.backupPageListFiles(),
     };
     // Every file this device can open is rewritten; one under a key it
     // lacks leaves the flag for an owner who holds it.

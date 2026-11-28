@@ -6987,6 +6987,7 @@
     }
   },
   "sharedLibrary_backups_restoreDone": "Biblioteca restaurada",
+  "sharedLibrary_backups_restoreDocumentsMissing": "{count, plural, one{Biblioteca restaurada. {count} documento partilhado não pôde ser restaurado: as suas páginas já não estão no armazenamento.} other{Biblioteca restaurada. {count} documentos partilhados não puderam ser restaurados: as suas páginas já não estão no armazenamento.}}",
   "sharedLibrary_backups_oldKey": "Esta cópia foi selada com uma frase-passe anterior. Introduza essa frase-passe ou o código de recuperação dessa altura.",
   "sharedLibrary_backups_empty": "Ainda não há cópias. Os dispositivos dos proprietários fazem uma por dia, e Fazer cópia agora faz uma de imediato.",
   "sharedLibrary_backups_importRefused": "Esse ficheiro não é uma cópia desta biblioteca.",

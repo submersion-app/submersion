@@ -23643,6 +23643,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sharedLibrary_backups_restoreDone => 'ライブラリを復元しました';
 
   @override
+  String sharedLibrary_backups_restoreDocumentsMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ライブラリを復元しました。共有ドキュメント$count件を復元できませんでした。ページがストレージに残っていません。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get sharedLibrary_backups_oldKey =>
       'このバックアップは以前のパスフレーズで保護されています。そのパスフレーズか、当時のリカバリーコードを入力してください。';
 

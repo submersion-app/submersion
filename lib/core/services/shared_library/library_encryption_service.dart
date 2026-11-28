@@ -254,6 +254,8 @@ class LibraryEncryptionService {
     final files = {
       ...await t.sealableFiles(),
       if (index != null) index.key: index.value,
+      // The backups' page lists too (issue #4713).
+      ...await t.backupPageListFiles(),
     };
     var done = 0;
     for (final e in files.entries) {

@@ -316,7 +316,13 @@ extension _DocumentSync on SharedLibraryService {
     if (fields.isNotEmpty) {
       final Map<String, Uint8List> bytes;
       if (fields.contains('pages')) {
-        final fetched = await _fetchPages(t, pageFiles, id, merged.pageRefs);
+        final fetched = await _fetchPages(
+          t,
+          pageFiles,
+          libraryId,
+          id,
+          merged.pageRefs,
+        );
         // Not every page could be fetched: nothing shows half a document.
         // The stamp is not recorded, so the next sync reads it again.
         if (fetched == null) return null;
@@ -350,10 +356,12 @@ extension _DocumentSync on SharedLibraryService {
   Future<Map<String, Uint8List>?> _fetchPages(
     SharedLibraryTransport t,
     _PageFiles pageFiles,
+    String libraryId,
     String documentId,
     List<LibraryPageRef> refs,
   ) async {
-    final held = await _documentBridge.heldPageFileIds();
+    // Only this library's: another library's page is never taken for it.
+    final held = await _documentBridge.heldPageFileIds(libraryId: libraryId);
     final out = <String, Uint8List>{};
     for (final ref in refs) {
       if (held.contains(ref.fileId)) continue;
@@ -433,7 +441,10 @@ extension _DocumentSync on SharedLibraryService {
         if (!doc.deleted) {
           for (final ref in doc.pageRefs) {
             if (stored.contains(ref.fileId)) continue;
-            final bytes = await _documentBridge.heldPageBytes(ref.fileId);
+            final bytes = await _documentBridge.heldPageBytes(
+              ref.fileId,
+              libraryId: libraryId,
+            );
             if (bytes == null) {
               pagesThere = false;
               break;
@@ -575,22 +586,22 @@ extension _DocumentSync on SharedLibraryService {
           f,
     ];
     if (candidates.isEmpty) return;
-    final referenced = <String>{...await _retainedPageFileIds(t)};
+    final referenced = <String>{};
     for (final f in documentFiles) {
-      try {
-        final doc = await t.readDocument(f.id);
-        if (doc.deleted) continue;
-        referenced.addAll(doc.pageRefs.map((r) => r.fileId));
-      } catch (e) {
-        if (!SharedLibraryTransport.isUnreadable(e)) rethrow;
-        // A record this device cannot read may name any file: keep them all.
-        return;
-      }
+      final named = await _pageFileIdsNamedBy(t, libraryId, f);
+      // A record this device cannot read may name any file: keep them all.
+      if (named == null) return;
+      referenced.addAll(named);
     }
-    for (final f in candidates) {
-      if (referenced.contains(SharedLibraryTransport.pageFileIdOf(f))) {
-        continue;
-      }
+    final unreferenced = [
+      for (final f in candidates)
+        if (!referenced.contains(SharedLibraryTransport.pageFileIdOf(f))) f,
+    ];
+    // The backups are read only for a file no record names.
+    if (unreferenced.isEmpty) return;
+    final retained = await _retainedPageFileIds(t);
+    for (final f in unreferenced) {
+      if (retained.contains(SharedLibraryTransport.pageFileIdOf(f))) continue;
       try {
         await t.deletePageFile(f.id);
       } catch (e) {
@@ -598,5 +609,33 @@ extension _DocumentSync on SharedLibraryService {
         return;
       }
     }
+  }
+
+  /// The page files the document record [f] names (none for a tombstone),
+  /// read once per version of the file and remembered; null when it cannot
+  /// be read. A version is the file's modified time and size, which a
+  /// rewrite changes.
+  Future<Set<String>?> _pageFileIdsNamedBy(
+    SharedLibraryTransport t,
+    String libraryId,
+    CloudFileInfo f,
+  ) async {
+    final key = '$libraryId\n${f.id}';
+    final version =
+        '${f.modifiedTime.toUtc().toIso8601String()} ${f.sizeBytes}';
+    final known = _documentPageRefs[key];
+    if (known != null && known.version == version) return known.fileIds;
+    final LibraryDocumentRecord doc;
+    try {
+      doc = await t.readDocument(f.id);
+    } catch (e) {
+      if (!SharedLibraryTransport.isUnreadable(e)) rethrow;
+      return null;
+    }
+    final named = doc.deleted
+        ? const <String>{}
+        : {for (final r in doc.pageRefs) r.fileId};
+    _documentPageRefs[key] = (version: version, fileIds: named);
+    return named;
   }
 }

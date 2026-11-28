@@ -6987,6 +6987,7 @@
     }
   },
   "sharedLibrary_backups_restoreDone": "Bibliotheek hersteld",
+  "sharedLibrary_backups_restoreDocumentsMissing": "{count, plural, one{Bibliotheek hersteld. {count} gedeeld document kon niet worden hersteld: de pagina's staan niet meer in de opslag.} other{Bibliotheek hersteld. {count} gedeelde documenten konden niet worden hersteld: de pagina's staan niet meer in de opslag.}}",
   "sharedLibrary_backups_oldKey": "Deze back-up is verzegeld met een eerdere wachtwoordzin. Voer die wachtwoordzin of de herstelcode van toen in.",
   "sharedLibrary_backups_empty": "Nog geen back-ups. De apparaten van eigenaars maken er elke dag een, en Nu back-up maken maakt er meteen een.",
   "sharedLibrary_backups_importRefused": "Dat bestand is geen back-up van deze bibliotheek.",

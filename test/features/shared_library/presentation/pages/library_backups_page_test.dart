@@ -137,7 +137,7 @@ class _FakeBackups extends LibraryBackupService {
 }
 
 class _FakeRestore extends LibraryRestoreService {
-  _FakeRestore({this.oldKeyId})
+  _FakeRestore({this.oldKeyId, this.documentsMissing = 0})
     : super(
         store: SharedLibraryStore(),
         memberships: _noMemberships(),
@@ -146,6 +146,9 @@ class _FakeRestore extends LibraryRestoreService {
 
   /// When set, a restore without the old secret asks for it.
   final String? oldKeyId;
+
+  /// Shared documents the restore leaves out, their pages gone.
+  final int documentsMissing;
   final calls = <String>[];
 
   @override
@@ -159,7 +162,7 @@ class _FakeRestore extends LibraryRestoreService {
       throw BackupNeedsOldKeyError(oldKeyId!);
     }
     calls.add('restore:$backupId:${oldSecret ?? ''}');
-    return 0;
+    return documentsMissing;
   }
 }
 
@@ -302,6 +305,28 @@ void main() {
     expect(restore.calls, ['restore:b1:']);
     expect(_FakeSync.synced, ['L']);
     expect(find.text('Library restored'), findsOneWidget);
+  });
+
+  testWidgets('a restore that left shared documents out says how many', (
+    tester,
+  ) async {
+    final restore = _FakeRestore(documentsMissing: 2);
+    await tester.pumpWidget(
+      await _page(backups: _FakeBackups([_manual]), restore: restore),
+    );
+    await tester.pumpAndSettle();
+    await _openMenu(tester, 0, 'Restore');
+    await tester.tap(find.widgetWithText(FilledButton, 'Restore'));
+    await tester.pumpAndSettle();
+    expect(restore.calls, ['restore:b1:']);
+    expect(
+      find.text(
+        'Library restored. 2 shared documents could not be restored: their '
+        'pages are no longer in storage.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.text('Library restored'), findsNothing);
   });
 
   testWidgets('a backup under an earlier key asks for it and retries', (

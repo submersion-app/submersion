@@ -23288,6 +23288,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sharedLibrary_backups_restoreDone => '资料库已恢复';
 
   @override
+  String sharedLibrary_backups_restoreDocumentsMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '资料库已恢复。$count 个共享文档无法恢复：其页面已不在存储中。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get sharedLibrary_backups_oldKey => '此备份使用之前的口令加密。请输入那个口令或当时的恢复码。';
 
   @override

@@ -298,6 +298,55 @@ void main() {
     expect(left, isNot(contains('orphan')));
   });
 
+  test('GC reads an unchanged document record once, however many syncs '
+      'find an old page file it may not collect', () async {
+    final counting = _CountingCloud();
+    cloud = counting;
+    await seedTestLibrary(cloud);
+    await ownerShares();
+    // A document waiting for a site this device does not hold: its page is
+    // old and held nowhere here, and its record keeps it.
+    final t = transport();
+    await t.writePageFile('kept', Uint8List.fromList([9]));
+    await t.writeDocument(
+      LibraryDocumentRecord(
+        id: 'waiting',
+        siteId: 's9',
+        fields: {
+          'type': 'map',
+          'pages': [
+            {
+              'id': 'pw',
+              'pageIndex': 0,
+              'side': null,
+              'fileName': 'w.pdf',
+              'mimeType': 'application/pdf',
+              'sizeBytes': 1,
+              'fileId': 'kept',
+              'sha256': sha256Hex([9]),
+            },
+          ],
+        },
+      ),
+    );
+    final later = DateTime.now().add(const Duration(days: 31));
+    final a = await libraryDevice(
+      cloud,
+      'a',
+      file: fileOf('a'),
+      now: () => later,
+    );
+    await a.sync('L', diverId: 'd-a');
+    final afterFirst = counting.documentDownloads;
+    await a.sync('L', diverId: 'd-a');
+    await a.sync('L', diverId: 'd-a');
+    expect(counting.documentDownloads, afterFirst);
+    expect(
+      (await t.listPageFiles()).map(SharedLibraryTransport.pageFileIdOf),
+      contains('kept'),
+    );
+  });
+
   test('GC keeps an unreferenced page file younger than 30 days', () async {
     await seedTestLibrary(cloud);
     await ownerShares();
@@ -436,4 +485,15 @@ void main() {
     expect(doc.title, 'Access');
     expect(doc.owner.id, 's1');
   });
+}
+
+/// Counts the downloads of document records (the fake keys files by name).
+class _CountingCloud extends FakeCloudStorageProvider {
+  int documentDownloads = 0;
+
+  @override
+  Future<Uint8List> downloadFile(String fileId) {
+    if (fileId.startsWith('document-')) documentDownloads++;
+    return super.downloadFile(fileId);
+  }
 }

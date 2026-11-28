@@ -38657,6 +38657,12 @@ abstract class AppLocalizations {
   /// **'Library restored'**
   String get sharedLibrary_backups_restoreDone;
 
+  /// Snackbar after a shared site library restore that left out shared documents whose page files are gone; count is how many
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Library restored. {count} shared document could not be restored: its pages are no longer in storage.} other{Library restored. {count} shared documents could not be restored: their pages are no longer in storage.}}'**
+  String sharedLibrary_backups_restoreDocumentsMissing(int count);
+
   /// No description provided for @sharedLibrary_backups_oldKey.
   ///
   /// In en, this message translates to:

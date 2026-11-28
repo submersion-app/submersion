@@ -24558,6 +24558,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sharedLibrary_backups_restoreDone => 'Biblioteca restaurada';
 
   @override
+  String sharedLibrary_backups_restoreDocumentsMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Biblioteca restaurada. $count documentos partilhados não puderam ser restaurados: as suas páginas já não estão no armazenamento.',
+      one:
+          'Biblioteca restaurada. $count documento partilhado não pôde ser restaurado: as suas páginas já não estão no armazenamento.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get sharedLibrary_backups_oldKey =>
       'Esta cópia foi selada com uma frase-passe anterior. Introduza essa frase-passe ou o código de recuperação dessa altura.';
 

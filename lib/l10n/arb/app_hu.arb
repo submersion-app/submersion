@@ -6862,6 +6862,7 @@
     }
   },
   "sharedLibrary_backups_restoreDone": "A könyvtár visszaállítva",
+  "sharedLibrary_backups_restoreDocumentsMissing": "{count, plural, one{A könyvtár visszaállítva. {count} megosztott dokumentumot nem sikerült visszaállítani: az oldalai már nincsenek a tárhelyen.} other{A könyvtár visszaállítva. {count} megosztott dokumentumot nem sikerült visszaállítani: az oldalaik már nincsenek a tárhelyen.}}",
   "sharedLibrary_backups_oldKey": "Ezt a mentést egy korábbi jelmondattal pecsételték le. Add meg azt a jelmondatot vagy az akkori helyreállítási kódot.",
   "sharedLibrary_backups_empty": "Még nincs mentés. A tulajdonosok eszközei naponta készítenek egyet, a Mentés most pedig azonnal.",
   "sharedLibrary_backups_importRefused": "Ez a fájl nem ennek a könyvtárnak a mentése.",

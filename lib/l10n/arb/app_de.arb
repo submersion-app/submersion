@@ -7118,6 +7118,7 @@
     }
   },
   "sharedLibrary_backups_restoreDone": "Bibliothek wiederhergestellt",
+  "sharedLibrary_backups_restoreDocumentsMissing": "{count, plural, one{Bibliothek wiederhergestellt. {count} geteiltes Dokument konnte nicht wiederhergestellt werden, weil seine Seiten nicht mehr im Speicher sind.} other{Bibliothek wiederhergestellt. {count} geteilte Dokumente konnten nicht wiederhergestellt werden, weil ihre Seiten nicht mehr im Speicher sind.}}",
   "sharedLibrary_backups_oldKey": "Dieses Backup wurde mit einer früheren Passphrase versiegelt. Gib diese Passphrase oder den damaligen Wiederherstellungscode ein.",
   "sharedLibrary_backups_empty": "Noch keine Backups. Die Geräte der Eigentümer legen täglich eines an, und „Jetzt sichern“ legt sofort eines an.",
   "sharedLibrary_backups_importRefused": "Diese Datei ist kein Backup dieser Bibliothek.",

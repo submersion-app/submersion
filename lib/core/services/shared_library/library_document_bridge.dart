@@ -152,7 +152,7 @@ class LibraryDocumentBridge {
     final pageRefs = names.contains('pages') ? doc.pageRefs : null;
     final pageBytes = pageRefs == null
         ? const <String, Uint8List>{}
-        : await _bytesFor(doc.id, pageRefs, pageBytesByFileId);
+        : await _bytesFor(doc.id, libraryId, pageRefs, pageBytesByFileId);
     await _db.transaction(() async {
       final row = _scalarsOf(doc, names).copyWith(
         id: Value(doc.id),
@@ -213,12 +213,15 @@ class LibraryDocumentBridge {
 
   Future<Map<String, Uint8List>> _bytesFor(
     String documentId,
+    String libraryId,
     List<LibraryPageRef> refs,
     Map<String, Uint8List> incoming,
   ) async {
     final out = <String, Uint8List>{};
     for (final ref in refs) {
-      final bytes = incoming[ref.fileId] ?? await _heldBytes(ref.fileId);
+      final bytes =
+          incoming[ref.fileId] ??
+          await heldPageBytes(ref.fileId, libraryId: libraryId);
       if (bytes == null) {
         throw StateError('page file ${ref.fileId} of $documentId not held');
       }
@@ -227,12 +230,28 @@ class LibraryDocumentBridge {
     return out;
   }
 
-  Future<Uint8List?> _heldBytes(String fileId) => heldPageBytes(fileId);
-
-  /// The bytes of library file [fileId] as a local page holds them, or null.
-  Future<Uint8List?> heldPageBytes(String fileId) async => (await (_db.select(
-    _db.documentPages,
-  )..where((t) => t.libraryFileId.equals(fileId))).get()).firstOrNull?.bytes;
+  /// The bytes of library file [fileId] as a local page of a [libraryId]
+  /// document holds them, or null. Never another library's: a record of one
+  /// library naming another's file id must not take, or later upload, that
+  /// library's page.
+  Future<Uint8List?> heldPageBytes(
+    String fileId, {
+    required String libraryId,
+  }) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT p.bytes AS b FROM document_pages p '
+          'JOIN documents d ON d.id = p.document_id '
+          'WHERE p.library_file_id = ? AND d.shared_library_id = ? LIMIT 1',
+          variables: [
+            Variable.withString(fileId),
+            Variable.withString(libraryId),
+          ],
+          readsFrom: {_db.documentPages, _db.documents},
+        )
+        .get();
+    return rows.firstOrNull?.read<Uint8List>('b');
+  }
 
   /// Every library file whose bytes a local page of a shared document holds
   /// (of [libraryId] only, when given).

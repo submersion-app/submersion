@@ -7133,6 +7133,7 @@
     }
   },
   "sharedLibrary_backups_restoreDone": "资料库已恢复",
+  "sharedLibrary_backups_restoreDocumentsMissing": "{count, plural, other{资料库已恢复。{count} 个共享文档无法恢复：其页面已不在存储中。}}",
   "sharedLibrary_backups_oldKey": "此备份使用之前的口令加密。请输入那个口令或当时的恢复码。",
   "sharedLibrary_backups_empty": "尚无备份。所有者的设备每天创建一个，“立即备份”会马上创建一个。",
   "sharedLibrary_backups_importRefused": "该文件不是此资料库的备份。",

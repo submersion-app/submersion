@@ -159,7 +159,24 @@ extension SharedLibraryTransportDocuments on SharedLibraryTransport {
   /// of its own beside the backup: an older owner app rewrites the backup
   /// index with only the keys it knows, but never touches this.
   static String backupPagesFile(String backupId) =>
-      '${SharedLibraryLayout.backupsDir}/$backupId.pages.json';
+      '${SharedLibraryLayout.backupsDir}/$backupId$_pageListSuffix';
+
+  static const _pageListSuffix = '.pages.json';
+
+  /// Every backup's page list by path: rewritten with the backup index when
+  /// the library's encryption goes on, off or to a new key, so page
+  /// collection can always open them.
+  Future<Map<String, String>> backupPageListFiles() async {
+    final folder = await _backupsId();
+    return {
+      for (final f in await _provider.listFiles(folderId: folder))
+        if (f.name.split('/').last.endsWith(_pageListSuffix) &&
+            SharedLibraryTransport._directlyIn(folder, f))
+          '${SharedLibraryLayout.backupsDir}/'
+                  '${SharedLibraryTransport._base(f.id)}':
+              f.id,
+    };
+  }
 
   Future<void> writeBackupPages(String backupId, List<String> fileIds) =>
       writeOpened(

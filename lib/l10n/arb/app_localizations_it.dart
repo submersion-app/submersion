@@ -24565,6 +24565,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sharedLibrary_backups_restoreDone => 'Libreria ripristinata';
 
   @override
+  String sharedLibrary_backups_restoreDocumentsMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Libreria ripristinata. $count documenti condivisi non sono stati ripristinati: le loro pagine non sono più nello spazio di archiviazione.',
+      one:
+          'Libreria ripristinata. $count documento condiviso non è stato ripristinato: le sue pagine non sono più nello spazio di archiviazione.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get sharedLibrary_backups_oldKey =>
       'Questo backup è stato sigillato con una passphrase precedente. Inserisci quella passphrase o il codice di recupero di allora.';
 

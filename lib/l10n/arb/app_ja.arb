@@ -7208,6 +7208,7 @@
     }
   },
   "sharedLibrary_backups_restoreDone": "ライブラリを復元しました",
+  "sharedLibrary_backups_restoreDocumentsMissing": "{count, plural, other{ライブラリを復元しました。共有ドキュメント{count}件を復元できませんでした。ページがストレージに残っていません。}}",
   "sharedLibrary_backups_oldKey": "このバックアップは以前のパスフレーズで保護されています。そのパスフレーズか、当時のリカバリーコードを入力してください。",
   "sharedLibrary_backups_empty": "バックアップはまだありません。オーナーのデバイスが毎日1回作成し、「今すぐバックアップ」ですぐに作成できます。",
   "sharedLibrary_backups_importRefused": "このファイルはこのライブラリのバックアップではありません。",

@@ -24975,6 +24975,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sharedLibrary_backups_restoreDone => 'تمت استعادة المكتبة';
 
   @override
+  String sharedLibrary_backups_restoreDocumentsMissing(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'تمت استعادة المكتبة. تعذرت استعادة $count مستند مشترك: لم تعد صفحاتها في التخزين.',
+      many:
+          'تمت استعادة المكتبة. تعذرت استعادة $count مستندًا مشتركًا: لم تعد صفحاتها في التخزين.',
+      few:
+          'تمت استعادة المكتبة. تعذرت استعادة $count مستندات مشتركة: لم تعد صفحاتها في التخزين.',
+      two:
+          'تمت استعادة المكتبة. تعذرت استعادة مستندين مشتركين: لم تعد صفحاتهما في التخزين.',
+      one:
+          'تمت استعادة المكتبة. تعذرت استعادة مستند مشترك واحد: لم تعد صفحاته في التخزين.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get sharedLibrary_backups_oldKey =>
       'خُتمت هذه النسخة الاحتياطية بعبارة مرور سابقة. أدخل تلك العبارة أو رمز الاسترداد من ذلك الوقت.';
 

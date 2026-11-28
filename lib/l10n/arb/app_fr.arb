@@ -6862,6 +6862,7 @@
     }
   },
   "sharedLibrary_backups_restoreDone": "Bibliothèque restaurée",
+  "sharedLibrary_backups_restoreDocumentsMissing": "{count, plural, one{Bibliothèque restaurée. {count} document partagé n'a pas pu être restauré : ses pages ne sont plus dans le stockage.} other{Bibliothèque restaurée. {count} documents partagés n'ont pas pu être restaurés : leurs pages ne sont plus dans le stockage.}}",
   "sharedLibrary_backups_oldKey": "Cette sauvegarde a été scellée avec une ancienne phrase secrète. Saisissez cette phrase secrète ou le code de récupération de l'époque.",
   "sharedLibrary_backups_empty": "Aucune sauvegarde pour l'instant. Les appareils des propriétaires en font une chaque jour, et Sauvegarder maintenant en fait une tout de suite.",
   "sharedLibrary_backups_importRefused": "Ce fichier n'est pas une sauvegarde de cette bibliothèque.",

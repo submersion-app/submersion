@@ -6991,6 +6991,7 @@
     }
   },
   "sharedLibrary_backups_restoreDone": "הספרייה שוחזרה",
+  "sharedLibrary_backups_restoreDocumentsMissing": "{count, plural, one{הספרייה שוחזרה. לא ניתן היה לשחזר מסמך משותף אחד: הדפים שלו כבר אינם באחסון.} other{הספרייה שוחזרה. לא ניתן היה לשחזר {count} מסמכים משותפים: הדפים שלהם כבר אינם באחסון.}}",
   "sharedLibrary_backups_oldKey": "הגיבוי הזה נחתם במשפט סיסמה קודם. הזינו את משפט הסיסמה ההוא או את קוד השחזור מאותה עת.",
   "sharedLibrary_backups_empty": "אין עדיין גיבויים. מכשירי הבעלים יוצרים גיבוי בכל יום, ו״גיבוי עכשיו״ יוצר אחד מיד.",
   "sharedLibrary_backups_importRefused": "הקובץ הזה אינו גיבוי של הספרייה הזו.",
