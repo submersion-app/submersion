@@ -73,8 +73,11 @@ the role.
 6. **Resync pairs unordered tanks by identity, never by position alone.**
    The same test now places every file tank that carries no order
    (Shearwater Cloud, Subsurface), not just the Hydrotank's role: a tank
-   pairs with the stored cylinder its serial names, or the one its start
-   pressure identifies, or all pair in order when nothing contradicts. A
+   pairs first with the stored cylinder its serial names, and of the rest,
+   all pair in order when nothing contradicts, or a tank pairs with the one
+   cylinder its start pressure identifies. Gas switches are replaced only
+   on the cylinders a resync placed, so a cylinder it leaves as it was,
+   including one the file no longer reports, keeps its own. A
    file tank that names no stored cylinder while one is left unplaced
    writes nothing and adds nothing (the cylinder may be one the diver
    edited); with none left it is added, as before. The maintainer chose
