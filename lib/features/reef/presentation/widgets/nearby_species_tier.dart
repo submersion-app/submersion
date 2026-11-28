@@ -92,7 +92,7 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
         );
 
     if (part.status != ReefDataStatus.ok || part.value!.isEmpty) {
-      return const SizedBox.shrink();
+      return _nothingToShow();
     }
 
     // Sourced from the species provider rather than the bundled asset. A
@@ -102,9 +102,16 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
     final catalog = ref
         .watch(allSpeciesProvider)
         .maybeWhen(data: (species) => species, orElse: () => const <Species>[]);
-    if (catalog.isEmpty) return const SizedBox.shrink();
+    if (catalog.isEmpty) return _nothingToShow();
 
     return _buildTier(context, part.value!, {for (final s in catalog) s.id: s});
+  }
+
+  /// The tier draws nothing, and like a list that fits it drops its
+  /// expanded state, so records that empty and come back open collapsed.
+  Widget _nothingToShow() {
+    _expanded = false;
+    return const SizedBox.shrink();
   }
 
   Widget _buildTier(
@@ -122,7 +129,7 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
           _matchedChip(context, s),
       for (final name in species.unmatchedNames) _unmatchedChip(context, name),
     ];
-    if (chips.isEmpty) return const SizedBox.shrink();
+    if (chips.isEmpty) return _nothingToShow();
 
     final hidden = chips.length - _collapsedLimit;
     // A list that fits has no toggle and drops its expanded state with it,
