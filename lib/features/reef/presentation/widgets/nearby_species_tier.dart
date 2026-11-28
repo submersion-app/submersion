@@ -151,7 +151,7 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
         Wrap(spacing: 8, runSpacing: 4, children: visible),
         if (hidden > 0)
           Align(
-            alignment: Alignment.centerRight,
+            alignment: AlignmentDirectional.centerEnd,
             child: TextButton(
               key: _toggleKey,
               onPressed: () {

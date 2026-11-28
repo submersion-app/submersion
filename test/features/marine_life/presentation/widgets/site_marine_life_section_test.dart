@@ -113,6 +113,7 @@ void main() {
     GeoPoint? siteLocation = location,
     // The site page's other cards, below this one.
     double below = 0,
+    Locale locale = const Locale('en'),
   }) async {
     final repository = _RecordingSpeciesRepository();
     final router = GoRouter(
@@ -159,7 +160,7 @@ void main() {
           speciesRepositoryProvider.overrideWithValue(repository),
         ],
         child: MaterialApp.router(
-          locale: const Locale('en'),
+          locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routerConfig: router,
@@ -694,6 +695,27 @@ void main() {
       final toggle = tester.getRect(find.text(l.reef_species_showAll(80)));
       expect(toggle.top, greaterThanOrEqualTo(0));
       expect(toggle.bottom, lessThanOrEqualTo(600));
+    });
+
+    testWidgets('with every toggle at the same edge, right-to-left too', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        locale: const Locale('he'),
+        expected: expectedFish(14),
+        nearby: NearbySpecies(
+          matched: const [],
+          unmatchedNames: [for (var i = 0; i < 20; i++) 'Genus species$i'],
+        ),
+      );
+
+      final toggles = tester
+          .widgetList<TextButton>(find.byType(TextButton))
+          .map((b) => tester.getRect(find.byWidget(b)))
+          .toList();
+      expect(toggles, hasLength(2));
+      expect(toggles.first.left, toggles.last.left);
     });
 
     testWidgets('again when another site opens in the same card', (
