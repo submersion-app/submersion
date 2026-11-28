@@ -56,18 +56,21 @@ Future<void> runPopOutApp(PopOutLaunch launch) async {
       });
   final prefs = await SharedPreferences.getInstance();
   final channel = createPopOutWindows().channelNamed(launch.channel);
+  // Before the handler below can call it: an uninitialized window_manager
+  // asked about its window is a native crash.
+  await windowManager.ensureInitialized();
+  // Held from the start, so every close, the main window's included, runs
+  // the window's own close sequence (it lets go of the databases first).
+  await windowManager.setPreventClose(true);
+  windowManager.addListener(_PopOutWindowEvents(channel));
   // Registered before anything reports: the plugin drops calls from an
   // engine that has not registered on the channel, which would lose the
   // first focus report and, when the database cannot be reached, the
-  // close. The viewer's client takes the handler over once it runs. The
-  // close is held (below), so this runs the window's own close sequence.
+  // close. The viewer's client takes the handler over once it runs.
   channel.setHandler(startupMessageHandler(windowManager.close));
-  await windowManager.ensureInitialized();
 
   final connected = await _joinDatabases(channel);
   await _placeWindow(launch);
-  await windowManager.setPreventClose(true);
-  windowManager.addListener(_PopOutWindowEvents(channel));
 
   runApp(
     connected
