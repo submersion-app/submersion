@@ -48,9 +48,19 @@ class DiveHeroHeader extends ConsumerWidget {
   /// card is a button; when null the map is purely decorative.
   final VoidCallback? onSiteTap;
 
-  /// Drawn at the end of the title row, such as the header card's pencil
-  /// on a dive page that offers editing.
-  final Widget? titleTrailing;
+  /// Drawn at the top right of the card, after the rating and badges, such
+  /// as the header card's pencil on a dive page that offers editing. Every
+  /// other card's pencil sits at the far right of its title row, so this one
+  /// does too rather than following the name (issue #4888).
+  final Widget? trailing;
+
+  /// The size [trailing] takes; [Size.zero] while it draws nothing. It is
+  /// laid over the card's corner, so the rating/mode row keeps its width at
+  /// its end, clear of the rating and mode badge. Only the width: keeping
+  /// its height as well would make that row taller than its text and the
+  /// card grow on unlock. The type badges start below the row and its gap,
+  /// under the trailing widget, which is no taller than a title's line.
+  final Size trailingSize;
 
   const DiveHeroHeader({
     required this.dive,
@@ -61,7 +71,8 @@ class DiveHeroHeader extends ConsumerWidget {
     this.bottomTimeText,
     this.belowTitle,
     this.onSiteTap,
-    this.titleTrailing,
+    this.trailing,
+    this.trailingSize = Size.zero,
     super.key,
   });
 
@@ -88,6 +99,7 @@ class DiveHeroHeader extends ConsumerWidget {
     final hasLocation = siteLoc != null || hasGps;
     final colorScheme = Theme.of(context).colorScheme;
     final cardColor = Theme.of(context).cardColor;
+    final trailing = this.trailing;
     final diveTypesById = {
       for (final t
           in ref.watch(diveTypesProvider).value ?? const <DiveTypeEntity>[])
@@ -115,7 +127,7 @@ class DiveHeroHeader extends ConsumerWidget {
                 120.0,
                 280.0,
               );
-              return Row(
+              final header = Row(
                 children: [
                   CircleAvatar(
                     radius: 24,
@@ -156,7 +168,6 @@ class DiveHeroHeader extends ConsumerWidget {
                             // name it shows as (issue #2567).
                             if (dive.effectiveName == null && dive.site != null)
                               LibrarySiteBadge(site: dive.site!),
-                            ?titleTrailing,
                           ],
                         ),
                         ?belowTitle,
@@ -232,6 +243,12 @@ class DiveHeroHeader extends ConsumerWidget {
                             const SizedBox(width: 8),
                           ],
                           DiveModeBadge(mode: dive.diveMode),
+                          // Keeps the trailing widget's room at the end of
+                          // this row, where it is laid over the card's top
+                          // right corner (see below), so the two never
+                          // collide and only this row gives up width.
+                          if (trailing != null && trailingSize.width > 0)
+                            SizedBox(width: trailingSize.width),
                         ],
                       ),
                       if (visibleHeaderTypeIds.isNotEmpty) ...[
@@ -258,6 +275,19 @@ class DiveHeroHeader extends ConsumerWidget {
                       ],
                     ],
                   ),
+                ],
+              );
+              if (trailing == null) return header;
+              // Pinned to the top right like every other card's pencil,
+              // whatever the name's length and however the columns below it
+              // are centred. Laid over the header rather than given a column
+              // of its own, so the text lines keep their width (issue #4888).
+              return Stack(
+                children: [
+                  header,
+                  // At the end, where the row keeps its room: the left in
+                  // a right-to-left language.
+                  PositionedDirectional(top: 0, end: 0, child: trailing),
                 ],
               );
             },

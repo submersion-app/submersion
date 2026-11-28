@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/card_color.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/constants/profile_zoom_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
@@ -29,6 +30,7 @@ Widget _buildTestWidget(
       ...?overrides?.cast(),
     ],
     child: MaterialApp(
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: SectionAppearancePage(
@@ -1099,6 +1101,46 @@ void main() {
         ),
         findsOneWidget,
       );
+    });
+  });
+
+  // The Zoom choice (issue #5069) replaces the Keep overlays in view switch.
+  group('SectionAppearancePage - Zoom choice', () {
+    for (final width in [400.0, 800.0]) {
+      testWidgets('Dive Profile shows the Zoom choice and its three values '
+          'at ${width.toInt()} px', (tester) async {
+        await tester.binding.setSurfaceSize(Size(width, 4000));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        await tester.pumpWidget(_buildTestWidget('dives'));
+        await tester.pumpAndSettle();
+
+        final tile = find.byKey(const ValueKey('settings-profile-zoom'));
+        expect(tile, findsOneWidget);
+        expect(find.text('Both axes, magnify overlays'), findsOneWidget);
+        expect(find.text('Keep overlays in view when zooming'), findsNothing);
+
+        await tester.tap(tile);
+        await tester.pumpAndSettle();
+        expect(find.text('Both axes, keep overlays in view'), findsOneWidget);
+        expect(find.text('Time only'), findsOneWidget);
+      });
+    }
+
+    testWidgets('choosing Time only saves it', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final notifier = MockSettingsNotifier();
+      await tester.pumpWidget(_buildTestWidget('dives', notifier: notifier));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const ValueKey('settings-profile-zoom')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Time only'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.state.profileZoomTimeOnly, isTrue);
+      expect(notifier.state.profileZoomMode, ProfileZoomMode.timeOnly);
+      expect(find.text('Time only'), findsOneWidget);
     });
   });
 

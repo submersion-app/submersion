@@ -191,6 +191,48 @@ Set<(int, int)> _glitchReadings(Map<int, TankReadings> tankReadings) => {
       (entry.value.pointIndices[i], entry.key),
 };
 
+/// The start and end pressure of a cylinder whose source reported neither,
+/// derived from its pressure series [readings] with the end read at the
+/// moment the diver surfaced, or null when the series is empty.
+///
+/// A source with no header pressures leaves the importer to take them from
+/// the series, and the last reading of a series is not the end of the dive:
+/// a computer that keeps logging on the surface records the diver closing
+/// the valve and purging the regulator, and the series ends near 0 bar
+/// (issue #5000). The series' last clean reading stands in for a reported
+/// end pressure, so [trimEndPressureBar] treats it exactly as it treats a
+/// source that took its end pressure from the last sample: it is raised to
+/// the reading at surfacing, and never lowered.
+///
+/// Surfacing is placed from [depths], the dive's profile, as
+/// [lastTimeBelowSurfaceThreshold] places it. Signal dropouts and misreads
+/// are passed over at both ends, as [cleanSeriesEndpoints] passes them over.
+/// A profile that never went below the surface threshold, or a series with
+/// no reading at or before surfacing, gives the series' own endpoints.
+({double start, double end})? seriesEndpointsAtSurfacing(
+  List<PressureReading> readings, {
+  required Iterable<({int t, double depth})> depths,
+}) {
+  final clean = withoutPressureGlitches(readingsInTimeOrder(readings));
+  if (clean.isEmpty) return null;
+  final start = clean.first.bar;
+  final last = clean.last;
+  final surfacingTime = lastTimeBelowSurfaceThreshold(depths);
+  if (surfacingTime == null || last.t <= surfacingTime) {
+    return (start: start, end: last.bar);
+  }
+  final atSurfacing = clean.where((r) => r.t <= surfacingTime).lastOrNull;
+  if (atSurfacing == null) return (start: start, end: last.bar);
+  final end = trimEndPressureBar(
+    reportedBar: last.bar,
+    reading: SurfacingTankReading(
+      atSurfacing: atSurfacing.bar,
+      lastAfterSurfacing: last.bar,
+    ),
+  );
+  return (start: start, end: end!);
+}
+
 /// The end pressure to record for a cylinder, given what the source reported
 /// and what the profile read around surfacing.
 ///

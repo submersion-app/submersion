@@ -357,6 +357,13 @@ extension RungsFromV340 on AppDatabase {
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
 
+    // v389 (issue #5069): diver_settings.profile_zoom_time_only, the profile
+    // chart's Time only zoom choice. Nullable, no backfill, re-asserted in
+    // beforeOpen; the floor does not move. Numbered 389 because open work
+    // claims 388.
+    if (from < 389) await _assertProfileZoomTimeOnlyColumn();
+    if (from < 389) await reportProgress();
+
     // v392 (issue #5001): a country flags switch for dives, buddies and
     // trips, each seeded from show_country_flags, which now covers sites
     // only. The copy runs here and never in beforeOpen, which would undo a

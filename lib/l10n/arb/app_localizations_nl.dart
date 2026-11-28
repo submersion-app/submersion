@@ -9218,11 +9218,24 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'Flesdrukken';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'Overlays in beeld houden';
+  String get diveLog_chartOption_tooltipFollowsCursor => 'Tooltip volgt cursor';
 
   @override
-  String get diveLog_chartOption_tooltipFollowsCursor => 'Tooltip volgt cursor';
+  String get diveLog_chartOption_zoom => 'Zoom';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify =>
+      'Beide assen, overlays vergroten';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView =>
+      'Beide assen, overlays in beeld houden';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => 'Alleen tijd';
+
+  @override
+  String get diveLog_chartOption_rightAxis => 'Rechter as';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(gesch.)';
@@ -23823,8 +23836,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Overlays in beeld houden bij zoomen';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'Overlays zoals NDL en ppO2 aanpassen aan het zichtbare gebied in plaats van ze mee te vergroten met de diepteas';
+  String get settings_appearance_profileZoom => 'Zoom';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict =>
+      'Profielzoom: alleen tijd';
 
   @override
   String get settings_appearance_rightYAxisMetric => 'Metriek rechter Y-as';
@@ -43389,17 +43405,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'Piek $rate bij $range';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Gemiddeld $rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => 'Gemiddeld';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return 'gem. $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => 'Piek';
@@ -44179,6 +44195,86 @@ class AppLocalizationsNl extends AppLocalizations {
       one: '1 batterijcyclus',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_exposure_lastDivedLabel => 'Laatst gedoken';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => 'Duiken';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => 'Uren';
+
+  @override
+  String get equipmentCondition_exposure_today => 'Vandaag';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dagen geleden',
+      one: '$count dag geleden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count maanden geleden',
+      one: '$count maand geleden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count jaar geleden',
+      one: '$count jaar geleden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return 'Laatst gedoken: $ago, op $date';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12 maanden';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => 'Alle jaren';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken in de afgelopen 12 maanden',
+      one: '$count duik in de afgelopen 12 maanden',
+      zero: 'Geen duiken in de afgelopen 12 maanden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives, $hours';
   }
 
   @override
@@ -65776,7 +65872,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get info_equipment_exposure_summary =>
-      'Hoeveel dit item is gebruikt, geteld in elke eenheid die zijn onderhoudsklokken gebruiken.';
+      'Hoeveel dit item is gebruikt, geteld in elke eenheid die zijn onderhoudsklokken gebruiken. De grafiek telt de duiken per maand of per jaar, tot vandaag.';
 
   @override
   String get info_site_altitude_summary =>

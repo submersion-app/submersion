@@ -244,12 +244,20 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
   FlTitlesData _buildTitles(UnitFormatter units) {
     final textColor = Theme.of(context).colorScheme.onSurfaceVariant;
 
+    // Both axes run past the profile (5% each side in time, 10% below the
+    // deepest sample), so their ends fall just beside a grid value and
+    // labelling them printed two numbers over each other (issue #5056).
     return FlTitlesData(
       bottomTitles: AxisTitles(
         sideTitles: SideTitles(
           showTitles: true,
           reservedSize: 28,
+          minIncluded: false,
+          maxIncluded: false,
           getTitlesWidget: (value, meta) {
+            // The padding before the first sample is not dive time. Checked
+            // before truncating, which would turn -0.5 into 0:00.
+            if (value < 0) return const SizedBox.shrink();
             final seconds = value.toInt();
             final minutes = seconds ~/ 60;
             final secs = seconds % 60;
@@ -267,6 +275,9 @@ class _ProfileEditorChartState extends ConsumerState<ProfileEditorChart> {
         sideTitles: SideTitles(
           showTitles: true,
           reservedSize: 40,
+          // The axis minimum is the padded bottom. Its maximum, the surface,
+          // is a grid value and keeps its 0.
+          minIncluded: false,
           getTitlesWidget: (value, meta) {
             // Chart Y is negated; convert back to positive depth
             final depthDisplay = -value;
