@@ -19,10 +19,12 @@ class NestPartsSwitch extends ConsumerWidget {
     return SwitchListTile(
       key: const ValueKey('equipment_nest_parts'),
       value: on,
-      onChanged: (value) => applyEquipmentArrangement(
+      // Flips the stored value, not the rendered one: a second tap before
+      // the first has saved still sees the switch on, and must undo it.
+      onChanged: (_) => applyEquipmentArrangement(
         context,
         ref,
-        (current) => current.copyWith(nestParts: value),
+        (current) => current.copyWith(nestParts: !current.nestParts),
       ),
       title: Text(l10n.equipment_arrange_nestParts),
       subtitle: Text(l10n.equipment_arrange_nestPartsSubtitle),

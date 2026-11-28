@@ -528,6 +528,65 @@ void main() {
       expect(shown.length, lessThan(ids.length * ids.length));
     });
 
+    test('a sub-assembly shared within one rig folds under each parent', () {
+      final rig = item('rig', EquipmentType.rebreather);
+      final a = item('a', EquipmentType.other);
+      final b = item('b', EquipmentType.other);
+      final s = item('s', EquipmentType.other);
+      final p = item('p', EquipmentType.o2Cell);
+      final parts = tree(
+        [rig, a, b, s, p],
+        [
+          edge('rig', 'a', 0),
+          edge('rig', 'b', 1),
+          edge('a', 's', 0),
+          edge('b', 's', 0),
+          edge('s', 'p', 0),
+        ],
+      );
+      final groups = [
+        EquipmentGroup(type: EquipmentType.o2Cell, items: [p]),
+        EquipmentGroup(type: EquipmentType.other, items: [a, b, s]),
+        EquipmentGroup(type: EquipmentType.rebreather, items: [rig]),
+      ];
+      final open = layoutEquipmentRows(
+        groups: groups,
+        collapsed: const {},
+        parts: parts,
+      );
+      expect(nested(open), [
+        'T type:rebreather',
+        'A rig+',
+        'A   a+',
+        'A     s+',
+        'I       p',
+        'A   b+',
+        'A     s+',
+        'I       p',
+      ]);
+      // Every row has a stop of its own.
+      expect(
+        open.navStops.keys.toSet().length,
+        open.rows.whereType<EquipmentItemRow>().length + 1,
+      );
+
+      final folded = layoutEquipmentRows(
+        groups: groups,
+        collapsed: const {'asm:s'},
+        parts: parts,
+      );
+      final sRows = folded.rows
+          .whereType<EquipmentItemRow>()
+          .where((r) => r.item.id == 's')
+          .toList();
+      expect(sRows, hasLength(2));
+      for (final row in sRows) {
+        expect(row.foldKey, 'asm:s');
+        expect(row.isExpanded, isFalse);
+        expect(row.partCount, 1);
+      }
+    });
+
     test('every heading over a shared part counts it', () {
       final reg = item('reg', EquipmentType.regulator);
       final rb = item('rb', EquipmentType.rebreather);

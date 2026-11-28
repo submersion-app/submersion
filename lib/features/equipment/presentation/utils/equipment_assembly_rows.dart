@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_fold_keys.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
@@ -45,11 +47,58 @@ class AssemblyUnit {
       }
     }
     _topLevel = topLevel;
+    _inLoop = _loopMembers();
   }
 
   final EquipmentPartTree parts;
   final Map<String, EquipmentItem> itemsById;
   late final Set<String> _topLevel;
+  late final Set<String> _inLoop;
+
+  /// Whether [id] sits on a corrupt loop of parts in this unit: an item that
+  /// is, through its parts, a part of itself.
+  bool isInLoop(String id) => _inLoop.contains(id);
+
+  /// The items on a loop: every strongly connected component of the unit's
+  /// part graph with more than one item (Tarjan's algorithm). A part listed
+  /// as its own part is not a loop here, since [childrenOf] never lists an
+  /// item under itself.
+  Set<String> _loopMembers() {
+    final members = <String>{};
+    final index = <String, int>{};
+    final low = <String, int>{};
+    final stack = <String>[];
+    final onStack = <String>{};
+    var next = 0;
+    void connect(String id) {
+      index[id] = low[id] = next++;
+      stack.add(id);
+      onStack.add(id);
+      for (final child in parts.childrenOf(id)) {
+        if (child == id || !itemsById.containsKey(child)) continue;
+        if (!index.containsKey(child)) {
+          connect(child);
+          low[id] = math.min(low[id]!, low[child]!);
+        } else if (onStack.contains(child)) {
+          low[id] = math.min(low[id]!, index[child]!);
+        }
+      }
+      if (low[id] != index[id]) return;
+      final component = <String>[];
+      String member;
+      do {
+        member = stack.removeLast();
+        onStack.remove(member);
+        component.add(member);
+      } while (member != id);
+      if (component.length > 1) members.addAll(component);
+    }
+
+    for (final id in itemsById.keys) {
+      if (!index.containsKey(id)) connect(id);
+    }
+    return members;
+  }
 
   /// [group]'s items that stand at the top level, in the group's order.
   List<EquipmentItem> topLevelOf(EquipmentGroup group) => [
@@ -92,11 +141,12 @@ typedef AssemblyRowInfo = ({
 /// one keeps the item id.
 ///
 /// [walkedInRoot] holds the items whose parts this top-level walk has
-/// already listed. An item met again within it gets its row but no parts
-/// below it and no fold, so each item's parts are walked once per top-level
-/// rig: a part shared by two rigs still shows its parts under both, and a
-/// corrupt dense cycle costs one visit per item and edge instead of one per
-/// path.
+/// already listed. An item on a corrupt loop ([AssemblyUnit.isInLoop]) met
+/// again within it gets its row but no parts below it and no fold, so a
+/// dense loop costs one visit per item and edge instead of one per path.
+/// Any other item is walked in full wherever it appears: a sub-assembly
+/// shared by two assemblies of one rig folds, and lists its parts, under
+/// each.
 void walkAssembly(
   EquipmentItem item, {
   required AssemblyUnit unit,
@@ -115,7 +165,7 @@ void walkAssembly(
 }) {
   final firstInRoot = walkedInRoot.add(item.id);
   final below = {...path, item.id};
-  final children = firstInRoot
+  final children = firstInRoot || !unit.isInLoop(item.id)
       ? unit.childrenOf(item.id, below)
       : const <String>[];
   final foldKey = children.isEmpty ? null : assemblyFoldKey(item.id);

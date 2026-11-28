@@ -60,6 +60,22 @@ void main() {
     );
   });
 
+  testWidgets('a second tap before the first saves undoes it', (tester) async {
+    final s = settings()..holdWrites = true;
+    await pump(tester, s);
+    // Both taps land before either write has saved, so the switch still
+    // renders on for the second one.
+    await tester.tap(find.byType(SwitchListTile));
+    await tester.pump();
+    await tester.tap(find.byType(SwitchListTile));
+    await tester.pump();
+    while (s.heldWrites.isNotEmpty) {
+      s.heldWrites.removeAt(0).complete();
+      await tester.pumpAndSettle();
+    }
+    expect(s.stored?.nestParts, isTrue);
+  });
+
   testWidgets('a failed save says so', (tester) async {
     await pump(tester, settings(failWrite: true));
     await tester.tap(find.byType(SwitchListTile));
