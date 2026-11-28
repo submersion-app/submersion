@@ -8490,6 +8490,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'Remove';
 
   @override
+  String get diveLog_weight_side_label => 'Side';
+
+  @override
+  String get diveLog_weight_side_both => 'Both';
+
+  @override
+  String get diveLog_weight_side_left => 'Left';
+
+  @override
+  String get diveLog_weight_side_right => 'Right';
+
+  @override
   String diveLog_edit_tripSuggested(Object name) {
     return 'Suggested: $name';
   }
@@ -22789,6 +22801,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'Weight Calculator';
 
   @override
+  String get planning_card_trimCalculator_title => 'Trim Calculator';
+
+  @override
+  String get planning_card_trimCalculator_subtitle =>
+      'How your lead and gear balance you';
+
+  @override
   String get planning_info_disclaimer =>
       'These tools are for planning purposes only. Always verify calculations and follow your dive training.';
 
@@ -23386,6 +23405,330 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get buoyancy_minDitchable => 'Min ditchable weight';
+
+  @override
+  String get trim_card_caption =>
+      'For the safety-stop check, with the gas left then. The tilt pictures the pull, not an angle.';
+
+  @override
+  String get trim_card_openCalculator => 'Check trim';
+
+  @override
+  String get trim_calculator_changeDive => 'Change dive';
+
+  @override
+  String get trim_calculator_pickDive => 'Choose a dive';
+
+  @override
+  String get trim_calculator_searchDives => 'Search dives';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return 'No dives match \"$query\"';
+  }
+
+  @override
+  String get trim_calculator_noDives =>
+      'Log a dive to check its trim. The calculator opens on your latest dive.';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'This dive has no cylinders or exposure suit, so its trim can\'t be worked out. Choose another dive.';
+
+  @override
+  String get trim_calculator_diveMissing =>
+      'That dive is no longer in your log. Choose another dive.';
+
+  @override
+  String get trim_tryout_hint =>
+      'Drag a chip to move it. Tap a chip to change its side. Nothing here is saved.';
+
+  @override
+  String get trim_tryout_arms => 'Arms';
+
+  @override
+  String get trim_tryout_armsSides => 'At your sides';
+
+  @override
+  String get trim_tryout_armsAhead => 'Reaching ahead';
+
+  @override
+  String get trim_tryout_knees => 'Knees';
+
+  @override
+  String get trim_tryout_kneesStraight => 'Straight';
+
+  @override
+  String get trim_tryout_kneesBent => 'Bent 90 degrees';
+
+  @override
+  String get trim_tryout_tankHeight => 'Cylinder height';
+
+  @override
+  String get trim_tryout_tankUp => 'Up the band';
+
+  @override
+  String get trim_tryout_tankDown => 'Down the band';
+
+  @override
+  String get trim_tryout_tankAsLogged => 'As logged';
+
+  @override
+  String trim_tryout_tankShiftUp(String distance) {
+    return '$distance up';
+  }
+
+  @override
+  String trim_tryout_tankShiftDown(String distance) {
+    return '$distance down';
+  }
+
+  @override
+  String get trim_tryout_time => 'Time';
+
+  @override
+  String get trim_tryout_addTestItem => 'Add test item';
+
+  @override
+  String get trim_tryout_testName => 'Name';
+
+  @override
+  String get trim_tryout_nameRequired => 'Enter a name';
+
+  @override
+  String get trim_tryout_reset => 'Reset';
+
+  @override
+  String get trim_tryout_pieces => 'Pieces';
+
+  @override
+  String get trim_tryout_moveTo => 'Move to';
+
+  @override
+  String get trim_tryout_pieceMenu => 'Move or change side';
+
+  @override
+  String trim_tryout_testWeight(String unit) {
+    return 'Weight ($unit)';
+  }
+
+  @override
+  String trim_tryout_weightRange(String min, String max) {
+    return 'Enter a weight from $min to $max';
+  }
+
+  @override
+  String trim_tryout_timeLabel(String time, String depth) {
+    return '$time, $depth';
+  }
+
+  @override
+  String trim_tryout_moments(String pitch, String roll) {
+    return 'Pitch $pitch, roll $roll';
+  }
+
+  @override
+  String get trim_fixes_title => 'What would level you';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return 'Carry $weight less lead';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'Slide the cylinder $distance up the band';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'Slide the cylinder $distance down the band';
+  }
+
+  @override
+  String get trim_fix_lighterFins => 'Lighter fins, near neutral in the water';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return 'Heavier fins, about $weight a pair';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return 'Move $weight of lead from $from to $to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return 'Move $weight of lead from your left side to your right';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return 'Move $weight of lead from your right side to your left';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return 'Then: $verdict';
+  }
+
+  @override
+  String get trim_verdict_level => 'Level';
+
+  @override
+  String get trim_verdict_slightlyFeetHeavy => 'Slightly feet-heavy';
+
+  @override
+  String get trim_verdict_feetHeavy => 'Feet-heavy';
+
+  @override
+  String get trim_verdict_slightlyHeadHeavy => 'Slightly head-heavy';
+
+  @override
+  String get trim_verdict_headHeavy => 'Head-heavy';
+
+  @override
+  String get trim_roll_slightlyLeft => 'rolls slightly left';
+
+  @override
+  String get trim_roll_left => 'rolls left';
+
+  @override
+  String get trim_roll_slightlyRight => 'rolls slightly right';
+
+  @override
+  String get trim_roll_right => 'rolls right';
+
+  @override
+  String get trim_gauge_pitch => 'Pitch';
+
+  @override
+  String get trim_gauge_roll => 'Roll';
+
+  @override
+  String get trim_gauge_headHeavy => 'Head-heavy';
+
+  @override
+  String get trim_gauge_feetHeavy => 'Feet-heavy';
+
+  @override
+  String get trim_gauge_left => 'Left';
+
+  @override
+  String get trim_gauge_right => 'Right';
+
+  @override
+  String get trim_chip_left => 'L';
+
+  @override
+  String get trim_chip_right => 'R';
+
+  @override
+  String get trim_testItem => 'Test item';
+
+  @override
+  String get trim_spot_head => 'Head';
+
+  @override
+  String get trim_spot_mouth => 'Mouth';
+
+  @override
+  String get trim_spot_chest => 'Chest';
+
+  @override
+  String get trim_spot_chestClip => 'Chest D-ring';
+
+  @override
+  String get trim_spot_upperBack => 'Upper back';
+
+  @override
+  String get trim_spot_backTank => 'Back';
+
+  @override
+  String get trim_spot_wing => 'Wing';
+
+  @override
+  String get trim_spot_trimPockets => 'Trim pockets';
+
+  @override
+  String get trim_spot_backplate => 'Backplate';
+
+  @override
+  String get trim_spot_buttDRing => 'Butt D-ring';
+
+  @override
+  String get trim_spot_waist => 'Waist';
+
+  @override
+  String get trim_spot_hipPockets => 'Hip pockets';
+
+  @override
+  String get trim_spot_sidemount => 'Side';
+
+  @override
+  String get trim_spot_stageClip => 'Stage clips';
+
+  @override
+  String get trim_spot_console => 'Console';
+
+  @override
+  String get trim_spot_thigh => 'Thigh';
+
+  @override
+  String get trim_spot_calf => 'Calf';
+
+  @override
+  String get trim_spot_ankles => 'Ankles';
+
+  @override
+  String get trim_spot_feet => 'Feet';
+
+  @override
+  String get trim_spot_fins => 'Fins';
+
+  @override
+  String get trim_spot_hand => 'Hand';
+
+  @override
+  String get trim_spot_wrist => 'Wrist';
+
+  @override
+  String get trim_spot_cameraArm => 'Camera arm';
+
+  @override
+  String get trim_spot_floatPoint => 'Spread over the body';
+
+  @override
+  String get trim_spot_noSpot => 'No fixed spot';
+
+  @override
+  String trim_figure_summaryNoLead(String verdict) {
+    return 'Trim figure: $verdict.';
+  }
+
+  @override
+  String diveLog_detail_weight_withSide(String name, String side) {
+    return '$name ($side)';
+  }
+
+  @override
+  String trim_verdictLine(String pitch, String roll) {
+    return '$pitch, $roll';
+  }
+
+  @override
+  String trim_figure_summary(String verdict, String lead) {
+    return 'Trim figure: $verdict. Lead: $lead.';
+  }
+
+  @override
+  String trim_chip_weight(String name, String weight) {
+    return '$name $weight';
+  }
+
+  @override
+  String get trim_chip_note => 'spot not known';
 
   @override
   String get buoyancy_ditchWarning => 'More than you can ditch';
@@ -24110,6 +24453,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navShortcut_short_weighting => 'Weighting';
+
+  @override
+  String get navShortcut_short_trim => 'Trim';
 
   @override
   String get navShortcut_short_surfaceInterval => 'Surface int.';

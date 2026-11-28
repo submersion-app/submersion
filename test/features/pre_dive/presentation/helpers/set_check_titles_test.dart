@@ -41,8 +41,15 @@ void main() {
             amountKg: 2.72,
             notes: '',
             label: 'BP pockets',
+            side: null,
           ),
-          (weightType: WeightType.belt, amountKg: 2.72, notes: '', label: ''),
+          (
+            weightType: WeightType.belt,
+            amountKg: 2.72,
+            notes: '',
+            label: '',
+            side: null,
+          ),
         ],
       ),
     );

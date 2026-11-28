@@ -237,7 +237,13 @@ void main() {
       bundle: const SetBundle(
         setId: 's',
         weights: [
-          (weightType: WeightType.belt, amountKg: 4, notes: '', label: ''),
+          (
+            weightType: WeightType.belt,
+            amountKg: 4,
+            notes: '',
+            label: '',
+            side: null,
+          ),
         ],
       ),
       tripId: 't1',

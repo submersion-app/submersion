@@ -170,6 +170,8 @@ Map<String, Object?> diveWeightDocument(DiveWeight w) => {
   'amount_kg': w.amountKg,
   'label': w.label,
   'notes': w.notes,
+  // Null is both sides (issue #5028).
+  'side': w.side?.name,
 };
 
 Map<String, Object?> diveBuddyDocument(BuddyWithRole b) => {

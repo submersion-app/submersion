@@ -205,6 +205,8 @@ import 'package:submersion/features/marine_life/presentation/pages/species_map_p
 import 'package:submersion/features/marine_life/presentation/pages/species_practice_page.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_chart_fullscreen_page.dart';
 import 'package:submersion/features/planning/presentation/pages/planning_page.dart';
+import 'package:submersion/features/trim_calculator/presentation/pages/trim_calculator_page.dart';
+import 'package:submersion/features/trim_calculator/presentation/trim_calculator_navigation.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_disclaimer_gate.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
@@ -499,6 +501,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'weight-calculator',
                     name: 'weightCalculator',
                     builder: (context, state) => const WeightPlannerPage(),
+                  ),
+                  // Opened on ?dive= from a dive's Weights and buoyancy card;
+                  // without it, on the diver's latest dive.
+                  GoRoute(
+                    path: kTrimCalculatorToolId,
+                    name: 'trimCalculator',
+                    builder: (context, state) => TrimCalculatorPage(
+                      diveId:
+                          state.uri.queryParameters[kTrimCalculatorDiveParam],
+                    ),
                   ),
                   GoRoute(
                     path: 'surface-interval',

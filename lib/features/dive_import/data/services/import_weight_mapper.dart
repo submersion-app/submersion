@@ -2,7 +2,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/weight_label.dart';
 
-/// A parsed weight map (`amount`, `type`, `notes`, `label`, as the UDDF and
+/// A parsed weight map (`amount`, `type`, `notes`, `label`, `side`, as the UDDF and
 /// Subsurface readers produce it) as a [DiveWeight] for [diveId].
 DiveWeight weightFromImportData(
   Map<String, dynamic> data, {
@@ -15,4 +15,5 @@ DiveWeight weightFromImportData(
   amountKg: data['amount'] as double? ?? 0.0,
   notes: data['notes'] as String? ?? '',
   label: normalizeWeightLabel(data['label'] as String? ?? ''),
+  side: weightSideFromName(data['side'] as String?),
 );

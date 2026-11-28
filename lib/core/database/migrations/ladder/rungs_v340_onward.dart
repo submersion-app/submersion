@@ -362,6 +362,7 @@ extension RungsFromV340 on AppDatabase {
     // floor does not move.
     if (from < 388) await _assertSiteContactHoursColumns();
     if (from < 388) await reportProgress();
+
     // v389 (issue #5069): diver_settings.profile_zoom_time_only, the profile
     // chart's Time only zoom choice. Nullable, no backfill, re-asserted in
     // beforeOpen; the floor does not move. Numbered 389 because open work
@@ -380,5 +381,12 @@ extension RungsFromV340 on AppDatabase {
     // in beforeOpen; the floor does not move.
     if (from < 394) await _assertTankPresetRatedCapacityColumn();
     if (from < 394) await reportProgress();
+
+    // v395 (issue #5028): dive_weights.side and weight_preset_entries.side,
+    // the side a weight is carried on, for the trim figure's roll. Nullable
+    // with no backfill, null meaning both sides; re-asserted in beforeOpen.
+    // The floor does not move.
+    if (from < 395) await _assertWeightSideColumns();
+    if (from < 395) await reportProgress();
   }
 }

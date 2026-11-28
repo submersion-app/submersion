@@ -8180,6 +8180,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => '移除';
 
   @override
+  String get diveLog_weight_side_label => '左右侧';
+
+  @override
+  String get diveLog_weight_side_both => '两侧';
+
+  @override
+  String get diveLog_weight_side_left => '左';
+
+  @override
+  String get diveLog_weight_side_right => '右';
+
+  @override
   String diveLog_edit_tripSuggested(Object name) {
     return '建议：$name';
   }
@@ -21963,6 +21975,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get planning_card_weightCalculator_title => '配重计算器';
 
   @override
+  String get planning_card_trimCalculator_title => '纵倾计算器';
+
+  @override
+  String get planning_card_trimCalculator_subtitle => '配重和装备如何影响您的平衡';
+
+  @override
   String get planning_info_disclaimer => '这些工具仅供计划参考。请务必验证计算结果并遵循您的潜水训练。';
 
   @override
@@ -22528,6 +22546,325 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buoyancy_minDitchable => '最小可抛弃配重';
+
+  @override
+  String get trim_card_caption => '用于安全停留时的检查，按当时剩余的气体计算。倾斜表示受力，而非角度。';
+
+  @override
+  String get trim_card_openCalculator => '检查纵倾';
+
+  @override
+  String get trim_calculator_changeDive => '更换潜水';
+
+  @override
+  String get trim_calculator_pickDive => '选择一次潜水';
+
+  @override
+  String get trim_calculator_searchDives => '搜索潜水';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return '没有与“$query”匹配的潜水';
+  }
+
+  @override
+  String get trim_calculator_noDives => '记录一次潜水即可检查其纵倾。计算器会打开您最近的潜水。';
+
+  @override
+  String get trim_calculator_cannotModel => '此次潜水没有气瓶或潜水服，因此无法计算纵倾。请选择另一次潜水。';
+
+  @override
+  String get trim_calculator_diveMissing => '该潜水已不在您的日志中。请选择另一次潜水。';
+
+  @override
+  String get trim_tryout_hint => '拖动标签以移动它。轻点标签以切换左右。此处的更改不会保存。';
+
+  @override
+  String get trim_tryout_arms => '手臂';
+
+  @override
+  String get trim_tryout_armsSides => '贴于身侧';
+
+  @override
+  String get trim_tryout_armsAhead => '向前伸展';
+
+  @override
+  String get trim_tryout_knees => '膝盖';
+
+  @override
+  String get trim_tryout_kneesStraight => '伸直';
+
+  @override
+  String get trim_tryout_kneesBent => '弯曲90度';
+
+  @override
+  String get trim_tryout_tankHeight => '气瓶高度';
+
+  @override
+  String get trim_tryout_tankUp => '绑带上移';
+
+  @override
+  String get trim_tryout_tankDown => '绑带下移';
+
+  @override
+  String get trim_tryout_tankAsLogged => '按记录';
+
+  @override
+  String trim_tryout_tankShiftUp(String distance) {
+    return '上移 $distance';
+  }
+
+  @override
+  String trim_tryout_tankShiftDown(String distance) {
+    return '下移 $distance';
+  }
+
+  @override
+  String get trim_tryout_time => '时间';
+
+  @override
+  String get trim_tryout_addTestItem => '添加测试物品';
+
+  @override
+  String get trim_tryout_testName => '名称';
+
+  @override
+  String get trim_tryout_nameRequired => '请输入名称';
+
+  @override
+  String get trim_tryout_reset => '重置';
+
+  @override
+  String get trim_tryout_pieces => '部件';
+
+  @override
+  String get trim_tryout_moveTo => '移至';
+
+  @override
+  String get trim_tryout_pieceMenu => '移动或切换左右';
+
+  @override
+  String trim_tryout_testWeight(String unit) {
+    return '重量（$unit）';
+  }
+
+  @override
+  String trim_tryout_weightRange(String min, String max) {
+    return '请输入 $min 至 $max 之间的重量';
+  }
+
+  @override
+  String trim_tryout_timeLabel(String time, String depth) {
+    return '$time，$depth';
+  }
+
+  @override
+  String trim_tryout_moments(String pitch, String roll) {
+    return '俯仰 $pitch，侧倾 $roll';
+  }
+
+  @override
+  String get trim_fixes_title => '如何调平';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return '减少 $weight 配重';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return '将气瓶在绑带中上移 $distance';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return '将气瓶在绑带中下移 $distance';
+  }
+
+  @override
+  String get trim_fix_lighterFins => '更轻的脚蹼，在水中接近中性';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return '更重的脚蹼，每副约 $weight';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return '将 $weight 配重从$from移到$to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return '将 $weight 配重从左侧移到右侧';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return '将 $weight 配重从右侧移到左侧';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return '之后：$verdict';
+  }
+
+  @override
+  String get trim_verdict_level => '水平';
+
+  @override
+  String get trim_verdict_slightlyFeetHeavy => '略微脚重';
+
+  @override
+  String get trim_verdict_feetHeavy => '脚重';
+
+  @override
+  String get trim_verdict_slightlyHeadHeavy => '略微头重';
+
+  @override
+  String get trim_verdict_headHeavy => '头重';
+
+  @override
+  String get trim_roll_slightlyLeft => '略向左侧倾';
+
+  @override
+  String get trim_roll_left => '向左侧倾';
+
+  @override
+  String get trim_roll_slightlyRight => '略向右侧倾';
+
+  @override
+  String get trim_roll_right => '向右侧倾';
+
+  @override
+  String get trim_gauge_pitch => '俯仰';
+
+  @override
+  String get trim_gauge_roll => '侧倾';
+
+  @override
+  String get trim_gauge_headHeavy => '头重';
+
+  @override
+  String get trim_gauge_feetHeavy => '脚重';
+
+  @override
+  String get trim_gauge_left => '左';
+
+  @override
+  String get trim_gauge_right => '右';
+
+  @override
+  String get trim_chip_left => '左';
+
+  @override
+  String get trim_chip_right => '右';
+
+  @override
+  String get trim_testItem => '测试物品';
+
+  @override
+  String get trim_spot_head => '头部';
+
+  @override
+  String get trim_spot_mouth => '口部';
+
+  @override
+  String get trim_spot_chest => '胸部';
+
+  @override
+  String get trim_spot_chestClip => '胸部D环';
+
+  @override
+  String get trim_spot_upperBack => '上背部';
+
+  @override
+  String get trim_spot_backTank => '背部';
+
+  @override
+  String get trim_spot_wing => '背飞';
+
+  @override
+  String get trim_spot_trimPockets => '配平袋';
+
+  @override
+  String get trim_spot_backplate => '背板';
+
+  @override
+  String get trim_spot_buttDRing => '臀部D环';
+
+  @override
+  String get trim_spot_waist => '腰部';
+
+  @override
+  String get trim_spot_hipPockets => '臀部袋';
+
+  @override
+  String get trim_spot_sidemount => '侧挂';
+
+  @override
+  String get trim_spot_stageClip => '备用瓶挂扣';
+
+  @override
+  String get trim_spot_console => '仪表台';
+
+  @override
+  String get trim_spot_thigh => '大腿';
+
+  @override
+  String get trim_spot_calf => '小腿';
+
+  @override
+  String get trim_spot_ankles => '脚踝';
+
+  @override
+  String get trim_spot_feet => '脚';
+
+  @override
+  String get trim_spot_fins => '脚蹼';
+
+  @override
+  String get trim_spot_hand => '手';
+
+  @override
+  String get trim_spot_wrist => '手腕';
+
+  @override
+  String get trim_spot_cameraArm => '相机臂';
+
+  @override
+  String get trim_spot_floatPoint => '分布于全身';
+
+  @override
+  String get trim_spot_noSpot => '无固定位置';
+
+  @override
+  String trim_figure_summaryNoLead(String verdict) {
+    return '纵倾图：$verdict。';
+  }
+
+  @override
+  String diveLog_detail_weight_withSide(String name, String side) {
+    return '$name（$side）';
+  }
+
+  @override
+  String trim_verdictLine(String pitch, String roll) {
+    return '$pitch，$roll';
+  }
+
+  @override
+  String trim_figure_summary(String verdict, String lead) {
+    return '纵倾图：$verdict。配重：$lead。';
+  }
+
+  @override
+  String trim_chip_weight(String name, String weight) {
+    return '$name $weight';
+  }
+
+  @override
+  String get trim_chip_note => '位置未知';
 
   @override
   String get buoyancy_ditchWarning => '超过可抛弃的量';
@@ -23199,6 +23536,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get navShortcut_short_weighting => '配重';
+
+  @override
+  String get navShortcut_short_trim => '纵倾';
 
   @override
   String get navShortcut_short_surfaceInterval => '水面间隔';

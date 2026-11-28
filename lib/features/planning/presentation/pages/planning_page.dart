@@ -8,6 +8,8 @@ import 'package:submersion/features/planning/presentation/widgets/planning_summa
 import 'package:submersion/features/safety/presentation/pages/cns_otu_page.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
+import 'package:submersion/features/trim_calculator/presentation/pages/trim_calculator_page.dart';
+import 'package:submersion/features/trim_calculator/presentation/trim_calculator_navigation.dart';
 import 'package:submersion/features/weight_planner/presentation/pages/weight_planner_page.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -57,6 +59,8 @@ class PlanningPage extends ConsumerWidget {
       // PlanningToolPresentation.splitViewPage.
       case 'weight-calculator':
         return const WeightPlannerPage(embedded: true);
+      case kTrimCalculatorToolId:
+        return const TrimCalculatorPage(embedded: true);
       case 'surface-interval':
         return const SurfaceIntervalToolPage(embedded: true);
       case 'no-fly':

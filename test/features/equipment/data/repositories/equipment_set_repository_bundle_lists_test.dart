@@ -75,14 +75,26 @@ void main() {
       diverId: 'd1',
       displayName: 'A',
       entries: const [
-        (weightType: WeightType.belt, amountKg: 2.72, notes: '', label: ''),
+        (
+          weightType: WeightType.belt,
+          amountKg: 2.72,
+          notes: '',
+          label: '',
+          side: null,
+        ),
       ],
     )).id;
     presetB = (await presets.createPreset(
       diverId: 'd1',
       displayName: 'B',
       entries: const [
-        (weightType: WeightType.belt, amountKg: 1, notes: '', label: ''),
+        (
+          weightType: WeightType.belt,
+          amountKg: 1,
+          notes: '',
+          label: '',
+          side: null,
+        ),
       ],
     )).id;
     configA = await CylinderConfigRepository().createConfig(

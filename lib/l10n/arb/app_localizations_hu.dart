@@ -8594,6 +8594,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'Eltávolítás';
 
   @override
+  String get diveLog_weight_side_label => 'Oldal';
+
+  @override
+  String get diveLog_weight_side_both => 'Mindkettő';
+
+  @override
+  String get diveLog_weight_side_left => 'Bal';
+
+  @override
+  String get diveLog_weight_side_right => 'Jobb';
+
+  @override
   String diveLog_edit_tripSuggested(Object name) {
     return 'Javasolt: $name';
   }
@@ -23029,6 +23041,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'Súly kalkulátor';
 
   @override
+  String get planning_card_trimCalculator_title => 'Trimm kalkulátor';
+
+  @override
+  String get planning_card_trimCalculator_subtitle =>
+      'Hogyan egyensúlyoz az ólom és a felszerelés';
+
+  @override
   String get planning_info_disclaimer =>
       'Ezek az eszközök kizárólag tervezési célokat szolgálnak. Mindig ellenőrizze a számításokat és kövesse merülési képzésének irányelveit.';
 
@@ -23637,6 +23656,330 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get buoyancy_minDitchable => 'Min. ledobható ólom';
+
+  @override
+  String get trim_card_caption =>
+      'A biztonsági megállónál végzett ellenőrzéshez, az akkor megmaradt gázzal. A dőlés a húzóerőt szemlélteti, nem egy szöget.';
+
+  @override
+  String get trim_card_openCalculator => 'Trimm ellenőrzése';
+
+  @override
+  String get trim_calculator_changeDive => 'Merülés váltása';
+
+  @override
+  String get trim_calculator_pickDive => 'Válassz merülést';
+
+  @override
+  String get trim_calculator_searchDives => 'Merülések keresése';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return 'Nincs a(z) „$query” keresésnek megfelelő merülés';
+  }
+
+  @override
+  String get trim_calculator_noDives =>
+      'Rögzíts egy merülést a trimm ellenőrzéséhez. A kalkulátor a legutóbbi merülésedet nyitja meg.';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'Ennek a merülésnek nincs palackja vagy ruhája, így a trimmje nem számítható ki. Válassz másik merülést.';
+
+  @override
+  String get trim_calculator_diveMissing =>
+      'Ez a merülés már nincs a naplódban. Válassz másik merülést.';
+
+  @override
+  String get trim_tryout_hint =>
+      'Húzd a címkét az áthelyezéshez. Koppints rá az oldal váltásához. Itt semmi sem mentődik.';
+
+  @override
+  String get trim_tryout_arms => 'Karok';
+
+  @override
+  String get trim_tryout_armsSides => 'Test mellett';
+
+  @override
+  String get trim_tryout_armsAhead => 'Előre nyújtva';
+
+  @override
+  String get trim_tryout_knees => 'Térdek';
+
+  @override
+  String get trim_tryout_kneesStraight => 'Nyújtva';
+
+  @override
+  String get trim_tryout_kneesBent => '90 fokban hajlítva';
+
+  @override
+  String get trim_tryout_tankHeight => 'Palack magassága';
+
+  @override
+  String get trim_tryout_tankUp => 'Feljebb a pántban';
+
+  @override
+  String get trim_tryout_tankDown => 'Lejjebb a pántban';
+
+  @override
+  String get trim_tryout_tankAsLogged => 'Ahogy rögzítve';
+
+  @override
+  String trim_tryout_tankShiftUp(String distance) {
+    return '$distance feljebb';
+  }
+
+  @override
+  String trim_tryout_tankShiftDown(String distance) {
+    return '$distance lejjebb';
+  }
+
+  @override
+  String get trim_tryout_time => 'Idő';
+
+  @override
+  String get trim_tryout_addTestItem => 'Tesztelem hozzáadása';
+
+  @override
+  String get trim_tryout_testName => 'Név';
+
+  @override
+  String get trim_tryout_nameRequired => 'Adj meg egy nevet';
+
+  @override
+  String get trim_tryout_reset => 'Visszaállítás';
+
+  @override
+  String get trim_tryout_pieces => 'Elemek';
+
+  @override
+  String get trim_tryout_moveTo => 'Áthelyezés ide';
+
+  @override
+  String get trim_tryout_pieceMenu => 'Áthelyezés vagy oldalváltás';
+
+  @override
+  String trim_tryout_testWeight(String unit) {
+    return 'Súly ($unit)';
+  }
+
+  @override
+  String trim_tryout_weightRange(String min, String max) {
+    return 'Adj meg egy súlyt $min és $max között';
+  }
+
+  @override
+  String trim_tryout_timeLabel(String time, String depth) {
+    return '$time, $depth';
+  }
+
+  @override
+  String trim_tryout_moments(String pitch, String roll) {
+    return 'Bólintás $pitch, dőlés $roll';
+  }
+
+  @override
+  String get trim_fixes_title => 'Mi hozna vízszintbe';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return 'Vigyél $weight kevesebb ólmot';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'Told a palackot $distance feljebb a pántban';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'Told a palackot $distance lejjebb a pántban';
+  }
+
+  @override
+  String get trim_fix_lighterFins => 'Könnyebb uszony, vízben közel semleges';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return 'Nehezebb uszony, kb. $weight páronként';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return 'Tegyél át $weight ólmot innen: $from, ide: $to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return 'Tegyél át $weight ólmot balról jobbra';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return 'Tegyél át $weight ólmot jobbról balra';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return 'Ezután: $verdict';
+  }
+
+  @override
+  String get trim_verdict_level => 'Vízszintes';
+
+  @override
+  String get trim_verdict_slightlyFeetHeavy => 'Kissé lábnehéz';
+
+  @override
+  String get trim_verdict_feetHeavy => 'Lábnehéz';
+
+  @override
+  String get trim_verdict_slightlyHeadHeavy => 'Kissé fejnehéz';
+
+  @override
+  String get trim_verdict_headHeavy => 'Fejnehéz';
+
+  @override
+  String get trim_roll_slightlyLeft => 'kissé balra dől';
+
+  @override
+  String get trim_roll_left => 'balra dől';
+
+  @override
+  String get trim_roll_slightlyRight => 'kissé jobbra dől';
+
+  @override
+  String get trim_roll_right => 'jobbra dől';
+
+  @override
+  String get trim_gauge_pitch => 'Bólintás';
+
+  @override
+  String get trim_gauge_roll => 'Dőlés';
+
+  @override
+  String get trim_gauge_headHeavy => 'Fejnehéz';
+
+  @override
+  String get trim_gauge_feetHeavy => 'Lábnehéz';
+
+  @override
+  String get trim_gauge_left => 'Bal';
+
+  @override
+  String get trim_gauge_right => 'Jobb';
+
+  @override
+  String get trim_chip_left => 'B';
+
+  @override
+  String get trim_chip_right => 'J';
+
+  @override
+  String get trim_testItem => 'Tesztelem';
+
+  @override
+  String get trim_spot_head => 'Fej';
+
+  @override
+  String get trim_spot_mouth => 'Száj';
+
+  @override
+  String get trim_spot_chest => 'Mellkas';
+
+  @override
+  String get trim_spot_chestClip => 'Mellkasi D-gyűrű';
+
+  @override
+  String get trim_spot_upperBack => 'Felső hát';
+
+  @override
+  String get trim_spot_backTank => 'Hát';
+
+  @override
+  String get trim_spot_wing => 'Wing';
+
+  @override
+  String get trim_spot_trimPockets => 'Trimmzsebek';
+
+  @override
+  String get trim_spot_backplate => 'Hátlap';
+
+  @override
+  String get trim_spot_buttDRing => 'Fenék D-gyűrű';
+
+  @override
+  String get trim_spot_waist => 'Derék';
+
+  @override
+  String get trim_spot_hipPockets => 'Csípőzsebek';
+
+  @override
+  String get trim_spot_sidemount => 'Oldal';
+
+  @override
+  String get trim_spot_stageClip => 'Stage-csatok';
+
+  @override
+  String get trim_spot_console => 'Konzol';
+
+  @override
+  String get trim_spot_thigh => 'Comb';
+
+  @override
+  String get trim_spot_calf => 'Vádli';
+
+  @override
+  String get trim_spot_ankles => 'Bokák';
+
+  @override
+  String get trim_spot_feet => 'Lábfej';
+
+  @override
+  String get trim_spot_fins => 'Uszonyok';
+
+  @override
+  String get trim_spot_hand => 'Kéz';
+
+  @override
+  String get trim_spot_wrist => 'Csukló';
+
+  @override
+  String get trim_spot_cameraArm => 'Kamerakar';
+
+  @override
+  String get trim_spot_floatPoint => 'A testen eloszolva';
+
+  @override
+  String get trim_spot_noSpot => 'Nincs rögzített hely';
+
+  @override
+  String trim_figure_summaryNoLead(String verdict) {
+    return 'Trimmábra: $verdict.';
+  }
+
+  @override
+  String diveLog_detail_weight_withSide(String name, String side) {
+    return '$name ($side)';
+  }
+
+  @override
+  String trim_verdictLine(String pitch, String roll) {
+    return '$pitch, $roll';
+  }
+
+  @override
+  String trim_figure_summary(String verdict, String lead) {
+    return 'Trimmábra: $verdict. Ólom: $lead.';
+  }
+
+  @override
+  String trim_chip_weight(String name, String weight) {
+    return '$name $weight';
+  }
+
+  @override
+  String get trim_chip_note => 'hely ismeretlen';
 
   @override
   String get buoyancy_ditchWarning => 'Több, mint amennyit ledobhatsz';
@@ -24366,6 +24709,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get navShortcut_short_weighting => 'Súlyozás';
+
+  @override
+  String get navShortcut_short_trim => 'Trimm';
 
   @override
   String get navShortcut_short_surfaceInterval => 'Felszíni idő';

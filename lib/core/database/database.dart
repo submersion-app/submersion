@@ -338,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 394;
+  static const int currentSchemaVersion = 395;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1843,6 +1843,10 @@ class AppDatabase extends _$AppDatabase {
     // v394: tank_presets.rated_capacity_cuft, the rated capacity a copy of a
     // built-in preset keeps (issue #800). Nullable; the floor does not move.
     394,
+    // v395: dive_weights.side and weight_preset_entries.side, the side a
+    // weight is carried on, for the trim figure's roll (issue #5028).
+    // Nullable, null meaning both sides; no backfill, the floor does not move.
+    395,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

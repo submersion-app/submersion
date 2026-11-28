@@ -8761,6 +8761,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'إزالة';
 
   @override
+  String get diveLog_weight_side_label => 'الجانب';
+
+  @override
+  String get diveLog_weight_side_both => 'كلاهما';
+
+  @override
+  String get diveLog_weight_side_left => 'يسار';
+
+  @override
+  String get diveLog_weight_side_right => 'يمين';
+
+  @override
   String diveLog_edit_tripSuggested(Object name) {
     return 'مقترح: $name';
   }
@@ -23527,6 +23539,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'حاسبة الأوزان';
 
   @override
+  String get planning_card_trimCalculator_title => 'حاسبة التوازن';
+
+  @override
+  String get planning_card_trimCalculator_subtitle =>
+      'كيف يوازنك الرصاص والمعدات';
+
+  @override
   String get planning_info_disclaimer =>
       'هذه الأدوات لأغراض التخطيط فقط. تحقق دائمًا من الحسابات واتبع تدريبك على الغوص.';
 
@@ -24145,6 +24164,330 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buoyancy_minDitchable => 'أدنى وزن قابل للإسقاط';
+
+  @override
+  String get trim_card_caption =>
+      'لفحص التوقف الآمن، مع الغاز المتبقي حينها. يصوّر الميل قوة الشد، لا زاوية.';
+
+  @override
+  String get trim_card_openCalculator => 'تحقق من التوازن';
+
+  @override
+  String get trim_calculator_changeDive => 'تغيير الغطسة';
+
+  @override
+  String get trim_calculator_pickDive => 'اختر غطسة';
+
+  @override
+  String get trim_calculator_searchDives => 'ابحث في الغطسات';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return 'لا توجد غطسات تطابق \"$query\"';
+  }
+
+  @override
+  String get trim_calculator_noDives =>
+      'سجّل غطسة للتحقق من توازنها. تفتح الحاسبة على آخر غطسة لك.';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'لا تحتوي هذه الغطسة على أسطوانات أو بدلة، لذا لا يمكن حساب توازنها. اختر غطسة أخرى.';
+
+  @override
+  String get trim_calculator_diveMissing =>
+      'لم تعد تلك الغطسة في سجلك. اختر غطسة أخرى.';
+
+  @override
+  String get trim_tryout_hint =>
+      'اسحب الملصق لنقله. انقر عليه لتغيير الجانب. لا يُحفظ شيء هنا.';
+
+  @override
+  String get trim_tryout_arms => 'الذراعان';
+
+  @override
+  String get trim_tryout_armsSides => 'بجانبك';
+
+  @override
+  String get trim_tryout_armsAhead => 'ممدودتان للأمام';
+
+  @override
+  String get trim_tryout_knees => 'الركبتان';
+
+  @override
+  String get trim_tryout_kneesStraight => 'مستقيمتان';
+
+  @override
+  String get trim_tryout_kneesBent => 'مثنيتان 90 درجة';
+
+  @override
+  String get trim_tryout_tankHeight => 'ارتفاع الأسطوانة';
+
+  @override
+  String get trim_tryout_tankUp => 'أعلى في الحزام';
+
+  @override
+  String get trim_tryout_tankDown => 'أسفل في الحزام';
+
+  @override
+  String get trim_tryout_tankAsLogged => 'كما سُجّل';
+
+  @override
+  String trim_tryout_tankShiftUp(String distance) {
+    return '$distance لأعلى';
+  }
+
+  @override
+  String trim_tryout_tankShiftDown(String distance) {
+    return '$distance لأسفل';
+  }
+
+  @override
+  String get trim_tryout_time => 'الوقت';
+
+  @override
+  String get trim_tryout_addTestItem => 'أضف عنصرًا تجريبيًا';
+
+  @override
+  String get trim_tryout_testName => 'الاسم';
+
+  @override
+  String get trim_tryout_nameRequired => 'أدخل اسمًا';
+
+  @override
+  String get trim_tryout_reset => 'إعادة تعيين';
+
+  @override
+  String get trim_tryout_pieces => 'العناصر';
+
+  @override
+  String get trim_tryout_moveTo => 'انقل إلى';
+
+  @override
+  String get trim_tryout_pieceMenu => 'انقل أو غيّر الجانب';
+
+  @override
+  String trim_tryout_testWeight(String unit) {
+    return 'الوزن ($unit)';
+  }
+
+  @override
+  String trim_tryout_weightRange(String min, String max) {
+    return 'أدخل وزنًا من $min إلى $max';
+  }
+
+  @override
+  String trim_tryout_timeLabel(String time, String depth) {
+    return '$time، $depth';
+  }
+
+  @override
+  String trim_tryout_moments(String pitch, String roll) {
+    return 'الميل $pitch، الدوران $roll';
+  }
+
+  @override
+  String get trim_fixes_title => 'ما الذي يجعلك مستويًا';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return 'احمل $weight أقل من الرصاص';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'حرّك الأسطوانة $distance لأعلى في الحزام';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'حرّك الأسطوانة $distance لأسفل في الحزام';
+  }
+
+  @override
+  String get trim_fix_lighterFins => 'زعانف أخف، شبه محايدة في الماء';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return 'زعانف أثقل، نحو $weight للزوج';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return 'انقل $weight من الرصاص من $from إلى $to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return 'انقل $weight من الرصاص من اليسار إلى اليمين';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return 'انقل $weight من الرصاص من اليمين إلى اليسار';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return 'بعدها: $verdict';
+  }
+
+  @override
+  String get trim_verdict_level => 'مستوٍ';
+
+  @override
+  String get trim_verdict_slightlyFeetHeavy => 'ثقيل القدمين قليلاً';
+
+  @override
+  String get trim_verdict_feetHeavy => 'ثقيل القدمين';
+
+  @override
+  String get trim_verdict_slightlyHeadHeavy => 'ثقيل الرأس قليلاً';
+
+  @override
+  String get trim_verdict_headHeavy => 'ثقيل الرأس';
+
+  @override
+  String get trim_roll_slightlyLeft => 'يميل قليلاً لليسار';
+
+  @override
+  String get trim_roll_left => 'يميل لليسار';
+
+  @override
+  String get trim_roll_slightlyRight => 'يميل قليلاً لليمين';
+
+  @override
+  String get trim_roll_right => 'يميل لليمين';
+
+  @override
+  String get trim_gauge_pitch => 'الميل';
+
+  @override
+  String get trim_gauge_roll => 'الدوران';
+
+  @override
+  String get trim_gauge_headHeavy => 'ثقيل الرأس';
+
+  @override
+  String get trim_gauge_feetHeavy => 'ثقيل القدمين';
+
+  @override
+  String get trim_gauge_left => 'يسار';
+
+  @override
+  String get trim_gauge_right => 'يمين';
+
+  @override
+  String get trim_chip_left => 'ي';
+
+  @override
+  String get trim_chip_right => 'م';
+
+  @override
+  String get trim_testItem => 'عنصر تجريبي';
+
+  @override
+  String get trim_spot_head => 'الرأس';
+
+  @override
+  String get trim_spot_mouth => 'الفم';
+
+  @override
+  String get trim_spot_chest => 'الصدر';
+
+  @override
+  String get trim_spot_chestClip => 'حلقة D الصدرية';
+
+  @override
+  String get trim_spot_upperBack => 'أعلى الظهر';
+
+  @override
+  String get trim_spot_backTank => 'الظهر';
+
+  @override
+  String get trim_spot_wing => 'الجناح';
+
+  @override
+  String get trim_spot_trimPockets => 'جيوب التوازن';
+
+  @override
+  String get trim_spot_backplate => 'اللوح الخلفي';
+
+  @override
+  String get trim_spot_buttDRing => 'حلقة D الخلفية';
+
+  @override
+  String get trim_spot_waist => 'الخصر';
+
+  @override
+  String get trim_spot_hipPockets => 'جيوب الورك';
+
+  @override
+  String get trim_spot_sidemount => 'الجانب';
+
+  @override
+  String get trim_spot_stageClip => 'مشابك الأسطوانة الإضافية';
+
+  @override
+  String get trim_spot_console => 'لوحة العدادات';
+
+  @override
+  String get trim_spot_thigh => 'الفخذ';
+
+  @override
+  String get trim_spot_calf => 'ربلة الساق';
+
+  @override
+  String get trim_spot_ankles => 'الكاحلان';
+
+  @override
+  String get trim_spot_feet => 'القدمان';
+
+  @override
+  String get trim_spot_fins => 'الزعانف';
+
+  @override
+  String get trim_spot_hand => 'اليد';
+
+  @override
+  String get trim_spot_wrist => 'المعصم';
+
+  @override
+  String get trim_spot_cameraArm => 'ذراع الكاميرا';
+
+  @override
+  String get trim_spot_floatPoint => 'موزّع على الجسم';
+
+  @override
+  String get trim_spot_noSpot => 'لا موضع ثابت';
+
+  @override
+  String trim_figure_summaryNoLead(String verdict) {
+    return 'شكل التوازن: $verdict.';
+  }
+
+  @override
+  String diveLog_detail_weight_withSide(String name, String side) {
+    return '$name ($side)';
+  }
+
+  @override
+  String trim_verdictLine(String pitch, String roll) {
+    return '$pitch، $roll';
+  }
+
+  @override
+  String trim_figure_summary(String verdict, String lead) {
+    return 'شكل التوازن: $verdict. الرصاص: $lead.';
+  }
+
+  @override
+  String trim_chip_weight(String name, String weight) {
+    return '$name $weight';
+  }
+
+  @override
+  String get trim_chip_note => 'الموضع غير معروف';
 
   @override
   String get buoyancy_ditchWarning => 'أكثر مما يمكنك إسقاطه';
@@ -24875,6 +25218,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get navShortcut_short_weighting => 'الأوزان';
+
+  @override
+  String get navShortcut_short_trim => 'التوازن';
 
   @override
   String get navShortcut_short_surfaceInterval => 'فترة السطح';

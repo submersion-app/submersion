@@ -391,6 +391,12 @@ final Map<String, ConflictField> diveLogFields = {
     (l) => l.settings_conflict_field_settled,
     FieldKind.boolean,
   ),
+  // A weight's side, on dive weights and weight preset entries (#5028).
+  'side': ConflictField(
+    (l) => l.diveLog_weight_side_label,
+    FieldKind.enumValue,
+    enumLabel: weightSideLabeler,
+  ),
   'sleepBeforeMinutes': ConflictField(
     (l) => l.settings_conflict_field_sleepBeforeMinutes,
     FieldKind.durationMinutes,

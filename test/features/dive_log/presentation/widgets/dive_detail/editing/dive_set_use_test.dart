@@ -66,7 +66,13 @@ void main() {
     setId: 'warm',
     gearIds: const ['wing'],
     weights: const [
-      (weightType: WeightType.integrated, amountKg: 4.0, notes: '', label: ''),
+      (
+        weightType: WeightType.integrated,
+        amountKg: 4.0,
+        notes: '',
+        label: '',
+        side: null,
+      ),
     ],
     cylinders: [
       CylinderConfigItem(

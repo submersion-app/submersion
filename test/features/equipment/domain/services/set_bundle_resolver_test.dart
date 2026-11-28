@@ -315,8 +315,20 @@ void main() {
 
   group('sameWeights', () {
     const drafts = <WeightEntryDraft>[
-      (weightType: WeightType.belt, amountKg: 2.72, notes: '', label: 'Belt'),
-      (weightType: WeightType.backplate, amountKg: 1, notes: 'n', label: ''),
+      (
+        weightType: WeightType.belt,
+        amountKg: 2.72,
+        notes: '',
+        label: 'Belt',
+        side: null,
+      ),
+      (
+        weightType: WeightType.backplate,
+        amountKg: 1,
+        notes: 'n',
+        label: '',
+        side: null,
+      ),
     ];
     DiveWeight onDive(WeightEntryDraft d, String id) => DiveWeight(
       id: id,
@@ -361,5 +373,56 @@ void main() {
     test('two empty lists match', () {
       expect(SetBundleResolver.sameWeights(const [], const []), isTrue);
     });
+  });
+
+  test('a preset entry\'s side reaches the bundle (#5028)', () {
+    final p = WeightPreset(
+      id: 'sp',
+      diverId: 'd1',
+      displayName: 'sp',
+      createdAt: _t,
+      updatedAt: _t,
+      entries: const [
+        WeightPresetEntry(
+          id: 'sp-0',
+          presetId: 'sp',
+          weightType: WeightType.integrated,
+          amountKg: 2,
+          side: WeightSide.right,
+        ),
+      ],
+    );
+    final s = _set('s', presets: ['sp']);
+    final bundle = SetBundleResolver.resolve(
+      s,
+      setsById: {'s': s},
+      presetsById: {'sp': p},
+      configsById: const {},
+    );
+    expect(bundle.weights.single.side, WeightSide.right);
+  });
+
+  test('sameWeights tells a weight moved to one side apart (#5028)', () {
+    const draft = (
+      weightType: WeightType.integrated,
+      amountKg: 2.0,
+      notes: '',
+      label: '',
+      side: null,
+    );
+    const onDive = DiveWeight(
+      id: 'w',
+      diveId: 'd',
+      weightType: WeightType.integrated,
+      amountKg: 2,
+    );
+    expect(SetBundleResolver.sameWeights([onDive], [draft]), isTrue);
+    expect(
+      SetBundleResolver.sameWeights(
+        [onDive.copyWith(side: WeightSide.left)],
+        [draft],
+      ),
+      isFalse,
+    );
   });
 }

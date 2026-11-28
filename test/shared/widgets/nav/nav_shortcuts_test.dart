@@ -10,7 +10,7 @@ void main() {
   test('catalog ids are unique and never collide with built-ins', () {
     final ids = kNavShortcuts.map((s) => s.id).toList();
     expect(ids.toSet().length, ids.length);
-    expect(kNavShortcuts.length, 40);
+    expect(kNavShortcuts.length, 41);
     for (final id in kNavShortcutOrderIds) {
       expect(movableNavIds, isNot(contains(id)));
     }

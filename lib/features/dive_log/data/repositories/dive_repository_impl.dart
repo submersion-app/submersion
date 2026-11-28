@@ -2700,6 +2700,7 @@ class DiveRepository {
                 amountKg: Value(weight.amountKg),
                 notes: Value(weight.notes),
                 label: Value(normalizeWeightLabel(weight.label)),
+                side: Value(weight.side?.name),
                 createdAt: Value(now),
               ),
             );
@@ -6359,6 +6360,7 @@ class DiveRepository {
     amountKg: row.amountKg,
     notes: row.notes,
     label: row.label,
+    side: weightSideFromName(row.side),
   );
 
   /// Load custom fields for a dive
@@ -8511,7 +8513,8 @@ class DiveRepository {
           current.weightType == weight.weightType.name &&
           current.amountKg == weight.amountKg &&
           current.notes == weight.notes &&
-          current.label == label) {
+          current.label == label &&
+          current.side == weight.side?.name) {
         continue;
       }
       final rowId = weight.id.isNotEmpty ? weight.id : _uuid.v4();
@@ -8524,6 +8527,7 @@ class DiveRepository {
             amountKg: Value(weight.amountKg),
             notes: Value(weight.notes),
             label: Value(label),
+            side: Value(weight.side?.name),
           ),
         );
       } else {
@@ -8537,6 +8541,7 @@ class DiveRepository {
                 amountKg: Value(weight.amountKg),
                 notes: Value(weight.notes),
                 label: Value(label),
+                side: Value(weight.side?.name),
                 createdAt: Value(now),
               ),
             );
@@ -9419,6 +9424,7 @@ class DiveRepository {
     amountKg: Value(w.amountKg),
     notes: Value(w.notes),
     label: Value(normalizeWeightLabel(w.label)),
+    side: Value(w.side?.name),
     createdAt: Value(now),
   );
 

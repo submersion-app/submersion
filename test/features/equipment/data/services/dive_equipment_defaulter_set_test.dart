@@ -146,7 +146,13 @@ void main() {
         diverId: 'd1',
         displayName: 'Lead',
         entries: const [
-          (weightType: WeightType.belt, amountKg: 4, notes: '', label: ''),
+          (
+            weightType: WeightType.belt,
+            amountKg: 4,
+            notes: '',
+            label: '',
+            side: null,
+          ),
         ],
       );
       await defaultSet(gear: const [], presets: [preset.id]);

@@ -8437,6 +8437,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'הסרה';
 
   @override
+  String get diveLog_weight_side_label => 'צד';
+
+  @override
+  String get diveLog_weight_side_both => 'שניהם';
+
+  @override
+  String get diveLog_weight_side_left => 'שמאל';
+
+  @override
+  String get diveLog_weight_side_right => 'ימין';
+
+  @override
   String diveLog_edit_tripSuggested(Object name) {
     return 'מוצע: $name';
   }
@@ -22629,6 +22641,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'מחשבון משקל';
 
   @override
+  String get planning_card_trimCalculator_title => 'מחשבון איזון';
+
+  @override
+  String get planning_card_trimCalculator_subtitle =>
+      'איך המשקולות והציוד מאזנים אותך';
+
+  @override
   String get planning_info_disclaimer =>
       'כלים אלה מיועדים למטרות תכנון בלבד. תמיד אמת חישובים ופעל לפי הכשרת הצלילה שלך.';
 
@@ -23220,6 +23239,330 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buoyancy_minDitchable => 'משקל מזערי הניתן להשלכה';
+
+  @override
+  String get trim_card_caption =>
+      'לבדיקה בעצירת הבטיחות, עם הגז שנותר אז. ההטיה ממחישה את המשיכה, לא זווית.';
+
+  @override
+  String get trim_card_openCalculator => 'בדוק איזון';
+
+  @override
+  String get trim_calculator_changeDive => 'החלף צלילה';
+
+  @override
+  String get trim_calculator_pickDive => 'בחר צלילה';
+
+  @override
+  String get trim_calculator_searchDives => 'חפש צלילות';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return 'אין צלילות התואמות ל-\"$query\"';
+  }
+
+  @override
+  String get trim_calculator_noDives =>
+      'תעד צלילה כדי לבדוק את האיזון שלה. המחשבון נפתח על הצלילה האחרונה שלך.';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'לצלילה הזו אין מכלים או חליפה, ולכן אי אפשר לחשב את האיזון שלה. בחר צלילה אחרת.';
+
+  @override
+  String get trim_calculator_diveMissing =>
+      'הצלילה הזו כבר לא ביומן שלך. בחר צלילה אחרת.';
+
+  @override
+  String get trim_tryout_hint =>
+      'גרור תווית כדי להזיז אותה. הקש עליה כדי להחליף צד. דבר כאן לא נשמר.';
+
+  @override
+  String get trim_tryout_arms => 'ידיים';
+
+  @override
+  String get trim_tryout_armsSides => 'לצד הגוף';
+
+  @override
+  String get trim_tryout_armsAhead => 'מושטות קדימה';
+
+  @override
+  String get trim_tryout_knees => 'ברכיים';
+
+  @override
+  String get trim_tryout_kneesStraight => 'ישרות';
+
+  @override
+  String get trim_tryout_kneesBent => 'כפופות ב-90 מעלות';
+
+  @override
+  String get trim_tryout_tankHeight => 'גובה המכל';
+
+  @override
+  String get trim_tryout_tankUp => 'גבוה יותר ברצועה';
+
+  @override
+  String get trim_tryout_tankDown => 'נמוך יותר ברצועה';
+
+  @override
+  String get trim_tryout_tankAsLogged => 'כפי שתועד';
+
+  @override
+  String trim_tryout_tankShiftUp(String distance) {
+    return '$distance למעלה';
+  }
+
+  @override
+  String trim_tryout_tankShiftDown(String distance) {
+    return '$distance למטה';
+  }
+
+  @override
+  String get trim_tryout_time => 'זמן';
+
+  @override
+  String get trim_tryout_addTestItem => 'הוסף פריט ניסיון';
+
+  @override
+  String get trim_tryout_testName => 'שם';
+
+  @override
+  String get trim_tryout_nameRequired => 'הזן שם';
+
+  @override
+  String get trim_tryout_reset => 'איפוס';
+
+  @override
+  String get trim_tryout_pieces => 'פריטים';
+
+  @override
+  String get trim_tryout_moveTo => 'העבר אל';
+
+  @override
+  String get trim_tryout_pieceMenu => 'הזז או החלף צד';
+
+  @override
+  String trim_tryout_testWeight(String unit) {
+    return 'משקל ($unit)';
+  }
+
+  @override
+  String trim_tryout_weightRange(String min, String max) {
+    return 'הזן משקל מ-$min עד $max';
+  }
+
+  @override
+  String trim_tryout_timeLabel(String time, String depth) {
+    return '$time, $depth';
+  }
+
+  @override
+  String trim_tryout_moments(String pitch, String roll) {
+    return 'עלרוד $pitch, גלגול $roll';
+  }
+
+  @override
+  String get trim_fixes_title => 'מה ייישר אותך';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return 'קח $weight פחות משקולות';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'הזז את המכל $distance למעלה ברצועה';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'הזז את המכל $distance למטה ברצועה';
+  }
+
+  @override
+  String get trim_fix_lighterFins => 'סנפירים קלים יותר, כמעט ניטרליים במים';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return 'סנפירים כבדים יותר, כ-$weight לזוג';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return 'העבר $weight משקולות מ$from ל$to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return 'העבר $weight משקולות משמאל לימין';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return 'העבר $weight משקולות מימין לשמאל';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return 'אחר כך: $verdict';
+  }
+
+  @override
+  String get trim_verdict_level => 'מאוזן';
+
+  @override
+  String get trim_verdict_slightlyFeetHeavy => 'מעט כבד ברגליים';
+
+  @override
+  String get trim_verdict_feetHeavy => 'כבד ברגליים';
+
+  @override
+  String get trim_verdict_slightlyHeadHeavy => 'מעט כבד בראש';
+
+  @override
+  String get trim_verdict_headHeavy => 'כבד בראש';
+
+  @override
+  String get trim_roll_slightlyLeft => 'נוטה מעט שמאלה';
+
+  @override
+  String get trim_roll_left => 'נוטה שמאלה';
+
+  @override
+  String get trim_roll_slightlyRight => 'נוטה מעט ימינה';
+
+  @override
+  String get trim_roll_right => 'נוטה ימינה';
+
+  @override
+  String get trim_gauge_pitch => 'עלרוד';
+
+  @override
+  String get trim_gauge_roll => 'גלגול';
+
+  @override
+  String get trim_gauge_headHeavy => 'כבד בראש';
+
+  @override
+  String get trim_gauge_feetHeavy => 'כבד ברגליים';
+
+  @override
+  String get trim_gauge_left => 'שמאל';
+
+  @override
+  String get trim_gauge_right => 'ימין';
+
+  @override
+  String get trim_chip_left => 'ש';
+
+  @override
+  String get trim_chip_right => 'י';
+
+  @override
+  String get trim_testItem => 'פריט ניסיון';
+
+  @override
+  String get trim_spot_head => 'ראש';
+
+  @override
+  String get trim_spot_mouth => 'פה';
+
+  @override
+  String get trim_spot_chest => 'חזה';
+
+  @override
+  String get trim_spot_chestClip => 'טבעת D בחזה';
+
+  @override
+  String get trim_spot_upperBack => 'גב עליון';
+
+  @override
+  String get trim_spot_backTank => 'גב';
+
+  @override
+  String get trim_spot_wing => 'כנף';
+
+  @override
+  String get trim_spot_trimPockets => 'כיסי איזון';
+
+  @override
+  String get trim_spot_backplate => 'לוח גב';
+
+  @override
+  String get trim_spot_buttDRing => 'טבעת D אחורית';
+
+  @override
+  String get trim_spot_waist => 'מותניים';
+
+  @override
+  String get trim_spot_hipPockets => 'כיסי מותן';
+
+  @override
+  String get trim_spot_sidemount => 'צד';
+
+  @override
+  String get trim_spot_stageClip => 'תפסי מכל במה';
+
+  @override
+  String get trim_spot_console => 'קונסולה';
+
+  @override
+  String get trim_spot_thigh => 'ירך';
+
+  @override
+  String get trim_spot_calf => 'שוק';
+
+  @override
+  String get trim_spot_ankles => 'קרסוליים';
+
+  @override
+  String get trim_spot_feet => 'כפות רגליים';
+
+  @override
+  String get trim_spot_fins => 'סנפירים';
+
+  @override
+  String get trim_spot_hand => 'יד';
+
+  @override
+  String get trim_spot_wrist => 'פרק כף היד';
+
+  @override
+  String get trim_spot_cameraArm => 'זרוע מצלמה';
+
+  @override
+  String get trim_spot_floatPoint => 'פזור על הגוף';
+
+  @override
+  String get trim_spot_noSpot => 'אין מיקום קבוע';
+
+  @override
+  String trim_figure_summaryNoLead(String verdict) {
+    return 'תרשים איזון: $verdict.';
+  }
+
+  @override
+  String diveLog_detail_weight_withSide(String name, String side) {
+    return '$name ($side)';
+  }
+
+  @override
+  String trim_verdictLine(String pitch, String roll) {
+    return '$pitch, $roll';
+  }
+
+  @override
+  String trim_figure_summary(String verdict, String lead) {
+    return 'תרשים איזון: $verdict. משקולות: $lead.';
+  }
+
+  @override
+  String trim_chip_weight(String name, String weight) {
+    return '$name $weight';
+  }
+
+  @override
+  String get trim_chip_note => 'מיקום לא ידוע';
 
   @override
   String get buoyancy_ditchWarning => 'יותר ממה שניתן להשליך';
@@ -23936,6 +24279,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get navShortcut_short_weighting => 'משקולות';
+
+  @override
+  String get navShortcut_short_trim => 'איזון';
 
   @override
   String get navShortcut_short_surfaceInterval => 'מרווח שטח';

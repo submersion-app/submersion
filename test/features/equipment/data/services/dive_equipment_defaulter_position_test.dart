@@ -256,7 +256,13 @@ void main() {
             diverId: 'd1',
             displayName: name,
             entries: [
-              (weightType: WeightType.belt, amountKg: kg, notes: '', label: ''),
+              (
+                weightType: WeightType.belt,
+                amountKg: kg,
+                notes: '',
+                label: '',
+                side: null,
+              ),
             ],
           )).id;
       final warm = await lead('Warm lead', 3.63);

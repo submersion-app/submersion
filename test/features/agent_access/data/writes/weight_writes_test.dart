@@ -57,6 +57,7 @@ void main() {
       'amount_kg': 3.5,
       'label': 'Pockets',
       'notes': 'Two each side',
+      'side': 'left',
     };
     expect(
       samples.keys.toSet(),

@@ -5,13 +5,15 @@ import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weight_label_field.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/weight_side_choice.dart';
 import 'package:submersion/features/weight_planner/presentation/widgets/weight_enum_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_field.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// One editable weight on a dive: placement, amount and remove on the first
-/// line, the diver's optional name for it on the second (issue #956).
+/// line, the diver's optional name for it (issue #956) and the side it is
+/// carried on (issue #5028) below.
 ///
 /// The row keeps its current value itself and hands every edit to
 /// [onChanged]. The amount field does not rebuild the page while the diver
@@ -83,9 +85,16 @@ class _DiveWeightEntryRowState extends State<DiveWeightEntryRow> {
                       ),
                   ],
                   onChanged: (value) {
-                    if (value != null) {
-                      _update(_current.copyWith(weightType: value));
-                    }
+                    if (value == null) return;
+                    // Backplate weight is always centred, so it has no side.
+                    setState(
+                      () => _update(
+                        _current.copyWith(
+                          weightType: value,
+                          clearSide: value == WeightType.backplate,
+                        ),
+                      ),
+                    );
                   },
                 ),
               ),
@@ -134,6 +143,18 @@ class _DiveWeightEntryRowState extends State<DiveWeightEntryRow> {
             initialValue: _current.label,
             onChanged: (value) => _update(_current.copyWith(label: value)),
           ),
+          // Below the name, so the name stays tight to its own row.
+          if (_current.weightType != WeightType.backplate) ...[
+            const SizedBox(height: 8),
+            WeightSideChoice(
+              side: _current.side,
+              onChanged: (side) => setState(
+                () => _update(
+                  _current.copyWith(side: side, clearSide: side == null),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

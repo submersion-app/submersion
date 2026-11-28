@@ -47,7 +47,13 @@ void main() {
     cylinders: cylinders,
     weights: lead
         ? const [
-            (weightType: WeightType.belt, amountKg: 5.44, notes: '', label: ''),
+            (
+              weightType: WeightType.belt,
+              amountKg: 5.44,
+              notes: '',
+              label: '',
+              side: null,
+            ),
           ]
         : const [],
   );

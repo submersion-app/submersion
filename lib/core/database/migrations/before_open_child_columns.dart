@@ -81,6 +81,11 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v385: trip_equipment.bag_equipment_id and bag_hlc (issue #4945).
     await _assertTripEquipmentBagColumn();
 
+    // v395: dive_weights.side and weight_preset_entries.side (issue #5028).
+    // Every weight and preset entry read selects the whole row, for the same
+    // reason.
+    await _assertWeightSideColumns();
+
     // v394: tank_presets.rated_capacity_cuft (issue #800). Every preset read
     // selects the whole row, for the same reason as the tank columns.
     await _assertTankPresetRatedCapacityColumn();

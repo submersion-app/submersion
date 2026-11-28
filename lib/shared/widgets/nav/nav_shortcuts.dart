@@ -160,6 +160,12 @@ final List<NavShortcut> kNavShortcuts = List.unmodifiable([
     navLabel: (l10n) => l10n.navShortcut_short_weighting,
   ),
   _planningTool(
+    'trim-calculator',
+    Icons.balance,
+    (l10n) => l10n.planning_card_trimCalculator_title,
+    navLabel: (l10n) => l10n.navShortcut_short_trim,
+  ),
+  _planningTool(
     'surface-interval',
     Icons.timer,
     (l10n) => l10n.planning_card_surfaceInterval_title,

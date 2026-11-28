@@ -7,11 +7,13 @@ import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twi
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_header_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_weight_rows.dart';
+import 'package:submersion/features/trim_calculator/presentation/trim_calculator_navigation.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
 /// The dive page's Weights and buoyancy card: the lead the diver carried,
-/// then the modeled buoyancy of the dive (issue #5005).
+/// then the modeled buoyancy of the dive (issue #5005). Once the model has
+/// an outcome, a link opens the dive in the trim calculator (issue #5028).
 ///
 /// It is the Weights section's card, so it can be edited in place: unlocked,
 /// its title row gains the pencil, which opens the weights editor in place of
@@ -43,6 +45,9 @@ class DiveWeightsBuoyancyCard extends ConsumerWidget {
   /// unlocking never changes which form the What if? button takes: the title
   /// would rewrap and the row change height under the diver's finger.
   static const double _pencilWidth = 48;
+
+  /// The link that opens this dive in the trim calculator.
+  static const trimLinkKey = ValueKey('dive-weights-trim-link');
 
   /// The least the title keeps before the What if? button gives up its
   /// label: the title wraps rather than ellipsizing, so without a floor it
@@ -85,8 +90,16 @@ class DiveWeightsBuoyancyCard extends ConsumerWidget {
               const SizedBox(height: 12),
               DiveWeightRows(dive: dive),
             ],
-            if (showWeights && outcome != null) const Divider(height: 24),
-            if (!showWeights && outcome != null) const SizedBox(height: 12),
+            if (outcome != null) ...[
+              SizedBox(height: showWeights ? 4 : 8),
+              TextButton.icon(
+                key: trimLinkKey,
+                icon: const Icon(Icons.balance),
+                label: Text(context.l10n.trim_card_openCalculator),
+                onPressed: () => openTrimCalculator(context, diveId: stored.id),
+              ),
+              const Divider(height: 16),
+            ],
             BuoyancySection(diveId: stored.id, dive: stored, units: units),
           ],
         ),

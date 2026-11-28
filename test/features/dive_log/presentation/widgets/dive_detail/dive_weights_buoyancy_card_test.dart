@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
@@ -227,5 +228,123 @@ void main() {
     expect(find.text('1.5 kg'), findsNWidgets(10));
     expect(find.text('15.0 kg'), findsWidgets);
     expect(find.text('Total:'), findsOneWidget);
+  });
+
+  group('trim calculator link (#5028)', () {
+    final link = find.byKey(DiveWeightsBuoyancyCard.trimLinkKey);
+
+    testWidgets('sits between the weights list and the model', (tester) async {
+      await pump(tester, outcome: buoyancyOutcome());
+      final at = tester.getTopLeft(link).dy;
+      expect(at, greaterThan(tester.getTopLeft(find.text('Weight Belt')).dy));
+      expect(
+        at,
+        lessThan(tester.getTopLeft(find.text('Lead for next time')).dy),
+      );
+      expect(find.text('Check trim'), findsOneWidget);
+    });
+
+    testWidgets('no model, no link, and the list still shows', (tester) async {
+      await pump(tester, outcome: null);
+      expect(link, findsNothing);
+      expect(find.text('Weight Belt'), findsOneWidget);
+    });
+
+    testWidgets('shows with the model when there are no weights', (
+      tester,
+    ) async {
+      await pump(tester, outcome: buoyancyOutcome(), showWeights: false);
+      expect(link, findsOneWidget);
+    });
+
+    testWidgets('opens the trim calculator on this dive', (tester) async {
+      Uri? opened;
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => Scaffold(
+              body: SingleChildScrollView(
+                child: DiveWeightsBuoyancyCard(
+                  dive: weighted,
+                  stored: weighted,
+                  showWeights: true,
+                ),
+              ),
+            ),
+          ),
+          GoRoute(
+            path: '/planning/trim-calculator',
+            builder: (_, state) {
+              opened = state.uri;
+              return const Scaffold(body: Text('calculator'));
+            },
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            buoyancyTwinProvider(
+              'd1',
+            ).overrideWith((ref) async => buoyancyOutcome()),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(link);
+      await tester.tap(link);
+      await tester.pumpAndSettle();
+      expect(find.text('calculator'), findsOneWidget);
+      expect(opened?.queryParameters['dive'], 'd1');
+    });
+  });
+
+  testWidgets('a weight carried on one side says which (#5028)', (
+    tester,
+  ) async {
+    final sided = Dive(
+      id: 'd1',
+      dateTime: DateTime.utc(2026, 3, 15, 10),
+      weights: const [
+        DiveWeight(
+          id: 'w1',
+          diveId: 'd1',
+          weightType: WeightType.integrated,
+          amountKg: 4,
+          side: WeightSide.left,
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          buoyancyTwinProvider('d1').overrideWith((ref) async => null),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: DiveWeightsBuoyancyCard(
+              dive: sided,
+              stored: sided,
+              showWeights: true,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Integrated Weights (Left)'), findsOneWidget);
   });
 }

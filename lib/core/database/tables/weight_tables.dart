@@ -69,6 +69,10 @@ class WeightPresetEntries extends Table {
   /// The diver's own name for this entry, copied to and from a dive's
   /// weights (issue #956). Empty when unnamed.
   TextColumn get label => text().withDefault(const Constant(''))();
+
+  /// v395: the side this entry is carried on, 'left' or 'right', copied to
+  /// and from a dive's weights (issue #5028); null means both sides.
+  TextColumn get side => text().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   IntColumn get createdAt => integer()();
 

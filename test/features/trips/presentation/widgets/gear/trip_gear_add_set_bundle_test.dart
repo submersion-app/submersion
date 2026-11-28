@@ -67,7 +67,13 @@ void main() {
       diverId: 'd1',
       displayName: 'Belt',
       entries: const [
-        (weightType: WeightType.belt, amountKg: 4.0, notes: '', label: ''),
+        (
+          weightType: WeightType.belt,
+          amountKg: 4.0,
+          notes: '',
+          label: '',
+          side: null,
+        ),
       ],
     );
     final configs = CylinderConfigRepository();

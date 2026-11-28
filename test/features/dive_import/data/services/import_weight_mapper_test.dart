@@ -29,4 +29,20 @@ void main() {
     expect(weight.notes, '');
     expect(weight.label, '');
   });
+
+  test('a side carries through, an unknown one reads as both', () {
+    expect(
+      weightFromImportData(
+        const {'side': 'right'},
+        id: 'w1',
+        diveId: 'd1',
+      ).side,
+      WeightSide.right,
+    );
+    expect(
+      weightFromImportData(const {'side': 'up'}, id: 'w1', diveId: 'd1').side,
+      isNull,
+    );
+    expect(weightFromImportData(const {}, id: 'w1', diveId: 'd1').side, isNull);
+  });
 }

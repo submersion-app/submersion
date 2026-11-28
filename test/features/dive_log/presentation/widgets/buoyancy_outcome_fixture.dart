@@ -27,12 +27,15 @@ BuoyancyTwinOutcome buoyancyOutcome({
   ),
   TwinSuitKind suitKind = TwinSuitKind.wetsuit,
   double drysuitGasLiters = 0,
+  List<TwinStaticTerm> staticTerms = const [
+    TwinStaticTerm(label: 'personal', kg: 5.0, source: TermSource.measured),
+  ],
 }) {
   final env = DiveEnvironment.forConditions(waterType: WaterType.salt);
   final input = TwinInput(
-    profile: const [
-      TwinProfileSample(timestamp: 0, depthM: 0),
-      TwinProfileSample(timestamp: 60, depthM: 5),
+    profile: [
+      for (final s in samples)
+        TwinProfileSample(timestamp: s.timestamp, depthM: s.depthM),
     ],
     tanks: tanks,
     suit: TwinSuitInput(
@@ -40,9 +43,7 @@ BuoyancyTwinOutcome buoyancyOutcome({
       anchorKg: 3.0,
       source: TermSource.typeDefault,
     ),
-    staticTerms: const [
-      TwinStaticTerm(label: 'personal', kg: 5.0, source: TermSource.measured),
-    ],
+    staticTerms: staticTerms,
     leadKg: leadKg,
     droppableLeadKg: droppableLeadKg,
     environment: env,

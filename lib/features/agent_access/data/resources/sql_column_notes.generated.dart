@@ -319,6 +319,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   'dive_weights': {
     'amount_kg': 'kg',
     'label': 'The diver\'s own name for this weight, e.g. "Top pocket"',
+    'side': 'the side this weight is carried on, \'left\' or \'right\'',
     'weight_type': 'Integrated, Belt, Trim, Ankle, Backplate, Other',
   },
   'diver_settings': {
@@ -843,5 +844,6 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'weight_preset_entries': {
     'label': 'The diver\'s own name for this entry, copied to and from a dive\'s weights',
+    'side': 'the side this entry is carried on, \'left\' or \'right\', copied to and from a dive\'s weights',
   },
 };

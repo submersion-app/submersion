@@ -96,10 +96,23 @@ class TwinStaticTerm {
   final String label;
   final double kg;
   final TermSource source;
+
+  /// The gear item this term is for; null for the body and water terms
+  /// (issue #5028: the trim figure places each item's term on the body).
+  final String? itemId;
+
+  /// The item's physical prior (its entered buoyancy, else the type
+  /// default), which [kg] replaces with a fitted value once measured. Trim
+  /// uses the prior: the fit splits leftover buoyancy between items always
+  /// worn together, harmless for the lead total but not for where it acts.
+  final double? priorKg;
+
   const TwinStaticTerm({
     required this.label,
     required this.kg,
     required this.source,
+    this.itemId,
+    this.priorKg,
   });
 }
 

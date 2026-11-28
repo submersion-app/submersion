@@ -38,6 +38,7 @@ import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
 import 'package:submersion/features/transfer/presentation/pages/transfer_computers_page.dart';
+import 'package:submersion/features/trim_calculator/presentation/pages/trim_calculator_page.dart';
 import 'package:submersion/features/weight_planner/presentation/pages/weight_planner_page.dart';
 import 'package:submersion/shared/widgets/nav/nav_shortcuts.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/leave_running_import_dialog.dart';
@@ -56,6 +57,7 @@ final Map<String, NavShortcutPageBuilder> kNavShortcutPages = Map.unmodifiable({
   'deco-calculator': (_) => const DecoCalculatorPage(),
   'gas-calculators': (_) => const GasCalculatorsPage(),
   'weight-calculator': (_) => const WeightPlannerPage(),
+  'trim-calculator': (_) => const TrimCalculatorPage(),
   'surface-interval': (_) => const SurfaceIntervalToolPage(),
   'no-fly': (_) => const NoFlyPage(),
   'cns-otu': (_) => const CnsOtuPage(),

@@ -45,6 +45,7 @@ void main() {
     double kg, {
     String notes = '',
     String label = '',
+    WeightSide? side,
   }) => domain_weight.DiveWeight(
     id: id,
     diveId: 'dv',
@@ -52,6 +53,7 @@ void main() {
     amountKg: kg,
     notes: notes,
     label: label,
+    side: side,
   );
 
   Future<List<DiveWeight>> weightRows() async =>
@@ -249,6 +251,51 @@ void main() {
         [weight('', WeightType.belt, 1, label: 'Light canister')],
       );
       expect((await weightRows()).single.label, 'Light canister');
+    });
+  });
+
+  group('weight sides (#5028)', () {
+    test('createDive stores the side and getDiveById reads it', () async {
+      final dive = await seed(
+        weights: [
+          weight('w1', WeightType.integrated, 2, side: WeightSide.left),
+        ],
+      );
+      expect(dive.weights.single.side, WeightSide.left);
+      expect((await weightRows()).single.side, 'left');
+    });
+
+    test('a side-only edit is written and re-marked', () async {
+      final dive = await seed(weights: [weight('w1', WeightType.belt, 4)]);
+      await markEverythingSynced('diveWeights');
+
+      await repo.updateDive(
+        dive.copyWith(
+          weights: [weight('w1', WeightType.belt, 4, side: WeightSide.right)],
+        ),
+      );
+
+      expect(await pendingFor('diveWeights'), {'w1'});
+      expect((await weightRows()).single.side, 'right');
+    });
+
+    test('back to both sides writes null', () async {
+      final dive = await seed(
+        weights: [weight('w1', WeightType.belt, 4, side: WeightSide.left)],
+      );
+      await repo.updateDive(
+        dive.copyWith(weights: [weight('w1', WeightType.belt, 4)]),
+      );
+      expect((await weightRows()).single.side, isNull);
+    });
+
+    test('bulkAddWeights stores the side', () async {
+      await seed();
+      await repo.bulkAddWeights(
+        ['dv'],
+        [weight('', WeightType.trimWeights, 1, side: WeightSide.right)],
+      );
+      expect((await weightRows()).single.side, 'right');
     });
   });
 

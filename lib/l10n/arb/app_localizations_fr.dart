@@ -8633,6 +8633,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'Retirer';
 
   @override
+  String get diveLog_weight_side_label => 'Côté';
+
+  @override
+  String get diveLog_weight_side_both => 'Les deux';
+
+  @override
+  String get diveLog_weight_side_left => 'Gauche';
+
+  @override
+  String get diveLog_weight_side_right => 'Droite';
+
+  @override
   String diveLog_edit_tripSuggested(Object name) {
     return 'Suggestion : $name';
   }
@@ -23175,6 +23187,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'Calculateur de lestage';
 
   @override
+  String get planning_card_trimCalculator_title => 'Calculateur d\'assiette';
+
+  @override
+  String get planning_card_trimCalculator_subtitle =>
+      'Comment votre lest et votre équipement vous équilibrent';
+
+  @override
   String get planning_info_disclaimer =>
       'Ces outils sont destinés à la planification uniquement. Vérifiez toujours les calculs et suivez votre formation de plongée.';
 
@@ -23786,6 +23805,331 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get buoyancy_minDitchable => 'Lest largable minimal';
+
+  @override
+  String get trim_card_caption =>
+      'Pour la vérification au palier de sécurité, avec le gaz restant à ce moment. L\'inclinaison illustre la poussée, pas un angle.';
+
+  @override
+  String get trim_card_openCalculator => 'Vérifier l\'assiette';
+
+  @override
+  String get trim_calculator_changeDive => 'Changer de plongée';
+
+  @override
+  String get trim_calculator_pickDive => 'Choisir une plongée';
+
+  @override
+  String get trim_calculator_searchDives => 'Rechercher des plongées';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return 'Aucune plongée ne correspond à « $query »';
+  }
+
+  @override
+  String get trim_calculator_noDives =>
+      'Enregistrez une plongée pour vérifier son assiette. Le calculateur s\'ouvre sur votre dernière plongée.';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'Cette plongée n\'a ni bloc ni combinaison, son assiette ne peut donc pas être calculée. Choisissez une autre plongée.';
+
+  @override
+  String get trim_calculator_diveMissing =>
+      'Cette plongée n\'est plus dans votre carnet. Choisissez une autre plongée.';
+
+  @override
+  String get trim_tryout_hint =>
+      'Faites glisser une étiquette pour la déplacer. Touchez-la pour changer de côté. Rien n\'est enregistré ici.';
+
+  @override
+  String get trim_tryout_arms => 'Bras';
+
+  @override
+  String get trim_tryout_armsSides => 'Le long du corps';
+
+  @override
+  String get trim_tryout_armsAhead => 'Tendus devant';
+
+  @override
+  String get trim_tryout_knees => 'Genoux';
+
+  @override
+  String get trim_tryout_kneesStraight => 'Tendus';
+
+  @override
+  String get trim_tryout_kneesBent => 'Pliés à 90 degrés';
+
+  @override
+  String get trim_tryout_tankHeight => 'Hauteur du bloc';
+
+  @override
+  String get trim_tryout_tankUp => 'Plus haut dans la sangle';
+
+  @override
+  String get trim_tryout_tankDown => 'Plus bas dans la sangle';
+
+  @override
+  String get trim_tryout_tankAsLogged => 'Comme enregistré';
+
+  @override
+  String trim_tryout_tankShiftUp(String distance) {
+    return '$distance plus haut';
+  }
+
+  @override
+  String trim_tryout_tankShiftDown(String distance) {
+    return '$distance plus bas';
+  }
+
+  @override
+  String get trim_tryout_time => 'Temps';
+
+  @override
+  String get trim_tryout_addTestItem => 'Ajouter un objet test';
+
+  @override
+  String get trim_tryout_testName => 'Nom';
+
+  @override
+  String get trim_tryout_nameRequired => 'Saisissez un nom';
+
+  @override
+  String get trim_tryout_reset => 'Réinitialiser';
+
+  @override
+  String get trim_tryout_pieces => 'Éléments';
+
+  @override
+  String get trim_tryout_moveTo => 'Déplacer vers';
+
+  @override
+  String get trim_tryout_pieceMenu => 'Déplacer ou changer de côté';
+
+  @override
+  String trim_tryout_testWeight(String unit) {
+    return 'Poids ($unit)';
+  }
+
+  @override
+  String trim_tryout_weightRange(String min, String max) {
+    return 'Saisissez un poids de $min à $max';
+  }
+
+  @override
+  String trim_tryout_timeLabel(String time, String depth) {
+    return '$time, $depth';
+  }
+
+  @override
+  String trim_tryout_moments(String pitch, String roll) {
+    return 'Tangage $pitch, roulis $roll';
+  }
+
+  @override
+  String get trim_fixes_title => 'Ce qui vous mettrait à plat';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return 'Portez $weight de lest en moins';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'Remontez le bloc de $distance dans la sangle';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'Descendez le bloc de $distance dans la sangle';
+  }
+
+  @override
+  String get trim_fix_lighterFins =>
+      'Palmes plus légères, presque neutres dans l\'eau';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return 'Palmes plus lourdes, environ $weight la paire';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return 'Déplacez $weight de lest de $from vers $to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return 'Déplacez $weight de lest de gauche à droite';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return 'Déplacez $weight de lest de droite à gauche';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return 'Ensuite : $verdict';
+  }
+
+  @override
+  String get trim_verdict_level => 'À plat';
+
+  @override
+  String get trim_verdict_slightlyFeetHeavy => 'Légèrement lourd des pieds';
+
+  @override
+  String get trim_verdict_feetHeavy => 'Lourd des pieds';
+
+  @override
+  String get trim_verdict_slightlyHeadHeavy => 'Légèrement lourd de la tête';
+
+  @override
+  String get trim_verdict_headHeavy => 'Lourd de la tête';
+
+  @override
+  String get trim_roll_slightlyLeft => 'roule légèrement à gauche';
+
+  @override
+  String get trim_roll_left => 'roule à gauche';
+
+  @override
+  String get trim_roll_slightlyRight => 'roule légèrement à droite';
+
+  @override
+  String get trim_roll_right => 'roule à droite';
+
+  @override
+  String get trim_gauge_pitch => 'Tangage';
+
+  @override
+  String get trim_gauge_roll => 'Roulis';
+
+  @override
+  String get trim_gauge_headHeavy => 'Lourd de la tête';
+
+  @override
+  String get trim_gauge_feetHeavy => 'Lourd des pieds';
+
+  @override
+  String get trim_gauge_left => 'Gauche';
+
+  @override
+  String get trim_gauge_right => 'Droite';
+
+  @override
+  String get trim_chip_left => 'G';
+
+  @override
+  String get trim_chip_right => 'D';
+
+  @override
+  String get trim_testItem => 'Objet test';
+
+  @override
+  String get trim_spot_head => 'Tête';
+
+  @override
+  String get trim_spot_mouth => 'Bouche';
+
+  @override
+  String get trim_spot_chest => 'Poitrine';
+
+  @override
+  String get trim_spot_chestClip => 'Anneau D de poitrine';
+
+  @override
+  String get trim_spot_upperBack => 'Haut du dos';
+
+  @override
+  String get trim_spot_backTank => 'Dos';
+
+  @override
+  String get trim_spot_wing => 'Wing';
+
+  @override
+  String get trim_spot_trimPockets => 'Poches de trim';
+
+  @override
+  String get trim_spot_backplate => 'Plaque dorsale';
+
+  @override
+  String get trim_spot_buttDRing => 'Anneau D arrière';
+
+  @override
+  String get trim_spot_waist => 'Taille';
+
+  @override
+  String get trim_spot_hipPockets => 'Poches de hanche';
+
+  @override
+  String get trim_spot_sidemount => 'Flanc';
+
+  @override
+  String get trim_spot_stageClip => 'Clips de relais';
+
+  @override
+  String get trim_spot_console => 'Console';
+
+  @override
+  String get trim_spot_thigh => 'Cuisse';
+
+  @override
+  String get trim_spot_calf => 'Mollet';
+
+  @override
+  String get trim_spot_ankles => 'Chevilles';
+
+  @override
+  String get trim_spot_feet => 'Pieds';
+
+  @override
+  String get trim_spot_fins => 'Palmes';
+
+  @override
+  String get trim_spot_hand => 'Main';
+
+  @override
+  String get trim_spot_wrist => 'Poignet';
+
+  @override
+  String get trim_spot_cameraArm => 'Bras de caméra';
+
+  @override
+  String get trim_spot_floatPoint => 'Réparti sur le corps';
+
+  @override
+  String get trim_spot_noSpot => 'Sans emplacement fixe';
+
+  @override
+  String trim_figure_summaryNoLead(String verdict) {
+    return 'Figure d\'assiette : $verdict.';
+  }
+
+  @override
+  String diveLog_detail_weight_withSide(String name, String side) {
+    return '$name ($side)';
+  }
+
+  @override
+  String trim_verdictLine(String pitch, String roll) {
+    return '$pitch, $roll';
+  }
+
+  @override
+  String trim_figure_summary(String verdict, String lead) {
+    return 'Figure d\'assiette : $verdict. Lest : $lead.';
+  }
+
+  @override
+  String trim_chip_weight(String name, String weight) {
+    return '$name $weight';
+  }
+
+  @override
+  String get trim_chip_note => 'emplacement inconnu';
 
   @override
   String get buoyancy_ditchWarning => 'Plus que ce que vous pouvez larguer';
@@ -24516,6 +24860,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get navShortcut_short_weighting => 'Lestage';
+
+  @override
+  String get navShortcut_short_trim => 'Assiette';
 
   @override
   String get navShortcut_short_surfaceInterval => 'Interv. surface';

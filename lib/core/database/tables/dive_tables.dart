@@ -403,6 +403,10 @@ class DiveWeights extends Table {
   /// The diver's own name for this weight, e.g. "Top pocket" (issue #956).
   /// Empty when unnamed; the placement stays in [weightType].
   TextColumn get label => text().withDefault(const Constant(''))();
+
+  /// v395: the side this weight is carried on, 'left' or 'right' (issue
+  /// #5028); null means both sides, split evenly.
+  TextColumn get side => text().nullable()();
   IntColumn get createdAt => integer()();
 
   @override

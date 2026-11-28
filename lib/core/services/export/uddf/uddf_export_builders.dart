@@ -606,6 +606,10 @@ class UddfExportBuilders {
                         if (weight.label.isNotEmpty) {
                           builder.element('label', nest: weight.label);
                         }
+                        // App-specific; absent means both sides (#5028).
+                        if (weight.side != null) {
+                          builder.element('side', nest: weight.side!.name);
+                        }
                       },
                     );
                   }

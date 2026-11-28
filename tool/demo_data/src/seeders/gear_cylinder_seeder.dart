@@ -174,6 +174,7 @@ class GearCylinderSeeder implements DemoSeeder {
           amountKg: 8 * _kgPerLb,
           notes: '',
           label: 'Belt',
+          side: null,
         ),
       ],
     );
@@ -186,12 +187,14 @@ class GearCylinderSeeder implements DemoSeeder {
           amountKg: 14 * _kgPerLb,
           notes: '',
           label: 'Belt',
+          side: null,
         ),
         (
           weightType: WeightType.trimWeights,
           amountKg: 4 * _kgPerLb,
           notes: 'Tank band',
           label: 'Trim',
+          side: null,
         ),
       ],
     );

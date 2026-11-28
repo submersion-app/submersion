@@ -42,6 +42,7 @@ class WeightPreset extends Equatable {
           amountKg: e.amountKg,
           notes: e.notes,
           label: e.label,
+          side: e.side,
         ),
       )
       .toList();
@@ -83,6 +84,7 @@ typedef WeightEntryDraft = ({
   double amountKg,
   String notes,
   String label,
+  WeightSide? side,
 });
 
 /// One weight entry inside a [WeightPreset]. Same shape as a per-dive
@@ -96,6 +98,9 @@ class WeightPresetEntry extends Equatable {
 
   /// The diver's own name for this entry (issue #956); '' when unnamed.
   final String label;
+
+  /// The side it is carried on (issue #5028); null for both sides.
+  final WeightSide? side;
   final int sortOrder;
 
   const WeightPresetEntry({
@@ -105,8 +110,30 @@ class WeightPresetEntry extends Equatable {
     required this.amountKg,
     this.notes = '',
     this.label = '',
+    this.side,
     this.sortOrder = 0,
   });
+
+  WeightPresetEntry copyWith({
+    String? id,
+    String? presetId,
+    WeightType? weightType,
+    double? amountKg,
+    String? notes,
+    String? label,
+    WeightSide? side,
+    bool clearSide = false,
+    int? sortOrder,
+  }) => WeightPresetEntry(
+    id: id ?? this.id,
+    presetId: presetId ?? this.presetId,
+    weightType: weightType ?? this.weightType,
+    amountKg: amountKg ?? this.amountKg,
+    notes: notes ?? this.notes,
+    label: label ?? this.label,
+    side: clearSide ? null : (side ?? this.side),
+    sortOrder: sortOrder ?? this.sortOrder,
+  );
 
   @override
   List<Object?> get props => [
@@ -116,6 +143,7 @@ class WeightPresetEntry extends Equatable {
     amountKg,
     notes,
     label,
+    side,
     sortOrder,
   ];
 }

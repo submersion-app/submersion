@@ -1,0 +1,400 @@
+import 'package:flutter/gestures.dart';
+import 'package:flutter/material.dart';
+
+import 'package:submersion/core/buoyancy/trim/trim_moment.dart';
+import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/number_display.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_chip_layout.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_figure_geometry.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_fixes_list.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_gauges.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_pieces_list.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_strings.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_test_item_form.dart';
+import 'package:submersion/features/trim_calculator/presentation/widgets/trim_tryout_controller.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+/// One sample of the dive the time slider can stop at.
+class TrimMoment {
+  const TrimMoment({required this.timestamp, required this.depthM});
+
+  final int timestamp;
+  final double depthM;
+}
+
+/// The trim calculator's working area (issue #5028): the figure (drag a chip
+/// to move it, tap it to change its side), the gauges and moments, then
+/// pose, time, a test item, the pieces list and Reset. Nothing in it is
+/// saved.
+class TrimTryoutView extends StatefulWidget {
+  const TrimTryoutView({
+    super.key,
+    required this.controller,
+    required this.moments,
+    required this.units,
+  });
+
+  final TrimTryoutController controller;
+  final List<TrimMoment> moments;
+  final UnitFormatter units;
+
+  static const armsKey = ValueKey('trim-arms');
+  static const kneesKey = ValueKey('trim-knees');
+  static const timeKey = ValueKey('trim-time');
+  static const tankKey = ValueKey('trim-tank-height');
+
+  @override
+  State<TrimTryoutView> createState() => _TrimTryoutViewState();
+}
+
+class _TrimTryoutViewState extends State<TrimTryoutView> {
+  TrimFigureGeometry? _geometry;
+  TrimChipLayout? _chips;
+  String? _dragId;
+  Offset? _downAt;
+  Offset? _dragAt;
+
+  /// The pointer was cancelled (the system took the gesture): the drag ends
+  /// where it started, with no tap and no move.
+  bool _cancelled = false;
+
+  TrimTryoutController get _c => widget.controller;
+
+  String? _chipAt(Offset p) {
+    for (final chip
+        in (_chips?.chips ?? const <TrimChipPlacement>[]).reversed) {
+      if (chip.rect.inflate(4).contains(p)) return chip.elementId;
+    }
+    return null;
+  }
+
+  TrimElement? get _dragged => _dragId == null
+      ? null
+      : _c.scene.elements.where((x) => x.id == _dragId).firstOrNull;
+
+  bool get _moving =>
+      _dragAt != null &&
+      _downAt != null &&
+      (_dragAt! - _downAt!).distance >= kTouchSlop;
+
+  /// The anchor of the spot a dragged chip would land on.
+  Offset? _dragTargetAnchor() {
+    final e = _dragged;
+    final geometry = _geometry;
+    if (e == null || geometry == null || !_moving || !_c.canMove(e)) {
+      return null;
+    }
+    return geometry.anchorOf(geometry.nearestSpot(_dragAt!, _c.spotsFor(e)));
+  }
+
+  /// The dragged chip's outline, following the finger.
+  Rect? _dragGhostRect() {
+    final e = _dragged;
+    if (!_moving || e == null || !_c.canMove(e)) return null;
+    final chip = _chips?.chips.where((c) => c.elementId == _dragId).firstOrNull;
+    return chip?.rect.shift(_dragAt! - _downAt!);
+  }
+
+  /// A finger lifted near where it landed taps the chip (its side cycles);
+  /// further away, the chip drops on the nearest spot it may use.
+  void _drop() {
+    final id = _dragId;
+    final at = _dragAt;
+    final down = _downAt;
+    final geometry = _geometry;
+    final cancelled = _cancelled;
+    _dragId = null;
+    _dragAt = null;
+    _downAt = null;
+    _cancelled = false;
+    setState(() {});
+    if (cancelled) return;
+    if (id == null || at == null || down == null || geometry == null) return;
+    if ((at - down).distance < kTouchSlop) {
+      _c.cycleSide(id);
+      return;
+    }
+    final e = _c.scene.elements.where((x) => x.id == id).firstOrNull;
+    if (e == null || !_c.canMove(e)) return;
+    _c.move(id, geometry.nearestSpot(at, _c.spotsFor(e)));
+  }
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: _c,
+    builder: (context, _) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [_header(context), _controls(context)],
+        ),
+      );
+    },
+  );
+
+  Widget _header(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final result = _c.result;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          l10n.trim_tryout_hint,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 8),
+        RawGestureDetector(
+          behavior: HitTestBehavior.opaque,
+          gestures: {
+            _ChipPanRecognizer:
+                GestureRecognizerFactoryWithHandlers<_ChipPanRecognizer>(
+                  () => _ChipPanRecognizer(
+                    onChip: (p) => _chipAt(p) != null,
+                    onPointerCancel: () => _cancelled = true,
+                  ),
+                  (r) => r
+                    // The chip is taken where the finger came down: the
+                    // pan reports only once the finger has moved off it.
+                    ..onDown = (d) {
+                      _dragId = _chipAt(d.localPosition);
+                      _downAt = d.localPosition;
+                      _dragAt = d.localPosition;
+                    }
+                    ..onUpdate = (d) {
+                      setState(() => _dragAt = d.localPosition);
+                    }
+                    ..onEnd = (_) {
+                      _drop();
+                    }
+                    ..onCancel = _drop,
+                ),
+          },
+          child: TrimFigure(
+            scene: _c.scene,
+            pose: _c.pose,
+            result: result,
+            units: widget.units,
+            showAllChips: true,
+            selectedElementId: _dragId,
+            dragTarget: _dragTargetAnchor(),
+            dragGhost: _dragGhostRect(),
+            onLayout: (geometry, chips) {
+              _geometry = geometry;
+              _chips = chips;
+            },
+          ),
+        ),
+        const SizedBox(height: 8),
+        TrimGauges(result: result),
+        const SizedBox(height: 4),
+        Text(
+          l10n.trim_tryout_moments(
+            _formatMoment(result.pitchKgM),
+            _formatMoment(result.rollKgM),
+          ),
+          style: theme.textTheme.bodySmall,
+        ),
+        TrimFixesList(
+          fixes: _c.fixes(trimLeadStepKg(widget.units)),
+          units: widget.units,
+        ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+
+  String _formatMoment(double kgM) =>
+      widget.units.settings.weightUnit == WeightUnit.pounds
+      ? '${formatFixedForDisplay(kgM * _lbFtPerKgM, 2)} lb·ft'
+      : '${formatFixedForDisplay(kgM, 2)} kg·m';
+
+  /// How far the tank is slid, up the band (toward the head) or down it, in
+  /// centimetres or, with feet for depth, inches.
+  String _tankReadout(AppLocalizations l10n, double m) {
+    if (m.abs() < 0.0005) return l10n.trim_tryout_tankAsLogged;
+    final distance = formatTrimDistance(widget.units, m);
+    return m < 0
+        ? l10n.trim_tryout_tankShiftUp(distance)
+        : l10n.trim_tryout_tankShiftDown(distance);
+  }
+
+  /// 1 kg m in pound-feet.
+  static const _lbFtPerKgM = 2.20462262 * 3.2808399;
+
+  Widget _controls(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final pose = _c.pose;
+    final moments = widget.moments;
+    final small = theme.textTheme.labelSmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    Widget slider({
+      required Key key,
+      required String label,
+      required double value,
+      required double max,
+      required String start,
+      required String end,
+      required ValueChanged<double> onChanged,
+      double min = 0,
+      String? readout,
+      int? divisions,
+    }) => Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(label, style: theme.textTheme.labelLarge),
+        if (readout != null) Text(readout, style: small),
+        Slider(
+          key: key,
+          value: value,
+          min: min,
+          max: max,
+          divisions: divisions,
+          onChanged: onChanged,
+        ),
+        Row(
+          children: [
+            Expanded(child: Text(start, style: small)),
+            Text(end, style: small),
+          ],
+        ),
+      ],
+    );
+
+    // The calculator opens at the rest anchor, the time its scene
+    // was built for.
+    final timeIndex = moments.isEmpty
+        ? 0
+        : _nearestIndex(moments, _c.timestamp ?? _c.scene.timestamp);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        slider(
+          key: TrimTryoutView.armsKey,
+          label: l10n.trim_tryout_arms,
+          value: pose.armReach,
+          max: 1,
+          start: l10n.trim_tryout_armsSides,
+          end: l10n.trim_tryout_armsAhead,
+          // The pose now, not the build's: a second slider moved before the
+          // rebuild must not undo the first.
+          onChanged: (v) => _c.setPose(_c.pose.copyWith(armReach: v)),
+        ),
+        slider(
+          key: TrimTryoutView.kneesKey,
+          label: l10n.trim_tryout_knees,
+          value: pose.kneeBendDeg,
+          max: 90,
+          start: l10n.trim_tryout_kneesStraight,
+          end: l10n.trim_tryout_kneesBent,
+          onChanged: (v) => _c.setPose(_c.pose.copyWith(kneeBendDeg: v)),
+        ),
+        // Instructors move a back-mounted cylinder on its band before they
+        // move lead (spec section 14 C).
+        if (_c.hasBackTank)
+          slider(
+            key: TrimTryoutView.tankKey,
+            label: l10n.trim_tryout_tankHeight,
+            readout: _tankReadout(l10n, _c.tankShiftM),
+            value: _c.tankShiftM,
+            min: -kTrimTankShiftMaxM,
+            max: kTrimTankShiftMaxM,
+            // One centimetre a step.
+            divisions: (kTrimTankShiftMaxM * 200).round(),
+            start: l10n.trim_tryout_tankUp,
+            end: l10n.trim_tryout_tankDown,
+            onChanged: _c.setTankShift,
+          ),
+        if (moments.length > 1) ...[
+          Text(l10n.trim_tryout_time, style: theme.textTheme.labelLarge),
+          Text(
+            l10n.trim_tryout_timeLabel(
+              _clock(moments[timeIndex].timestamp),
+              widget.units.formatDepth(moments[timeIndex].depthM),
+            ),
+            style: small,
+          ),
+          Slider(
+            key: TrimTryoutView.timeKey,
+            value: timeIndex.toDouble(),
+            max: (moments.length - 1).toDouble(),
+            // No divisions: a long dive has thousands of samples, one tick
+            // each; the value snaps to the nearest sample instead.
+            onChanged: (v) {
+              final t = moments[v.round()].timestamp;
+              if (t != _c.timestamp) _c.setTimestamp(t);
+            },
+          ),
+        ],
+        const SizedBox(height: 8),
+        TrimTestItemForm(units: widget.units, onAdd: _c.addTestItem),
+        const SizedBox(height: 16),
+        Text(l10n.trim_tryout_pieces, style: theme.textTheme.titleSmall),
+        TrimPiecesList(controller: _c, units: widget.units),
+        const SizedBox(height: 8),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton.icon(
+            onPressed: _c.reset,
+            icon: const Icon(Icons.restart_alt),
+            label: Text(l10n.trim_tryout_reset),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  static int _nearestIndex(List<TrimMoment> moments, int timestamp) {
+    var best = 0;
+    for (var i = 1; i < moments.length; i++) {
+      if ((moments[i].timestamp - timestamp).abs() <
+          (moments[best].timestamp - timestamp).abs()) {
+        best = i;
+      }
+    }
+    return best;
+  }
+
+  static String _clock(int seconds) {
+    final m = seconds ~/ 60;
+    final s = (seconds % 60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+}
+
+/// A pan that wins at once when the finger lands on a chip, so dragging a
+/// chip never scrolls the page, and leaves every other touch to the scroll.
+class _ChipPanRecognizer extends PanGestureRecognizer {
+  _ChipPanRecognizer({required this.onChip, required this.onPointerCancel});
+
+  final bool Function(Offset localPosition) onChip;
+
+  /// A pan reports a cancelled pointer through onEnd, like a lift; this
+  /// tells the two apart.
+  final VoidCallback onPointerCancel;
+
+  @override
+  void handleEvent(PointerEvent event) {
+    if (event is PointerCancelEvent) onPointerCancel();
+    super.handleEvent(event);
+  }
+
+  @override
+  void addAllowedPointer(PointerDownEvent event) {
+    if (!onChip(event.localPosition)) return;
+    super.addAllowedPointer(event);
+    resolve(GestureDisposition.accepted);
+  }
+}

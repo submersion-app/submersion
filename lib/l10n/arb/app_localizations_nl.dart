@@ -8568,6 +8568,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_tooltip_removeWeight => 'Verwijderen';
 
   @override
+  String get diveLog_weight_side_label => 'Zijde';
+
+  @override
+  String get diveLog_weight_side_both => 'Beide';
+
+  @override
+  String get diveLog_weight_side_left => 'Links';
+
+  @override
+  String get diveLog_weight_side_right => 'Rechts';
+
+  @override
   String diveLog_edit_tripSuggested(Object name) {
     return 'Voorgesteld: $name';
   }
@@ -22989,6 +23001,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get planning_card_weightCalculator_title => 'Gewichtscalculator';
 
   @override
+  String get planning_card_trimCalculator_title => 'Trimcalculator';
+
+  @override
+  String get planning_card_trimCalculator_subtitle =>
+      'Hoe lood en uitrusting je in balans brengen';
+
+  @override
   String get planning_info_disclaimer =>
       'Deze tools zijn alleen voor planningsdoeleinden. Controleer berekeningen altijd en volg je duikopleiding.';
 
@@ -23591,6 +23610,331 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get buoyancy_minDitchable => 'Min. afwerpbaar lood';
+
+  @override
+  String get trim_card_caption =>
+      'Voor de controle bij de veiligheidsstop, met het gas dat dan over is. De helling toont de kracht, geen hoek.';
+
+  @override
+  String get trim_card_openCalculator => 'Trim controleren';
+
+  @override
+  String get trim_calculator_changeDive => 'Andere duik';
+
+  @override
+  String get trim_calculator_pickDive => 'Kies een duik';
+
+  @override
+  String get trim_calculator_searchDives => 'Duiken zoeken';
+
+  @override
+  String trim_calculator_noMatches(String query) {
+    return 'Geen duiken komen overeen met \"$query\"';
+  }
+
+  @override
+  String get trim_calculator_noDives =>
+      'Log een duik om de trim te controleren. De calculator opent je laatste duik.';
+
+  @override
+  String get trim_calculator_cannotModel =>
+      'Deze duik heeft geen flessen of pak, dus de trim kan niet worden berekend. Kies een andere duik.';
+
+  @override
+  String get trim_calculator_diveMissing =>
+      'Die duik staat niet meer in je logboek. Kies een andere duik.';
+
+  @override
+  String get trim_tryout_hint =>
+      'Sleep een label om het te verplaatsen. Tik erop om van kant te wisselen. Hier wordt niets bewaard.';
+
+  @override
+  String get trim_tryout_arms => 'Armen';
+
+  @override
+  String get trim_tryout_armsSides => 'Langs het lichaam';
+
+  @override
+  String get trim_tryout_armsAhead => 'Naar voren gestrekt';
+
+  @override
+  String get trim_tryout_knees => 'Knieën';
+
+  @override
+  String get trim_tryout_kneesStraight => 'Gestrekt';
+
+  @override
+  String get trim_tryout_kneesBent => '90 graden gebogen';
+
+  @override
+  String get trim_tryout_tankHeight => 'Fleshoogte';
+
+  @override
+  String get trim_tryout_tankUp => 'Hoger in de band';
+
+  @override
+  String get trim_tryout_tankDown => 'Lager in de band';
+
+  @override
+  String get trim_tryout_tankAsLogged => 'Zoals gelogd';
+
+  @override
+  String trim_tryout_tankShiftUp(String distance) {
+    return '$distance hoger';
+  }
+
+  @override
+  String trim_tryout_tankShiftDown(String distance) {
+    return '$distance lager';
+  }
+
+  @override
+  String get trim_tryout_time => 'Tijd';
+
+  @override
+  String get trim_tryout_addTestItem => 'Testitem toevoegen';
+
+  @override
+  String get trim_tryout_testName => 'Naam';
+
+  @override
+  String get trim_tryout_nameRequired => 'Voer een naam in';
+
+  @override
+  String get trim_tryout_reset => 'Herstellen';
+
+  @override
+  String get trim_tryout_pieces => 'Onderdelen';
+
+  @override
+  String get trim_tryout_moveTo => 'Verplaatsen naar';
+
+  @override
+  String get trim_tryout_pieceMenu => 'Verplaatsen of van kant wisselen';
+
+  @override
+  String trim_tryout_testWeight(String unit) {
+    return 'Gewicht ($unit)';
+  }
+
+  @override
+  String trim_tryout_weightRange(String min, String max) {
+    return 'Voer een gewicht in van $min tot $max';
+  }
+
+  @override
+  String trim_tryout_timeLabel(String time, String depth) {
+    return '$time, $depth';
+  }
+
+  @override
+  String trim_tryout_moments(String pitch, String roll) {
+    return 'Stampen $pitch, rollen $roll';
+  }
+
+  @override
+  String get trim_fixes_title => 'Wat je recht zou leggen';
+
+  @override
+  String trim_fix_lessLead(String weight) {
+    return 'Neem $weight minder lood mee';
+  }
+
+  @override
+  String trim_fix_tankUp(String distance) {
+    return 'Schuif de fles $distance hoger in de band';
+  }
+
+  @override
+  String trim_fix_tankDown(String distance) {
+    return 'Schuif de fles $distance lager in de band';
+  }
+
+  @override
+  String get trim_fix_lighterFins =>
+      'Lichtere vinnen, bijna neutraal in het water';
+
+  @override
+  String trim_fix_heavierFins(String weight) {
+    return 'Zwaardere vinnen, ongeveer $weight per paar';
+  }
+
+  @override
+  String trim_fix_moveLead(String weight, String from, String to) {
+    return 'Verplaats $weight lood van $from naar $to';
+  }
+
+  @override
+  String trim_fix_moveLeftToRight(String weight) {
+    return 'Verplaats $weight lood van links naar rechts';
+  }
+
+  @override
+  String trim_fix_moveRightToLeft(String weight) {
+    return 'Verplaats $weight lood van rechts naar links';
+  }
+
+  @override
+  String trim_fix_then(String verdict) {
+    return 'Dan: $verdict';
+  }
+
+  @override
+  String get trim_verdict_level => 'Horizontaal';
+
+  @override
+  String get trim_verdict_slightlyFeetHeavy => 'Iets voetzwaar';
+
+  @override
+  String get trim_verdict_feetHeavy => 'Voetzwaar';
+
+  @override
+  String get trim_verdict_slightlyHeadHeavy => 'Iets hoofdzwaar';
+
+  @override
+  String get trim_verdict_headHeavy => 'Hoofdzwaar';
+
+  @override
+  String get trim_roll_slightlyLeft => 'kantelt iets naar links';
+
+  @override
+  String get trim_roll_left => 'kantelt naar links';
+
+  @override
+  String get trim_roll_slightlyRight => 'kantelt iets naar rechts';
+
+  @override
+  String get trim_roll_right => 'kantelt naar rechts';
+
+  @override
+  String get trim_gauge_pitch => 'Stampen';
+
+  @override
+  String get trim_gauge_roll => 'Rollen';
+
+  @override
+  String get trim_gauge_headHeavy => 'Hoofdzwaar';
+
+  @override
+  String get trim_gauge_feetHeavy => 'Voetzwaar';
+
+  @override
+  String get trim_gauge_left => 'Links';
+
+  @override
+  String get trim_gauge_right => 'Rechts';
+
+  @override
+  String get trim_chip_left => 'L';
+
+  @override
+  String get trim_chip_right => 'R';
+
+  @override
+  String get trim_testItem => 'Testitem';
+
+  @override
+  String get trim_spot_head => 'Hoofd';
+
+  @override
+  String get trim_spot_mouth => 'Mond';
+
+  @override
+  String get trim_spot_chest => 'Borst';
+
+  @override
+  String get trim_spot_chestClip => 'Borst-D-ring';
+
+  @override
+  String get trim_spot_upperBack => 'Bovenrug';
+
+  @override
+  String get trim_spot_backTank => 'Rug';
+
+  @override
+  String get trim_spot_wing => 'Wing';
+
+  @override
+  String get trim_spot_trimPockets => 'Trimzakken';
+
+  @override
+  String get trim_spot_backplate => 'Backplate';
+
+  @override
+  String get trim_spot_buttDRing => 'Bil-D-ring';
+
+  @override
+  String get trim_spot_waist => 'Taille';
+
+  @override
+  String get trim_spot_hipPockets => 'Heupzakken';
+
+  @override
+  String get trim_spot_sidemount => 'Zij';
+
+  @override
+  String get trim_spot_stageClip => 'Stageclips';
+
+  @override
+  String get trim_spot_console => 'Console';
+
+  @override
+  String get trim_spot_thigh => 'Dij';
+
+  @override
+  String get trim_spot_calf => 'Kuit';
+
+  @override
+  String get trim_spot_ankles => 'Enkels';
+
+  @override
+  String get trim_spot_feet => 'Voeten';
+
+  @override
+  String get trim_spot_fins => 'Vinnen';
+
+  @override
+  String get trim_spot_hand => 'Hand';
+
+  @override
+  String get trim_spot_wrist => 'Pols';
+
+  @override
+  String get trim_spot_cameraArm => 'Camera-arm';
+
+  @override
+  String get trim_spot_floatPoint => 'Over het lichaam verdeeld';
+
+  @override
+  String get trim_spot_noSpot => 'Geen vaste plek';
+
+  @override
+  String trim_figure_summaryNoLead(String verdict) {
+    return 'Trimfiguur: $verdict.';
+  }
+
+  @override
+  String diveLog_detail_weight_withSide(String name, String side) {
+    return '$name ($side)';
+  }
+
+  @override
+  String trim_verdictLine(String pitch, String roll) {
+    return '$pitch, $roll';
+  }
+
+  @override
+  String trim_figure_summary(String verdict, String lead) {
+    return 'Trimfiguur: $verdict. Lood: $lead.';
+  }
+
+  @override
+  String trim_chip_weight(String name, String weight) {
+    return '$name $weight';
+  }
+
+  @override
+  String get trim_chip_note => 'plek onbekend';
 
   @override
   String get buoyancy_ditchWarning => 'Meer dan je kunt afwerpen';
@@ -24320,6 +24664,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get navShortcut_short_weighting => 'Lood';
+
+  @override
+  String get navShortcut_short_trim => 'Trim';
 
   @override
   String get navShortcut_short_surfaceInterval => 'Oppervl.-int.';
