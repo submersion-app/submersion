@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_sites/domain/services/catalogue_site_mapping.dart';
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_gap_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
@@ -68,6 +69,8 @@ Set<CatalogueGapField> catalogueOfferFor(
       _isBlank(site.hazards) && !_isBlank(record.hazards),
     CatalogueGapField.description =>
       _isBlank(site.description) && !_isBlank(record.description),
+    CatalogueGapField.website =>
+      _isBlank(site.website) && catalogueWebsiteText(record.website) != null,
   };
 
   return {

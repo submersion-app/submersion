@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
@@ -69,7 +70,7 @@ class EntityTableColumnPicker<F extends EntityField> extends ConsumerWidget {
           children: [
             // Handle bar
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: Spacing.s8),
               child: Center(
                 child: Container(
                   width: 36,
@@ -78,7 +79,7 @@ class EntityTableColumnPicker<F extends EntityField> extends ConsumerWidget {
                     color: theme.colorScheme.onSurfaceVariant.withValues(
                       alpha: 0.4,
                     ),
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(Radii.r2),
                   ),
                 ),
               ),
@@ -86,7 +87,7 @@ class EntityTableColumnPicker<F extends EntityField> extends ConsumerWidget {
 
             // Header
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: Spacing.s16),
               child: Row(
                 children: [
                   Expanded(
@@ -112,7 +113,12 @@ class EntityTableColumnPicker<F extends EntityField> extends ConsumerWidget {
                 children: [
                   // Visible columns (reorderable)
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    padding: const EdgeInsets.fromLTRB(
+                      Spacing.s16,
+                      Spacing.s12,
+                      Spacing.s16,
+                      Spacing.s4,
+                    ),
                     child: Text(
                       context.l10n.columnConfig_visibleColumns.toUpperCase(),
                       style: theme.textTheme.labelSmall?.copyWith(
@@ -176,7 +182,12 @@ class EntityTableColumnPicker<F extends EntityField> extends ConsumerWidget {
 
                   // Available fields (grouped by category)
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    padding: const EdgeInsets.fromLTRB(
+                      Spacing.s16,
+                      Spacing.s12,
+                      Spacing.s16,
+                      Spacing.s4,
+                    ),
                     child: Text(
                       context.l10n.columnConfig_availableFields.toUpperCase(),
                       style: theme.textTheme.labelSmall?.copyWith(
@@ -193,7 +204,7 @@ class EntityTableColumnPicker<F extends EntityField> extends ConsumerWidget {
                       onAdd: notifier.toggleColumn,
                     ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: Spacing.s32),
                 ],
               ),
             ),
@@ -232,7 +243,12 @@ class _AvailableCategorySection<F extends EntityField> extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          padding: const EdgeInsets.fromLTRB(
+            Spacing.s16,
+            Spacing.s12,
+            Spacing.s16,
+            Spacing.s4,
+          ),
           child: Text(
             localizedFieldCategory(context.l10n, categoryName).toUpperCase(),
             style: theme.textTheme.labelSmall?.copyWith(

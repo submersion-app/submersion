@@ -158,7 +158,7 @@ void main() {
     test('names the slot and the bottle', () {
       expect(
         tripCylinderTankLine(l10n, (label: 'Truck 2', bottle: '14')),
-        'Truck 2 · Bottle 14',
+        'Truck 2 · Cylinder 14',
       );
     });
 
@@ -203,7 +203,7 @@ void main() {
     expect(
       tripCylinderPickerLabel(l10n, units, state),
       // The status leads, so a narrow picker cuts the bottle, not the status.
-      'Truck 2 · Full · EAN32 · ${units.formatPressure(200)} · Bottle 14',
+      'Truck 2 · Full · EAN32 · ${units.formatPressure(200)} · Cylinder 14',
     );
   });
 
@@ -336,9 +336,9 @@ void main() {
     expect(l10n.trips_cylinders_record_packageFills(2), '2 package fills');
     expect(
       l10n.trips_cylinders_record_unlinked(3),
-      '3 dive tanks not linked to a cylinder',
+      '3 dive cylinders not linked to one on this board',
     );
-    expect(l10n.trips_cylinders_record_tank(2), 'Tank 2');
+    expect(l10n.trips_cylinders_record_tank(2), 'Cylinder 2');
     expect(l10n.trips_cylinders_record_filled('200 bar'), 'Filled to 200 bar');
     expect(l10n.trips_cylinders_record_analyzed('31.8%'), 'Analyzed 31.8%');
   });

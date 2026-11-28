@@ -121,6 +121,7 @@ Future<bool> closeDatabaseForAppShutdown(
 class BackgroundDatabaseConnection {
   BackgroundDatabaseConnection._(
     this.connection,
+    this._driftIsolate,
     this._worker,
     this._exitPort,
     this._workerExited,
@@ -133,6 +134,13 @@ class BackgroundDatabaseConnection {
   /// Unused on a native build; here so the facade's two halves match.
   @visibleForTesting
   static String assetBase = '';
+
+  /// The drift server on the worker, which other clients can join.
+  final DriftIsolate _driftIsolate;
+
+  /// The port another engine connects through (a desktop pop-out window,
+  /// issue #5078). See `shared_database_ports.dart`.
+  SendPort get connectPort => _driftIsolate.connectPort;
 
   final Isolate _worker;
   final ReceivePort _exitPort;
@@ -239,9 +247,15 @@ class BackgroundDatabaseConnection {
         },
       );
 
-      final connection = await driftIsolate.connect(singleClientMode: true);
+      // Not single-client: a desktop pop-out window's engine may join this
+      // worker as a second client (#5078), and in single-client mode drift
+      // never tells the server about this client's writes, so the other
+      // client would not see them. The worker then outlives this client's
+      // close, so [awaitWorkerShutdown] asks the server to shut down.
+      final connection = await driftIsolate.connect(singleClientMode: false);
       return BackgroundDatabaseConnection._(
         connection,
+        driftIsolate,
         worker!,
         exitPort,
         exited.future,
@@ -276,6 +290,12 @@ class BackgroundDatabaseConnection {
     required Duration timeout,
     required bool killIfStuck,
   }) async {
+    // Ends the drift server for every client, which exits the worker once
+    // SQLite is closed. Not awaited: the exit below is the signal, and a
+    // server that is already gone never answers. Errors mean it was gone.
+    unawaited(
+      _driftIsolate.shutdownAll().timeout(timeout).catchError((Object _) {}),
+    );
     try {
       await _workerExited.timeout(timeout);
       _exitPort.close();

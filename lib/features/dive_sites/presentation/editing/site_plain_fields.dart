@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
+import 'package:submersion/core/opening_hours/opening_hours.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_fields.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
@@ -171,6 +172,50 @@ final siteMooringNumberField = _text(
   clear: (site) => site.copyWith(clearMooringNumber: true),
 );
 
+/// The site's street address, on the Contact card (issue #5073).
+final siteAddressField = _text(
+  'address',
+  SiteDetailSectionId.contact,
+  read: (site) => site.address,
+  set: (site, v) => site.copyWith(address: v),
+  clear: (site) => site.copyWith(clearAddress: true),
+);
+
+final sitePhoneField = _text(
+  'phone',
+  SiteDetailSectionId.contact,
+  read: (site) => site.phone,
+  set: (site, v) => site.copyWith(phone: v),
+  clear: (site) => site.copyWith(clearPhone: true),
+);
+
+final siteEmailField = _text(
+  'email',
+  SiteDetailSectionId.contact,
+  read: (site) => site.email,
+  set: (site, v) => site.copyWith(email: v),
+  clear: (site) => site.copyWith(clearEmail: true),
+);
+
+final siteWebsiteField = _text(
+  'website',
+  SiteDetailSectionId.contact,
+  read: (site) => site.website,
+  set: (site, v) => site.copyWith(website: v),
+  clear: (site) => site.copyWith(clearWebsite: true),
+);
+
+/// The site's opening hours, on their own card; hours with nothing in them
+/// are written as none.
+final siteOpeningHoursField = EditField<DiveSite, OpeningHours?>(
+  id: 'openingHours',
+  cardId: _card(SiteDetailSectionId.openingHours),
+  read: (site) => site.openingHours,
+  write: (site, hours) => hours == null || hours.isEmpty
+      ? site.copyWith(clearOpeningHours: true)
+      : site.copyWith(openingHours: hours),
+);
+
 /// How divers get in at the site; the order carries no meaning.
 final siteEntryMethodsField = EditField<DiveSite, List<EntryMethod>>(
   id: 'entryMethods',
@@ -209,6 +254,11 @@ final List<EditField<DiveSite, Object?>> siteSittingFields = [
   siteEntryMethodsField,
   siteExitMethodsField,
   siteLocationField,
+  siteAddressField,
+  sitePhoneField,
+  siteEmailField,
+  siteWebsiteField,
+  siteOpeningHoursField,
   siteCountryField,
   siteCountryCodeField,
   siteRegionField,

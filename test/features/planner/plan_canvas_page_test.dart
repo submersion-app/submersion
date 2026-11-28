@@ -171,7 +171,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(SegmentList), findsOneWidget);
 
-    await tester.tap(find.text('Tanks'));
+    await tester.tap(find.text('Cylinders'));
     await tester.pumpAndSettle();
     expect(find.byType(PlanTankList), findsOneWidget);
 
@@ -195,7 +195,7 @@ void main() {
     // Scoped to the deck: "Tanks" also appears as the section header of the
     // tab body, which is the Tanks pane by default.
     final xs = <String, double>{
-      for (final label in ['Tanks', 'Plan', 'Setup', 'Results'])
+      for (final label in ['Cylinders', 'Plan', 'Setup', 'Results'])
         label: tester
             .getTopLeft(
               find.descendant(
@@ -205,7 +205,7 @@ void main() {
             )
             .dx,
     };
-    expect(xs['Tanks']!, lessThan(xs['Plan']!));
+    expect(xs['Cylinders']!, lessThan(xs['Plan']!));
     expect(xs['Plan']!, lessThan(xs['Setup']!));
     expect(xs['Setup']!, lessThan(xs['Results']!));
   });

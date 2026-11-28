@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/utils/clipboard_copy.dart';
 
@@ -58,7 +59,7 @@ class CopyableDetailRow extends StatelessWidget {
             mouseCursor: SystemMouseCursors.basic,
             hoverColor: Colors.transparent,
             canRequestFocus: false,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(Radii.r8),
             child: child,
           ),
         ),

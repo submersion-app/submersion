@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Info card overlay for displaying selected item details on a map.
@@ -38,19 +39,22 @@ class MapInfoCard extends StatelessWidget {
       child: Card(
         elevation: 4,
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(16)),
+          borderRadius: BorderRadius.all(Radius.circular(Radii.r16)),
         ),
         color: colorScheme.surfaceContainerHigh,
         child: InkWell(
           onTap: onTap ?? onDetailsTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(Radii.r16),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+            padding: const EdgeInsets.symmetric(
+              horizontal: Spacing.s12,
+              vertical: Spacing.s16,
+            ),
             child: Row(
               children: [
                 if (leading != null) ...[
                   SizedBox(width: 48, height: 48, child: leading),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: Spacing.s12),
                 ],
                 Expanded(
                   child: Column(
@@ -65,7 +69,7 @@ class MapInfoCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       if (subtitle != null) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: Spacing.s4),
                         Text(
                           subtitle!,
                           style: Theme.of(context).textTheme.bodySmall
