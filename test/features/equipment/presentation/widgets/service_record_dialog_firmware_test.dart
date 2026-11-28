@@ -19,13 +19,15 @@ const categoryKey = Key('service-record-category');
 void main() {
   final t0 = DateTime(2026, 1, 1);
 
-  ServiceKind kind(String id, ServiceCategory? category) => ServiceKind(
-    id: id,
-    name: id,
-    defaultCategory: category,
-    createdAt: t0,
-    updatedAt: t0,
-  );
+  ServiceKind kind(String id, ServiceCategory? category, {double? cost}) =>
+      ServiceKind(
+        id: id,
+        name: id,
+        defaultCategory: category,
+        defaultCost: cost,
+        createdAt: t0,
+        updatedAt: t0,
+      );
 
   Future<void> pumpDialog(
     WidgetTester tester, {
@@ -44,7 +46,7 @@ void main() {
           ...overrides,
           serviceKindsProvider.overrideWith(
             (ref) async => [
-              kind('hydro', ServiceCategory.inspection),
+              kind('hydro', ServiceCategory.inspection, cost: 40),
               kind('o2-clean', ServiceCategory.cleaning),
               kind('disinfect', null),
             ],
@@ -162,5 +164,21 @@ void main() {
     await tester.tap(find.text('Add'));
     await tester.pumpAndSettle();
     expect(saved.single.serviceKindId, isNull);
+  });
+
+  testWidgets("a firmware update takes no clock's default price", (
+    tester,
+  ) async {
+    final saved = <ServiceRecord>[];
+    await pumpDialog(
+      tester,
+      serviceKindId: 'hydro',
+      onSave: (r) async => saved.add(r),
+    );
+    await pickCategory(tester, 'Firmware update');
+    await tester.enterText(find.byKey(versionKey), 'V95');
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+    expect(saved.single.cost, isNull);
   });
 }

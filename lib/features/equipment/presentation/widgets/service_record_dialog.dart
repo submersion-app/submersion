@@ -160,8 +160,10 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
         _serviceCategory = category;
       }
     }
+    // A firmware update fulfils no service type (#5104), so it takes no
+    // type's or clock's default price.
     final resolved = resolveDefaultServiceCost(
-      serviceKindId: _serviceKindId,
+      serviceKindId: _isFirmwareUpdate ? null : _serviceKindId,
       schedules: schedules,
       kinds: kinds,
     );
