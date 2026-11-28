@@ -21937,6 +21937,45 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_identify_keepAll => 'All files not kept yet';
 
   @override
+  String get media_identify_cameraTitle => 'Identify';
+
+  @override
+  String get media_identify_photo => 'Photo';
+
+  @override
+  String get media_identify_video => 'Video';
+
+  @override
+  String get media_identify_namesOn => 'Names';
+
+  @override
+  String get media_identify_noLocation =>
+      'Suggestions only, from anywhere: your location is not used.';
+
+  @override
+  String get media_identify_namesPaused =>
+      'Names paused: the device is low on memory.';
+
+  @override
+  String get media_identify_cameraDenied =>
+      'Submersion can\'t use the camera. Allow camera access in Settings, or pick files instead.';
+
+  @override
+  String get media_identify_pickFiles => 'Pick files';
+
+  @override
+  String get media_identify_takePhoto => 'Take photo';
+
+  @override
+  String get media_identify_record => 'Record';
+
+  @override
+  String get media_identify_stop => 'Stop';
+
+  @override
+  String get media_identify_captures => 'Photos and clips taken';
+
+  @override
   String media_identify_keepFailed(String name) {
     return '$name could not be kept';
   }

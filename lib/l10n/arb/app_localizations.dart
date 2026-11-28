@@ -33903,6 +33903,78 @@ abstract class AppLocalizations {
   /// **'All files not kept yet'**
   String get media_identify_keepAll;
 
+  /// Identify camera screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Identify'**
+  String get media_identify_cameraTitle;
+
+  /// Identify camera mode: take photos
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get media_identify_photo;
+
+  /// Identify camera mode: record clips
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get media_identify_video;
+
+  /// Identify camera switch: show species suggestions over the live picture
+  ///
+  /// In en, this message translates to:
+  /// **'Names'**
+  String get media_identify_namesOn;
+
+  /// Identify camera line under the picture: names are suggestions and not limited to the diver's location
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestions only, from anywhere: your location is not used.'**
+  String get media_identify_noLocation;
+
+  /// Identify camera line when live naming has paused to save memory
+  ///
+  /// In en, this message translates to:
+  /// **'Names paused: the device is low on memory.'**
+  String get media_identify_namesPaused;
+
+  /// Identify camera when camera access is refused
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion can\'t use the camera. Allow camera access in Settings, or pick files instead.'**
+  String get media_identify_cameraDenied;
+
+  /// Identify camera button: pick photos or videos instead
+  ///
+  /// In en, this message translates to:
+  /// **'Pick files'**
+  String get media_identify_pickFiles;
+
+  /// Identify camera shutter tooltip in photo mode
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get media_identify_takePhoto;
+
+  /// Identify camera shutter tooltip in video mode
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get media_identify_record;
+
+  /// Identify camera shutter tooltip while recording
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get media_identify_stop;
+
+  /// Identify camera button: open the photos and clips taken in the Identify viewer
+  ///
+  /// In en, this message translates to:
+  /// **'Photos and clips taken'**
+  String get media_identify_captures;
+
   /// Snackbar when a file in the Identify viewer could not be kept, usually because it was moved or deleted
   ///
   /// In en, this message translates to:

@@ -13262,6 +13262,54 @@
   "@media_identify_keepAll": {
     "description": "Keep sheet scope: every file in the Identify viewer not kept yet"
   },
+  "media_identify_cameraTitle": "Identify",
+  "@media_identify_cameraTitle": {
+    "description": "Identify camera screen title"
+  },
+  "media_identify_photo": "Photo",
+  "@media_identify_photo": {
+    "description": "Identify camera mode: take photos"
+  },
+  "media_identify_video": "Video",
+  "@media_identify_video": {
+    "description": "Identify camera mode: record clips"
+  },
+  "media_identify_namesOn": "Names",
+  "@media_identify_namesOn": {
+    "description": "Identify camera switch: show species suggestions over the live picture"
+  },
+  "media_identify_noLocation": "Suggestions only, from anywhere: your location is not used.",
+  "@media_identify_noLocation": {
+    "description": "Identify camera line under the picture: names are suggestions and not limited to the diver's location"
+  },
+  "media_identify_namesPaused": "Names paused: the device is low on memory.",
+  "@media_identify_namesPaused": {
+    "description": "Identify camera line when live naming has paused to save memory"
+  },
+  "media_identify_cameraDenied": "Submersion can't use the camera. Allow camera access in Settings, or pick files instead.",
+  "@media_identify_cameraDenied": {
+    "description": "Identify camera when camera access is refused"
+  },
+  "media_identify_pickFiles": "Pick files",
+  "@media_identify_pickFiles": {
+    "description": "Identify camera button: pick photos or videos instead"
+  },
+  "media_identify_takePhoto": "Take photo",
+  "@media_identify_takePhoto": {
+    "description": "Identify camera shutter tooltip in photo mode"
+  },
+  "media_identify_record": "Record",
+  "@media_identify_record": {
+    "description": "Identify camera shutter tooltip in video mode"
+  },
+  "media_identify_stop": "Stop",
+  "@media_identify_stop": {
+    "description": "Identify camera shutter tooltip while recording"
+  },
+  "media_identify_captures": "Photos and clips taken",
+  "@media_identify_captures": {
+    "description": "Identify camera button: open the photos and clips taken in the Identify viewer"
+  },
   "media_identify_keepFailed": "{name} could not be kept",
   "@media_identify_keepFailed": {
     "description": "Snackbar when a file in the Identify viewer could not be kept, usually because it was moved or deleted",

@@ -195,6 +195,7 @@ dependencies:
   markdown: ^7.3.1  # Markdown formatting in notes (#3683)
   country_flags: ^4.1.2  # Flags beside site locations and trips (#4426)
   jovial_svg: ^1.1.31  # Draws country_flags' assets with a cache (#4426)
+  camera: ^0.12.2
 
 dev_dependencies:
   flutter_test:

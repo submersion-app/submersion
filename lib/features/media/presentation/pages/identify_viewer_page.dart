@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:photo_manager/photo_manager.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/data/scratch/scratch_session.dart';
+import 'package:submersion/features/media/presentation/camera/identify_camera_page.dart';
 import 'package:submersion/features/media/data/services/local_file_handle_factory.dart';
 import 'package:submersion/features/media/data/services/scratch_keeper.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -93,10 +95,23 @@ Future<void> launchIdentify(BuildContext context, WidgetRef ref) async {
     );
     return;
   }
+  // Phones and tablets open the camera, which can pick files too.
+  if (identifyOpensCamera()) {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const IdentifyCameraPage()));
+    return;
+  }
   final items = await pickIdentifyItems(ref);
   if (!context.mounted) return;
   await openIdentifyViewer(context, items);
 }
+
+/// Whether Identify opens the camera here: on phones and tablets.
+bool identifyOpensCamera() =>
+    !kIsWeb &&
+    (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.android);
 
 /// Opens the Identify viewer on [items] (issue #5122). [captures] are the
 /// ids of camera captures: kept ones go to the photo library first.
