@@ -22401,6 +22401,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'يزيل هذا العنصر من مكتبتك مع نسخه السحابية وصوره المصغرة، ما لم يكن لا يزال مستخدمًا في غطسة أو قطعة معدات. لن يتأثر ملفك الأصلي.';
 
   @override
+  String get media_viewer_unlinkConfirmGearBody =>
+      'يزيل هذا العنصر من مكتبتك مع نسخه السحابية وصوره المصغرة، ما لم يكن لا يزال مستخدمًا في غطسة أو موقع غوص. لن يتأثر ملفك الأصلي.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'تغيّر الملف المحدد أو نُقل منذ ذلك الحين. حدّد موقعه مرة أخرى أو ألغِ.';
 

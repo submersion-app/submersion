@@ -6475,6 +6475,7 @@
   "media_viewer_unlinkUndo": "撤消",
   "media_viewer_unlinkConfirmDiveBody": "从您的媒体库中移除此项目，包括其云端副本和缩略图，除非潜点或装备仍在使用它。您的原始文件不受影响。",
   "media_viewer_unlinkConfirmSiteBody": "从您的媒体库中移除此项目，包括其云端副本和缩略图，除非潜水或装备仍在使用它。您的原始文件不受影响。",
+  "media_viewer_unlinkConfirmGearBody": "从您的媒体库中移除此项目，包括其云端副本和缩略图，除非潜水或潜点仍在使用它。您的原始文件不受影响。",
   "media_viewer_locatedFileChanged": "找到的文件此后已更改或移动。请重新查找，或取消。",
   "media_viewer_exitFullscreen": "退出全屏",
   "media_viewer_moreOptions": "更多选项",

@@ -22006,6 +22006,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Elimina este elemento de tu biblioteca, junto con sus copias en la nube y miniaturas, salvo que un buceo o un equipo aún lo use. Tu archivo original no se ve afectado.';
 
   @override
+  String get media_viewer_unlinkConfirmGearBody =>
+      'Elimina este elemento de tu biblioteca, junto con sus copias en la nube y miniaturas, salvo que un buceo o un sitio de buceo aún lo use. Tu archivo original no se ve afectado.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'El archivo encontrado ha cambiado o se ha movido desde entonces. Búscalo de nuevo o cancela.';
 

@@ -21991,6 +21991,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Entfernt dieses Element samt Cloud-Kopien und Miniaturansichten aus deiner Mediathek, außer ein Tauchgang oder Ausrüstungsteil verwendet es noch. Deine Originaldatei bleibt unberührt.';
 
   @override
+  String get media_viewer_unlinkConfirmGearBody =>
+      'Entfernt dieses Element samt Cloud-Kopien und Miniaturansichten aus deiner Mediathek, außer ein Tauchgang oder Tauchplatz verwendet es noch. Deine Originaldatei bleibt unberührt.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'Die gefundene Datei wurde seitdem geändert oder verschoben. Suche sie erneut oder brich ab.';
 

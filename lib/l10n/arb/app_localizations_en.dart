@@ -21688,6 +21688,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive or gear item still uses it. Your original file is not affected.';
 
   @override
+  String get media_viewer_unlinkConfirmGearBody =>
+      'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive or dive site still uses it. Your original file is not affected.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'The file you located has changed or moved since. Locate it again, or cancel.';
 

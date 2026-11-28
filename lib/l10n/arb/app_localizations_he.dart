@@ -21534,6 +21534,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'מסיר פריט זה מהספרייה שלך, יחד עם העותקים בענן והתמונות הממוזערות, אלא אם צלילה או פריט ציוד עדיין משתמשים בו. קובץ המקור שלך לא ייפגע.';
 
   @override
+  String get media_viewer_unlinkConfirmGearBody =>
+      'מסיר פריט זה מהספרייה שלך, יחד עם העותקים בענן והתמונות הממוזערות, אלא אם צלילה או אתר צלילה עדיין משתמשים בו. קובץ המקור שלך לא ייפגע.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'הקובץ שאותר השתנה או הועבר מאז. אתר אותו שוב או בטל.';
 

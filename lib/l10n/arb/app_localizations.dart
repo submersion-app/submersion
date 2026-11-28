@@ -34611,6 +34611,12 @@ abstract class AppLocalizations {
   /// **'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive or gear item still uses it. Your original file is not affected.'**
   String get media_viewer_unlinkConfirmSiteBody;
 
+  /// Body of the media viewer's question before it holds unlinking the one item on screen from its gear item. An item a dive or dive site still uses is kept, with only its gear link cleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive or dive site still uses it. Your original file is not affected.'**
+  String get media_viewer_unlinkConfirmGearBody;
+
   /// Shown when Save is refused because the file found with Locate file was deleted, moved or edited after it was found. Locating it again holds the file as it is now; Cancel drops the relink.
   ///
   /// In en, this message translates to:

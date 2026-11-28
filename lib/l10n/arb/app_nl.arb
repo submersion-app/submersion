@@ -6330,6 +6330,7 @@
   "media_viewer_unlinkUndo": "Ongedaan maken",
   "media_viewer_unlinkConfirmDiveBody": "Verwijdert dit item uit je bibliotheek, samen met de cloudkopieën en miniaturen, tenzij een duikstek of uitrustingsstuk het nog gebruikt. Je originele bestand blijft ongemoeid.",
   "media_viewer_unlinkConfirmSiteBody": "Verwijdert dit item uit je bibliotheek, samen met de cloudkopieën en miniaturen, tenzij een duik of uitrustingsstuk het nog gebruikt. Je originele bestand blijft ongemoeid.",
+  "media_viewer_unlinkConfirmGearBody": "Verwijdert dit item uit je bibliotheek, samen met de cloudkopieën en miniaturen, tenzij een duik of duikstek het nog gebruikt. Je originele bestand blijft ongemoeid.",
   "media_viewer_locatedFileChanged": "Het gevonden bestand is sindsdien gewijzigd of verplaatst. Zoek het opnieuw of annuleer.",
   "media_viewer_exitFullscreen": "Volledig scherm verlaten",
   "media_viewer_moreOptions": "Meer opties",

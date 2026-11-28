@@ -6330,6 +6330,7 @@
   "media_viewer_unlinkUndo": "Desfazer",
   "media_viewer_unlinkConfirmDiveBody": "Remove este item da sua biblioteca, juntamente com as cópias na nuvem e as miniaturas, a menos que um ponto de mergulho ou um equipamento ainda o use. O seu ficheiro original não é afetado.",
   "media_viewer_unlinkConfirmSiteBody": "Remove este item da sua biblioteca, juntamente com as cópias na nuvem e as miniaturas, a menos que um mergulho ou um equipamento ainda o use. O seu ficheiro original não é afetado.",
+  "media_viewer_unlinkConfirmGearBody": "Remove este item da sua biblioteca, juntamente com as cópias na nuvem e as miniaturas, a menos que um mergulho ou um ponto de mergulho ainda o use. O seu ficheiro original não é afetado.",
   "media_viewer_locatedFileChanged": "O arquivo localizado foi alterado ou movido desde então. Localize-o novamente ou cancele.",
   "media_viewer_exitFullscreen": "Sair da tela cheia",
   "media_viewer_moreOptions": "Mais opções",

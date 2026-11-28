@@ -21921,6 +21921,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Eltávolítja ezt az elemet a médiatárból, a felhőmásolatokkal és bélyegképekkel együtt, kivéve ha egy merülés vagy felszerelés még használja. Az eredeti fájl érintetlen marad.';
 
   @override
+  String get media_viewer_unlinkConfirmGearBody =>
+      'Eltávolítja ezt az elemet a médiatárból, a felhőmásolatokkal és bélyegképekkel együtt, kivéve ha egy merülés vagy merülőhely még használja. Az eredeti fájl érintetlen marad.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'A megtalált fájl azóta megváltozott vagy máshová került. Keresd meg újra, vagy válaszd a Mégse gombot.';
 

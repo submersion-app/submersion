@@ -22012,6 +22012,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Remove este item da sua biblioteca, juntamente com as cópias na nuvem e as miniaturas, a menos que um mergulho ou um equipamento ainda o use. O seu ficheiro original não é afetado.';
 
   @override
+  String get media_viewer_unlinkConfirmGearBody =>
+      'Remove este item da sua biblioteca, juntamente com as cópias na nuvem e as miniaturas, a menos que um mergulho ou um ponto de mergulho ainda o use. O seu ficheiro original não é afetado.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'O arquivo localizado foi alterado ou movido desde então. Localize-o novamente ou cancele.';
 

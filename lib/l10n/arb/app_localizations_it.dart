@@ -22017,6 +22017,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Rimuove questo elemento dalla libreria, insieme alle copie nel cloud e alle miniature, a meno che un\'immersione o un\'attrezzatura lo usi ancora. Il file originale non viene toccato.';
 
   @override
+  String get media_viewer_unlinkConfirmGearBody =>
+      'Rimuove questo elemento dalla libreria, insieme alle copie nel cloud e alle miniature, a meno che un\'immersione o un sito di immersione lo usi ancora. Il file originale non viene toccato.';
+
+  @override
   String get media_viewer_locatedFileChanged =>
       'Il file trovato è stato modificato o spostato nel frattempo. Trovalo di nuovo o annulla.';
 

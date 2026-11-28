@@ -80,9 +80,12 @@ link. The everything scope always offers it.
 
 ### Confirming
 
-Tapping it shows the same confirmation the matching grid shows (title, body
-and, when a caption or favorite would be lost, the metadata note), for one
-item. Cancel in the dialog does nothing.
+Tapping it shows the matching grid's confirmation (its title and button,
+and, for the dive, site and library scopes, the note when a caption or
+favorite would be lost), with a body worded for the one item and naming
+what keeps it: a dive site or gear item for the dive scope, a dive or gear
+item for the site scope, a dive or dive site for the gear scope. Cancel in
+the dialog does nothing.
 
 ### Held state
 
@@ -130,6 +133,11 @@ the item.
   handling.
 - A dive-scoped item that loses its dive link elsewhere while held: Save is
   refused by the moved check, and nothing is written.
+- A site-scoped item moved to another site, or a gear-scoped photo moved to
+  another gear item, while held: the site or gear item is recorded at
+  unlock (`siteAtStart`, `equipmentAtStart` on `PhotoEditSaveService.save`),
+  so Save is refused as for a removed item and nothing is written. Without
+  it the unlink would act on the new site or item.
 
 ## Left to the builder
 

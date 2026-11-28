@@ -20902,6 +20902,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '从您的媒体库中移除此项目，包括其云端副本和缩略图，除非潜水或装备仍在使用它。您的原始文件不受影响。';
 
   @override
+  String get media_viewer_unlinkConfirmGearBody =>
+      '从您的媒体库中移除此项目，包括其云端副本和缩略图，除非潜水或潜点仍在使用它。您的原始文件不受影响。';
+
+  @override
   String get media_viewer_locatedFileChanged => '找到的文件此后已更改或移动。请重新查找，或取消。';
 
   @override

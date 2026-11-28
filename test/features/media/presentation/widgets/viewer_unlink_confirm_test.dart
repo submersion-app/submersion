@@ -139,6 +139,9 @@ void main() {
       find.text(l10n.equipment_photos_removeConfirmTitle(1)),
       findsOneWidget,
     );
+    // One item, and what keeps it: a dive or a dive site.
+    expect(find.text(l10n.media_viewer_unlinkConfirmGearBody), findsOneWidget);
+    expect(find.text(l10n.equipment_photos_remove), findsOneWidget);
   });
 
   testWidgets('a failed read still asks, without the note', (tester) async {
