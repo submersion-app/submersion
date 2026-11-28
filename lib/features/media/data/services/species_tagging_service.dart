@@ -1,3 +1,5 @@
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
@@ -232,6 +234,39 @@ class SpeciesTaggingService {
     if (stillTheApps) {
       await _tags.handOverCreatedMarks(others.first.id, species: true);
     }
+  }
+
+  /// Moves [mediaIds] onto [diveId] (`MediaRepository.reassignMediaToDive`)
+  /// and takes their species tags along (issue #5122), as one History entry
+  /// labelled as a move.
+  ///
+  /// A confirmed or hand tag gets the new dive's sighting of its species,
+  /// found or created: the rule [tagPhoto] follows for a photo already on a
+  /// dive. An unconfirmed tag the app applied links only to a sighting the
+  /// diver logged on the new dive, else to none, so confirming it later
+  /// creates one there. Sightings on the old dive stay: untagging never
+  /// removes a sighting, and neither does a move.
+  Future<void> moveMediaToDive(List<String> mediaIds, String diveId) async {
+    if (mediaIds.isEmpty) return;
+    await ChangeLogScope.bulk(
+      DatabaseService.instance.databaseOrNull,
+      label: ChangeLogLabels.moveMedia,
+      body: () async {
+        await _media.reassignMediaToDive(mediaIds, diveId);
+        for (final mediaId in mediaIds) {
+          for (final tag in await _tags.getTagsForMedia(mediaId)) {
+            final sightingId = tag.unconfirmed
+                ? await _existingSightingId(diveId, tag.speciesId)
+                : await _sightingIdFor(diveId, tag.speciesId);
+            await _tags.setTagSighting(
+              mediaId: mediaId,
+              speciesId: tag.speciesId,
+              sightingId: sightingId,
+            );
+          }
+        }
+      },
+    );
   }
 
   Future<String?> _existingSightingId(String diveId, String speciesId) async {

@@ -6,7 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_picker_row.dart';
 import 'package:submersion/features/dive_log/presentation/providers/open_dive_sitting_provider.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
@@ -32,7 +32,8 @@ bool moveTouchesOpenDive({
 
 /// The media library's Move to dive: pick a dive, check no dive in the move
 /// is open for editing, ask, then write one labelled History entry
-/// (`MediaRepository.reassignMediaToDive`).
+/// (`SpeciesTaggingService.moveMediaToDive`, which takes the media's species
+/// tags along).
 ///
 /// A refusal writes nothing and keeps the selection; so does Cancel. There
 /// is no Undo: the History entry reverts the whole move. Items already on
@@ -72,7 +73,7 @@ Future<BulkActionOutcome> moveMediaToDive(
   if (refused()) return BulkActionOutcome.cancelled;
 
   try {
-    await ref.read(mediaRepositoryProvider).reassignMediaToDive([
+    await ref.read(speciesTaggingServiceProvider).moveMediaToDive([
       for (final item in items) item.id,
     ], row.id);
     return BulkActionOutcome.completed;

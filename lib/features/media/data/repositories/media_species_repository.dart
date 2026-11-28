@@ -165,6 +165,34 @@ class MediaSpeciesRepository {
     SyncEventBus.notifyLocalChange();
   }
 
+  /// Points the tag linking [mediaId] and [speciesId] at [sightingId], or at
+  /// no sighting when null, for media moved onto another dive (issue #5122).
+  /// The tag's "created the sighting" mark goes with the old link: the app
+  /// created that sighting, not the one the tag points at now. No tag, or a
+  /// tag already pointing there, is left alone.
+  Future<void> setTagSighting({
+    required String mediaId,
+    required String speciesId,
+    required String? sightingId,
+  }) async {
+    final existing = await _findTag(mediaId, speciesId);
+    if (existing == null || existing.sightingId == sightingId) return;
+    await (_db.update(
+      _db.mediaSpecies,
+    )..where((t) => t.id.equals(existing.id))).write(
+      MediaSpeciesCompanion(
+        sightingId: Value(sightingId),
+        createdSighting: const Value(null),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'mediaSpecies',
+      recordId: existing.id,
+      localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// Every tag the app applied that the diver has not confirmed, on the
   /// media of [diveId] when given, else across the log. [diverId] keeps the
   /// log to that diver's dives and the photos on no dive, the library's

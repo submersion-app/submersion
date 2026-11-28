@@ -258,7 +258,7 @@ class MediaWrites extends WritableEntry {
       if (dive == null) {
         await media.unlinkFromDive([id]);
       } else {
-        await media.reassignMediaToDive([id], dive);
+        await _tagging.moveMediaToDive([id], dive);
       }
     }
     if (v.containsKey('manual_elapsed_s')) {
