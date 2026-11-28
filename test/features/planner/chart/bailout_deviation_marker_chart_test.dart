@@ -23,6 +23,7 @@ void main() {
   Future<ProviderContainer> mount(
     WidgetTester tester, {
     bool longer = false,
+    double maxDepth = 40,
     GasMix bailout = const GasMix(o2: 21),
   }) async {
     tester.view.physicalSize = const Size(800, 600);
@@ -47,7 +48,7 @@ void main() {
       tester.element(find.byType(PlanProfileChart)),
     );
     container.read(divePlanNotifierProvider.notifier)
-      ..addSimplePlan(maxDepth: 40, bottomTimeMinutes: 25)
+      ..addSimplePlan(maxDepth: maxDepth, bottomTimeMinutes: 25)
       ..updateMode(domain.PlanMode.ccr)
       ..addTank(
         DiveTank(
@@ -107,6 +108,17 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(markerDepth(tester, 40), closeTo(40, 0.5));
+    },
+  );
+
+  testWidgets(
+    "a deviation with no bailout gas keeps the plan's worst case on the "
+    "plan's line",
+    (tester) async {
+      // EAN32 reaches 40 m: the 37 m plan is covered, its +5 m dive is not.
+      await mount(tester, maxDepth: 37, bailout: const GasMix(o2: 32));
+
+      expect(markerDepth(tester, 42), closeTo(37, 0.5));
     },
   );
 

@@ -42,10 +42,9 @@ class ContingencyChips extends ConsumerWidget {
         selection.deeper ||
         selection.longer ||
         selection.lostTankIds.any(losableIds.contains);
-    // Base is the plan itself, so the Bailout view counts against it too.
-    final bailoutOn =
-        ref.watch(planMayHaveBailoutProvider) &&
-        ref.watch(chartDisplayModeProvider) == ChartDisplayMode.bailout;
+    // Base is the plan itself, so the Bailout view counts against it too,
+    // while it is in effect.
+    final bailoutOn = ref.watch(planBailoutViewProvider);
 
     Widget chip(String label, bool on, VoidCallback? onTap) {
       return Semantics(

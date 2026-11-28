@@ -7,7 +7,9 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/plan_issue_markers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_issue_marker_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
@@ -70,13 +72,18 @@ final _plan = domain.DivePlan(
   ],
 );
 
-Future<ProviderContainer> _mount(WidgetTester tester, Widget child) async {
+Future<ProviderContainer> _mount(
+  WidgetTester tester,
+  Widget child, {
+  List<Override> overrides = const [],
+}) async {
   await tester.pumpWidget(
     testApp(
       locale: const Locale('en'),
       overrides: [
         ...plannerResultsInline(),
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ...overrides,
       ],
       child: Center(child: child),
     ),
@@ -197,6 +204,35 @@ void main() {
     expect(container.read(contingencySelectionProvider).deeper, isFalse);
     expect(tester.widget<PlanChip>(chip('Base')).emphasized, isTrue);
     expect(tester.widget<PlanChip>(_bailoutChip).emphasized, isFalse);
+  });
+
+  testWidgets('Base stays lit when the Bailout view is not in effect', (
+    tester,
+  ) async {
+    // The Bailout chip left on while the plan's bailout comes to nothing:
+    // the view is not in effect, so the plan itself is what is shown.
+    final container = await _mount(
+      tester,
+      const ContingencyChips(),
+      overrides: [
+        planBailoutProvider.overrideWith(
+          (ref) async => const PlanBackgroundResult<BailoutOutcome?>(
+            planId: 'switch',
+            value: null,
+          ),
+        ),
+      ],
+    );
+    container.read(chartDisplayModeProvider.notifier).state =
+        ChartDisplayMode.bailout;
+    await tester.pumpAndSettle();
+
+    expect(container.read(planBailoutViewProvider), isFalse);
+    final base = find.ancestor(
+      of: find.text('Base'),
+      matching: find.byType(PlanChip),
+    );
+    expect(tester.widget<PlanChip>(base).emphasized, isTrue);
   });
 
   group('the contingencies in Bailout view', () {

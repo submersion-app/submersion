@@ -367,8 +367,10 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
         }
 
         // On the line of the dive it belongs to: a previewed deviation's
-        // when one is shown, as the worst case is then that dive's (#5020).
-        final worstCaseLine = ghost ?? series;
+        // (#5020) on the ghost, the plan's on the plan's line.
+        final worstCaseLine = worstCase != null && worstCase.onDeviation
+            ? ghost ?? series
+            : series;
         final placedWorstCase = worstCase == null
             ? null
             : placeWorstCaseMarker(

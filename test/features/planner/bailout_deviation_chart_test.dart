@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -6,11 +8,13 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/presentation/chart/plan_stop_tags.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_headline_figures.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_worst_case_provider.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_result_status.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -176,6 +180,10 @@ void main() {
     final figures = container.read(planHeadlineFiguresProvider);
     expect(figures.cnsEnd, base.worstCaseCnsEnd);
     expect(figures.stale, isFalse);
+    // The plan's bailout stays drawn, so its worst case stays marked on it.
+    final marker = container.read(planChartWorstCaseProvider)!;
+    expect(marker.depthMeters, base.worstCase.depthMeters);
+    expect(marker.onDeviation, isFalse);
   });
 
   testWidgets('a preview still computing keeps the base figures, dimmed', (
@@ -225,5 +233,53 @@ void main() {
 
     expect(container.read(planChartBailoutPreviewProvider).picture, isNotNull);
     expect(container.read(contingencyGhostSeriesProvider), isNull);
+    // No deviated line is drawn, so the deviated worst case is not marked on
+    // the line that is.
+    final marker = container.read(planChartWorstCaseProvider)!;
+    expect(marker.depthMeters, closeTo(40, 0.01));
+    expect(marker.onDeviation, isFalse);
+  });
+
+  testWidgets("a preview still computing keeps the plan's worst case marked", (
+    tester,
+  ) async {
+    final pending = Completer<PlanBackgroundResult<BailoutOutcome?>>();
+    final container = await _mount(
+      tester,
+      _plan(),
+      bailoutView: true,
+      overrides: [
+        planPreviewBailoutProvider.overrideWith((ref) => pending.future),
+      ],
+    );
+    final base = container.read(planChartWorstCaseProvider)!;
+    container.read(contingencySelectionProvider.notifier).toggleDeeper();
+    await tester.pumpAndSettle();
+
+    final marker = container.read(planChartWorstCaseProvider);
+    expect(marker, isNotNull);
+    expect(marker!.depthMeters, base.depthMeters);
+    expect(marker.onDeviation, isFalse);
+  });
+
+  testWidgets("a failed preview leaves the plan's figures undimmed", (
+    tester,
+  ) async {
+    final container = await _mount(
+      tester,
+      _plan(),
+      bailoutView: true,
+      overrides: [
+        planChartBailoutPreviewProvider.overrideWith(
+          (ref) =>
+              (picture: null, status: PlanResultStatus.failed, gasGap: null),
+        ),
+      ],
+    );
+
+    final base = container.read(planChartBailoutProvider).picture!;
+    final figures = container.read(planHeadlineFiguresProvider);
+    expect(figures.cnsEnd, base.worstCaseCnsEnd);
+    expect(figures.stale, isFalse);
   });
 }

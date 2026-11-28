@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 
@@ -100,7 +101,11 @@ final planHeadlineFiguresProvider = Provider<PlanHeadlineFigures>((ref) {
           .fold(0, (sum, stop) => sum + stop.durationSeconds),
       cnsEnd: picture.worstCaseCnsEnd,
       isBailout: true,
-      stale: chart.status != null || preview.status != null,
+      // A failed preview has nothing on its way: the figures shown are the
+      // plan's, and current.
+      stale:
+          chart.status != null ||
+          (preview.status != null && preview.status != PlanResultStatus.failed),
     );
   }
   final outcome = ref.watch(activePlanOutcomeProvider);
