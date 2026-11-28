@@ -28,7 +28,7 @@ moving it included, waits for that **Save** and adds one entry to its
 | **Installed in** | For an O2 cell or a battery, the item it is fitted to |
 | **Name** | Your label, for example "My Primary Regulator" |
 | **Brand** / **Model** | Manufacturer and product |
-| Type-specific fields | For example a tank's volume, working pressure and material, or a suit's thickness. Some types also have a colour, used when the gear is drawn on the diver figure. A tank's **Worn as** (back mount, sidemount left or right, or stage) puts it there on the figure. |
+| Type-specific fields | For example a cylinder's volume, working pressure and material, or a suit's thickness. Some types also have a colour, used when the gear is drawn on the diver figure. A cylinder's **Worn as** (back mount, sidemount left or right, or stage) puts it there on the figure. |
 | **Position on figure** | For gear the figure can draw in more than one place, where to draw it: for example a light in the left hand or clipped to the chest. **Automatic** lets the figure choose. |
 | **Serial Number** | For warranty and service records |
 | **Purchase Information** | **Purchase Date**, **Purchase Price** and **Currency** |
@@ -42,9 +42,9 @@ moving it included, waits for that **Save** and adds one entry to its
 
 Submersion has 48 equipment types:
 
-- **Breathing:** Regulator, First Stage, Second Stage, Hose, Tank, Rebreather,
+- **Breathing:** Regulator, First Stage, Second Stage, Hose, Cylinder, Rebreather,
   O2 cell
-- **Buoyancy and rig:** BCD, Backplate, Wing, Harness, Tank Band, Weight
+- **Buoyancy and rig:** BCD, Backplate, Wing, Harness, Cylinder Band, Weight
   Pocket, Gear Pocket, Weights
 - **Exposure protection:** Wetsuit, Drysuit, Undersuit, Base Layer, Rash Guard,
   Hood, Gloves, Boots
@@ -83,7 +83,7 @@ apply to the item's type.
   counts the trips its list shows, so a dive on a side trip counts both the
   side trip and its parent, and trips you have hidden are left out.
 - **Location:** where the item is now. **Move** sends it somewhere else.
-- **Cylinder passport:** for a Tank. See [Cylinder Passports](cylinder-passports.md).
+- **Cylinder passport:** for a cylinder. See [Cylinder Passports](cylinder-passports.md).
 - **Gear passport:** for any other item. See [Gear Tags](gear-tags.md).
 - **Service clocks:** what maintenance is due, and when.
 - **Exposure:** how hard the item has been used.
@@ -123,9 +123,9 @@ Clocks come from service types. These are built in:
 
 | Service type | Applies to | Interval |
 |--------------|-----------|----------|
-| Hydrostatic test | Tank | 5 years |
-| Visual inspection (VIP) | Tank | 1 year |
-| O2 clean | Tank, Regulator, First Stage, Second Stage (added by hand) | 1 year or 50 high-O2 hours |
+| Hydrostatic test | Cylinder | 5 years |
+| Visual inspection (VIP) | Cylinder | 1 year |
+| O2 clean | Cylinder, Regulator, First Stage, Second Stage (added by hand) | 1 year or 50 high-O2 hours |
 | Regulator service | Regulator, First Stage, Second Stage | 1 year, 100 dives or 50 cold dives |
 | Computer battery | Dive Computer, Battery | 2 years |
 | Transmitter battery | Transmitter, Battery | 1 year or 250 hours |
@@ -286,8 +286,8 @@ Optional settings on a set:
 - **Geofences:** suggest the set for dives near chosen places. Center a
   geofence on a dive site or a dropped pin and set its radius.
 - **Show diver figure:** draw the set's gear on a diver. This is on by default.
-  Tanks are drawn at your sides when the set has a sidemount BCD or a tank
-  worn as sidemount. On a dive, a tank's role (for example Sidemount Left or
+  Cylinders are drawn at your sides when the set has a sidemount BCD or a cylinder
+  worn as sidemount. On a dive, a cylinder's role (for example Sidemount Left or
   Stage) decides where it is drawn, ahead of its **Worn as**. A **Position on
   figure** you chose for the item wins over both.
 
@@ -316,16 +316,16 @@ too.
   rule naming a deleted set skips that action and says so.
 
 > [!NOTE]
-> A Tank item in a set is added to the dive's equipment only; it does not add a
-> tank to the dive's **Tanks** list, so it brings no gas data. For a cylinder
-> you own, open a tank on the dive and tap **Fill from my cylinders**: the tank
+> A Cylinder item in a set is added to the dive's equipment only; it does not add a
+> cylinder to the dive's **Cylinders** list, so it brings no gas data. For a cylinder
+> you own, open a cylinder on the dive and tap **Fill from my cylinders**: the cylinder
 > takes the cylinder's size and latest fill, and the cylinder joins the dive's
 > equipment.
 
-## Tank presets
+## Cylinder presets
 
 Presets hold a cylinder's water volume, working pressure and material, so you
-do not type them for every tank.
+do not type them for every cylinder.
 
 | Preset | Volume | Working pressure | Material | Rated capacity |
 |--------|--------|-----------------|----------|----------------|
@@ -343,18 +343,27 @@ do not type them for every tank.
 | **AL40 Stage** | 5.7 L | 207 bar (3000 psi) | Aluminum | 40 cu ft |
 | **AL30 Stage** | 4.3 L | 207 bar (3000 psi) | Aluminum | 30 cu ft |
 
-Manage presets in **Settings > Manage > Tank Presets**:
+Manage presets in **Settings > Manage > Cylinder Presets**, or from the
+**Cylinder Preset** field on a dive: its last entry, **Manage presets**, opens
+the same page over the dive you are editing, and the field lists your changes
+when you come back.
 
-- **Default Tank:** star a preset to use it for every new tank you log. The
+- **Default Cylinder:** star a preset to use it for every new cylinder you log. The
   default is AL80, and deleting the starred preset resets it to AL80.
-- **Also apply to imported dives:** fill in missing tank data on imported dives
+- **Also apply to imported dives:** fill in missing cylinder data on imported dives
   from the default preset. Values a dive already has are kept.
-- **Default start pressure:** the start pressure filled in on every new tank,
-  and on imported tanks with none when **Also apply to imported dives** is on.
+- **Default start pressure:** the start pressure filled in on every new cylinder,
+  and on imported cylinders with none when **Also apply to imported dives** is on.
   Enter it in your pressure unit; the default is 200 bar (about 2900 psi).
-- **Show in tank pickers:** switch off the built-in presets you never use. The
+- **Show in cylinder pickers:** switch off the built-in presets you never use. The
   default preset is always shown.
-- **Add tank preset:** create your own.
+- **Add cylinder preset:** create your own.
+- **Duplicate:** the copy button on a built-in preset opens a new preset filled
+  from it, named with "(copy)", for when your cylinder differs a little from
+  the standard one. A second copy of the same preset is named "(copy 2)", and
+  so on, so every preset keeps its own name. The copy keeps the built-in's rated capacity (AL80 reads
+  77.4 cu ft) until you change its volume or working pressure; then its
+  capacity is worked out from the new size.
 
 ## Finding and organising gear
 
@@ -379,7 +388,7 @@ See [Diver Profile & Multi-Diver](diver-profile.md).
 
 - [Cylinder Passports](cylinder-passports.md): spec, fills and tags for your cylinders
 - [Gear Tags](gear-tags.md): QR labels and NFC tags for the rest of your gear
-- [Logging Dives](dive-logging.md): tanks and equipment on a dive
+- [Logging Dives](dive-logging.md): cylinders and equipment on a dive
 - [Trips](trips.md): the gear you pack for a trip
 - [Weight Planner](weight-planner.md): how your gear feeds the weight estimate
 - [Settings](settings.md): notifications and the rest of the settings

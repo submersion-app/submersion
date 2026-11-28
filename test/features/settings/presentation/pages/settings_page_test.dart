@@ -1155,7 +1155,7 @@ void main() {
       );
       expect(find.text('Manage'), findsOneWidget);
       // The subtitle describes what's in the Manage section
-      expect(find.text('Dive types & tank presets'), findsOneWidget);
+      expect(find.text('Dive types & cylinder presets'), findsOneWidget);
     });
 
     testWidgets('should display Data section for backup/restore/storage', (
@@ -2342,7 +2342,7 @@ void main() {
         (
           'Equipment',
           [
-            'Tank Presets',
+            'Cylinder Presets',
             'Transmitters',
             'Weight Presets',
             'Service types',

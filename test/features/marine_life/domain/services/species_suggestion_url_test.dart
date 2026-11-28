@@ -1,6 +1,7 @@
-import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/domain/services/species_suggestion_url.dart';
@@ -14,15 +15,10 @@ const _species = Species(
   description: 'Tall purple tubes on the wall.',
 );
 
-Map<String, dynamic> _bodyJson(Uri uri) {
-  final body = uri.queryParameters['body']!;
-  final start = body.indexOf('```json') + '```json'.length;
-  final end = body.lastIndexOf('```');
-  return jsonDecode(body.substring(start, end).trim()) as Map<String, dynamic>;
-}
+Map<String, String> _fields(Uri uri) => uri.queryParameters;
 
 void main() {
-  test('targets a new issue with the title, label and a JSON body', () {
+  test('targets the species issue form with every field filled', () {
     final uri = buildSpeciesSuggestionUrl(
       species: _species,
       locale: 'de',
@@ -36,16 +32,20 @@ void main() {
       uri.queryParameters['title'],
       'Species suggestion: Stove-pipe Sponge',
     );
-    expect(uri.queryParameters['labels'], 'species-suggestion');
+    expect(uri.queryParameters['template'], 'species-suggestion.yml');
+    // The form applies the label for every reporter; a labels= parameter
+    // is dropped for anyone who cannot triage the repository.
+    expect(uri.queryParameters.containsKey('labels'), isFalse);
+    expect(uri.queryParameters.containsKey('body'), isFalse);
 
-    final json = _bodyJson(uri);
-    expect(json['commonName'], 'Stove-pipe Sponge');
-    expect(json['scientificName'], 'Aplysina archeri');
-    expect(json['category'], 'invertebrate');
-    expect(json['taxonomyClass'], 'Demospongiae');
-    expect(json['description'], 'Tall purple tubes on the wall.');
-    expect(json['locale'], 'de');
-    expect(json['appVersion'], '1.7.6.7001');
+    final fields = _fields(uri);
+    expect(fields['common_name'], 'Stove-pipe Sponge');
+    expect(fields['scientific_name'], 'Aplysina archeri');
+    expect(fields['category'], 'invertebrate');
+    expect(fields['taxonomy_class'], 'Demospongiae');
+    expect(fields['description'], 'Tall purple tubes on the wall.');
+    expect(fields['locale'], 'de');
+    expect(fields['app_version'], '1.7.6.7001');
   });
 
   test('keeps the whole URL under the cap by truncating the description', () {
@@ -58,7 +58,7 @@ void main() {
     );
 
     expect(uri.toString().length, lessThanOrEqualTo(8000));
-    expect(_bodyJson(uri)['scientificName'], 'Aplysina archeri');
+    expect(_fields(uri)['scientific_name'], 'Aplysina archeri');
   });
 
   test('keeps the URL under the cap when the name is the oversized field', () {
@@ -72,7 +72,7 @@ void main() {
 
     expect(uri.toString().length, lessThanOrEqualTo(8000));
     // The scientific name is what identifies the species, so it survives.
-    expect(_bodyJson(uri)['scientificName'], 'Aplysina archeri');
+    expect(_fields(uri)['scientific_name'], 'Aplysina archeri');
     expect(uri.queryParameters['title'], startsWith('Species suggestion: xxx'));
   });
 
@@ -89,7 +89,7 @@ void main() {
     );
 
     expect(uri.toString().length, lessThanOrEqualTo(8000));
-    expect(_bodyJson(uri)['commonName'], 'Stove-pipe Sponge');
+    expect(_fields(uri)['common_name'], 'Stove-pipe Sponge');
   });
 
   test('holds the cap when every free-text field is oversized', () {
@@ -115,7 +115,7 @@ void main() {
       description: 'w' * 9000,
     );
 
-    final json = _bodyJson(
+    final fields = _fields(
       buildSpeciesSuggestionUrl(
         species: long,
         locale: 'en',
@@ -124,19 +124,19 @@ void main() {
     );
 
     // What identifies the species survives while the others give way.
-    expect(json['scientificName'], 'Aplysina archeri');
-    expect(json['commonName'], 'Stove-pipe Sponge');
-    expect((json['description'] as String).length, lessThan(9000));
+    expect(fields['scientific_name'], 'Aplysina archeri');
+    expect(fields['common_name'], 'Stove-pipe Sponge');
+    expect(fields['description']!.length, lessThan(9000));
   });
 
-  test('a species with no scientific name or class keeps them null', () {
+  test('a species with no scientific name or class leaves them out', () {
     const bare = Species(
       id: 'c2',
       commonName: 'Unknown blenny',
       category: SpeciesCategory.fish,
     );
 
-    final json = _bodyJson(
+    final fields = _fields(
       buildSpeciesSuggestionUrl(
         species: bare,
         locale: 'en',
@@ -144,8 +144,8 @@ void main() {
       ),
     );
 
-    expect(json['scientificName'], isNull);
-    expect(json['taxonomyClass'], isNull);
+    expect(fields.containsKey('scientific_name'), isFalse);
+    expect(fields.containsKey('taxonomy_class'), isFalse);
   });
 
   test('encodes non-ASCII names', () {
@@ -160,5 +160,45 @@ void main() {
       'Species suggestion: Süßwasser Grundel',
     );
     expect(uri.toString(), isNot(contains('ü')));
+  });
+
+  test('keeps as much of a long CJK description as fits', () {
+    final uri = buildSpeciesSuggestionUrl(
+      species: _species.copyWith(description: '中' * 2000),
+      locale: 'zh',
+      appVersion: '1.0.0.1',
+    );
+
+    expect(uri.toString().length, lessThanOrEqualTo(8000));
+    expect(uri.queryParameters['description']!.length, greaterThan(800));
+  });
+
+  test('a trimmed emoji description never ends on half a character', () {
+    final uri = buildSpeciesSuggestionUrl(
+      species: _species.copyWith(description: 'a${'\u{1F420}' * 1500}'),
+      locale: 'en',
+      appVersion: '1.0.0.1',
+    );
+
+    expect(uri.toString().length, lessThanOrEqualTo(8000));
+    expect(uri.queryParameters['description'], isNot(contains('\uFFFD')));
+  });
+
+  test('every field the builder sends is an id in the issue form', () {
+    final form = File(
+      p.join('.github', 'ISSUE_TEMPLATE', 'species-suggestion.yml'),
+    ).readAsStringSync();
+    final ids = RegExp(
+      r'^\s+id:\s*(\S+)',
+      multiLine: true,
+    ).allMatches(form).map((m) => m.group(1)).toSet();
+
+    final sent = buildSpeciesSuggestionUrl(
+      species: _species,
+      locale: 'en',
+      appVersion: '1.0.0.1',
+    ).queryParameters.keys.toSet()..removeAll(['template', 'title']);
+    expect(ids, containsAll(sent));
+    expect(form, contains('labels: ["species-suggestion"]'));
   });
 }

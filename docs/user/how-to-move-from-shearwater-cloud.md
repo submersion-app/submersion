@@ -1,6 +1,6 @@
 # Moving from Shearwater Cloud to Submersion
 
-When you finish this guide, the dives in your Shearwater Cloud desktop app will be in Submersion, with their full profiles, tanks, gradient factors and sites.
+When you finish this guide, the dives in your Shearwater Cloud desktop app will be in Submersion, with their full profiles, cylinders, gradient factors and sites.
 
 Submersion reads the Shearwater Cloud app's own database file, so you do not need to export anything dive by dive.
 
@@ -9,7 +9,7 @@ Submersion reads the Shearwater Cloud app's own database file, so you do not nee
 | Comes across | Does not come across |
 |---|---|
 | Dives with their full profiles | Buddies and gear |
-| Tanks from your transmitters, with gases and pressures | Tags and trips |
+| Cylinders from your transmitters, with gases and pressures | Tags and trips |
 | Dive mode, gradient factors, deco model and CNS | Photos |
 | Entry and exit GPS positions | |
 | Dive sites, by name or position | |
@@ -57,7 +57,7 @@ Tap **Import Selected**.
 
 ## Check it worked
 
-When **Successfully Imported** appears, tap **View Dives**. Open a dive and check its profile and tanks.
+When **Successfully Imported** appears, tap **View Dives**. Open a dive and check its profile and cylinders.
 
 You can delete the copy of `dive_data.db` once you are happy; the original stays in Shearwater Cloud.
 

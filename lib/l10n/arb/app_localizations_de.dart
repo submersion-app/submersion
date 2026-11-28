@@ -11003,6 +11003,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Anfangsdruck';
 
   @override
+  String get diveLog_tank_managePresets => 'Vorlagen verwalten';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'Flaschenvorlage';
 
   @override
@@ -14405,6 +14408,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_equipmentType_harness => 'Harness';
 
   @override
+  String get equipment_searchWords_cylinder =>
+      'Tank, Zylinder, Bottle, Stage, Pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'Tankband, Cam Band';
+
+  @override
   String get enum_equipmentType_tankBand => 'Flaschenband';
 
   @override
@@ -16996,6 +17006,53 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ein verbundener Tauchcomputer oder Sender behält seinen Typ.';
 
   @override
+  String get equipment_suggest_link =>
+      'Nichts Passendes? Kategorie vorschlagen';
+
+  @override
+  String get equipment_suggest_title => 'Kategorie vorschlagen';
+
+  @override
+  String get equipment_suggest_intro =>
+      'Damit öffnet sich eine vorausgefüllte Funktionsanfrage auf GitHub. Du prüfst sie und sendest sie in deinem Browser ab.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'Was schlägst du vor?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'Neue Ausrüstungsart';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'Neue Variante einer Art';
+
+  @override
+  String get equipment_suggest_nameLabel => 'Name';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'Eine Variante von';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => 'Nächstliegende Art';
+
+  @override
+  String get equipment_suggest_parentNone => 'Keine';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'Warum wird sie gebraucht?';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'Was unterscheidet sie von den vorhandenen Arten?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'Dieses Teil als Beispiel angeben ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'Auf GitHub öffnen';
+
+  @override
   String get equipment_edit_useCustomReminders =>
       'Eigene Erinnerungen verwenden';
 
@@ -18410,6 +18467,21 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_consumption_diveTime => 'Tauchzeit';
 
   @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. Warnung: übersteigt die Flaschenkapazität',
+      'other': '',
+    });
+    return 'Gasverbrauch: $volume $volumeSymbol, $pressure $pressureSymbol$_temp0';
+  }
+
+  @override
   String gasCalculators_consumption_exceedsTank(
     Object pressure,
     Object symbol,
@@ -19656,9 +19728,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get marineLife_suggest_couldNotOpen =>
       'Browser konnte nicht geöffnet werden';
-
-  @override
-  String get marineLife_suggest_copyLink => 'Link kopieren';
 
   @override
   String get marineLife_editCard_photos => 'Fotos';
@@ -28009,6 +28078,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_volumeL => 'Volumen';
 
   @override
+  String get settings_conflict_field_ratedCapacityCuft => 'Nennkapazität';
+
+  @override
   String get settings_conflict_field_volumeLiters => 'Volumen';
 
   @override
@@ -29486,7 +29558,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'Wenigste Namen. Etwa $percent % richtig';
+    return 'Wenigste Namen. Etwa $percent % richtig bei Fotos';
   }
 
   @override
@@ -29495,12 +29567,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'Mehr Namen. Etwa $percent % richtig';
+    return 'Mehr Namen. Etwa $percent % richtig bei Fotos';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'Die meisten Namen. Etwa $percent % richtig';
+    return 'Die meisten Namen. Etwa $percent % richtig bei Fotos';
   }
 
   @override
@@ -39644,7 +39716,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tankPresets_builtInPresets_description =>
-      'Schalte Vorlagen aus, die du nicht verwendest, um sie in der Tankauswahl auszublenden. Die Standardvorlage wird immer angezeigt.';
+      'Schalte Vorlagen aus, die du nicht verwendest, um sie in der Flaschenauswahl auszublenden. Die Standardvorlage wird immer angezeigt.';
 
   @override
   String get tankPresets_currentDefault => 'Aktueller Standard';
@@ -39653,15 +39725,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tankPresets_customPresets => 'Eigene Vorlagen';
 
   @override
-  String get tankPresets_defaultSettings => 'Standardtank';
+  String get tankPresets_defaultSettings => 'Standardflasche';
 
   @override
   String get tankPresets_defaultSettings_description =>
-      'Die mit Stern markierte Vorlage wird als Standardtank beim Erstellen neuer Tauchgänge verwendet.';
+      'Die mit Stern markierte Vorlage wird als Standardflasche beim Erstellen neuer Tauchgänge verwendet.';
 
   @override
   String tankPresets_deleteDefaultMessage(String name) {
-    return 'Möchtest du \"$name\" wirklich löschen? Dies ist deine aktuelle Standardtank-Vorlage und wird auf AL80 zurückgesetzt.';
+    return 'Möchtest du \"$name\" wirklich löschen? Dies ist deine aktuelle Standard-Flaschenvorlage und wird auf AL80 zurückgesetzt.';
   }
 
   @override
@@ -39678,6 +39750,19 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String tankPresets_deleted(Object name) {
     return '\"$name\" gelöscht';
+  }
+
+  @override
+  String get tankPresets_duplicatePreset => 'Duplizieren';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (Kopie)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (Kopie $number)';
   }
 
   @override
@@ -39791,14 +39876,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tankPresets_applyToImports_subtitle =>
-      'Fehlende Tankdaten bei importierten Tauchgängen mit der Standardvorlage ergänzen';
+      'Fehlende Flaschendaten bei importierten Tauchgängen mit der Standardvorlage ergänzen';
 
   @override
   String get tankPresets_defaultStartPressure => 'Standard-Anfangsdruck';
 
   @override
   String get tankPresets_defaultStartPressure_subtitle =>
-      'Wird bei neuen Tanks eingetragen und bei importierten Tanks ohne Anfangsdruck, wenn der Standardtank auf Importe angewendet wird';
+      'Wird bei neuen Flaschen eingetragen und bei importierten Flaschen ohne Anfangsdruck, wenn die Standardflasche auf Importe angewendet wird';
 
   @override
   String tankPresets_defaultStartPressure_range(String max, String min) {
@@ -39815,7 +39900,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tankPresets_setAsDefault => 'Als Standard festlegen';
 
   @override
-  String get tankPresets_showInPickers => 'In der Tankauswahl anzeigen';
+  String get tankPresets_showInPickers => 'In der Flaschenauswahl anzeigen';
 
   @override
   String get tankPresets_title => 'Flaschenvorlagen';
@@ -56469,8 +56554,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_species_suggested => 'Vorschläge';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent %';
+  String media_species_suggestedChipLabel(String name) {
+    return 'Vorschlag: $name';
   }
 
   @override

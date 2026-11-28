@@ -49,7 +49,7 @@ void main() {
 
   test('the rig accessories carry a label, their own icon and .name', () {
     const added = {
-      EquipmentType.tankBand: ('Tank Band', 'tankBand'),
+      EquipmentType.tankBand: ('Cylinder Band', 'tankBand'),
       EquipmentType.weightPocket: ('Weight Pocket', 'weightPocket'),
       EquipmentType.gearPocket: ('Gear Pocket', 'gearPocket'),
     };

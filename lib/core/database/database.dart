@@ -1837,6 +1837,9 @@ class AppDatabase extends _$AppDatabase {
     // v393: the built-in BCD/wing inspection kind applies to wings (issue
     // #5110). Built-in reference data never syncs; the floor does not move.
     393,
+    // v394: tank_presets.rated_capacity_cuft, the rated capacity a copy of a
+    // built-in preset keeps (issue #800). Nullable; the floor does not move.
+    394,
     // v396: diver_settings.show_dive_country_flags, show_buddy_country_flags
     // and show_trip_country_flags, seeded from show_country_flags (issue
     // #5001). The floor does not move.

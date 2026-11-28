@@ -298,7 +298,7 @@ void main() {
       'Sidemount',
       'Rebreather',
       'Other',
-      'No tanks logged',
+      'No cylinders logged',
     ];
     const extras = ['Stage(s)', 'Deco gas', 'Multi-gas'];
 
@@ -306,8 +306,8 @@ void main() {
       tester,
     ) async {
       await pump(tester);
-      expect(find.text('Tank configuration'), findsOneWidget);
-      expect(find.text('Tank extras'), findsOneWidget);
+      expect(find.text('Cylinder configuration'), findsOneWidget);
+      expect(find.text('Cylinder extras'), findsOneWidget);
       for (final label in [...configurations, ...extras]) {
         final chip = tester.widget<FilterChip>(
           find.widgetWithText(FilterChip, label),

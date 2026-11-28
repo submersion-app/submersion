@@ -128,6 +128,17 @@ void main() {
     expect(fmt(imperial, FieldKind.depth, 30.48), imperial.formatDepth(30.48));
     expect(fmt(imperial, FieldKind.weight, 4.0), imperial.formatWeight(4.0));
     expect(fmt(imperial, FieldKind.volume, 12.0), imperial.formatVolume(12.0));
+    // A rated capacity is stored in cubic feet (issue #800): an imperial
+    // diver reads it back as stored, a metric one as litres of gas.
+    expect(
+      fmt(imperial, FieldKind.ratedCapacityCuft, 77.4),
+      imperial.formatVolume(77.4 * 28.3168),
+    );
+    expect(imperial.formatVolume(77.4 * 28.3168), contains('77'));
+    expect(
+      fmt(metric, FieldKind.ratedCapacityCuft, 77.4),
+      metric.formatVolume(77.4 * 28.3168),
+    );
     expect(
       fmt(imperial, FieldKind.temperature, 26.0),
       imperial.formatTemperature(26.0),

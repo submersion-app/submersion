@@ -73,7 +73,7 @@ void main() {
       findsOneWidget,
     );
     // Two bailouts: only the number tells the diver which one changes.
-    expect(find.text('Tank 3 · Bailout'), findsOneWidget);
+    expect(find.text('Cylinder 3 · Bailout'), findsOneWidget);
     expect(find.text('Material: Steel → Aluminum'), findsOneWidget);
     expect(find.text('Label: Old → Bailout 2'), findsOneWidget);
     expect(
@@ -113,7 +113,7 @@ void main() {
       ],
     );
 
-    expect(find.text('Tank 2 · O₂ Supply'), findsOneWidget);
+    expect(find.text('Cylinder 2 · O₂ Supply'), findsOneWidget);
     expect(
       find.text("Role: O₂ Supply, read from the transmitter's name → Bailout"),
       findsOneWidget,

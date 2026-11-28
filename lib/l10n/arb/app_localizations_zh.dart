@@ -10454,6 +10454,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_label_startPressure => '起始压力';
 
   @override
+  String get diveLog_tank_managePresets => '管理预设';
+
+  @override
   String get diveLog_tank_label_tankPreset => '气瓶预设';
 
   @override
@@ -13705,6 +13708,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentType_harness => '背带';
 
   @override
+  String get equipment_searchWords_cylinder => '罐, 钢瓶, 气罐, 备用瓶';
+
+  @override
+  String get equipment_searchWords_tankBand => '瓶带, cam band';
+
+  @override
   String get enum_equipmentType_tankBand => '气瓶绑带';
 
   @override
@@ -16214,6 +16223,51 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_typeLockedHelper => '已连接的潜水电脑或发射器会保留其类型。';
 
   @override
+  String get equipment_suggest_link => '找不到合适的类型？建议一个类别';
+
+  @override
+  String get equipment_suggest_title => '建议类别';
+
+  @override
+  String get equipment_suggest_intro =>
+      '这会在 GitHub 上打开一个预填好的功能请求。你可以检查后从浏览器提交。';
+
+  @override
+  String get equipment_suggest_kindQuestion => '你要建议什么？';
+
+  @override
+  String get equipment_suggest_kindCategory => '新的装备类型';
+
+  @override
+  String get equipment_suggest_kindSubcategory => '现有类型的新款式';
+
+  @override
+  String get equipment_suggest_nameLabel => '名称';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => '所属类型';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => '最接近的现有类型';
+
+  @override
+  String get equipment_suggest_parentNone => '无';
+
+  @override
+  String get equipment_suggest_reasonLabel => '为什么需要它？';
+
+  @override
+  String get equipment_suggest_reasonHint => '它与现有类型有何不同？';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return '将此装备作为示例（$example）';
+  }
+
+  @override
+  String get equipment_suggest_open => '在 GitHub 中打开';
+
+  @override
   String get equipment_edit_useCustomReminders => '使用自定义提醒';
 
   @override
@@ -17540,6 +17594,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_consumption_diveTime => '潜水时间';
 
   @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '。警告：超出气瓶容量',
+      'other': '',
+    });
+    return '气体消耗：$volume $volumeSymbol，$pressure $pressureSymbol$_temp0';
+  }
+
+  @override
   String gasCalculators_consumption_exceedsTank(
     Object pressure,
     Object symbol,
@@ -18709,9 +18778,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => '无法打开浏览器';
-
-  @override
-  String get marineLife_suggest_copyLink => '复制链接';
 
   @override
   String get marineLife_editCard_photos => '照片';
@@ -26419,6 +26485,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_volumeL => '容积';
 
   @override
+  String get settings_conflict_field_ratedCapacityCuft => '额定容量';
+
+  @override
   String get settings_conflict_field_volumeLiters => '容积';
 
   @override
@@ -27835,7 +27904,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return '名称最少。约 $percent% 正确';
+    return '名称最少。照片上约 $percent% 正确';
   }
 
   @override
@@ -27843,12 +27912,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return '名称更多。约 $percent% 正确';
+    return '名称更多。照片上约 $percent% 正确';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return '名称最多。约 $percent% 正确';
+    return '名称最多。照片上约 $percent% 正确';
   }
 
   @override
@@ -37365,6 +37434,19 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String tankPresets_deleted(Object name) {
     return '已删除\"$name\"';
+  }
+
+  @override
+  String get tankPresets_duplicatePreset => '复制';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name（副本）';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name（副本 $number）';
   }
 
   @override
@@ -53039,8 +53121,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_species_suggested => '建议';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
+  String media_species_suggestedChipLabel(String name) {
+    return '建议：$name';
   }
 
   @override

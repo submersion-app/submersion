@@ -167,7 +167,7 @@ void main() {
         ],
       ),
     );
-    expect(find.textContaining('Tank material not set'), findsOneWidget);
+    expect(find.textContaining('Cylinder material not set'), findsOneWidget);
   });
 
   testWidgets('no tank material hint once every material is resolved', (
@@ -187,7 +187,7 @@ void main() {
         ],
       ),
     );
-    expect(find.textContaining('Tank material not set'), findsNothing);
+    expect(find.textContaining('Cylinder material not set'), findsNothing);
   });
 
   testWidgets('says how buoyant the diver was exactly once', (tester) async {

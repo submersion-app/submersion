@@ -124,7 +124,7 @@ enum DiveDetailSectionId {
         'Weights carried, buoyancy through the dive, lead for next time, '
             'ditchable weight',
       tanks =>
-        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption',
+        'Cylinder list, gas mixes, pressures, MOD/MND, per-cylinder consumption',
       buddies => 'Buddy list with roles',
       signatures => 'Buddy/instructor signature display and capture',
       equipment => 'Equipment used in dive',

@@ -370,6 +370,12 @@ extension RungsFromV340 on AppDatabase {
     if (from < 393) await _backfillWingInspectionServiceKind();
     if (from < 393) await reportProgress();
 
+    // v394 (issue #800): tank_presets.rated_capacity_cuft, the rated capacity
+    // a copy of a built-in preset keeps. Nullable, no backfill, re-asserted
+    // in beforeOpen; the floor does not move.
+    if (from < 394) await _assertTankPresetRatedCapacityColumn();
+    if (from < 394) await reportProgress();
+
     // v396 (issue #5001): a country flags switch for dives, buddies and
     // trips, each seeded from show_country_flags, which now covers sites
     // only. The copy runs here and never in beforeOpen, which would undo a
