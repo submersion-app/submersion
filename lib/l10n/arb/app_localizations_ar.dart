@@ -67939,7 +67939,10 @@ class AppLocalizationsAr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'تطبيق $count',
-      one: 'تطبيق 1',
+      many: 'تطبيق $count',
+      few: 'تطبيق $count',
+      two: 'تطبيق $count',
+      one: 'تطبيق $count',
       zero: 'ربط فقط',
     );
     return '$_temp0';

@@ -66510,7 +66510,7 @@ class AppLocalizationsNl extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count toepassen',
-      one: '1 toepassen',
+      one: '$count toepassen',
       zero: 'Alleen koppelen',
     );
     return '$_temp0';

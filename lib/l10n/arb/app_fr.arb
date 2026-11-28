@@ -19461,7 +19461,7 @@
   "equipment_catalogue_none": "Aucun",
   "equipment_catalogue_linksNote": "Les liens du fabricant s'affichent sur la page de l'équipement une fois lié.",
   "equipment_catalogue_notThisModel": "Pas ce modèle",
-  "equipment_catalogue_apply": "{count, plural, =0{Lier seulement} =1{Appliquer 1} other{Appliquer {count}}}",
+  "equipment_catalogue_apply": "{count, plural, =0{Lier seulement} =1{Appliquer {count}} other{Appliquer {count}}}",
   "equipment_catalogue_nothingToFill": "Vos valeurs correspondent déjà à ce modèle. Une fois lié, la page de l'équipement affiche les liens du fabricant.",
   "equipment_manufacturer_title": "Du fabricant",
   "equipment_manufacturer_product": "Page produit",

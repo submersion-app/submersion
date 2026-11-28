@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/equipment/domain/catalogue/equipment_catalogue_record.dart';
 
 /// A name as the catalogue matches it: case, spaces and punctuation removed,
@@ -59,8 +60,7 @@ class EquipmentCatalogue {
   /// The makers with a record of [type], each once by its own spelling,
   /// sorted.
   List<String> manufacturers(EquipmentType type) =>
-      manufacturerKeys(type).keys.toList()
-        ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+      manufacturerKeys(type).keys.toList()..sort(compareTextForSort);
 
   /// Each maker with a record of [type], by its own spelling, with the
   /// normalised keys of that spelling and every alias it goes by.
@@ -85,7 +85,7 @@ class EquipmentCatalogue {
     return [
       for (final entry in _of(type))
         if (entry.makerKeys.contains(key)) entry.record,
-    ]..sort((a, b) => a.model.toLowerCase().compareTo(b.model.toLowerCase()));
+    ]..sort((a, b) => compareTextForSort(a.model, b.model));
   }
 
   /// The one record of [type] that [brand] and [model] name, by name or

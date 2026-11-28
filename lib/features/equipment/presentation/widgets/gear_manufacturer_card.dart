@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
@@ -49,9 +49,7 @@ class GearManufacturerCard extends ConsumerWidget {
     final source = checked == null
         ? null
         : l10n.equipment_manufacturer_checked(
-            DateFormat.yMMMd(
-              Localizations.localeOf(context).toLanguageTag(),
-            ).format(checked),
+            ref.watch(unitFormatterProvider).formatDate(checked),
           );
     final links = <(String, String?)>[
       (l10n.equipment_manufacturer_product, record.links.product),

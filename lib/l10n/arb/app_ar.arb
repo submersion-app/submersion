@@ -19461,7 +19461,7 @@
   "equipment_catalogue_none": "لا شيء",
   "equipment_catalogue_linksNote": "تظهر روابط الشركة المصنعة في صفحة المعدات بعد الربط.",
   "equipment_catalogue_notThisModel": "ليس هذا الطراز",
-  "equipment_catalogue_apply": "{count, plural, =0{ربط فقط} =1{تطبيق 1} other{تطبيق {count}}}",
+  "equipment_catalogue_apply": "{count, plural, =0{ربط فقط} =1{تطبيق {count}} =2{تطبيق {count}} few{تطبيق {count}} many{تطبيق {count}} other{تطبيق {count}}}",
   "equipment_catalogue_nothingToFill": "قيمك تطابق هذا الطراز بالفعل. بعد الربط تعرض صفحة المعدات روابط الشركة المصنعة.",
   "equipment_manufacturer_title": "من الشركة المصنعة",
   "equipment_manufacturer_product": "صفحة المنتج",

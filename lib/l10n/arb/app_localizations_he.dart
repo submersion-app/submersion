@@ -65547,7 +65547,7 @@ class AppLocalizationsHe extends AppLocalizations {
       count,
       locale: localeName,
       other: 'החלת $count',
-      one: 'החלת 1',
+      one: 'החלת $count',
       zero: 'קישור בלבד',
     );
     return '$_temp0';

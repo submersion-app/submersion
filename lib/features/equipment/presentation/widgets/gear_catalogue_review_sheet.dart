@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -56,9 +55,10 @@ Future<GearCatalogueReviewResult?> showGearCatalogueReview(
 }
 
 /// "From the manufacturer, checked Nov 27, 2026", or null with no sources.
+/// [formatDate] is the diver's date format ([UnitFormatter.formatDate]).
 String? catalogueSourceLine(
   AppLocalizations l10n,
-  String locale,
+  String Function(DateTime date) formatDate,
   EquipmentCatalogueRecord record,
 ) {
   final summary = catalogueSourceSummary(record);
@@ -73,7 +73,7 @@ String? catalogueSourceLine(
   };
   return l10n.equipment_catalogue_sheetSource(
     publisher,
-    DateFormat.yMMMd(locale).format(summary.checked!),
+    formatDate(summary.checked!),
   );
 }
 
@@ -141,11 +141,7 @@ class _ReviewState extends ConsumerState<_Review> {
     );
     final offer = widget.offer;
     final record = offer.record;
-    final source = catalogueSourceLine(
-      l10n,
-      Localizations.localeOf(context).toLanguageTag(),
-      record,
-    );
+    final source = catalogueSourceLine(l10n, units.formatDate, record);
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       child: Column(

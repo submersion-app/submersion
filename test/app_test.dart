@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_catalogue_providers.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/universal_import/data/models/detection_result.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
@@ -321,6 +322,8 @@ void main() {
             (ref) async => DeviceIdentityStatus.unchanged,
           ),
           restoreLastProviderProvider.overrideWith((ref) async {}),
+          // The launch refresh downloads the equipment catalogue (#5118).
+          equipmentCatalogueRefreshProvider.overrideWithValue(() async {}),
           equipmentServiceStatusCacheProvider.overrideWith((ref) async {
             serviceCacheBuilds++;
           }),

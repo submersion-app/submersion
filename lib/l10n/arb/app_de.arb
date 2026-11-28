@@ -19586,7 +19586,7 @@
   "equipment_catalogue_none": "Keine",
   "equipment_catalogue_linksNote": "Herstellerlinks erscheinen nach dem Verknüpfen auf der Ausrüstungsseite.",
   "equipment_catalogue_notThisModel": "Nicht dieses Modell",
-  "equipment_catalogue_apply": "{count, plural, =0{Nur verknüpfen} =1{1 übernehmen} other{{count} übernehmen}}",
+  "equipment_catalogue_apply": "{count, plural, =0{Nur verknüpfen} =1{{count} übernehmen} other{{count} übernehmen}}",
   "equipment_catalogue_nothingToFill": "Deine Werte passen bereits zu diesem Modell. Nach dem Verknüpfen erscheinen die Herstellerlinks auf der Ausrüstungsseite.",
   "equipment_manufacturer_title": "Vom Hersteller",
   "equipment_manufacturer_product": "Produktseite",

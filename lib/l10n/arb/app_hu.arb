@@ -19461,7 +19461,7 @@
   "equipment_catalogue_none": "Nincs",
   "equipment_catalogue_linksNote": "A gyártói hivatkozások összekapcsolás után a felszerelés oldalán jelennek meg.",
   "equipment_catalogue_notThisModel": "Nem ez a modell",
-  "equipment_catalogue_apply": "{count, plural, =0{Csak összekapcsolás} =1{1 alkalmazása} other{{count} alkalmazása}}",
+  "equipment_catalogue_apply": "{count, plural, =0{Csak összekapcsolás} =1{{count} alkalmazása} other{{count} alkalmazása}}",
   "equipment_catalogue_nothingToFill": "Az értékeid már egyeznek ezzel a modellel. Összekapcsolás után a felszerelés oldala mutatja a gyártói hivatkozásokat.",
   "equipment_manufacturer_title": "A gyártótól",
   "equipment_manufacturer_product": "Termékoldal",

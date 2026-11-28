@@ -62691,7 +62691,7 @@ class AppLocalizationsZh extends AppLocalizations {
       count,
       locale: localeName,
       other: '应用 $count 项',
-      one: '应用 1 项',
+      one: '应用 $count 项',
       zero: '仅关联',
     );
     return '$_temp0';

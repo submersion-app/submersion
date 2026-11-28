@@ -66951,7 +66951,7 @@ class AppLocalizationsEs extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Aplicar $count',
-      one: 'Aplicar 1',
+      one: 'Aplicar $count',
       zero: 'Solo vincular',
     );
     return '$_temp0';

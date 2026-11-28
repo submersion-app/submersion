@@ -19461,7 +19461,7 @@
   "equipment_catalogue_none": "Geen",
   "equipment_catalogue_linksNote": "Links van de fabrikant verschijnen na koppelen op de uitrustingspagina.",
   "equipment_catalogue_notThisModel": "Niet dit model",
-  "equipment_catalogue_apply": "{count, plural, =0{Alleen koppelen} =1{1 toepassen} other{{count} toepassen}}",
+  "equipment_catalogue_apply": "{count, plural, =0{Alleen koppelen} =1{{count} toepassen} other{{count} toepassen}}",
   "equipment_catalogue_nothingToFill": "Je waarden komen al overeen met dit model. Na koppelen toont de uitrustingspagina de links van de fabrikant.",
   "equipment_manufacturer_title": "Van de fabrikant",
   "equipment_manufacturer_product": "Productpagina",

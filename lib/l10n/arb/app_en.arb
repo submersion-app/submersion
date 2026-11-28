@@ -38786,7 +38786,7 @@
   "equipment_catalogue_none": "None",
   "equipment_catalogue_linksNote": "Manufacturer links show on the gear page once linked.",
   "equipment_catalogue_notThisModel": "Not this model",
-  "equipment_catalogue_apply": "{count, plural, =0{Link only} =1{Apply 1} other{Apply {count}}}",
+  "equipment_catalogue_apply": "{count, plural, =0{Link only} =1{Apply {count}} other{Apply {count}}}",
   "@equipment_catalogue_apply": {"placeholders": {"count": {"type": "int"}}},
   "equipment_catalogue_nothingToFill": "Your values already match this model. Linking it shows the manufacturer's links on the gear page.",
   "equipment_manufacturer_title": "From the manufacturer",

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/equipment/domain/catalogue/equipment_catalogue.dart';
 import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
 
@@ -41,9 +42,7 @@ List<String> brandSuggestions(
   final starts = <String>[];
   final contains = <String>[];
   final makers = catalogue.manufacturerKeys(type);
-  for (final name
-      in makers.keys.toList()
-        ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()))) {
+  for (final name in makers.keys.toList()..sort(compareTextForSort)) {
     final keys = makers[name]!;
     if (keys.any(taken.contains) || !keys.any((k) => k.contains(query))) {
       continue;

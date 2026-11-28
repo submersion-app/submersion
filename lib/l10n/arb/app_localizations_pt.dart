@@ -66883,7 +66883,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Aplicar $count',
-      one: 'Aplicar 1',
+      one: 'Aplicar $count',
       zero: 'Só ligar',
     );
     return '$_temp0';

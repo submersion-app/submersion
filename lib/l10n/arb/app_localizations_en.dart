@@ -65889,7 +65889,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Apply $count',
-      one: 'Apply 1',
+      one: 'Apply $count',
       zero: 'Link only',
     );
     return '$_temp0';

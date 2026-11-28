@@ -66914,7 +66914,7 @@ class AppLocalizationsIt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Applica $count',
-      one: 'Applica 1',
+      one: 'Applica $count',
       zero: 'Solo collega',
     );
     return '$_temp0';

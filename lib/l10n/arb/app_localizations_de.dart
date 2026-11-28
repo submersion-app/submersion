@@ -66772,7 +66772,7 @@ class AppLocalizationsDe extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count übernehmen',
-      one: '1 übernehmen',
+      one: '$count übernehmen',
       zero: 'Nur verknüpfen',
     );
     return '$_temp0';

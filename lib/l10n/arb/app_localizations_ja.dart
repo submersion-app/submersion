@@ -64202,7 +64202,7 @@ class AppLocalizationsJa extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count件を適用',
-      one: '1件を適用',
+      one: '$count件を適用',
       zero: 'リンクのみ',
     );
     return '$_temp0';

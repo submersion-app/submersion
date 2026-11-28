@@ -19461,7 +19461,7 @@
   "equipment_catalogue_none": "无",
   "equipment_catalogue_linksNote": "关联后，装备页面会显示制造商链接。",
   "equipment_catalogue_notThisModel": "不是这个型号",
-  "equipment_catalogue_apply": "{count, plural, =0{仅关联} =1{应用 1 项} other{应用 {count} 项}}",
+  "equipment_catalogue_apply": "{count, plural, =0{仅关联} =1{应用 {count} 项} other{应用 {count} 项}}",
   "equipment_catalogue_nothingToFill": "你的数值已与此型号一致。关联后，装备页面会显示制造商链接。",
   "equipment_manufacturer_title": "制造商信息",
   "equipment_manufacturer_product": "产品页面",

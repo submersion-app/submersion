@@ -104520,7 +104520,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_catalogue_apply.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =0{Link only} =1{Apply 1} other{Apply {count}}}'**
+  /// **'{count, plural, =0{Link only} =1{Apply {count}} other{Apply {count}}}'**
   String equipment_catalogue_apply(int count);
 
   /// No description provided for @equipment_catalogue_nothingToFill.

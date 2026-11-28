@@ -19460,7 +19460,7 @@
   "equipment_catalogue_none": "なし",
   "equipment_catalogue_linksNote": "リンクすると、器材ページにメーカーのリンクが表示されます。",
   "equipment_catalogue_notThisModel": "このモデルではない",
-  "equipment_catalogue_apply": "{count, plural, =0{リンクのみ} =1{1件を適用} other{{count}件を適用}}",
+  "equipment_catalogue_apply": "{count, plural, =0{リンクのみ} =1{{count}件を適用} other{{count}件を適用}}",
   "equipment_catalogue_nothingToFill": "値はすでにこのモデルと一致しています。リンクすると、器材ページにメーカーのリンクが表示されます。",
   "equipment_manufacturer_title": "メーカー情報",
   "equipment_manufacturer_product": "製品ページ",

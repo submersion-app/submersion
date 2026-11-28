@@ -67045,7 +67045,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Appliquer $count',
-      one: 'Appliquer 1',
+      one: 'Appliquer $count',
       zero: 'Lier seulement',
     );
     return '$_temp0';
