@@ -217,6 +217,29 @@ void main() {
     expect(await operationLabels(), [ChangeLogLabels.unlinkMedia]);
   });
 
+  test('unlinkEverywhere deletes the row and clears a gear cover naming it, '
+      'with no History entry of its own', () async {
+    final regId = (await EquipmentRepository().createEquipment(
+      const EquipmentItem(id: '', name: 'Reg', type: EquipmentType.regulator),
+    )).id;
+    await addMedia('g1', equipmentId: regId);
+    await GearPhotoRepository().setCover(regId, 'g1');
+    await clearLog();
+
+    await service.unlinkEverywhere(['g1']);
+
+    expect(await media.getMediaById('g1'), isNull);
+    final item = await (db.select(
+      db.equipment,
+    )..where((t) => t.id.equals(regId))).getSingle();
+    expect(item.coverMediaId, isNull);
+    // The photo viewer's save files it under its own entry.
+    expect(
+      await operationLabels(),
+      isNot(contains(ChangeLogLabels.unlinkMedia)),
+    );
+  });
+
   test('unlinking nothing writes no entry', () async {
     await clearLog();
 

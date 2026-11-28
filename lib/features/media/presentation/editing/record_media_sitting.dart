@@ -92,6 +92,17 @@ class SittingMediaWriters {
             throw UnsupportedError('a gear item sitting relinks no media'),
       );
 
+  /// The library's, for the photo viewer's held Unlink opened from the
+  /// library or the map (issue #5126): every link of the photo goes, and a
+  /// gear cover naming it is cleared, as the library's own Unlink does.
+  factory SittingMediaWriters.forLibrary(ProviderRead read) =>
+      SittingMediaWriters._app(
+        read,
+        unlinkFrom: (service, ids) => service.unlinkEverywhere(ids),
+        replace: (_, _, _) async =>
+            throw UnsupportedError('a library viewer relinks no media'),
+      );
+
   /// A trip's (issue #4527, phase 3, plan 10): its scans hold photos for
   /// several of its dives, each row naming its own dive. A trip's sitting
   /// unlinks and relinks nothing.

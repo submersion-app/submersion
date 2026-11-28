@@ -187,6 +187,17 @@ class MediaUnlinkService {
     _drainAfterEntry();
   }
 
+  /// [unlinkFromLibrary]'s work with no History entry of its own: for a
+  /// write already inside one, the photo viewer's held Unlink saved with the
+  /// photo's other changes (issue #5126). Every link of every row goes
+  /// through [deleteMedia], and a gear item whose cover was one of them
+  /// loses that cover.
+  Future<void> unlinkEverywhere(List<String> mediaIds) async {
+    if (mediaIds.isEmpty) return;
+    await deleteMedia(mediaIds);
+    await (_gearPhotos ?? GearPhotoRepository()).clearCoversNaming(mediaIds);
+  }
+
   /// The Media screen's Gear tab Remove: [unlinkFromEquipment] as one
   /// labelled entry in History (issue #4527), written in one transaction so
   /// a delete that fails leaves no photo half removed.

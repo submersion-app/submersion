@@ -23,6 +23,9 @@ const photoDetailsCardId = 'details';
 const photoFileCardId = 'file';
 const photoTagsCardId = 'tags';
 
+/// The viewer's held Unlink (issue #5126), named in History as Unlink.
+const photoUnlinkCardId = 'unlink';
+
 /// The species tagged and untagged, as edits on the stored tags.
 final photoSpeciesField = EditField<PhotoRecord, SpeciesTagEdits>(
   id: 'photoSpecies',
