@@ -2198,7 +2198,8 @@ class MediaRepository {
     for (final row in rows) {
       // Any surviving link keeps the row: a photo the site gallery still
       // shows, or an invoice still filed against a piece of gear.
-      final keep = row.siteId != null || row.equipmentId != null;
+      final keep =
+          row.retainInLibrary || row.siteId != null || row.equipmentId != null;
       if (keep) {
         unlinkIds.add(row.id);
       } else {
@@ -2280,7 +2281,8 @@ class MediaRepository {
     final doomed = <domain.MediaItem>[];
     final unlinkIds = <String>[];
     for (final row in rows) {
-      final keep = row.diveId != null || row.equipmentId != null;
+      final keep =
+          row.retainInLibrary || row.diveId != null || row.equipmentId != null;
       if (keep) {
         unlinkIds.add(row.id);
       } else {
@@ -2295,10 +2297,10 @@ class MediaRepository {
   /// to other devices instead of diverging. Site counterpart of
   /// [unlinkMediaFromDeletedDives].
   ///
-  /// Deliberately NOT routed through [_unlinkColumns]: that path also sets
-  /// retain_in_library, which is a one-way latch that permanently excludes a
-  /// row from the orphan sweep. Site-deletion leftovers must stay sweepable,
-  /// the same distinction [unlinkMediaFromDeletedDives] draws.
+  /// Leaves `retain_in_library` as it is: a row the diver kept (issue #5122)
+  /// stays out of the orphan sweep with no place, and any other leftover
+  /// stays sweepable, the same distinction [unlinkMediaFromDeletedDives]
+  /// draws.
   Future<void> unlinkMediaFromDeletedSites(List<String> mediaIds) async {
     if (mediaIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -2335,7 +2337,8 @@ class MediaRepository {
     final doomed = <domain.MediaItem>[];
     final unlinkIds = <String>[];
     for (final row in rows) {
-      final keep = row.diveId != null || row.siteId != null;
+      final keep =
+          row.retainInLibrary || row.diveId != null || row.siteId != null;
       if (keep) {
         unlinkIds.add(row.id);
       } else {
@@ -2766,9 +2769,10 @@ class MediaRepository {
   }
 
   /// Unlinked rows older than [olderThan]. Every source type qualifies: a
-  /// row with no dive and no site has no business in the library, and the
-  /// age guard only exists so an insert racing this query is never caught
-  /// mid-flight.
+  /// row with no dive and no site has no business in the library, unless
+  /// the diver kept it there with no place (`retain_in_library`, issue
+  /// #5122). The age guard only exists so an insert racing this query is
+  /// never caught mid-flight.
   Future<List<String>> getSweepableOrphanIds({
     required DateTime olderThan,
   }) async {
@@ -2777,6 +2781,7 @@ class MediaRepository {
       ..addColumns([id])
       ..where(
         isLinkedToLogbook(_db.media).not() &
+            _db.media.retainInLibrary.equals(false) &
             _db.media.createdAt.isSmallerThanValue(
               olderThan.millisecondsSinceEpoch,
             ),

@@ -106,11 +106,14 @@ String? _dyingOf(String? link, Set<String> dying) =>
     link != null && dying.contains(link) ? link : null;
 
 /// Whether some logbook link on [row] names a parent that is not dying.
-/// That link alone keeps the row, whatever else dies around it.
+/// That link alone keeps the row, whatever else dies around it. A row the
+/// diver kept in the library (`retain_in_library`, issue #5122) always lives
+/// on, with no place once its last parent goes.
 ///
 /// Public so a caller can hand it to `MediaDeletionCoordinator` as `keepIf`,
 /// where it is judged inside the delete's own transaction.
 bool mediaRowLivesOn(MediaData row, DyingMediaParents parents) =>
+    row.retainInLibrary ||
     (row.diveId != null && !parents.diveIds.contains(row.diveId)) ||
     (row.siteId != null && !parents.siteIds.contains(row.siteId)) ||
     (row.equipmentId != null &&

@@ -6,7 +6,9 @@ import 'package:submersion/features/media_store/data/media_deletion_coordinator.
 
 /// Removes unlinked media rows: originally the one-time backlog left by the
 /// old FK SET NULL cascade, now the safety net behind the rule that every
-/// row carries a dive or site link from its insert.
+/// row carries a dive or site link from its insert. A row the diver kept
+/// with no place (`retain_in_library`, issue #5122) is the one exception and
+/// is never swept.
 ///
 /// Runs on every launch rather than once behind a flag. The query is one
 /// indexed SELECT that is empty on a healthy library, and a device that has
