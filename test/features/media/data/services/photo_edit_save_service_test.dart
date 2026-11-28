@@ -426,14 +426,16 @@ void main() {
       const EquipmentItem(id: '', name: 'BCD', type: EquipmentType.bcd),
     );
     await insertTestMedia(id: 'g1');
-    await db.customStatement(
-      "UPDATE media SET equipment_id = '${reg.id}' WHERE id = 'g1'",
-    );
+    await db.customStatement('UPDATE media SET equipment_id = ? WHERE id = ?', [
+      reg.id,
+      'g1',
+    ]);
     final session = await sitting('g1');
     session.set(photoColorField, const ColorAdjustment(warmth: 0.3));
-    await db.customStatement(
-      "UPDATE media SET equipment_id = '${bcd.id}' WHERE id = 'g1'",
-    );
+    await db.customStatement('UPDATE media SET equipment_id = ? WHERE id = ?', [
+      bcd.id,
+      'g1',
+    ]);
 
     await expectLater(
       serviceWith().save(

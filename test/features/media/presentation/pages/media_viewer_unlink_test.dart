@@ -218,7 +218,8 @@ void main() {
         const EquipmentItem(id: '', name: 'BCD', type: EquipmentType.bcd),
       );
       await db.customStatement(
-        "UPDATE media SET equipment_id = '${reg.id}' WHERE id = 'lib'",
+        'UPDATE media SET equipment_id = ? WHERE id = ?',
+        [reg.id, 'lib'],
       );
       return (reg: reg.id, bcd: bcd.id);
     }))!;
@@ -236,7 +237,8 @@ void main() {
     await settleViewer(tester);
     await tester.runAsync(
       () => db.customStatement(
-        "UPDATE media SET equipment_id = '${gear.bcd}' WHERE id = 'lib'",
+        'UPDATE media SET equipment_id = ? WHERE id = ?',
+        [gear.bcd, 'lib'],
       ),
     );
     await settleViewer(tester);
