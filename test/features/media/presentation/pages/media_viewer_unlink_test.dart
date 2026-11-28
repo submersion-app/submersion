@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
@@ -201,6 +204,50 @@ void main() {
     expect(find.byType(RecordEditBar), findsNothing);
     expect(await stored(tester, 'p2'), isTrue);
     expect(await tester.runAsync(() => eventCount(db)), mark);
+  });
+
+  testWidgets('a gear photo moved to another item meanwhile is not unlinked', (
+    tester,
+  ) async {
+    final gear = (await tester.runAsync(() async {
+      final repo = EquipmentRepository();
+      final reg = await repo.createEquipment(
+        const EquipmentItem(id: '', name: 'Reg', type: EquipmentType.regulator),
+      );
+      final bcd = await repo.createEquipment(
+        const EquipmentItem(id: '', name: 'BCD', type: EquipmentType.bcd),
+      );
+      await db.customStatement(
+        "UPDATE media SET equipment_id = '${reg.id}' WHERE id = 'lib'",
+      );
+      return (reg: reg.id, bcd: bcd.id);
+    }))!;
+    await open(
+      tester,
+      ids: ['lib'],
+      initial: 'lib',
+      scope: ViewerUnlinkScope.gear,
+    );
+    await tapUnlock(tester);
+    // Gear asks with its own Remove question.
+    await tester.tap(unlinkAction());
+    await settleViewer(tester);
+    await tester.tap(find.widgetWithText(TextButton, 'Remove'));
+    await settleViewer(tester);
+    await tester.runAsync(
+      () => db.customStatement(
+        "UPDATE media SET equipment_id = '${gear.bcd}' WHERE id = 'lib'",
+      ),
+    );
+    await settleViewer(tester);
+
+    await save(tester);
+
+    expect(coordinator.deleted, isEmpty);
+    final kept = (await tester.runAsync(
+      () => MediaRepository().getMediaById('lib'),
+    ))!;
+    expect(kept.equipmentId, gear.bcd);
   });
 
   group('after Save', () {

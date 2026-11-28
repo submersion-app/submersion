@@ -88,6 +88,10 @@ class PhotoEditSaveService {
   /// #4527, phase 2). One unlinked from that site since, and kept for a
   /// dive, is no longer the site's: the save is refused with a
   /// [PhotoGoneError], as for a deleted one, and nothing is written.
+  ///
+  /// [equipmentAtStart] is the gear item a gear photo's sitting began on,
+  /// where the viewer's Unlink unlinks from it (issue #5126). One moved to
+  /// another item since is no longer this one's: refused the same way.
   Future<({PhotoRecord before, PhotoRecord after})?> save({
     required String mediaId,
     required String? diverId,
@@ -97,6 +101,7 @@ class PhotoEditSaveService {
     bool alsoWriteIsAChange = false,
     ({String? id})? diveAtStart,
     String? siteAtStart,
+    String? equipmentAtStart,
   }) {
     // The scope goes outside the transaction it covers, as its own contract
     // requires. An operation that ends with no events is removed when the
@@ -117,7 +122,9 @@ class PhotoEditSaveService {
       body: () => _db.transaction(() async {
         final stored = await _reader.read(mediaId, diverId: diverId);
         if (stored == null ||
-            (siteAtStart != null && stored.item.siteId != siteAtStart)) {
+            (siteAtStart != null && stored.item.siteId != siteAtStart) ||
+            (equipmentAtStart != null &&
+                stored.item.equipmentId != equipmentAtStart)) {
           throw PhotoGoneError(mediaId);
         }
         if (diveAtStart != null && stored.item.diveId != diveAtStart.id) {

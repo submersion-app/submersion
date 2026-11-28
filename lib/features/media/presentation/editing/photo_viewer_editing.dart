@@ -230,12 +230,19 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   /// unlinks from the site: one unlinked from it since is not saved to.
   String? _siteAtUnlock;
 
+  /// The gear item the sitting's photo was filed under when it was
+  /// unlocked, where Unlink unlinks from it: one moved since is not saved.
+  String? _gearAtUnlock;
+
   void unlockPhoto(PhotoRecord stored) {
     _diveAtUnlock = (id: stored.item.diveId);
     // A site's own media is held to its site too (issue #5126): one moved
     // off it since is not unlinked from, or saved to, the site it is on now.
     _siteAtUnlock = unlocksDocuments || unlinkScope == ViewerUnlinkScope.site
         ? stored.item.siteId
+        : null;
+    _gearAtUnlock = unlinkScope == ViewerUnlinkScope.gear
+        ? stored.item.equipmentId
         : null;
     photoEditController.unlock(stored);
   }
@@ -425,6 +432,7 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
         // dive were made for the dive it was on.
         diveAtStart: _diveAtUnlock,
         siteAtStart: _siteAtUnlock,
+        equipmentAtStart: _gearAtUnlock,
       ),
     );
     // The write is committed. What a relink left for now (the upload of
