@@ -1055,6 +1055,91 @@ void main() {
       },
     );
 
+    testWidgets(
+      'Save as preset on a custom copy keeps its rated capacity (#800)',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        // The diver's own copy of AL80, which keeps its maker's rating.
+        final myCopy = TankPresetEntity.create(
+          id: 'mine',
+          name: 'al80_copy',
+          displayName: 'AL80 (copy)',
+          volumeLiters: 11.1,
+          workingPressureBar: 206.843,
+          material: TankMaterial.aluminum,
+          ratedCapacityCuft: 77.4,
+        );
+        final builtInPresets = [
+          myCopy,
+          ...TankPresets.all.map((p) => TankPresetEntity.fromBuiltIn(p)),
+        ];
+        final notifier = _MockTankPresetListNotifier(builtInPresets);
+
+        // On the diver's copy of AL80.
+        const tank = DiveTank(
+          id: 'tank-1',
+          volume: 11.1,
+          workingPressure: 206.843,
+          presetName: 'al80_copy',
+          gasMix: GasMix(o2: 21.0, he: 0.0),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+              currentDiverIdProvider.overrideWith(
+                (ref) => MockCurrentDiverIdNotifier(),
+              ),
+              tankPresetListNotifierProvider.overrideWith((ref) => notifier),
+              tankPresetsProvider.overrideWith(
+                (ref) => Future.value(builtInPresets),
+              ),
+            ].cast(),
+            child: MaterialApp(
+              // Pinned: an unpinned MaterialApp resolves against the host
+              // machine's locale list, so English label assertions below fail
+              // on a non-English dev machine.
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  child: TankEditor(
+                    tank: tank,
+                    tankNumber: 1,
+                    onChanged: (_) {},
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Save as preset'));
+        await tester.pumpAndSettle();
+
+        // Name dialog: enter a name and confirm.
+        await tester.enterText(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.byType(TextField),
+          ),
+          'My AL80',
+        );
+        await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+        await tester.pumpAndSettle();
+
+        final added = notifier.lastAddedPreset;
+        expect(added, isNotNull);
+        expect(added!.displayName, 'My AL80');
+        expect(added.ratedCapacityCuft, 77.4);
+      },
+    );
+
     testWidgets('Save as preset reports a failed save instead of throwing', (
       tester,
     ) async {

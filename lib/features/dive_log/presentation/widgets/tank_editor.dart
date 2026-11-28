@@ -300,17 +300,44 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _passportId = widget.tank.passportId;
     _surfaceBreathing = widget.tank.surfaceBreathingDuration;
     _twinPassportId = widget.tank.twinPassportId;
-    // Initialize selected preset from tank's presetName
-    // Check built-in presets first, async lookup for custom presets happens in build
+    // Initialize selected preset from tank's presetName: a built-in one,
+    // else the diver's own preset of that name and the tank's size, if the
+    // presets are loaded (build resolves it once they arrive).
     // Reset on every read, not only set: a re-read after a fill from a
     // slot with no preset must not keep the old preset, or the next
     // keystroke would write it (and in cuft its volume) back.
+    _sizeEdited = false;
     final builtIn = widget.tank.presetName == null
         ? null
         : TankPresets.byName(widget.tank.presetName!);
     _selectedPreset = builtIn == null
-        ? null
+        ? _ownPresetOf(ref.read(tankPresetsProvider).value)
         : TankPresetEntity.fromBuiltIn(builtIn);
+  }
+
+  /// Whether the diver changed the size fields since they were read: a
+  /// preset that loads later must not then claim them.
+  bool _sizeEdited = false;
+
+  /// The diver's own preset [widget.tank] names, when it is still that
+  /// preset's size. It resolves like a built-in one (issue #800): its exact
+  /// litres stand behind a cuft field, and Save as preset keeps its rating.
+  TankPresetEntity? _ownPresetOf(List<TankPresetEntity>? presets) {
+    final name = widget.tank.presetName;
+    final volume = widget.tank.volume;
+    final pressure = widget.tank.workingPressure;
+    if (name == null || presets == null || volume == null || pressure == null) {
+      return null;
+    }
+    return presets
+        .where(
+          (p) =>
+              !p.isBuiltIn &&
+              p.name == name &&
+              (p.volumeLiters - volume).abs() < 0.005 &&
+              (p.workingPressureBar - pressure).abs() < 0.05,
+        )
+        .firstOrNull;
   }
 
   @override
@@ -563,6 +590,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   @override
   Widget build(BuildContext context) {
     final units = ref.watch(unitFormatterProvider);
+    // The diver's own presets load after the first frame: resolve the
+    // tank's preset then, unless the size was edited in the meantime.
+    ref.listen(tankPresetsProvider, (_, next) {
+      if (_selectedPreset != null || _sizeEdited) return;
+      final own = _ownPresetOf(next.value);
+      if (own != null) setState(() => _selectedPreset = own);
+    });
 
     final gasMix = _currentGasMix();
 
@@ -1587,6 +1621,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
   /// Clears the selected preset when tank specs are manually modified
   void _clearPreset() {
+    _sizeEdited = true;
     if (_selectedPreset != null) {
       setState(() => _selectedPreset = null);
     }
