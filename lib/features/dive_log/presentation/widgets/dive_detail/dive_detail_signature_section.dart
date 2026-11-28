@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_list.dart';
 import 'package:uuid/uuid.dart';
@@ -56,14 +57,17 @@ class DiveSignaturesSection extends ConsumerWidget {
 
     final heldBuddies = held(diveBuddiesList);
     final heldSignatures = held(diveSignaturesList);
-    final buddies = BuddySignaturesSection(
-      diveId: dive.id,
-      buddies: heldBuddies,
-      signatures: heldSignatures?.where((s) => s.isBuddySignature).toList(),
-      onCaptured: editing == null
-          ? null
-          : (bwr, strokes, size) =>
-                _captureForBuddy(editing, bwr, strokes, size),
+    final buddies = _withoutPencil(
+      editing != null,
+      BuddySignaturesSection(
+        diveId: dive.id,
+        buddies: heldBuddies,
+        signatures: heldSignatures?.where((s) => s.isBuddySignature).toList(),
+        onCaptured: editing == null
+            ? null
+            : (bwr, strokes, size) =>
+                  _captureForBuddy(editing, bwr, strokes, size),
+      ),
     );
     if (dive.courseIds.isEmpty) return buddies;
 
@@ -89,16 +93,21 @@ class DiveSignaturesSection extends ConsumerWidget {
           ).select((async) => async.hasError),
         );
     final buddiesShow = hasBuddies && !signaturesFailed;
-    final training = _TrainingSignatureCard(
-      dive: dive,
-      held: heldSignatures == null
-          ? null
-          : (
-              signature: heldSignatures
-                  .where((s) => s.isInstructorSignature)
-                  .firstOrNull,
-            ),
-      editing: editing,
+    // The card's pencil goes on the first title row shown: the buddies'
+    // when they show, else the training signature's.
+    final training = _withoutPencil(
+      editing != null || buddiesShow,
+      _TrainingSignatureCard(
+        dive: dive,
+        held: heldSignatures == null
+            ? null
+            : (
+                signature: heldSignatures
+                    .where((s) => s.isInstructorSignature)
+                    .firstOrNull,
+              ),
+        editing: editing,
+      ),
     );
     if (!buddiesShow) return training;
     return FillLastColumn(
@@ -106,6 +115,16 @@ class DiveSignaturesSection extends ConsumerWidget {
     );
   }
 }
+
+/// [child], with its title row drawn without the Signatures card's pencil
+/// when [without]: the pencil belongs on one row of the closed card, and in
+/// the open card the frame's own header has Done.
+///
+/// Both of the card's title rows are [RecordCardHeader]s, and either can
+/// be the first one shown, so each takes the pencil from the frame unless
+/// it is hidden from it here (issue #5061).
+Widget _withoutPencil(bool without, Widget child) =>
+    without ? RecordCardFrameScope(data: null, child: child) : child;
 
 /// Renders a buddy's drawn signature and holds it in [session] until Save.
 Future<void> _captureForBuddy(
@@ -166,25 +185,14 @@ class _TrainingSignatureCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // spaceBetween with two loose Flexible children, never a Spacer:
-            // a Spacer is tight and claims its half of the free space whether
-            // or not the chip needs it, which both strands a gap after the
-            // chip and leaves the chip itself unbounded. An unbounded chip
-            // overflowed this header by 15px on a phone-width pane as soon as
-            // the course name ran past a word or two.
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Text(
-                    context.l10n.diveLog_detail_section_trainingSignature,
-                    style: Theme.of(context).textTheme.titleMedium,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                // One chip per course (#2515).
-                Flexible(child: DiveCourseChips(diveId: dive.id)),
-              ],
+            // The chip is loose, never tight: an unbounded chip overflowed
+            // this header by 15px on a phone-width pane as soon as the course
+            // name ran past a word or two. While it heads the Signatures
+            // card, the row carries the card's pencil (issue #5061).
+            RecordCardHeader(
+              title: context.l10n.diveLog_detail_section_trainingSignature,
+              // One chip per course (#2515).
+              trailing: Flexible(child: DiveCourseChips(diveId: dive.id)),
             ),
             const Divider(),
             signatureAsync.when(
