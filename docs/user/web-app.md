@@ -8,7 +8,8 @@ machine. You look at your dives, refine them, and the changes sync back to
 your phone and your computer.
 
 Open it at **<https://web.submersion.app>**, Submersion's own copy, which
-always runs the latest stable release.
+always runs the latest stable release. Betas run at
+<https://beta.web.submersion.app>; see [The beta web app](#the-beta-web-app).
 
 Nothing runs on a server. The site is a folder of static files, and your
 data travels only between the browser and your own store, on Submersion's
@@ -30,6 +31,22 @@ logbook in that browser alone. The same screen offers **Restore a backup
 file** (below) and, when the site ships it, **Explore with sample data**:
 the sample logbook, as in the installed app, with your own data set aside
 until you exit from Settings, Data.
+
+## The beta web app
+
+<https://beta.web.submersion.app> runs the latest beta, the same build the
+beta apps on the [beta channel](https://github.com/submersion-app/submersion#beta-channel)
+get, and updates with every one. Use it when your other devices are on
+the beta: a device on a stable release holds back changes from beta devices
+until the next stable release, so the stable site cannot open what they
+sync.
+
+The beta site is a separate address, so your browser keeps a separate
+library for it: it starts empty, and your dives appear there once you
+connect it to the same sync store as your beta devices. Neither site can
+touch the other's library, so trying the beta never upgrades the library
+the stable site keeps. Settings > About on each site links to the other,
+and the beta site's version reads "(Beta)".
 
 ## What works, and what does not
 
@@ -64,7 +81,32 @@ address the app is served at (its origin, such as
 `https://dive.example.com`). The connect screen's **Check connection**
 tells you when the store refuses browser requests and shows the exact rule
 to add, with your site's address filled in and a **Copy rule** button.
-The rules below use `https://your-site` as that address.
+The rules below use `https://your-site` as that address. For Submersion's
+own sites it is `https://web.submersion.app`; to sync from the
+[beta web app](#the-beta-web-app) as well, allow
+`https://beta.web.submersion.app` too. The S3, B2 and MinIO rules take a
+list (MinIO's server-wide setting a comma-separated one). The nginx and
+Apache rules set a header that names one address per response, so for
+both sites they answer with the request's own address when it is one of
+the two:
+
+```nginx
+# Outside the server block:
+map $http_origin $submersion_origin {
+    "https://web.submersion.app"      $http_origin;
+    "https://beta.web.submersion.app" $http_origin;
+}
+# Then, in place of the Allow-Origin line below:
+add_header Access-Control-Allow-Origin $submersion_origin always;
+add_header Vary Origin always;
+```
+
+```apache
+# In place of the Allow-Origin line in the <Location> block below:
+SetEnvIf Origin "^(https://(beta\.)?web\.submersion\.app)$" SUBMERSION_ORIGIN=$1
+Header always set Access-Control-Allow-Origin "%{SUBMERSION_ORIGIN}e" env=SUBMERSION_ORIGIN
+Header always merge Vary Origin
+```
 
 Dropbox needs nothing. iCloud Drive has no browser interface and Git is
 not offered in a browser in this release; the connect screen names both
@@ -163,8 +205,9 @@ Dropbox shows, and paste it back. Nothing to configure on Dropbox's side.
 
 ### Google Drive
 
-On Submersion's own site, <https://web.submersion.app>, choose Google
-Drive and sign in: the site carries
+On Submersion's own sites, <https://web.submersion.app> and the beta site
+<https://beta.web.submersion.app>, choose Google Drive and sign in: both
+carry
 Submersion's Google client, so it opens the same library your phone and
 computer sync to Google Drive.
 

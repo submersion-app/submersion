@@ -32445,6 +32445,22 @@ class AppLocalizationsAr extends AppLocalizations {
       'احصل على الميزات الجديدة مبكرًا من خلال برنامج البيتا';
 
   @override
+  String get settings_updates_tryBetaWeb => 'جرّب تطبيق الويب التجريبي';
+
+  @override
+  String settings_updates_tryBetaWebSubtitle(String address) {
+    return 'ميزات جديدة مبكرًا على $address. له مكتبته الخاصة؛ قم بالمزامنة لترى غطساتك هناك.';
+  }
+
+  @override
+  String get settings_updates_useStableWeb => 'استخدم تطبيق الويب المستقر';
+
+  @override
+  String settings_updates_useStableWebSubtitle(String address) {
+    return 'على $address. له مكتبته الخاصة، منفصلة عن هذه.';
+  }
+
+  @override
   String get settings_updates_lastChecked => 'آخر تحقق';
 
   @override

@@ -585,6 +585,24 @@ jobs:
         if: always()
         run: rm -f android/fastlane/play-store-key.json
 
+  # The beta web site, https://beta.web.submersion.app, gets this beta's own
+  # web bundle from the release just published (issue #4481). After
+  # publish-beta, since it downloads from that release; a build-only run
+  # deploys nothing. No store lane waits on it. Skips with a notice while
+  # WEB_DEPLOY_TOKEN is unset (docs/developer/web-site-setup.md).
+  deploy-web:
+    name: Deploy the beta web app
+    needs: [precheck, publish-beta]
+    if: needs.publish-beta.result == 'success'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/deploy-web.yml
+    with:
+      tag: ${{ needs.precheck.outputs.tag }}
+      site: beta
+    secrets:
+      WEB_DEPLOY_TOKEN: ${{ secrets.WEB_DEPLOY_TOKEN }}
+
   # Five red Beta runs in eleven hours went unnoticed until someone read the
   # Actions list (#2598). This job opens one rolling issue when any job above
   # fails, comments on it while it stays open, and closes it once a run
@@ -605,7 +623,7 @@ jobs:
   # anyone.
   alert:
     name: Alert on failure
-    needs: [precheck, build, publish-beta, upload-testflight-ios, upload-testflight-macos, upload-play]
+    needs: [precheck, build, publish-beta, upload-testflight-ios, upload-testflight-macos, upload-play, deploy-web]
     if: >-
       always() && github.ref == 'refs/heads/main' && (
         contains(needs.*.result, 'failure') ||

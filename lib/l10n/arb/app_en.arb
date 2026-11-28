@@ -18482,6 +18482,24 @@
   "settings_updates_header": "Updates",
   "settings_updates_joinBeta": "Join the Beta",
   "settings_updates_joinBetaSubtitle": "Get new features early through the beta program",
+  "settings_updates_tryBetaWeb": "Try the beta web app",
+  "settings_updates_tryBetaWebSubtitle": "New features early, at {address}. It keeps its own library; sync to see your dives there.",
+  "@settings_updates_tryBetaWebSubtitle": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_updates_useStableWeb": "Use the stable web app",
+  "settings_updates_useStableWebSubtitle": "At {address}. It keeps its own library, separate from this one.",
+  "@settings_updates_useStableWebSubtitle": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
   "settings_updates_lastChecked": "Last checked",
   "settings_updates_never": "Never",
   "settings_updates_readyToInstall": "Version {version} ready to install",

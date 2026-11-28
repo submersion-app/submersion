@@ -3,19 +3,23 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/features/auto_update/domain/entities/release_channel.dart';
+import 'package:submersion/features/auto_update/domain/hosted_web_site.dart';
 import 'package:submersion/features/auto_update/domain/entities/update_channel.dart';
+import 'package:submersion/features/auto_update/presentation/providers/hosted_web_site_provider.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/build_date_label.dart';
 import 'package:submersion/features/settings/presentation/widgets/submersion_about_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// "Version 1.8.5.412", badged as beta on the beta channel. Empty while the
-/// package details load, or when they cannot be read.
+/// "Version 1.8.5.412", badged as beta on the beta update channel and on
+/// Submersion's beta web site (#4481). Empty while the package details load,
+/// or when they cannot be read.
 String watchAboutVersionLabel(BuildContext context, WidgetRef ref) {
   final isBetaChannel =
-      UpdateChannelConfig.isAutoUpdateEnabled &&
-      ref.watch(releaseChannelProvider) == ReleaseChannel.beta;
+      (UpdateChannelConfig.isAutoUpdateEnabled &&
+          ref.watch(releaseChannelProvider) == ReleaseChannel.beta) ||
+      ref.watch(hostedWebSiteProvider) == HostedWebSite.beta;
   return ref
       .watch(packageInfoProvider)
       .when(

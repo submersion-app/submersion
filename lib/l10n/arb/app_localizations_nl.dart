@@ -31920,6 +31920,22 @@ class AppLocalizationsNl extends AppLocalizations {
       'Krijg nieuwe functies eerder via het bètaprogramma';
 
   @override
+  String get settings_updates_tryBetaWeb => 'Probeer de bèta-webapp';
+
+  @override
+  String settings_updates_tryBetaWebSubtitle(String address) {
+    return 'Nieuwe functies eerder, op $address. Die heeft een eigen bibliotheek; synchroniseer om je duiken daar te zien.';
+  }
+
+  @override
+  String get settings_updates_useStableWeb => 'Gebruik de stabiele webapp';
+
+  @override
+  String settings_updates_useStableWebSubtitle(String address) {
+    return 'Op $address. Die heeft een eigen bibliotheek, los van deze.';
+  }
+
+  @override
   String get settings_updates_lastChecked => 'Laatst gecontroleerd';
 
   @override

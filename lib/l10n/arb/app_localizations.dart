@@ -50983,6 +50983,30 @@ abstract class AppLocalizations {
   /// **'Get new features early through the beta program'**
   String get settings_updates_joinBetaSubtitle;
 
+  /// No description provided for @settings_updates_tryBetaWeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Try the beta web app'**
+  String get settings_updates_tryBetaWeb;
+
+  /// No description provided for @settings_updates_tryBetaWebSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New features early, at {address}. It keeps its own library; sync to see your dives there.'**
+  String settings_updates_tryBetaWebSubtitle(String address);
+
+  /// No description provided for @settings_updates_useStableWeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the stable web app'**
+  String get settings_updates_useStableWeb;
+
+  /// No description provided for @settings_updates_useStableWebSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'At {address}. It keeps its own library, separate from this one.'**
+  String settings_updates_useStableWebSubtitle(String address);
+
   /// No description provided for @settings_updates_lastChecked.
   ///
   /// In en, this message translates to:

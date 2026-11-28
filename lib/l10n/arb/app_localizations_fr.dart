@@ -32201,6 +32201,23 @@ class AppLocalizationsFr extends AppLocalizations {
       'Recevez les nouvelles fonctionnalités en avant-première grâce au programme bêta';
 
   @override
+  String get settings_updates_tryBetaWeb => 'Essayer l\'application web bêta';
+
+  @override
+  String settings_updates_tryBetaWebSubtitle(String address) {
+    return 'Les nouvelles fonctionnalités en avant-première, sur $address. Elle a sa propre bibliothèque ; synchronisez pour y voir vos plongées.';
+  }
+
+  @override
+  String get settings_updates_useStableWeb =>
+      'Utiliser l\'application web stable';
+
+  @override
+  String settings_updates_useStableWebSubtitle(String address) {
+    return 'Sur $address. Elle a sa propre bibliothèque, distincte de celle-ci.';
+  }
+
+  @override
   String get settings_updates_lastChecked => 'Dernière vérification';
 
   @override

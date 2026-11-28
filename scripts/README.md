@@ -280,8 +280,8 @@ Building, serving and testing the browser app.
   dart2js.
 - `scripts/web/serve_bundle.py`: serves a built bundle the way a configured
   host would.
-- `scripts/web/stage_hosted_site.py`: stages a release bundle as
-  web.submersion.app.
+- `scripts/web/stage_hosted_site.py`: stages a release bundle for
+  web.submersion.app or beta.web.submersion.app.
 - `scripts/web/test_web.sh`: runs the browser test suite under `test/web`.
 - `scripts/web/check_junit_ran.py`: fails when a JUnit report ran no tests
   or skipped any.

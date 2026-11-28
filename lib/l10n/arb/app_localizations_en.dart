@@ -31599,6 +31599,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Get new features early through the beta program';
 
   @override
+  String get settings_updates_tryBetaWeb => 'Try the beta web app';
+
+  @override
+  String settings_updates_tryBetaWebSubtitle(String address) {
+    return 'New features early, at $address. It keeps its own library; sync to see your dives there.';
+  }
+
+  @override
+  String get settings_updates_useStableWeb => 'Use the stable web app';
+
+  @override
+  String settings_updates_useStableWebSubtitle(String address) {
+    return 'At $address. It keeps its own library, separate from this one.';
+  }
+
+  @override
   String get settings_updates_lastChecked => 'Last checked';
 
   @override

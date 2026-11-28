@@ -369,6 +369,10 @@ before any database upgrade.
 - **Android:** [join the open test](https://play.google.com/apps/testing/app.submersion),
   then Play delivers beta updates automatically
 - **iOS / Mac App Store:** [join via TestFlight](https://testflight.apple.com/join/aMD393sB)
+- **Web:** open <https://beta.web.submersion.app>, updated with every beta.
+  It keeps its own library in the browser, apart from
+  [web.submersion.app](https://web.submersion.app), so connect it to the
+  sync store your other beta devices use
 
 ## Building from Source
 

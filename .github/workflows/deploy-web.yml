@@ -1,21 +1,29 @@
 name: Deploy Web App
 
-# Publishes a stable release's web bundle as Submersion's own site,
-# https://web.submersion.app, served by GitHub Pages from the main branch of
-# submersion-app/web (issue #4161, docs/design/specs/2026-11-03-hosted-web-app-design.md).
+# Publishes a release's web bundle as one of Submersion's own sites, each
+# served by GitHub Pages from the main branch of its own repository:
 #
-# promote.yml calls it for every promoted release, and release.yml for a
-# stable tag pushed by hand. Run it by hand to redeploy a release, or with
-# force to roll back to an older one: every visitor's library lives in their
-# browser on the one origin, already on the newer release's schema, so an
-# older release locks returning visitors out unless the two share a schema.
+#   site: stable  https://web.submersion.app       submersion-app/web
+#                 stable releases of this repository (issue #4161,
+#                 docs/design/specs/2026-11-03-hosted-web-app-design.md)
+#   site: beta    https://beta.web.submersion.app  submersion-app/web-beta
+#                 betas published to submersion-app/beta-builds (issue #4481,
+#                 docs/design/specs/2026-11-27-beta-web-site-design.md)
+#
+# promote.yml calls it for every promoted release, release.yml for a stable
+# tag pushed by hand, and beta.yml for every published beta. Run it by hand
+# to redeploy a release, or with force to roll back to an older one: every
+# visitor's library lives in their browser on the site's origin, already on
+# the newer release's schema, so an older release locks returning visitors
+# out unless the two share a schema. The two sites are separate origins, so
+# each keeps its own libraries and neither can lock the other's visitors out.
 #
 # The bundle is the release's own Submersion-<tag>-Web.zip, never a rebuild.
 # Each deploy force-pushes one orphan commit, so the Pages repository holds
 # a single copy of the site rather than a history of 160 MB bundles.
 #
-# It pushes with WEB_DEPLOY_TOKEN, a fine-grained token for submersion-app/web
-# alone (Contents: read and write), as beta.yml publishes with
+# It pushes with WEB_DEPLOY_TOKEN, a fine-grained token for both Pages
+# repositories (Contents: read and write), as beta.yml publishes with
 # BETA_BUILDS_TOKEN: the organization turns deploy keys off. Until the token
 # is set, the configured job notes that the site is not set up and the
 # deploy job is skipped, so a release is never held up by the site's setup.
@@ -24,9 +32,14 @@ on:
   workflow_call:
     inputs:
       tag:
-        description: 'Stable release tag to deploy (e.g. v1.8.4.9400)'
+        description: 'Release tag to deploy (e.g. v1.8.4.9400)'
         required: true
         type: string
+      site:
+        description: 'Which site: stable (web.submersion.app) or beta (beta.web.submersion.app)'
+        required: false
+        type: string
+        default: stable
       force:
         description: 'Deploy even when the site serves a newer release'
         required: false
@@ -38,9 +51,17 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Stable release tag to deploy (e.g. v1.8.4.9400)'
+        description: 'Release tag to deploy (e.g. v1.8.4.9400): a stable release for stable, a beta-builds release for beta'
         required: true
         type: string
+      site:
+        description: 'Which site: stable (web.submersion.app) or beta (beta.web.submersion.app)'
+        required: true
+        type: choice
+        options:
+          - stable
+          - beta
+        default: stable
       force:
         description: 'Roll back: deploy even when the site serves a newer release. Locks returning visitors out if the schemas differ.'
         required: false
@@ -50,19 +71,25 @@ on:
 permissions:
   contents: read
 
-# One deploy at a time: a new run waits for the running one rather than
+# One deploy at a time per site: a new run waits for the running one rather than
 # cancelling it. GitHub keeps only one waiting run per group, so a third
 # run replaces a waiting second; and a caller's own cancellation (release.yml
 # cancels a run when the same tag is pushed again) still stops this one.
 # Either way the push itself is atomic: the site holds the old commit or
 # the new one, never a mix.
+# A beta deploy (one per merge) never queues behind a stable one, or
+# replaces one waiting.
 concurrency:
-  group: deploy-web
+  group: deploy-web-${{ inputs.site || 'stable' }}
   cancel-in-progress: false
 
+# Anything but beta maps to the stable site here; the deploy job's first
+# step refuses any value but the two, so a typo never deploys to stable.
 env:
-  SITE_DOMAIN: web.submersion.app
-  PAGES_REMOTE: https://github.com/submersion-app/web.git
+  SITE: ${{ inputs.site || 'stable' }}
+  SITE_DOMAIN: ${{ inputs.site == 'beta' && 'beta.web.submersion.app' || 'web.submersion.app' }}
+  PAGES_REMOTE: ${{ inputs.site == 'beta' && 'https://github.com/submersion-app/web-beta.git' || 'https://github.com/submersion-app/web.git' }}
+  RELEASE_REPO: ${{ inputs.site == 'beta' && 'submersion-app/beta-builds' || github.repository }}
 
 jobs:
   # Its own job so the deploy below is skipped whole: a secret cannot be
@@ -87,30 +114,41 @@ jobs:
           fi
 
   deploy:
-    name: Deploy to web.submersion.app
+    name: Deploy the ${{ inputs.site || 'stable' }} web site
     needs: configured
     if: needs.configured.outputs.deploy == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - name: Refuse an unknown site
+        run: |
+          case "$SITE" in
+            stable|beta) echo "Deploying to ${SITE_DOMAIN} from ${RELEASE_REPO} releases." ;;
+            *) echo "::error::Unknown site '${SITE}'; use stable or beta."; exit 1 ;;
+          esac
+
       - name: Refuse a pre-release or unknown tag
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag }}
         run: |
           if [[ "$TAG" == *-* ]]; then
-            echo "::error::${TAG} is a pre-release tag; only stable releases deploy to ${SITE_DOMAIN}."
+            echo "::error::${TAG} is a pre-release tag; only releases without a suffix deploy to ${SITE_DOMAIN}."
             exit 1
           fi
-          if ! gh release view "$TAG" --repo "${{ github.repository }}" --json tagName >/dev/null; then
-            echo "::error::There is no release ${TAG} in ${{ github.repository }}; check the tag."
+          if ! gh release view "$TAG" --repo "$RELEASE_REPO" --json tagName >/dev/null; then
+            hint=""
+            if [ "$SITE" = "beta" ]; then
+              hint=" (beta-builds keeps only the newest betas)"
+            fi
+            echo "::error::There is no release ${TAG} in ${RELEASE_REPO}; check the tag${hint}."
             exit 1
           fi
 
       # The scripts come from this workflow's own commit, so a rollback to a
       # release from before the staging script existed still stages. The
-      # sqlite3.wasm lock comes from the release's tag: the module in its
-      # bundle is checked against the build that release pinned.
+      # sqlite3.wasm lock comes from the release's own source: the module in
+      # its bundle is checked against the build that release pinned.
       - name: Checkout the staging scripts
         uses: actions/checkout@v7
         with:
@@ -122,13 +160,35 @@ jobs:
           # second Authorization header from checkout would fail every call.
           persist-credentials: false
 
+      # A stable release's tag is in this repository. A beta's tag lives
+      # only in beta-builds, so its source commit comes from the release's
+      # metadata.json (beta.yml writes sourceSha there).
       - name: Read the release's sqlite3.wasm lock
         env:
+          GH_TOKEN: ${{ github.token }}
           TAG: ${{ inputs.tag }}
         run: |
           set -euo pipefail
-          git fetch -q --depth 1 origin "refs/tags/${TAG}:refs/tags/${TAG}"
-          git show "${TAG}:scripts/web/sqlite3_wasm.lock" > "$RUNNER_TEMP/sqlite3_wasm.lock"
+          if [ "$SITE" = "beta" ]; then
+            if ! gh release download "$TAG" --repo "$RELEASE_REPO" \
+              --pattern metadata.json --dir "$RUNNER_TEMP/meta"; then
+              echo "::error::Release ${TAG} in ${RELEASE_REPO} has no metadata.json, so its source commit is unknown."
+              exit 1
+            fi
+            rev=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1])).get("sourceSha") or "")' \
+              "$RUNNER_TEMP/meta/metadata.json")
+            # A full commit id and nothing else: the value reaches git's
+            # command line, where a leading dash would read as an option.
+            if ! [[ "$rev" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "::error::Release ${TAG} in ${RELEASE_REPO} names no valid sourceSha in metadata.json (got '${rev}')."
+              exit 1
+            fi
+            git fetch -q --depth 1 origin "$rev"
+          else
+            git fetch -q --depth 1 origin "refs/tags/${TAG}:refs/tags/${TAG}"
+            rev="$TAG"
+          fi
+          git show "${rev}:scripts/web/sqlite3_wasm.lock" > "$RUNNER_TEMP/sqlite3_wasm.lock"
 
       - name: Download the release's web bundle
         env:
@@ -136,7 +196,7 @@ jobs:
           TAG: ${{ inputs.tag }}
         run: |
           set -euo pipefail
-          if ! gh release download "$TAG" --repo "${{ github.repository }}" \
+          if ! gh release download "$TAG" --repo "$RELEASE_REPO" \
             --pattern "Submersion-${TAG}-Web.zip" --dir "$RUNNER_TEMP/dl"; then
             echo "::error::Release ${TAG} has no Submersion-${TAG}-Web.zip to deploy (releases before the web app, PR #4142, have none)."
             exit 1
@@ -164,7 +224,7 @@ jobs:
           echo "::add-mask::${basic}"
           # The header covers every github.com URL, so it is set only after
           # the lock is read from this repository: a token for the Pages
-          # repository alone would be refused here. No prompt: a refused
+          # repositories alone would be refused here. No prompt: a refused
           # token fails the step instead of waiting for input.
           {
             echo "GIT_TERMINAL_PROMPT=0"

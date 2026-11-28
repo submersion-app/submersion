@@ -3,7 +3,8 @@
 
 `.github/workflows/deploy-web.yml` publishes each stable release's
 `Submersion-<tag>-Web.zip` to GitHub Pages at https://web.submersion.app
-(issue #4161). This script does the parts worth testing:
+(issue #4161), and each beta's to https://beta.web.submersion.app (issue
+#4481). This script does the parts worth testing, for either site:
 
 `stage` unzips the bundle into an empty folder, refusing any entry that
 would land outside it, runs `scripts/checks/check_web_bundle.py` on the result,
@@ -18,7 +19,7 @@ client id until the next release.
 
 `check-newer` compares the staged bundle's `version.json` with the one the
 site serves and refuses an older bundle unless `--force` (spec decision 8):
-every visitor's library lives in their browser on the one origin, already
+every visitor's library lives in their browser on the site's origin, already
 moved to the newer schema, and an older release cannot open it. A deployed
 version that cannot be read (an empty Pages repository, the first deploy)
 lets the deploy go ahead.

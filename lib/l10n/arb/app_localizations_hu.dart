@@ -31958,6 +31958,23 @@ class AppLocalizationsHu extends AppLocalizations {
       'Kapd meg korábban az új funkciókat a bétaprogramon keresztül';
 
   @override
+  String get settings_updates_tryBetaWeb => 'A béta webalkalmazás kipróbálása';
+
+  @override
+  String settings_updates_tryBetaWebSubtitle(String address) {
+    return 'Új funkciók korábban, itt: $address. Saját könyvtára van; szinkronizálással ott is láthatók a merülései.';
+  }
+
+  @override
+  String get settings_updates_useStableWeb =>
+      'A stabil webalkalmazás használata';
+
+  @override
+  String settings_updates_useStableWebSubtitle(String address) {
+    return 'Itt: $address. Saját könyvtára van, ettől különálló.';
+  }
+
+  @override
   String get settings_updates_lastChecked => 'Utolsó ellenőrzés';
 
   @override

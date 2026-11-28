@@ -143,7 +143,8 @@ before DNS exists.
 
 - Cross-origin isolation headers (needs a host other than Pages, such as
   Cloudflare Pages; a later change if IndexedDB proves too slow).
-- A beta or preview site.
+- A beta or preview site. (Since added at the owner's request, issue #4481:
+  `2026-11-27-beta-web-site-design.md`.)
 - Links from the `submersion.app` website.
 - Removing `HOSTING.md`, `nginx.conf` and the other hosting files from the
   hosted copy: they stay, so the site matches the release zip.
