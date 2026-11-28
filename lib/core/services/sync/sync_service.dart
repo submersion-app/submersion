@@ -5366,11 +5366,24 @@ class SyncService {
     final watermark = state?.publishedHlcHigh;
     SyncPayload? pending;
     if (watermark != null) {
+      // Media held back from an older device (issue #5122) is in no cloud
+      // log, and sits below the watermark: stamped again, it is in the
+      // snapshot. The snapshot holds nothing back, as it never leaves this
+      // device; the next publish decides what to hold.
+      try {
+        await HeldMediaReleaser(
+          db: db,
+          sync: _syncRepository,
+        ).release(holding: false);
+      } catch (e) {
+        _log.warning('Held media release before rejoin failed: $e');
+      }
       pending = await _serializer.exportChangeset(
         deviceId: deviceId,
         hlcWatermark: watermark,
         deletions: await _syncRepository.getAllDeletions(),
         seq: 0,
+        holdUnplacedMedia: false,
       );
     }
 
