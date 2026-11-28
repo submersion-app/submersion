@@ -189,6 +189,7 @@ const Map<String, ChangeLogClass> changeLogTables = {
   'shared_library_backups': ChangeLogClass.excluded,
   'shared_library_members': ChangeLogClass.excluded,
   'shared_library_memberships': ChangeLogClass.excluded,
+  'shared_document_states': ChangeLogClass.excluded,
   'shared_site_states': ChangeLogClass.excluded,
   'shared_site_suggestions': ChangeLogClass.excluded,
   'sync_metadata': ChangeLogClass.excluded,

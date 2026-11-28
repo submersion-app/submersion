@@ -37,6 +37,15 @@ final Map<String, ConflictField> documentOverrides = {
     (l) => l.documents_field_emergencyPhone,
     FieldKind.shortText,
   ),
+  // Shared site library documents (issue #4713).
+  'documents.sharedLibraryId': ConflictField(
+    (l) => l.settings_conflict_field_sharedLibrary,
+    FieldKind.shortText,
+  ),
+  'documentPages.libraryFileId': ConflictField(
+    (l) => l.settings_conflict_field_sharedLibrary,
+    FieldKind.shortText,
+  ),
   'documentPages.pageIndex': ConflictField(
     (l) => l.settings_conflict_field_pageOrder,
     FieldKind.number,
