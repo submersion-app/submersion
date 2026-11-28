@@ -54,6 +54,9 @@ class _VideoItem extends ConsumerStatefulWidget {
   /// outside fullscreen; the fish labels keep above it (issue #4762).
   final double controlsInset;
 
+  /// The species the viewer follows (issue #5084), marked on the bar.
+  final String? focusSpeciesId;
+
   const _VideoItem({
     required this.item,
     required this.isCurrent,
@@ -67,6 +70,7 @@ class _VideoItem extends ConsumerStatefulWidget {
     this.identificationsEditable = true,
     this.hideIdentifications = false,
     this.controlsInset = 0,
+    this.focusSpeciesId,
   });
 
   @override
@@ -280,6 +284,10 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       });
       return;
     }
+    // A place the diver chose by hand carries over, so the fresh player is
+    // not taken for a new open and moved to a sighting (issue #5084).
+    final previous = _controller;
+    if (previous != null && diverMoved(previous)) markDiverMoved(next);
     setState(() => _controller = next);
     // It took the viewer's sound when it opened; a toggle since, while it
     // seeked and resumed, reached only the failed player.
@@ -312,6 +320,9 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       if (wasPlaying) {
         controller.pause();
       } else {
+        // Playing is the diver's choice too: a sighting lookup that lands
+        // after a quick play and pause leaves the video there (#5084).
+        markDiverMoved(controller);
         controller.play();
       }
     });
@@ -538,6 +549,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
                 controller: controller,
                 mediaId: widget.item.id,
                 audio: widget.audio,
+                speciesId: widget.focusSpeciesId,
                 // The controls hide 3 s after a reveal: hold them up while
                 // scrubbing or under the mouse, so the bar is not pulled from
                 // under the pointer, then restart the clock only if the video

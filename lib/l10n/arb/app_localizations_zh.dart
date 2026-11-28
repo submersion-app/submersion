@@ -53527,6 +53527,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get media_species_nextSighting => '下一次目击';
+
+  @override
   String get media_species_openSpeciesPage => '物种页面';
 
   @override

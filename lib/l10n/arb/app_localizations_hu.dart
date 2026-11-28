@@ -56774,6 +56774,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get media_species_nextSighting => 'Következő észlelés';
+
+  @override
   String get media_species_openSpeciesPage => 'Fajoldal';
 
   @override

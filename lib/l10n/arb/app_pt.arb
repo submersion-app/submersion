@@ -16775,6 +16775,7 @@
   "media_species_seenAt": "Visto em",
   "media_species_seenStretch": "{start} a {end}",
   "media_species_playFrom": "Reproduzir a partir de {time}",
+  "media_species_nextSighting": "Próximo avistamento",
   "media_species_openSpeciesPage": "Página da espécie",
   "media_species_cropThumb": "Imagem {index} de {count}",
   "media_species_taggedOnPhoto": "Marcadas nesta foto",

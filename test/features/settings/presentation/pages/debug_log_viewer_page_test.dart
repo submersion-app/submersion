@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/models/log_entry.dart';
@@ -19,6 +21,18 @@ import 'package:submersion/features/settings/presentation/widgets/log_filter_bar
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
+  // The stamp's month names are formatted by intl against the process-global
+  // Intl.defaultLocale. Pin it so the expected text does not depend on test
+  // order, and restore it so the global stays contained. Setting the global
+  // makes intl demand real symbol data, so load it first.
+  late String? previousLocale;
+  setUpAll(() => initializeDateFormatting('en'));
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   late Directory tempDir;
   late LogFileService service;
   late SharedPreferences prefs;
@@ -160,6 +174,9 @@ void main() {
       expect(find.byType(LogEntryTile), findsNWidgets(2));
       expect(find.text('App started'), findsOneWidget);
       expect(find.text('Scanning for devices'), findsOneWidget);
+      // Each row carries its date through the real settings chain, in the
+      // default date format (#4993).
+      expect(find.text('Mar 27, 2026 10:00:00.000'), findsNWidgets(2));
     });
 
     testWidgets('search toggle shows TextField with hint "Search logs..."', (

@@ -56751,6 +56751,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get media_species_nextSighting => 'Volgende waarneming';
+
+  @override
   String get media_species_openSpeciesPage => 'Soortpagina';
 
   @override
