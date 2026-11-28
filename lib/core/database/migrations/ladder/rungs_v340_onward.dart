@@ -357,16 +357,24 @@ extension RungsFromV340 on AppDatabase {
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
 
-    // v389 (issue #5040): a dive reads its site's altitude and water type
+    // v389 (issue #5069): diver_settings.profile_zoom_time_only, the profile
+    // chart's Time only zoom choice. Nullable, no backfill, re-asserted in
+    // beforeOpen; the floor does not move. Numbered 389 because open work
+    // claims 388.
+    if (from < 389) await _assertProfileZoomTimeOnlyColumn();
+    if (from < 389) await reportProgress();
+
+    // v395 (issue #5040): a dive reads its site's altitude and water type
     // rather than a copy, so the copies linking a site made (a value equal
     // to the site's) are cleared, and an empty entry or exit method is
     // filled from a site that lists exactly one, as linking it does. The
-    // floor rises to 389 (see minimumCompatibleSchemaVersion). Neither
+    // floor rises to 395 (see minimumCompatibleSchemaVersion). Neither
     // column joins changeLogRewrittenColumns (see
     // site_derived_dive_values.dart). The clear runs again after each
-    // inbound sync apply; the fill runs here only. 388 is held by #5028.
-    if (from < 389) await clearSiteCopiedDiveValues(this);
-    if (from < 389) await fillDiveEntryExitFromSites(this);
-    if (from < 389) await reportProgress();
+    // inbound sync apply; the fill runs here only. Numbered 395 because open
+    // work claims 388 and 390 to 394.
+    if (from < 395) await clearSiteCopiedDiveValues(this);
+    if (from < 395) await fillDiveEntryExitFromSites(this);
+    if (from < 395) await reportProgress();
   }
 }

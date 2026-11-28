@@ -45,7 +45,14 @@ void main() {
 
   /// The dive from the issue report: an oxygen cylinder reading 41 bar at
   /// 1.2 m, bled to 4 bar by the time the recording stops on the surface.
-  pigeon.ParsedDive bleedingOxygenDive() => pigeon.ParsedDive(
+  ///
+  /// [reportedStartBar] and [reportedEndBar] are the computer's own tank
+  /// pressures; a source that reports none leaves the importer to derive
+  /// both from the series (issue #5000).
+  pigeon.ParsedDive bleedingOxygenDive({
+    double? reportedStartBar = 200.0,
+    double? reportedEndBar = 4.0,
+  }) => pigeon.ParsedDive(
     fingerprint: 'test-fp',
     dateTimeYear: 2026,
     dateTimeMonth: 1,
@@ -61,8 +68,8 @@ void main() {
       pigeon.TankInfo(
         index: 0,
         gasMixIndex: 0,
-        startPressureBar: 200.0,
-        endPressureBar: 4.0,
+        startPressureBar: reportedStartBar,
+        endPressureBar: reportedEndBar,
       ),
     ],
     samples: [
@@ -82,12 +89,17 @@ void main() {
     events: const [],
   );
 
-  Future<double?> reparseAndReadEndPressure({required bool trim}) async {
+  Future<double?> reparseAndReadEndPressure({
+    required bool trim,
+    bool reported = true,
+  }) async {
     final service = ReparseService(db: db, trimTankPressureAtSurfacing: trim);
     await service.applyParsedUpdate(
       diveId: 'dive-1',
       sourceRowId: 'source-1',
-      parsed: bleedingOxygenDive(),
+      parsed: reported
+          ? bleedingOxygenDive()
+          : bleedingOxygenDive(reportedStartBar: null, reportedEndBar: null),
       descriptorVendor: 'Shearwater',
       descriptorProduct: 'Petrel 3',
       descriptorModel: 42,
@@ -109,4 +121,12 @@ void main() {
       expect(await reparseAndReadEndPressure(trim: false), 4.0);
     },
   );
+
+  test('reparse derives a missing end pressure at surfacing', () async {
+    expect(await reparseAndReadEndPressure(trim: true, reported: false), 41.0);
+  });
+
+  test('reparse derives the last reading when trimming is off', () async {
+    expect(await reparseAndReadEndPressure(trim: false, reported: false), 4.0);
+  });
 }

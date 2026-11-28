@@ -3,7 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/core/database/table_columns.dart';
 
-// The dive values that come from its site (v389, issue #5040).
+// The dive values that come from its site (v395, issue #5040).
 //
 // A site's altitude and water type are properties of the place: a dive reads
 // them through (`Dive.effectiveAltitude`, `Dive.effectiveWaterType`) and its
@@ -15,7 +15,7 @@ import 'package:submersion/core/database/table_columns.dart';
 //
 // Both run from the rung over the whole library. The clear runs again after
 // each inbound sync apply over the dives it touched, since a sync store
-// written before v389 still holds the copies; a peer below v389 is held
+// written before v395 still holds the copies; a peer below v395 is held
 // below the sync floor. The fill runs from the rung only: repeated after a
 // sync it would put back a method the diver cleared on another device.
 // Neither moves the sync stamp (`updated_at`, `hlc`): every device makes the
@@ -26,7 +26,7 @@ import 'package:submersion/core/database/table_columns.dart';
 // that puts back a cleared copy puts back the site's value as it was then,
 // which the dive reads anyway; a filled method only fills an empty one. A
 // `dives` entry there would also refuse restoring every stamped dive deleted
-// before v389.
+// before v395.
 //
 // Raw SQL, as the other ladder helpers, so it keeps compiling against any
 // later shape of the generated classes, guarded on the columns it reads for

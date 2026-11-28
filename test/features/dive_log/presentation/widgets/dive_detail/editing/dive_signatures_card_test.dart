@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_signature_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_buddies_sitting.dart';
@@ -19,6 +21,8 @@ import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/features/signatures/presentation/widgets/signature_display_widget.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../../../helpers/mock_providers.dart';
@@ -142,6 +146,108 @@ void main() {
     );
     expect(display.showDeleteButton, isTrue);
     expect(c.session!.changedCardIds, {'signatures'});
+  });
+
+  /// The section in its card's frame, as the dive page draws it, on an
+  /// unlocked dive; with [open] the card's editor shows.
+  ///
+  /// [extra] overrides join the base ones; without [settle] the frames are
+  /// pumped a second's worth, for a read that never ends.
+  Future<RecordEditController<Dive>> pumpFramed(
+    WidgetTester tester, {
+    bool open = false,
+    List<Override> extra = const [],
+    bool settle = true,
+  }) async {
+    tester.view.physicalSize = const Size(900, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final controller = RecordEditController<Dive>(
+      onSave: (_) async {},
+      onStart: (session) => Future.wait([
+        diveBuddiesList.load(session),
+        diveSignaturesList.load(session),
+      ]),
+    );
+    addTearDown(controller.dispose);
+    controller.unlock(dive);
+    if (open) controller.openCard(DiveDetailSectionId.signatures.name);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [...await getBaseOverrides(), ...extra],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: RecordEditScope<Dive>(
+                controller: controller,
+                child: RecordCardFrame<Dive>(
+                  card: diveEditCards[DiveDetailSectionId.signatures]!,
+                  child: DiveSignaturesSection(dive: dive),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+    return controller;
+  }
+
+  group('the closed card offers one pencil (issue #5061)', () {
+    testWidgets('on the buddies\' row when they show', (tester) async {
+      await pumpFramed(tester);
+      expect(find.byType(RecordPencilIcon), findsOneWidget);
+      expect(find.byTooltip('Edit Signatures'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Edit Signatures'));
+      await tester.pumpAndSettle();
+      expect(find.text('Request').hitTestable(), findsOneWidget);
+    });
+
+    testWidgets('on the training signature\'s row with no buddies', (
+      tester,
+    ) async {
+      await BuddyRepository().setBuddiesForDive('d1', const []);
+      await pumpFramed(tester);
+      expect(find.byType(RecordPencilIcon), findsOneWidget);
+      expect(find.byTooltip('Edit Training Signature'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Edit Training Signature'));
+      await tester.pumpAndSettle();
+      expect(find.text('Capture Instructor Signature'), findsOneWidget);
+    });
+
+    testWidgets('on the buddies\' row while their read is still running', (
+      tester,
+    ) async {
+      final never = Completer<List<BuddyWithRole>>();
+      await pumpFramed(
+        tester,
+        settle: false,
+        extra: [buddiesForDiveProvider('d1').overrideWith((_) => never.future)],
+      );
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(RecordPencilIcon), findsOneWidget);
+      expect(find.byTooltip('Edit Signatures'), findsOneWidget);
+    });
+
+    testWidgets('and none inside the open card, whose header alone has '
+        'Done', (tester) async {
+      await pumpFramed(tester, open: true);
+      expect(find.byType(RecordPencilIcon), findsNothing);
+      expect(find.text('Done'), findsOneWidget);
+      expect(find.text('Request').hitTestable(), findsOneWidget);
+    });
   });
 
   test('with neither a buddy nor a course the card is empty and not '

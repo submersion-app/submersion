@@ -17,7 +17,7 @@ import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_database.dart';
 
 /// Issue #5040. A dive reads its site's altitude and water type, and the
-/// v389 rung clears the copies linking a site made. The rung stamps nothing,
+/// v395 rung clears the copies linking a site made. The rung stamps nothing,
 /// so a sync store keeps the copies. Applying such a dive has to clear them.
 /// The rung's fill of empty entry and exit methods is not repeated: it would
 /// put back a method the diver cleared on another device.
@@ -39,7 +39,7 @@ void main() {
   SyncService buildService() =>
       SyncService(syncRepository: SyncRepository(), serializer: serializer);
 
-  /// A dive at a lake as a peer below v389 publishes it: the lake's
+  /// A dive at a lake as a peer below v395 publishes it: the lake's
   /// altitude and water copied on, no entry method.
   Future<SyncPayload> legacyPeerPayload() async {
     await db

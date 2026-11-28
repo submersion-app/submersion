@@ -16,7 +16,9 @@ import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
 import 'package:submersion/shared/providers/entity_table_config_providers.dart';
 import 'package:submersion/core/utils/log_failure.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/certification_agencies/domain/certification_catalog.dart';
+import 'package:submersion/features/certification_agencies/presentation/certification_entry_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Repository provider
@@ -133,6 +135,15 @@ final certificationSortProvider = Provider<SortState<CertificationSortField>>(
 );
 
 /// Apply sorting to a list of certifications
+///
+/// Ties on the chosen field fall through to the other visible keys, then to
+/// the id, so the order is total (issue #5070): Date Issued orders a day's
+/// certifications by agency then title, Agency orders by newest first then
+/// title, and Title orders by agency then newest first.
+/// Dates compare by the calendar day the row shows, not the time of day.
+/// [SortDirection.descending] is each field's reading order (newest first;
+/// A to Z for text) and [SortDirection.ascending] reverses the whole chain,
+/// tiebreakers included.
 List<Certification> applyCertificationSorting(
   List<Certification> certifications,
   SortState<CertificationSortField> sort, {
@@ -140,48 +151,71 @@ List<Certification> applyCertificationSorting(
   CertificationCatalog? catalog,
 }) {
   final cat = catalog ?? CertificationCatalog.builtInOnly;
-  final sorted = List<Certification>.from(certifications);
-  // The title sort orders by what the list shows (the localized title), not
-  // the raw stored name, which is blank for a certification saved without a
-  // custom title and "PADI : ..." for legacy rows. Computed once per
-  // certification rather than on every comparison, in an identity map:
-  // Certification's value hashCode walks its photo bytes.
+  // Text keys compare what the rows show, alphabetically: accents fold in
+  // with their base letter and case does not split the alphabet, the same
+  // collation the agency grouping uses.
+  final collator = TextCollator();
+  // The title key is the localized title, not the raw stored name, which is
+  // blank for a certification saved without a custom title and "PADI : ..."
+  // for legacy rows. Computed at most once per certification, and only for
+  // those a comparison reaches (under the date and agency sorts only ties
+  // do), in an identity map: Certification's value hashCode walks its photo
+  // bytes.
   final titles = Map<Certification, String>.identity();
-  if (sort.field == CertificationSortField.name) {
-    for (final c in certifications) {
-      titles[c] = certificationTitleL10n(c, l10n, catalog: cat).toLowerCase();
-    }
+  String titleOf(Certification c) => titles.putIfAbsent(
+    c,
+    () => certificationTitleL10n(c, l10n, catalog: cat),
+  );
+  // The agency key is the agency's localized name, as each row shows it.
+  final agencyNames = <String, String>{};
+  String agencyOf(Certification c) => agencyNames.putIfAbsent(
+    c.agency,
+    () => cat.agency(c.agency).localizedName(l10n),
+  );
+
+  // Each key compares in reading order.
+  // The date key is the calendar day the row shows (the value's own year,
+  // month and day, as the date formatter reads them), so certifications
+  // stored with different times of day still tie and fall through to the
+  // agency and title. Undated sorts as oldest.
+  DateTime dayOf(Certification c) {
+    final d = c.issueDate;
+    return d == null
+        ? DateTime.utc(1900)
+        : DateTime.utc(d.year, d.month, d.day);
   }
 
-  sorted.sort((a, b) {
-    int comparison;
-    // For text fields, invert direction (user expects descending = A→Z)
-    final invertForText =
-        sort.field == CertificationSortField.name ||
-        sort.field == CertificationSortField.agency;
+  int byDate(Certification a, Certification b) => dayOf(b).compareTo(dayOf(a));
+  // Two agencies showing the same name stay in separate blocks, by id, as
+  // the agency grouping keeps them.
+  int byAgency(Certification a, Certification b) {
+    final byName = collator.compare(agencyOf(a), agencyOf(b));
+    return byName != 0 ? byName : a.agency.compareTo(b.agency);
+  }
 
-    switch (sort.field) {
-      case CertificationSortField.name:
-        comparison = titles[a]!.compareTo(titles[b]!);
-      case CertificationSortField.dateIssued:
-        comparison = (a.issueDate ?? DateTime(1900)).compareTo(
-          b.issueDate ?? DateTime(1900),
-        );
-      case CertificationSortField.agency:
-        comparison = cat
-            .agency(a.agency)
-            .interchangeName
-            .compareTo(cat.agency(b.agency).interchangeName);
+  int byTitle(Certification a, Certification b) =>
+      collator.compare(titleOf(a), titleOf(b));
+
+  final keys = switch (sort.field) {
+    CertificationSortField.dateIssued => [byDate, byAgency, byTitle],
+    CertificationSortField.agency => [byAgency, byDate, byTitle],
+    CertificationSortField.name => [byTitle, byAgency, byDate],
+  };
+
+  int readingOrder(Certification a, Certification b) {
+    for (final key in keys) {
+      final comparison = key(a, b);
+      if (comparison != 0) return comparison;
     }
+    return a.id.compareTo(b.id);
+  }
 
-    if (invertForText) {
-      return sort.direction == SortDirection.ascending
-          ? -comparison
-          : comparison;
-    }
-    return sort.direction == SortDirection.ascending ? comparison : -comparison;
-  });
-
+  final sorted = List<Certification>.from(certifications);
+  sorted.sort(
+    (a, b) => sort.direction == SortDirection.descending
+        ? readingOrder(a, b)
+        : readingOrder(b, a),
+  );
   return sorted;
 }
 

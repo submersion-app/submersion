@@ -1538,8 +1538,8 @@ class SyncService {
   /// download with no primary row, which the v356 stamp then took for a
   /// combined dive, and a live series duplicating its source's own under
   /// another computer's label (issue #4847); both read the touched dives.
-  /// One below v389 copies a site's altitude and water type onto a dive it
-  /// links (issue #5040); that clear reads the touched dives. The v389 fill
+  /// One below v395 copies a site's altitude and water type onto a dive it
+  /// links (issue #5040); that clear reads the touched dives. The v395 fill
   /// of empty entry and exit methods is not repeated here: it would put
   /// back a method the diver cleared on another device.
   Future<void> _repairLegacyPeerRows({Iterable<String>? touchedDiveIds}) async {

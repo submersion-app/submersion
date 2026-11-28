@@ -9,7 +9,7 @@ import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/site_derived_dive_values.dart';
 
-/// v389 (issue #5040): a dive reads its site's altitude and water type
+/// v395 (issue #5040): a dive reads its site's altitude and water type
 /// rather than storing a copy, so the copies linking a site used to make are
 /// cleared, leaving the dive to read the site's current value. Entry and
 /// exit methods stay the dive's own, and an empty one is filled from a site
@@ -277,7 +277,7 @@ void main() {
     });
   });
 
-  group('the v389 rung', () {
+  group('the v395 rung', () {
     Future<int> changeLogEvents(AppDatabase db) async =>
         (await db
                 .customSelect('SELECT COUNT(*) AS n FROM change_log_events')
@@ -289,7 +289,7 @@ void main() {
     /// A database file holding a dive with a copy of its site's altitude
     /// and no entry method, stamped at [userVersion] and closed.
     Future<File> databaseAt(int userVersion) async {
-      final dir = Directory.systemTemp.createTempSync('v389_site_values');
+      final dir = Directory.systemTemp.createTempSync('v395_site_values');
       addTearDown(() => dir.deleteSync(recursive: true));
       final file = File(p.join(dir.path, 'submersion.db'));
 
@@ -325,18 +325,18 @@ void main() {
       return db;
     }
 
-    test('v389 is in the ladder and raises the floor', () {
-      expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(389));
-      expect(AppDatabase.migrationVersions, contains(389));
-      // A peer below 389 reads no site altitude (see the floor's doc).
+    test('v395 is in the ladder and raises the floor', () {
+      expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(395));
+      expect(AppDatabase.migrationVersions, contains(395));
+      // A peer below 395 reads no site altitude (see the floor's doc).
       expect(
         AppDatabase.minimumCompatibleSchemaVersion,
-        greaterThanOrEqualTo(389),
+        greaterThanOrEqualTo(395),
       );
     });
 
     test('an upgrade clears the copies and fills the methods', () async {
-      final db = reopen(await databaseAt(387));
+      final db = reopen(await databaseAt(389));
 
       final row = await dive(db, 'linked');
       expect(row['altitude'], isNull);
@@ -346,7 +346,7 @@ void main() {
     });
 
     test('the rung leaves the sync clocks alone', () async {
-      final db = reopen(await databaseAt(387));
+      final db = reopen(await databaseAt(389));
 
       final row = await dive(db, 'linked');
       expect(row['updated_at'], 22);
@@ -354,7 +354,7 @@ void main() {
     });
 
     test('the rung adds nothing to the change log', () async {
-      final db = reopen(await databaseAt(387));
+      final db = reopen(await databaseAt(389));
 
       expect(seededEvents, greaterThan(0), reason: 'the triggers must be live');
       expect(await changeLogEvents(db), seededEvents);

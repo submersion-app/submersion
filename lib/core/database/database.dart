@@ -338,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 389;
+  static const int currentSchemaVersion = 395;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -537,14 +537,14 @@ class AppDatabase extends _$AppDatabase {
   /// Holding those readers also prevents them from publishing explicit nulls
   /// for the discarded conditions after they upgrade.
   ///
-  /// Raised 386 -> 389 by site-derived dive values (#5040): from v389 a
+  /// Raised 386 -> 395 by site-derived dive values (#5040): from v395 a
   /// dive's altitude reads through to its site, so linking a site stores
   /// none on the dive and the rung clears the copies older builds made. A
-  /// peer below 389 reads only the dive's own altitude, so it would show a
+  /// peer below 395 reads only the dive's own altitude, so it would show a
   /// dive linked here with no altitude and replay its deco at sea level.
   /// Held below the floor until it updates. Its own payloads still arrive
   /// here, and the copies they carry are cleared after the apply.
-  static const int minimumCompatibleSchemaVersion = 389;
+  static const int minimumCompatibleSchemaVersion = 395;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1838,11 +1838,16 @@ class AppDatabase extends _$AppDatabase {
     // depth and a plan's no-switch flag (issue #3793). Additive and
     // defaulted; the floor does not move.
     387,
-    // v389 (issue #5040): a dive reads its site's altitude and water type;
-    // the copies linking a site made are cleared and an empty entry or exit
-    // method is filled from a site listing one. The floor rises to 389 (see
-    // minimumCompatibleSchemaVersion). 388 is held by #5028.
+    // v389: diver_settings.profile_zoom_time_only, the profile chart's Time
+    // only zoom choice (issue #5069). Nullable, no backfill; the floor does
+    // not move. Numbered 389 because open work claims 388.
     389,
+    // v395 (issue #5040): a dive reads its site's altitude and water type;
+    // the copies linking a site made are cleared and an empty entry or exit
+    // method is filled from a site listing one. The floor rises to 395 (see
+    // minimumCompatibleSchemaVersion). Numbered 395 because open work
+    // claims 388 and 390 to 394.
+    395,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

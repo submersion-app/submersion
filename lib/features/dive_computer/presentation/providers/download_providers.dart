@@ -50,6 +50,8 @@ final diveImportServiceProvider = Provider<DiveImportService>((ref) {
         loadTransmitterMatcher(ref, diverId: diverId),
     omitUnusedOcGasesForImports: (diverId) =>
         loadOmitUnusedOcGasesForDownloads(ref, diverId: diverId),
+    trimTankPressureAtSurfacingForImports: (diverId) =>
+        loadTrimTankPressureAtSurfacingForDownloads(ref, diverId: diverId),
     tripForImports: ref.watch(importTripResolverProvider),
   );
 });
@@ -155,6 +157,24 @@ Future<bool> loadOmitUnusedOcGasesForDownloads(
     fallbackNote: 'importing every gas',
   );
   return settings?.omitUnusedOcGases ?? false;
+}
+
+/// Whether an imported cylinder's end pressure, where it is derived from the
+/// cylinder's pressure series, is read at surfacing (issue #5000): the "Tank
+/// pressure at surfacing" setting of the diver the dives are imported for,
+/// read the same way as [loadDefaultTankPresetForDownloads]. On, the
+/// setting's default, when another diver's settings cannot be read.
+@visibleForTesting
+Future<bool> loadTrimTankPressureAtSurfacingForDownloads(
+  Ref ref, {
+  String? diverId,
+}) async {
+  final settings = await _importSettingsFor(
+    ref,
+    diverId,
+    fallbackNote: 'reading end pressures at surfacing',
+  );
+  return settings?.trimTankPressureAtSurfacing ?? true;
 }
 
 /// Whether [diverId] names a diver other than the active one (issue #2050).
