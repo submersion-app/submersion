@@ -64,6 +64,18 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
   /// The Show all / Show fewer button, brought back into view on Show fewer.
   final GlobalKey _toggleKey = GlobalKey();
 
+  @override
+  void didUpdateWidget(NearbySpeciesTier oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The desktop site pane and the species map's site card keep this tier
+    // as the diver moves between sites: the next site opens collapsed, as
+    // Spotted and Expected above it do.
+    if (widget.siteId != oldWidget.siteId ||
+        widget.location != oldWidget.location) {
+      _expanded = false;
+    }
+  }
+
   /// GBIF names with a lookup in flight. The lookup is a network call, so a
   /// second tap on the same chip lands long before the first has created
   /// anything; without this it would run its own lookup and add a second

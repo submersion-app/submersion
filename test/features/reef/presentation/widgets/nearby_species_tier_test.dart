@@ -160,6 +160,61 @@ void main() {
     expect(find.byType(RawChip), findsNWidgets(12));
   });
 
+  // The desktop site pane and the species map's site card keep one tier
+  // as the diver moves between sites (issue #5128).
+  testWidgets('opens collapsed again for the next site', (tester) async {
+    const first = GeoPoint(12.16, -68.28);
+    const second = GeoPoint(12.2, -68.3);
+    final species = ReefPart.ok(
+      NearbySpecies(
+        unmatchedNames: [for (var i = 0; i < 30; i++) 'Genus species$i'],
+      ),
+    );
+    final site = ValueNotifier(('site-1', first));
+    addTearDown(site.dispose);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          for (final location in [first, second])
+            reefNearbySpeciesProvider(
+              location,
+            ).overrideWith((ref) async => species),
+          allSpeciesProvider.overrideWith(
+            (ref) async => const [_catalogSpecies],
+          ),
+        ],
+        child: localizedMaterialApp(
+          locale: const Locale('en'),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: ValueListenableBuilder(
+                valueListenable: site,
+                builder: (_, value, _) => NearbySpeciesTier(
+                  siteId: value.$1,
+                  location: value.$2,
+                  onSpeciesTap: (_) {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Show all 30'));
+    await tester.pumpAndSettle();
+    expect(find.text('Genus species29'), findsOneWidget);
+
+    site.value = ('site-2', second);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Genus species29'), findsNothing);
+    expect(find.text('Show all 30'), findsOneWidget);
+  });
+
   testWidgets('does not offer a toggle when nothing is hidden', (tester) async {
     const location = GeoPoint(12.16, -68.28);
     const species = ReefPart<NearbySpecies>.ok(
