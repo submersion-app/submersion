@@ -43926,6 +43926,172 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincsenek búvárprofil-adatok. Add meg a vészhelyzeti kapcsolatokat, egészségügyi és biztosítási adatokat a búvárprofilban.';
 
   @override
+  String get emergencyTag_title => 'Vészhelyzeti címke';
+
+  @override
+  String get emergencyTag_intro =>
+      'Írd a vészhelyzeti adataidat egy NFC-címkére vagy egy nyomtatott kártyára a felszerelésedhez. Aki segít neked, a saját telefonjával elolvashatja őket, Submersion nélkül.';
+
+  @override
+  String get emergencyTag_warning =>
+      'Bárki, aki megérinti a címkét, bármikor elolvashat rajta mindent, amíg újra nem írod vagy el nem távolítod.';
+
+  @override
+  String get emergencyTag_tap_title => 'Amikor valaki megérinti a címkét';
+
+  @override
+  String get emergencyTag_tap_link => 'Weboldal megnyitása';
+
+  @override
+  String get emergencyTag_tap_linkHint =>
+      'Bármely telefonon megjeleníti az adataidat, ahol van térerő.';
+
+  @override
+  String get emergencyTag_tap_call => 'Szám hívása';
+
+  @override
+  String get emergencyTag_tap_callHint =>
+      'Bármely telefon felajánlja a hívását, térerő nélkül is.';
+
+  @override
+  String get emergencyTag_tap_textNote =>
+      'A címke egyszerű szövegként is tartalmazza az adataidat, amelyet az NFC-olvasó alkalmazások térerő nélkül is megjelenítenek.';
+
+  @override
+  String get emergencyTag_includeText =>
+      'Az adatok írása egyszerű szövegként is';
+
+  @override
+  String get emergencyTag_includeText_hint =>
+      'Az NFC-olvasó alkalmazások térerő nélkül is megjelenítik. Kapcsold ki, hogy több adat férjen a hivatkozásba.';
+
+  @override
+  String get emergencyTag_callTarget => 'Hívandó szám';
+
+  @override
+  String get emergencyTag_callTarget_contact1 => 'Vészhelyzeti kapcsolat 1';
+
+  @override
+  String get emergencyTag_callTarget_contact2 => 'Vészhelyzeti kapcsolat 2';
+
+  @override
+  String get emergencyTag_callTarget_insurer => 'A biztosító 24 órás vonala';
+
+  @override
+  String get emergencyTag_noCallNumber =>
+      'Ehhez adj meg egy telefonszámot egy vészhelyzeti kapcsolatnál, vagy a biztosítód 24 órás vonalát.';
+
+  @override
+  String get emergencyTag_include_title => 'Mi kerüljön rá';
+
+  @override
+  String get emergencyTag_include_nameAlways => 'A neved mindig rákerül.';
+
+  @override
+  String get emergencyTag_field_birthYear => 'Születési év';
+
+  @override
+  String get emergencyTag_field_allergies => 'Allergiák';
+
+  @override
+  String get emergencyTag_field_medications => 'Gyógyszerek';
+
+  @override
+  String get emergencyTag_field_bloodType => 'Vércsoport';
+
+  @override
+  String get emergencyTag_field_medicalNotes => 'Orvosi jegyzetek';
+
+  @override
+  String get emergencyTag_field_contact1 => 'Vészhelyzeti kapcsolat 1';
+
+  @override
+  String get emergencyTag_field_contact2 => 'Vészhelyzeti kapcsolat 2';
+
+  @override
+  String get emergencyTag_field_insurance => 'Biztosítás';
+
+  @override
+  String get emergencyTag_field_policy => 'Kötvényszám';
+
+  @override
+  String get emergencyTag_notRecorded => 'Nincs rögzítve';
+
+  @override
+  String get emergencyTag_preview_title => 'Előnézet';
+
+  @override
+  String emergencyTag_size(int bytes) {
+    final intl.NumberFormat bytesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String bytesString = bytesNumberFormat.format(bytes);
+
+    return 'Körülbelül $bytesString bájt a címkén.';
+  }
+
+  @override
+  String emergencyTag_size_fits(String tag) {
+    return 'Elfér egy $tag vagy nagyobb címkén.';
+  }
+
+  @override
+  String get emergencyTag_size_tooBig =>
+      'Túl nagy a szokásos címkékhez. Néhány adat kimarad, hogy elférjen.';
+
+  @override
+  String get emergencyTag_write => 'NFC-címke írása';
+
+  @override
+  String get emergencyTag_print => 'Kártya nyomtatása';
+
+  @override
+  String get emergencyTag_open => 'Vészhelyzeti címke';
+
+  @override
+  String get emergencyTag_text_header => 'VÉSZHELYZETI ADATOK';
+
+  @override
+  String get emergencyTag_text_name => 'Név';
+
+  @override
+  String emergencyTag_text_born(String year) {
+    return 'szül. $year';
+  }
+
+  @override
+  String get emergencyTag_text_contact => 'Vészhelyzeti kapcsolat';
+
+  @override
+  String emergencyTag_text_policy(String number) {
+    return 'kötvény: $number';
+  }
+
+  @override
+  String emergencyTag_text_assistanceLine(String number) {
+    return '24 órás vonal: $number';
+  }
+
+  @override
+  String emergencyTag_text_written(String date) {
+    return 'Írta a Submersion: $date';
+  }
+
+  @override
+  String get emergencyTag_text_someLeftOff =>
+      'Néhány adat kimaradt, hogy elférjen a címkén.';
+
+  @override
+  String get emergencyTag_card_qrLink =>
+      'Olvasd be, hogy telefonon lásd ezeket az adatokat.';
+
+  @override
+  String get emergencyTag_card_qrCall => 'Olvasd be a híváshoz.';
+
+  @override
+  String get settings_conflict_field_emergencyTagShare =>
+      'Vészhelyzeti címke beállításai';
+
+  @override
   String get addChamber_title => 'Kamra hozzáadása';
 
   @override

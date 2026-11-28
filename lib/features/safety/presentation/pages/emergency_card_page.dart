@@ -32,6 +32,15 @@ class EmergencyCardPage extends ConsumerWidget {
         title: Text(l10n.emergencyCard_title),
         actions: [
           IconButton(
+            key: const Key('emergencyCard_tag'),
+            icon: const Icon(Icons.nfc),
+            tooltip: l10n.emergencyTag_open,
+            onPressed: dataAsync.value?.diver != null
+                ? () =>
+                      context.push('/settings/diver-profile/emergency-card/tag')
+                : null,
+          ),
+          IconButton(
             icon: const Icon(Icons.add_location_alt_outlined),
             tooltip: l10n.emergencyCard_addChamber,
             onPressed: canAddChamber

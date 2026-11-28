@@ -151,6 +151,7 @@ import 'package:submersion/features/safety/presentation/pages/incident_edit_page
 import 'package:submersion/features/safety/presentation/pages/cns_otu_page.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
+import 'package:submersion/features/emergency_tag/presentation/pages/emergency_tag_page.dart';
 import 'package:submersion/features/safety/presentation/pages/emergency_card_page.dart';
 import 'package:submersion/features/settings/presentation/pages/equipment_condition_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
@@ -2017,6 +2018,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         name: 'chambersDirectory',
                         builder: (context, state) =>
                             const ChambersDirectoryPage(),
+                      ),
+                      GoRoute(
+                        path: 'tag',
+                        name: 'emergencyTag',
+                        builder: (context, state) => const EmergencyTagPage(),
                       ),
                     ],
                   ),

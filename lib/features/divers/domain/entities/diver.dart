@@ -185,6 +185,10 @@ class Diver extends Equatable {
   final String? socialHandle;
   final String? buddyCardShare;
 
+  /// Emergency tag (issue #5060): the diver's choices as JSON (null means
+  /// the defaults).
+  final String? emergencyTagShare;
+
   /// Body composition inputs (issue #4525), used only to estimate body fat
   /// for the weight prediction. Both optional; null means not given.
   final DiverSex? sex;
@@ -216,6 +220,7 @@ class Diver extends Equatable {
     this.divingSince,
     this.socialHandle,
     this.buddyCardShare,
+    this.emergencyTagShare,
     this.sex,
     this.birthYear,
   });
@@ -305,6 +310,7 @@ class Diver extends Equatable {
     Object? divingSince = _unset,
     Object? socialHandle = _unset,
     Object? buddyCardShare = _unset,
+    Object? emergencyTagShare = _unset,
     Object? sex = _unset,
     Object? birthYear = _unset,
   }) {
@@ -360,6 +366,11 @@ class Diver extends Equatable {
         this.buddyCardShare,
         'buddyCardShare',
       ),
+      emergencyTagShare: _resolve<String?>(
+        emergencyTagShare,
+        this.emergencyTagShare,
+        'emergencyTagShare',
+      ),
       sex: _resolve<DiverSex?>(sex, this.sex, 'sex'),
       birthYear: _resolve<int?>(birthYear, this.birthYear, 'birthYear'),
     );
@@ -390,6 +401,7 @@ class Diver extends Equatable {
     divingSince,
     socialHandle,
     buddyCardShare,
+    emergencyTagShare,
     sex,
     birthYear,
   ];

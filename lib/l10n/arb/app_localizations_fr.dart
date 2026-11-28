@@ -44298,6 +44298,174 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune donnée de profil plongeur. Ajoutez contacts d\'urgence, données médicales et assurance dans le profil plongeur.';
 
   @override
+  String get emergencyTag_title => 'Étiquette d\'urgence';
+
+  @override
+  String get emergencyTag_intro =>
+      'Enregistrez vos informations d\'urgence sur une étiquette NFC ou une carte imprimée pour votre équipement. La personne qui vous porte secours peut les lire avec son propre téléphone, sans Submersion.';
+
+  @override
+  String get emergencyTag_warning =>
+      'Toute personne qui approche un téléphone de l\'étiquette peut lire tout son contenu, à tout moment, jusqu\'à ce que vous la réécriviez ou la retiriez.';
+
+  @override
+  String get emergencyTag_tap_title =>
+      'Quand quelqu\'un approche un téléphone de l\'étiquette';
+
+  @override
+  String get emergencyTag_tap_link => 'Ouvrir une page web';
+
+  @override
+  String get emergencyTag_tap_linkHint =>
+      'Affiche vos informations sur tout téléphone qui capte le réseau.';
+
+  @override
+  String get emergencyTag_tap_call => 'Appeler un numéro';
+
+  @override
+  String get emergencyTag_tap_callHint =>
+      'Tout téléphone propose de l\'appeler, même sans réseau.';
+
+  @override
+  String get emergencyTag_tap_textNote =>
+      'L\'étiquette contient aussi vos informations en texte brut, que les applications de lecture NFC affichent sans réseau.';
+
+  @override
+  String get emergencyTag_includeText =>
+      'Écrire aussi les informations en texte brut';
+
+  @override
+  String get emergencyTag_includeText_hint =>
+      'Les applis de lecture NFC l\'affichent sans réseau. Désactivez-le pour faire tenir plus d\'informations dans le lien.';
+
+  @override
+  String get emergencyTag_callTarget => 'Numéro à appeler';
+
+  @override
+  String get emergencyTag_callTarget_contact1 => 'Contact d\'urgence 1';
+
+  @override
+  String get emergencyTag_callTarget_contact2 => 'Contact d\'urgence 2';
+
+  @override
+  String get emergencyTag_callTarget_insurer => 'Ligne 24 h de l\'assureur';
+
+  @override
+  String get emergencyTag_noCallNumber =>
+      'Pour utiliser cette option, ajoutez un numéro de téléphone à un contact d\'urgence ou la ligne 24 h de votre assureur.';
+
+  @override
+  String get emergencyTag_include_title => 'Informations à inclure';
+
+  @override
+  String get emergencyTag_include_nameAlways =>
+      'Votre nom est toujours inclus.';
+
+  @override
+  String get emergencyTag_field_birthYear => 'Année de naissance';
+
+  @override
+  String get emergencyTag_field_allergies => 'Allergies';
+
+  @override
+  String get emergencyTag_field_medications => 'Médicaments';
+
+  @override
+  String get emergencyTag_field_bloodType => 'Groupe sanguin';
+
+  @override
+  String get emergencyTag_field_medicalNotes => 'Notes médicales';
+
+  @override
+  String get emergencyTag_field_contact1 => 'Contact d\'urgence 1';
+
+  @override
+  String get emergencyTag_field_contact2 => 'Contact d\'urgence 2';
+
+  @override
+  String get emergencyTag_field_insurance => 'Assurance';
+
+  @override
+  String get emergencyTag_field_policy => 'Numéro de police';
+
+  @override
+  String get emergencyTag_notRecorded => 'Non enregistré';
+
+  @override
+  String get emergencyTag_preview_title => 'Aperçu';
+
+  @override
+  String emergencyTag_size(int bytes) {
+    final intl.NumberFormat bytesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String bytesString = bytesNumberFormat.format(bytes);
+
+    return 'Environ $bytesString octets sur l\'étiquette.';
+  }
+
+  @override
+  String emergencyTag_size_fits(String tag) {
+    return 'Tient sur une étiquette $tag ou plus grande.';
+  }
+
+  @override
+  String get emergencyTag_size_tooBig =>
+      'Trop volumineux pour les étiquettes courantes. Certaines informations seront omises pour que tout tienne.';
+
+  @override
+  String get emergencyTag_write => 'Écrire l\'étiquette NFC';
+
+  @override
+  String get emergencyTag_print => 'Imprimer la carte';
+
+  @override
+  String get emergencyTag_open => 'Étiquette d\'urgence';
+
+  @override
+  String get emergencyTag_text_header => 'INFORMATIONS D\'URGENCE';
+
+  @override
+  String get emergencyTag_text_name => 'Nom';
+
+  @override
+  String emergencyTag_text_born(String year) {
+    return 'né(e) en $year';
+  }
+
+  @override
+  String get emergencyTag_text_contact => 'Contact d\'urgence';
+
+  @override
+  String emergencyTag_text_policy(String number) {
+    return 'police $number';
+  }
+
+  @override
+  String emergencyTag_text_assistanceLine(String number) {
+    return 'ligne 24 h $number';
+  }
+
+  @override
+  String emergencyTag_text_written(String date) {
+    return 'Écrit le $date avec Submersion';
+  }
+
+  @override
+  String get emergencyTag_text_someLeftOff =>
+      'Certaines informations ont été omises pour tenir sur l\'étiquette.';
+
+  @override
+  String get emergencyTag_card_qrLink =>
+      'Scannez pour voir ces informations sur un téléphone.';
+
+  @override
+  String get emergencyTag_card_qrCall => 'Scannez pour appeler.';
+
+  @override
+  String get settings_conflict_field_emergencyTagShare =>
+      'Choix pour l\'étiquette d\'urgence';
+
+  @override
   String get addChamber_title => 'Ajouter un caisson';
 
   @override

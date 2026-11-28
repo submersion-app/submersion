@@ -42316,6 +42316,165 @@ class AppLocalizationsJa extends AppLocalizations {
       'ダイバープロフィールのデータがありません。ダイバープロフィール設定で緊急連絡先、医療情報、保険情報を追加してください。';
 
   @override
+  String get emergencyTag_title => '緊急タグ';
+
+  @override
+  String get emergencyTag_intro =>
+      '緊急時の情報を、器材に付けるNFCタグや印刷したカードに入れておきましょう。助けてくれる人は、Submersionがなくても自分のスマートフォンで読み取れます。';
+
+  @override
+  String get emergencyTag_warning =>
+      'タグを書き換えるか外すまで、タグにタッチした人は誰でもいつでも、その内容をすべて読み取れます。';
+
+  @override
+  String get emergencyTag_tap_title => '誰かがタグにタッチしたとき';
+
+  @override
+  String get emergencyTag_tap_link => 'ウェブページを開く';
+
+  @override
+  String get emergencyTag_tap_linkHint => '電波があればどのスマートフォンでも情報を表示します。';
+
+  @override
+  String get emergencyTag_tap_call => '電話をかける';
+
+  @override
+  String get emergencyTag_tap_callHint => '電波がなくても、どのスマートフォンでも発信を提案します。';
+
+  @override
+  String get emergencyTag_tap_textNote =>
+      'タグには情報がプレーンテキストでも入っており、NFCリーダーアプリなら電波がなくても表示できます。';
+
+  @override
+  String get emergencyTag_includeText => '情報をプレーンテキストでも書き込む';
+
+  @override
+  String get emergencyTag_includeText_hint =>
+      'NFCリーダーアプリなら電波がなくても表示できます。オフにすると、リンクにより多くの情報を入れられます。';
+
+  @override
+  String get emergencyTag_callTarget => '発信先';
+
+  @override
+  String get emergencyTag_callTarget_contact1 => '緊急連絡先1';
+
+  @override
+  String get emergencyTag_callTarget_contact2 => '緊急連絡先2';
+
+  @override
+  String get emergencyTag_callTarget_insurer => '保険会社の24時間窓口';
+
+  @override
+  String get emergencyTag_noCallNumber =>
+      'これを使うには、緊急連絡先か保険会社の24時間窓口に電話番号を追加してください。';
+
+  @override
+  String get emergencyTag_include_title => '含める情報';
+
+  @override
+  String get emergencyTag_include_nameAlways => '名前は常に含まれます。';
+
+  @override
+  String get emergencyTag_field_birthYear => '生まれ年';
+
+  @override
+  String get emergencyTag_field_allergies => 'アレルギー';
+
+  @override
+  String get emergencyTag_field_medications => '服用中の薬';
+
+  @override
+  String get emergencyTag_field_bloodType => '血液型';
+
+  @override
+  String get emergencyTag_field_medicalNotes => '医療メモ';
+
+  @override
+  String get emergencyTag_field_contact1 => '緊急連絡先1';
+
+  @override
+  String get emergencyTag_field_contact2 => '緊急連絡先2';
+
+  @override
+  String get emergencyTag_field_insurance => '保険';
+
+  @override
+  String get emergencyTag_field_policy => '証券番号';
+
+  @override
+  String get emergencyTag_notRecorded => '未登録';
+
+  @override
+  String get emergencyTag_preview_title => 'プレビュー';
+
+  @override
+  String emergencyTag_size(int bytes) {
+    final intl.NumberFormat bytesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String bytesString = bytesNumberFormat.format(bytes);
+
+    return 'タグ上で約$bytesStringバイト。';
+  }
+
+  @override
+  String emergencyTag_size_fits(String tag) {
+    return '$tag以上のタグに収まります。';
+  }
+
+  @override
+  String get emergencyTag_size_tooBig => '一般的なタグには大きすぎます。収まるように一部の情報が省かれます。';
+
+  @override
+  String get emergencyTag_write => 'NFCタグに書き込む';
+
+  @override
+  String get emergencyTag_print => 'カードを印刷';
+
+  @override
+  String get emergencyTag_open => '緊急タグ';
+
+  @override
+  String get emergencyTag_text_header => '緊急情報';
+
+  @override
+  String get emergencyTag_text_name => '名前';
+
+  @override
+  String emergencyTag_text_born(String year) {
+    return '$year年生まれ';
+  }
+
+  @override
+  String get emergencyTag_text_contact => '緊急連絡先';
+
+  @override
+  String emergencyTag_text_policy(String number) {
+    return '証券番号 $number';
+  }
+
+  @override
+  String emergencyTag_text_assistanceLine(String number) {
+    return '24時間窓口 $number';
+  }
+
+  @override
+  String emergencyTag_text_written(String date) {
+    return '$dateにSubmersionで作成';
+  }
+
+  @override
+  String get emergencyTag_text_someLeftOff => 'タグに収めるため、一部の情報を省きました。';
+
+  @override
+  String get emergencyTag_card_qrLink => 'スキャンするとスマートフォンでこの情報を表示します。';
+
+  @override
+  String get emergencyTag_card_qrCall => 'スキャンして発信。';
+
+  @override
+  String get settings_conflict_field_emergencyTagShare => '緊急タグの設定';
+
+  @override
   String get addChamber_title => 'チャンバーを追加';
 
   @override

@@ -41551,6 +41551,162 @@ class AppLocalizationsZh extends AppLocalizations {
   String get emergencyCard_noDiverData => '无潜水员资料。请在潜水员资料设置中添加紧急联系人、医疗和保险信息。';
 
   @override
+  String get emergencyTag_title => '紧急标签';
+
+  @override
+  String get emergencyTag_intro =>
+      '将你的紧急信息写入 NFC 标签或打印成卡片，放在你的装备上。救助你的人可以用自己的手机读取，无需 Submersion。';
+
+  @override
+  String get emergencyTag_warning => '任何人轻触该标签，都能随时读取其中的全部内容，直到你重写或移除它。';
+
+  @override
+  String get emergencyTag_tap_title => '有人轻触标签时';
+
+  @override
+  String get emergencyTag_tap_link => '打开网页';
+
+  @override
+  String get emergencyTag_tap_linkHint => '在任何有信号的手机上显示你的信息。';
+
+  @override
+  String get emergencyTag_tap_call => '拨打号码';
+
+  @override
+  String get emergencyTag_tap_callHint => '任何手机都会提示拨打，即使没有信号。';
+
+  @override
+  String get emergencyTag_tap_textNote => '标签还以纯文本形式保存你的信息，NFC 读取应用无需信号即可显示。';
+
+  @override
+  String get emergencyTag_includeText => '同时以纯文本写入信息';
+
+  @override
+  String get emergencyTag_includeText_hint => 'NFC 读取应用无需信号即可显示。关闭后链接可容纳更多信息。';
+
+  @override
+  String get emergencyTag_callTarget => '要拨打的号码';
+
+  @override
+  String get emergencyTag_callTarget_contact1 => '紧急联系人 1';
+
+  @override
+  String get emergencyTag_callTarget_contact2 => '紧急联系人 2';
+
+  @override
+  String get emergencyTag_callTarget_insurer => '保险公司 24 小时专线';
+
+  @override
+  String get emergencyTag_noCallNumber =>
+      '要使用此功能，请为紧急联系人添加电话号码，或添加保险公司的 24 小时专线。';
+
+  @override
+  String get emergencyTag_include_title => '包含内容';
+
+  @override
+  String get emergencyTag_include_nameAlways => '始终包含你的姓名。';
+
+  @override
+  String get emergencyTag_field_birthYear => '出生年份';
+
+  @override
+  String get emergencyTag_field_allergies => '过敏';
+
+  @override
+  String get emergencyTag_field_medications => '药物';
+
+  @override
+  String get emergencyTag_field_bloodType => '血型';
+
+  @override
+  String get emergencyTag_field_medicalNotes => '医疗备注';
+
+  @override
+  String get emergencyTag_field_contact1 => '紧急联系人 1';
+
+  @override
+  String get emergencyTag_field_contact2 => '紧急联系人 2';
+
+  @override
+  String get emergencyTag_field_insurance => '保险';
+
+  @override
+  String get emergencyTag_field_policy => '保单号';
+
+  @override
+  String get emergencyTag_notRecorded => '未记录';
+
+  @override
+  String get emergencyTag_preview_title => '预览';
+
+  @override
+  String emergencyTag_size(int bytes) {
+    final intl.NumberFormat bytesNumberFormat =
+        intl.NumberFormat.decimalPattern(localeName);
+    final String bytesString = bytesNumberFormat.format(bytes);
+
+    return '标签上约 $bytesString 字节。';
+  }
+
+  @override
+  String emergencyTag_size_fits(String tag) {
+    return '适用于 $tag 或更大的标签。';
+  }
+
+  @override
+  String get emergencyTag_size_tooBig => '超出常见标签的容量。部分信息将被省略以适应容量。';
+
+  @override
+  String get emergencyTag_write => '写入 NFC 标签';
+
+  @override
+  String get emergencyTag_print => '打印卡片';
+
+  @override
+  String get emergencyTag_open => '紧急标签';
+
+  @override
+  String get emergencyTag_text_header => '紧急信息';
+
+  @override
+  String get emergencyTag_text_name => '姓名';
+
+  @override
+  String emergencyTag_text_born(String year) {
+    return '$year 年生';
+  }
+
+  @override
+  String get emergencyTag_text_contact => '紧急联系人';
+
+  @override
+  String emergencyTag_text_policy(String number) {
+    return '保单 $number';
+  }
+
+  @override
+  String emergencyTag_text_assistanceLine(String number) {
+    return '24 小时专线 $number';
+  }
+
+  @override
+  String emergencyTag_text_written(String date) {
+    return '$date 由 Submersion 写入';
+  }
+
+  @override
+  String get emergencyTag_text_someLeftOff => '为适应标签容量，部分信息已省略。';
+
+  @override
+  String get emergencyTag_card_qrLink => '扫码在手机上查看这些信息。';
+
+  @override
+  String get emergencyTag_card_qrCall => '扫码拨打。';
+
+  @override
+  String get settings_conflict_field_emergencyTagShare => '紧急标签选项';
+
+  @override
   String get addChamber_title => '添加减压舱';
 
   @override

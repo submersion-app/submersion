@@ -421,6 +421,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'diving_since': 'year, e.g. 1990',
     'emergency_contact2_name': 'Secondary emergency contact',
     'emergency_contact_name': 'Emergency contact',
+    'emergency_tag_share': 'emergency tag: what the diver puts on their emergency tag, as JSON (null = defaults)',
     'insurance_emergency_phone': 'The insurer\'s 24-hour dive emergency assistance line, and its general or office line',
     'insurance_expiry_date': 'Unix timestamp',
     'insurance_provider': 'Insurance',

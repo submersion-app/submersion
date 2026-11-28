@@ -79,6 +79,10 @@ class Divers extends Table {
   TextColumn get socialHandle => text().nullable()();
   TextColumn get buddyCardShare => text().nullable()();
 
+  /// v395 emergency tag (issue #5060): what the diver puts on their
+  /// emergency tag, as JSON (null = defaults).
+  TextColumn get emergencyTagShare => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
