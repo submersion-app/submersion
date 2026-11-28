@@ -7,7 +7,9 @@ import 'package:submersion/core/utils/bidi_isolate.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_sample_lines.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_right_axis_metric_labels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_trim_line.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Issue #5098: the trim line's axis and wording.
 void main() {
@@ -102,5 +104,21 @@ void main() {
     expect(line.spots.first.x, 90);
     expect(line.spots, hasLength(3));
     expect(line.spots.contains(FlSpot.nullSpot), isFalse);
+  });
+
+  test('names the trim metric for the right-axis picker and its label', () {
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    expect(profileMetricName(l10n, ProfileRightAxisMetric.trim), 'Trim');
+    expect(profileMetricShortName(l10n, ProfileRightAxisMetric.trim), 'Trim');
+    expect(profileMetricUnitSuffix(l10n, ProfileRightAxisMetric.trim), '°');
+  });
+
+  test('reading a curve for a metric no sample carries is refused', () {
+    expect(
+      () => sampleLineCurve(ProfileRightAxisMetric.temperature, const [
+        DiveProfilePoint(timestamp: 0, depth: 1.0),
+      ]),
+      throwsArgumentError,
+    );
   });
 }
