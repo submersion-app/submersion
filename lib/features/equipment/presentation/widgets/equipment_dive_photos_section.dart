@@ -186,12 +186,7 @@ class EquipmentDivePhotosSection extends ConsumerWidget {
   void _unlink(MediaItem item) {
     final session = editing;
     if (session == null || session.isDisposed || session.isFrozen) return;
-    final current = gearItemDivePhotosList.current(session);
-    if (current == null) return;
-    gearItemDivePhotosList.set(session, [
-      for (final m in current)
-        if (m.id != item.id) m,
-    ]);
+    unlinkHeldPhoto(session, item.id);
   }
 
   Future<void> _link(BuildContext context, List<MediaItem> shownNow) async {

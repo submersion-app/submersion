@@ -55,6 +55,21 @@ List<MediaItem> replaceShownLinks({
   ];
 }
 
+/// Unlinks photo [mediaId] in [session]'s list, reading the list first when
+/// the sitting has not yet: the card shows the stored photos, with their
+/// unlink buttons, before that read answers.
+Future<void> unlinkHeldPhoto(
+  EditSession<EquipmentItem> session,
+  String mediaId,
+) async {
+  final current = await gearItemDivePhotosList.currentOrRead(session);
+  if (current == null || session.isDisposed || session.isFrozen) return;
+  gearItemDivePhotosList.set(session, [
+    for (final m in current)
+      if (m.id != mediaId) m,
+  ]);
+}
+
 /// The photos the card shows from [session]'s list: those the diver can
 /// see ([visibleIds], the stored links the Library scope lets through),
 /// and every photo linked in this sitting, which the picker only offers

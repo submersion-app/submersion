@@ -34,7 +34,16 @@ class _Pages extends MediaLibraryRepository {
   }) async {
     final index = after == null ? 0 : int.parse(after.id);
     return MediaLibraryPageResult(
-      entries: [for (final i in pages[index]) MediaLibraryEntry(item: i)],
+      entries: [
+        for (final i in pages[index])
+          MediaLibraryEntry(
+            item: i,
+            // A dive-less row names the site it is attached to.
+            attachedSiteName: i.diveId == null && i.siteId != null
+                ? 'Reef ${i.siteId}'
+                : null,
+          ),
+      ],
       nextCursor: index + 1 < pages.length
           ? MediaLibraryCursor(
               sortKey: 0,
@@ -200,25 +209,40 @@ void main() {
       find.byKey(const ValueKey('gear_photo_link_tile_x')),
       findsOneWidget,
     );
+
+    // Dives with this gear says the read failed, not that there are none.
+    await tester.tap(find.text('Dives with this gear'));
+    await tester.pumpAndSettle();
+    expect(find.text('Error loading media'), findsOneWidget);
   });
 
-  testWidgets('photos on no dive are grouped by day', (tester) async {
+  testWidgets('photos on no dive group by their site, then Unlinked', (
+    tester,
+  ) async {
+    final day = DateTime.utc(2026, 3, 3, 12);
     await open(
       tester,
       diveIds: const [],
+      // Two sites and an unlinked photo, all from one day, and a site seen
+      // again after another: one group each, never a repeated key.
       library: [
-        testMediaItem(id: 'x', takenAt: DateTime.utc(2026, 4, 9, 12)),
-        testMediaItem(id: 'y', takenAt: DateTime.utc(2026, 3, 3, 12)),
+        testMediaItem(id: 'x', siteId: 's1', takenAt: day),
+        testMediaItem(id: 'y', siteId: 's2', takenAt: day),
+        testMediaItem(id: 'w', siteId: 's1', takenAt: day),
+        testMediaItem(id: 'z', takenAt: day),
       ],
     );
-    final headers = find.byWidgetPredicate(
-      (w) =>
-          w.key is ValueKey<String> &&
-          (w.key! as ValueKey<String>).value.startsWith(
-            'gear_photo_link_group_',
-          ),
-    );
-    expect(headers, findsNWidgets(2));
+    expect(tester.takeException(), isNull);
+    for (final key in ['site:s1', 'site:s2', 'unlinked']) {
+      expect(
+        find.byKey(ValueKey('gear_photo_link_group_$key')),
+        findsOneWidget,
+        reason: key,
+      );
+    }
+    expect(find.text('Site: Reef s1'), findsOneWidget);
+    expect(find.text('Site: Reef s2'), findsOneWidget);
+    expect(find.text('Unlinked'), findsOneWidget);
   });
 
   testWidgets('unchecking a linked photo removes it', (tester) async {

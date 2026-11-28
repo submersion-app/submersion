@@ -59,7 +59,8 @@ class GearPhotoLinkSheet extends ConsumerStatefulWidget {
 
 /// One tab's rows, read a page at a time.
 class _Paged {
-  final List<MediaLibraryEntry> entries = [];
+  /// Replaced, never added to, as each page arrives.
+  List<MediaLibraryEntry> entries = const [];
   bool done = false;
   bool loading = false;
   bool failed = false;
@@ -121,7 +122,7 @@ class _GearPhotoLinkSheetState extends ConsumerState<GearPhotoLinkSheet> {
           ? await _readLibraryPage()
           : await _readDivePage();
       if (!mounted) return;
-      setState(() => paged.entries.addAll(rows));
+      setState(() => paged.entries = [...paged.entries, ...rows]);
     } catch (_) {
       if (!mounted) return;
       setState(() => paged.failed = true);
@@ -195,6 +196,8 @@ class _GearPhotoLinkSheetState extends ConsumerState<GearPhotoLinkSheet> {
       _diveIds = diveIds.value ?? const [];
       _allPhotos = _diveIds.isEmpty;
       if (_allPhotos!) _dives.done = true;
+      // Dives with this gear says the read failed, not that there are none.
+      if (diveIds.hasError) _dives.failed = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _maybeLoad();
       });
@@ -254,13 +257,11 @@ class _GearPhotoLinkSheetState extends ConsumerState<GearPhotoLinkSheet> {
                   context,
                   [
                     for (final e in paged.entries)
-                      if (_groupTitle(context, e) case final title)
-                        (
-                          // A photo on no dive groups by its day.
-                          key: e.item.diveId ?? 'day $title',
-                          title: title,
-                          item: e.item,
-                        ),
+                      (
+                        key: _groupKey(e.item),
+                        title: _groupTitle(context, e),
+                        item: e.item,
+                      ),
                   ],
                   loading: !paged.done && !paged.failed,
                   failed: paged.failed,
@@ -298,8 +299,26 @@ class _GearPhotoLinkSheetState extends ConsumerState<GearPhotoLinkSheet> {
     );
   }
 
-  /// A dive group's title: its number, site and date, as the Library's.
+  /// The group a row goes under, as the Library's By dive grouping: its
+  /// dive, else the site it is attached to, else Unlinked. Gear photos are
+  /// never offered, so there is no equipment group.
+  static String _groupKey(MediaItem item) => switch (item) {
+    MediaItem(diveId: final id?) => id,
+    MediaItem(siteId: final id?) => 'site:$id',
+    _ => 'unlinked',
+  };
+
+  /// A group's title, as the Library's: a dive's number, site and date; an
+  /// attached site's name; or Unlinked.
   String _groupTitle(BuildContext context, MediaLibraryEntry e) {
+    final l10n = context.l10n;
+    if (e.item.diveId == null) {
+      if (e.item.siteId == null) return l10n.media_library_unlinkedHeader;
+      final name = e.attachedSiteName?.trim();
+      return name == null || name.isEmpty
+          ? l10n.media_library_filter_site
+          : l10n.media_library_siteHeader(name);
+    }
     final at = e.diveDateTime ?? e.item.takenAt;
     // The diver's own date format (dive times are wall-clock-as-UTC).
     final date = ref.read(unitFormatterProvider).formatDate(at);
@@ -347,14 +366,18 @@ class _GearPhotoLinkSheetState extends ConsumerState<GearPhotoLinkSheet> {
         ),
       ];
     }
-    final groups = <({String key, String title, List<MediaItem> items})>[];
+    // Merged by key in first-seen order, as the Library's groupByDive
+    // does, so a group read across two pages stays one and no key repeats.
+    final titles = <String, String>{};
+    final items = <String, List<MediaItem>>{};
     for (final r in rows) {
-      if (groups.isEmpty || groups.last.key != r.key) {
-        groups.add((key: r.key, title: r.title, items: [r.item]));
-      } else {
-        groups.last.items.add(r.item);
-      }
+      titles.putIfAbsent(r.key, () => r.title);
+      items[r.key] = [...?items[r.key], r.item];
     }
+    final groups = [
+      for (final key in titles.keys)
+        (key: key, title: titles[key]!, items: items[key]!),
+    ];
     return [
       for (final g in groups) ...[
         SliverToBoxAdapter(

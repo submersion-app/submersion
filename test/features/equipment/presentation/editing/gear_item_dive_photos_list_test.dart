@@ -53,6 +53,25 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
+  test(
+    'an unlink before the list is read reads it first, then unlinks',
+    () async {
+      // The card shows the stored photos before the sitting has read its
+      // list; an unlink tapped then must not be dropped.
+      await gear.addGear(['m1', 'm2'], ['e1']);
+      final session = EditSession<EquipmentItem>(item);
+      addTearDown(session.dispose);
+      expect(gearItemDivePhotosList.current(session), isNull);
+
+      await unlinkHeldPhoto(session, 'm1');
+
+      expect(
+        [for (final m in gearItemDivePhotosList.current(session)!) m.id],
+        ['m2'],
+      );
+    },
+  );
+
   test('linking in the sitting writes it on Save', () async {
     await gear.addGear(['m1'], ['e1']);
     final session = EditSession<EquipmentItem>(item);
