@@ -51,65 +51,71 @@ class DiveSightingRow extends StatelessWidget {
       child: InkWell(
         onTap: onOpen,
         borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: colorForSpeciesCategory(
-                  sighting.speciesCategory,
-                  theme.brightness,
-                ),
-                child: Icon(
-                  iconForSpeciesCategory(
-                    sighting.speciesCategory ?? SpeciesCategory.other,
+        // Compact, since a dive can log dozens of species (issue #5067).
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 40),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 14,
+                  backgroundColor: colorForSpeciesCategory(
+                    sighting.speciesCategory,
+                    theme.brightness,
                   ),
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
+                  child: Icon(
+                    iconForSpeciesCategory(
+                      sighting.speciesCategory ?? SpeciesCategory.other,
                     ),
-                    if (sighting.notes.isNotEmpty)
-                      Text(
-                        sighting.notes,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                  ],
-                ),
-              ),
-              if (photoCount > 0 && onOpenPhotos != null)
-                Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: ActionChip(
-                    key: const ValueKey('sighting_photos'),
-                    avatar: const Icon(Icons.photo_outlined, size: 16),
-                    label: Text(l10n.diveLog_detail_sightingPhotos(photoCount)),
-                    onPressed: onOpenPhotos,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    visualDensity: VisualDensity.compact,
+                    color: Colors.white,
+                    size: 16,
                   ),
                 ),
-              if (sighting.abundance != SightingAbundance.seen)
-                Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 8),
-                  child: SightingAmountBadge(amount: sighting.amount),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      if (sighting.notes.isNotEmpty)
+                        Text(
+                          sighting.notes,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
                 ),
-            ],
+                if (photoCount > 0 && onOpenPhotos != null)
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(start: 8),
+                    child: ActionChip(
+                      key: const ValueKey('sighting_photos'),
+                      avatar: const Icon(Icons.photo_outlined, size: 16),
+                      label: Text(
+                        l10n.diveLog_detail_sightingPhotos(photoCount),
+                      ),
+                      onPressed: onOpenPhotos,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                if (sighting.abundance != SightingAbundance.seen)
+                  Padding(
+                    padding: const EdgeInsetsDirectional.only(start: 8),
+                    child: SightingAmountBadge(amount: sighting.amount),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

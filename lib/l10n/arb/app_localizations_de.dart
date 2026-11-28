@@ -43553,17 +43553,17 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'Spitze $rate bei $range';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Durchschnitt $rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => 'Durchschnitt';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return 'Ø $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => 'Spitze';
@@ -44346,6 +44346,86 @@ class AppLocalizationsDe extends AppLocalizations {
       one: '1 Akkuzyklus',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_exposure_lastDivedLabel => 'Zuletzt getaucht';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => 'Tauchgänge';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => 'Stunden';
+
+  @override
+  String get equipmentCondition_exposure_today => 'Heute';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vor $count Tagen',
+      one: 'Vor $count Tag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vor $count Monaten',
+      one: 'Vor $count Monat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vor $count Jahren',
+      one: 'Vor $count Jahr',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return 'Zuletzt getaucht: $ago, am $date';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12 Monate';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => 'Alle Jahre';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge in den letzten 12 Monaten',
+      one: '$count Tauchgang in den letzten 12 Monaten',
+      zero: 'Keine Tauchgänge in den letzten 12 Monaten',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives, $hours';
   }
 
   @override
@@ -66001,7 +66081,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get info_equipment_exposure_summary =>
-      'Wie viel dieses Teil genutzt wurde, gezählt in jeder Einheit, die seine Wartungsuhren verwenden.';
+      'Wie viel dieses Teil genutzt wurde, gezählt in jeder Einheit, die seine Wartungsuhren verwenden. Das Diagramm zählt seine Tauchgänge pro Monat oder pro Jahr bis heute.';
 
   @override
   String get info_site_altitude_summary =>

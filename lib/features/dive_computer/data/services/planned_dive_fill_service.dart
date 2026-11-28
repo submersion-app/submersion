@@ -90,7 +90,15 @@ class PlannedDiveFillService {
       await _dives.deleteGasSwitchesForDive(targetDiveId);
 
       // 2. Measured facts onto the row, tanks reconciled by serial then mix.
-      final mergedTanks = _mergeTanks(planned.tanks, dive.tanks);
+      //    End pressures are read with the plan's own diver's surfacing
+      //    setting, not the one the download was parsed with (issue #5000).
+      final atSurfacing = await _import.loadTrimTankPressureAtSurfacing(
+        planned.diverId,
+      );
+      final mergedTanks = _mergeTanks(planned.tanks, [
+        for (final tank in dive.tanks)
+          tank.endPressureFor(atSurfacing: atSurfacing),
+      ]);
       final measured = planned.copyWith(
         entryTime: dive.startTime,
         exitTime: dive.startTime.add(Duration(seconds: dive.durationSeconds)),
@@ -148,6 +156,7 @@ class PlannedDiveFillService {
         descriptorProduct: descriptorProduct,
         descriptorModel: descriptorModel,
         libdivecomputerVersion: libdivecomputerVersion,
+        diverId: planned.diverId,
       );
       await _computers.attributeDiveToComputer(
         diveId: targetDiveId,

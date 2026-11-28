@@ -190,14 +190,34 @@ _ResolvedCylinders _resolveCylinders(
   // Grouped and glitch-scanned once, for the surfacing rule and the
   // endpoint check alike.
   final tankReadings = tankReadingsOf(points);
-  final surfacingReadings = trimAtSurfacing
-      ? surfacingTankReadings(points, tankReadings: tankReadings)
-      : const <int, SurfacingTankReading>{};
+  // Read whatever [trimAtSurfacing] says: a live download is parsed before
+  // the diver it is filed under is known, and each tank keeps both end
+  // pressures for the import to choose from with that diver's switch
+  // (issue #5000).
+  final surfacingReadings = surfacingTankReadings(
+    points,
+    tankReadings: tankReadings,
+  );
   final result = <DownloadedTank>[];
   final consumed = <int>{};
+  final timeline = breathedGasSequence(parsed);
+  final drainable = _drainableGasTest(parsed);
+  // A fall after surfacing is no breathing: a regulator purged once its
+  // valve is closed, or a bleed-down (#1092), would credit the last gas.
+  final surfacedAt = lastTimeBelowSurfaceThreshold([
+    for (final p in points) (t: p.timeSeconds, depth: p.depthMeters),
+  ]);
 
   for (final tank in parsed.tanks) {
-    final gasIndex = _resolveTankGasIndex(tank, parsed.samples, gasMixes);
+    final gasIndex = _resolveTankGasIndex(
+      tank,
+      parsed.samples,
+      gasMixes,
+      readings: tankReadings[tank.index],
+      timeline: timeline,
+      drainable: drainable,
+      surfacedAt: surfacedAt,
+    );
     final gas = gasIndex != null ? gasMixes[gasIndex] : null;
     if (gasIndex != null) {
       consumed.add(gasIndex);
@@ -227,6 +247,16 @@ _ResolvedCylinders _resolveCylinders(
     final glitches = TankRole.fromName(role).isUnmeasuredBreathingGas
         ? impossibleReadingGlitchesOnly(readings, scanned)
         : scanned;
+    final endAsLogged = replaceGlitchedEndpoint(
+      reportedBar: tank.endPressureBar,
+      readings: readings,
+      atStart: false,
+      scan: glitches,
+    );
+    final endAtSurfacing = trimEndPressureBar(
+      reportedBar: endAsLogged,
+      reading: surfacingReadings[tank.index],
+    );
     result.add(
       DownloadedTank(
         index: tank.index,
@@ -238,15 +268,13 @@ _ResolvedCylinders _resolveCylinders(
           atStart: true,
           scan: glitches,
         ),
-        endPressure: trimEndPressureBar(
-          reportedBar: replaceGlitchedEndpoint(
-            reportedBar: tank.endPressureBar,
-            readings: readings,
-            atStart: false,
-            scan: glitches,
-          ),
-          reading: surfacingReadings[tank.index],
-        ),
+        endPressure: trimAtSurfacing ? endAtSurfacing : endAsLogged,
+        surfacingEnd: endAsLogged != null && endAtSurfacing != endAsLogged
+            ? SurfacingEndPressure(
+                asLogged: endAsLogged,
+                atSurfacing: endAtSurfacing!,
+              )
+            : null,
         volumeLiters: tank.volumeLiters,
         role: role,
         roleSource: _roleSourceOf(tank, parsed.diveMode, vendor),
@@ -477,24 +505,34 @@ bool _hasReportedUsage(pigeon.GasMix gas) =>
 /// ranking.
 bool _nearlyEqualPercent(double a, double b) => (a - b).abs() < 1e-6;
 
-/// The gas-mix index (position in [gasMixes]) for [tank], preferring the gas
-/// actually breathed on it. Returns null when there are no gas mixes, or for
-/// a CCR oxygen supply tank the computer gave no gas mix of its own.
+/// The gas-mix index (position in [gasMixes]) for [tank], preferring the
+/// computer's own link, then the gas breathed from it. Returns null when there
+/// are no gas mixes, or for a CCR oxygen supply tank the computer gave no gas
+/// mix of its own.
+///
+/// [readings] are the tank's pressure readings, [timeline] the dive's
+/// [breathedGasSequence], and [drainable] says which gases may be credited
+/// from them (see [_drainableGasTest]). Readings after [surfacedAt], the
+/// last time below the surface, are left out.
 int? _resolveTankGasIndex(
   pigeon.TankInfo tank,
   List<pigeon.ProfileSample> samples,
-  List<pigeon.GasMix> gasMixes,
-) {
+  List<pigeon.GasMix> gasMixes, {
+  required TankReadings? readings,
+  required List<BreathedGas> timeline,
+  required bool Function(int gasIndex) drainable,
+  required int? surfacedAt,
+}) {
   if (gasMixes.isEmpty) {
     return null;
   }
   final linked = tank.gasMixIndex >= 0 && tank.gasMixIndex < gasMixes.length
       ? tank.gasMixIndex
       : null;
-  // A CCR supply cylinder is never breathed the way rule 1 below measures it:
-  // on the loop the active gas is always the diluent, so every transmitter
-  // reporting during the dive would be credited with it, and the oxygen
-  // cylinder came out as the diluent (issue #2318). Its usage tag decides.
+  // A CCR supply cylinder is never breathed the way rule 2 below measures it:
+  // on the loop the active gas is always the diluent, and the oxygen
+  // cylinder's pressure falls all dive long while it is active, so it came
+  // out as the diluent (issue #2318). Its usage tag decides.
   switch (tank.usage) {
     case 1: // DC_USAGE_OXYGEN
       // The computer's own link, else a gas mix it tagged as oxygen (some
@@ -511,18 +549,122 @@ int? _resolveTankGasIndex(
       final diluent = linked ?? _breathedDiluentIndex(samples, gasMixes);
       if (diluent != null) return diluent;
   }
-  // 1. The gas breathed on this transmitter (per-sample DC_SAMPLE_GASMIX).
-  final breathed = _dominantGasIndex(tank.index, samples, gasMixes.length);
-  if (breathed != null) {
-    return breathed;
-  }
-  // 2. The computer's own tank->gas link, when it set one (non-Shearwater).
+  // 1. The computer's own tank->gas link, when it set one (non-Shearwater).
+  //    It outranks the pressure: a stage carried but never breathed still
+  //    cools in the water, and that fall would otherwise credit the bottom
+  //    gas.
   if (linked != null) {
     return linked;
   }
-  // 3. Last resort: the dive's primary (first) mix -- never a hardcoded air
+  final clean = _cleanReadings(readings, until: surfacedAt);
+  // 2. The gas breathed from this cylinder: the one during whose stretches
+  //    its pressure fell the most (issue #5057). A transmitter reports all
+  //    dive long, also after a switch to a gas it does not hold, so how long
+  //    a gas was active says nothing about which cylinder it came from.
+  final drained = _gasDrainingReadings(clean, timeline, drainable);
+  if (drained != null) {
+    return drained;
+  }
+  // 3. No fall to go by (flat or missing readings, a cylinder never
+  //    breathed): the gas active when this transmitter first reported.
+  final first = _firstDrainableGasDuring(clean, timeline, drainable);
+  if (first != null) {
+    return first;
+  }
+  // 4. Last resort: the dive's primary (first) mix. Never a hardcoded air
   //    default, which would mislabel an EAN dive.
   return 0;
+}
+
+/// The least a cylinder's pressure must fall during a gas's stretches of the
+/// dive for that gas to count as breathed from it, in bar. Above a pressure
+/// sensor's resolution; a reading's noise inside a stretch cancels out anyway,
+/// since the drops of one stretch sum to its first reading minus its last.
+const double _minDrainBar = 1.0;
+
+/// Which gases a transmitter's falling pressure may credit on [parsed].
+///
+/// On the loop the active gas is the diluent for as long as the diver stays
+/// on it, so every cylinder that cools or feeds a wing or suit then falls
+/// while the diluent is active. When the computer tagged a transmitter as the
+/// diluent, that fall is no evidence that another transmitter holds it: an
+/// unused bailout would come out as the diluent.
+bool Function(int gasIndex) _drainableGasTest(pigeon.ParsedDive parsed) {
+  final onTheLoop = parsed.diveMode == 'ccr' || parsed.diveMode == 'scr';
+  if (!onTheLoop || !parsed.tanks.any((t) => t.usage == 2)) {
+    return (_) => true;
+  }
+  return (i) => parsed.gasMixes[i].usage != 2;
+}
+
+/// [readings] in time order without the dropouts and misreads their scan
+/// found (issue #2441), so a glitch never reads as a fall or a rise, and
+/// without those after [until] when it is set.
+List<PressureReading> _cleanReadings(TankReadings? readings, {int? until}) {
+  if (readings == null) return const [];
+  final glitches = readings.scan.glitchIndices;
+  return [
+    for (var i = 0; i < readings.readings.length; i++)
+      if (!glitches.contains(i) &&
+          (until == null || readings.readings[i].t <= until))
+        readings.readings[i],
+  ];
+}
+
+/// The gas whose stretches of the dive saw [readings] fall the most, by at
+/// least [_minDrainBar]; null when no [drainable] gas did. Each step between
+/// two readings counts for the gas active at the first of them. A tie goes
+/// to the gas credited first.
+int? _gasDrainingReadings(
+  List<PressureReading> readings,
+  List<BreathedGas> timeline,
+  bool Function(int gasIndex) drainable,
+) {
+  if (timeline.isEmpty) return null;
+  final drops = <int, double>{};
+  final activeAt = _activeGasCursor(timeline);
+  for (var k = 0; k + 1 < readings.length; k++) {
+    final gas = activeAt(readings[k].t);
+    if (!drainable(gas)) continue;
+    drops[gas] = (drops[gas] ?? 0) + readings[k].bar - readings[k + 1].bar;
+  }
+  int? best;
+  for (final entry in drops.entries) {
+    if (entry.value >= _minDrainBar &&
+        (best == null || entry.value > drops[best]!)) {
+      best = entry.key;
+    }
+  }
+  return best;
+}
+
+/// The first [drainable] gas active at one of [readings], or null when there
+/// is none.
+int? _firstDrainableGasDuring(
+  List<PressureReading> readings,
+  List<BreathedGas> timeline,
+  bool Function(int gasIndex) drainable,
+) {
+  if (timeline.isEmpty) return null;
+  final activeAt = _activeGasCursor(timeline);
+  for (final reading in readings) {
+    final gas = activeAt(reading.t);
+    if (drainable(gas)) return gas;
+  }
+  return null;
+}
+
+/// A lookup of the gas active at a time, for times asked in ascending order.
+/// A time before the first entry of [timeline] gets its first gas, the one
+/// the dive started on.
+int Function(int timeSeconds) _activeGasCursor(List<BreathedGas> timeline) {
+  var at = 0;
+  return (t) {
+    while (at + 1 < timeline.length && timeline[at + 1].timeSeconds <= t) {
+      at++;
+    }
+    return timeline[at].gasIndex;
+  };
 }
 
 /// The diluent-tagged gas mix (`usage == 2`) breathed in the most samples, or
@@ -548,24 +690,6 @@ int? _breathedDiluentIndex(
   final first = gasMixes.indexWhere((g) => g.usage == 2);
   return first >= 0 ? first : null;
 }
-
-/// The most frequent gas-mix index among the pressure samples of [tankIndex],
-/// or null when none of that tank's samples carry a gas mix.
-///
-/// Deliberately keyed on the sample's own `tankIndex` rather than on every
-/// transmitter the sample carries: a transmitter reports all dive long, so
-/// crediting every reporting tank would hand each one the dive's main gas and
-/// override a computer's own tank->gas link (review on #2318).
-int? _dominantGasIndex(
-  int tankIndex,
-  List<pigeon.ProfileSample> samples,
-  int gasCount,
-) => _mostFrequent([
-  for (final s in samples)
-    if (s.gasMixIndex case final gasIndex?
-        when s.tankIndex == tankIndex && gasIndex >= 0 && gasIndex < gasCount)
-      gasIndex,
-]);
 
 /// The most frequent value in [values], or null when it is empty.
 int? _mostFrequent(List<int> values) {

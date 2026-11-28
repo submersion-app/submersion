@@ -123,11 +123,14 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
     // dropped there earns the hint rather than ending in silence.
     final mediaPaths = <String>[];
     final diveLogPaths = <String>[];
+    final folderPaths = <String>{};
     for (final xFile in details.files) {
       final path = xFile.path;
       if (path.isEmpty) continue;
       if (FileSystemEntity.isDirectorySync(path)) {
-        mediaPaths.addAll(await compute(scanFolderForMediaFiles, path));
+        final found = await compute(scanFolderForMediaFiles, path);
+        mediaPaths.addAll(found);
+        folderPaths.addAll(found);
         diveLogPaths.addAll(await scanFolderForImportableFiles(path));
       } else if (isLinkableMediaPath(path)) {
         mediaPaths.add(path);
@@ -147,7 +150,13 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
       } else {
         // Awaited, so dive logs in the same drop open their wizard only
         // after the media importer closes, rather than underneath it.
-        await widget.onMediaDrop(context, ref, mediaDestination, mediaPaths);
+        await widget.onMediaDrop(
+          context,
+          ref,
+          mediaDestination,
+          mediaPaths,
+          folderPaths: folderPaths,
+        );
         if (!mounted) return;
       }
     }
