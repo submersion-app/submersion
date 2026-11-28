@@ -1,3 +1,4 @@
+import 'package:submersion/core/util/web_link.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
@@ -30,8 +31,24 @@ DiveSite catalogueSiteToDiveSite(CatalogueSite site, {String? diverId}) =>
       bodyOfWater: site.bodyOfWater,
       hazards: site.hazards,
       entryMethods: site.entryMethods,
+      website: catalogueWebsiteText(site.website),
       catalogueId: site.id,
     );
+
+/// A catalogue record's website as a site stores it (issue #5073): the
+/// trimmed text when it is a web address, else null. The value comes from
+/// a source anyone can edit, so a phone number or another app's scheme in
+/// the tag never becomes the site's website. It must name its scheme, and
+/// pass the same check the site's contact card opens it with, so the text
+/// shown and the host a tap opens always agree.
+String? catalogueWebsiteText(String? raw) {
+  final text = raw?.trim() ?? '';
+  final uri = Uri.tryParse(text);
+  if (uri == null || uri.host.isEmpty) return null;
+  if (uri.scheme != 'https' && uri.scheme != 'http') return null;
+  if (parseWebLink(text) == null) return null;
+  return text;
+}
 
 /// The site types an adopted [site] starts with.
 SiteClassification catalogueSiteClassification(CatalogueSite site) =>

@@ -10943,6 +10943,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Begindruk';
 
   @override
+  String get diveLog_tank_managePresets => 'Voorinstellingen beheren';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'Flesvoorinstelling';
 
   @override
@@ -11534,7 +11537,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan niet omzetten: plan heeft kritieke waarschuwingen';
 
   @override
-  String get divePlanner_error_reserveExceedsTank => 'Overschrijdt tankdruk';
+  String get divePlanner_error_reserveExceedsTank => 'Overschrijdt flesdruk';
 
   @override
   String get divePlanner_error_reserveMustBePositive =>
@@ -11973,6 +11976,143 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_detail_section_access => 'Toegang & logistiek';
 
   @override
+  String get diveSites_detail_section_contact => 'Contactgegevens';
+
+  @override
+  String get diveSites_detail_section_openingHours => 'Openingstijden';
+
+  @override
+  String get diveSites_contact_mapsFailed =>
+      'Kaarten konden niet worden geopend';
+
+  @override
+  String get diveSites_contact_linkFailed => 'De link kon niet worden geopend';
+
+  @override
+  String get diveSites_contact_directions => 'Route';
+
+  @override
+  String get diveSites_contact_address => 'Adres';
+
+  @override
+  String get diveSites_contact_phone => 'Telefoon';
+
+  @override
+  String get diveSites_contact_email => 'E-mail';
+
+  @override
+  String get diveSites_contact_website => 'Website';
+
+  @override
+  String get diveSites_hours_alwaysOpen => '24/7 geopend';
+
+  @override
+  String get diveSites_hours_addSchedule => 'Schema toevoegen';
+
+  @override
+  String get diveSites_hours_scheduleName => 'Naam';
+
+  @override
+  String get diveSites_hours_scheduleName_hint => 'Zomer';
+
+  @override
+  String get diveSites_hours_seasonal => 'Seizoensgebonden';
+
+  @override
+  String get diveSites_hours_seasonFrom => 'Van';
+
+  @override
+  String get diveSites_hours_seasonTo => 'Tot';
+
+  @override
+  String get diveSites_hours_deleteSchedule => 'Schema verwijderen';
+
+  @override
+  String get diveSites_hours_closed => 'Gesloten';
+
+  @override
+  String get diveSites_hours_open24h => '24 uur geopend';
+
+  @override
+  String get diveSites_hours_kindHours => 'Tijden';
+
+  @override
+  String get diveSites_hours_addRange => 'Tijden toevoegen';
+
+  @override
+  String get diveSites_hours_removeRange => 'Tijden verwijderen';
+
+  @override
+  String get diveSites_hours_copyDay => 'Naar andere dagen kopiëren';
+
+  @override
+  String diveSites_hours_copyTitle(String day) {
+    return '$day kopiëren naar';
+  }
+
+  @override
+  String get diveSites_hours_selectAll => 'Alles selecteren';
+
+  @override
+  String get diveSites_hours_copy => 'Kopiëren';
+
+  @override
+  String get diveSites_hours_note => 'Opmerking';
+
+  @override
+  String get diveSites_hours_note_hint =>
+      'Tijdsloten telefonisch boeken, gesloten op feestdagen';
+
+  @override
+  String get diveSites_hours_invalid =>
+      'Sommige tijden overlappen of sluiten voordat ze openen';
+
+  @override
+  String get diveSites_hours_noSchedule => 'Nog geen weektijden';
+
+  @override
+  String diveSites_hours_openUntil(String time) {
+    return 'Nu geopend, sluit om $time';
+  }
+
+  @override
+  String get diveSites_hours_openNoClose => 'Nu geopend';
+
+  @override
+  String diveSites_hours_closedOpensAt(String when) {
+    return 'Gesloten, opent $when';
+  }
+
+  @override
+  String diveSites_hours_closedForSeason(String date) {
+    return 'Gesloten voor het seizoen, opent $date';
+  }
+
+  @override
+  String get diveSites_hours_closedNow => 'Gesloten';
+
+  @override
+  String diveSites_hours_span(String from, String to) {
+    return '$from tot $to';
+  }
+
+  @override
+  String diveSites_hours_namedSeason(String name, String season) {
+    return '$name, $season';
+  }
+
+  @override
+  String diveSites_merge_hoursSchedules(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count schema\'s',
+      one: '$count schema',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_detail_section_altitude => 'Hoogte';
 
   @override
@@ -12086,6 +12226,40 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveSites_edit_access_parkingInfo_hint =>
       'Parkeergelegenheid, kosten, tips';
+
+  @override
+  String get diveSites_edit_contact_address_label => 'Adres';
+
+  @override
+  String get diveSites_edit_contact_address_hint =>
+      'Straat, plaats en postcode';
+
+  @override
+  String get diveSites_edit_contact_phone_label => 'Telefoon';
+
+  @override
+  String get diveSites_edit_contact_phone_hint =>
+      'Reserverings- of eigenaarsnummer';
+
+  @override
+  String get diveSites_edit_contact_email_label => 'E-mail';
+
+  @override
+  String get diveSites_edit_contact_email_hint => 'name@example.com';
+
+  @override
+  String get diveSites_edit_contact_website_label => 'Website';
+
+  @override
+  String get diveSites_edit_contact_website_hint => 'example.com';
+
+  @override
+  String get diveSites_edit_contact_emailInvalid =>
+      'Voer een e-mailadres in zoals name@example.com';
+
+  @override
+  String get diveSites_edit_contact_websiteInvalid =>
+      'Voer een webadres in zoals example.com';
 
   @override
   String get diveSites_edit_access_parkingInfo_label => 'Parkeerinformatie';
@@ -14320,6 +14494,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_equipmentType_harness => 'Harnas';
+
+  @override
+  String get equipment_searchWords_cylinder => 'tank, cilinder, stage, pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'tankband, cam band';
 
   @override
   String get enum_equipmentType_tankBand => 'Flesband';
@@ -18488,6 +18668,21 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_consumption_diveTime => 'Duiktijd';
+
+  @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. Waarschuwing: overschrijdt de flescapaciteit',
+      'other': '',
+    });
+    return 'Gasverbruik: $volume $volumeSymbol, $pressure $pressureSymbol$_temp0';
+  }
 
   @override
   String gasCalculators_consumption_exceedsTank(
@@ -23823,6 +24018,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'In- en uitstap, parkeren, meerboei, toegangsnotities';
 
   @override
+  String get siteDetailSection_contact_description =>
+      'Adres, telefoon, e-mail en website';
+
+  @override
+  String get siteDetailSection_openingHours_description =>
+      'Openingsdagen en -tijden, per seizoen';
+
+  @override
   String get siteDetailSection_notes_description =>
       'Jouw notities over de duikstek';
 
@@ -27152,6 +27355,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_parkingInfo => 'Parkeren';
 
   @override
+  String get settings_conflict_field_address => 'Adres';
+
+  @override
+  String get settings_conflict_field_openingHours => 'Openingstijden';
+
+  @override
   String get settings_conflict_field_passportId => 'Flespaspoort';
 
   @override
@@ -28044,6 +28253,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_field_volumeL => 'Volume';
+
+  @override
+  String get settings_conflict_field_ratedCapacityCuft => 'Nominale capaciteit';
 
   @override
   String get settings_conflict_field_volumeLiters => 'Volume';
@@ -39669,6 +39881,19 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_duplicatePreset => 'Dupliceren';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (kopie)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (kopie $number)';
+  }
+
+  @override
   String get tankPresets_editPreset => 'Instelling bewerken';
 
   @override
@@ -39678,7 +39903,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tankPresets_edit_descriptionHint =>
-      'bijv. Mijn huurcilinder van de duikshop';
+      'bijv. Mijn huurfles van de duikshop';
 
   @override
   String get tankPresets_edit_descriptionOptional => 'Beschrijving (optioneel)';
@@ -47040,6 +47265,18 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_siteField_mooringNumber => 'Boeinummer';
 
   @override
+  String get enum_siteField_address => 'Adres';
+
+  @override
+  String get enum_siteField_phone => 'Telefoon';
+
+  @override
+  String get enum_siteField_email => 'E-mail';
+
+  @override
+  String get enum_siteField_website => 'Website';
+
+  @override
   String get enum_siteField_hazards => 'Gevaren';
 
   @override
@@ -47113,6 +47350,18 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_siteField_mooringNumber_short => 'Boei';
+
+  @override
+  String get enum_siteField_address_short => 'Adres';
+
+  @override
+  String get enum_siteField_phone_short => 'Tel.';
+
+  @override
+  String get enum_siteField_email_short => 'E-mail';
+
+  @override
+  String get enum_siteField_website_short => 'Site';
 
   @override
   String get enum_siteField_hazards_short => 'Gevaren';

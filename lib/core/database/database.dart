@@ -1830,6 +1830,9 @@ class AppDatabase extends _$AppDatabase {
     // depth and a plan's no-switch flag (issue #3793). Additive and
     // defaulted; the floor does not move.
     387,
+    // v388: a dive site's address, contact details and opening hours
+    // (issue #5073). Nullable, no backfill; the floor does not move.
+    388,
     // v389: diver_settings.profile_zoom_time_only, the profile chart's Time
     // only zoom choice (issue #5069). Nullable, no backfill; the floor does
     // not move. Numbered 389 because open work claims 388.
@@ -1837,6 +1840,9 @@ class AppDatabase extends _$AppDatabase {
     // v393: the built-in BCD/wing inspection kind applies to wings (issue
     // #5110). Built-in reference data never syncs; the floor does not move.
     393,
+    // v394: tank_presets.rated_capacity_cuft, the rated capacity a copy of a
+    // built-in preset keeps (issue #800). Nullable; the floor does not move.
+    394,
     // v395: service_records.firmware_version, the version a firmware update
     // installed (issue #5104). Nullable, no backfill; the floor does not
     // move. Numbered 395 because open work claims 388 to 394.

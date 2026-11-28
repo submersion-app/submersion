@@ -3171,7 +3171,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_bulkEdit_collectionTanks.
   ///
   /// In en, this message translates to:
-  /// **'Tanks'**
+  /// **'Cylinders'**
   String get diveLog_bulkEdit_collectionTanks;
 
   /// No description provided for @diveLog_bulkEdit_notesSet.
@@ -3213,25 +3213,25 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_bulkEdit_tankOnlyIfEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Only dives that don\'t already have a tank'**
+  /// **'Only dives that don\'t already have a cylinder'**
   String get diveLog_bulkEdit_tankOnlyIfEmpty;
 
   /// No description provided for @diveLog_bulkEdit_tankSpecsHint.
   ///
   /// In en, this message translates to:
-  /// **'Choose which attributes to overwrite on the tanks these dives already have. Start and end pressures are never changed.'**
+  /// **'Choose which attributes to overwrite on the cylinders these dives already have. Start and end pressures are never changed.'**
   String get diveLog_bulkEdit_tankSpecsHint;
 
   /// No description provided for @diveLog_bulkEdit_tankSpecsTemplateTitle.
   ///
   /// In en, this message translates to:
-  /// **'All tanks'**
+  /// **'All cylinders'**
   String get diveLog_bulkEdit_tankSpecsTemplateTitle;
 
   /// No description provided for @diveLog_bulkEdit_tankSpecsNoFields.
   ///
   /// In en, this message translates to:
-  /// **'Choose at least one tank attribute to update.'**
+  /// **'Choose at least one cylinder attribute to update.'**
   String get diveLog_bulkEdit_tankSpecsNoFields;
 
   /// No description provided for @diveLog_bulkEdit_tankFieldPreset.
@@ -3279,19 +3279,19 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_bulkEdit_tankSpecsSkipped.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 selected dive has no tanks and will be skipped.} other{{count} selected dives have no tanks and will be skipped.}}'**
+  /// **'{count, plural, =1{1 selected dive has no cylinders and will be skipped.} other{{count} selected dives have no cylinders and will be skipped.}}'**
   String diveLog_bulkEdit_tankSpecsSkipped(int count);
 
   /// No description provided for @diveLog_bulkEdit_tankRoleSameForAll.
   ///
   /// In en, this message translates to:
-  /// **'Same role on every tank'**
+  /// **'Same role on every cylinder'**
   String get diveLog_bulkEdit_tankRoleSameForAll;
 
   /// No description provided for @diveLog_bulkEdit_tankRoleByPosition.
   ///
   /// In en, this message translates to:
-  /// **'Role by tank position'**
+  /// **'Role by cylinder position'**
   String get diveLog_bulkEdit_tankRoleByPosition;
 
   /// No description provided for @diveLog_bulkEdit_tankRoleAddPosition.
@@ -3309,13 +3309,13 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_bulkEdit_tankRolesByPositionHint.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{Only dives with exactly {count} tank get this role.} other{Only dives with exactly {count} tanks get these roles, in tank order.}}'**
+  /// **'{count, plural, one{Only dives with exactly {count} cylinder get this role.} other{Only dives with exactly {count} cylinders get these roles, in cylinder order.}}'**
   String diveLog_bulkEdit_tankRolesByPositionHint(int count);
 
   /// No description provided for @diveLog_bulkEdit_tankRolesSkipped.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} dive doesn\'t match the tank positions, so its tank roles stay as they are.} other{{count} dives don\'t match the tank positions, so their tank roles stay as they are.}}'**
+  /// **'{count, plural, one{{count} dive doesn\'t match the cylinder positions, so its cylinder roles stay as they are.} other{{count} dives don\'t match the cylinder positions, so their cylinder roles stay as they are.}}'**
   String diveLog_bulkEdit_tankRolesSkipped(int count);
 
   /// No description provided for @diveLog_bulkEdit_confirmTitle.
@@ -11440,7 +11440,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_combine_dataNote.
   ///
   /// In en, this message translates to:
-  /// **'Details come from the earliest dive, with blanks filled from later dives. Notes are combined. Tanks, gear, buddies, tags, and sightings are all kept.'**
+  /// **'Details come from the earliest dive, with blanks filled from later dives. Notes are combined. Cylinders, gear, buddies, tags, and sightings are all kept.'**
   String get diveLog_combine_dataNote;
 
   /// No description provided for @diveLog_combine_error.
@@ -11963,7 +11963,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_delete_confirm.
   ///
   /// In en, this message translates to:
-  /// **'This action cannot be undone. The dive and all associated data (profile, tanks, sightings) will be permanently deleted.'**
+  /// **'This action cannot be undone. The dive and all associated data (profile, cylinders, sightings) will be permanently deleted.'**
   String get diveLog_delete_confirm;
 
   /// No description provided for @diveLog_delete_delete.
@@ -12635,7 +12635,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_diveMode_ocDescription.
   ///
   /// In en, this message translates to:
-  /// **'Standard open circuit scuba with tanks'**
+  /// **'Standard open circuit scuba with cylinders'**
   String get diveLog_diveMode_ocDescription;
 
   /// No description provided for @diveLog_diveMode_scrDescription.
@@ -12701,7 +12701,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_edit_addTank.
   ///
   /// In en, this message translates to:
-  /// **'Add Tank'**
+  /// **'Add Cylinder'**
   String get diveLog_edit_addTank;
 
   /// No description provided for @diveLog_edit_addWeightEntry.
@@ -12749,7 +12749,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_edit_equipmentCaption.
   ///
   /// In en, this message translates to:
-  /// **'Gear you used, for its dive count and service history. A cylinder listed here adds no gas data; add it under Tanks too.'**
+  /// **'Gear you used, for its dive count and service history. A cylinder listed here adds no gas data; add it under Cylinders too.'**
   String get diveLog_edit_equipmentCaption;
 
   /// No description provided for @diveLog_edit_errorLoadingDiveTypes.
@@ -12761,7 +12761,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_edit_gasSwitches_caption.
   ///
   /// In en, this message translates to:
-  /// **'When you changed cylinders. Deco, tissue loading and per-tank SAC follow these switches.'**
+  /// **'When you changed cylinders. Deco, tissue loading and per-cylinder SAC follow these switches.'**
   String get diveLog_edit_gasSwitches_caption;
 
   /// Gas switch editor: the cylinder the dive starts on
@@ -12857,7 +12857,7 @@ abstract class AppLocalizations {
   /// Gas switch editor: switches dropped because their cylinder was removed
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} gas switch removed with its tank} other{{count} gas switches removed with their tank}}'**
+  /// **'{count, plural, one{{count} gas switch removed with its cylinder} other{{count} gas switches removed with their cylinder}}'**
   String diveLog_edit_gasSwitches_removedWithTank(int count);
 
   /// Gas switch editor: action that adds the switches the recorded cylinder pressures show, and re-points a starting switch on the same gas to the cylinder breathed first. count is how many rows it adds or changes
@@ -13097,7 +13097,7 @@ abstract class AppLocalizations {
   /// Sub-header overline above the tank rows in the Gas & Gear edit section
   ///
   /// In en, this message translates to:
-  /// **'Tanks'**
+  /// **'Cylinders'**
   String get diveLog_edit_overline_tanks;
 
   /// No description provided for @diveLog_edit_planned_switch.
@@ -13481,13 +13481,13 @@ abstract class AppLocalizations {
   /// Caption on a tank card
   ///
   /// In en, this message translates to:
-  /// **'Tank {number}'**
+  /// **'Cylinder {number}'**
   String diveLog_edit_tankCard_title(int number);
 
   /// No description provided for @diveLog_edit_tanksCaption.
   ///
   /// In en, this message translates to:
-  /// **'What you breathed from. Gas graphs, gas consumption and statistics come from these tanks.'**
+  /// **'What you breathed from. Gas graphs, gas consumption and statistics come from these cylinders.'**
   String get diveLog_edit_tanksCaption;
 
   /// No description provided for @diveLog_edit_tooltip_calculateFromProfile.
@@ -14243,13 +14243,13 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_filter_sectionTankConfiguration.
   ///
   /// In en, this message translates to:
-  /// **'Tank configuration'**
+  /// **'Cylinder configuration'**
   String get diveLog_filter_sectionTankConfiguration;
 
   /// No description provided for @diveLog_filter_sectionTankExtras.
   ///
   /// In en, this message translates to:
-  /// **'Tank extras'**
+  /// **'Cylinder extras'**
   String get diveLog_filter_sectionTankExtras;
 
   /// No description provided for @diveLog_filter_sectionMinRating.
@@ -14649,7 +14649,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_chartSection_tankPressures.
   ///
   /// In en, this message translates to:
-  /// **'Tank Pressures'**
+  /// **'Cylinder Pressures'**
   String get diveLog_chartSection_tankPressures;
 
   /// No description provided for @diveLog_chartOption_tooltipFollowsCursor.
@@ -17454,10 +17454,16 @@ abstract class AppLocalizations {
   /// **'Start Pressure'**
   String get diveLog_tank_label_startPressure;
 
+  /// Last entry of the tank editor's preset dropdown (issue #800): opens the presets page over the dive being edited. Not a preset, so choosing it leaves the cylinder's preset as it was.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage presets'**
+  String get diveLog_tank_managePresets;
+
   /// No description provided for @diveLog_tank_label_tankPreset.
   ///
   /// In en, this message translates to:
-  /// **'Tank Preset'**
+  /// **'Cylinder Preset'**
   String get diveLog_tank_label_tankPreset;
 
   /// No description provided for @diveLog_tank_label_volume.
@@ -17649,7 +17655,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_tank_saveAsPreset_nameTitle.
   ///
   /// In en, this message translates to:
-  /// **'Save tank preset'**
+  /// **'Save cylinder preset'**
   String get diveLog_tank_saveAsPreset_nameTitle;
 
   /// No description provided for @diveLog_tank_saveAsPreset_nameHint.
@@ -17667,13 +17673,13 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_tank_title.
   ///
   /// In en, this message translates to:
-  /// **'Tank {number}'**
+  /// **'Cylinder {number}'**
   String diveLog_tank_title(Object number);
 
   /// No description provided for @diveLog_tank_tooltip_remove.
   ///
   /// In en, this message translates to:
-  /// **'Remove tank'**
+  /// **'Remove cylinder'**
   String get diveLog_tank_tooltip_remove;
 
   /// No description provided for @diveLog_tank_fromOwnCylinder.
@@ -17685,13 +17691,13 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_tank_ownCylinderFailed.
   ///
   /// In en, this message translates to:
-  /// **'Could not fill the tank from that cylinder. Try again.'**
+  /// **'Could not fill this dive\'s cylinder from that one. Try again.'**
   String get diveLog_tank_ownCylinderFailed;
 
   /// No description provided for @diveLog_tank_ownCylinderHint.
   ///
   /// In en, this message translates to:
-  /// **'Copies the cylinder\'s size and latest fill into this tank and adds the cylinder to this dive\'s equipment.'**
+  /// **'Copies your cylinder\'s size and latest fill onto this dive and adds it to this dive\'s equipment.'**
   String get diveLog_tank_ownCylinderHint;
 
   /// No description provided for @diveLog_tank_ownCylinderTitle.
@@ -17733,7 +17739,7 @@ abstract class AppLocalizations {
   /// No description provided for @cylindersFromTanks_summary.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{{count} tank isn\'t in your gear} other{{count} tanks aren\'t in your gear}}'**
+  /// **'{count, plural, =1{{count} cylinder isn\'t in your gear} other{{count} cylinders aren\'t in your gear}}'**
   String cylindersFromTanks_summary(int count);
 
   /// No description provided for @cylindersFromTanks_review.
@@ -17781,7 +17787,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_tank_linkCylinderHint.
   ///
   /// In en, this message translates to:
-  /// **'Links this tank to the cylinder and adds the cylinder to this dive\'s equipment. The tank keeps its recorded size.'**
+  /// **'Links this dive\'s cylinder to one you own and adds that cylinder to this dive\'s equipment. The recorded size stays as it is.'**
   String get diveLog_tank_linkCylinderHint;
 
   /// No description provided for @diveLog_tank_unlinkCylinder.
@@ -18201,7 +18207,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_sources_splitDialog_body.
   ///
   /// In en, this message translates to:
-  /// **'This source\'s profile, events, and tanks will move to a new dive. The logbook entry stays on this dive.'**
+  /// **'This source\'s profile, events, and cylinders will move to a new dive. The logbook entry stays on this dive.'**
   String get diveLog_sources_splitDialog_body;
 
   /// No description provided for @diveLog_sources_splitDialog_confirm.
@@ -18285,7 +18291,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_sources_separateDialog_body.
   ///
   /// In en, this message translates to:
-  /// **'This dive was combined from {count} dives. Each one\'s profile, events, tanks and gas switches move back to its own dive. The rest of the logbook entry, including buddies, tags, equipment, media, notes and the dive number, stays on this dive.'**
+  /// **'This dive was combined from {count} dives. Each one\'s profile, events, cylinders and gas switches move back to its own dive. The rest of the logbook entry, including buddies, tags, equipment, media, notes and the dive number, stays on this dive.'**
   String diveLog_sources_separateDialog_body(int count);
 
   /// No description provided for @diveLog_sources_separateDialog_confirm.
@@ -18309,7 +18315,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_action_addTank.
   ///
   /// In en, this message translates to:
-  /// **'Add Tank'**
+  /// **'Add Cylinder'**
   String get divePlanner_action_addTank;
 
   /// No description provided for @divePlanner_action_deletePlan.
@@ -18321,7 +18327,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_action_editTank.
   ///
   /// In en, this message translates to:
-  /// **'Edit Tank'**
+  /// **'Edit Cylinder'**
   String get divePlanner_action_editTank;
 
   /// No description provided for @divePlanner_action_fillBestMix.
@@ -18375,7 +18381,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_error_reserveExceedsTank.
   ///
   /// In en, this message translates to:
-  /// **'Exceeds tank pressure'**
+  /// **'Exceeds cylinder pressure'**
   String get divePlanner_error_reserveExceedsTank;
 
   /// No description provided for @divePlanner_error_reserveMustBePositive.
@@ -18447,7 +18453,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_hint_tankName.
   ///
   /// In en, this message translates to:
-  /// **'Enter tank name'**
+  /// **'Enter cylinder name'**
   String get divePlanner_hint_tankName;
 
   /// No description provided for @divePlanner_label_airBreaks.
@@ -18711,7 +18717,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_label_tanks.
   ///
   /// In en, this message translates to:
-  /// **'Tanks'**
+  /// **'Cylinders'**
   String get divePlanner_label_tanks;
 
   /// Heading over a CCR plan's diluent and oxygen cylinders in the planner's tank list
@@ -18735,31 +18741,31 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_savedTanks_title.
   ///
   /// In en, this message translates to:
-  /// **'Saved tanks'**
+  /// **'Saved cylinders'**
   String get divePlanner_savedTanks_title;
 
   /// No description provided for @divePlanner_savedTanks_save.
   ///
   /// In en, this message translates to:
-  /// **'Save a tank'**
+  /// **'Save a cylinder'**
   String get divePlanner_savedTanks_save;
 
   /// No description provided for @divePlanner_savedTanks_saveTitle.
   ///
   /// In en, this message translates to:
-  /// **'Save tank as'**
+  /// **'Save cylinder as'**
   String get divePlanner_savedTanks_saveTitle;
 
   /// No description provided for @divePlanner_savedTanks_nameField.
   ///
   /// In en, this message translates to:
-  /// **'Tank name'**
+  /// **'Cylinder name'**
   String get divePlanner_savedTanks_nameField;
 
   /// No description provided for @divePlanner_savedTanks_saved.
   ///
   /// In en, this message translates to:
-  /// **'Tank saved'**
+  /// **'Cylinder saved'**
   String get divePlanner_savedTanks_saved;
 
   /// No description provided for @divePlanner_savedTanks_manage.
@@ -18771,7 +18777,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_savedTanks_empty.
   ///
   /// In en, this message translates to:
-  /// **'No saved tanks yet. Save a tank from this plan to reuse it in other plans.'**
+  /// **'No saved cylinders yet. Save a cylinder from this plan to reuse it in other plans.'**
   String get divePlanner_savedTanks_empty;
 
   /// No description provided for @divePlanner_label_timeAxis.
@@ -18861,13 +18867,13 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_warning_gasLow.
   ///
   /// In en, this message translates to:
-  /// **'Tank below {threshold} reserve'**
+  /// **'Cylinder below {threshold} reserve'**
   String divePlanner_warning_gasLow(Object threshold);
 
   /// No description provided for @divePlanner_warning_gasOut.
   ///
   /// In en, this message translates to:
-  /// **'Tank will be empty'**
+  /// **'Cylinder will be empty'**
   String get divePlanner_warning_gasOut;
 
   /// No description provided for @divePlanner_warning_otuWarning.
@@ -19128,6 +19134,234 @@ abstract class AppLocalizations {
   /// **'Access & Logistics'**
   String get diveSites_detail_section_access;
 
+  /// No description provided for @diveSites_detail_section_contact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get diveSites_detail_section_contact;
+
+  /// No description provided for @diveSites_detail_section_openingHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening Hours'**
+  String get diveSites_detail_section_openingHours;
+
+  /// No description provided for @diveSites_contact_mapsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open maps'**
+  String get diveSites_contact_mapsFailed;
+
+  /// No description provided for @diveSites_contact_linkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the link'**
+  String get diveSites_contact_linkFailed;
+
+  /// No description provided for @diveSites_contact_directions.
+  ///
+  /// In en, this message translates to:
+  /// **'Directions'**
+  String get diveSites_contact_directions;
+
+  /// No description provided for @diveSites_contact_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get diveSites_contact_address;
+
+  /// No description provided for @diveSites_contact_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get diveSites_contact_phone;
+
+  /// No description provided for @diveSites_contact_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get diveSites_contact_email;
+
+  /// No description provided for @diveSites_contact_website.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get diveSites_contact_website;
+
+  /// No description provided for @diveSites_hours_alwaysOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open 24/7'**
+  String get diveSites_hours_alwaysOpen;
+
+  /// No description provided for @diveSites_hours_addSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Add schedule'**
+  String get diveSites_hours_addSchedule;
+
+  /// No description provided for @diveSites_hours_scheduleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get diveSites_hours_scheduleName;
+
+  /// No description provided for @diveSites_hours_scheduleName_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Summer'**
+  String get diveSites_hours_scheduleName_hint;
+
+  /// No description provided for @diveSites_hours_seasonal.
+  ///
+  /// In en, this message translates to:
+  /// **'Seasonal'**
+  String get diveSites_hours_seasonal;
+
+  /// No description provided for @diveSites_hours_seasonFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get diveSites_hours_seasonFrom;
+
+  /// No description provided for @diveSites_hours_seasonTo.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get diveSites_hours_seasonTo;
+
+  /// No description provided for @diveSites_hours_deleteSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete schedule'**
+  String get diveSites_hours_deleteSchedule;
+
+  /// No description provided for @diveSites_hours_closed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get diveSites_hours_closed;
+
+  /// No description provided for @diveSites_hours_open24h.
+  ///
+  /// In en, this message translates to:
+  /// **'Open 24 hours'**
+  String get diveSites_hours_open24h;
+
+  /// No description provided for @diveSites_hours_kindHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get diveSites_hours_kindHours;
+
+  /// No description provided for @diveSites_hours_addRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Add hours'**
+  String get diveSites_hours_addRange;
+
+  /// No description provided for @diveSites_hours_removeRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove hours'**
+  String get diveSites_hours_removeRange;
+
+  /// No description provided for @diveSites_hours_copyDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy to other days'**
+  String get diveSites_hours_copyDay;
+
+  /// Title of the dialog that copies one weekday's opening hours to other days.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy {day} to'**
+  String diveSites_hours_copyTitle(String day);
+
+  /// No description provided for @diveSites_hours_selectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get diveSites_hours_selectAll;
+
+  /// No description provided for @diveSites_hours_copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get diveSites_hours_copy;
+
+  /// No description provided for @diveSites_hours_note.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get diveSites_hours_note;
+
+  /// No description provided for @diveSites_hours_note_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Book slots by phone, closed public holidays'**
+  String get diveSites_hours_note_hint;
+
+  /// No description provided for @diveSites_hours_invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Some hours overlap or close before they open'**
+  String get diveSites_hours_invalid;
+
+  /// No description provided for @diveSites_hours_noSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'No weekly hours yet'**
+  String get diveSites_hours_noSchedule;
+
+  /// Status line on a dive site's opening hours card.
+  ///
+  /// In en, this message translates to:
+  /// **'Open now, closes {time}'**
+  String diveSites_hours_openUntil(String time);
+
+  /// No description provided for @diveSites_hours_openNoClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Open now'**
+  String get diveSites_hours_openNoClose;
+
+  /// Status line when a dive site is closed; when is a time, or a weekday and time.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed, opens {when}'**
+  String diveSites_hours_closedOpensAt(String when);
+
+  /// Status line when no seasonal schedule applies today.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed for the season, opens {date}'**
+  String diveSites_hours_closedForSeason(String date);
+
+  /// No description provided for @diveSites_hours_closedNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get diveSites_hours_closedNow;
+
+  /// A run of weekdays or a season, from one end to the other.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String diveSites_hours_span(String from, String to);
+
+  /// A named seasonal schedule and its dates.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, {season}'**
+  String diveSites_hours_namedSeason(String name, String season);
+
+  /// Opening hours on the merge page, as a count of weekly schedules.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} schedule} other{{count} schedules}}'**
+  String diveSites_merge_hoursSchedules(int count);
+
   /// No description provided for @diveSites_detail_section_altitude.
   ///
   /// In en, this message translates to:
@@ -19325,6 +19559,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Parking availability, fees, tips'**
   String get diveSites_edit_access_parkingInfo_hint;
+
+  /// No description provided for @diveSites_edit_contact_address_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get diveSites_edit_contact_address_label;
+
+  /// No description provided for @diveSites_edit_contact_address_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Street, town and postcode'**
+  String get diveSites_edit_contact_address_hint;
+
+  /// No description provided for @diveSites_edit_contact_phone_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get diveSites_edit_contact_phone_label;
+
+  /// No description provided for @diveSites_edit_contact_phone_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking or owner number'**
+  String get diveSites_edit_contact_phone_hint;
+
+  /// No description provided for @diveSites_edit_contact_email_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get diveSites_edit_contact_email_label;
+
+  /// No description provided for @diveSites_edit_contact_email_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'name@example.com'**
+  String get diveSites_edit_contact_email_hint;
+
+  /// No description provided for @diveSites_edit_contact_website_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get diveSites_edit_contact_website_label;
+
+  /// No description provided for @diveSites_edit_contact_website_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'example.com'**
+  String get diveSites_edit_contact_website_hint;
+
+  /// No description provided for @diveSites_edit_contact_emailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an email address like name@example.com'**
+  String get diveSites_edit_contact_emailInvalid;
+
+  /// No description provided for @diveSites_edit_contact_websiteInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a web address like example.com'**
+  String get diveSites_edit_contact_websiteInvalid;
 
   /// No description provided for @diveSites_edit_access_parkingInfo_label.
   ///
@@ -22834,10 +23128,22 @@ abstract class AppLocalizations {
   /// **'Harness'**
   String get enum_equipmentType_harness;
 
+  /// Search words (issue #5106): other words divers use for a cylinder, comma separated. Typing any of them in the equipment search finds cylinders. List this language's own words, including any the app no longer uses as the label.
+  ///
+  /// In en, this message translates to:
+  /// **'tank, bottle, stage, pony'**
+  String get equipment_searchWords_cylinder;
+
+  /// Search words (issue #5106): other names for a cylinder band, comma separated. Typing any of them in the equipment search finds cylinder bands.
+  ///
+  /// In en, this message translates to:
+  /// **'tank band, cam band'**
+  String get equipment_searchWords_tankBand;
+
   /// No description provided for @enum_equipmentType_tankBand.
   ///
   /// In en, this message translates to:
-  /// **'Tank Band'**
+  /// **'Cylinder Band'**
   String get enum_equipmentType_tankBand;
 
   /// No description provided for @enum_equipmentType_weightPocket.
@@ -22987,7 +23293,7 @@ abstract class AppLocalizations {
   /// No description provided for @enum_equipmentType_tank.
   ///
   /// In en, this message translates to:
-  /// **'Tank'**
+  /// **'Cylinder'**
   String get enum_equipmentType_tank;
 
   /// No description provided for @enum_equipmentType_weights.
@@ -23839,7 +24145,7 @@ abstract class AppLocalizations {
   /// No description provided for @enum_tankRole_pony.
   ///
   /// In en, this message translates to:
-  /// **'Pony Bottle'**
+  /// **'Pony'**
   String get enum_tankRole_pony;
 
   /// No description provided for @enum_tankRole_sidemountLeft.
@@ -24259,7 +24565,7 @@ abstract class AppLocalizations {
   /// No description provided for @passport_fill_writeToTagBody.
   ///
   /// In en, this message translates to:
-  /// **'Write it to the tank\'s tag?'**
+  /// **'Write it to the cylinder\'s tag?'**
   String get passport_fill_writeToTagBody;
 
   /// No description provided for @passport_fill_writeToTag.
@@ -26446,7 +26752,7 @@ abstract class AppLocalizations {
   /// No description provided for @cylinderConfigs_overwriteTank.
   ///
   /// In en, this message translates to:
-  /// **'Tank {number} · {role}'**
+  /// **'Cylinder {number} · {role}'**
   String cylinderConfigs_overwriteTank(int number, String role);
 
   /// No description provided for @cylinderConfigs_overwriteChange.
@@ -29557,10 +29863,22 @@ abstract class AppLocalizations {
   /// **'Dive Time'**
   String get gasCalculators_consumption_diveTime;
 
+  /// What a screen reader says for the gas consumption result card (issue #5106): the volume and the pressure it takes from the cylinder. exceeds is yes when the plan needs more gas than the cylinder holds, which adds a warning sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas consumption: {volume} {volumeSymbol}, {pressure} {pressureSymbol}{exceeds, select, yes{. Warning: exceeds cylinder capacity} other{}}'**
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  );
+
   /// No description provided for @gasCalculators_consumption_exceedsTank.
   ///
   /// In en, this message translates to:
-  /// **'Exceeds tank capacity ({pressure} {symbol})'**
+  /// **'Exceeds cylinder capacity ({pressure} {symbol})'**
   String gasCalculators_consumption_exceedsTank(Object pressure, Object symbol);
 
   /// No description provided for @gasCalculators_consumption_gasAtDepth.
@@ -29584,7 +29902,7 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_consumption_tankCapacity.
   ///
   /// In en, this message translates to:
-  /// **'Tank capacity ({tankSize}{volumeSymbol} @ {fillPressure} {pressureSymbol})'**
+  /// **'Cylinder capacity ({tankSize}{volumeSymbol} @ {fillPressure} {pressureSymbol})'**
   String gasCalculators_consumption_tankCapacity(
     Object tankSize,
     Object volumeSymbol,
@@ -30928,7 +31246,7 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_tankSize.
   ///
   /// In en, this message translates to:
-  /// **'Tank Size'**
+  /// **'Cylinder Size'**
   String get gasCalculators_tankSize;
 
   /// No description provided for @gasCalculators_title.
@@ -35561,7 +35879,7 @@ abstract class AppLocalizations {
   /// No description provided for @plannerSeries_fillAll.
   ///
   /// In en, this message translates to:
-  /// **'Fill all tanks'**
+  /// **'Fill all cylinders'**
   String get plannerSeries_fillAll;
 
   /// No description provided for @plannerSeries_createPlannedDive.
@@ -37146,7 +37464,7 @@ abstract class AppLocalizations {
   /// No description provided for @buoyancy_estimatedPressures.
   ///
   /// In en, this message translates to:
-  /// **'Tank pressures are estimated'**
+  /// **'Cylinder pressures are estimated'**
   String get buoyancy_estimatedPressures;
 
   /// No description provided for @buoyancy_linkSuitHint.
@@ -37164,7 +37482,7 @@ abstract class AppLocalizations {
   /// No description provided for @buoyancy_tankMaterialAssumedHint.
   ///
   /// In en, this message translates to:
-  /// **'Tank material not set, so aluminum was assumed: set the material or pick a tank preset'**
+  /// **'Cylinder material not set, so aluminum was assumed: set the material or pick a cylinder preset'**
   String get buoyancy_tankMaterialAssumedHint;
 
   /// No description provided for @buoyancy_chartNet.
@@ -37320,7 +37638,7 @@ abstract class AppLocalizations {
   /// No description provided for @buoyancy_causeGas.
   ///
   /// In en, this message translates to:
-  /// **'Gas breathed left the tanks {amount} lighter'**
+  /// **'Gas breathed left the cylinders {amount} lighter'**
   String buoyancy_causeGas(String amount);
 
   /// No description provided for @buoyancy_leadTitle.
@@ -37422,7 +37740,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveDetailSection_tanks_description.
   ///
   /// In en, this message translates to:
-  /// **'Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption'**
+  /// **'Cylinder list, gas mixes, pressures, MOD/MND, per-cylinder consumption'**
   String get diveDetailSection_tanks_description;
 
   /// No description provided for @diveDetailSection_buddies_name.
@@ -37641,6 +37959,18 @@ abstract class AppLocalizations {
   /// **'Entry and exit, parking, mooring, access notes'**
   String get siteDetailSection_access_description;
 
+  /// No description provided for @siteDetailSection_contact_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Address, phone, email and website'**
+  String get siteDetailSection_contact_description;
+
+  /// No description provided for @siteDetailSection_openingHours_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening days and hours, by season'**
+  String get siteDetailSection_openingHours_description;
+
   /// No description provided for @siteDetailSection_notes_description.
   ///
   /// In en, this message translates to:
@@ -37830,7 +38160,7 @@ abstract class AppLocalizations {
   /// Settings switch that turns off the synthesized (estimated) tank pressure line on the dive profile chart.
   ///
   /// In en, this message translates to:
-  /// **'Estimated Tank Pressure'**
+  /// **'Estimated Cylinder Pressure'**
   String get settings_appearance_metric_estimatedTankPressure;
 
   /// No description provided for @settings_appearance_metric_gasDensity.
@@ -37950,7 +38280,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_appearance_pressureThresholdMarkers_subtitleFull.
   ///
   /// In en, this message translates to:
-  /// **'Show markers when tank pressure crosses 2/3, 1/2, and 1/3 thresholds'**
+  /// **'Show markers when cylinder pressure crosses 2/3, 1/2, and 1/3 thresholds'**
   String get settings_appearance_pressureThresholdMarkers_subtitleFull;
 
   /// No description provided for @settings_appearance_metricsFollowViewport.
@@ -38088,7 +38418,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_metricColors_pressureCustom.
   ///
   /// In en, this message translates to:
-  /// **'Used on single-tank dives'**
+  /// **'Used on single-cylinder dives'**
   String get settings_metricColors_pressureCustom;
 
   /// No description provided for @settings_metricColors_sheetTitle.
@@ -40413,7 +40743,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_field_applyDefaultTankToImports.
   ///
   /// In en, this message translates to:
-  /// **'Default tank on imported dives'**
+  /// **'Default cylinder on imported dives'**
   String get settings_conflict_field_applyDefaultTankToImports;
 
   /// No description provided for @settings_conflict_field_ascentGasSet.
@@ -40701,7 +41031,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_field_bottleLabel.
   ///
   /// In en, this message translates to:
-  /// **'Bottle number'**
+  /// **'Cylinder number'**
   String get settings_conflict_field_bottleLabel;
 
   /// No description provided for @settings_conflict_field_buddyListViewMode.
@@ -41193,7 +41523,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_field_defaultShowEstimatedTankPressure.
   ///
   /// In en, this message translates to:
-  /// **'Profile shows estimated tank pressure'**
+  /// **'Profile shows estimated cylinder pressure'**
   String get settings_conflict_field_defaultShowEstimatedTankPressure;
 
   /// No description provided for @settings_conflict_field_defaultShowEvents.
@@ -41283,7 +41613,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_field_defaultShowPressure.
   ///
   /// In en, this message translates to:
-  /// **'Profile shows tank pressure'**
+  /// **'Profile shows cylinder pressure'**
   String get settings_conflict_field_defaultShowPressure;
 
   /// No description provided for @settings_conflict_field_defaultShowSac.
@@ -41325,13 +41655,13 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_field_defaultTankPreset.
   ///
   /// In en, this message translates to:
-  /// **'Default tank preset'**
+  /// **'Default cylinder preset'**
   String get settings_conflict_field_defaultTankPreset;
 
   /// No description provided for @settings_conflict_field_defaultTankVolume.
   ///
   /// In en, this message translates to:
-  /// **'Default tank volume'**
+  /// **'Default cylinder volume'**
   String get settings_conflict_field_defaultTankVolume;
 
   /// No description provided for @settings_conflict_field_defaultTtsSource.
@@ -41571,7 +41901,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_field_divePlanTanks_role.
   ///
   /// In en, this message translates to:
-  /// **'Tank role'**
+  /// **'Cylinder role'**
   String get settings_conflict_field_divePlanTanks_role;
 
   /// No description provided for @settings_conflict_field_diveProfileEvents_severity.
@@ -42135,7 +42465,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_field_hiddenTankPresetIds.
   ///
   /// In en, this message translates to:
-  /// **'Hidden tank presets'**
+  /// **'Hidden cylinder presets'**
   String get settings_conflict_field_hiddenTankPresetIds;
 
   /// No description provided for @settings_conflict_field_highO2ThresholdPercent.
@@ -42555,7 +42885,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_field_material.
   ///
   /// In en, this message translates to:
-  /// **'Tank material'**
+  /// **'Cylinder material'**
   String get settings_conflict_field_material;
 
   /// No description provided for @settings_conflict_field_maxAscentRate.
@@ -43008,6 +43338,18 @@ abstract class AppLocalizations {
   /// **'Parking'**
   String get settings_conflict_field_parkingInfo;
 
+  /// No description provided for @settings_conflict_field_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get settings_conflict_field_address;
+
+  /// No description provided for @settings_conflict_field_openingHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening hours'**
+  String get settings_conflict_field_openingHours;
+
   /// No description provided for @settings_conflict_field_passportId.
   ///
   /// In en, this message translates to:
@@ -43197,7 +43539,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_field_presetName.
   ///
   /// In en, this message translates to:
-  /// **'Tank preset'**
+  /// **'Cylinder preset'**
   String get settings_conflict_field_presetName;
 
   /// No description provided for @settings_conflict_field_pressure.
@@ -44031,13 +44373,13 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_field_sourceTankId.
   ///
   /// In en, this message translates to:
-  /// **'Carried over from tank'**
+  /// **'Carried over from cylinder'**
   String get settings_conflict_field_sourceTankId;
 
   /// No description provided for @settings_conflict_field_sourceTankIndex.
   ///
   /// In en, this message translates to:
-  /// **'Tank number in the source log'**
+  /// **'Cylinder number in the source log'**
   String get settings_conflict_field_sourceTankIndex;
 
   /// No description provided for @settings_conflict_field_sourceType.
@@ -44223,25 +44565,25 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_field_tankMaterial.
   ///
   /// In en, this message translates to:
-  /// **'Tank material'**
+  /// **'Cylinder material'**
   String get settings_conflict_field_tankMaterial;
 
   /// No description provided for @settings_conflict_field_tankName.
   ///
   /// In en, this message translates to:
-  /// **'Tank name'**
+  /// **'Cylinder name'**
   String get settings_conflict_field_tankName;
 
   /// No description provided for @settings_conflict_field_tankOrder.
   ///
   /// In en, this message translates to:
-  /// **'Tank order'**
+  /// **'Cylinder order'**
   String get settings_conflict_field_tankOrder;
 
   /// No description provided for @settings_conflict_field_tankRole.
   ///
   /// In en, this message translates to:
-  /// **'Tank role'**
+  /// **'Cylinder role'**
   String get settings_conflict_field_tankRole;
 
   /// No description provided for @settings_conflict_field_targetCount.
@@ -44397,7 +44739,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_field_trimTankPressureAtSurfacing.
   ///
   /// In en, this message translates to:
-  /// **'Tank pressure trimmed at surfacing'**
+  /// **'Cylinder pressure trimmed at surfacing'**
   String get settings_conflict_field_trimTankPressureAtSurfacing;
 
   /// No description provided for @settings_conflict_field_tripChecklistItems_category.
@@ -44603,6 +44945,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Volume'**
   String get settings_conflict_field_volumeL;
+
+  /// Conflict dialog label for a custom cylinder preset's rated capacity, the manufacturer's figure a copy of a built-in preset keeps (issue #800).
+  ///
+  /// In en, this message translates to:
+  /// **'Rated capacity'**
+  String get settings_conflict_field_ratedCapacityCuft;
 
   /// No description provided for @settings_conflict_field_volumeLiters.
   ///
@@ -45729,7 +46077,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_ref_plannedTank.
   ///
   /// In en, this message translates to:
-  /// **'Planned tank'**
+  /// **'Planned cylinder'**
   String get settings_conflict_ref_plannedTank;
 
   /// No description provided for @settings_conflict_ref_preDiveChecklistTemplate.
@@ -45837,7 +46185,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_ref_tank.
   ///
   /// In en, this message translates to:
-  /// **'Tank'**
+  /// **'Cylinder'**
   String get settings_conflict_ref_tank;
 
   /// No description provided for @settings_conflict_ref_weight.
@@ -46293,7 +46641,7 @@ abstract class AppLocalizations {
   /// No description provided for @enum_qualityCategory_tank.
   ///
   /// In en, this message translates to:
-  /// **'Tank'**
+  /// **'Cylinder'**
   String get enum_qualityCategory_tank;
 
   /// No description provided for @enum_qualityCategory_temperature.
@@ -48360,13 +48708,13 @@ abstract class AppLocalizations {
   /// No description provided for @settings_manage_tankPresets.
   ///
   /// In en, this message translates to:
-  /// **'Tank Presets'**
+  /// **'Cylinder Presets'**
   String get settings_manage_tankPresets;
 
   /// No description provided for @settings_manage_tankPresets_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Manage custom tank configurations'**
+  /// **'Manage custom cylinder configurations'**
   String get settings_manage_tankPresets_subtitle;
 
   /// No description provided for @settings_manage_weightPresets.
@@ -49662,7 +50010,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_section_manage_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Dive types & tank presets'**
+  /// **'Dive types & cylinder presets'**
   String get settings_section_manage_subtitle;
 
   /// No description provided for @settings_section_manage_title.
@@ -50572,13 +50920,13 @@ abstract class AppLocalizations {
   /// No description provided for @settings_units_gasConsumption_rmv_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Gas volume breathed per minute at the surface ({unit}). Needs a tank volume.'**
+  /// **'Gas volume breathed per minute at the surface ({unit}). Needs a cylinder volume.'**
   String settings_units_gasConsumption_rmv_subtitle(String unit);
 
   /// No description provided for @settings_units_gasConsumption_sac_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Tank pressure drop per minute ({unit}). Works with any logged pressures.'**
+  /// **'Cylinder pressure drop per minute ({unit}). Works with any logged pressures.'**
   String settings_units_gasConsumption_sac_subtitle(String unit);
 
   /// No description provided for @settings_units_dialog_gasConsumption.
@@ -52033,13 +52381,13 @@ abstract class AppLocalizations {
   /// No description provided for @insights_gas_tankConfig_title.
   ///
   /// In en, this message translates to:
-  /// **'Tank configuration'**
+  /// **'Cylinder configuration'**
   String get insights_gas_tankConfig_title;
 
   /// No description provided for @insights_gas_tankConfig_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Dives by how the tanks were set up'**
+  /// **'Dives by how the cylinders were set up'**
   String get insights_gas_tankConfig_subtitle;
 
   /// No description provided for @insights_gas_tankConfig_configurationHeading.
@@ -52087,7 +52435,7 @@ abstract class AppLocalizations {
   /// No description provided for @insights_gas_tankConfig_noTanks.
   ///
   /// In en, this message translates to:
-  /// **'No tanks logged'**
+  /// **'No cylinders logged'**
   String get insights_gas_tankConfig_noTanks;
 
   /// No description provided for @insights_gas_tankConfig_stages.
@@ -52207,7 +52555,7 @@ abstract class AppLocalizations {
   /// No description provided for @insights_gas_tankConfig_error.
   ///
   /// In en, this message translates to:
-  /// **'Unable to load tank configuration'**
+  /// **'Unable to load cylinder configuration'**
   String get insights_gas_tankConfig_error;
 
   /// No description provided for @insights_focus_title.
@@ -52816,7 +53164,7 @@ abstract class AppLocalizations {
   /// No description provided for @insights_focus_factor_tankVolume.
   ///
   /// In en, this message translates to:
-  /// **'Tank size'**
+  /// **'Cylinder size'**
   String get insights_focus_factor_tankVolume;
 
   /// No description provided for @insights_focus_factor_suit.
@@ -55586,7 +55934,7 @@ abstract class AppLocalizations {
   /// No description provided for @tank_al30Stage_description.
   ///
   /// In en, this message translates to:
-  /// **'Aluminum 30 cu ft stage tank'**
+  /// **'Aluminum 30 cu ft stage cylinder'**
   String get tank_al30Stage_description;
 
   /// No description provided for @tank_al30Stage_displayName.
@@ -55598,7 +55946,7 @@ abstract class AppLocalizations {
   /// No description provided for @tank_al40Stage_description.
   ///
   /// In en, this message translates to:
-  /// **'Aluminum 40 cu ft stage tank'**
+  /// **'Aluminum 40 cu ft stage cylinder'**
   String get tank_al40Stage_description;
 
   /// No description provided for @tank_al40Stage_displayName.
@@ -58016,7 +58364,7 @@ abstract class AppLocalizations {
   /// No description provided for @trips_cylinders_record_unlinked.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{{count} dive tank not linked to a cylinder} other{{count} dive tanks not linked to a cylinder}}'**
+  /// **'{count, plural, one{{count} dive cylinder not linked to one on this board} other{{count} dive cylinders not linked to one on this board}}'**
   String trips_cylinders_record_unlinked(int count);
 
   /// No description provided for @trips_cylinders_record_unlinkedTitle.
@@ -58028,7 +58376,7 @@ abstract class AppLocalizations {
   /// No description provided for @trips_cylinders_record_tank.
   ///
   /// In en, this message translates to:
-  /// **'Tank {number}'**
+  /// **'Cylinder {number}'**
   String trips_cylinders_record_tank(int number);
 
   /// No description provided for @trips_cylinders_record_filled.
@@ -58148,7 +58496,7 @@ abstract class AppLocalizations {
   /// No description provided for @trips_cylinders_bottle.
   ///
   /// In en, this message translates to:
-  /// **'Bottle {label}'**
+  /// **'Cylinder {label}'**
   String trips_cylinders_bottle(String label);
 
   /// No description provided for @trips_cylinders_linkedDives.
@@ -58220,7 +58568,7 @@ abstract class AppLocalizations {
   /// No description provided for @trips_cylinders_deleteConfirmUsed.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, one{Delete this cylinder and its fills? {count} dive used it. That dive keeps its tank; only the link is removed.} other{Delete this cylinder and its fills? {count} dives used it. Those dives keep their tanks; only the link is removed.}}'**
+  /// **'{count, plural, one{Delete this cylinder and its fills? {count} dive used it. That dive keeps its own record of the cylinder; only the link is removed.} other{Delete this cylinder and its fills? {count} dives used it. Those dives keep their own record of it; only the link is removed.}}'**
   String trips_cylinders_deleteConfirmUsed(int count);
 
   /// No description provided for @trips_cylinders_deleteEventConfirm.
@@ -58334,7 +58682,7 @@ abstract class AppLocalizations {
   /// No description provided for @trips_cylinders_fill_bottle.
   ///
   /// In en, this message translates to:
-  /// **'Bottle number'**
+  /// **'Cylinder number'**
   String get trips_cylinders_fill_bottle;
 
   /// No description provided for @trips_cylinders_fill_cost.
@@ -58994,7 +59342,7 @@ abstract class AppLocalizations {
   /// No description provided for @universalImport_summary_noticeNoTankPressureTitle.
   ///
   /// In en, this message translates to:
-  /// **'Tank pressure not recorded'**
+  /// **'Cylinder pressure not recorded'**
   String get universalImport_summary_noticeNoTankPressureTitle;
 
   /// No description provided for @universalImport_summary_noticeNoTankPressureBody.
@@ -61189,7 +61537,7 @@ abstract class AppLocalizations {
   /// No description provided for @divePlanner_segmentEditor_tankGas.
   ///
   /// In en, this message translates to:
-  /// **'Tank / Gas'**
+  /// **'Cylinder / Gas'**
   String get divePlanner_segmentEditor_tankGas;
 
   /// No description provided for @divePlanner_segmentList_addSegment.
@@ -61377,7 +61725,7 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_rockBottom_tankSize.
   ///
   /// In en, this message translates to:
-  /// **'Tank Size'**
+  /// **'Cylinder Size'**
   String get gasCalculators_rockBottom_tankSize;
 
   /// No description provided for @gasCalculators_rockBottom_totalReserveNeeded.
@@ -62293,7 +62641,7 @@ abstract class AppLocalizations {
   /// No description provided for @tankPresets_addPreset.
   ///
   /// In en, this message translates to:
-  /// **'Add tank preset'**
+  /// **'Add cylinder preset'**
   String get tankPresets_addPreset;
 
   /// No description provided for @tankPresets_builtInPresets.
@@ -62305,7 +62653,7 @@ abstract class AppLocalizations {
   /// No description provided for @tankPresets_builtInPresets_description.
   ///
   /// In en, this message translates to:
-  /// **'Switch off the presets you don\'t use to hide them from the tank pickers. The default preset is always shown.'**
+  /// **'Switch off the presets you don\'t use to hide them from the cylinder pickers. The default preset is always shown.'**
   String get tankPresets_builtInPresets_description;
 
   /// No description provided for @tankPresets_currentDefault.
@@ -62323,19 +62671,19 @@ abstract class AppLocalizations {
   /// No description provided for @tankPresets_defaultSettings.
   ///
   /// In en, this message translates to:
-  /// **'Default Tank'**
+  /// **'Default Cylinder'**
   String get tankPresets_defaultSettings;
 
   /// No description provided for @tankPresets_defaultSettings_description.
   ///
   /// In en, this message translates to:
-  /// **'The starred preset is used as the default tank when logging new dives.'**
+  /// **'The starred preset is used as the default cylinder when logging new dives.'**
   String get tankPresets_defaultSettings_description;
 
   /// No description provided for @tankPresets_deleteDefaultMessage.
   ///
   /// In en, this message translates to:
-  /// **'Are you sure you want to delete \"{name}\"? This is your current default tank preset and will be reset to AL80.'**
+  /// **'Are you sure you want to delete \"{name}\"? This is your current default cylinder preset and will be reset to AL80.'**
   String tankPresets_deleteDefaultMessage(String name);
 
   /// No description provided for @tankPresets_deleteMessage.
@@ -62353,7 +62701,7 @@ abstract class AppLocalizations {
   /// No description provided for @tankPresets_deleteTitle.
   ///
   /// In en, this message translates to:
-  /// **'Delete Tank Preset?'**
+  /// **'Delete Cylinder Preset?'**
   String get tankPresets_deleteTitle;
 
   /// No description provided for @tankPresets_deleted.
@@ -62361,6 +62709,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deleted \"{name}\"'**
   String tankPresets_deleted(Object name);
+
+  /// Tooltip of the button on a built-in cylinder preset (issue #800) that opens the new-preset form filled from it.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get tankPresets_duplicatePreset;
+
+  /// Name a duplicated built-in preset starts with (issue #800).
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (copy)'**
+  String tankPresets_duplicateName(String name);
+
+  /// Name a duplicate starts with when a copy of that preset already exists (issue #800): the second copy is number 2.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (copy {number})'**
+  String tankPresets_duplicateNameNumbered(String name, int number);
 
   /// No description provided for @tankPresets_editPreset.
   ///
@@ -62377,7 +62743,7 @@ abstract class AppLocalizations {
   /// No description provided for @tankPresets_edit_descriptionHint.
   ///
   /// In en, this message translates to:
-  /// **'e.g., My rental tank from dive shop'**
+  /// **'e.g., My rental cylinder from dive shop'**
   String get tankPresets_edit_descriptionHint;
 
   /// No description provided for @tankPresets_edit_descriptionOptional.
@@ -62401,7 +62767,7 @@ abstract class AppLocalizations {
   /// No description provided for @tankPresets_edit_notFound.
   ///
   /// In en, this message translates to:
-  /// **'This tank preset no longer exists.'**
+  /// **'This cylinder preset no longer exists.'**
   String get tankPresets_edit_notFound;
 
   /// No description provided for @tankPresets_edit_gasCapacity.
@@ -62425,7 +62791,7 @@ abstract class AppLocalizations {
   /// No description provided for @tankPresets_edit_nameHelper.
   ///
   /// In en, this message translates to:
-  /// **'A friendly name for this tank preset'**
+  /// **'A friendly name for this cylinder preset'**
   String get tankPresets_edit_nameHelper;
 
   /// No description provided for @tankPresets_edit_nameHint.
@@ -62455,13 +62821,13 @@ abstract class AppLocalizations {
   /// No description provided for @tankPresets_edit_tankSpecifications.
   ///
   /// In en, this message translates to:
-  /// **'Tank Specifications'**
+  /// **'Cylinder Specifications'**
   String get tankPresets_edit_tankSpecifications;
 
   /// No description provided for @tankPresets_edit_title.
   ///
   /// In en, this message translates to:
-  /// **'Edit Tank Preset'**
+  /// **'Edit Cylinder Preset'**
   String get tankPresets_edit_title;
 
   /// No description provided for @tankPresets_edit_updated.
@@ -62539,7 +62905,7 @@ abstract class AppLocalizations {
   /// No description provided for @tankPresets_applyToImports_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Fill in missing tank data on imported dives using the default preset'**
+  /// **'Fill in missing cylinder data on imported dives using the default preset'**
   String get tankPresets_applyToImports_subtitle;
 
   /// No description provided for @tankPresets_defaultStartPressure.
@@ -62551,7 +62917,7 @@ abstract class AppLocalizations {
   /// No description provided for @tankPresets_defaultStartPressure_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Filled in on new tanks, and on imported tanks with no start pressure when the default tank is applied to imports'**
+  /// **'Filled in on new cylinders, and on imported cylinders with no start pressure when the default cylinder is applied to imports'**
   String get tankPresets_defaultStartPressure_subtitle;
 
   /// No description provided for @tankPresets_defaultStartPressure_range.
@@ -62563,13 +62929,13 @@ abstract class AppLocalizations {
   /// No description provided for @tankPresets_new_title.
   ///
   /// In en, this message translates to:
-  /// **'New Tank Preset'**
+  /// **'New Cylinder Preset'**
   String get tankPresets_new_title;
 
   /// No description provided for @tankPresets_noPresets.
   ///
   /// In en, this message translates to:
-  /// **'No tank presets available'**
+  /// **'No cylinder presets available'**
   String get tankPresets_noPresets;
 
   /// No description provided for @tankPresets_setAsDefault.
@@ -62581,13 +62947,13 @@ abstract class AppLocalizations {
   /// No description provided for @tankPresets_showInPickers.
   ///
   /// In en, this message translates to:
-  /// **'Show in tank pickers'**
+  /// **'Show in cylinder pickers'**
   String get tankPresets_showInPickers;
 
   /// No description provided for @tankPresets_title.
   ///
   /// In en, this message translates to:
-  /// **'Tank Presets'**
+  /// **'Cylinder Presets'**
   String get tankPresets_title;
 
   /// No description provided for @tools_gpsLogger_title.
@@ -62647,7 +63013,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_tankPressureAtSurfacing_title.
   ///
   /// In en, this message translates to:
-  /// **'Tank pressure at surfacing'**
+  /// **'Cylinder pressure at surfacing'**
   String get settings_tankPressureAtSurfacing_title;
 
   /// No description provided for @settings_tankPressureAtSurfacing_subtitle.
@@ -63181,7 +63547,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveField_category_tank.
   ///
   /// In en, this message translates to:
-  /// **'Tank'**
+  /// **'Cylinder'**
   String get diveField_category_tank;
 
   /// No description provided for @diveField_category_weight.
@@ -65064,7 +65430,7 @@ abstract class AppLocalizations {
   /// No description provided for @tools_weight_addTank.
   ///
   /// In en, this message translates to:
-  /// **'Add tank'**
+  /// **'Add cylinder'**
   String get tools_weight_addTank;
 
   /// No description provided for @tools_weight_basedOnDives.
@@ -65184,7 +65550,7 @@ abstract class AppLocalizations {
   /// No description provided for @tools_weight_tanks.
   ///
   /// In en, this message translates to:
-  /// **'Tanks'**
+  /// **'Cylinders'**
   String get tools_weight_tanks;
 
   /// No description provided for @tools_weight_useSet.
@@ -65754,7 +66120,7 @@ abstract class AppLocalizations {
   /// No description provided for @dive3d_readout_tank.
   ///
   /// In en, this message translates to:
-  /// **'Tank {n}'**
+  /// **'Cylinder {n}'**
   String dive3d_readout_tank(int n);
 
   /// No description provided for @dive3d_scene_dive.
@@ -68658,13 +69024,13 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_detail_sacSegmentsNoPressure.
   ///
   /// In en, this message translates to:
-  /// **'Only start and end tank pressures were recorded, so gas use can\'t be split into segments. A breakdown needs pressure readings taken during the dive, such as from an air-integrated transmitter. The whole-dive average appears under Cylinders.'**
+  /// **'Only start and end cylinder pressures were recorded, so gas use can\'t be split into segments. A breakdown needs pressure readings taken during the dive, such as from an air-integrated transmitter. The whole-dive average appears under Cylinders.'**
   String get diveLog_detail_sacSegmentsNoPressure;
 
   /// No description provided for @diveLog_detail_sacSegmentsNoPressure_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'No tank pressure recorded during the dive'**
+  /// **'No cylinder pressure recorded during the dive'**
   String get diveLog_detail_sacSegmentsNoPressure_subtitle;
 
   /// Heading of the time chart and of the duration column in the gas consumption by segment card
@@ -70917,13 +71283,13 @@ abstract class AppLocalizations {
   /// **'Recorded by {computer}'**
   String dataQuality_dive_recordedBy(String computer);
 
-  /// Names the tank or tanks a finding is about, e.g. 'Affects Tank 2' or 'Affects Tank 1, Tank 2'.
+  /// Names the cylinder or cylinders a finding is about, e.g. 'Affects Cylinder 2' or 'Affects Cylinder 1, Cylinder 2'.
   ///
   /// In en, this message translates to:
   /// **'Affects {tanks}'**
   String dataQuality_dive_tanks(String tanks);
 
-  /// The two tanks of a twin-tank finding inside dataQuality_dive_tanks, e.g. 'Tank 1 and Tank 2'.
+  /// The two cylinders of a twin-cylinder finding inside dataQuality_dive_tanks, e.g. 'Cylinder 1 and Cylinder 2'.
   ///
   /// In en, this message translates to:
   /// **'{first} and {second}'**
@@ -71082,7 +71448,7 @@ abstract class AppLocalizations {
   /// No description provided for @dataQuality_chip_tanks.
   ///
   /// In en, this message translates to:
-  /// **'Tanks'**
+  /// **'Cylinders'**
   String get dataQuality_chip_tanks;
 
   /// No description provided for @dataQuality_chip_duplicates.
@@ -71322,7 +71688,7 @@ abstract class AppLocalizations {
   /// No description provided for @dataQuality_msg_pressureEndpoint.
   ///
   /// In en, this message translates to:
-  /// **'Tank record says {record} but the sensor series shows {series}'**
+  /// **'Cylinder record says {record} but the sensor series shows {series}'**
   String dataQuality_msg_pressureEndpoint(String record, String series);
 
   /// No description provided for @dataQuality_msg_pressureRise.
@@ -71387,7 +71753,7 @@ abstract class AppLocalizations {
   /// No description provided for @dataQuality_msg_tankInactive.
   ///
   /// In en, this message translates to:
-  /// **'This tank lost {drop} while the gas timeline says it was not in use'**
+  /// **'This cylinder lost {drop} while the gas timeline says it was not in use'**
   String dataQuality_msg_tankInactive(String drop);
 
   /// Missing gas switch finding: {switches} is a list of {count} dataQuality_msg_missingSwitchItem entries.
@@ -71454,7 +71820,7 @@ abstract class AppLocalizations {
   /// No description provided for @dataQuality_msg_transmitterRoleBailout.
   ///
   /// In en, this message translates to:
-  /// **'Tank {tankNumber} is marked {role} from its transmitter\'s name, but it lost {ocDrop} after the switch to open circuit and almost none on the loop, so it looks like the bailout. A bailout that was never breathed, or one breathed without a gas switch on the computer, cannot be detected this way.'**
+  /// **'Cylinder {tankNumber} is marked {role} from its transmitter\'s name, but it lost {ocDrop} after the switch to open circuit and almost none on the loop, so it looks like the bailout. A bailout that was never breathed, or one breathed without a gas switch on the computer, cannot be detected this way.'**
   String dataQuality_msg_transmitterRoleBailout(
     int tankNumber,
     String role,
@@ -71464,7 +71830,7 @@ abstract class AppLocalizations {
   /// No description provided for @dataQuality_msg_twinTanks.
   ///
   /// In en, this message translates to:
-  /// **'Two tanks carry a near-identical pressure series'**
+  /// **'Two cylinders carry a near-identical pressure series'**
   String get dataQuality_msg_twinTanks;
 
   /// No description provided for @dataQuality_msg_sourceDepth.
@@ -71731,13 +72097,13 @@ abstract class AppLocalizations {
   /// No description provided for @dataQuality_repairLabel_swapSeries.
   ///
   /// In en, this message translates to:
-  /// **'Swap tank series'**
+  /// **'Swap cylinder series'**
   String get dataQuality_repairLabel_swapSeries;
 
   /// No description provided for @dataQuality_repairLabel_reassignSeries.
   ///
   /// In en, this message translates to:
-  /// **'Move series to another tank'**
+  /// **'Move series to another cylinder'**
   String get dataQuality_repairLabel_reassignSeries;
 
   /// Repair button that writes the suggested gas switches to the dive.
@@ -72775,7 +73141,7 @@ abstract class AppLocalizations {
   /// No description provided for @enum_diveField_tankCount.
   ///
   /// In en, this message translates to:
-  /// **'Tank Count'**
+  /// **'Cylinder Count'**
   String get enum_diveField_tankCount;
 
   /// No description provided for @enum_diveField_startPressure.
@@ -73501,7 +73867,7 @@ abstract class AppLocalizations {
   /// No description provided for @enum_diveField_tankCount_short.
   ///
   /// In en, this message translates to:
-  /// **'Tanks'**
+  /// **'Cylinders'**
   String get enum_diveField_tankCount_short;
 
   /// No description provided for @enum_diveField_startPressure_short.
@@ -73822,6 +74188,30 @@ abstract class AppLocalizations {
   /// **'Mooring Number'**
   String get enum_siteField_mooringNumber;
 
+  /// No description provided for @enum_siteField_address.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get enum_siteField_address;
+
+  /// No description provided for @enum_siteField_phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get enum_siteField_phone;
+
+  /// No description provided for @enum_siteField_email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get enum_siteField_email;
+
+  /// No description provided for @enum_siteField_website.
+  ///
+  /// In en, this message translates to:
+  /// **'Website'**
+  String get enum_siteField_website;
+
   /// No description provided for @enum_siteField_hazards.
   ///
   /// In en, this message translates to:
@@ -73971,6 +74361,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mooring'**
   String get enum_siteField_mooringNumber_short;
+
+  /// No description provided for @enum_siteField_address_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get enum_siteField_address_short;
+
+  /// No description provided for @enum_siteField_phone_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get enum_siteField_phone_short;
+
+  /// No description provided for @enum_siteField_email_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get enum_siteField_email_short;
+
+  /// No description provided for @enum_siteField_website_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Web'**
+  String get enum_siteField_website_short;
 
   /// No description provided for @enum_siteField_hazards_short.
   ///
@@ -84213,13 +84627,13 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_filterChip_tankConfigCount.
   ///
   /// In en, this message translates to:
-  /// **'{count} tank configurations'**
+  /// **'{count} cylinder configurations'**
   String diveLog_filterChip_tankConfigCount(Object count);
 
   /// No description provided for @diveLog_filterChip_tankExtrasCount.
   ///
   /// In en, this message translates to:
-  /// **'{count} tank extras'**
+  /// **'{count} cylinder extras'**
   String diveLog_filterChip_tankExtrasCount(Object count);
 
   /// No description provided for @diveLog_filter_sectionSpecies.
@@ -84978,7 +85392,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_decompression_gtrReserve_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Tank pressure the gas time remaining counts down to. The calculated GTR assumes a direct ascent at 10 m/min with no stops.'**
+  /// **'Cylinder pressure the gas time remaining counts down to. The calculated GTR assumes a direct ascent at 10 m/min with no stops.'**
   String get settings_decompression_gtrReserve_subtitle;
 
   /// Snackbar after the offset is applied. hours is the signed offset as text; hoursAbs drives the hour/hours plural.
@@ -91135,7 +91549,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLab_buoyancy_unavailable.
   ///
   /// In en, this message translates to:
-  /// **'Buoyancy needs tanks or an exposure suit on the dive.'**
+  /// **'Buoyancy needs cylinders or an exposure suit on the dive.'**
   String get diveLab_buoyancy_unavailable;
 
   /// No description provided for @diveLab_sheet_ascentRate.
@@ -93318,13 +93732,13 @@ abstract class AppLocalizations {
   /// No description provided for @dataQuality_useAsBailout_title.
   ///
   /// In en, this message translates to:
-  /// **'Make this tank the bailout?'**
+  /// **'Make this cylinder the bailout?'**
   String get dataQuality_useAsBailout_title;
 
   /// No description provided for @dataQuality_useAsBailout_merge.
   ///
   /// In en, this message translates to:
-  /// **'Removes the duplicate Bailout cylinder (switches move to Tank {tankNumber})'**
+  /// **'Removes the duplicate Bailout cylinder (switches move to Cylinder {tankNumber})'**
   String dataQuality_useAsBailout_merge(int tankNumber);
 
   /// No description provided for @dataQuality_useAsBailout_register.
@@ -94701,19 +95115,19 @@ abstract class AppLocalizations {
   /// No description provided for @diveCenters_rental_applied.
   ///
   /// In en, this message translates to:
-  /// **'Weights and tanks copied from your last dive here.'**
+  /// **'Weights and cylinders copied from your last dive here.'**
   String get diveCenters_rental_applied;
 
   /// No description provided for @diveCenters_rental_applyConfirmTitle.
   ///
   /// In en, this message translates to:
-  /// **'Replace weights and tanks?'**
+  /// **'Replace weights and cylinders?'**
   String get diveCenters_rental_applyConfirmTitle;
 
   /// No description provided for @diveCenters_rental_applyConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'This dive already has weights or tanks. Replace them with the ones from your last dive here?'**
+  /// **'This dive already has weights or cylinders. Replace them with the ones from your last dive here?'**
   String get diveCenters_rental_applyConfirmBody;
 
   /// No description provided for @diveCenters_rental_applyConfirmReplace.
@@ -94743,7 +95157,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveCenters_rental_tanksLabel.
   ///
   /// In en, this message translates to:
-  /// **'Tanks'**
+  /// **'Cylinders'**
   String get diveCenters_rental_tanksLabel;
 
   /// No description provided for @diveCenters_rental_verdictWorked.
@@ -95343,7 +95757,7 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
-  /// **'Number of tanks'**
+  /// **'Number of cylinders'**
   String get query_dives_gasCount;
 
   /// Field label in the query builder
@@ -95361,7 +95775,7 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
-  /// **'Tank configuration'**
+  /// **'Cylinder configuration'**
   String get query_dives_tankConfig;
 
   /// Field label in the query builder
@@ -95559,7 +95973,7 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
-  /// **'Tanks'**
+  /// **'Cylinders'**
   String get query_dives_tanks;
 
   /// Field label in the query builder
@@ -95775,7 +96189,7 @@ abstract class AppLocalizations {
   /// Field label in the query builder
   ///
   /// In en, this message translates to:
-  /// **'Tanks'**
+  /// **'Cylinders'**
   String get query_entity_tanks;
 
   /// Field label in the query builder
@@ -103978,7 +104392,7 @@ abstract class AppLocalizations {
   /// Section title on the equipment set editor: cylinder configurations this set applies.
   ///
   /// In en, this message translates to:
-  /// **'Tanks'**
+  /// **'Cylinders'**
   String get equipment_setEdit_tanks_title;
 
   /// Button on the equipment set editor that adds a cylinder configuration to this set.
@@ -104014,7 +104428,7 @@ abstract class AppLocalizations {
   /// Note on the equipment set editor when the set carries weights or tanks but no gear.
   ///
   /// In en, this message translates to:
-  /// **'A set with no gear does not appear on a dive as a set, so its weights and tanks have to be removed by hand.'**
+  /// **'A set with no gear does not appear on a dive as a set, so its weights and cylinders have to be removed by hand.'**
   String get equipment_setEdit_bundle_noGearHint;
 
   /// Marks a gear row on the equipment set page that comes from an included set. {setName} is that set's name.
@@ -104074,7 +104488,7 @@ abstract class AppLocalizations {
   /// Label of a rule run change to a dive's tanks.
   ///
   /// In en, this message translates to:
-  /// **'Tanks'**
+  /// **'Cylinders'**
   String get rules_change_tanks;
 
   /// Title of a pre-dive check for the lead an equipment set carries. {total} is the total and {breakdown} lists each weight, both in the diver's unit.

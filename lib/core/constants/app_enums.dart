@@ -24,7 +24,7 @@ enum EquipmentType {
   // Rig accessories requested in #1877. Divers had been filing them under
   // BCD, which buried the real BCDs under cam bands and pouches whenever the
   // list was filtered or grouped by type.
-  tankBand('Tank Band'),
+  tankBand('Cylinder Band'),
   weightPocket('Weight Pocket'),
   gearPocket('Gear Pocket'),
   wetsuit('Wetsuit'),
@@ -52,7 +52,7 @@ enum EquipmentType {
   transmitter('Transmitter'),
   instrument('Instrument / Gauge'),
   compass('Compass'),
-  tank('Tank'),
+  tank('Cylinder'),
   rebreather('Rebreather'),
   weights('Weights'),
   light('Light'),
@@ -98,6 +98,13 @@ enum EquipmentType {
 
   final String displayName;
   const EquipmentType(this.displayName);
+
+  /// English names an older export wrote, before cylinders were called
+  /// cylinders (issue #5106), that the code name does not already match:
+  /// 'Tank' reads back through the `tank` fallback, 'Tank Band' needs this.
+  static const Map<String, EquipmentType> legacyDisplayNames = {
+    'tank band': EquipmentType.tankBand,
+  };
 }
 
 /// Visibility conditions.
@@ -312,7 +319,7 @@ enum TankRole {
   bailout('Bailout'),
   sidemountLeft('Sidemount Left'),
   sidemountRight('Sidemount Right'),
-  pony('Pony Bottle'),
+  pony('Pony'),
   diluent('Diluent'), // CCR diluent tank
   oxygenSupply('O₂ Supply'), // CCR oxygen supply cylinder
 

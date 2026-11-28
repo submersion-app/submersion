@@ -40,7 +40,7 @@ Common diving and app terms used throughout this guide, in alphabetical order.
 
 **Nitrox (EANx):** Any air enriched with more than 21% oxygen, the rest nitrogen; also called Enriched Air Nitrox (EANx, where x is the oxygen percentage, as in EAN32). More oxygen lowers the MOD but lengthens the NDL at moderate depths. Submersion names any mix above 21% oxygen with no helium EAN and its percentage. See [Logging Dives](dive-logging.md) and [Planning & Calculators](planning.md).
 
-**OC (open circuit):** Standard scuba: you breathe from a tank through a regulator and exhale each breath into the water. This is Submersion's default dive mode; the others are CCR, SCR and Gauge. See [Logging Dives](dive-logging.md).
+**OC (open circuit):** Standard scuba: you breathe from a cylinder through a regulator and exhale each breath into the water. This is Submersion's default dive mode; the others are CCR, SCR and Gauge. See [Logging Dives](dive-logging.md).
 
 **OTU (oxygen tolerance unit):** A measure of total lung (pulmonary) oxygen exposure, from the formula OTU = t × ((ppO₂ − 0.5) / 0.5)^0.833, where t is time in minutes. Submersion shows OTU as a profile overlay, and **Current CNS/OTU load** compares it with a daily limit of 300 and a weekly limit of 850. See [Dive Profiles & Deco](dive-profiles.md).
 
@@ -48,16 +48,16 @@ Common diving and app terms used throughout this guide, in alphabetical order.
 
 **RBT (remaining bottom time):** How much longer you can stay at your current depth, within both your decompression limits and your gas. Some dive computers show it live. Submersion does not show RBT as one figure; NDL and GTR give its two halves. See [Dive Profiles & Deco](dive-profiles.md).
 
-**RMV (respiratory minute volume):** The volume of gas you breathe per minute, scaled to the surface, in litres per minute (L/min) or cubic feet per minute. It needs a tank volume to work out. Settings can show it alongside or instead of SAC. See [Settings](settings.md#units).
+**RMV (respiratory minute volume):** The volume of gas you breathe per minute, scaled to the surface, in litres per minute (L/min) or cubic feet per minute. It needs a cylinder volume to work out. Settings can show it alongside or instead of SAC. See [Settings](settings.md#units).
 
 **Runtime:** The total time of a dive from entry to exit, including descent and ascent. Your gas consumption is calculated from runtime and average depth, so accurate entry and exit times give meaningful figures. See [Logging Dives](dive-logging.md).
 
-**SAC (surface air consumption):** Your breathing rate as tank pressure used per minute, scaled to the surface (bar/min or psi/min). It works with any logged pressures, even without a tank volume. A lower SAC means more efficient breathing. See [Insights](statistics.md) and [Planning & Calculators](planning.md).
+**SAC (surface air consumption):** Your breathing rate as cylinder pressure used per minute, scaled to the surface (bar/min or psi/min). It works with any logged pressures, even without a cylinder volume. A lower SAC means more efficient breathing. See [Insights](statistics.md) and [Planning & Calculators](planning.md).
 
 > [!NOTE]
 > **SAC or RMV?** Both measure how fast you breathe, scaled to the surface so
 > dives at different depths compare. SAC is in pressure per minute, so it is tied
-> to the tank you used; RMV is in volume per minute, so it compares across tanks
+> to the cylinder you used; RMV is in volume per minute, so it compares across cylinders
 > of different sizes. **Gas consumption** in **Settings > Units** chooses which
 > one Submersion shows, or both (the default).
 

@@ -31,6 +31,7 @@ class SuggestionFormRow extends StatefulWidget {
     this.trailing,
     this.markdown = false,
     this.autofocus = false,
+    this.keyboardType,
   }) : assert(
          !markdown || suggestions.length == 0,
          'A Markdown notes row offers no suggestions',
@@ -55,6 +56,9 @@ class SuggestionFormRow extends StatefulWidget {
   /// Whether the field takes the focus as it first appears: where a new
   /// record starts (a new site's name, issue #4527).
   final bool autofocus;
+
+  /// The keyboard to offer; null leaves the text field's default.
+  final TextInputType? keyboardType;
 
   @override
   State<SuggestionFormRow> createState() => _SuggestionFormRowState();
@@ -172,6 +176,7 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
                             autofocus: widget.autofocus,
                             validator: widget.validator,
                             textCapitalization: widget.textCapitalization,
+                            keyboardType: widget.keyboardType,
                             maxLines: widget.maxLines,
                             textAlign: widget.maxLines > 1
                                 ? TextAlign.start

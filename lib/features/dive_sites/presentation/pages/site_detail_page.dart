@@ -38,6 +38,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/environment_en
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_contact_card.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_pin_directions_button.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_opening_hours_card.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_delete_usage.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_card.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
@@ -547,6 +550,18 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
       },
       SiteDetailSectionId.location: () =>
           watching((context, ref) => _buildLocationSection(context, ref, site)),
+      SiteDetailSectionId.contact: () => _shownWhileLaidOut(
+        SiteDetailSectionId.contact,
+        laidOut: laidOut,
+        site: site,
+        build: (context) => SiteContactCard(site: site),
+      ),
+      SiteDetailSectionId.openingHours: () => _shownWhileLaidOut(
+        SiteDetailSectionId.openingHours,
+        laidOut: laidOut,
+        site: site,
+        build: (context) => SiteOpeningHoursCard(site: site),
+      ),
       // The terrain needs coordinates to look up. A site whose bathymetry
       // comes back empty keeps the card and shows the pane's no-data state,
       // so the cards below never jump once the lookup finishes.
@@ -1352,27 +1367,41 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent>
               // What kind of place this is (issue #1765), beside the body of
               // water it overlaps with: "Lake, Wreck".
               _buildSiteTypesRow(context, ref, site),
-              _buildDetailRow(
-                context,
-                Icons.gps_fixed,
-                context.l10n.diveSites_detail_location_gpsCoordinates,
-                site.hasCoordinates
-                    ? coordinates
-                    : context.l10n.diveSites_detail_location_notSet,
-                isEmpty: !site.hasCoordinates,
-                onTap: site.hasCoordinates
-                    ? () {
-                        Clipboard.setData(ClipboardData(text: coordinates));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              context.l10n.diveSites_detail_coordinatesCopied,
-                            ),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      }
-                    : null,
+              // Directions from the pin when there is no address to take
+              // the diver there instead (issue #5073).
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildDetailRow(
+                      context,
+                      Icons.gps_fixed,
+                      context.l10n.diveSites_detail_location_gpsCoordinates,
+                      site.hasCoordinates
+                          ? coordinates
+                          : context.l10n.diveSites_detail_location_notSet,
+                      isEmpty: !site.hasCoordinates,
+                      onTap: site.hasCoordinates
+                          ? () {
+                              Clipboard.setData(
+                                ClipboardData(text: coordinates),
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    context
+                                        .l10n
+                                        .diveSites_detail_coordinatesCopied,
+                                  ),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          : null,
+                    ),
+                  ),
+                  // It decides for itself, from the section settings.
+                  if (site.hasCoordinates) SitePinDirectionsButton(site: site),
+                ],
               ),
             ],
           ),

@@ -267,7 +267,7 @@ void main() {
       );
       // Tanks: -2.0 at the first sample, -1.0 at the last.
       expect(
-        find.text('Gas breathed left the tanks 1.0 kg lighter'),
+        find.text('Gas breathed left the cylinders 1.0 kg lighter'),
         findsOneWidget,
       );
     });
@@ -300,7 +300,7 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.text('Gas breathed left the tanks 2.2 lbs lighter'),
+      find.text('Gas breathed left the cylinders 2.2 lbs lighter'),
       findsOneWidget,
     );
     expect(find.textContaining(' kg'), findsNothing);
