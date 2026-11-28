@@ -8,7 +8,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart'
     show CloudProviderType;
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
+import 'package:submersion/features/auto_update/presentation/providers/hosted_web_site_provider.dart';
 import 'package:submersion/features/divers/data/repositories/diver_merge_repository.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/domain/data_health/feature_health.dart';
@@ -423,7 +423,9 @@ class _CloudSyncPageState extends ConsumerState<CloudSyncPage>
           SkippedPeerBanner(peers: syncState.skippedPeerLabels),
           NewerSchemaPeerBanner(
             peers: syncState.newerSchemaPeerLabels,
-            releaseChannel: ref.watch(releaseChannelProvider),
+            // Beta on the beta web site, which always runs the newest
+            // beta (#4481).
+            releaseChannel: ref.watch(effectiveReleaseChannelProvider),
           ),
           OlderSchemaPeerBanner(peers: syncState.olderSchemaPeerLabels),
           ReadFailedPeerBanner(peers: syncState.readFailedPeerLabels),

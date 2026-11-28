@@ -26,9 +26,9 @@ const _hostSpellings = [
 ];
 
 /// A host constant interpolated into a string (`$k...`, `${k...`) or joined
-/// with `+` on either side, in lowercased code.
+/// with `+` (or `+=`) on either side, in lowercased code.
 final _hostConstantInString = RegExp(
-  r'(\$\{?|\+\s*)k(?:stable|beta)websitehost\b'
+  r'(\$\{?|\+=?\s*)k(?:stable|beta)websitehost\b'
   r'|\bk(?:stable|beta)websitehost\s*\+',
 );
 
@@ -121,6 +121,7 @@ void main() {
       [2],
     );
     expect(addressLines(r"final s = '${kStableWebSiteHost}x';"), [1]);
+    expect(addressLines("var u = _https;\nu += kBetaWebSiteHost;"), [2]);
     // A comment never reaches the compiled app.
     expect(
       addressLines(
@@ -162,7 +163,9 @@ void main() {
       reason:
           'Spell the host name and build the address at runtime '
           '(HostedWebSiteLinks.uri), or stage_hosted_site.py can no longer '
-          'tell whether a bundle is authorised for its site.',
+          'tell whether a bundle is authorised for its site. To show a host '
+          'on its own, use HostedWebSite.beta.uri!.host (or .stable), not '
+          'the constant in a string.',
     );
   });
 }
