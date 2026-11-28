@@ -82,6 +82,50 @@ void main() {
     expect(line.spots.first.x, 0);
   });
 
+  // The dashed flat rule at 0 degrees belongs to the trim axis: with another
+  // metric on the right axis it would be an unlabelled line.
+  Iterable<LineChartBarData> dashed(WidgetTester tester) =>
+      _bars(tester).where((b) => b.dashArray != null);
+
+  List<DiveProfilePoint> withTemperature() => [
+    for (final p in _trimmed()) p.copyWith(temperature: 24.0 - p.depth / 10),
+  ];
+
+  testWidgets('draws the flat rule when trim is the right axis', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _harness(
+        settings: const AppSettings(
+          defaultShowTrim: true,
+          defaultRightAxisMetric: ProfileRightAxisMetric.trim,
+        ),
+        profile: withTemperature(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(dashed(tester), hasLength(1));
+  });
+
+  testWidgets('no flat rule while another metric is the right axis', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _harness(
+        settings: const AppSettings(
+          defaultShowTrim: true,
+          defaultRightAxisMetric: ProfileRightAxisMetric.temperature,
+        ),
+        profile: withTemperature(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(_trimBars(tester), hasLength(1));
+    expect(dashed(tester), isEmpty);
+  });
+
   testWidgets('the legend names the line', (tester) async {
     await tester.pumpWidget(_harness(settings: _on, profile: _trimmed()));
     await tester.pumpAndSettle();

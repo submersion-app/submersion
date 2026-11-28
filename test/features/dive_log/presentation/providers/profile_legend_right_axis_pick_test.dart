@@ -111,6 +111,7 @@ void main() {
       ProfileRightAxisMetric.aveloBuoyancy: (s) => s.showAveloBuoyancy,
       ProfileRightAxisMetric.aveloGasRemaining: (s) => s.showAveloGasRemaining,
       ProfileRightAxisMetric.computerRmv: (s) => s.showComputerRmv,
+      ProfileRightAxisMetric.trim: (s) => s.showTrim,
     };
     expect(toggles.keys, unorderedEquals(ProfileRightAxisMetric.values));
 

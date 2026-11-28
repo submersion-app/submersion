@@ -19,6 +19,13 @@ void main() {
   }) => formatRightAxisTick(m, value, units, tickStep: step);
 
   group('formatRightAxisTick', () {
+    // Issue #5098: trim reads by its sign, head up above flat.
+    test('signs trim ticks either side of flat', () {
+      expect(tick(ProfileRightAxisMetric.trim, 10, step: 10), '+10');
+      expect(tick(ProfileRightAxisMetric.trim, -10, step: 10), '-10');
+      expect(tick(ProfileRightAxisMetric.trim, 0, step: 10), '0');
+    });
+
     // Issue #3055: a 3 C temperature range spread over eleven depth-grid
     // ticks printed 31, 31, 31, 30, 30, 30, 30, 29 ... at whole degrees.
     test('gives adjacent temperature ticks distinct labels', () {
@@ -69,6 +76,7 @@ void main() {
         ProfileRightAxisMetric.aveloBuoyancy: '+12.5',
         ProfileRightAxisMetric.aveloGasRemaining: '13',
         ProfileRightAxisMetric.computerRmv: '12.5',
+        ProfileRightAxisMetric.trim: '+13',
       };
       expect(expected.keys, containsAll(ProfileRightAxisMetric.values));
       for (final MapEntry(key: m, value: label) in expected.entries) {

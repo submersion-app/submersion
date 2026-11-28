@@ -4449,8 +4449,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           final neutralRule = buoyancyRange == null
               ? const <LineChartBarData>[]
               : [_buildNeutralRule(metricBand, buoyancyRange)];
-          // The trim line's dashed flat rule at 0 degrees (#5098).
-          final trimRange = _aveloShown(ProfileRightAxisMetric.trim)
+          // The trim line's dashed flat rule at 0 degrees (#5098), only on
+          // the trim axis: under another metric's axis it would be an
+          // unlabelled line.
+          final trimRange =
+              _aveloShown(ProfileRightAxisMetric.trim) &&
+                  effectiveRightAxisMetric == ProfileRightAxisMetric.trim
               ? aveloCurveRange(
                   ProfileRightAxisMetric.trim,
                   _aveloCurveOf(ProfileRightAxisMetric.trim),

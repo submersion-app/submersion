@@ -34,9 +34,9 @@ double _contrast(Color a, Color b) {
 }
 
 void main() {
-  test('has 26 distinct swatches, more than there are metrics', () {
+  test('has 27 distinct swatches, more than there are metrics', () {
     final argb = profileMetricSwatches.map((c) => c.toARGB32()).toSet();
-    expect(argb, hasLength(26));
+    expect(argb, hasLength(27));
     expect(argb.length, greaterThan(ProfileMetric.values.length));
   });
 
