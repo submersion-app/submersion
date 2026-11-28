@@ -136,6 +136,40 @@ void main() {
     });
   });
 
+  test(
+    'a retailer row kept under another id by a fold is the one written',
+    () async {
+      // A fold moves the folded item's rows without re-keying them, so the
+      // survivor's retailer row keeps the folded item's id.
+      await insertItem('reg', buddyId: 'anna');
+      await db
+          .into(db.equipmentAttributes)
+          .insert(
+            EquipmentAttributesCompanion.insert(
+              id: 'attr_folded_retailer',
+              equipmentId: 'reg',
+              attrKey: 'retailer',
+              valueText: const Value('Anna'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+
+      await BuddyRepository().deleteBuddy('anna');
+
+      expect((await item('reg')).sellerBuddyId, isNull);
+      expect(await retailer('reg'), 'Anna Berg');
+      final rows = await (db.select(
+        db.equipmentAttributes,
+      )..where((t) => t.equipmentId.equals('reg'))).get();
+      expect(rows.map((r) => r.id), ['attr_folded_retailer']);
+      expect(
+        await isPending('equipmentAttributes', 'attr_folded_retailer'),
+        isTrue,
+      );
+    },
+  );
+
   test('clearEquipmentSellerCenterLinks writes the centre\'s name', () async {
     await insertItem('reg', centerId: 'anchor', retailer: 'Anchor');
 

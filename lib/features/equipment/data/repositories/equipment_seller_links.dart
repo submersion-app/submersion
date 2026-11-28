@@ -155,19 +155,23 @@ Future<List<EquipmentData>> _soldBy(
   return rows;
 }
 
-Future<String?> _retailer(AppDatabase db, String equipmentId) async {
-  final row =
-      await (db.select(db.equipmentAttributes)..where(
-            (t) => t.id.equals(
-              EquipmentAttribute.curatedId(
-                equipmentId,
-                EquipmentAttrKeys.retailer,
-              ),
-            ),
-          ))
-          .getSingleOrNull();
-  return row?.valueText;
-}
+Future<String?> _retailer(AppDatabase db, String equipmentId) async =>
+    (await _retailerRow(db, equipmentId))?.valueText;
+
+/// Item [equipmentId]'s `retailer` row, found by its key rather than its id:
+/// a fold moves the folded item's rows without re-keying them, so the row
+/// can carry another item's curated id.
+Future<EquipmentAttributeRow?> _retailerRow(
+  AppDatabase db,
+  String equipmentId,
+) =>
+    (db.select(db.equipmentAttributes)..where(
+          (t) =>
+              t.equipmentId.equals(equipmentId) &
+              t.attrKey.equals(EquipmentAttrKeys.retailer) &
+              t.isCustom.equals(false),
+        ))
+        .getSingleOrNull();
 
 /// Sets item [equipmentId]'s links and its `retailer` row ([retailer] null
 /// or blank removes it, with a tombstone), and stages what changed.
@@ -193,13 +197,10 @@ Future<void> _write(
     localUpdatedAt: now,
   );
 
-  final attrId = EquipmentAttribute.curatedId(
-    equipmentId,
-    EquipmentAttrKeys.retailer,
-  );
-  final existing = await (db.select(
-    db.equipmentAttributes,
-  )..where((t) => t.id.equals(attrId))).getSingleOrNull();
+  final existing = await _retailerRow(db, equipmentId);
+  final attrId =
+      existing?.id ??
+      EquipmentAttribute.curatedId(equipmentId, EquipmentAttrKeys.retailer);
   final name = retailer?.trim();
   if (name == null || name.isEmpty) {
     if (existing == null) return;

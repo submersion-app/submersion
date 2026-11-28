@@ -1,4 +1,6 @@
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
 /// [next] as it may be saved over [stored] (null for a new item), for the
@@ -10,6 +12,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 ///   import): the links are dropped. Unless the new retailer is the linked
 ///   buddy's or centre's current name, which is the Seller field picking a
 ///   renamed seller again.
+/// - A linked item saved with its retailer unchanged takes the linked
+///   seller's current name, which exports and other profiles read.
 Future<EquipmentItem> applySellerRules(
   AppDatabase db, {
   required EquipmentItem? stored,
@@ -29,10 +33,27 @@ Future<EquipmentItem> applySellerRules(
   final linked = next.sellerBuddyId != null || next.sellerDiveCenterId != null;
   if (!linksKept || !linked) return next;
   final name = _trimmed(next.retailer);
-  if (name == _trimmed(stored.retailer)) return next;
-  if (name != null && name == await _linkedName(db, next)) return next;
+  final current = await _linkedName(db, next);
+  if (name == _trimmed(stored.retailer)) {
+    return current == null || current == name
+        ? next
+        : _withRetailer(next, current);
+  }
+  if (name != null && name == current) return next;
   return next.copyWith(clearSellerLinks: true);
 }
+
+EquipmentItem _withRetailer(EquipmentItem item, String name) => item.copyWith(
+  attributes: [
+    for (final a in item.attributes)
+      if (a.isCustom || a.key != EquipmentAttrKeys.retailer) a,
+    EquipmentAttribute.curated(
+      equipmentId: item.id,
+      key: EquipmentAttrKeys.retailer,
+      valueText: name,
+    ),
+  ],
+);
 
 String? _trimmed(String? value) {
   final t = value?.trim();

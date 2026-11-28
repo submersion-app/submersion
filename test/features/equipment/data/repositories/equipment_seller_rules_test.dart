@@ -94,6 +94,17 @@ void main() {
     expect(next.sellerBuddyId, 'b1');
   });
 
+  test('an unrelated save refreshes the name of a renamed seller', () async {
+    // Exports and other profiles read the name stored with the link.
+    final next = await applySellerRules(
+      db,
+      stored: item(retailer: 'Anna', buddy: 'b1'),
+      next: item(retailer: 'Anna', buddy: 'b1').copyWith(name: 'Reg 2'),
+    );
+    expect(next.sellerBuddyId, 'b1');
+    expect(next.retailer, 'Anna B.');
+  });
+
   test('a new link keeps whatever name came with it', () async {
     final next = await applySellerRules(
       db,

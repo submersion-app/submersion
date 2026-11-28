@@ -108,6 +108,55 @@ void main() {
     expect(chip, findsNothing);
   });
 
+  testWidgets('Enter keeps the typed name, linking nothing', (tester) async {
+    final emitted = await pump(tester);
+
+    await tester.enterText(field, 'Ann');
+    await tester.pumpAndSettle();
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    expect(emitted.last, (buddyId: null, centerId: null, name: 'Ann'));
+    expect(chip, findsNothing);
+  });
+
+  testWidgets('a value set from outside shows in the field', (tester) async {
+    // A clone's prefill can land after the field is built.
+    final emitted = <GearSeller>[];
+    final value = ValueNotifier<GearSeller>((
+      buddyId: null,
+      centerId: null,
+      name: '',
+    ));
+    addTearDown(value.dispose);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          allBuddiesProvider.overrideWith((ref) async => [anna, lars]),
+          allDiveCentersProvider.overrideWith((ref) async => [anchor]),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: ValueListenableBuilder<GearSeller>(
+              valueListenable: value,
+              builder: (context, v, _) =>
+                  EquipmentSellerField(value: v, onChanged: emitted.add),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    value.value = (buddyId: null, centerId: null, name: 'Dive Shop Ltd');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Dive Shop Ltd'), findsOneWidget);
+  });
+
   testWidgets('clearing the chip leaves an empty typed seller', (tester) async {
     final emitted = await pump(
       tester,

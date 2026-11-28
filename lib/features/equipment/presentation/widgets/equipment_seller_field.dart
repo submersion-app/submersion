@@ -57,10 +57,14 @@ class _EquipmentSellerFieldState extends ConsumerState<EquipmentSellerField> {
   @override
   void didUpdateWidget(EquipmentSellerField old) {
     super.didUpdateWidget(old);
-    // Back to typing after a chip was cleared: start from the value, not
-    // from the text the pick left behind.
-    if (_isLinked(old.value) && !_isLinked(widget.value)) {
-      _text.text = widget.value.name;
+    // Back to typing after a chip was cleared, or a value set from outside
+    // (a clone's prefill): show the value, not the text left behind. Typing
+    // itself never lands here, as its value is the text, give or take the
+    // outer spaces the field ignores.
+    final value = widget.value;
+    if (!_isLinked(value) &&
+        (_isLinked(old.value) || value.name.trim() != _text.text.trim())) {
+      _text.text = value.name;
     }
   }
 
@@ -124,7 +128,9 @@ class _EquipmentSellerFieldState extends ConsumerState<EquipmentSellerField> {
               ),
               onChanged: (text) =>
                   widget.onChanged((buddyId: null, centerId: null, name: text)),
-              onSubmitted: (_) => onSubmitted(),
+              // Enter keeps what was typed: submitting the list would link
+              // its first suggestion, a buddy the diver never picked.
+              onSubmitted: (_) => focusNode.unfocus(),
             ),
         optionsViewBuilder: (context, onSelected, options) => _OptionsList(
           width: constraints.maxWidth,

@@ -15,6 +15,7 @@ import 'package:submersion/features/equipment/data/repositories/service_schedule
 import 'package:submersion/features/equipment/data/services/equipment_clone_service.dart';
 import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
 import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
@@ -478,6 +479,88 @@ void main() {
     expect(
       [for (final t in await tags.getTagsForEquipment('src')) t.id],
       ['t1'],
+    );
+  });
+
+  group('a clone of gear bought from someone (issue #5140)', () {
+    Future<void> buddy(String id, String diverId, String name) =>
+        db.customStatement(
+          'INSERT INTO buddies (id, diver_id, name, created_at, updated_at) '
+          "VALUES ('$id', '$diverId', '$name', 0, 0)",
+        );
+
+    Future<void> boughtFrom(
+      String buddyId,
+      String name, {
+      String diver = 'd1',
+    }) => equipment.createEquipment(
+      EquipmentItem(
+        id: 'src',
+        diverId: diver,
+        name: 'Reg',
+        type: EquipmentType.regulator,
+        sellerBuddyId: buddyId,
+        attributes: [
+          EquipmentAttribute.curated(
+            equipmentId: 'src',
+            key: 'retailer',
+            valueText: name,
+          ),
+        ],
+      ),
+    );
+
+    test('shows the seller and saves it, linked', () async {
+      await buddy('anna', 'd1', 'Anna Berg');
+      await boughtFrom('anna', 'Anna Berg');
+
+      final session = await cloneSitting(_RecordingClone());
+
+      expect(session.valueOf(gearSellerField), (
+        buddyId: 'anna',
+        centerId: null,
+        name: 'Anna Berg',
+      ));
+      final saved = await create(session);
+      final read = await equipment.getEquipmentById(saved.id);
+      expect(read!.sellerBuddyId, 'anna');
+      expect(read.retailer, 'Anna Berg');
+    });
+
+    test('a cloned seller can be cleared', () async {
+      await buddy('anna', 'd1', 'Anna Berg');
+      await boughtFrom('anna', 'Anna Berg');
+
+      final session = await cloneSitting(_RecordingClone());
+      session.set(gearSellerField, (buddyId: null, centerId: null, name: ''));
+
+      final saved = await create(session);
+      final read = await equipment.getEquipmentById(saved.id);
+      expect(read!.sellerBuddyId, isNull);
+      expect(read.retailer, isNull);
+    });
+
+    test(
+      "a clone of shared gear keeps the name, not the owner's buddy",
+      () async {
+        await addDiver('owner');
+        await buddy('theirs', 'owner', 'Their Friend');
+        await boughtFrom('theirs', 'Their Friend', diver: 'owner');
+        await EquipmentShareRepository().shareMany(
+          equipmentIds: const ['src'],
+          diverIds: const ['d1'],
+          actingDiverId: 'owner',
+        );
+
+        final clone = await readGearClone(
+          container.read,
+          'src',
+          copyName: (n) => n,
+        );
+
+        expect(clone!.copy.sellerBuddyId, isNull);
+        expect(clone.copy.retailer, 'Their Friend');
+      },
     );
   });
 
