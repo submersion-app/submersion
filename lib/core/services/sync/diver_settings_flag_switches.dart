@@ -1,4 +1,4 @@
-/// The Dives, Buddies and Trips country flag switches (v392, issue #5001),
+/// The Dives, Buddies and Trips country flag switches (v396, issue #5001),
 /// as the sync wire names them.
 const diverSettingsFlagSwitchKeys = [
   'showDiveCountryFlags',
@@ -6,7 +6,7 @@ const diverSettingsFlagSwitchKeys = [
   'showTripCountryFlags',
 ];
 
-/// Issue #5001. A diver_settings row from a peer older than v392 carries
+/// Issue #5001. A diver_settings row from a peer older than v396 carries
 /// none of [diverSettingsFlagSwitchKeys], only `showCountryFlags`, which on
 /// that peer covers every flag. `_withLocalForOmitted` already kept this
 /// device's switches for a row it holds; for a row new here, each missing

@@ -364,11 +364,17 @@ extension RungsFromV340 on AppDatabase {
     if (from < 389) await _assertProfileZoomTimeOnlyColumn();
     if (from < 389) await reportProgress();
 
-    // v392 (issue #5001): a country flags switch for dives, buddies and
+    // v393 (issue #5110): the built-in BCD/wing inspection applies to wings.
+    // A one-time UPDATE of one built-in row; not in the backstop, as the
+    // v239 built-in backfill is not. The floor does not move.
+    if (from < 393) await _backfillWingInspectionServiceKind();
+    if (from < 393) await reportProgress();
+
+    // v396 (issue #5001): a country flags switch for dives, buddies and
     // trips, each seeded from show_country_flags, which now covers sites
     // only. The copy runs here and never in beforeOpen, which would undo a
     // switch changed later. The floor does not move.
-    if (from < 392) await _seedCountryFlagSwitches();
-    if (from < 392) await reportProgress();
+    if (from < 396) await _seedCountryFlagSwitches();
+    if (from < 396) await reportProgress();
   }
 }

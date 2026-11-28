@@ -56660,6 +56660,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get media_species_nextSighting => 'Nächste Sichtung';
+
+  @override
   String get media_species_openSpeciesPage => 'Artenseite';
 
   @override

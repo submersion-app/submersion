@@ -1,6 +1,6 @@
 part of '../app_database_migrations.dart';
 
-/// The Dives, Buddies and Trips country flag switches (v392, issue #5001).
+/// The Dives, Buddies and Trips country flag switches (v396, issue #5001).
 /// Until then `show_country_flags` covered every flag; it now covers sites.
 extension CountryFlagSwitchesMigrations on AppDatabase {
   static const _switchColumns = [
@@ -9,7 +9,7 @@ extension CountryFlagSwitchesMigrations on AppDatabase {
     'show_trip_country_flags',
   ];
 
-  /// Adds each switch column, defaulted on. Safe from both the v392 rung
+  /// Adds each switch column, defaulted on. Safe from both the v396 rung
   /// and the beforeOpen backstop; never copies a value.
   Future<void> _assertCountryFlagSwitchColumns() async {
     for (final column in _switchColumns) {

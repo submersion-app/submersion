@@ -2,7 +2,7 @@ import 'package:submersion_transcoder/submersion_transcoder.dart';
 
 /// The colour-encode integration cases (issue #3521), shared by the in-app
 /// encode test and the host-side tools that make its inputs and check its
-/// outputs (tool/color_encode_it, scripts/run_color_encode_it.sh).
+/// outputs (tool/color_encode_it, scripts/testing/run_color_encode_it.sh).
 
 /// The folder, in the app's temp directory, holding `in/` and `out/`.
 const colorItFolder = 'color_it';

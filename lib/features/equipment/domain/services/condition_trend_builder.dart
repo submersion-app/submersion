@@ -16,6 +16,7 @@ ConditionTrendKind? defaultConditionTrendKind(EquipmentType type) {
     EquipmentType.transmitter => ConditionTrendKind.transmitterGapFraction,
     EquipmentType.regulator ||
     EquipmentType.bcd ||
+    EquipmentType.wing ||
     EquipmentType.drysuit ||
     EquipmentType.light => ConditionTrendKind.minTemperature,
     _ => null,

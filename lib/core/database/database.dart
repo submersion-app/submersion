@@ -338,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 392;
+  static const int currentSchemaVersion = 396;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1834,10 +1834,13 @@ class AppDatabase extends _$AppDatabase {
     // only zoom choice (issue #5069). Nullable, no backfill; the floor does
     // not move. Numbered 389 because open work claims 388.
     389,
-    // v392: diver_settings.show_dive_country_flags, show_buddy_country_flags
+    // v393: the built-in BCD/wing inspection kind applies to wings (issue
+    // #5110). Built-in reference data never syncs; the floor does not move.
+    393,
+    // v396: diver_settings.show_dive_country_flags, show_buddy_country_flags
     // and show_trip_country_flags, seeded from show_country_flags (issue
     // #5001). The floor does not move.
-    392,
+    396,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
