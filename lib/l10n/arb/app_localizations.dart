@@ -88722,6 +88722,12 @@ abstract class AppLocalizations {
   /// **'Play from {time}'**
   String media_species_playFrom(String time);
 
+  /// Button on a video's controls, in the viewer opened from a species on a dive, that jumps to the next time that species was seen in the video (issue #5084).
+  ///
+  /// In en, this message translates to:
+  /// **'Next sighting'**
+  String get media_species_nextSighting;
+
   /// Button on a species' crop sheet that opens the species page (issue #5024).
   ///
   /// In en, this message translates to:

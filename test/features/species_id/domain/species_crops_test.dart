@@ -128,4 +128,32 @@ void main() {
       expect(videoStretches([ruleId('photo')]), isEmpty);
     });
   });
+
+  group('nextStretchStart (issue #5084)', () {
+    const stretches = <VideoStretch>[
+      (startMs: 10000, endMs: 20000),
+      (startMs: 60000, endMs: 70000),
+      (startMs: 120000, endMs: 125000),
+    ];
+
+    test('from the start, goes to the first sighting', () {
+      expect(nextStretchStart(stretches, 0), 10000);
+    });
+
+    test('sitting on a sighting, goes to the one after it', () {
+      expect(nextStretchStart(stretches, 10000), 60000);
+    });
+
+    test('within the lead of a sighting, skips past it', () {
+      expect(nextStretchStart(stretches, 59600), 120000);
+    });
+
+    test('after the last, wraps to the first', () {
+      expect(nextStretchStart(stretches, 130000), 10000);
+    });
+
+    test('with no sightings, there is none', () {
+      expect(nextStretchStart(const [], 0), isNull);
+    });
+  });
 }

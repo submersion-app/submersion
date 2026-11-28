@@ -71,7 +71,7 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // on diver_settings (issue #4664).
     await _assertAveloLineColumns();
 
-    // v390 backstop: the trim line's visibility and colour columns on
+    // v394 backstop: the trim line's visibility and colour columns on
     // diver_settings (issue #5098).
     await _assertTrimLineColumns();
 

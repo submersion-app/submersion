@@ -16818,6 +16818,7 @@
   "media_species_seenAt": "見られた時刻",
   "media_species_seenStretch": "{start}〜{end}",
   "media_species_playFrom": "{time}から再生",
+  "media_species_nextSighting": "次の観察",
   "media_species_openSpeciesPage": "種のページ",
   "media_species_cropThumb": "画像 {index}/{count}",
   "media_species_taggedOnPhoto": "この写真でタグ付け済み",

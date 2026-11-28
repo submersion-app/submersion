@@ -2,7 +2,7 @@ name: Download metrics
 
 # Saves GitHub's download counters once a day to the metrics branch, because
 # GitHub keeps only running totals with no history. submersion.app reads
-# downloads/summary.json from that branch; scripts/snapshot_downloads.py has
+# downloads/summary.json from that branch; scripts/bots/snapshot_downloads.py has
 # the counting rules.
 #
 # metrics is an orphan branch, so it is built in its own directory rather than
@@ -51,7 +51,7 @@ jobs:
       - name: Save today's counts
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 scripts/snapshot_downloads.py --repo "$GITHUB_REPOSITORY" --out metrics-data
+        run: python3 scripts/bots/snapshot_downloads.py --repo "$GITHUB_REPOSITORY" --out metrics-data
 
       - name: Push to the metrics branch
         working-directory: metrics-data

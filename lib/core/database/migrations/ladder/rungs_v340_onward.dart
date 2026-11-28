@@ -364,10 +364,16 @@ extension RungsFromV340 on AppDatabase {
     if (from < 389) await _assertProfileZoomTimeOnlyColumn();
     if (from < 389) await reportProgress();
 
-    // v390: the default visibility and palette colour of the trim line on
+    // v393 (issue #5110): the built-in BCD/wing inspection applies to wings.
+    // A one-time UPDATE of one built-in row; not in the backstop, as the
+    // v239 built-in backfill is not. The floor does not move.
+    if (from < 393) await _backfillWingInspectionServiceKind();
+    if (from < 393) await reportProgress();
+
+    // v394: the default visibility and palette colour of the trim line on
     // the dive profile (issue #5098). Columns only, defaulted off or null;
     // re-asserted in beforeOpen. The floor does not move.
-    if (from < 390) await _assertTrimLineColumns();
-    if (from < 390) await reportProgress();
+    if (from < 394) await _assertTrimLineColumns();
+    if (from < 394) await reportProgress();
   }
 }

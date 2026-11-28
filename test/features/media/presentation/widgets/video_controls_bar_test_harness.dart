@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
@@ -119,7 +120,12 @@ Future<VideoPlayerController> readyController() async {
   return controller;
 }
 
-Widget barApp(Widget child, {TextDirection? direction}) {
+/// [overrides] go on top of the harness's own.
+Widget barApp(
+  Widget child, {
+  TextDirection? direction,
+  List<Override> overrides = const [],
+}) {
   Widget body = Center(child: SizedBox(width: 500, child: child));
   if (direction != null) {
     body = Directionality(textDirection: direction, child: body);
@@ -129,6 +135,7 @@ Widget barApp(Widget child, {TextDirection? direction}) {
       mediaPeopleChipsProvider('m1').overrideWith((ref) async => []),
       // Nothing analysed to tint (issue #4825).
       videoScanStretchesProvider('m1').overrideWith((ref) async => null),
+      ...overrides,
     ],
     child: MaterialApp(
       // The tests read English labels, so the host's locale must not decide.

@@ -5,7 +5,7 @@ description: >
   what it counts as transient; a transfer that stalls part way (exit 56,
   "Recv failure: Operation timed out") is not, and that is how run
   36852093336 turned main red (issue #2765). Every workflow uses this action
-  instead of the upstream one; scripts/check_flutter_setup_retried.py
+  instead of the upstream one; scripts/checks/check_flutter_setup_retried.py
   enforces that, and that the retry below stays in place.
 
 inputs:
