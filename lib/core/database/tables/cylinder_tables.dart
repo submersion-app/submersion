@@ -84,6 +84,9 @@ class TankPresets extends Table {
   TextColumn get material => text()(); // aluminum, steel, carbonFiber
   TextColumn get description =>
       text().withDefault(const Constant(''))(); // Optional description
+  // Manufacturer's rated capacity in cubic feet, kept by a copy of a built-in
+  // preset; null means the capacity is worked out from volume and pressure.
+  RealColumn get ratedCapacityCuft => real().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();

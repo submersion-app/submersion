@@ -11179,6 +11179,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'ضغط البداية';
 
   @override
+  String get diveLog_tank_managePresets => 'إدارة الإعدادات المسبقة';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'إعداد الأسطوانة المسبق';
 
   @override
@@ -14649,6 +14652,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentType_harness => 'حزام';
 
   @override
+  String get equipment_searchWords_cylinder => 'خزان, قارورة, ستيج, بوني';
+
+  @override
+  String get equipment_searchWords_tankBand => 'حزام الخزان, cam band';
+
+  @override
   String get enum_equipmentType_tankBand => 'حزام الأسطوانة';
 
   @override
@@ -17286,6 +17295,52 @@ class AppLocalizationsAr extends AppLocalizations {
       'يحتفظ حاسوب الغوص أو جهاز الإرسال المتصل بنوعه.';
 
   @override
+  String get equipment_suggest_link => 'لا يوجد نوع مناسب؟ اقترح فئة';
+
+  @override
+  String get equipment_suggest_title => 'اقتراح فئة';
+
+  @override
+  String get equipment_suggest_intro =>
+      'يفتح هذا طلب ميزة معبأً مسبقاً على GitHub. تراجعه وتنشره من متصفحك.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'ماذا تقترح؟';
+
+  @override
+  String get equipment_suggest_kindCategory => 'نوع معدات جديد';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'صنف جديد من نوع موجود';
+
+  @override
+  String get equipment_suggest_nameLabel => 'الاسم';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'صنف من';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => 'أقرب نوع موجود';
+
+  @override
+  String get equipment_suggest_parentNone => 'لا شيء';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'لماذا هو مطلوب؟';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'ما الذي يميزه عن الأنواع الموجودة؟';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'تضمين هذه القطعة كمثال ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'فتح في GitHub';
+
+  @override
   String get equipment_edit_useCustomReminders => 'استخدام تذكيرات مخصصة';
 
   @override
@@ -18744,6 +18799,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_consumption_diveTime => 'وقت الغوص';
 
   @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. تحذير: يتجاوز سعة الأسطوانة',
+      'other': '',
+    });
+    return 'استهلاك الغاز: $volume $volumeSymbol، $pressure $pressureSymbol$_temp0';
+  }
+
+  @override
   String gasCalculators_consumption_exceedsTank(
     Object pressure,
     Object symbol,
@@ -19974,9 +20044,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => 'تعذر فتح المتصفح';
-
-  @override
-  String get marineLife_suggest_copyLink => 'نسخ الرابط';
 
   @override
   String get marineLife_editCard_photos => 'الصور';
@@ -28383,6 +28450,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_volumeL => 'الحجم';
 
   @override
+  String get settings_conflict_field_ratedCapacityCuft => 'السعة الاسمية';
+
+  @override
   String get settings_conflict_field_volumeLiters => 'الحجم';
 
   @override
@@ -29873,7 +29943,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'أسماء أقل. نحو $percent% صحيحة';
+    return 'أسماء أقل. نحو $percent% صحيحة في الصور';
   }
 
   @override
@@ -29882,12 +29952,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'أسماء أكثر. نحو $percent% صحيحة';
+    return 'أسماء أكثر. نحو $percent% صحيحة في الصور';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'أكبر عدد من الأسماء. نحو $percent% صحيحة';
+    return 'أكبر عدد من الأسماء. نحو $percent% صحيحة في الصور';
   }
 
   @override
@@ -40291,15 +40361,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tankPresets_customPresets => 'الإعدادات المخصصة';
 
   @override
-  String get tankPresets_defaultSettings => 'الخزان الافتراضي';
+  String get tankPresets_defaultSettings => 'الأسطوانة الافتراضية';
 
   @override
   String get tankPresets_defaultSettings_description =>
-      'يُستخدم الإعداد المميز بنجمة كخزان افتراضي عند تسجيل غطسات جديدة.';
+      'يُستخدم الإعداد المميز بنجمة كأسطوانة افتراضية عند تسجيل غطسات جديدة.';
 
   @override
   String tankPresets_deleteDefaultMessage(String name) {
-    return 'هل أنت متأكد من حذف \"$name\"؟ هذا هو إعداد الخزان الافتراضي الحالي وسيتم إعادته إلى AL80.';
+    return 'هل أنت متأكد من حذف \"$name\"؟ هذا هو إعداد الأسطوانة الافتراضي الحالي وسيتم إعادته إلى AL80.';
   }
 
   @override
@@ -40316,6 +40386,19 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String tankPresets_deleted(Object name) {
     return 'تم حذف \"$name\"';
+  }
+
+  @override
+  String get tankPresets_duplicatePreset => 'تكرار';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (نسخة)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (نسخة $number)';
   }
 
   @override
@@ -40426,14 +40509,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tankPresets_applyToImports_subtitle =>
-      'ملء بيانات الخزان المفقودة في الغطسات المستوردة باستخدام الإعداد الافتراضي';
+      'ملء بيانات الأسطوانة المفقودة في الغطسات المستوردة باستخدام الإعداد الافتراضي';
 
   @override
   String get tankPresets_defaultStartPressure => 'ضغط البداية الافتراضي';
 
   @override
   String get tankPresets_defaultStartPressure_subtitle =>
-      'يُملأ في الخزانات الجديدة، وفي الخزانات المستوردة التي ليس لها ضغط بداية عند تطبيق الخزان الافتراضي على الاستيراد';
+      'يُملأ في الأسطوانات الجديدة، وفي الأسطوانات المستوردة التي ليس لها ضغط بداية عند تطبيق الأسطوانة الافتراضية على الاستيراد';
 
   @override
   String tankPresets_defaultStartPressure_range(String max, String min) {
@@ -57424,8 +57507,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_species_suggested => 'مقترحة';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent٪';
+  String media_species_suggestedChipLabel(String name) {
+    return 'اقتراح: $name';
   }
 
   @override

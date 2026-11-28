@@ -785,7 +785,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get plannerMission_issue_planHasNoTank =>
-      'Ajoutez une bouteille de gaz principal au plan';
+      'Ajoutez un bloc de gaz principal au plan';
 
   @override
   String get plannerMission_issue_planNotDiveable =>
@@ -807,7 +807,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get plannerMission_issue_tankBudgetUnknown =>
-      'Chaque bouteille a besoin d’un volume et d’une pression de remplissage';
+      'Chaque bloc a besoin d’un volume et d’une pression de remplissage';
 
   @override
   String get plannerMission_issue_unsupportedMode =>
@@ -11061,6 +11061,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Pression initiale';
 
   @override
+  String get diveLog_tank_managePresets => 'Gérer les presets';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'Preset de bloc';
 
   @override
@@ -11617,13 +11620,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de séparer cette plongée';
 
   @override
-  String get divePlanner_action_addTank => 'Ajouter une bouteille';
+  String get divePlanner_action_addTank => 'Ajouter un bloc';
 
   @override
   String get divePlanner_action_deletePlan => 'Supprimer le plan';
 
   @override
-  String get divePlanner_action_editTank => 'Modifier la bouteille';
+  String get divePlanner_action_editTank => 'Modifier le bloc';
 
   @override
   String divePlanner_action_fillBestMix(String depth, String mix) {
@@ -11670,7 +11673,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get divePlanner_field_diluentGasHint =>
-      'Les bouteilles non cochées sont du bailout';
+      'Les blocs non cochés sont du bailout';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -11699,7 +11702,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_hint_tankName => 'Entrer le nom de la bouteille';
+  String get divePlanner_hint_tankName => 'Entrer le nom du bloc';
 
   @override
   String get divePlanner_label_airBreaks => 'Pauses air';
@@ -11843,7 +11846,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divePlanner_label_off => 'Désactivé';
 
   @override
-  String get divePlanner_label_tanks => 'Bouteilles';
+  String get divePlanner_label_tanks => 'Blocs';
 
   @override
   String get divePlanner_label_loopGases => 'Loop';
@@ -11852,31 +11855,29 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divePlanner_label_bailoutGases => 'Bailout';
 
   @override
-  String get divePlanner_label_noBailout =>
-      'Pas encore de bouteille de bailout';
+  String get divePlanner_label_noBailout => 'Pas encore de bloc de bailout';
 
   @override
-  String get divePlanner_savedTanks_title => 'Bouteilles enregistrées';
+  String get divePlanner_savedTanks_title => 'Blocs enregistrés';
 
   @override
-  String get divePlanner_savedTanks_save => 'Enregistrer une bouteille';
+  String get divePlanner_savedTanks_save => 'Enregistrer un bloc';
 
   @override
-  String get divePlanner_savedTanks_saveTitle =>
-      'Enregistrer la bouteille sous';
+  String get divePlanner_savedTanks_saveTitle => 'Enregistrer le bloc sous';
 
   @override
-  String get divePlanner_savedTanks_nameField => 'Nom de la bouteille';
+  String get divePlanner_savedTanks_nameField => 'Nom du bloc';
 
   @override
-  String get divePlanner_savedTanks_saved => 'Bouteille enregistrée';
+  String get divePlanner_savedTanks_saved => 'Bloc enregistré';
 
   @override
   String get divePlanner_savedTanks_manage => 'Gérer';
 
   @override
   String get divePlanner_savedTanks_empty =>
-      'Aucune bouteille enregistrée. Enregistrez une bouteille de ce plan pour la réutiliser dans d\'autres plans.';
+      'Aucun bloc enregistré. Enregistrez un bloc de ce plan pour le réutiliser dans d\'autres plans.';
 
   @override
   String get divePlanner_label_timeAxis => 'Temps (min)';
@@ -11930,11 +11931,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
-    return 'Bouteille en dessous de la réserve de $threshold';
+    return 'Bloc en dessous de la réserve de $threshold';
   }
 
   @override
-  String get divePlanner_warning_gasOut => 'La bouteille sera vide';
+  String get divePlanner_warning_gasOut => 'Le bloc sera vide';
 
   @override
   String get divePlanner_warning_otuWarning => 'Accumulation d\'OTU élevée';
@@ -14460,6 +14461,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_equipmentType_harness => 'Harnais';
 
   @override
+  String get equipment_searchWords_cylinder =>
+      'bouteille, cylindre, stage, pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'sangle de bouteille, cam band';
+
+  @override
   String get enum_equipmentType_tankBand => 'Sangle de bloc';
 
   @override
@@ -14979,7 +14987,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_tankRole_oxygenSupply => 'Alimentation O₂';
 
   @override
-  String get enum_tankRole_pony => 'Pony bottle';
+  String get enum_tankRole_pony => 'Pony';
 
   @override
   String get enum_tankRole_sidemountLeft => 'Sidemount gauche';
@@ -15137,7 +15145,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get passport_title => 'Passeport de la bouteille';
+  String get passport_title => 'Passeport du bloc';
 
   @override
   String get passport_open => 'Ouvrir le passeport';
@@ -15156,7 +15164,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get passport_spec_title => 'Bouteille';
+  String get passport_spec_title => 'Bloc';
 
   @override
   String passport_spec_freeGas(String pressure) {
@@ -15192,12 +15200,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String passport_o2Warning_untracked(String o2) {
-    return 'Le dernier gonflage est à $o2 d\'O2 et cette bouteille n\'est pas suivie comme compatible O2.';
+    return 'Le dernier gonflage est à $o2 d\'O2 et ce bloc n\'est pas suivi comme compatible O2.';
   }
 
   @override
   String passport_o2Warning_overdue(String o2) {
-    return 'Le dernier gonflage est à $o2 d\'O2 et le nettoyage O2 de cette bouteille est en retard.';
+    return 'Le dernier gonflage est à $o2 d\'O2 et le nettoyage O2 de ce bloc est en retard.';
   }
 
   @override
@@ -15329,8 +15337,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get passport_tag_linkPrompt => 'Collez le lien de l\'étiquette';
 
   @override
-  String get passport_tag_linkInvalid =>
-      'Ce n\'est pas une étiquette de bouteille';
+  String get passport_tag_linkInvalid => 'Ce n\'est pas une étiquette de bloc';
 
   @override
   String get passport_tag_linkFailed =>
@@ -15345,7 +15352,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get passport_tag_linked => 'Étiquette liée';
 
   @override
-  String get passport_scan_title => 'Scanner l\'étiquette d\'une bouteille';
+  String get passport_scan_title => 'Scanner l\'étiquette d\'un bloc';
 
   @override
   String get passport_scan_hint =>
@@ -15389,19 +15396,19 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get passport_foreign_title => 'Étiquette de bouteille';
+  String get passport_foreign_title => 'Étiquette de bloc';
 
   @override
   String get passport_foreign_notInGear =>
-      'Cette bouteille ne fait pas partie de votre équipement.';
+      'Ce bloc ne fait pas partie de votre équipement.';
 
   @override
   String passport_usage_foreignTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Vous avez utilisé cette bouteille $count fois',
-      one: 'Vous avez utilisé cette bouteille $count fois',
+      other: 'Vous avez utilisé ce bloc $count fois',
+      one: 'Vous avez utilisé ce bloc $count fois',
     );
     return '$_temp0';
   }
@@ -15440,7 +15447,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get passport_usage_loadFailed =>
-      'Impossible de charger vos plongées avec cette bouteille';
+      'Impossible de charger vos plongées avec ce bloc';
 
   @override
   String passport_foreign_writtenOn(String date) {
@@ -15463,10 +15470,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get passport_foreign_addFailed =>
-      'Impossible d\'ajouter la bouteille. Réessayez.';
+      'Impossible d\'ajouter le bloc. Réessayez.';
 
   @override
-  String get passport_foreign_defaultName => 'Bouteille';
+  String get passport_foreign_defaultName => 'Bloc';
 
   @override
   String get passport_nfc_tap => 'Approcher une étiquette NFC';
@@ -15523,7 +15530,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String passport_nfc_tooSmall(int capacity) {
-    return 'Cette étiquette est trop petite ($capacity octets), même pour l\'identité de la bouteille.';
+    return 'Cette étiquette est trop petite ($capacity octets), même pour l\'identité du bloc.';
   }
 
   @override
@@ -16285,7 +16292,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_deleteDialog_content_transmitter =>
-      'Supprimer cet émetteur ? Sa configuration de bouteille est supprimée avec lui. Un téléchargement ultérieur portant son numéro de série l\'ajoutera de nouveau. Pour simplement le mettre de côté, passe-le au statut Réforme.';
+      'Supprimer cet émetteur ? Sa configuration de bloc est supprimée avec lui. Un téléchargement ultérieur portant son numéro de série l\'ajoutera de nouveau. Pour simplement le mettre de côté, passe-le au statut Réforme.';
 
   @override
   String get equipment_bulkDelete_deviceNote =>
@@ -16486,7 +16493,7 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get cylinderConfigs_title => 'Configurations de bouteilles';
+  String get cylinderConfigs_title => 'Configurations de blocs';
 
   @override
   String get cylinderConfigs_edit_notFound =>
@@ -16518,7 +16525,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cylinderConfigs_gasPlans => 'Plans de gaz';
 
   @override
-  String get cylinderConfigs_addCylinder => 'Ajouter une bouteille';
+  String get cylinderConfigs_addCylinder => 'Ajouter un bloc';
 
   @override
   String get cylinderConfigs_role => 'Rôle';
@@ -16587,8 +16594,8 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count bouteilles ajoutées',
-      one: '$count bouteille ajoutée',
+      other: '$count blocs ajoutés',
+      one: '$count bloc ajouté',
     );
     return '$_temp0';
   }
@@ -16621,11 +16628,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get cylinderConfigs_overwriteTitle =>
-      'Remplacer les caractéristiques des bouteilles ?';
+      'Remplacer les caractéristiques des blocs ?';
 
   @override
   String cylinderConfigs_overwriteBody(String name) {
-    return 'Appliquer $name modifie des bouteilles déjà présentes sur cette plongée :';
+    return 'Appliquer $name modifie des blocs déjà présents sur cette plongée :';
   }
 
   @override
@@ -17065,6 +17072,54 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get equipment_edit_typeLockedHelper =>
       'Un ordinateur de plongée ou un émetteur connecté garde son type.';
+
+  @override
+  String get equipment_suggest_link =>
+      'Aucun type ne convient ? Proposer une catégorie';
+
+  @override
+  String get equipment_suggest_title => 'Proposer une catégorie';
+
+  @override
+  String get equipment_suggest_intro =>
+      'Une demande de fonctionnalité préremplie s\'ouvre sur GitHub. Vous la relisez et la publiez depuis votre navigateur.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'Que proposez-vous ?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'Nouveau type d\'équipement';
+
+  @override
+  String get equipment_suggest_kindSubcategory =>
+      'Nouvelle variante d\'un type';
+
+  @override
+  String get equipment_suggest_nameLabel => 'Nom';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'Une variante de';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => 'Type le plus proche';
+
+  @override
+  String get equipment_suggest_parentNone => 'Aucun';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'Pourquoi est-ce nécessaire ?';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'Qu\'est-ce qui la distingue des types existants ?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'Inclure cet article comme exemple ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'Ouvrir dans GitHub';
 
   @override
   String get equipment_edit_useCustomReminders =>
@@ -18489,11 +18544,26 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gasCalculators_consumption_diveTime => 'Temps de plongée';
 
   @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. Attention : dépasse la capacité du bloc',
+      'other': '',
+    });
+    return 'Consommation de gaz : $volume $volumeSymbol, $pressure $pressureSymbol$_temp0';
+  }
+
+  @override
   String gasCalculators_consumption_exceedsTank(
     Object pressure,
     Object symbol,
   ) {
-    return 'Dépasse la capacité de la bouteille ($pressure $symbol)';
+    return 'Dépasse la capacité du bloc ($pressure $symbol)';
   }
 
   @override
@@ -18513,7 +18583,7 @@ class AppLocalizationsFr extends AppLocalizations {
     Object fillPressure,
     Object pressureSymbol,
   ) {
-    return 'Capacité de la bouteille ($tankSize$volumeSymbol @ $fillPressure $pressureSymbol)';
+    return 'Capacité du bloc ($tankSize$volumeSymbol @ $fillPressure $pressureSymbol)';
   }
 
   @override
@@ -19145,7 +19215,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gasCalculators_blender_flushFeeColumnGas => 'Gaz';
 
   @override
-  String get gasCalculators_blender_cylinderColumnShort => 'Bouteille';
+  String get gasCalculators_blender_cylinderColumnShort => 'Bloc';
 
   @override
   String get gasCalculators_blender_volumeColumn => 'Volume';
@@ -19343,7 +19413,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gasCalculators_tab_rockBottom => 'Rock Bottom';
 
   @override
-  String get gasCalculators_tankSize => 'Taille de bouteille';
+  String get gasCalculators_tankSize => 'Taille de bloc';
 
   @override
   String get gasCalculators_title => 'Calculateurs de gaz';
@@ -19741,9 +19811,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get marineLife_suggest_couldNotOpen =>
       'Impossible d\'ouvrir le navigateur';
-
-  @override
-  String get marineLife_suggest_copyLink => 'Copier le lien';
 
   @override
   String get marineLife_editCard_photos => 'Photos';
@@ -22624,7 +22691,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get plannerCanvas_gas_minGasNoVolume =>
-      'le gaz mini nécessite une taille de bouteille';
+      'le gaz mini nécessite une taille de bloc';
 
   @override
   String get plannerCanvas_gas_limitsNoStartPressure =>
@@ -23673,7 +23740,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String buoyancy_causeGas(String amount) {
-    return 'Le gaz respiré a allégé les bouteilles de $amount';
+    return 'Le gaz respiré a allégé les blocs de $amount';
   }
 
   @override
@@ -23733,11 +23800,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get diveDetailSection_tanks_name => 'Bouteilles';
+  String get diveDetailSection_tanks_name => 'Blocs';
 
   @override
   String get diveDetailSection_tanks_description =>
-      'Liste des bouteilles, mélanges gazeux, pressions, consommation par bouteille';
+      'Liste des blocs, mélanges gazeux, pressions, consommation par bloc';
 
   @override
   String get diveDetailSection_buddies_name => 'Binômes';
@@ -28137,6 +28204,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_volumeL => 'Volume';
 
   @override
+  String get settings_conflict_field_ratedCapacityCuft => 'Capacité nominale';
+
+  @override
   String get settings_conflict_field_volumeLiters => 'Volume';
 
   @override
@@ -28891,7 +28961,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_ref_trip => 'Voyage';
 
   @override
-  String get settings_conflict_ref_tripCylinder => 'Bouteille du voyage';
+  String get settings_conflict_ref_tripCylinder => 'Bloc du voyage';
 
   @override
   String get settings_conflict_ref_weightPreset => 'Modèle de lest';
@@ -29618,7 +29688,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'Moins de noms. Environ $percent % justes';
+    return 'Moins de noms. Environ $percent % justes sur photos';
   }
 
   @override
@@ -29627,12 +29697,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'Plus de noms. Environ $percent % justes';
+    return 'Plus de noms. Environ $percent % justes sur photos';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'Le plus de noms. Environ $percent % justes';
+    return 'Le plus de noms. Environ $percent % justes sur photos';
   }
 
   @override
@@ -32641,7 +32711,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insights_gas_gasMix_title => 'Distribution des mélanges gazeux';
 
   @override
-  String get insights_gas_roleUse_title => 'Consommation par rôle de bouteille';
+  String get insights_gas_roleUse_title => 'Consommation par rôle de bloc';
 
   @override
   String get insights_gas_roleUse_subtitle =>
@@ -32649,11 +32719,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get insights_gas_roleUse_empty =>
-      'Pas encore de valeurs par rôle de bouteille';
+      'Pas encore de valeurs par rôle de bloc';
 
   @override
   String get insights_gas_roleUse_error =>
-      'Impossible de charger la consommation par rôle de bouteille';
+      'Impossible de charger la consommation par rôle de bloc';
 
   @override
   String get insights_gas_roleGroup_bottomGas => 'Gaz fond';
@@ -32664,9 +32734,9 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '$count plongées exclues : un relais, une bouteille de déco, un pony ou un bailout a perdu du gaz sans changement de gaz vers lui',
+          '$count plongées exclues : un relais, un bloc de déco, un pony ou un bailout a perdu du gaz sans changement de gaz vers lui',
       one:
-          '$count plongée exclue : un relais, une bouteille de déco, un pony ou un bailout a perdu du gaz sans changement de gaz vers lui',
+          '$count plongée exclue : un relais, un bloc de déco, un pony ou un bailout a perdu du gaz sans changement de gaz vers lui',
     );
     return '$_temp0';
   }
@@ -32789,7 +32859,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String insights_gas_twinSetReview_body(String size) {
-    return 'Leur nom ou leur taille indique twin, double, D12, 2x12 ou $size et plus, mais leur rôle est Gaz dorsal, donc elles comptent comme mono-bouteille.';
+    return 'Leur nom ou leur taille indique twin, double, D12, 2x12 ou $size et plus, mais leur rôle est Gaz dorsal, donc ils comptent comme mono-bouteille.';
   }
 
   @override
@@ -39870,6 +39940,19 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_duplicatePreset => 'Dupliquer';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (copie)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (copie $number)';
+  }
+
+  @override
   String get tankPresets_editPreset => 'Modifier le preset';
 
   @override
@@ -42717,7 +42800,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrLabel_valve_type => 'Robinet';
 
   @override
-  String get attrLabel_cylinder_use => 'Usage de la bouteille';
+  String get attrLabel_cylinder_use => 'Usage du bloc';
 
   @override
   String get attrLabel_worn_as => 'Porté en';
@@ -42831,10 +42914,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrLabel_o2_cell_count => 'Cellules O2';
 
   @override
-  String get attrLabel_diluent_cylinder_l => 'Bouteille de diluant';
+  String get attrLabel_diluent_cylinder_l => 'Bloc de diluant';
 
   @override
-  String get attrLabel_o2_cylinder_l => 'Bouteille d\'O2';
+  String get attrLabel_o2_cylinder_l => 'Bloc d\'O2';
 
   @override
   String get attrLabel_dpv_style => 'Style';
@@ -56702,8 +56785,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_species_suggested => 'Suggestions';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent %';
+  String media_species_suggestedChipLabel(String name) {
+    return 'Suggestion : $name';
   }
 
   @override
@@ -59374,7 +59457,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_manage_transmitters_subtitle =>
-      'Associer les émetteurs de pression aux bouteilles';
+      'Associer les émetteurs de pression aux blocs';
 
   @override
   String get transmitters_title => 'Émetteurs';
@@ -59387,7 +59470,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun émetteur pour l\'instant. Un téléchargement qui en lit un l\'ajoute ici, ou ajoute-en un manuellement.';
 
   @override
-  String get transmitters_noCylinder => 'Aucune bouteille configurée';
+  String get transmitters_noCylinder => 'Aucun bloc configuré';
 
   @override
   String get transmitters_section_noKey =>
@@ -59422,12 +59505,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks bouteilles sur $dives plongées portant cet émetteur ont besoin de sa configuration. Les champs vides de taille, matériau, nom et équipement seront remplis, et un rôle encore réglé sur Gaz fond ou lu dans le nom de l\'émetteur sera remplacé.';
+    return '$tanks blocs sur $dives plongées portant cet émetteur ont besoin de sa configuration. Les champs vides de taille, matériau, nom et équipement seront remplis, et un rôle encore réglé sur Gaz fond ou lu dans le nom de l\'émetteur sera remplacé.';
   }
 
   @override
   String transmitters_apply_done(int tanks, int dives) {
-    return '$tanks bouteilles mises à jour sur $dives plongées';
+    return '$tanks blocs mis à jour sur $dives plongées';
   }
 
   @override
@@ -59454,7 +59537,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get transmitters_apply_slot_intro =>
-      'Les bouteilles importées d\'un fichier n\'ont pas de numéro de série. Elles peuvent être remplies selon l\'emplacement qu\'occupait cet émetteur sur l\'ordinateur de plongée.';
+      'Les blocs importés d\'un fichier n\'ont pas de numéro de série. Ils peuvent être remplis selon l\'emplacement qu\'occupait cet émetteur sur l\'ordinateur de plongée.';
 
   @override
   String transmitters_apply_summary(int serialDives, int slotDives) {
@@ -59463,11 +59546,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get transmitters_apply_nothing_to_fill =>
-      'Aucune bouteille n\'a besoin de la configuration de cet émetteur';
+      'Aucun bloc n\'a besoin de la configuration de cet émetteur';
 
   @override
   String get transmitters_apply_slot_read_failed =>
-      'Les fichiers importés n\'ont pas pu être lus, les bouteilles ne peuvent donc pas être associées par emplacement';
+      'Les fichiers importés n\'ont pas pu être lus, les blocs ne peuvent donc pas être associés par emplacement';
 
   @override
   String transmitters_channel(String computer, int channel) {
@@ -59503,11 +59586,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get transmitters_field_role => 'Rôle';
 
   @override
-  String get transmitters_field_gear => 'Bouteille de l\'équipement';
+  String get transmitters_field_gear => 'Bloc de l\'équipement';
 
   @override
   String get transmitters_field_gear_subtitle =>
-      'La bouteille dont cet émetteur signale la pression';
+      'Le bloc dont cet émetteur signale la pression';
 
   @override
   String get transmitters_field_material => 'Matériau';
@@ -59517,7 +59600,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get transmitters_hint_missingSize =>
-      'Cette bouteille n\'a ni taille ni pression enregistrées, la taille restera donc vide dans la plongée';
+      'Ce bloc n\'a ni taille ni pression enregistrées, la taille restera donc vide dans la plongée';
 
   @override
   String get transmitters_validation_key =>
@@ -59587,7 +59670,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeUnknownTransmitterBody =>
-      'Un ou plusieurs émetteurs de ce téléchargement ne sont associés à aucune bouteille. Associez-les pour que les prochains téléchargements aient la bonne taille et le bon rôle.';
+      'Un ou plusieurs émetteurs de ce téléchargement ne sont associés à aucun bloc. Associez-les pour que les prochains téléchargements aient la bonne taille et le bon rôle.';
 
   @override
   String get universalImport_summary_noticeAssignTransmitters =>
@@ -59595,7 +59678,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeTransmitterNameRolesTitle =>
-      'Rôles des bouteilles lus dans les noms des émetteurs';
+      'Rôles des blocs lus dans les noms des émetteurs';
 
   @override
   String get universalImport_summary_noticeTransmitterNameRolesBody =>
@@ -59626,7 +59709,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String dataQuality_msg_unknownTransmitter(String serial) {
-    return 'L\'émetteur $serial n\'est associé à aucune bouteille';
+    return 'L\'émetteur $serial n\'est associé à aucun bloc';
   }
 
   @override
@@ -61428,7 +61511,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLab_handoff_note_lostTankKept =>
-      'La bouteille perdue reste listée car elle a été respirée avant l\'embranchement ; retirez-la dans le planificateur si besoin.';
+      'Le bloc perdu reste listé car il a été respiré avant l\'embranchement ; retirez-le dans le planificateur si besoin.';
 
   @override
   String get diveLab_handoff_note_replay =>
@@ -64679,7 +64762,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get twinSet_none => 'Ne fait pas partie d\'un bi-bouteille';
 
   @override
-  String get twinSet_link => 'Associer à une bouteille partenaire';
+  String get twinSet_link => 'Associer à un bloc partenaire';
 
   @override
   String twinSet_since(String date) {
@@ -64708,10 +64791,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Supprimer cette association de l\'historique ? Les gonflages et les plongées ne changent pas.';
 
   @override
-  String get twinSet_pickerTitle => 'Bouteille partenaire';
+  String get twinSet_pickerTitle => 'Bloc partenaire';
 
   @override
-  String get twinSet_pickerEmpty => 'Aucune autre bouteille à associer.';
+  String get twinSet_pickerEmpty => 'Aucun autre bloc à associer.';
 
   @override
   String get twinSet_pairedOnHelp => 'Associées depuis le';
@@ -64762,7 +64845,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String twinSet_clashBody(String pairs) {
-    return 'Cela chevauche l\'association de $pairs. Une bouteille ne peut faire partie que d\'un bi-bouteille par jour.';
+    return 'Cela chevauche l\'association de $pairs. Un bloc ne peut faire partie que d\'un bi-bouteille par jour.';
   }
 
   @override
@@ -64786,7 +64869,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String passport_logFill_twinSwitch(String partner) {
-    return 'Les deux bouteilles du bi-bouteille ($partner)';
+    return 'Les deux blocs du bi-bouteille ($partner)';
   }
 
   @override
@@ -64828,7 +64911,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get passport_logFill_onlyThisOne => 'Seulement celui-ci';
 
   @override
-  String get passport_history_anotherCylinder => 'une autre bouteille';
+  String get passport_history_anotherCylinder => 'un autre bloc';
 
   @override
   String passport_history_filledWith(String partner) {
@@ -64837,10 +64920,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get passport_history_deleteTiedBody =>
-      'Supprimer ce gonflage des deux bouteilles, ou seulement de celle-ci ?';
+      'Supprimer ce gonflage des deux blocs, ou seulement de celui-ci ?';
 
   @override
-  String get passport_history_deleteBoth => 'Les deux bouteilles';
+  String get passport_history_deleteBoth => 'Les deux blocs';
 
   @override
   String get passport_history_edit => 'Modifier le gonflage';
@@ -64870,7 +64953,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_twinPassportId =>
-      'Passeport de la bouteille partenaire';
+      'Passeport du bloc partenaire';
 
   @override
   String equipment_photos_deleteCheckInWithPhotos(int count) {

@@ -49,7 +49,8 @@ void main() {
     expect(tracks.map((t) => t.points.length), [4, 4]);
   });
 
-  test('a gap of two frames is bridged, three is not', () {
+  test('a gap of two frames is bridged by the frame-to-frame link, three '
+      'only by the lost-track one', () {
     final bridged = run(VideoTracker(), [
       frame(0, [_box(0.1)]),
       frame(250, [_box(0.1)]),
@@ -60,7 +61,20 @@ void main() {
     expect(bridged, hasLength(1));
     expect(bridged.single.endMs, 1000);
 
-    final split = run(VideoTracker(), [
+    // Two fish side by side: a box between them could continue either by
+    // the lost-track link, so it continues neither after three misses.
+    final apart = run(VideoTracker(), [
+      frame(0, [_box(0.1), _box(0.4)]),
+      frame(250, [_box(0.1), _box(0.4)]),
+      frame(500, const []),
+      frame(750, const []),
+      frame(1000, const []),
+      frame(1250, [_box(0.25)]),
+      frame(1500, [_box(0.25)]),
+    ]);
+    expect(apart, hasLength(3));
+    // With no lost-track reach, the tracker of before issue #5120.
+    final split = run(VideoTracker(maxLostSamples: 2), [
       frame(0, [_box(0.1)]),
       frame(250, [_box(0.1)]),
       frame(500, const []),
@@ -106,13 +120,17 @@ void main() {
     tracker.add(frame(250, [_box(0.1)]));
     tracker.add(frame(500, const []));
     final saved = tracker.save();
-    // Two more misses close it; a new fish opens.
-    tracker.add(frame(750, [_box(0.6)]));
-    expect(tracker.add(frame(1000, [_box(0.6)])).single.endMs, 250);
+    // Out of reach for good after 12 more misses; a new fish opens.
+    final closed = [
+      for (var k = 3; k < 15; k++) ...tracker.add(frame(k * 250, [_box(0.6)])),
+    ];
+    expect(closed.single.endMs, 250);
     tracker.restore(saved);
     expect(tracker.openCount, 1);
-    // Still one miss behind: one more frame without it keeps it open.
-    expect(tracker.add(frame(750, const [])), isEmpty);
+    // Still one miss behind: 11 more frames without it keep it open.
+    for (var k = 3; k < 14; k++) {
+      expect(tracker.add(frame(k * 250, const [])), isEmpty);
+    }
     final rest = tracker.closeAll().single;
     expect((rest.startMs, rest.endMs), (0, 250));
     expect(rest.points, hasLength(2));
@@ -122,9 +140,11 @@ void main() {
     final tracker = VideoTracker();
     tracker.add(frame(0, [_box(0.1)]));
     tracker.add(frame(250, [_box(0.1)]));
-    expect(tracker.add(frame(500, const [])), isEmpty);
-    expect(tracker.add(frame(750, const [])), isEmpty);
-    final closed = tracker.add(frame(1000, const []));
+    // Lost after 3 misses, closed after 13: 3 s out of sight.
+    for (var k = 2; k < 14; k++) {
+      expect(tracker.add(frame(k * 250, const [])), isEmpty);
+    }
+    final closed = tracker.add(frame(14 * 250, const []));
     expect(closed.single.endMs, 250);
   });
 
@@ -413,7 +433,259 @@ void main() {
     });
   });
 
+  group('an animal out of sight for a moment (issue #5120)', () {
+    /// [before] frames of [seen], [hidden] empty frames, then [after]
+    /// frames of [back], 250 ms apart.
+    List<FrameDetections> hiddenFor(
+      int hidden, {
+      required IdentificationBox seen,
+      required IdentificationBox back,
+      int before = 3,
+      int after = 3,
+    }) => [
+      for (var k = 0; k < before; k++) frame(k * 250, [seen]),
+      for (var k = before; k < before + hidden; k++) frame(k * 250, const []),
+      for (var k = before + hidden; k < before + hidden + after; k++)
+        frame(k * 250, [back]),
+    ];
+
+    test('a fish hidden for a second and back in place is one track', () {
+      final tracks = run(
+        VideoTracker(),
+        hiddenFor(4, seen: _box(0.1), back: _box(0.1)),
+      );
+      expect(tracks, hasLength(1));
+      expect(tracks.single.points, hasLength(6));
+      expect((tracks.single.startMs, tracks.single.endMs), (0, 2250));
+      // In view 500 ms before and 500 ms after.
+      expect(tracks.single.inViewMs(), 1000);
+      // With a live reach of 1.25 s, the 1.25 s step counts as in view.
+      expect(tracks.single.inViewMs(maxGapMs: 1250), 2250);
+    });
+
+    test('hidden for 3 s it is one track; for longer, two', () {
+      // 12 empty samples are 3 s out of sight.
+      expect(
+        run(VideoTracker(), hiddenFor(12, seen: _box(0.1), back: _box(0.1))),
+        hasLength(1),
+      );
+      final split = run(
+        VideoTracker(),
+        hiddenFor(13, seen: _box(0.1), back: _box(0.1)),
+      );
+      expect(split, hasLength(2));
+      expect(split.first.endMs, 500);
+      expect(split.last.startMs, 16 * 250);
+    });
+
+    test('a moray whose box changes shape as it hides is one track', () {
+      // Stretched out along the rock, then only its head out of the hole:
+      // a quarter of the area, a different aspect, mostly inside the box
+      // it was last seen in.
+      const stretched = IdentificationBox(
+        x: 0.2,
+        y: 0.4,
+        width: 0.4,
+        height: 0.1,
+      );
+      const head = IdentificationBox(
+        x: 0.3,
+        y: 0.35,
+        width: 0.08,
+        height: 0.12,
+      );
+      final tracks = run(
+        VideoTracker(),
+        hiddenFor(6, seen: stretched, back: head),
+      );
+      expect(tracks, hasLength(1));
+      expect(tracks.single.samples.last.box, head);
+    });
+
+    test('a box elsewhere in the frame does not continue it', () {
+      final tracks = run(
+        VideoTracker(),
+        hiddenFor(4, seen: _box(0.1), back: _box(0.6)),
+      );
+      expect(tracks, hasLength(2));
+    });
+
+    test('two fish of a school crossing stay apart', () {
+      // One swims right, the other left, a little lower. The right-going
+      // one is hidden behind the other while they cross, then comes out
+      // on its far side.
+      IdentificationBox right(int k) => _box(0.05 + k * 0.05);
+      IdentificationBox left(int k) => _box(0.75 - k * 0.05, y: 0.42);
+      final tracks = run(VideoTracker(), [
+        for (var k = 0; k < 12; k++)
+          frame(k * 250, [if (k < 4 || k > 8) right(k), left(k)]),
+      ]);
+      expect(tracks, hasLength(2));
+      final rightGoing = tracks.firstWhere((t) => t.samples.first.box.x < 0.5);
+      final leftGoing = tracks.firstWhere((t) => t.samples.first.box.x > 0.5);
+      expect(leftGoing.points, hasLength(12));
+      expect(leftGoing.samples.every((s) => s.box.y == 0.42), isTrue);
+      expect(rightGoing.samples.map((s) => s.ms), [
+        for (var k = 0; k < 12; k++)
+          if (k < 4 || k > 8) k * 250,
+      ]);
+      expect(rightGoing.samples.every((s) => s.box.y == 0.4), isTrue);
+    });
+
+    test('a box two hidden fish could continue continues neither', () {
+      // Two fish side by side go out of sight; one box comes back between
+      // them, in reach of both: which one it is cannot be told.
+      final tracks = run(VideoTracker(), [
+        frame(0, [_box(0.1), _box(0.4)]),
+        frame(250, [_box(0.1), _box(0.4)]),
+        for (var k = 2; k < 6; k++) frame(k * 250, const []),
+        frame(1500, [_box(0.25)]),
+        frame(1750, [_box(0.25)]),
+      ]);
+      expect(tracks, hasLength(3));
+      expect(tracks.map((t) => t.points.length), [2, 2, 2]);
+    });
+
+    test('a hidden fish never takes a box a fish in view continues', () {
+      // The fish at 0.4 stays in view and moves onto where the hidden one
+      // was last seen.
+      final tracks = run(VideoTracker(), [
+        frame(0, [_box(0.1), _box(0.3)]),
+        frame(250, [_box(0.1), _box(0.25)]),
+        for (var k = 2; k < 6; k++)
+          frame(k * 250, [_box(0.25 - (k - 1) * 0.03)]),
+      ]);
+      expect(tracks, hasLength(2));
+      final hidden = tracks.firstWhere((t) => t.samples.first.box.x == 0.1);
+      expect(hidden.points, hasLength(2));
+    });
+  });
+
+  test('seenMs is the span less the gaps longer than the live link '
+      'bridges', () {
+    expect(seenMs(const []), 0);
+    expect(seenMs(const [1000]), 0);
+    expect(seenMs(const [0, 250, 500, 1250]), 1250);
+    // 500 seen, then 3 s out of sight, then 250 more.
+    expect(seenMs(const [0, 250, 500, 3750, 4000]), 750);
+    expect(seenMs(const [0, 250, 500, 3750, 4000], maxGapMs: 3250), 4000);
+  });
+
+  test('a track resumed past the lost reach links nothing and closes on '
+      'the next frame', () {
+    final tracker = VideoTracker();
+    tracker.resume(
+      TrackedAnimal([
+        (ms: 0, detection: DetectedBox(box: _box(0.1), score: 0.8)),
+        (ms: 250, detection: DetectedBox(box: _box(0.1), score: 0.8)),
+      ]),
+      missed: tracker.maxLostSamples + 1,
+    );
+    final closed = tracker.add(frame(20000, [_box(0.1)]));
+    expect(closed.single.endMs, 250);
+    expect(tracker.openTracks.single.startMs, 20000);
+  });
+
+  group('LostTrackLink', () {
+    const link = LostTrackLink();
+
+    test('a box mostly inside the other links whatever its size', () {
+      const whole = IdentificationBox(x: 0.2, y: 0.4, width: 0.4, height: 0.1);
+      // A tenth of the area, all inside: a cover of 1.
+      const part = IdentificationBox(
+        x: 0.3,
+        y: 0.42,
+        width: 0.08,
+        height: 0.05,
+      );
+      expect(link.score(whole, part), closeTo(1, 1e-9));
+      expect(link.score(part, whole), closeTo(1, 1e-9));
+      // Half of it inside.
+      const half = IdentificationBox(
+        x: 0.56,
+        y: 0.42,
+        width: 0.08,
+        height: 0.05,
+      );
+      expect(link.score(whole, half), closeTo(0.5, 1e-9));
+    });
+
+    test('a nearby box of alike size scores under the cover bar, falling '
+        'with its shift', () {
+      // Three quarters of a box across (a cover of 0.25), and 1.4 boxes:
+      // both in the reach of 1.5.
+      expect(link.score(_box(0.1), _box(0.25)), closeTo(0.25, 1e-9));
+      expect(
+        link.score(_box(0.1), _box(0.38)),
+        closeTo((1 - 1.4 / 1.5) * 0.5, 1e-9),
+      );
+    });
+
+    test('too far, or a small box outside the other, does not link', () {
+      expect(link.score(_box(0.1), _box(0.42)), isNull);
+      const whole = IdentificationBox(x: 0.2, y: 0.4, width: 0.4, height: 0.1);
+      const outside = IdentificationBox(
+        x: 0.62,
+        y: 0.42,
+        width: 0.08,
+        height: 0.05,
+      );
+      expect(link.score(whole, outside), isNull);
+    });
+
+    test('no score is an overlap link', () {
+      for (final next in [_box(0.1), _box(0.12), _box(0.3)]) {
+        expect(TrackLink.isOverlap(link.score(_box(0.1), next)!), isFalse);
+      }
+    });
+
+    test('an empty box links nothing', () {
+      const empty = IdentificationBox(x: 0.1, y: 0.4, width: 0, height: 0);
+      expect(link.score(empty, _box(0.1)), isNull);
+    });
+  });
+
+  group('matchLinksLiveFirst', () {
+    double? Function(int, int) scores(Map<(int, int), double> by) =>
+        (f, t) => by[(f, t)];
+
+    test('the live links are made first, the lost ones from what is '
+        'left', () {
+      expect(
+        matchLinksLiveFirst(
+          2,
+          2,
+          live: scores({(0, 0): 1.5}),
+          lost: scores({(1, 0): 0.9, (1, 1): 0.4}),
+        ),
+        [(from: 0, to: 0), (from: 1, to: 1)],
+      );
+    });
+
+    test('a lost link with a live rival is not made', () {
+      // From 0 is in view with two nearby boxes, so it takes neither; box
+      // 1 is in reach of it and of lost track 1.
+      expect(
+        matchLinksLiveFirst(
+          2,
+          2,
+          live: scores({(0, 0): 0.3, (0, 1): 0.2}),
+          lost: scores({(1, 1): 0.9}),
+        ),
+        isEmpty,
+      );
+    });
+
+    test('with no lost links it is matchLinks', () {
+      final live = scores({(0, 0): 0.3, (1, 0): 0.2, (1, 1): 1.6});
+      expect(
+        matchLinksLiveFirst(2, 2, live: live, lost: (_, _) => null),
+        matchLinks(2, 2, live),
+      );
+    });
+  });
+
   test('a video run names the tracker that made its tracks', () {
-    expect(videoRunDetectorId('det-a+det-m'), 'det-a+det-m#tracker5');
+    expect(videoRunDetectorId('det-a+det-m'), 'det-a+det-m#tracker6');
   });
 }

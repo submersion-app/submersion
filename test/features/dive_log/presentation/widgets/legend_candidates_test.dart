@@ -37,8 +37,8 @@ void main() {
     });
 
     test('any other tank, or none, by its number', () {
-      expect(tankFallbackTitle(l10n, const DiveTank(id: 'b'), 2), 'Tank 2');
-      expect(tankFallbackTitle(l10n, null, 1), 'Tank 1');
+      expect(tankFallbackTitle(l10n, const DiveTank(id: 'b'), 2), 'Cylinder 2');
+      expect(tankFallbackTitle(l10n, null, 1), 'Cylinder 1');
     });
   });
 }

@@ -575,4 +575,16 @@ void main() {
       expect(a.iou(b), closeTo(0.04 / 0.12, 1e-9));
     });
   });
+
+  group('IdentificationBox.intersection', () {
+    test('is the shared area, 0 for disjoint or touching boxes', () {
+      const a = IdentificationBox(x: 0, y: 0, width: 0.4, height: 0.2);
+      const b = IdentificationBox(x: 0.2, y: 0.1, width: 0.4, height: 0.2);
+      const touching = IdentificationBox(x: 0.4, y: 0, width: 0.2, height: 0.2);
+      expect(a.intersection(b), closeTo(0.2 * 0.1, 1e-9));
+      expect(b.intersection(a), closeTo(0.2 * 0.1, 1e-9));
+      expect(a.intersection(a), closeTo(a.area, 1e-9));
+      expect(a.intersection(touching), 0);
+    });
+  });
 }

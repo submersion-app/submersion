@@ -160,17 +160,32 @@ void main() {
         );
         expectFits(tester.renderObject<RenderParagraph>(n2), 'N2 value');
 
-        // The title and mix name stay whole, on one line each.
-        for (final text in [l.diveLog_tank_title(3), 'EAN50']) {
-          final paragraph = tester.renderObject<RenderParagraph>(
-            find.descendant(
-              of: find.byType(TankEditorHeader),
-              matching: find.text(text),
-            ),
-          );
-          expectFits(paragraph, text);
-          expect(paragraph.didExceedMaxLines, isFalse, reason: text);
-        }
+        RenderParagraph headerText(String text) =>
+            tester.renderObject<RenderParagraph>(
+              find.descendant(
+                of: find.byType(TankEditorHeader),
+                matching: find.text(text),
+              ),
+            );
+
+        // The mix name stays whole, on one line.
+        final mix = headerText('EAN50');
+        expectFits(mix, 'EAN50');
+        expect(mix.didExceedMaxLines, isFalse, reason: 'EAN50');
+
+        // The title is never cut short, and the buttons never squeeze it
+        // (the letter-by-letter wrap of #4962): it gets at least a field's
+        // width. Whether it fits on one line depends on the font. The test
+        // font draws letters about twice as wide as Roboto, so 'Cylinder 3'
+        // wraps here; in Roboto it takes 95 of the 134 px it gets at
+        // 360 dp and text scale 1.3, in every app language (#5106).
+        final title = headerText(l.diveLog_tank_title(3));
+        expect(title.didExceedMaxLines, isFalse, reason: 'title');
+        expect(
+          title.constraints.maxWidth,
+          greaterThanOrEqualTo(minWidth),
+          reason: 'title room',
+        );
       });
     }
   }

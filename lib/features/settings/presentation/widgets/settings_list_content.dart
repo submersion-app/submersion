@@ -84,7 +84,7 @@ const settingsSections = [
     id: 'manage',
     icon: Icons.folder_shared,
     title: 'Manage',
-    subtitle: 'Dive types & tank presets',
+    subtitle: 'Dive types & cylinder presets',
   ),
   SettingsSection(
     id: 'network',

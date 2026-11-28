@@ -19,6 +19,10 @@ enum FieldKind {
   temperature,
   weight,
   volume,
+
+  /// A cylinder's rated capacity, stored in cubic feet (issue #800): shown as
+  /// stored in cubic feet, or as litres of gas in metric.
+  ratedCapacityCuft,
   speed,
   windSpeed,
   altitude,

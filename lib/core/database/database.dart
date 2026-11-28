@@ -1846,9 +1846,12 @@ class AppDatabase extends _$AppDatabase {
     // v393: the built-in BCD/wing inspection kind applies to wings (issue
     // #5110). Built-in reference data never syncs; the floor does not move.
     393,
+    // v394: tank_presets.rated_capacity_cuft, the rated capacity a copy of a
+    // built-in preset keeps (issue #800). Nullable; the floor does not move.
+    394,
     // v396: sightings.seen_at_seconds, when in the dive a species was seen
     // (issue #5092). Nullable, no backfill; the floor rises to 396.
-    // Numbered 396: main holds 393, and open work claims 388 and 390 to 395.
+    // Numbered 396: main holds 394, and open work claims 388 and 390 to 395.
     396,
   ];
 

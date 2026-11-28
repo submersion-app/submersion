@@ -776,7 +776,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerMission_issue_planHasNoTank =>
-      'יש להוסיף לתוכנית מכל גז ראשי';
+      'יש להוסיף לתוכנית בלון גז ראשי';
 
   @override
   String get plannerMission_issue_planNotDiveable =>
@@ -798,7 +798,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerMission_issue_tankBudgetUnknown =>
-      'לכל מכל נדרשים נפח ולחץ מילוי';
+      'לכל בלון נדרשים נפח ולחץ מילוי';
 
   @override
   String get plannerMission_issue_unsupportedMode =>
@@ -2040,7 +2040,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkEdit_collectionWeights => 'משקולות';
 
   @override
-  String get diveLog_bulkEdit_collectionTanks => 'מכלים';
+  String get diveLog_bulkEdit_collectionTanks => 'בלונים';
 
   @override
   String get diveLog_bulkEdit_notesSet => 'הגדר';
@@ -2061,18 +2061,18 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_bulkEdit_modeUpdate => 'עדכון';
 
   @override
-  String get diveLog_bulkEdit_tankOnlyIfEmpty => 'רק צלילות ללא מכל קיים';
+  String get diveLog_bulkEdit_tankOnlyIfEmpty => 'רק צלילות ללא בלון קיים';
 
   @override
   String get diveLog_bulkEdit_tankSpecsHint =>
-      'בחר אילו מאפיינים לדרוס במיכלים שכבר קיימים בצלילות אלה. לחצי ההתחלה והסיום לעולם אינם משתנים.';
+      'בחר אילו מאפיינים לדרוס בבלונים שכבר קיימים בצלילות אלה. לחצי ההתחלה והסיום לעולם אינם משתנים.';
 
   @override
-  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'כל המכלים';
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'כל הבלונים';
 
   @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
-      'בחר לפחות מאפיין אחד של מיכל לעדכון.';
+      'בחר לפחות מאפיין אחד של בלון לעדכון.';
 
   @override
   String get diveLog_bulkEdit_tankFieldPreset => 'הגדרה מראש';
@@ -2100,17 +2100,17 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count צלילות שנבחרו ללא מיכלים וידולגו.',
-      one: 'צלילה אחת שנבחרה ללא מיכלים ותידולג.',
+      other: '$count צלילות שנבחרו ללא בלונים וידולגו.',
+      one: 'צלילה אחת שנבחרה ללא בלונים ותידולג.',
     );
     return '$_temp0';
   }
 
   @override
-  String get diveLog_bulkEdit_tankRoleSameForAll => 'אותו תפקיד לכל מכל';
+  String get diveLog_bulkEdit_tankRoleSameForAll => 'אותו תפקיד לכל בלון';
 
   @override
-  String get diveLog_bulkEdit_tankRoleByPosition => 'תפקיד לפי מיקום המכל';
+  String get diveLog_bulkEdit_tankRoleByPosition => 'תפקיד לפי מיקום הבלון';
 
   @override
   String get diveLog_bulkEdit_tankRoleAddPosition => 'הוספת מיקום';
@@ -2124,8 +2124,8 @@ class AppLocalizationsHe extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'רק צלילות עם בדיוק $count מכלים יקבלו את התפקידים האלה, לפי סדר המכלים.',
-      one: 'רק צלילות עם מכל אחד בדיוק יקבלו את התפקיד הזה.',
+          'רק צלילות עם בדיוק $count בלונים יקבלו את התפקידים האלה, לפי סדר הבלונים.',
+      one: 'רק צלילות עם בלון אחד בדיוק יקבלו את התפקיד הזה.',
     );
     return '$_temp0';
   }
@@ -2136,9 +2136,9 @@ class AppLocalizationsHe extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '$count צלילות אינן תואמות את מיקומי המכלים, ולכן תפקידי המכלים שלהן נשארים כפי שהם.',
+          '$count צלילות אינן תואמות את מיקומי הבלונים, ולכן תפקידי הבלונים שלהן נשארים כפי שהם.',
       one:
-          'צלילה אחת אינה תואמת את מיקומי המכלים, ולכן תפקידי המכלים שלה נשארים כפי שהם.',
+          'צלילה אחת אינה תואמת את מיקומי הבלונים, ולכן תפקידי הבלונים שלה נשארים כפי שהם.',
     );
     return '$_temp0';
   }
@@ -4883,7 +4883,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get checklists_addGear_cylindersOnGearTab =>
-      'מכלים מוסיפים בלשונית ציוד.';
+      'בלונים מוסיפים בלשונית ציוד.';
 
   @override
   String get checklists_addItem => 'הוסף פריט';
@@ -6864,7 +6864,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveCenters_fillHours_caption =>
-      'מתי התחנה ממלאת מכלים. תחזית המילוי של הטיול משתמשת בשעת הסגירה.';
+      'מתי התחנה ממלאת בלונים. תחזית המילוי של הטיול משתמשת בשעת הסגירה.';
 
   @override
   String get diveCenters_fillHours_opens => 'נפתח';
@@ -7985,7 +7985,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_equipmentCaption =>
-      'הציוד שבו השתמשת, לספירת הצלילות ולהיסטוריית השירות שלו. מיכל שמופיע כאן אינו מוסיף נתוני גז; הוסיפו אותו גם תחת מיכלים.';
+      'הציוד שבו השתמשת, לספירת הצלילות ולהיסטוריית השירות שלו. בלון שמופיע כאן אינו מוסיף נתוני גז; הוסיפו אותו גם תחת בלונים.';
 
   @override
   String diveLog_edit_errorLoadingDiveTypes(Object error) {
@@ -7994,7 +7994,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_gasSwitches_caption =>
-      'מתי החלפת מיכל. הדקו, העמסת הרקמות וה-SAC לכל מיכל עוקבים אחרי ההחלפות האלה.';
+      'מתי החלפת בלון. הדקו, העמסת הרקמות וה-SAC לכל בלון עוקבים אחרי ההחלפות האלה.';
 
   @override
   String diveLog_edit_gasSwitches_startsOn(String tank) {
@@ -8055,8 +8055,8 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count החלפות גז הוסרו עם המיכל שלהן',
-      one: 'החלפת גז $count הוסרה עם המיכל שלה',
+      other: '$count החלפות גז הוסרו עם הבלון שלהן',
+      one: 'החלפת גז $count הוסרה עם הבלון שלה',
     );
     return '$_temp0';
   }
@@ -8066,8 +8066,8 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'מילוי $count החלפות מלחצי המיכלים',
-      one: 'מילוי החלפה אחת מלחצי המיכלים',
+      other: 'מילוי $count החלפות מלחצי הבלונים',
+      one: 'מילוי החלפה אחת מלחצי הבלונים',
     );
     return '$_temp0';
   }
@@ -8202,7 +8202,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_overline_gasSwitches => 'החלפות גז';
 
   @override
-  String get diveLog_edit_overline_tanks => 'מיכלים';
+  String get diveLog_edit_overline_tanks => 'בלונים';
 
   @override
   String get diveLog_edit_planned_switch => 'צלילה מתוכננת';
@@ -8437,12 +8437,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String diveLog_edit_tankCard_title(int number) {
-    return 'מיכל $number';
+    return 'בלון $number';
   }
 
   @override
   String get diveLog_edit_tanksCaption =>
-      'ממה נשמת. גרפי הגז, צריכת הגז והסטטיסטיקות מגיעים מהמיכלים האלה.';
+      'ממה נשמת. גרפי הגז, צריכת הגז והסטטיסטיקות מגיעים מהבלונים האלה.';
 
   @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
@@ -9083,7 +9083,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_chartSection_other => 'אחר';
 
   @override
-  String get diveLog_chartSection_tankPressures => 'לחצי מיכלים';
+  String get diveLog_chartSection_tankPressures => 'לחצי בלונים';
 
   @override
   String get diveLog_chartOption_tooltipFollowsCursor =>
@@ -10752,7 +10752,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_surfaceBreathing_helper =>
-      'דקות על מכל זה אחרי שהמחשב הפסיק לתעד, למשל חמצן על הסירה';
+      'דקות על בלון זה אחרי שהמחשב הפסיק לתעד, למשל חמצן על הסירה';
 
   @override
   String get diveLog_tank_surfaceBreathing_unit => 'דקות';
@@ -10781,6 +10781,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_startPressure => 'לחץ התחלה';
+
+  @override
+  String get diveLog_tank_managePresets => 'ניהול תבניות';
 
   @override
   String get diveLog_tank_label_tankPreset => 'תבנית בלון';
@@ -10937,21 +10940,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_tooltip_remove => 'הסר בלון';
 
   @override
-  String get diveLog_tank_fromOwnCylinder => 'מילוי מהמיכלים שלי';
+  String get diveLog_tank_fromOwnCylinder => 'מילוי מהבלונים שלי';
 
   @override
   String get diveLog_tank_ownCylinderFailed =>
-      'לא ניתן היה להעתיק את נתוני המיכל. נסו שוב.';
+      'לא ניתן היה להעתיק את נתוני הבלון. נסו שוב.';
 
   @override
   String get diveLog_tank_ownCylinderHint =>
-      'מעתיק את הגודל ואת המילוי האחרון של המיכל שנבחר ומוסיף אותו לציוד של הצלילה הזו.';
+      'מעתיק את הגודל ואת המילוי האחרון של הבלון שנבחר ומוסיף אותו לציוד של הצלילה הזו.';
 
   @override
-  String get diveLog_tank_ownCylinderTitle => 'המיכלים שלי';
+  String get diveLog_tank_ownCylinderTitle => 'הבלונים שלי';
 
   @override
-  String get cylindersFromTanks_title => 'הוספת מיכלים לציוד';
+  String get cylindersFromTanks_title => 'הוספת בלונים לציוד';
 
   @override
   String cylindersFromTanks_onDives(int count) {
@@ -10969,8 +10972,8 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count מיכלים',
-      one: 'מיכל אחד',
+      other: '$count בלונים',
+      one: 'בלון אחד',
     );
     return '$_temp0';
   }
@@ -10980,8 +10983,8 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'הוספת $count מיכלים',
-      one: 'הוספת מיכל אחד',
+      other: 'הוספת $count בלונים',
+      one: 'הוספת בלון אחד',
     );
     return '$_temp0';
   }
@@ -10991,8 +10994,8 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count מיכלים נוספו לציוד',
-      one: 'מיכל אחד נוסף לציוד',
+      other: '$count בלונים נוספו לציוד',
+      one: 'בלון אחד נוסף לציוד',
     );
     return '$_temp0';
   }
@@ -11002,8 +11005,8 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count מיכלים אינם בציוד',
-      one: 'מיכל אחד אינו בציוד',
+      other: '$count בלונים אינם בציוד',
+      one: 'בלון אחד אינו בציוד',
     );
     return '$_temp0';
   }
@@ -11020,26 +11023,26 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get cylindersFromTanks_failed => 'לא ניתן היה להוסיף את המיכלים';
+  String get cylindersFromTanks_failed => 'לא ניתן היה להוסיף את הבלונים';
 
   @override
-  String get diveLog_tank_gearMenu => 'אפשרויות מיכל';
+  String get diveLog_tank_gearMenu => 'אפשרויות בלון';
 
   @override
   String get diveLog_tank_addToGear => 'הוספה לציוד שלי';
 
   @override
-  String get diveLog_tank_linkCylinder => 'קישור למיכל שלי';
+  String get diveLog_tank_linkCylinder => 'קישור לבלון שלי';
 
   @override
   String get diveLog_tank_linkCylinderHint =>
-      'מקשר את המיכל הזה למיכל שבציוד ומוסיף אותו לציוד של הצלילה הזו. המיכל שומר על הגודל שנרשם.';
+      'מקשר את הבלון הזה לבלון שבציוד ומוסיף אותו לציוד של הצלילה הזו. הבלון שומר על הגודל שנרשם.';
 
   @override
-  String get diveLog_tank_unlinkCylinder => 'ביטול קישור המיכל';
+  String get diveLog_tank_unlinkCylinder => 'ביטול קישור הבלון';
 
   @override
-  String get diveLog_tank_linkFailed => 'לא ניתן היה לשנות את קישור המיכל';
+  String get diveLog_tank_linkFailed => 'לא ניתן היה לשנות את קישור הבלון';
 
   @override
   String get diveLog_tank_regulatorLabel => 'וסת';
@@ -11063,7 +11066,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tank_removeRegulator => 'הסר וסת';
 
   @override
-  String get diveLog_tank_tripCylinderLabel => 'מכל הטיול';
+  String get diveLog_tank_tripCylinderLabel => 'בלון הטיול';
 
   @override
   String get diveLog_tank_tripCylinderNone => 'ללא';
@@ -11073,7 +11076,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_tripCylinderSuggested =>
-      'הוצע מתוך המכלים המלאים של הטיול';
+      'הוצע מתוך הבלונים המלאים של הטיול';
 
   @override
   String get diveLog_tissue_title => 'עומס רקמות';
@@ -11262,7 +11265,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_sources_splitDialog_body =>
-      'הפרופיל, האירועים והמיכלים של מקור זה יועברו לצלילה חדשה. רישום היומן נשאר בצלילה זו.';
+      'הפרופיל, האירועים והבלונים של מקור זה יועברו לצלילה חדשה. רישום היומן נשאר בצלילה זו.';
 
   @override
   String get diveLog_sources_splitDialog_confirm => 'פצל';
@@ -11281,12 +11284,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String diveLog_sources_removeDialog_body(String source) {
-    return 'הקריאות מ-$source יוסרו מהצלילה הזו: הפרופיל, הלחצים והמכלים שרק הוא תיעד. רשומת היומן נשארת.';
+    return 'הקריאות מ-$source יוסרו מהצלילה הזו: הפרופיל, הלחצים והבלונים שרק הוא תיעד. רשומת היומן נשארת.';
   }
 
   @override
   String get diveLog_sources_removeDialog_bodyUnnamed =>
-      'הקריאות של המקור הזה יוסרו מהצלילה: הפרופיל, הלחצים והמכלים שרק הוא תיעד. רשומת היומן נשארת.';
+      'הקריאות של המקור הזה יוסרו מהצלילה: הפרופיל, הלחצים והבלונים שרק הוא תיעד. רשומת היומן נשארת.';
 
   @override
   String get diveLog_sources_removeDialog_confirm => 'הסרה';
@@ -11332,13 +11335,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן היה להפריד את הצלילה הזו';
 
   @override
-  String get divePlanner_action_addTank => 'הוסף מיכל';
+  String get divePlanner_action_addTank => 'הוסף בלון';
 
   @override
   String get divePlanner_action_deletePlan => 'מחק תוכנית';
 
   @override
-  String get divePlanner_action_editTank => 'ערוך מיכל';
+  String get divePlanner_action_editTank => 'ערוך בלון';
 
   @override
   String divePlanner_action_fillBestMix(String depth, String mix) {
@@ -11368,7 +11371,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן להמיר: לתכנית יש אזהרות קריטיות';
 
   @override
-  String get divePlanner_error_reserveExceedsTank => 'חורג מלחץ המיכל';
+  String get divePlanner_error_reserveExceedsTank => 'חורג מלחץ הבלון';
 
   @override
   String get divePlanner_error_reserveMustBePositive => 'חייב להיות גדול מ-0';
@@ -11382,7 +11385,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_field_diluentGas => 'Diluent';
 
   @override
-  String get divePlanner_field_diluentGasHint => 'מיכלים שלא סומנו הם bailout';
+  String get divePlanner_field_diluentGasHint => 'בלונים שלא סומנו הם bailout';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -11410,7 +11413,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_hint_tankName => 'הזן שם מיכל';
+  String get divePlanner_hint_tankName => 'הזן שם בלון';
 
   @override
   String get divePlanner_label_airBreaks => 'הפסקות אוויר';
@@ -11550,7 +11553,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_label_off => 'כבוי';
 
   @override
-  String get divePlanner_label_tanks => 'מיכלים';
+  String get divePlanner_label_tanks => 'בלונים';
 
   @override
   String get divePlanner_label_loopGases => 'Loop';
@@ -11559,29 +11562,29 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_label_bailoutGases => 'Bailout';
 
   @override
-  String get divePlanner_label_noBailout => 'עדיין אין מיכל bailout';
+  String get divePlanner_label_noBailout => 'עדיין אין בלון bailout';
 
   @override
-  String get divePlanner_savedTanks_title => 'מכלים שמורים';
+  String get divePlanner_savedTanks_title => 'בלונים שמורים';
 
   @override
-  String get divePlanner_savedTanks_save => 'שמור מכל';
+  String get divePlanner_savedTanks_save => 'שמור בלון';
 
   @override
-  String get divePlanner_savedTanks_saveTitle => 'שמור מכל בשם';
+  String get divePlanner_savedTanks_saveTitle => 'שמור בלון בשם';
 
   @override
-  String get divePlanner_savedTanks_nameField => 'שם המכל';
+  String get divePlanner_savedTanks_nameField => 'שם הבלון';
 
   @override
-  String get divePlanner_savedTanks_saved => 'המכל נשמר';
+  String get divePlanner_savedTanks_saved => 'הבלון נשמר';
 
   @override
   String get divePlanner_savedTanks_manage => 'ניהול';
 
   @override
   String get divePlanner_savedTanks_empty =>
-      'אין עדיין מכלים שמורים. שמור מכל מתוכנית זו לשימוש חוזר בתוכניות אחרות.';
+      'אין עדיין בלונים שמורים. שמור בלון מתוכנית זו לשימוש חוזר בתוכניות אחרות.';
 
   @override
   String get divePlanner_label_timeAxis => 'זמן (דקות)';
@@ -11635,11 +11638,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
-    return 'מיכל מתחת למילואי $threshold';
+    return 'בלון מתחת למילואי $threshold';
   }
 
   @override
-  String get divePlanner_warning_gasOut => 'המיכל יהיה ריק';
+  String get divePlanner_warning_gasOut => 'הבלון יהיה ריק';
 
   @override
   String get divePlanner_warning_otuWarning => 'הצטברות OTU גבוהה';
@@ -14121,6 +14124,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentType_harness => 'רתמה';
 
   @override
+  String get equipment_searchWords_cylinder => 'מיכל, מכל, גליל, סטייג\', פוני';
+
+  @override
+  String get equipment_searchWords_tankBand => 'רצועת מיכל, cam band';
+
+  @override
   String get enum_equipmentType_tankBand => 'רצועת בלון';
 
   @override
@@ -14376,14 +14385,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_profileEvent_suunto_safetyStopReached => 'הגעה לעצירת ביטחון';
 
   @override
-  String get enum_profileEvent_suunto_tankPressureAlarm => 'אזעקת לחץ מיכל';
+  String get enum_profileEvent_suunto_tankPressureAlarm => 'אזעקת לחץ בלון';
 
   @override
   String get enum_profileEvent_suunto_tankPressureNotification =>
-      'התראת לחץ מיכל';
+      'התראת לחץ בלון';
 
   @override
-  String get enum_profileEvent_suunto_tankPressureWarning => 'אזהרת לחץ מיכל';
+  String get enum_profileEvent_suunto_tankPressureWarning => 'אזהרת לחץ בלון';
 
   @override
   String get enum_profileMetricCategory_decompression => 'דקומפרסיה';
@@ -14781,7 +14790,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get passport_title => 'דרכון המיכל';
+  String get passport_title => 'דרכון הבלון';
 
   @override
   String get passport_open => 'פתיחת הדרכון';
@@ -14800,7 +14809,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get passport_spec_title => 'מיכל';
+  String get passport_spec_title => 'בלון';
 
   @override
   String passport_spec_freeGas(String pressure) {
@@ -14836,12 +14845,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String passport_o2Warning_untracked(String o2) {
-    return 'המילוי האחרון הוא $o2 O2 והמיכל הזה אינו במעקב כנקי ל-O2.';
+    return 'המילוי האחרון הוא $o2 O2 והבלון הזה אינו במעקב כנקי ל-O2.';
   }
 
   @override
   String passport_o2Warning_overdue(String o2) {
-    return 'המילוי האחרון הוא $o2 O2 וניקוי ה-O2 של המיכל הזה באיחור.';
+    return 'המילוי האחרון הוא $o2 O2 וניקוי ה-O2 של הבלון הזה באיחור.';
   }
 
   @override
@@ -14879,7 +14888,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_fill_writeToTagTitle => 'המילוי נרשם';
 
   @override
-  String get passport_fill_writeToTagBody => 'לכתוב אותו לתג של המיכל?';
+  String get passport_fill_writeToTagBody => 'לכתוב אותו לתג של הבלון?';
 
   @override
   String get passport_fill_writeToTag => 'כתיבה לתג';
@@ -14972,7 +14981,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_tag_linkPrompt => 'הדביקו את הקישור מהתג';
 
   @override
-  String get passport_tag_linkInvalid => 'זה אינו תג מיכל';
+  String get passport_tag_linkInvalid => 'זה אינו תג בלון';
 
   @override
   String get passport_tag_linkFailed => 'לא ניתן היה לקשר את התג. נסו שוב.';
@@ -14986,7 +14995,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_tag_linked => 'התג קושר';
 
   @override
-  String get passport_scan_title => 'סריקת תג מיכל';
+  String get passport_scan_title => 'סריקת תג בלון';
 
   @override
   String get passport_scan_hint =>
@@ -15029,18 +15038,18 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get passport_foreign_title => 'תג מיכל';
+  String get passport_foreign_title => 'תג בלון';
 
   @override
-  String get passport_foreign_notInGear => 'המיכל הזה אינו חלק מהציוד שלך.';
+  String get passport_foreign_notInGear => 'הבלון הזה אינו חלק מהציוד שלך.';
 
   @override
   String passport_usage_foreignTitle(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'השתמשת במיכל הזה $count פעמים',
-      one: 'השתמשת במיכל הזה $count פעם',
+      other: 'השתמשת בבלון הזה $count פעמים',
+      one: 'השתמשת בבלון הזה $count פעם',
     );
     return '$_temp0';
   }
@@ -15079,7 +15088,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get passport_usage_loadFailed =>
-      'לא ניתן לטעון את הצלילות שלך עם המיכל הזה';
+      'לא ניתן לטעון את הצלילות שלך עם הבלון הזה';
 
   @override
   String passport_foreign_writtenOn(String date) {
@@ -15101,10 +15110,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get passport_foreign_addFailed =>
-      'לא ניתן היה להוסיף את המיכל. נסו שוב.';
+      'לא ניתן היה להוסיף את הבלון. נסו שוב.';
 
   @override
-  String get passport_foreign_defaultName => 'מיכל';
+  String get passport_foreign_defaultName => 'בלון';
 
   @override
   String get passport_nfc_tap => 'הצמדת תג NFC';
@@ -15158,7 +15167,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String passport_nfc_tooSmall(int capacity) {
-    return 'התג הזה קטן מדי ($capacity בייטים), אפילו למזהה המיכל.';
+    return 'התג הזה קטן מדי ($capacity בייטים), אפילו למזהה הבלון.';
   }
 
   @override
@@ -15255,7 +15264,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_trip_unassign => 'הסרה מהטיול הזה';
 
   @override
-  String get passport_trip_onBoard => 'בלוח המיכלים של הטיול';
+  String get passport_trip_onBoard => 'בלוח הבלונים של הטיול';
 
   @override
   String get passport_trip_failed => 'לא ניתן לשנות את הטיול. נסו שוב.';
@@ -15915,7 +15924,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_deleteDialog_content_transmitter =>
-      'למחוק את המשדר הזה? הגדרת המיכל שלו תימחק יחד איתו. הורדה מאוחרת יותר שמכילה את המספר הסידורי שלו תוסיף אותו שוב. כדי להזיז אותו הצידה במקום זאת, סמן אותו כהוצא משימוש.';
+      'למחוק את המשדר הזה? הגדרת הבלון שלו תימחק יחד איתו. הורדה מאוחרת יותר שמכילה את המספר הסידורי שלו תוסיף אותו שוב. כדי להזיז אותו הצידה במקום זאת, סמן אותו כהוצא משימוש.';
 
   @override
   String get equipment_bulkDelete_deviceNote =>
@@ -16255,7 +16264,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String cylinderConfigs_overwriteTank(int number, String role) {
-    return 'מיכל $number · $role';
+    return 'בלון $number · $role';
   }
 
   @override
@@ -16681,6 +16690,51 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get equipment_edit_typeLockedHelper =>
       'מחשב צלילה או משדר מחוברים שומרים על הסוג שלהם.';
+
+  @override
+  String get equipment_suggest_link => 'לא מוצאים סוג מתאים? הציעו קטגוריה';
+
+  @override
+  String get equipment_suggest_title => 'הצעת קטגוריה';
+
+  @override
+  String get equipment_suggest_intro =>
+      'תיפתח ב-GitHub בקשת תכונה ממולאת מראש. בודקים אותה ומפרסמים אותה מהדפדפן.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'מה ההצעה?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'סוג ציוד חדש';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'גרסה חדשה של סוג קיים';
+
+  @override
+  String get equipment_suggest_nameLabel => 'שם';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'גרסה של';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => 'הסוג הקיים הקרוב ביותר';
+
+  @override
+  String get equipment_suggest_parentNone => 'ללא';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'למה זה נחוץ?';
+
+  @override
+  String get equipment_suggest_reasonHint => 'במה זה שונה מהסוגים הקיימים?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'לכלול את הפריט הזה כדוגמה ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'פתיחה ב-GitHub';
 
   @override
   String get equipment_edit_useCustomReminders => 'השתמש בתזכורות מותאמות';
@@ -18061,11 +18115,26 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_consumption_diveTime => 'זמן צלילה';
 
   @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. אזהרה: חורג מקיבולת הבלון',
+      'other': '',
+    });
+    return 'צריכת גז: $volume $volumeSymbol, $pressure $pressureSymbol$_temp0';
+  }
+
+  @override
   String gasCalculators_consumption_exceedsTank(
     Object pressure,
     Object symbol,
   ) {
-    return 'חורג מקיבולת המיכל ($pressure $symbol)';
+    return 'חורג מקיבולת הבלון ($pressure $symbol)';
   }
 
   @override
@@ -18084,7 +18153,7 @@ class AppLocalizationsHe extends AppLocalizations {
     Object fillPressure,
     Object pressureSymbol,
   ) {
-    return 'קיבולת מיכל ($tankSize$volumeSymbol @ $fillPressure $pressureSymbol)';
+    return 'קיבולת בלון ($tankSize$volumeSymbol @ $fillPressure $pressureSymbol)';
   }
 
   @override
@@ -18782,7 +18851,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'יש להזין לחץ התחלתי ולחץ סופי.';
 
   @override
-  String get gasCalculators_blender_lineNeedsCylinder => 'יש להזין נפח מכל.';
+  String get gasCalculators_blender_lineNeedsCylinder => 'יש להזין נפח בלון.';
 
   @override
   String get gasCalculators_blender_lineDescriptionOptional =>
@@ -18896,7 +18965,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_tab_rockBottom => 'Rock Bottom';
 
   @override
-  String get gasCalculators_tankSize => 'גודל מיכל';
+  String get gasCalculators_tankSize => 'גודל בלון';
 
   @override
   String get gasCalculators_title => 'מחשבוני גז';
@@ -19271,9 +19340,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => 'לא ניתן לפתוח את הדפדפן';
-
-  @override
-  String get marineLife_suggest_copyLink => 'העתקת קישור';
 
   @override
   String get marineLife_editCard_photos => 'תמונות';
@@ -21971,7 +22037,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get plannerSeries_fillAll => 'מילוי כל המכלים';
+  String get plannerSeries_fillAll => 'מילוי כל הבלונים';
 
   @override
   String get plannerSeries_createPlannedDive => 'יצירת צלילה מתוכננת';
@@ -22085,7 +22151,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'גז מינימלי דורש לחץ התחלתי';
 
   @override
-  String get plannerCanvas_gas_minGasNoVolume => 'גז מינימלי דורש גודל מכל';
+  String get plannerCanvas_gas_minGasNoVolume => 'גז מינימלי דורש גודל בלון';
 
   @override
   String get plannerCanvas_gas_limitsNoStartPressure =>
@@ -22992,7 +23058,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buoyancy_drysuitGas => 'גז יבשה שנוסף';
 
   @override
-  String get buoyancy_estimatedPressures => 'לחצי המכלים משוערים';
+  String get buoyancy_estimatedPressures => 'לחצי הבלונים משוערים';
 
   @override
   String get buoyancy_linkSuitHint =>
@@ -23558,7 +23624,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_metricColors_pressureCustom =>
-      'בשימוש בצלילות עם מכל אחד';
+      'בשימוש בצלילות עם בלון אחד';
 
   @override
   String settings_metricColors_sheetTitle(String metric) {
@@ -27056,7 +27122,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'קובץ או מכשיר המקור';
 
   @override
-  String get settings_conflict_field_sourceTankId => 'הועבר מהמיכל';
+  String get settings_conflict_field_sourceTankId => 'הועבר מהבלון';
 
   @override
   String get settings_conflict_field_sourceTankIndex =>
@@ -27360,6 +27426,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_volumeL => 'נפח';
+
+  @override
+  String get settings_conflict_field_ratedCapacityCuft => 'קיבולת נקובה';
 
   @override
   String get settings_conflict_field_volumeLiters => 'נפח';
@@ -28819,7 +28888,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'פחות שמות. כ-$percent% נכונים';
+    return 'פחות שמות. כ-$percent% נכונים בתמונות';
   }
 
   @override
@@ -28828,12 +28897,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'יותר שמות. כ-$percent% נכונים';
+    return 'יותר שמות. כ-$percent% נכונים בתמונות';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'הכי הרבה שמות. כ-$percent% נכונים';
+    return 'הכי הרבה שמות. כ-$percent% נכונים בתמונות';
   }
 
   @override
@@ -30840,18 +30909,18 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_units_gasModel_real_subtitle =>
-      'מתחשב בדחיסות. מיכל 12 ליטר ב-200 בר מכיל כ-2317 ליטר.';
+      'מתחשב בדחיסות. בלון 12 ליטר ב-200 בר מכיל כ-2317 ליטר.';
 
   @override
   String get settings_units_gasModel_ideal => 'גז אידיאלי';
 
   @override
   String get settings_units_gasModel_ideal_subtitle =>
-      'תואם לחישוב ידני ולטבלאות צלילה. מיכל 12 ליטר ב-200 בר מכיל 2400 ליטר.';
+      'תואם לחישוב ידני ולטבלאות צלילה. בלון 12 ליטר ב-200 בר מכיל 2400 ליטר.';
 
   @override
   String get settings_units_gasModel_explanation =>
-      'כיצד לחץ המיכל מומר לנפח גז. משפיע על קצב צריכת האוויר, הגז שנוצל, סטטיסטיקות הגז, המתכנן ומחשבוני הגז. גז אידיאלי תואם לחישוב שמלמדים ארגוני ההסמכה; גז ממשי מדויק פיזיקלית ומציג קצב צריכה נמוך בכ-5%.';
+      'כיצד לחץ הבלון מומר לנפח גז. משפיע על קצב צריכת האוויר, הגז שנוצל, סטטיסטיקות הגז, המתכנן ומחשבוני הגז. גז אידיאלי תואם לחישוב שמלמדים ארגוני ההסמכה; גז ממשי מדויק פיזיקלית ומציג קצב צריכה נמוך בכ-5%.';
 
   @override
   String get settings_units_dialog_gasModel => 'חישובי גז';
@@ -31734,16 +31803,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_gas_gasMix_title => 'התפלגות תערובות גזים';
 
   @override
-  String get insights_gas_roleUse_title => 'צריכה לפי תפקיד המיכל';
+  String get insights_gas_roleUse_title => 'צריכה לפי תפקיד הבלון';
 
   @override
   String get insights_gas_roleUse_subtitle => 'כל תפקיד לאורך הזמן שנשמו ממנו';
 
   @override
-  String get insights_gas_roleUse_empty => 'אין עדיין ערכים לפי תפקיד מיכל';
+  String get insights_gas_roleUse_empty => 'אין עדיין ערכים לפי תפקיד בלון';
 
   @override
-  String get insights_gas_roleUse_error => 'טעינת הצריכה לפי תפקיד מיכל נכשלה';
+  String get insights_gas_roleUse_error => 'טעינת הצריכה לפי תפקיד בלון נכשלה';
 
   @override
   String get insights_gas_roleGroup_bottomGas => 'גז תחתית';
@@ -31754,9 +31823,9 @@ class AppLocalizationsHe extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '$count צלילות לא נכללו: מיכל סטייג׳, דקו, פוני או חירום איבד גז בלי החלפת גז אליו',
+          '$count צלילות לא נכללו: בלון סטייג׳, דקו, פוני או חירום איבד גז בלי החלפת גז אליו',
       one:
-          'צלילה אחת לא נכללה: מיכל סטייג׳, דקו, פוני או חירום איבד גז בלי החלפת גז אליו',
+          'צלילה אחת לא נכללה: בלון סטייג׳, דקו, פוני או חירום איבד גז בלי החלפת גז אליו',
     );
     return '$_temp0';
   }
@@ -32356,7 +32425,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_focus_factor_gas => 'גז';
 
   @override
-  String get insights_focus_factor_tankVolume => 'גודל מיכל';
+  String get insights_focus_factor_tankVolume => 'גודל בלון';
 
   @override
   String get insights_focus_factor_suit => 'חליפה';
@@ -34667,7 +34736,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get transfer_csvExport_descriptionFills =>
-      'כל מילוי שנרשם בדרכון מכל, עם הניתוח, הלחץ ותחנת המילוי';
+      'כל מילוי שנרשם בדרכון בלון, עם הניתוח, הלחץ ותחנת המילוי';
 
   @override
   String get transfer_csvExport_descriptionObservations =>
@@ -34690,7 +34759,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_csvExport_optionEquipmentTitle => 'CSV ציוד';
 
   @override
-  String get transfer_csvExport_optionFillsTitle => 'CSV מילויי מכלים';
+  String get transfer_csvExport_optionFillsTitle => 'CSV מילויי בלונים';
 
   @override
   String get transfer_csvExport_optionObservationsTitle => 'CSV של בדיקות ציוד';
@@ -34710,7 +34779,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transfer_csvExport_typeEquipment => 'ציוד';
 
   @override
-  String get transfer_csvExport_typeFills => 'מילויי מכלים';
+  String get transfer_csvExport_typeFills => 'מילויי בלונים';
 
   @override
   String get transfer_csvExport_typeObservations => 'בדיקות ציוד';
@@ -35578,7 +35647,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_edit_label_capacity => 'קיבולת נוסעים';
 
   @override
-  String get trips_edit_label_diversSharing => 'צוללים החולקים מכלים';
+  String get trips_edit_label_diversSharing => 'צוללים החולקים בלונים';
 
   @override
   String get trips_edit_hint_diversSharing => 'כולל אותך. ריק פירושו 1.';
@@ -35760,7 +35829,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_gear_add_fromSet => 'ערכת ציוד';
 
   @override
-  String get trips_gear_add_rental => 'מכלים מושכרים';
+  String get trips_gear_add_rental => 'בלונים מושכרים';
 
   @override
   String get trips_gear_add_scan => 'סריקת תג';
@@ -35769,11 +35838,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_gear_section_packed => 'ארוז';
 
   @override
-  String get trips_gear_section_cylinders => 'מכלים';
+  String get trips_gear_section_cylinders => 'בלונים';
 
   @override
   String get trips_gear_empty_upcoming =>
-      'עדיין לא נארז דבר. הוסיפו את הציוד שתביאו ואת המכלים שתצללו איתם.';
+      'עדיין לא נארז דבר. הוסיפו את הציוד שתביאו ואת הבלונים שתצללו איתם.';
 
   @override
   String get trips_gear_empty_past => 'לא נארז דבר לטיול הזה.';
@@ -35809,7 +35878,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get trips_cylinders_forecast_enough => 'יש מספיק מכלים מלאים עד מחר.';
+  String get trips_cylinders_forecast_enough => 'יש מספיק בלונים מלאים עד מחר.';
 
   @override
   String get trips_cylinders_forecast_daysTitle => 'צלילות מתוכננות';
@@ -35850,7 +35919,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_cylinders_segment_record => 'רישום';
 
   @override
-  String get trips_cylinders_recordEmpty => 'עדיין אין צלילות מהמכלים האלה.';
+  String get trips_cylinders_recordEmpty => 'עדיין אין צלילות מהבלונים האלה.';
 
   @override
   String trips_cylinders_record_fillsLogged(int count) {
@@ -35890,18 +35959,18 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count מכלי צלילה לא מקושרים',
-      one: '$count מכל צלילה לא מקושר',
+      other: '$count בלוני צלילה לא מקושרים',
+      one: '$count בלון צלילה לא מקושר',
     );
     return '$_temp0';
   }
 
   @override
-  String get trips_cylinders_record_unlinkedTitle => 'לא מקושרים למכל';
+  String get trips_cylinders_record_unlinkedTitle => 'לא מקושרים לבלון';
 
   @override
   String trips_cylinders_record_tank(int number) {
-    return 'מכל $number';
+    return 'בלון $number';
   }
 
   @override
@@ -35922,7 +35991,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לייצא את רישום הגז. נסו שוב.';
 
   @override
-  String get trips_cylinders_title => 'מכלים';
+  String get trips_cylinders_title => 'בלונים';
 
   @override
   String trips_cylinders_summary(int full, int partial, int empty) {
@@ -35956,13 +36025,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_cylinders_segment_ledger => 'יומן';
 
   @override
-  String get trips_cylinders_action_add => 'הוספת מכלים';
+  String get trips_cylinders_action_add => 'הוספת בלונים';
 
   @override
   String get trips_cylinders_action_fill => 'מילוי';
 
   @override
-  String get trips_cylinders_action_fillSeveral => 'מילוי כמה מכלים';
+  String get trips_cylinders_action_fillSeveral => 'מילוי כמה בלונים';
 
   @override
   String get trips_cylinders_action_adjust => 'תיקון';
@@ -35972,7 +36041,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String trips_cylinders_bottle(String label) {
-    return 'מכל $label';
+    return 'בלון $label';
   }
 
   @override
@@ -36012,7 +36081,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get trips_cylinders_boardEmpty => 'עדיין אין מכלים בטיול הזה';
+  String get trips_cylinders_boardEmpty => 'עדיין אין בלונים בטיול הזה';
 
   @override
   String get trips_cylinders_ledgerEmpty => 'עדיין אין מילויים או תיקונים';
@@ -36025,7 +36094,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_cylinders_deleteConfirmUnused =>
-      'למחוק את המכל הזה ואת המילויים שלו?';
+      'למחוק את הבלון הזה ואת המילויים שלו?';
 
   @override
   String trips_cylinders_deleteConfirmUsed(int count) {
@@ -36033,9 +36102,9 @@ class AppLocalizationsHe extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'למחוק את המכל הזה ואת המילויים שלו? $count צלילות השתמשו בו. הצלילות שומרות את המכלים שלהן; רק הקישור מוסר.',
+          'למחוק את הבלון הזה ואת המילויים שלו? $count צלילות השתמשו בו. הצלילות שומרות את הבלונים שלהן; רק הקישור מוסר.',
       one:
-          'למחוק את המכל הזה ואת המילויים שלו? $count צלילה השתמשה בו. הצלילה שומרת את המכל שלה; רק הקישור מוסר.',
+          'למחוק את הבלון הזה ואת המילויים שלו? $count צלילה השתמשה בו. הצלילה שומרת את הבלון שלה; רק הקישור מוסר.',
     );
     return '$_temp0';
   }
@@ -36053,7 +36122,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_cylinders_add_count => 'כמה';
 
   @override
-  String get trips_cylinders_add_preset => 'סוג מכל';
+  String get trips_cylinders_add_preset => 'סוג בלון';
 
   @override
   String get trips_cylinders_add_prefix => 'קידומת לשם';
@@ -36062,7 +36131,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_cylinders_add_prefixDefault => 'טנדר';
 
   @override
-  String get trips_cylinders_add_noOwned => 'לא נותרו מכלים בציוד שלך להוספה.';
+  String get trips_cylinders_add_noOwned => 'לא נותרו בלונים בציוד שלך להוספה.';
 
   @override
   String get trips_cylinders_add_errorCount => 'הזינו מספר בין 1 ל-20.';
@@ -36097,13 +36166,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_cylinders_fill_analyzedHe => 'He שנמדד (%)';
 
   @override
-  String get trips_cylinders_fill_bottle => 'מספר מכל';
+  String get trips_cylinders_fill_bottle => 'מספר בלון';
 
   @override
   String get trips_cylinders_fill_cost => 'עלות';
 
   @override
-  String get trips_cylinders_fill_costEach => 'עלות לכל מכל';
+  String get trips_cylinders_fill_costEach => 'עלות לכל בלון';
 
   @override
   String get trips_cylinders_fill_currency => 'מטבע';
@@ -36112,14 +36181,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_cylinders_fill_package => 'כלול בחבילה';
 
   @override
-  String get trips_cylinders_fill_slots => 'מכלים למילוי';
+  String get trips_cylinders_fill_slots => 'בלונים למילוי';
 
   @override
   String get trips_cylinders_fill_errorMix =>
       'החמצן חייב להיות בין 1 ל-100 אחוז, ההליום בין 0 ל-99, ויחד לכל היותר 100.';
 
   @override
-  String get trips_cylinders_fill_errorNoSlot => 'בחרו לפחות מכל אחד.';
+  String get trips_cylinders_fill_errorNoSlot => 'בחרו לפחות בלון אחד.';
 
   @override
   String get trips_cylinders_note => 'הערה';
@@ -36136,7 +36205,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_cylinders_adjust_markEmpty => 'סימון כריק';
 
   @override
-  String get trips_cylinders_edit_title => 'עריכת מכל';
+  String get trips_cylinders_edit_title => 'עריכת בלון';
 
   @override
   String get trips_cylinders_edit_label => 'שם';
@@ -36236,8 +36305,8 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count מכלים',
-      one: 'מכל אחד',
+      other: '$count בלונים',
+      one: 'בלון אחד',
     );
     return '$_temp0';
   }
@@ -36297,8 +36366,8 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count צוללים חולקים מכלים',
-      one: 'צולל אחד חולק מכלים',
+      other: '$count צוללים חולקים בלונים',
+      one: 'צולל אחד חולק בלונים',
     );
     return '$_temp0';
   }
@@ -36589,7 +36658,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle =>
-      'לחץ המכל לא נרשם';
+      'לחץ הבלון לא נרשם';
 
   @override
   String get universalImport_summary_noticeNoTankPressureBody =>
@@ -38075,7 +38144,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_segmentEditor_editTitle => 'עריכת קטע';
 
   @override
-  String get divePlanner_segmentEditor_tankGas => 'מיכל / גז';
+  String get divePlanner_segmentEditor_tankGas => 'בלון / גז';
 
   @override
   String get divePlanner_segmentList_addSegment => 'הוסף קטע';
@@ -38199,7 +38268,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_rockBottom_stressedSacRates => 'RMV במצב לחץ';
 
   @override
-  String get gasCalculators_rockBottom_tankSize => 'גודל מיכל';
+  String get gasCalculators_rockBottom_tankSize => 'גודל בלון';
 
   @override
   String get gasCalculators_rockBottom_totalReserveNeeded => 'סך עתודה נדרשת';
@@ -38763,7 +38832,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'האזור חוצה את קו התאריך. הישאר בצד אחד או צייר שני אזורים.';
 
   @override
-  String get tankPresets_addPreset => 'הוסף תבנית מיכל';
+  String get tankPresets_addPreset => 'הוסף תבנית בלון';
 
   @override
   String get tankPresets_builtInPresets => 'תבניות מובנות';
@@ -38779,15 +38848,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tankPresets_customPresets => 'תבניות מותאמות אישית';
 
   @override
-  String get tankPresets_defaultSettings => 'מיכל ברירת מחדל';
+  String get tankPresets_defaultSettings => 'בלון ברירת מחדל';
 
   @override
   String get tankPresets_defaultSettings_description =>
-      'התבנית המסומנת בכוכב משמשת כמיכל ברירת מחדל בעת רישום צלילות חדשות.';
+      'התבנית המסומנת בכוכב משמשת כבלון ברירת מחדל בעת רישום צלילות חדשות.';
 
   @override
   String tankPresets_deleteDefaultMessage(String name) {
-    return 'האם אתה בטוח שברצונך למחוק את \"$name\"? זוהי תבנית מיכל ברירת המחדל הנוכחית שלך ותאופס ל-AL80.';
+    return 'האם אתה בטוח שברצונך למחוק את \"$name\"? זוהי תבנית בלון ברירת המחדל הנוכחית שלך ותאופס ל-AL80.';
   }
 
   @override
@@ -38799,11 +38868,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tankPresets_deletePreset => 'מחק תבנית';
 
   @override
-  String get tankPresets_deleteTitle => 'למחוק תבנית מיכל?';
+  String get tankPresets_deleteTitle => 'למחוק תבנית בלון?';
 
   @override
   String tankPresets_deleted(Object name) {
     return 'נמחק \"$name\"';
+  }
+
+  @override
+  String get tankPresets_duplicatePreset => 'שכפול';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (עותק)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (עותק $number)';
   }
 
   @override
@@ -38816,7 +38898,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tankPresets_edit_descriptionHint =>
-      'לדוגמה, מיכל שכור מחנות הצלילה';
+      'לדוגמה, בלון שכור מחנות הצלילה';
 
   @override
   String get tankPresets_edit_descriptionOptional => 'תיאור (אופציונלי)';
@@ -38832,7 +38914,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get tankPresets_edit_notFound => 'תבנית המיכל הזו כבר לא קיימת.';
+  String get tankPresets_edit_notFound => 'תבנית הבלון הזו כבר לא קיימת.';
 
   @override
   String tankPresets_edit_gasCapacity(Object capacity) {
@@ -38846,7 +38928,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tankPresets_edit_name => 'שם';
 
   @override
-  String get tankPresets_edit_nameHelper => 'שם ידידותי לתבנית מיכל זו';
+  String get tankPresets_edit_nameHelper => 'שם ידידותי לתבנית בלון זו';
 
   @override
   String get tankPresets_edit_nameHint => 'לדוגמה, ה-AL80 שלי';
@@ -38861,10 +38943,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tankPresets_edit_required => 'שדה חובה';
 
   @override
-  String get tankPresets_edit_tankSpecifications => 'מפרט מיכל';
+  String get tankPresets_edit_tankSpecifications => 'מפרט בלון';
 
   @override
-  String get tankPresets_edit_title => 'עריכת תבנית מיכל';
+  String get tankPresets_edit_title => 'עריכת תבנית בלון';
 
   @override
   String tankPresets_edit_updated(Object name) {
@@ -38914,14 +38996,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tankPresets_applyToImports_subtitle =>
-      'השלם נתוני מיכל חסרים בצלילות מיובאות באמצעות תבנית ברירת המחדל';
+      'השלם נתוני בלון חסרים בצלילות מיובאות באמצעות תבנית ברירת המחדל';
 
   @override
   String get tankPresets_defaultStartPressure => 'לחץ התחלתי ברירת מחדל';
 
   @override
   String get tankPresets_defaultStartPressure_subtitle =>
-      'ממולא במיכלים חדשים, ובמיכלים מיובאים ללא לחץ התחלתי כאשר מיכל ברירת המחדל מוחל על ייבוא';
+      'ממולא בבלונים חדשים, ובבלונים מיובאים ללא לחץ התחלתי כאשר בלון ברירת המחדל מוחל על ייבוא';
 
   @override
   String tankPresets_defaultStartPressure_range(String max, String min) {
@@ -38929,10 +39011,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get tankPresets_new_title => 'תבנית מיכל חדשה';
+  String get tankPresets_new_title => 'תבנית בלון חדשה';
 
   @override
-  String get tankPresets_noPresets => 'אין תבניות מיכל זמינות';
+  String get tankPresets_noPresets => 'אין תבניות בלון זמינות';
 
   @override
   String get tankPresets_setAsDefault => 'הגדר כברירת מחדל';
@@ -38941,7 +39023,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tankPresets_showInPickers => 'הצג בבוררי הבלונים';
 
   @override
-  String get tankPresets_title => 'תבניות מיכל';
+  String get tankPresets_title => 'תבניות בלון';
 
   @override
   String get tools_gpsLogger_title => 'מקליט GPS';
@@ -38974,7 +39056,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_tankPressureAtSurfacing_title =>
-      'לחץ המיכל בעלייה לפני השטח';
+      'לחץ הבלון בעלייה לפני השטח';
 
   @override
   String get settings_tankPressureAtSurfacing_subtitle =>
@@ -39274,7 +39356,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveField_category_gas => 'גז';
 
   @override
-  String get diveField_category_tank => 'מיכל';
+  String get diveField_category_tank => 'בלון';
 
   @override
   String get diveField_category_weight => 'משקולות';
@@ -40646,7 +40728,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tools_weight_addGear => 'הוסף ציוד';
 
   @override
-  String get tools_weight_addTank => 'הוסף מכל';
+  String get tools_weight_addTank => 'הוסף בלון';
 
   @override
   String tools_weight_basedOnDives(int count) {
@@ -40713,7 +40795,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tools_weight_source_userSpec => 'מהמפרט של הציוד שלך';
 
   @override
-  String get tools_weight_tanks => 'מכלים';
+  String get tools_weight_tanks => 'בלונים';
 
   @override
   String get tools_weight_useSet => 'השתמש בסט';
@@ -41012,7 +41094,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String dive3d_readout_tank(int n) {
-    return 'מיכל $n';
+    return 'בלון $n';
   }
 
   @override
@@ -44790,15 +44872,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get dataQuality_repairLabel_removeDuplicate => 'הסרת מכל כפול';
+  String get dataQuality_repairLabel_removeDuplicate => 'הסרת בלון כפול';
 
   @override
   String dataQuality_removeDuplicate_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'להסיר $count מכלים כפולים?',
-      one: 'להסיר את המכל הכפול?',
+      other: 'להסיר $count בלונים כפולים?',
+      one: 'להסיר את הבלון הכפול?',
     );
     return '$_temp0';
   }
@@ -44809,11 +44891,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get dataQuality_removeDuplicate_mixTitle => 'איזה גז היה במכל הזה?';
+  String get dataQuality_removeDuplicate_mixTitle => 'איזה גז היה בבלון הזה?';
 
   @override
   String get dataQuality_removeDuplicate_mixBody =>
-      'השורות האלה קוראות את אותו משדר אבל חלוקות על הגז. המכל שנשאר יקבל את הגז שתבחר.';
+      'השורות האלה קוראות את אותו משדר אבל חלוקות על הגז. הבלון שנשאר יקבל את הגז שתבחר.';
 
   @override
   String get dataQuality_removeDuplicate_confirm => 'הסרה';
@@ -44823,18 +44905,18 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'הסרת מכלים כפולים ($count צלילות)',
-      one: 'הסרת מכלים כפולים (צלילה אחת)',
+      other: 'הסרת בלונים כפולים ($count צלילות)',
+      one: 'הסרת בלונים כפולים (צלילה אחת)',
     );
     return '$_temp0';
   }
 
   @override
-  String get dataQuality_bulk_sheetTitle => 'הסרת מכלים כפולים';
+  String get dataQuality_bulk_sheetTitle => 'הסרת בלונים כפולים';
 
   @override
   String get dataQuality_bulk_sheetBody =>
-      'מכלים באותה צלילה עם אותו מספר סידורי של משדר הם מכל אחד שנרשם פעמיים. אחד נשאר בכל צלילה, וביטול מחזיר הכול.';
+      'בלונים באותה צלילה עם אותו מספר סידורי של משדר הם בלון אחד שנרשם פעמיים. אחד נשאר בכל צלילה, וביטול מחזיר הכול.';
 
   @override
   String dataQuality_bulk_sheetRow(String remove, String keep) {
@@ -45438,7 +45520,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_diveField_diluentGas => 'גז מדלל';
 
   @override
-  String get enum_diveField_tankCount => 'מספר מכלים';
+  String get enum_diveField_tankCount => 'מספר בלונים';
 
   @override
   String get enum_diveField_startPressure => 'לחץ התחלה';
@@ -45890,7 +45972,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_diveField_diluentGas_short => 'מדלל';
 
   @override
-  String get enum_diveField_tankCount_short => 'מכלים';
+  String get enum_diveField_tankCount_short => 'בלונים';
 
   @override
   String get enum_diveField_startPressure_short => 'התחלה';
@@ -52685,7 +52767,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_decompression_gtrReserve_subtitle =>
-      'לחץ המיכל שאליו זמן הגז שנותר סופר לאחור. ה-GTR המחושב מניח עלייה ישירה בקצב 10 מ׳/דקה ללא עצירות.';
+      'לחץ הבלון שאליו זמן הגז שנותר סופר לאחור. ה-GTR המחושב מניח עלייה ישירה בקצב 10 מ׳/דקה ללא עצירות.';
 
   @override
   String settings_fixDiveTimes_applied(int count, String hours, int hoursAbs) {
@@ -54877,7 +54959,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'מייצא בדיקות ציוד ל-CSV...';
 
   @override
-  String get settings_export_progress_fillsCsv => 'מייצא מילויי מכלים ל-CSV...';
+  String get settings_export_progress_fillsCsv =>
+      'מייצא מילויי בלונים ל-CSV...';
 
   @override
   String get settings_export_progress_pdf => 'יוצר יומן צלילות בפורמט PDF...';
@@ -54946,7 +55029,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_export_progress_preparingFillsCsv =>
-      'מכין CSV מילויי מכלים...';
+      'מכין CSV מילויי בלונים...';
 
   @override
   String get settings_export_progress_preparingUddf => 'מכין קובץ UDDF...';
@@ -54967,7 +55050,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_export_empty_observations => 'אין בדיקות ציוד לייצוא';
 
   @override
-  String get settings_export_empty_fills => 'אין מילויי מכלים לייצוא';
+  String get settings_export_empty_fills => 'אין מילויי בלונים לייצוא';
 
   @override
   String get settings_export_empty_data => 'אין נתונים לייצוא';
@@ -54993,7 +55076,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_export_success_observations => 'בדיקות הציוד יוצאו';
 
   @override
-  String get settings_export_success_fills => 'מילויי המכלים יוצאו';
+  String get settings_export_success_fills => 'מילויי הבלונים יוצאו';
 
   @override
   String get settings_export_success_pdf =>
@@ -55050,7 +55133,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'קובץ ה-CSV של בדיקות הציוד נשמר';
 
   @override
-  String get settings_export_saved_fillsCsv => 'CSV מילויי המכלים נשמר';
+  String get settings_export_saved_fillsCsv => 'CSV מילויי הבלונים נשמר';
 
   @override
   String get settings_export_saved_uddf => 'קובץ UDDF נשמר בהצלחה';
@@ -55080,7 +55163,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_export_saveFillsCsvDialogTitle =>
-      'שמירת CSV מילויי מכלים';
+      'שמירת CSV מילויי בלונים';
 
   @override
   String backup_operation_created(String size) {
@@ -55406,8 +55489,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_species_suggested => 'הצעות';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
+  String media_species_suggestedChipLabel(String name) {
+    return 'הצעה: $name';
   }
 
   @override
@@ -56403,7 +56486,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLab_kind_switchGas => 'החלפת גז';
 
   @override
-  String get diveLab_kind_loseTank => 'אובדן מיכל';
+  String get diveLab_kind_loseTank => 'אובדן בלון';
 
   @override
   String get diveLab_kind_shiftAscent => 'הזזת העלייה';
@@ -56425,11 +56508,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLab_kindDesc_switchGas =>
-      'נשימה ממיכל אחר החל מנקודת ההסתעפות';
+      'נשימה מבלון אחר החל מנקודת ההסתעפות';
 
   @override
   String get diveLab_kindDesc_loseTank =>
-      'מיכל דקו או סטייג׳ אובד החל מנקודת ההסתעפות';
+      'בלון דקו או סטייג׳ אובד החל מנקודת ההסתעפות';
 
   @override
   String get diveLab_kindDesc_shiftAscent =>
@@ -56498,10 +56581,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLab_sheet_add => 'הוספה';
 
   @override
-  String get diveLab_sheet_cylinder => 'מיכל';
+  String get diveLab_sheet_cylinder => 'בלון';
 
   @override
-  String get diveLab_sheet_hypothetical => 'מיכל היפותטי';
+  String get diveLab_sheet_hypothetical => 'בלון היפותטי';
 
   @override
   String get diveLab_sheet_o2 => 'O2 %';
@@ -56532,7 +56615,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLab_sheet_buddyFactor => 'מקדם באדי';
 
   @override
-  String get diveLab_sheet_noCandidates => 'אף מיכל בצלילה זו אינו מתאים לכאן.';
+  String get diveLab_sheet_noCandidates => 'אף בלון בצלילה זו אינו מתאים לכאן.';
 
   @override
   String get diveLab_sheet_allAdded => 'כל ההתערבויות כבר נמצאות בתרחיש.';
@@ -56851,7 +56934,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLab_buoyancy_unavailable =>
-      'חישוב הציפה דורש מיכלים או חליפה בצלילה.';
+      'חישוב הציפה דורש בלונים או חליפה בצלילה.';
 
   @override
   String diveLab_sheet_ascentRate(String unit) {
@@ -56868,10 +56951,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLab_sheet_gasSwitchStop => 'עצירת החלפת גז (שנ׳)';
 
   @override
-  String get diveLab_sheet_bailoutTank => 'מיכל ביילאוט';
+  String get diveLab_sheet_bailoutTank => 'בלון ביילאוט';
 
   @override
-  String get diveLab_sheet_allBailout => 'כל מיכלי הביילאוט';
+  String get diveLab_sheet_allBailout => 'כל בלוני הביילאוט';
 
   @override
   String get diveLab_share_pdf => 'שיתוף דף PDF';
@@ -58000,7 +58083,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_manage_transmitters => 'משדרים';
 
   @override
-  String get settings_manage_transmitters_subtitle => 'קישור משדרי לחץ למיכלים';
+  String get settings_manage_transmitters_subtitle => 'קישור משדרי לחץ לבלונים';
 
   @override
   String get transmitters_title => 'משדרים';
@@ -58013,7 +58096,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'עדיין אין משדרים. הורדה שקוראת משדר תוסיף אותו כאן, או הוסף משדר ידנית.';
 
   @override
-  String get transmitters_noCylinder => 'לא הוגדר מיכל';
+  String get transmitters_noCylinder => 'לא הוגדר בלון';
 
   @override
   String get transmitters_section_noKey =>
@@ -58046,12 +58129,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks מיכלים ב-$dives צלילות הנושאים משדר זה זקוקים להגדרות שלו. שדות ריקים של נפח, חומר, שם וציוד ימולאו, ותפקיד שעדיין מוגדר כגז גב או שנקרא משם המשדר יוחלף.';
+    return '$tanks בלונים ב-$dives צלילות הנושאים משדר זה זקוקים להגדרות שלו. שדות ריקים של נפח, חומר, שם וציוד ימולאו, ותפקיד שעדיין מוגדר כגז גב או שנקרא משם המשדר יוחלף.';
   }
 
   @override
   String transmitters_apply_done(int tanks, int dives) {
-    return 'עודכנו $tanks מיכלים ב-$dives צלילות';
+    return 'עודכנו $tanks בלונים ב-$dives צלילות';
   }
 
   @override
@@ -58078,7 +58161,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get transmitters_apply_slot_intro =>
-      'למיכלים שיובאו מקובץ אין מספר סידורי. אפשר למלא אותם לפי החריץ שבו ישב משדר זה במחשב הצלילה.';
+      'לבלונים שיובאו מקובץ אין מספר סידורי. אפשר למלא אותם לפי החריץ שבו ישב משדר זה במחשב הצלילה.';
 
   @override
   String transmitters_apply_summary(int serialDives, int slotDives) {
@@ -58087,11 +58170,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get transmitters_apply_nothing_to_fill =>
-      'אף מיכל אינו צריך את הגדרות המשדר הזה';
+      'אף בלון אינו צריך את הגדרות המשדר הזה';
 
   @override
   String get transmitters_apply_slot_read_failed =>
-      'לא ניתן היה לקרוא את הקבצים המיובאים, ולכן לא ניתן להתאים מיכלים לפי חריץ';
+      'לא ניתן היה לקרוא את הקבצים המיובאים, ולכן לא ניתן להתאים בלונים לפי חריץ';
 
   @override
   String transmitters_channel(String computer, int channel) {
@@ -58126,11 +58209,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get transmitters_field_role => 'תפקיד';
 
   @override
-  String get transmitters_field_gear => 'מיכל מהציוד';
+  String get transmitters_field_gear => 'בלון מהציוד';
 
   @override
   String get transmitters_field_gear_subtitle =>
-      'המיכל שעבורו משדר זה מדווח על הלחץ';
+      'הבלון שעבורו משדר זה מדווח על הלחץ';
 
   @override
   String get transmitters_field_material => 'חומר';
@@ -58140,7 +58223,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get transmitters_hint_missingSize =>
-      'למיכל זה אין גודל או לחץ רשומים, לכן הגודל יישאר ריק בצלילה';
+      'לבלון זה אין גודל או לחץ רשומים, לכן הגודל יישאר ריק בצלילה';
 
   @override
   String get transmitters_validation_key =>
@@ -58173,7 +58256,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_reassignPending =>
-      'הקריאות יעברו למכלים החדשים שלהן בעת השמירה.';
+      'הקריאות יעברו לבלונים החדשים שלהן בעת השמירה.';
 
   @override
   String diveLog_tank_roleFromTransmitterName(String role) {
@@ -58209,14 +58292,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeUnknownTransmitterBody =>
-      'משדר אחד או יותר בהורדה זו אינם משויכים למיכל. שייכו אותם כדי שהורדות עתידיות יקבלו את הנפח והתפקיד הנכונים.';
+      'משדר אחד או יותר בהורדה זו אינם משויכים לבלון. שייכו אותם כדי שהורדות עתידיות יקבלו את הנפח והתפקיד הנכונים.';
 
   @override
   String get universalImport_summary_noticeAssignTransmitters => 'שיוך משדרים';
 
   @override
   String get universalImport_summary_noticeTransmitterNameRolesTitle =>
-      'תפקידי מיכלים נקראו משמות המשדרים';
+      'תפקידי בלונים נקראו משמות המשדרים';
 
   @override
   String get universalImport_summary_noticeTransmitterNameRolesBody =>
@@ -58247,7 +58330,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String dataQuality_msg_unknownTransmitter(String serial) {
-    return 'משדר $serial אינו משויך למיכל';
+    return 'משדר $serial אינו משויך לבלון';
   }
 
   @override
@@ -59171,14 +59254,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveCenters_rental_applied =>
-      'המשקולות והמכלים הועתקו מהצלילה האחרונה שלך כאן.';
+      'המשקולות והבלונים הועתקו מהצלילה האחרונה שלך כאן.';
 
   @override
-  String get diveCenters_rental_applyConfirmTitle => 'להחליף משקולות ומכלים?';
+  String get diveCenters_rental_applyConfirmTitle => 'להחליף משקולות ובלונים?';
 
   @override
   String get diveCenters_rental_applyConfirmBody =>
-      'לצלילה הזו כבר יש משקולות או מכלים. להחליף אותם באלה מהצלילה האחרונה שלך כאן?';
+      'לצלילה הזו כבר יש משקולות או בלונים. להחליף אותם באלה מהצלילה האחרונה שלך כאן?';
 
   @override
   String get diveCenters_rental_applyConfirmReplace => 'החלפה';
@@ -59199,7 +59282,7 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveCenters_rental_tanksLabel => 'מכלים';
+  String get diveCenters_rental_tanksLabel => 'בלונים';
 
   @override
   String get diveCenters_rental_verdictWorked => 'התאים';
@@ -59509,7 +59592,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_dives_favorite => 'מועדף';
 
   @override
-  String get query_dives_gasCount => 'מספר מיכלים';
+  String get query_dives_gasCount => 'מספר בלונים';
 
   @override
   String get query_dives_gear => 'ציוד';
@@ -59617,7 +59700,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_dives_tags => 'תגיות';
 
   @override
-  String get query_dives_tanks => 'מיכלים';
+  String get query_dives_tanks => 'בלונים';
 
   @override
   String get query_dives_trip => 'טיול';
@@ -59725,7 +59808,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_entity_tags => 'תגיות';
 
   @override
-  String get query_entity_tanks => 'מיכלים';
+  String get query_entity_tanks => 'בלונים';
 
   @override
   String get query_entity_trips => 'טיולים';
@@ -59953,7 +60036,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_tags_name => 'שם';
 
   @override
-  String get query_tanks_cylinder => 'מיכל';
+  String get query_tanks_cylinder => 'בלון';
 
   @override
   String get query_tanks_endPressure => 'לחץ סופי';
@@ -62838,7 +62921,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get changeLog_label_removeSource => 'מקור נתונים הוסר';
 
   @override
-  String get changeLog_label_removeDuplicateCylinders => 'מכלים כפולים הוסרו';
+  String get changeLog_label_removeDuplicateCylinders => 'בלונים כפולים הוסרו';
 
   @override
   String get changeLog_label_moveMedia => 'הועבר לצלילה אחרת';
@@ -63524,7 +63607,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_term_gtr_body =>
-      'הדקות בעומק ובקצב הנשימה הנוכחיים עד שלחץ המיכל יורד ללחץ הרזרבה. ההנחה היא עלייה ישירה ללא עצירות.';
+      'הדקות בעומק ובקצב הנשימה הנוכחיים עד שלחץ הבלון יורד ללחץ הרזרבה. ההנחה היא עלייה ישירה ללא עצירות.';
 
   @override
   String get info_term_gf99_label => 'GF99';
@@ -63637,14 +63720,14 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_term_sac_body =>
-      'צריכת גז בדקה מומרת ללחץ פני המים, ומוצגת כירידת לחץ בדקה. היא תלויה בגודל המיכל, ולכן משווה צלילות עם אותו מיכל.';
+      'צריכת גז בדקה מומרת ללחץ פני המים, ומוצגת כירידת לחץ בדקה. היא תלויה בגודל הבלון, ולכן משווה צלילות עם אותו בלון.';
 
   @override
   String get info_term_rmv_label => 'RMV (נפח נשימה לדקה)';
 
   @override
   String get info_term_rmv_body =>
-      'נפח הגז הנשאף בדקה, מומר ללחץ פני המים. בניגוד ל-SAC הוא אינו תלוי בגודל המיכל.';
+      'נפח הגז הנשאף בדקה, מומר ללחץ פני המים. בניגוד ל-SAC הוא אינו תלוי בגודל הבלון.';
 
   @override
   String get info_term_ascentRate_label => 'קצב עלייה';
@@ -63795,11 +63878,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'מעגל הנשימה של מכשיר המחזור, שבו הגז הננשף מנוקה מפחמן דו-חמצני ונשאף שוב.';
 
   @override
-  String get info_term_stage_label => 'מיכל במה';
+  String get info_term_stage_label => 'בלון במה';
 
   @override
   String get info_term_stage_body =>
-      'מיכל נוסף המחובר לצד, נישא לחלק מהצלילה ועוברים אליו בדרך.';
+      'בלון נוסף המחובר לצד, נישא לחלק מהצלילה ועוברים אליו בדרך.';
 
   @override
   String get info_term_decoGas_label => 'גז דקומפרסיה';
@@ -63813,21 +63896,21 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_term_pony_body =>
-      'מיכל קטן ועצמאי עם וסת משלו, הנישא כאספקת גז גיבוי.';
+      'בלון קטן ועצמאי עם וסת משלו, הנישא כאספקת גז גיבוי.';
 
   @override
   String get info_term_sidemount_label => 'סיידמאונט';
 
   @override
   String get info_term_sidemount_body =>
-      'מיכלים הנישאים לאורך כל צד במקום על הגב, לכל אחד וסת משלו.';
+      'בלונים הנישאים לאורך כל צד במקום על הגב, לכל אחד וסת משלו.';
 
   @override
-  String get info_term_twinBackmount_label => 'מיכל כפול על הגב';
+  String get info_term_twinBackmount_label => 'בלון כפול על הגב';
 
   @override
   String get info_term_twinBackmount_body =>
-      'שני מיכלים המחוברים על הגב, בדרך כלל במגוון, ונשאפים כאספקה אחת.';
+      'שני בלונים המחוברים על הגב, בדרך כלל במגוון, ונשאפים כאספקה אחת.';
 
   @override
   String get info_term_altitudeGroup_label => 'קבוצת גובה';
@@ -63891,7 +63974,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_term_turnPressure_body =>
-      'לחץ המיכל שבו התוכנית מחזירה את הצלילה לכיוון היציאה.';
+      'לחץ הבלון שבו התוכנית מחזירה את הצלילה לכיוון היציאה.';
 
   @override
   String get info_term_minGas_label => 'גז מינימלי';
@@ -63905,7 +63988,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_term_rockBottom_body =>
-      'לחץ המיכל שמחזיק את הגז המינימלי. הוא כולל השהיה קצרה בעומק לטיפול בבעיה לפני העלייה.';
+      'לחץ הבלון שמחזיק את הגז המינימלי. הוא כולל השהיה קצרה בעומק לטיפול בבעיה לפני העלייה.';
 
   @override
   String get info_term_thirds_label => 'כלל השלישים';
@@ -64101,7 +64184,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_term_gasSwitchMarkers_body =>
-      'נקודות שבהן גז הנשימה עבר ממיכל אחד לאחר.';
+      'נקודות שבהן גז הנשימה עבר מבלון אחד לאחר.';
 
   @override
   String get info_term_diveModes_label => 'מצב צלילה';
@@ -64245,11 +64328,11 @@ class AppLocalizationsHe extends AppLocalizations {
       'צלילה שבה נשאפה יותר מתערובת אחת נספרת פעם אחת תחת כל אחת, ולכן סכום העמודות יכול לעלות על מספר הצלילות.';
 
   @override
-  String get info_term_cylinderRole_label => 'תפקיד המיכל';
+  String get info_term_cylinderRole_label => 'תפקיד הבלון';
 
   @override
   String get info_term_cylinderRole_body =>
-      'למה שימש המיכל בצלילה: גז קרקעית, במה, דקומפרסיה, פוני או חילוץ. הצריכה מקובצת לפי זה.';
+      'למה שימש הבלון בצלילה: גז קרקעית, במה, דקומפרסיה, פוני או חילוץ. הצריכה מקובצת לפי זה.';
 
   @override
   String get info_term_colourBy_label => 'צביעה לפי';
@@ -64291,7 +64374,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_term_reserveGas_body =>
-      'גז שהתוכנית שומרת בכל מיכל ולעולם אינה סופרת כזמין.';
+      'גז שהתוכנית שומרת בכל בלון ולעולם אינה סופרת כזמין.';
 
   @override
   String get info_term_setpointSwitchDepth_label => 'עומק החלפת נקודת הכיוון';
@@ -64362,7 +64445,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_term_gasOutTime_body =>
-      'מתי מיכל היה מתרוקן בקצב הנשימה שבו ההרצה החוזרת משתמשת.';
+      'מתי בלון היה מתרוקן בקצב הנשימה שבו ההרצה החוזרת משתמשת.';
 
   @override
   String get info_term_whatIf_label => 'בפועל ומה אם';
@@ -64397,7 +64480,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_term_ascentGasSet_body =>
-      'לאילו מיכלים נישאים העלייה המדומה רשאית לעבור: כל גז שנישא, או רק מיכלי במה ודקומפרסיה.';
+      'לאילו בלונים נישאים העלייה המדומה רשאית לעבור: כל גז שנישא, או רק בלוני במה ודקומפרסיה.';
 
   @override
   String get info_diveLog_profile_summary =>
@@ -64457,7 +64540,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_diveLog_cylinders_summary =>
-      'כל מיכל בצלילה עם הגז שלו, הלחץ שנוצל וגבולות העומק של הגז הזה.';
+      'כל בלון בצלילה עם הגז שלו, הלחץ שנוצל וגבולות העומק של הגז הזה.';
 
   @override
   String get info_diveLog_sacSegments_summary =>
@@ -64509,7 +64592,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_insights_roleUse_summary =>
-      'צריכת גז לאורך זמן לכל סוג מיכל, כדי שגז הקרקעית והבמות לא יתערבבו.';
+      'צריכת גז לאורך זמן לכל סוג בלון, כדי שגז הקרקעית והבמות לא יתערבבו.';
 
   @override
   String get info_insights_ccrUse_summary =>
@@ -64544,7 +64627,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_insights_tankConfig_summary =>
-      'איך הוגדרו המיכלים בכל צלילה, לפי התפקידים שנרשמו למיכלים.';
+      'איך הוגדרו הבלונים בכל צלילה, לפי התפקידים שנרשמו לבלונים.';
 
   @override
   String get info_insights_sacRecords_summary =>
@@ -64672,7 +64755,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_planner_gas_summary =>
-      'כמה מכל מיכל התוכנית מנצלת, עם לחץ החזרה והגז המינימלי היכן שלחץ ההתחלה ידוע.';
+      'כמה מכל בלון התוכנית מנצלת, עם לחץ החזרה והגז המינימלי היכן שלחץ ההתחלה ידוע.';
 
   @override
   String get info_planner_bailout_summary =>
@@ -64716,7 +64799,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_plannerSetup_gas_howToUse =>
-      'הזינו קצב נשימה בקרקעית, או קחו אותו מצלילות שנרשמו, ואת הרזרבה לשמירה בכל מיכל.';
+      'הזינו קצב נשימה בקרקעית, או קחו אותו מצלילות שנרשמו, ואת הרזרבה לשמירה בכל בלון.';
 
   @override
   String get info_plannerSetup_environment_summary =>
@@ -64772,7 +64855,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_plannerSetup_gear_howToUse =>
-      'הוסיפו חליפה, מיכלים ומשקולות כדי לראות את הציפה החזויה.';
+      'הוסיפו חליפה, בלונים ומשקולות כדי לראות את הציפה החזויה.';
 
   @override
   String get info_diveLab_tiles_summary =>
@@ -64816,7 +64899,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_calculators_consumption_howToUse =>
-      'הזינו את העומק, הזמן, קצב הנשימה והמיכל.';
+      'הזינו את העומק, הזמן, קצב הנשימה והבלון.';
 
   @override
   String get info_calculators_rockBottom_summary =>
@@ -64824,11 +64907,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_calculators_rockBottom_background =>
-      'החישוב משתמש בקצב נשימה בלחץ, בדרך כלל פי שניים עד שלושה מהרגיל, וסופר את שני הצוללים על מיכל אחד. עצירת הביטחון נכללת כשהאפשרות מופעלת.';
+      'החישוב משתמש בקצב נשימה בלחץ, בדרך כלל פי שניים עד שלושה מהרגיל, וסופר את שני הצוללים על בלון אחד. עצירת הביטחון נכללת כשהאפשרות מופעלת.';
 
   @override
   String get info_calculators_rockBottom_howToUse =>
-      'קבעו את העומק, קצב הנשימה בלחץ, קצב העלייה והמיכל.';
+      'קבעו את העומק, קצב הנשימה בלחץ, קצב העלייה והבלון.';
 
   @override
   String get info_calculators_mnd_summary =>
@@ -64868,11 +64951,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_calculators_blender_background =>
-      'כל גז מוסף עד הלחץ המוצג והמיכל מושאר להתייצב לפני הבא. גזי המילוי וסדרם ניתנים להגדרה, כך שהגז האחרון יכול להיות EAN32 במקום אוויר.';
+      'כל גז מוסף עד הלחץ המוצג והבלון מושאר להתייצב לפני הבא. גזי המילוי וסדרם ניתנים להגדרה, כך שהגז האחרון יכול להיות EAN32 במקום אוויר.';
 
   @override
   String get info_calculators_blender_howToUse =>
-      'הזינו מה כבר נמצא במיכל ואת תערובת היעד. השלב האחרון בכל ערבול הוא ניתוח התערובת המוגמרת.';
+      'הזינו מה כבר נמצא בבלון ואת תערובת היעד. השלב האחרון בכל ערבול הוא ניתוח התערובת המוגמרת.';
 
   @override
   String get info_decoCalculator_summary =>
@@ -65016,16 +65099,16 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get equipment_setEdit_tanks_title => 'מכלים';
+  String get equipment_setEdit_tanks_title => 'בלונים';
 
   @override
-  String get equipment_setEdit_tanks_add => 'הוספת תצורת מכלים';
+  String get equipment_setEdit_tanks_add => 'הוספת תצורת בלונים';
 
   @override
-  String get equipment_setEdit_tanks_empty => 'אין תצורות מכלים';
+  String get equipment_setEdit_tanks_empty => 'אין תצורות בלונים';
 
   @override
-  String get equipment_setEdit_tanks_noneAvailable => 'עדיין אין תצורות מכלים';
+  String get equipment_setEdit_tanks_noneAvailable => 'עדיין אין תצורות בלונים';
 
   @override
   String get equipment_setEdit_bundle_remove => 'הסרה מהערכה';
@@ -65037,7 +65120,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_bundle_noGearHint =>
-      'ערכה ללא ציוד אינה מופיעה בצלילה כערכה, ולכן יש להסיר את המשקולות והמכלים שלה ידנית.';
+      'ערכה ללא ציוד אינה מופיעה בצלילה כערכה, ולכן יש להסיר את המשקולות והבלונים שלה ידנית.';
 
   @override
   String equipment_setDetail_fromSet(String setName) {
@@ -65054,9 +65137,9 @@ class AppLocalizationsHe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count מכלים',
-      two: '2 מכלים',
-      one: 'מכל אחד',
+      other: '$count בלונים',
+      two: '2 בלונים',
+      one: 'בלון אחד',
     );
     return '$_temp0';
   }
@@ -65084,7 +65167,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get rules_change_weights => 'משקולות';
 
   @override
-  String get rules_change_tanks => 'מכלים';
+  String get rules_change_tanks => 'בלונים';
 
   @override
   String preDive_setChecks_weights(String total, String breakdown) {
