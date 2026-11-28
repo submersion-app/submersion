@@ -452,6 +452,7 @@ live naming controller.
   - `lowMemory true pauses from the first frame`
   - `a box moving less than the IoU bar keeps its track id and name`
   - `names off stops offering frames`
+  - `the pack unloaded or identification turned off stops naming and the camera stays open`
 - [ ] **Step 2:** Run and expect FAILs.
 - [ ] **Step 3:** Implement and wire the controller into `IdentifyCameraPage`.
 - [ ] **Step 4:** Run and expect them to pass.
