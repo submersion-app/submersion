@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:pdfrx/pdfrx.dart';
+import 'package:submersion/features/media/data/services/pdf_in_memory.dart';
 import 'package:submersion/features/media/data/services/pdf_page_renderer.dart';
 
 /// pdfium cannot load under flutter_test: the Flutter path needs the
@@ -80,6 +81,12 @@ void main() {
         reason: 'a failed bootstrap must not be latched as initialized',
       );
     });
+  });
+
+  // Issue #4785. A bytes source over 1 MB used to take pdfrx's on-demand
+  // reads, whose Windows wait could hang the worker for good.
+  test('opens a bytes source from native memory', () {
+    expect(PdfPageRenderer.openBytes, same(openInMemoryPdf));
   });
 
   // Issue #3996. Unlike the pdfium tests below, these run in CI.

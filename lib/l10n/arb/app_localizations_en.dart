@@ -9125,12 +9125,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'Tank Pressures';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'Keep overlays in view';
-
-  @override
   String get diveLog_chartOption_tooltipFollowsCursor =>
       'Tooltip follows cursor';
+
+  @override
+  String get diveLog_chartOption_zoom => 'Zoom';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify => 'Both axes, magnify overlays';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView =>
+      'Both axes, keep overlays in view';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => 'Time only';
+
+  @override
+  String get diveLog_chartOption_rightAxis => 'Right axis';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(est.)';
@@ -23790,8 +23802,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Keep overlays in view when zooming';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'Fit overlays such as NDL and ppO2 to the visible area instead of magnifying them with the depth axis';
+  String get settings_appearance_profileZoom => 'Zoom';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict =>
+      'Profile zoom: time only';
 
   @override
   String get settings_appearance_rightYAxisMetric => 'Right Y-axis metric';
@@ -43105,17 +43120,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'Peak $rate at $range';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Average $rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => 'Average';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return 'avg $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => 'Peak';
@@ -43888,6 +43903,86 @@ class AppLocalizationsEn extends AppLocalizations {
       one: '1 battery cycle',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_exposure_lastDivedLabel => 'Last dived';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => 'Dives';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => 'Hours';
+
+  @override
+  String get equipmentCondition_exposure_today => 'Today';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days ago',
+      one: '$count day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count months ago',
+      one: '$count month ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count years ago',
+      one: '$count year ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return 'Last dived $ago, on $date';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12 months';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => 'All years';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives in the last 12 months',
+      one: '$count dive in the last 12 months',
+      zero: 'No dives in the last 12 months',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives, $hours';
   }
 
   @override
@@ -65330,7 +65425,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get info_equipment_exposure_summary =>
-      'How much use this item has seen, counted in each of the units its service clocks use.';
+      'How much use this item has seen, counted in each of the units its service clocks use. The chart counts its dives per month or per year, up to today.';
 
   @override
   String get info_site_altitude_summary =>

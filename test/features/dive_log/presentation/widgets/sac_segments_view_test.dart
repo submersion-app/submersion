@@ -259,11 +259,17 @@ void main() {
     });
   });
 
-  group('readout', () {
-    testWidgets('names the peak segment until one is picked', (tester) async {
+  group('tooltip', () {
+    testWidgets('marks the stretches furthest from the average', (
+      tester,
+    ) async {
       await pumpSacSegmentsView(tester);
 
-      expect(find.text('Peak 20.0 L/min at 5-10 min'), findsOneWidget);
+      // 10, 20, 5 and 5 L/min against an average of 10.
+      expect(find.text('avg 10.0'), findsOneWidget);
+      expect(find.text('+10.0'), findsOneWidget);
+      expect(find.text('\u22125.0'), findsOneWidget);
+      expect(find.byKey(SacTimeColumns.tooltipKey), findsNothing);
     });
 
     testWidgets('tapping a column reads it out, tapping again clears it', (
@@ -274,13 +280,13 @@ void main() {
       await tester.tapAt(sacColumnCenter(tester, 2, 4));
       await tester.pump();
       expect(
-        find.text('10-15 min · 5.0 L/min · 30m (0-30m) · 10 L used'),
+        find.text('10-15 min · 5.0 L/min\n30m (0-30m) · 10 L used'),
         findsOneWidget,
       );
 
       await tester.tapAt(sacColumnCenter(tester, 2, 4));
       await tester.pump();
-      expect(find.text('Peak 20.0 L/min at 5-10 min'), findsOneWidget);
+      expect(find.byKey(SacTimeColumns.tooltipKey), findsNothing);
     });
 
     testWidgets('gives depth alone where the stretch held one depth', (
@@ -302,10 +308,7 @@ void main() {
         selectedTimestamp: 60,
       );
 
-      expect(
-        find.text('0-5 min · 10.0 L/min · 5m · 10 L used'),
-        findsOneWidget,
-      );
+      expect(find.text('0-5 min · 10.0 L/min\n5m · 10 L used'), findsOneWidget);
     });
 
     testWidgets('dragging across the columns scrubs the readout', (
@@ -322,7 +325,7 @@ void main() {
       await tester.pump();
 
       expect(
-        find.text('15-20 min · 5.0 L/min · 5m (0-30m) · 10 L used'),
+        find.text('15-20 min · 5.0 L/min\n5m (0-30m) · 10 L used'),
         findsOneWidget,
       );
     });
@@ -338,13 +341,13 @@ void main() {
       await mouse.moveTo(sacColumnCenter(tester, 0, 4));
       await tester.pump();
       expect(
-        find.text('0-5 min · 10.0 L/min · 10m (0-30m) · 10 L used'),
+        find.text('0-5 min · 10.0 L/min\n10m (0-30m) · 10 L used'),
         findsOneWidget,
       );
 
       await mouse.moveTo(Offset.zero);
       await tester.pump();
-      expect(find.text('Peak 20.0 L/min at 5-10 min'), findsOneWidget);
+      expect(find.byKey(SacTimeColumns.tooltipKey), findsNothing);
     });
   });
 
@@ -355,7 +358,7 @@ void main() {
       await pumpSacSegmentsView(tester, selectedTimestamp: 16 * 60 + 30);
 
       expect(
-        find.text('15-20 min · 5.0 L/min · 5m (0-30m) · 10 L used'),
+        find.text('15-20 min · 5.0 L/min\n5m (0-30m) · 10 L used'),
         findsOneWidget,
       );
       expect(sacIsHighlighted(tester, 'Safety stop'), isTrue);
@@ -422,8 +425,10 @@ void main() {
         rates: sacRates(volumeFor: (id) => id == 'stage' ? null : 10.0),
       );
 
-      expect(find.text('2.0 bar/min'), findsNWidgets(2)); // Summary and axis.
-      expect(find.text('Peak 2.0 bar/min at 0-5 min'), findsOneWidget);
+      expect(find.text('2.0 bar/min'), findsOneWidget);
+      // 2.0 and 1.0 bar/min against an average of 1.5.
+      expect(find.text('avg 1.5'), findsOneWidget);
+      expect(find.text('+0.5'), findsOneWidget);
       expect(find.text('20.0 L/min'), findsNothing);
     });
 
@@ -586,7 +591,7 @@ void main() {
       await tester.pump();
 
       expect(
-        find.text('15-20 min · 5.0 L/min · 5m (0-30m) · 10 L used'),
+        find.text('15-20 min · 5.0 L/min\n5m (0-30m) · 10 L used'),
         findsOneWidget,
       );
       handle.dispose();
@@ -686,7 +691,7 @@ void main() {
       await tester.pump();
 
       expect(
-        find.text('15-20 min · 5.0 L/min · 5m (0-30m) · 10 L used'),
+        find.text('15-20 min · 5.0 L/min\n5m (0-30m) · 10 L used'),
         findsOneWidget,
       );
     });

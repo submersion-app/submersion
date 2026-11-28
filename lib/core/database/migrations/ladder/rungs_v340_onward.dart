@@ -362,5 +362,11 @@ extension RungsFromV340 on AppDatabase {
     // floor does not move.
     if (from < 388) await _assertSiteContactHoursColumns();
     if (from < 388) await reportProgress();
+    // v389 (issue #5069): diver_settings.profile_zoom_time_only, the profile
+    // chart's Time only zoom choice. Nullable, no backfill, re-asserted in
+    // beforeOpen; the floor does not move. Numbered 389 because open work
+    // claims 388.
+    if (from < 389) await _assertProfileZoomTimeOnlyColumn();
+    if (from < 389) await reportProgress();
   }
 }
