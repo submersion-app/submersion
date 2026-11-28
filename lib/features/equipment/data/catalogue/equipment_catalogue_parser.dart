@@ -73,8 +73,7 @@ EquipmentCatalogueRecord? _record(Object? raw) {
     firmwareId: _text(raw['firmwareId']),
     sources: [
       if (raw['sources'] case final List<dynamic> sources)
-        for (final source in sources)
-          if (_source(source) case final parsed?) parsed,
+        for (final source in sources) ?_source(source),
     ],
   );
 }
@@ -120,8 +119,7 @@ String? _text(Object? value) {
 
 List<String> _texts(Object? value) => [
   if (value is List)
-    for (final item in value)
-      if (_text(item) case final text?) text,
+    for (final item in value) ?_text(item),
 ];
 
 /// Only an https link with a host is kept: anything else could open a
