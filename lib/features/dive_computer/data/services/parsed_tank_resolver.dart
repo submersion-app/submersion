@@ -190,9 +190,14 @@ _ResolvedCylinders _resolveCylinders(
   // Grouped and glitch-scanned once, for the surfacing rule and the
   // endpoint check alike.
   final tankReadings = tankReadingsOf(points);
-  final surfacingReadings = trimAtSurfacing
-      ? surfacingTankReadings(points, tankReadings: tankReadings)
-      : const <int, SurfacingTankReading>{};
+  // Read whatever [trimAtSurfacing] says: a live download is parsed before
+  // the diver it is filed under is known, and each tank keeps both end
+  // pressures for the import to choose from with that diver's switch
+  // (issue #5000).
+  final surfacingReadings = surfacingTankReadings(
+    points,
+    tankReadings: tankReadings,
+  );
   final result = <DownloadedTank>[];
   final consumed = <int>{};
 
@@ -227,6 +232,16 @@ _ResolvedCylinders _resolveCylinders(
     final glitches = TankRole.fromName(role).isUnmeasuredBreathingGas
         ? impossibleReadingGlitchesOnly(readings, scanned)
         : scanned;
+    final endAsLogged = replaceGlitchedEndpoint(
+      reportedBar: tank.endPressureBar,
+      readings: readings,
+      atStart: false,
+      scan: glitches,
+    );
+    final endAtSurfacing = trimEndPressureBar(
+      reportedBar: endAsLogged,
+      reading: surfacingReadings[tank.index],
+    );
     result.add(
       DownloadedTank(
         index: tank.index,
@@ -238,15 +253,13 @@ _ResolvedCylinders _resolveCylinders(
           atStart: true,
           scan: glitches,
         ),
-        endPressure: trimEndPressureBar(
-          reportedBar: replaceGlitchedEndpoint(
-            reportedBar: tank.endPressureBar,
-            readings: readings,
-            atStart: false,
-            scan: glitches,
-          ),
-          reading: surfacingReadings[tank.index],
-        ),
+        endPressure: trimAtSurfacing ? endAtSurfacing : endAsLogged,
+        surfacingEnd: endAsLogged != null && endAtSurfacing != endAsLogged
+            ? SurfacingEndPressure(
+                asLogged: endAsLogged,
+                atSurfacing: endAtSurfacing!,
+              )
+            : null,
         volumeLiters: tank.volumeLiters,
         role: role,
         roleSource: _roleSourceOf(tank, parsed.diveMode, vendor),

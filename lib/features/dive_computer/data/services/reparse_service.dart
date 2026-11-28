@@ -11,6 +11,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/features/dive_log/data/services/hand_set_fields.dart';
 import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/profile/surfacing_pressure.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
@@ -1469,6 +1470,9 @@ class ReparseService {
 
     // Backfill start/end pressure from the profile when the parsed tank summary
     // didn't provide explicit values.
+    final depths = [
+      for (final s in parsed.samples) (t: s.timeSeconds, depth: s.depthMeters),
+    ];
     for (final entry in pressuresByTank.entries) {
       final tankId = tankIdsByIndex[entry.key];
       if (tankId == null) continue;
@@ -1485,10 +1489,14 @@ class ReparseService {
       if (!needStart && !needEnd) continue;
 
       // Signal dropouts at either end of the series must not become the
-      // recorded pressure (#2441).
-      final endpoints = cleanSeriesEndpoints([
+      // recorded pressure (#2441), nor a valve closed on the surface after
+      // the dive (#5000), as on a download.
+      final readings = [
         for (final p in entry.value) (t: p.timestamp, bar: p.pressure),
-      ]);
+      ];
+      final endpoints = trimTankPressureAtSurfacing
+          ? seriesEndpointsAtSurfacing(readings, depths: depths)
+          : cleanSeriesEndpoints(readings);
       if (endpoints == null) continue;
       await (db.update(db.diveTanks)..where((t) => t.id.equals(tankId))).write(
         DiveTanksCompanion(
