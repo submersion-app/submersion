@@ -178,6 +178,50 @@ void main() {
     expect(pony.tankRole, 'backGas');
   });
 
+  Future<void> seedAt(String id, int order, double bar) => db
+      .into(db.diveTanks)
+      .insert(
+        DiveTanksCompanion.insert(
+          id: id,
+          diveId: diveId,
+          tankOrder: Value(order),
+          startPressure: Value(bar),
+        ),
+      );
+
+  Future<String> roleOf(String id) async => (await (db.select(
+    db.diveTanks,
+  )..where((t) => t.id.equals(id))).getSingle()).tankRole;
+
+  test('a start pressure another cylinder shares names neither', () async {
+    // The Hydrotank and the pony were both filled to 200 bar, and the diver
+    // removed the Hydrotank: the pony's 200 bar matches both of the file's
+    // tanks, so nothing says it is the Hydrotank.
+    await seedAt('pony', 1, 200);
+
+    await resync([
+      {'startPressure': 200.0, 'role': 'hydrotank'},
+      {'startPressure': 200.0},
+    ]);
+
+    expect(await roleOf('pony'), 'backGas');
+  });
+
+  test('cylinders sharing a pressure pair in order when all line up', () async {
+    // Nothing was removed or added, and every pair agrees: the order settles
+    // two cylinders filled to the same pressure, as Cloud import pairs them.
+    await seedAt('first', 0, 200);
+    await seedAt('second', 1, 200);
+
+    await resync([
+      {'startPressure': 200.0, 'role': 'hydrotank'},
+      {'startPressure': 200.0},
+    ]);
+
+    expect(await roleOf('first'), 'hydrotank');
+    expect(await roleOf('second'), 'backGas');
+  });
+
   test('a stored serial names the cylinder whatever its pressure', () async {
     await db
         .into(db.diveTanks)

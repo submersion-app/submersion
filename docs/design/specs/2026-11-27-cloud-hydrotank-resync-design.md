@@ -54,8 +54,12 @@ the role.
    added or swapped a cylinder shifts that pairing. The upgrade lands only
    when the stored row is the file tank's cylinder: the transmitter serials
    match, or the stored start pressure agrees (within 1 bar) with the
-   file's, raw or as the import stored it. Equal cylinder counts are no
-   proof and are not used.
+   file's, raw or as the import stored it, and says which cylinder it is:
+   every stored cylinder pairs in order with every pair agreeing (two
+   cylinders filled to the same pressure, as Cloud import pairs them), or
+   the pressure matches this one file tank and this one stored cylinder
+   only. A pressure another cylinder shares names neither, and equal
+   cylinder counts alone are no proof.
 5. **Resync deglitches as import does.** Import replaces a start or end
    pressure taken from a signal dropout or lead-in reading (issue #2441);
    resync did not, so any resync could put one back. Resync now runs the

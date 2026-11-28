@@ -39,20 +39,51 @@ List<double?> backGasImportStartPressures(
   ];
 }
 
-/// Whether stored [row] is the cylinder a file tank with [serial] reads
-/// (issue #4665): the same transmitter when both name one, else a start
-/// pressure that agrees with one of [startPressures]. Shearwater Cloud tanks
-/// carry no order, so resync pairs them with stored cylinders by position.
-bool isSameStoredCylinder(
-  DiveTank row,
-  String? serial,
-  List<double?> startPressures,
-) {
-  final storedSerial = normalizeTransmitterSerial(row.transmitterSerial);
-  if (storedSerial != null && serial != null) return storedSerial == serial;
-  final stored = row.startPressure;
-  if (stored == null) return false;
-  return startPressures.any(
-    (p) => p != null && sameCylinderStartPressure(stored, p),
-  );
+/// For each file tank, whether the stored row resync paired it with
+/// ([matched], by position for Shearwater Cloud, whose tanks carry no order)
+/// is known to be that cylinder (issue #4665).
+///
+/// A transmitter serial both name settles it. Otherwise the stored start
+/// pressure must agree with one of the tank's [starts] (raw, or as the
+/// import stored it), and that agreement must say which cylinder it is:
+/// either every stored cylinder pairs in order and every pair agrees, which
+/// settles two cylinders filled to the same pressure as Cloud import pairs
+/// them, or the pressure matches this one tank and this one stored row
+/// only. A pressure another cylinder shares names neither.
+List<bool> identifiedPairings({
+  required List<DiveTank?> matched,
+  required List<DiveTank> stored,
+  required List<String?> serials,
+  required List<List<double?>> starts,
+}) {
+  bool agrees(DiveTank row, List<double?> candidates) {
+    final bar = row.startPressure;
+    return bar != null &&
+        candidates.any((p) => p != null && sameCylinderStartPressure(bar, p));
+  }
+
+  var inSlotOrder = stored.length == matched.length;
+  for (var i = 0; inSlotOrder && i < matched.length; i++) {
+    final row = matched[i];
+    inSlotOrder = row != null && agrees(row, starts[i]);
+  }
+
+  return [
+    for (var i = 0; i < matched.length; i++)
+      if (matched[i] case final row?)
+        switch ((
+          normalizeTransmitterSerial(row.transmitterSerial),
+          serials[i],
+        )) {
+          (final String storedSerial, final String serial) =>
+            storedSerial == serial,
+          _ =>
+            agrees(row, starts[i]) &&
+                (inSlotOrder ||
+                    (stored.where((r) => agrees(r, starts[i])).length == 1 &&
+                        starts.where((s) => agrees(row, s)).length == 1)),
+        }
+      else
+        false,
+  ];
 }
