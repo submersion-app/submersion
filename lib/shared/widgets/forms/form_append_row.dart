@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/shared/widgets/forms/form_style.dart';
 
 /// Full-width append action inside a section body: "+ Add tank".
@@ -25,7 +26,7 @@ class FormAppendRow extends StatelessWidget {
         child: Row(
           children: [
             Icon(Icons.add, size: 16, color: theme.colorScheme.primary),
-            const SizedBox(width: 6),
+            const SizedBox(width: Spacing.s6),
             Text(label, style: accent),
           ],
         ),

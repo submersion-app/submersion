@@ -28039,6 +28039,24 @@ abstract class AppLocalizations {
   /// **'Collapse all'**
   String get equipment_list_collapseAllGroups;
 
+  /// Equipment list: tooltip and screen reader label of the chevron that opens a folded assembly to show its parts
+  ///
+  /// In en, this message translates to:
+  /// **'Show parts'**
+  String get equipment_list_showParts;
+
+  /// Equipment list: tooltip and screen reader label of the chevron that folds an open assembly's parts away
+  ///
+  /// In en, this message translates to:
+  /// **'Hide parts'**
+  String get equipment_list_hideParts;
+
+  /// Equipment list assembly view: chip on an assembly row counting the parts listed under it, components and installed parts alike
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 part} other{{count} parts}}'**
+  String equipment_list_partCount(int count);
+
   /// Chip in the active filters bar when the list is filtered by location
   ///
   /// In en, this message translates to:
@@ -28068,6 +28086,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'One heading per place, on this page only'**
   String get equipment_arrange_groupByLocationSubtitle;
+
+  /// Equipment page sort sheet: switch that lists each assembly's parts under the assembly instead of in their own type groups
+  ///
+  /// In en, this message translates to:
+  /// **'Show parts under their assembly'**
+  String get equipment_arrange_nestParts;
+
+  /// Subtitle of the switch that lists each assembly's parts under it
+  ///
+  /// In en, this message translates to:
+  /// **'Fold each assembly\'s parts under it'**
+  String get equipment_arrange_nestPartsSubtitle;
 
   /// Title of the page listing places where gear is kept
   ///
@@ -105138,6 +105168,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shared libraries'**
   String get documents_filter_sharedLibraries;
+
+  /// Dive profile card: button opening the profile in its own desktop window
+  ///
+  /// In en, this message translates to:
+  /// **'Open in a new window'**
+  String get popOut_openProfileWindow;
+
+  /// Pop-out profile window: tooltip of the button that holds the window on the dive it shows
+  ///
+  /// In en, this message translates to:
+  /// **'Pin to this dive'**
+  String get popOut_pin;
+
+  /// Pop-out profile window: tooltip of the pinned button, which goes back to showing the main window's dive
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the main window'**
+  String get popOut_unpin;
+
+  /// Pop-out profile window: shown when the main window has not shown a dive yet
+  ///
+  /// In en, this message translates to:
+  /// **'Select a dive in the main window'**
+  String get popOut_selectDivePlaceholder;
+
+  /// Pop-out profile window: shown while App Lock has locked the app
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Submersion in the main window'**
+  String get popOut_lockedPlaceholder;
+
+  /// Pop-out profile window: the OS window title; dive is the dive's number and site, like #142 Salt Pier
+  ///
+  /// In en, this message translates to:
+  /// **'Profile: {dive}'**
+  String popOut_windowTitle(String dive);
+
+  /// Pop-out profile window: shown when the window could not connect to the main window's database
+  ///
+  /// In en, this message translates to:
+  /// **'This window could not reach the logbook. Close it and try again.'**
+  String get popOut_connectFailed;
 }
 
 class _AppLocalizationsDelegate

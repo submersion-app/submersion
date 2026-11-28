@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:submersion/core/text/markdown/notes_plain_text.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_field_semantics.dart';
 import 'package:submersion/shared/widgets/forms/form_style.dart';
@@ -405,7 +406,7 @@ class _FormRowState extends State<FormRow> {
       child: Row(
         children: [
           Text(widget.label, style: _labelTextStyle(context)),
-          const SizedBox(width: 12),
+          const SizedBox(width: Spacing.s12),
           Expanded(
             child: Align(alignment: Alignment.centerRight, child: trailing),
           ),
@@ -457,7 +458,7 @@ class _FormRowState extends State<FormRow> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _visibleLabel(context),
-            const SizedBox(height: 4),
+            const SizedBox(height: Spacing.s4),
             MarkdownNotesField(
               controller: widget.controller!,
               focusNode: _alwaysMounted ? null : _focusNode,
@@ -495,7 +496,7 @@ class _FormRowState extends State<FormRow> {
                   : CrossAxisAlignment.center,
               children: [
                 _visibleLabel(context),
-                const SizedBox(width: 12),
+                const SizedBox(width: Spacing.s12),
                 Expanded(
                   child: namedFormField(
                     widget.label,
@@ -556,14 +557,14 @@ class _FormRowState extends State<FormRow> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Flexible(child: valueText),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: Spacing.s6),
                         Tooltip(
                           message: suggestion.tooltip,
                           child: InkWell(
                             onTap: suggestion.onUse,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(_calcInkRadius),
                             child: Padding(
-                              padding: const EdgeInsets.all(2),
+                              padding: const EdgeInsets.all(Spacing.s2),
                               child: Icon(
                                 Icons.calculate_outlined,
                                 size: 18,
@@ -596,7 +597,7 @@ class _FormRowState extends State<FormRow> {
                 ),
               ),
               if (widget.onClear != null && !empty) ...[
-                const SizedBox(width: 4),
+                const SizedBox(width: Spacing.s4),
                 _clearAffordance(context, widget.onClear!),
               ],
               Icon(
@@ -658,9 +659,9 @@ class _FormRowState extends State<FormRow> {
                   child: InkWell(
                     onTap: () =>
                         stars == rating ? clear() : widget.onIntChanged!(stars),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(Radii.r12),
                     child: Padding(
-                      padding: const EdgeInsets.all(2),
+                      padding: const EdgeInsets.all(Spacing.s2),
                       child: Icon(
                         filled ? Icons.star : Icons.star_border,
                         size: 22,
@@ -673,7 +674,7 @@ class _FormRowState extends State<FormRow> {
                 );
               }),
               if (rating > 0) ...[
-                const SizedBox(width: 4),
+                const SizedBox(width: Spacing.s4),
                 _clearAffordance(context, clear),
               ],
             ],
@@ -706,3 +707,7 @@ class _FormRowState extends State<FormRow> {
     return tooltip == null ? button : Tooltip(message: tooltip, child: button);
   }
 }
+
+/// Ink radius of the calculator suggestion button. The button is an 18 icon
+/// with 2 of padding, 22 across, so 10 rounds its splash almost to a circle.
+const double _calcInkRadius = 10;

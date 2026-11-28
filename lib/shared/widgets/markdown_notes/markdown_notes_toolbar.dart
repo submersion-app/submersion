@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The notes editor's formatting bar: heading, bold, italic and the two
@@ -96,7 +97,7 @@ class MarkdownNotesToolbar extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: Spacing.s4),
           FilterChip(
             avatar: Icon(
               Icons.visibility_outlined,

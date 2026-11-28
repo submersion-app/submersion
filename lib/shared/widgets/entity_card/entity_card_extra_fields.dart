@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
@@ -47,10 +48,10 @@ class EntityCardExtraFields<T, F extends EntityField> extends StatelessWidget {
         final useOneColumn = constraints.maxWidth < 250;
         final width = useOneColumn
             ? constraints.maxWidth
-            : (constraints.maxWidth - 16) / 2;
+            : (constraints.maxWidth - Spacing.s16) / 2;
         return Wrap(
-          spacing: 16,
-          runSpacing: 4,
+          spacing: Spacing.s16,
+          runSpacing: Spacing.s4,
           children: [
             for (final (field, formatted) in entries)
               SizedBox(

@@ -17935,6 +17935,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'طي الكل';
 
   @override
+  String get equipment_list_showParts => 'إظهار الأجزاء';
+
+  @override
+  String get equipment_list_hideParts => 'إخفاء الأجزاء';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count جزء',
+      many: '$count جزءًا',
+      few: '$count أجزاء',
+      two: 'جزآن',
+      one: 'جزء واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'الموقع';
 
   @override
@@ -17951,6 +17971,12 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'عنوان لكل مكان، في هذه الصفحة فقط';
+
+  @override
+  String get equipment_arrange_nestParts => 'إظهار الأجزاء تحت تجميعتها';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle => 'طيّ أجزاء كل تجميعة تحتها';
 
   @override
   String get equipment_locations_title => 'المواقع';
@@ -68369,4 +68395,29 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get documents_filter_sharedLibraries => 'المكتبات المشتركة';
+
+  @override
+  String get popOut_openProfileWindow => 'فتح في نافذة جديدة';
+
+  @override
+  String get popOut_pin => 'التثبيت على هذه الغطسة';
+
+  @override
+  String get popOut_unpin => 'متابعة النافذة الرئيسية';
+
+  @override
+  String get popOut_selectDivePlaceholder => 'اختر غطسة في النافذة الرئيسية';
+
+  @override
+  String get popOut_lockedPlaceholder =>
+      'افتح قفل Submersion في النافذة الرئيسية';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'المقطع: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'تعذر على هذه النافذة الوصول إلى السجل. أغلقها وحاول مرة أخرى.';
 }

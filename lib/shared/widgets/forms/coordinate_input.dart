@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_formatter.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_parser.dart';
 import 'package:submersion/core/utils/coordinates/mgrs_converter.dart';
 import 'package:submersion/core/utils/coordinates/utm_converter.dart';
 import 'package:submersion/shared/widgets/forms/coordinate_validation_messages.dart';
+import 'package:submersion/shared/widgets/forms/form_style.dart';
 
 /// What the input currently holds, in decimal degrees.
 ///
@@ -416,14 +418,19 @@ class _CoordinateInputState extends State<CoordinateInput> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 6, 14, 6),
+      padding: const EdgeInsets.fromLTRB(
+        FormStyle.rowInset,
+        Spacing.s6,
+        FormStyle.rowInset,
+        Spacing.s6,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ..._fieldsForFormat(context),
           if (widget.errorText != null)
             Padding(
-              padding: const EdgeInsets.only(top: 6),
+              padding: const EdgeInsets.only(top: Spacing.s6),
               child: Text(
                 widget.errorText!,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -446,7 +453,7 @@ class _CoordinateInputState extends State<CoordinateInput> {
             signed: true,
             error: () => _decimalAxisError(isLatitude: true),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.s8),
           _field(
             'lon',
             widget.longitudeLabel ?? 'Longitude',
@@ -462,7 +469,7 @@ class _CoordinateInputState extends State<CoordinateInput> {
             isLatitude: true,
             withSeconds: false,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.s8),
           _degreeRow(
             widget.longitudeLabel ?? 'Longitude',
             isLatitude: false,
@@ -477,7 +484,7 @@ class _CoordinateInputState extends State<CoordinateInput> {
             isLatitude: true,
             withSeconds: true,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.s8),
           _degreeRow(
             widget.longitudeLabel ?? 'Longitude',
             isLatitude: false,
@@ -494,9 +501,9 @@ class _CoordinateInputState extends State<CoordinateInput> {
                 width: 72,
                 child: _field('zone', 'Zone', error: _gridError),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: Spacing.s8),
               Expanded(child: _field('easting', 'Easting', numeric: true)),
-              const SizedBox(width: 8),
+              const SizedBox(width: Spacing.s8),
               Expanded(child: _field('northing', 'Northing', numeric: true)),
             ],
           ),
@@ -528,15 +535,15 @@ class _CoordinateInputState extends State<CoordinateInput> {
             ),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: Spacing.s8),
         Expanded(child: _field('${prefix}Min', '', numeric: true, suffix: "'")),
         if (withSeconds) ...[
-          const SizedBox(width: 8),
+          const SizedBox(width: Spacing.s8),
           Expanded(
             child: _field('${prefix}Sec', '', numeric: true, suffix: '"'),
           ),
         ],
-        const SizedBox(width: 8),
+        const SizedBox(width: Spacing.s8),
         _hemisphereSelector(isLatitude: isLatitude),
       ],
     );

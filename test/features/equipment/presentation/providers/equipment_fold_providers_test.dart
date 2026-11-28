@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_fold_keys.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_fold_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
@@ -165,5 +166,47 @@ void main() {
       late.state.listArrangements.equipmentCollapsedGroups,
       '["loc:a/type:bcd","loc:a"]',
     );
+  });
+
+  group('assemblies (#5071)', () {
+    test('expand all opens every assembly, collapse all folds them', () {
+      container = build();
+      final notifier = container.read(equipmentFoldsProvider.notifier);
+      expect(notifier.assembliesStartOpen, isFalse);
+
+      notifier.expandAll(assemblyIds: ['a', 'b']);
+      expect(container.read(equipmentFoldsProvider), ['asm:a', 'asm:b']);
+      expect(stored(), '["asm:a","asm:b"]');
+
+      notifier.collapseAll(['type:bcd'], assemblyIds: ['a', 'b']);
+      expect(container.read(equipmentFoldsProvider), ['type:bcd']);
+      expect(stored(), '["type:bcd"]');
+    });
+
+    test('during a filter assemblies start open and nothing is saved', () {
+      container = build();
+      container.read(equipmentFilterProvider.notifier).state =
+          const EquipmentFilterState(type: EquipmentType.bcd);
+      final notifier = container.read(equipmentFoldsProvider.notifier);
+      expect(notifier.assembliesStartOpen, isTrue);
+
+      notifier.expandAll(assemblyIds: ['a']);
+      expect(container.read(equipmentFoldsProvider), isEmpty);
+
+      notifier.collapseAll(const [], assemblyIds: ['a']);
+      expect(container.read(equipmentFoldsProvider), ['asm:a']);
+      expect(stored(), isNull);
+    });
+
+    test('expand all keeps to the key cap', () {
+      container = build();
+      final notifier = container.read(equipmentFoldsProvider.notifier);
+      notifier.expandAll(
+        assemblyIds: [for (var i = 0; i <= kMaxStoredFoldKeys; i++) 'a$i'],
+      );
+      final keys = container.read(equipmentFoldsProvider);
+      expect(keys, hasLength(kMaxStoredFoldKeys));
+      expect(keys.last, 'asm:a$kMaxStoredFoldKeys');
+    });
   });
 }

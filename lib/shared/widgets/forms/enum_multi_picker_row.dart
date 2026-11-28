@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 
@@ -38,7 +39,12 @@ class EnumMultiPickerRow<T> extends StatelessWidget {
               shrinkWrap: true,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+                  padding: const EdgeInsets.fromLTRB(
+                    Spacing.s16,
+                    0,
+                    Spacing.s16,
+                    Spacing.s6,
+                  ),
                   child: Text(label, style: theme.textTheme.titleMedium),
                 ),
                 for (final v in values)

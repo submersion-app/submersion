@@ -17040,6 +17040,23 @@ class AppLocalizationsJa extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'すべて折りたたむ';
 
   @override
+  String get equipment_list_showParts => 'パーツを表示';
+
+  @override
+  String get equipment_list_hideParts => 'パーツを隠す';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'パーツ$count個',
+      one: 'パーツ1個',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => '場所';
 
   @override
@@ -17056,6 +17073,12 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       '場所ごとに見出しを表示（このページのみ）';
+
+  @override
+  String get equipment_arrange_nestParts => 'パーツを組み合わせの下に表示';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle => '各組み合わせのパーツをその下に折りたたむ';
 
   @override
   String get equipment_locations_title => '場所';
@@ -64597,4 +64620,28 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get documents_filter_sharedLibraries => '共有ライブラリ';
+
+  @override
+  String get popOut_openProfileWindow => '新しいウィンドウで開く';
+
+  @override
+  String get popOut_pin => 'このダイブに固定';
+
+  @override
+  String get popOut_unpin => 'メインウィンドウに従う';
+
+  @override
+  String get popOut_selectDivePlaceholder => 'メインウィンドウでダイブを選択してください';
+
+  @override
+  String get popOut_lockedPlaceholder => 'メインウィンドウで Submersion のロックを解除してください';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'プロファイル: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'このウィンドウからログブックにアクセスできませんでした。閉じてからもう一度お試しください。';
 }

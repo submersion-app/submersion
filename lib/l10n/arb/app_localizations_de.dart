@@ -17632,6 +17632,23 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Alle einklappen';
 
   @override
+  String get equipment_list_showParts => 'Teile anzeigen';
+
+  @override
+  String get equipment_list_hideParts => 'Teile ausblenden';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Teile',
+      one: '1 Teil',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Standort';
 
   @override
@@ -17648,6 +17665,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'Eine Überschrift pro Ort, nur auf dieser Seite';
+
+  @override
+  String get equipment_arrange_nestParts =>
+      'Teile unter ihrer Baugruppe zeigen';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Die Teile jeder Baugruppe darunter einklappen';
 
   @override
   String get equipment_locations_title => 'Standorte';
@@ -67188,4 +67213,29 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get documents_filter_sharedLibraries => 'Geteilte Bibliotheken';
+
+  @override
+  String get popOut_openProfileWindow => 'In neuem Fenster öffnen';
+
+  @override
+  String get popOut_pin => 'An diesen Tauchgang anheften';
+
+  @override
+  String get popOut_unpin => 'Dem Hauptfenster folgen';
+
+  @override
+  String get popOut_selectDivePlaceholder =>
+      'Wähle einen Tauchgang im Hauptfenster';
+
+  @override
+  String get popOut_lockedPlaceholder => 'Entsperre Submersion im Hauptfenster';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Profil: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'Dieses Fenster konnte das Logbuch nicht erreichen. Schließe es und versuche es erneut.';
 }

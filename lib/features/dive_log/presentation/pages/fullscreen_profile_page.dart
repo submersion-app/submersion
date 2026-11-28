@@ -71,11 +71,23 @@ class FullscreenProfilePage extends ConsumerStatefulWidget {
   /// Profile card, the dashboard) the page shows no control that writes.
   final EditSession<Dive>? session;
 
+  /// Takes the close button's place, and turns off Escape's pop: in a
+  /// desktop pop-out window (issue #5078) the page is the whole window, so
+  /// there is nothing to go back to. Null keeps the close button.
+  final Widget? leading;
+
+  /// Whether the playback bar sits under the chart (phones never show it).
+  /// A desktop pop-out (issue #5078) is a chart to look at beside the main
+  /// window and leaves it out.
+  final bool showTransport;
+
   const FullscreenProfilePage({
     super.key,
     required this.diveId,
     this.onOpenInNotes,
     this.session,
+    this.leading,
+    this.showTransport = true,
   });
 
   @override
@@ -317,13 +329,17 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
               Positioned(
                 top: 8,
                 left: 8,
-                child: IconButton(
-                  icon: const Icon(Icons.close),
-                  style: IconButton.styleFrom(
-                    backgroundColor: colorScheme.surface.withValues(alpha: 0.8),
-                  ),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
+                child:
+                    widget.leading ??
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      style: IconButton.styleFrom(
+                        backgroundColor: colorScheme.surface.withValues(
+                          alpha: 0.8,
+                        ),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
               ),
             ],
           ),
@@ -482,8 +498,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                   notifier.stepBackward,
               const SingleActivator(LogicalKeyboardKey.arrowRight):
                   notifier.stepForward,
-              const SingleActivator(LogicalKeyboardKey.escape): () =>
-                  Navigator.of(context).pop(),
+              const SingleActivator(LogicalKeyboardKey.escape): () {
+                if (widget.leading == null) Navigator.of(context).pop();
+              },
             },
             child: Focus(
               autofocus: true,
@@ -493,9 +510,16 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                     child: Stack(
                       children: [
                         Padding(
+                          // With no transport bar beneath, the time axis
+                          // keeps the same margin from the edge as the top.
                           padding: isPhone
                               ? const EdgeInsets.all(4)
-                              : const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                              : EdgeInsets.fromLTRB(
+                                  12,
+                                  8,
+                                  12,
+                                  widget.showTransport ? 0 : 8,
+                                ),
                           child: DiveProfileChart(
                             profile: chartProfile,
                             overlays: overlays.isEmpty ? null : overlays,
@@ -535,15 +559,16 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.close),
-                                    tooltip: context
-                                        .l10n
-                                        .diveLog_fullscreenProfile_close,
-                                    visualDensity: VisualDensity.compact,
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                  ),
+                                  widget.leading ??
+                                      IconButton(
+                                        icon: const Icon(Icons.close),
+                                        tooltip: context
+                                            .l10n
+                                            .diveLog_fullscreenProfile_close,
+                                        visualDensity: VisualDensity.compact,
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(),
+                                      ),
                                   Flexible(
                                     child: Padding(
                                       padding: const EdgeInsets.only(right: 4),
@@ -836,7 +861,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                         environment: dive.environment,
                       ),
                     ),
-                  if (!isPhone)
+                  if (!isPhone && widget.showTransport)
                     ProfileTransportBar(
                       diveId: widget.diveId,
                       // The same profile the chart renders: the scrub minimap
