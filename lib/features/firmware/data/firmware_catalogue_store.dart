@@ -14,6 +14,8 @@ class FirmwareCatalogueStore {
 
   File get _catalogue =>
       File(p.join(root.path, 'firmware', 'firmware_catalogue.json'));
+  File get _attempted =>
+      File(p.join(root.path, 'firmware', 'firmware_catalogue.attempted'));
   File get _fetched =>
       File(p.join(root.path, 'firmware', 'firmware_catalogue.fetched'));
 
@@ -35,6 +37,24 @@ class FirmwareCatalogueStore {
     } on FileSystemException {
       return null;
     }
+  }
+
+  /// When a fetch was last tried, whether or not it brought a catalogue, or
+  /// null. Gates retries, so an unreachable or unpublished catalogue is not
+  /// asked for again until a day has passed.
+  Future<DateTime?> lastAttemptAt() async {
+    try {
+      if (!await _attempted.exists()) return null;
+      return DateTime.tryParse((await _attempted.readAsString()).trim());
+    } on FileSystemException {
+      return null;
+    }
+  }
+
+  /// Records that a fetch was tried at [at].
+  Future<void> markAttempt(DateTime at) async {
+    await _attempted.parent.create(recursive: true);
+    await _attempted.writeAsString(at.toUtc().toIso8601String());
   }
 
   /// Keeps [raw] as fetched at [fetchedAt]. The catalogue is written to a

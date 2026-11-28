@@ -13,11 +13,14 @@ class FirmwareSwitchNotifier extends StateNotifier<bool> {
 
   final SharedPreferences _prefs;
   final String _key;
+  Future<void> _writes = Future.value();
 
-  Future<void> set(bool on) async {
+  /// Writes queue behind each other, so a quick off-then-on can never leave
+  /// the stored value behind the state shown.
+  Future<void> set(bool on) => _writes = _writes.then((_) async {
     await _prefs.setBool(_key, on);
     state = on;
-  }
+  });
 }
 
 /// "Check for firmware updates": whether this device reads the public

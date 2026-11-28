@@ -62,10 +62,13 @@ class FirmwareCatalogueNotifier extends AsyncNotifier<FirmwareCatalogue?> {
       if (!ref.read(firmwareChecksEnabledProvider)) return;
       final store = await ref.read(firmwareCatalogueStoreProvider.future);
       if (store == null) return;
-      final last = await store.lastFetchedAt();
+      // The last try, failed or not, gates the next: at most one request a
+      // day even while the catalogue cannot be reached.
+      final last = await store.lastAttemptAt() ?? await store.lastFetchedAt();
       if (last != null && now.difference(last) < kFirmwareRefreshInterval) {
         return;
       }
+      await store.markAttempt(now);
       final result = await ref.read(firmwareCatalogueClientProvider).fetch();
       switch (result) {
         case FirmwareFetched(:final catalogue, :final raw):

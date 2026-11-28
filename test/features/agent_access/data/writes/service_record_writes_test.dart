@@ -401,6 +401,17 @@ void main() {
     expect(dropsType.items.single.block, isNull);
   });
 
+  test('a firmware update needs the version it installed', () async {
+    final plan = await h.preview([
+      createOp('service_records', {
+        ...record('2026-03-01'),
+        'service_kind_id': null,
+        'category': 'firmwareUpdate',
+      }),
+    ]);
+    expect(plan.items.single.block, isNotNull);
+  });
+
   test('an agent logs a firmware update with no service type', () async {
     final plan = await h.preview([
       createOp('service_records', {

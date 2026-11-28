@@ -81,7 +81,11 @@ void main() {
   ]) {
     testWidgets('the $name flags an available update', (tester) async {
       await tester.pumpWidget(
-        testApp(overrides: overrides(update), child: tile),
+        testApp(
+          locale: const Locale('en'),
+          overrides: overrides(update),
+          child: tile,
+        ),
       );
       await tester.pumpAndSettle();
       expect(find.text('Update available'), findsOneWidget);
@@ -90,6 +94,7 @@ void main() {
     testWidgets('the $name keeps an overdue clock above it', (tester) async {
       await tester.pumpWidget(
         testApp(
+          locale: const Locale('en'),
           overrides: overrides(update, rollup: {item.id: overdue()}),
           child: tile,
         ),
@@ -102,6 +107,7 @@ void main() {
     testWidgets('the $name says nothing when up to date', (tester) async {
       await tester.pumpWidget(
         testApp(
+          locale: const Locale('en'),
           overrides: overrides(const FirmwareUpToDate(model)),
           child: tile,
         ),

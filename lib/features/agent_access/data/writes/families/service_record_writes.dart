@@ -87,6 +87,17 @@ class ServiceRecordWrites extends WritableEntry {
         'service_kind_id to null.',
       );
     }
+    // ...and names the version it installed.
+    final version = check.values.containsKey('firmware_version')
+        ? check.values['firmware_version']
+        : check.document?['firmware_version'];
+    if (category == ServiceCategory.firmwareUpdate.name &&
+        ((version as String?)?.trim() ?? '').isEmpty) {
+      return const PlanBlock(
+        BlockReason.invalidValue,
+        'firmware_version: a firmware update names the version it installed.',
+      );
+    }
     final now = today();
     return dayRangeProblem(
           check,
