@@ -1310,8 +1310,8 @@ void main() {
       }
 
       // Add a tank so the tank-card editor + TanksOp payload are exercised.
-      await tester.ensureVisible(find.text('Add Tank'));
-      await tester.tap(find.text('Add Tank'));
+      await tester.ensureVisible(find.text('Add Cylinder'));
+      await tester.tap(find.text('Add Cylinder'));
       await tester.pumpAndSettle();
 
       await tester.ensureVisible(find.text('Save'));
@@ -1476,7 +1476,7 @@ void main() {
       Future<void> tickRoleByPosition(WidgetTester tester) async {
         await tapText(tester, find.text('Update').first);
         await tapText(tester, find.widgetWithText(FilterChip, 'Role'));
-        await tapText(tester, find.text('Role by tank position'));
+        await tapText(tester, find.text('Role by cylinder position'));
       }
 
       testWidgets('sets roles on matching dives and reports the others', (
@@ -1500,7 +1500,7 @@ void main() {
 
         expect(
           find.text(
-            "1 dive doesn't match the tank positions, so its tank roles "
+            "1 dive doesn't match the cylinder positions, so its cylinder roles "
             'stay as they are.',
           ),
           findsOneWidget,
@@ -1530,7 +1530,7 @@ void main() {
 
         await pumpForm(tester, [dive.id]);
         await tickRoleByPosition(tester);
-        await tapText(tester, find.text('Same role on every tank'));
+        await tapText(tester, find.text('Same role on every cylinder'));
         // The template role picker is back, still on its default.
         await tapText(tester, find.byKey(const ValueKey('tank-role-backGas')));
         await tapText(tester, find.text('Deco').last);
@@ -1633,7 +1633,7 @@ void main() {
 
       // The tank-specific hint, not the generic "turn on a field" one.
       expect(
-        find.text('Choose at least one tank attribute to update.'),
+        find.text('Choose at least one cylinder attribute to update.'),
         findsOneWidget,
       );
       expect(find.text('Apply'), findsNothing); // no confirm dialog

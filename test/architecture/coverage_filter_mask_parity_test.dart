@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'source_mask.dart';
 
-/// `scripts/filter_trivial_coverage.py` blanks comments and strings in Python
+/// `scripts/testing/filter_trivial_coverage.py` blanks comments and strings in Python
 /// before it decides which coverage lines are boilerplate. Its `mask` is a
 /// port of [MaskedSource], so a fix made to one of them alone would have the
 /// coverage filter and the architecture scanners read the same file
@@ -79,7 +79,7 @@ String? _findPython() {
 const _dumpMasks = r'''
 import importlib.util, json, os
 spec = importlib.util.spec_from_file_location(
-    "filter_trivial_coverage", os.path.join("scripts", "filter_trivial_coverage.py"))
+    "filter_trivial_coverage", os.path.join("scripts", "testing", "filter_trivial_coverage.py"))
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 masked = {}

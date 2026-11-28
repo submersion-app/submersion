@@ -27,6 +27,10 @@ mixin _SiteMergeFields on ConsumerState<SiteMergePage> {
   final _accessNotesController = TextEditingController();
   final _mooringNumberController = TextEditingController();
   final _parkingInfoController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _websiteController = TextEditingController();
   final _altitudeController = TextEditingController();
 
   /// The country code known for a country text: the chosen site's stored
@@ -37,6 +41,10 @@ mixin _SiteMergeFields on ConsumerState<SiteMergePage> {
 
   double _rating = 0;
   SiteDifficulty? _difficulty;
+
+  /// The merged site's opening hours, chosen whole from one site (issue
+  /// #5073).
+  OpeningHours? _openingHours;
   WaterType? _waterType;
   List<EntryMethod> _entryMethods = const [];
   List<EntryMethod> _exitMethods = const [];
@@ -97,6 +105,10 @@ mixin _SiteMergeFields on ConsumerState<SiteMergePage> {
     _accessNotesController,
     _mooringNumberController,
     _parkingInfoController,
+    _addressController,
+    _phoneController,
+    _emailController,
+    _websiteController,
     _altitudeController,
   ];
 

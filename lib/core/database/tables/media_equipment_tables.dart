@@ -12,7 +12,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 import 'package:submersion/core/database/tables/media_tables.dart';
 
-/// One gear item shown in one photo or video (v388): "this photo shows my
+/// One gear item shown in one photo or video (v395): "this photo shows my
 /// drysuit". The photo stays an ordinary photo; this is not
 /// `media.equipment_id`, which makes a row a gear photo.
 ///

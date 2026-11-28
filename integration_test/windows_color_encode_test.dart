@@ -6,7 +6,7 @@ import 'package:path/path.dart' as p;
 import 'helpers/color_encode_cases.dart';
 import 'helpers/color_encode_in_app.dart';
 
-/// Phase 2 of scripts/run_color_encode_it.sh (issue #3521): the real Media
+/// Phase 2 of scripts/testing/run_color_encode_it.sh (issue #3521): the real Media
 /// Foundation colour encode on a Windows build. The script synthesizes the
 /// inputs with ffmpeg into the temp folder first and checks the outputs
 /// afterwards; this test only encodes, and skips when the inputs are absent.

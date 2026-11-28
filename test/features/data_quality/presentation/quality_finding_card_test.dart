@@ -414,7 +414,7 @@ void main() {
         finding: pressure,
         tanks: const [QualityTankRef(number: 2)],
       );
-      expect(find.text('Affects Tank 2'), findsOneWidget);
+      expect(find.text('Affects Cylinder 2'), findsOneWidget);
       expect(find.byIcon(Icons.propane_tank_outlined), findsOneWidget);
     });
 
@@ -432,7 +432,10 @@ void main() {
           QualityTankRef(number: 3, name: 'Stage'),
         ],
       );
-      expect(find.text('Affects Tank 1 and Tank 3 · Stage'), findsOneWidget);
+      expect(
+        find.text('Affects Cylinder 1 and Cylinder 3 · Stage'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('no tanks, no row', (tester) async {

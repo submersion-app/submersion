@@ -400,7 +400,7 @@ class SyncData {
   final List<Map<String, dynamic>> equipmentTags;
   final List<Map<String, dynamic>> mediaTags;
 
-  /// Gear linked to photos and videos (v388, issue #5046).
+  /// Gear linked to photos and videos (v395, issue #5046).
   final List<Map<String, dynamic>> mediaEquipment;
   final List<Map<String, dynamic>> documentTags;
   final List<Map<String, dynamic>> equipmentShares;
@@ -5864,7 +5864,7 @@ class SyncDataSerializer {
     return kept;
   }
 
-  /// Applies one incoming `media_equipment` row (v388, issue #5046). The
+  /// Applies one incoming `media_equipment` row (v395, issue #5046). The
   /// (photo, gear) pair is unique, so a peer's copy of a pair this device
   /// holds under another id is reconciled to the lower id and then skipped
   /// with DO NOTHING, as [_applyEquipmentShareRecord] does.
@@ -12393,7 +12393,7 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  /// Gear linked to photos (v388, issue #5046), gated on the photo's clock
+  /// Gear linked to photos (v395, issue #5046), gated on the photo's clock
   /// like [_exportMediaTags]. A changed link travels on its own pending
   /// mark, never by re-stamping the photo.
   Future<List<Map<String, dynamic>>> _exportMediaEquipment(

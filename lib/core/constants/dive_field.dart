@@ -398,7 +398,7 @@ extension DiveFieldMetadata on DiveField {
       case DiveField.diluentGas:
         return 'Diluent Gas';
       case DiveField.tankCount:
-        return 'Tank Count';
+        return 'Cylinder Count';
       case DiveField.startPressure:
         return 'Start Pressure';
       case DiveField.endPressure:
@@ -540,7 +540,7 @@ extension DiveFieldMetadata on DiveField {
       case DiveField.diluentGas:
         return 'Dil';
       case DiveField.tankCount:
-        return 'Tanks';
+        return 'Cylinders';
       case DiveField.startPressure:
         return 'Start P';
       case DiveField.endPressure:

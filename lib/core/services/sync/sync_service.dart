@@ -3731,7 +3731,7 @@ class SyncService {
       (field: 'mediaId', parent: 'media', nullable: false),
       (field: 'tagId', parent: 'tags', nullable: false),
     ],
-    // v388: gear linked to photos and videos (issue #5046).
+    // v395: gear linked to photos and videos (issue #5046).
     'mediaEquipment': [
       (field: 'mediaId', parent: 'media', nullable: false),
       (field: 'equipmentId', parent: 'equipment', nullable: false),

@@ -180,7 +180,7 @@ extension TableBackstopsFromV217 on AppDatabase {
     // idempotent).
     await _assertSpeciesRevampSchema();
 
-    // v388 backstop: gear linked to photos and videos (issue #5046; synced,
+    // v395 backstop: gear linked to photos and videos (issue #5046; synced,
     // idempotent).
     await _assertMediaEquipmentSchema();
   }

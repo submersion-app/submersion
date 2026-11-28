@@ -69,10 +69,10 @@ void main() {
 
       final header = find.byType(TankEditor);
       expect(
-        find.descendant(of: header, matching: find.text('All tanks')),
+        find.descendant(of: header, matching: find.text('All cylinders')),
         findsOneWidget,
       );
-      expect(find.text('Tank 1'), findsNothing);
+      expect(find.text('Cylinder 1'), findsNothing);
       expect(
         find.descendant(
           of: find.byType(CircleAvatar),
@@ -92,8 +92,8 @@ void main() {
 
   // Issue #4412: a sidemount pair gets a different role per tank position.
   group('BulkTankSpecsEditor role by position', () {
-    final sameRole = find.text('Same role on every tank');
-    final byPosition = find.text('Role by tank position');
+    final sameRole = find.text('Same role on every cylinder');
+    final byPosition = find.text('Role by cylinder position');
     final templateRole = find.byKey(const ValueKey('tank-role-backGas'));
 
     testWidgets('offers the role layout only when Role is ticked', (
@@ -145,8 +145,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(reported.last, [TankRole.sidemountLeft, TankRole.sidemountRight]);
-      expect(find.text('Tank 1'), findsOneWidget);
-      expect(find.text('Tank 2'), findsOneWidget);
+      expect(find.text('Cylinder 1'), findsOneWidget);
+      expect(find.text('Cylinder 2'), findsOneWidget);
       // The template's own role picker would read as if it still applied.
       expect(templateRole, findsNothing);
     });
@@ -242,7 +242,7 @@ void main() {
         ),
       );
 
-      expect(find.text('Tank 2'), findsOneWidget);
+      expect(find.text('Cylinder 2'), findsOneWidget);
       expect(
         find.descendant(
           of: find.byType(CircleAvatar),

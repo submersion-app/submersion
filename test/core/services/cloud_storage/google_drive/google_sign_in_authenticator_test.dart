@@ -405,7 +405,7 @@ void main() {
       // same `canceled` code as a real dismissal. Users on a build whose
       // signing certificate has no registered Android OAuth client hit this
       // on every attempt, and the old wording told them they had cancelled
-      // a dialog they never saw. See scripts/check_apk_signing_cert.py.
+      // a dialog they never saw. See scripts/checks/check_apk_signing_cert.py.
       platform.authenticateError = const GoogleSignInException(
         code: GoogleSignInExceptionCode.canceled,
         description: '[16] Account reauth failed.',

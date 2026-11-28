@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_tag_re
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
+import 'package:submersion/features/equipment/presentation/helpers/equipment_suggestion_action.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_tags_field.dart';
@@ -186,7 +187,24 @@ class _GearItemHeaderEditorState extends ConsumerState<GearItemHeaderEditor> {
                       if (value != null) _pickType(value);
                     },
             ),
-            const SizedBox(height: 16),
+            // Offered even while the type is locked: a computer's item can
+            // still be gear the list has no type for (issue #5103).
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                key: const ValueKey('gear-edit-suggest-category'),
+                icon: const Icon(Icons.lightbulb_outline, size: 18),
+                label: Text(l10n.equipment_suggest_link),
+                onPressed: () => suggestEquipmentCategory(
+                  context,
+                  ref,
+                  currentType: working.type,
+                  brand: working.brand,
+                  model: working.model,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
             EquipmentTagsField(
               // Inert until the stored tags are read: a set built without
               // them would drop them.

@@ -2,7 +2,7 @@ part of '../app_database_migrations.dart';
 
 /// Gear items linked to photos and videos (issue #5046).
 extension MediaEquipmentMigrations on AppDatabase {
-  /// v388: the media_equipment table and its equipment lookup index. The
+  /// v395: the media_equipment table and its equipment lookup index. The
   /// unique (media_id, equipment_id) pair is part of the table. Idempotent;
   /// a partial fixture without either parent is left alone.
   Future<void> _assertMediaEquipmentSchema() async {

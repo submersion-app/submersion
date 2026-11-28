@@ -188,6 +188,10 @@ class VideoIdentificationScan {
   /// Follows the animals through one run of consecutive chunks.
   var _tracker = VideoTracker();
 
+  /// The longest gap between two sightings [_tracker] links in view, at
+  /// this scan's [sampleIntervalMs].
+  int get _liveGapMs => (_tracker.maxGapSamples + 1) * sampleIntervalMs;
+
   /// Where the current run of consecutive chunks has got; null before the
   /// first chunk of a run.
   int? _runEndMs;
@@ -357,7 +361,7 @@ class VideoIdentificationScan {
     }
     final early = [
       for (final t in _tracker.openTracks)
-        if (t.endMs - t.startMs >= earlyNamingMs) t,
+        if (t.inViewMs(maxGapMs: _liveGapMs) >= earlyNamingMs) t,
     ];
     final toName = <TrackedAnimal>[];
     final toKeep = <TrackedAnimal>[];
@@ -392,8 +396,10 @@ class VideoIdentificationScan {
       openRows: byId,
       stored: stored,
       seamMs: seamMs,
-      maxGapMs: (_tracker.maxGapSamples + 1) * sampleIntervalMs,
+      maxGapMs: _liveGapMs,
+      lostGapMs: (_tracker.maxLostSamples + 1) * sampleIntervalMs,
       link: _tracker.link,
+      lostLink: _tracker.lostLink,
     );
     final joins = <TrackedAnimal, TrackedAnimal>{};
     for (final (:open, :later) in pairs) {
@@ -428,8 +434,10 @@ class VideoIdentificationScan {
 
   /// Starts a run of consecutive chunks at [startMs]: the open tracks of
   /// the run before are stored as when the scan stops, and the stored
-  /// tracks that end just before [startMs] are taken up again, so an animal
-  /// in view there carries on as the same track. Only across scanned video:
+  /// tracks that end up to 3 s before [startMs] are taken up again
+  /// ([VideoTracker.maxLostSamples]), so an animal in view there, or out
+  /// of sight for a moment, carries on as the same track (issue #5120).
+  /// Only across scanned video:
   /// a track is never linked over a stretch not scanned yet. One kept
   /// without a name is taken up however long before [startMs] it ended, so
   /// that it is named. False when another logbook opened.
@@ -450,7 +458,7 @@ class VideoIdentificationScan {
       }
       if (!_scanned.coversRange(end, startMs)) continue;
       final missed = ((startMs - end) / sampleIntervalMs).round() - 1;
-      if (missed > _tracker.maxGapSamples && !row.isPending) continue;
+      if (missed > _tracker.maxLostSamples && !row.isPending) continue;
       _continuing[row.id] = row;
       _tracker.resume(
         TrackedAnimal(
@@ -465,7 +473,10 @@ class VideoIdentificationScan {
           pending: row.isPending,
           namedWorth: row.isPending ? null : storedWorth(row),
         ),
-        missed: math.max(0, math.min(missed, _tracker.maxGapSamples)),
+        // A pending row from beyond the lost reach is taken up only to be
+        // named: out of reach, it links to nothing and closes on the next
+        // frame (issue #5120).
+        missed: math.max(0, math.min(missed, _tracker.maxLostSamples + 1)),
       );
     }
     return true;

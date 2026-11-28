@@ -8,7 +8,7 @@ Submersion reads Diving Log's own database file, which holds far more than its D
 
 | Comes across | Does not come across |
 |---|---|
-| Dives with their profiles, tanks and gas switches | Pictures stored inside the database for gear, fish, site maps, trips and shops |
+| Dives with their profiles, cylinders and gas switches | Pictures stored inside the database for gear, fish, site maps, trips and shops |
 | Dive sites, with place, city and country | Trips without dates |
 | Buddies and dive masters | Several divers in one logbook |
 | Gear and its service records | |

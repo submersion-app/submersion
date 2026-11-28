@@ -344,7 +344,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Suit Inflation'), findsOneWidget);
-      expect(find.text('Pony Bottle'), findsNothing);
+      expect(find.text('Pony'), findsNothing);
     },
   );
 

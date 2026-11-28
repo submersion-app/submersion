@@ -78,7 +78,7 @@ void main() {
 
     // TextButton.icon builds a TextButton subclass, so match by predicate.
     Finder addTank() => find.ancestor(
-      of: find.text('Add tank'),
+      of: find.text('Add cylinder'),
       matching: find.byWidgetPredicate((w) => w is TextButton),
     );
     expect(tester.widget<TextButton>(addTank()).onPressed, isNotNull);
