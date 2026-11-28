@@ -507,6 +507,8 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'custom_reminder_days': 'JSON array override, e.g. "[7, 30]"',
     'custom_reminder_enabled': 'Notification overrides',
     'parent_equipment_id': 'the item this one is installed in (an O2 cell in a rebreather, a battery in a computer)',
+    'seller_buddy_id': 'Who sold the item: a buddy or a saved dive centre',
+    'seller_dive_center_id': 'The saved dive centre that sold the item',
     'size': 'S, M, L, XL, or specific size',
     'status': 'active, needsService, retired, etc.',
     'thickness': '2,3,4,5,6 or 6mm',

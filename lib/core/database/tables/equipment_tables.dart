@@ -70,6 +70,8 @@ class Equipment extends Table {
   /// hand and write the name, because a SET NULL reaches no peer.
   TextColumn get sellerBuddyId =>
       text().nullable().references(Buddies, #id, onDelete: KeyAction.setNull)();
+
+  /// The saved dive centre that sold the item; see [sellerBuddyId].
   TextColumn get sellerDiveCenterId => text().nullable().references(
     DiveCenters,
     #id,
