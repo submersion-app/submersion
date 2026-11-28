@@ -286,3 +286,36 @@ For an item with a curated firmware attribute or a firmware-capable type:
 - How many releases the card shows before "Show all", and the dashboard cap
   (match the existing panel).
 - The fetch client's timeout and retry details.
+
+## Changes during the build (2026-11-27 to 2026-11-28)
+
+What the build settled differently from the sections above, and why. Where
+they disagree, this section wins.
+
+- **Log firmware update** is a dialog, like the service record dialog, so it
+  works the same on desktop.
+- **The Firmware card** sits below the Details card, and the firmware page
+  the diver saved wins over the catalogue's.
+- **Version comparison** also ignores a leading "v" before a digit, so "V95"
+  and "95" are one release even without a catalogue entry.
+- **A download** treats the version the computer's registration held before
+  it as the previous one, so the first download after an update is logged;
+  a report matching it records the version on the item quietly.
+- **Last service date:** a firmware record never counts, in the repository,
+  the repair run after every sync apply, gear tags and printed labels, and
+  agent write previews. A firmware record carries no service type, and an
+  agent's firmware record must name its version.
+- **Backup restore** keeps the firmware version it restored rather than
+  rolling it back to the newest history entry.
+- **Fetching:** the last attempt, failed or not, gates the next, so an
+  unreachable catalogue is asked for at most once a day. The app also
+  re-checks every six hours while it stays open. The web build never
+  fetches (release assets carry no CORS header) and hides both switches.
+- **Notifications:** the notification switch shows only on iOS and Android;
+  more than three new updates at once send one summary; the notified pairs
+  are claimed before sending so a re-run never sends twice.
+- **Dashboard:** due clocks come first, then firmware updates, then clocks
+  with time to spare.
+- **Equipment table:** a Firmware column (appended last), showing the
+  installed version and "(update: …)" when a newer release is listed.
+- **UDDF backups** carry a firmware record's version (`firmwareversion`).
