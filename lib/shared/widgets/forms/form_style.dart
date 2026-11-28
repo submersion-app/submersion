@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
+
 /// Design tokens for the shared form system. Values match the header-in-card
 /// design-freeze mockup (docs/design/specs/assets/
 /// 2026-07-17-edit-form-chrome-redesign-mockup.html); tune here, never inline.
@@ -7,9 +9,14 @@ abstract final class FormStyle {
   /// Corner radius of section groups and collapsed bars.
   static const double groupRadius = 13;
 
+  /// Horizontal inset of a row's content: the 14 of [rowPadding]. Captions,
+  /// overlines and inline inputs use it so their text lines up with the row
+  /// labels above and below them.
+  static const double rowInset = 14;
+
   /// Padding inside a label/value row.
   static const EdgeInsets rowPadding = EdgeInsets.symmetric(
-    horizontal: 14,
+    horizontal: rowInset,
     vertical: 11,
   );
 
@@ -28,7 +35,7 @@ abstract final class FormStyle {
 
   /// Padding around a hero stat strip.
   static const EdgeInsets heroPadding = EdgeInsets.symmetric(
-    horizontal: 12,
+    horizontal: Spacing.s12,
     vertical: 10,
   );
 
@@ -36,7 +43,7 @@ abstract final class FormStyle {
   static const double sectionGap = 14;
 
   /// Horizontal page padding around the whole form.
-  static const EdgeInsets pagePadding = EdgeInsets.all(16);
+  static const EdgeInsets pagePadding = EdgeInsets.all(Spacing.s16);
 
   /// Tonal background of group surfaces and collapsed bars.
   static Color groupColor(BuildContext context) =>
@@ -84,9 +91,15 @@ abstract final class FormStyle {
 
   /// Padding of the header row inside a section card.
   static const EdgeInsets headerPadding = EdgeInsets.symmetric(
-    horizontal: 14,
-    vertical: 12,
+    horizontal: rowInset,
+    vertical: Spacing.s12,
   );
+
+  /// Gap between a section header's icon and its title.
+  static const double headerIconGap = 10;
+
+  /// Space above an overline, between it and the rows it follows.
+  static const double overlineTopGap = 10;
 
   /// Section title inside the card header.
   static TextStyle sectionTitleStyle(BuildContext context) {

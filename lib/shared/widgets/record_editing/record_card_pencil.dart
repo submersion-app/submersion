@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/theme/record_pencil_colors.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
 
@@ -95,7 +96,7 @@ class RecordCardPencil extends StatelessWidget {
   final String cardTitle;
 
   static const double _dotSlot = 8;
-  static const double _gap = 4;
+  static const double _gap = Spacing.s4;
 
   /// The frame the pencil draws for, null while it draws nothing.
   static RecordCardFrameData? _shownFrame(BuildContext context) {

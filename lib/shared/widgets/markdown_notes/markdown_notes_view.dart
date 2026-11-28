@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:markdown/markdown.dart' as md;
 
 import 'package:submersion/core/text/markdown/notes_markdown.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:submersion/shared/utils/browser_launch.dart';
 import 'package:submersion/shared/utils/link_open.dart';
@@ -183,7 +184,7 @@ class _NotesBuilder {
         return _list(node, style);
       case 'blockquote':
         return Container(
-          padding: const EdgeInsets.only(left: 10),
+          padding: const EdgeInsets.only(left: _blockquoteIndent),
           decoration: BoxDecoration(
             border: Border(
               left: BorderSide(color: _colors.outlineVariant, width: 3),
@@ -200,10 +201,10 @@ class _NotesBuilder {
         );
       case 'pre':
         return Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(Spacing.s8),
           decoration: BoxDecoration(
             color: _colors.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(Radii.r4),
           ),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -244,7 +245,7 @@ class _NotesBuilder {
             )
           : Text(ordered ? '$number.' : '•', style: style, softWrap: false);
       number++;
-      if (rows.isNotEmpty) rows.add(const SizedBox(height: 2));
+      if (rows.isNotEmpty) rows.add(const SizedBox(height: Spacing.s2));
       rows.add(
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,8 +326,8 @@ class _NotesBuilder {
                 for (final cell in row.cells)
                   Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 4,
+                      horizontal: Spacing.s6,
+                      vertical: Spacing.s4,
                     ),
                     child: _rich(
                       cell.children ?? const [],
@@ -433,7 +434,7 @@ class _NotesBuilder {
       WidgetSpan(
         alignment: PlaceholderAlignment.middle,
         child: Padding(
-          padding: const EdgeInsets.only(right: 2),
+          padding: const EdgeInsets.only(right: Spacing.s2),
           child: Icon(Icons.push_pin, size: size, color: _colors.primary),
         ),
       ),
@@ -468,3 +469,6 @@ class _NotesBuilder {
         span,
   ];
 }
+
+/// Gap between a blockquote's 3-wide left rule and its text.
+const double _blockquoteIndent = 10;

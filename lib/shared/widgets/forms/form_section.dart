@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_style.dart';
 
@@ -87,10 +88,10 @@ class FormSection extends StatelessWidget {
         children: [
           if (icon != null) ...[
             Icon(icon, size: 18, color: theme.colorScheme.primary),
-            const SizedBox(width: 10),
+            const SizedBox(width: FormStyle.headerIconGap),
           ],
           Text(label, style: FormStyle.sectionTitleStyle(context)),
-          const SizedBox(width: 12),
+          const SizedBox(width: Spacing.s12),
           Expanded(
             child: Align(
               alignment: Alignment.centerRight,
@@ -98,7 +99,7 @@ class FormSection extends StatelessWidget {
             ),
           ),
           if (onToggle != null) ...[
-            const SizedBox(width: 6),
+            const SizedBox(width: Spacing.s6),
             Icon(
               expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
               size: 20,
@@ -129,7 +130,7 @@ class FormSection extends StatelessWidget {
             size: 16,
             color: theme.colorScheme.error,
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: Spacing.s4),
           Text(
             context.l10n.forms_section_issues(errorCount),
             style: theme.textTheme.labelMedium!.copyWith(

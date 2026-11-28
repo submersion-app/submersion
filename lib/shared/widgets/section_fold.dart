@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One folded section row in a detail page's list layout (Dive Details and
@@ -50,7 +51,7 @@ class SectionFold extends StatelessWidget {
   /// closed header would cost the same as showing them.
   final WidgetBuilder contentBuilder;
 
-  static const _rowPadding = EdgeInsets.symmetric(vertical: 12);
+  static const _rowPadding = EdgeInsets.symmetric(vertical: Spacing.s12);
 
   @override
   Widget build(BuildContext context) {
@@ -72,14 +73,14 @@ class SectionFold extends StatelessWidget {
             // around the row, so [trailing] has the row's full height for
             // its tap target without making the row taller.
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.symmetric(horizontal: Spacing.s8),
               child: Row(
                 children: [
                   Padding(
                     padding: _rowPadding,
                     child: Icon(icon, size: 20, color: colorScheme.primary),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: Spacing.s12),
                   Expanded(
                     child: Padding(
                       padding: _rowPadding,
@@ -114,7 +115,7 @@ class SectionFold extends StatelessWidget {
           curve: Curves.easeInOut,
           child: isExpanded
               ? Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.only(bottom: Spacing.s12),
                   child: contentBuilder(context),
                 )
               : const SizedBox(width: double.infinity),

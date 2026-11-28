@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/constants/sort_options_display.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/sort_option_tile.dart';
 
@@ -68,14 +69,14 @@ class _SortBottomSheetState<T extends Enum> extends State<SortBottomSheet<T>> {
     // Scrolls when a footer makes the sheet taller than a short screen.
     return SafeArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: Spacing.s16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Header with title
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: Spacing.s16),
               child: Row(
                 children: [
                   Semantics(
@@ -113,7 +114,7 @@ class _SortBottomSheetState<T extends Enum> extends State<SortBottomSheet<T>> {
                 ],
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.s8),
             const Divider(height: 1),
             // Sort field options
             ...widget.fields.map(
@@ -133,7 +134,7 @@ class _SortBottomSheetState<T extends Enum> extends State<SortBottomSheet<T>> {
               const Divider(height: 1),
               widget.footer!,
             ],
-            const SizedBox(height: 8),
+            const SizedBox(height: Spacing.s8),
           ],
         ),
       ),

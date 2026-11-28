@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
+
 /// A tappable header that opens or closes one group of a list: a chevron, an
 /// optional [leading] widget, the [label], and the [countLabel] at the end
 /// (issues #3364, #4184). Lifted from the dive site list's country header so
@@ -60,15 +62,23 @@ class CollapsibleGroupHeader extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(indent, 12, 16, 12),
+          padding: EdgeInsetsDirectional.fromSTEB(
+            indent,
+            Spacing.s12,
+            Spacing.s16,
+            Spacing.s12,
+          ),
           child: Row(
             children: [
               Icon(
                 isExpanded ? Icons.expand_more : Icons.chevron_right,
                 color: variant,
               ),
-              const SizedBox(width: 12),
-              if (leading != null) ...[leading!, const SizedBox(width: 8)],
+              const SizedBox(width: Spacing.s12),
+              if (leading != null) ...[
+                leading!,
+                const SizedBox(width: Spacing.s8),
+              ],
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -90,7 +100,7 @@ class CollapsibleGroupHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: Spacing.s8),
               Text(
                 countLabel,
                 style: theme.textTheme.labelMedium?.copyWith(color: variant),

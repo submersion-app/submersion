@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/buoyancy/twin_analyzer.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -30,8 +31,8 @@ class TwinSummaryRows extends StatelessWidget {
         ? wingLiftCapacityKg
         : null;
     return Wrap(
-      spacing: 24,
-      runSpacing: 12,
+      spacing: Spacing.s24,
+      runSpacing: Spacing.s12,
       children: [
         _tile(
           context,
@@ -88,12 +89,12 @@ class TwinSummaryRows extends StatelessWidget {
               color: theme.colorScheme.outline,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: Spacing.s2),
           Row(
             children: [
               Text(value, style: theme.textTheme.titleMedium),
               if (warning != null) ...[
-                const SizedBox(width: 4),
+                const SizedBox(width: Spacing.s4),
                 Tooltip(
                   message: warning,
                   child: Icon(
