@@ -134,6 +134,10 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v320 backstop: nearby peers and the relay floor (local, idempotent).
     await _assertNearbySchema();
 
+    // v388 backstop: media held back from older devices (issue #5122;
+    // local, idempotent).
+    await _assertHeldMediaSchema();
+
     // v326 backstop: the media_people table and its indexes (idempotent).
     await _assertMediaPeopleSchema();
 

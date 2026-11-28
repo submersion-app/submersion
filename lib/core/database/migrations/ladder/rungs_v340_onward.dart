@@ -356,5 +356,11 @@ extension RungsFromV340 on AppDatabase {
     // no backfill; re-asserted in beforeOpen. The floor does not move.
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
+
+    // v388 (issue #5122): the device-local held_media table, the media this
+    // device keeps back from older devices. Never synced; the floor does not
+    // move. Re-asserted in beforeOpen.
+    if (from < 388) await _assertHeldMediaSchema();
+    if (from < 388) await reportProgress();
   }
 }

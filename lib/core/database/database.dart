@@ -31,6 +31,7 @@ import 'package:submersion/core/database/tables/quality_tables.dart';
 import 'package:submersion/core/database/tables/insight_tables.dart';
 import 'package:submersion/core/database/tables/species_revamp_tables.dart';
 import 'package:submersion/core/database/tables/nearby_tables.dart';
+import 'package:submersion/core/database/tables/held_media_tables.dart';
 import 'package:submersion/core/database/tables/query_tables.dart';
 import 'package:submersion/core/database/tables/rule_tables.dart';
 import 'package:submersion/core/database/tables/safety_tables.dart';
@@ -73,6 +74,7 @@ export 'package:submersion/core/database/tables/quality_tables.dart';
 export 'package:submersion/core/database/tables/insight_tables.dart';
 export 'package:submersion/core/database/tables/species_revamp_tables.dart';
 export 'package:submersion/core/database/tables/nearby_tables.dart';
+export 'package:submersion/core/database/tables/held_media_tables.dart';
 export 'package:submersion/core/database/tables/query_tables.dart';
 export 'package:submersion/core/database/tables/rule_tables.dart';
 export 'package:submersion/core/database/tables/safety_tables.dart';
@@ -225,6 +227,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SyncPeerCursors,
     LocalPublishStates,
     NearbyPeers,
+    HeldMedia,
     // Maps & Visualization
     CachedRegions,
     // Notifications
@@ -338,7 +341,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 387;
+  static const int currentSchemaVersion = 388;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1830,6 +1833,10 @@ class AppDatabase extends _$AppDatabase {
     // depth and a plan's no-switch flag (issue #3793). Additive and
     // defaulted; the floor does not move.
     387,
+    // v388: the device-local held_media table, for keeping media with no
+    // place away from older devices (issue #5122). Never synced, so the
+    // floor does not move.
+    388,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
