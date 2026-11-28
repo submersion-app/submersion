@@ -55,8 +55,9 @@ the role.
    when the stored row is the file tank's cylinder: the transmitter serials
    match, or the stored start pressure agrees (within 1 bar) with the
    file's, raw or as the import stored it, and says which cylinder it is:
-   every stored cylinder pairs in order with every pair agreeing (two
-   cylinders filled to the same pressure, as Cloud import pairs them), or
+   every stored cylinder pairs in order with every pair agreeing and no
+   pair's serials contradicting (two cylinders filled to the same pressure,
+   as Cloud import pairs them), or
    the pressure matches this one file tank and this one stored cylinder
    only. A pressure another cylinder shares names neither, and equal
    cylinder counts alone are no proof.

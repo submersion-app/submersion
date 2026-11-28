@@ -176,6 +176,7 @@ class DiveReimportService {
         final tanks = await _carryOverTanks(
           diveId: diveId,
           diveData: fileData,
+          rawDiveData: diveData,
           now: now,
         );
 
@@ -492,6 +493,7 @@ class DiveReimportService {
   Future<_ParsedTanks> _carryOverTanks({
     required String diveId,
     required Map<String, dynamic> diveData,
+    required Map<String, dynamic> rawDiveData,
     required DateTime now,
   }) async {
     final tanksData =
@@ -534,31 +536,15 @@ class DiveReimportService {
       matched[i] = unclaimed[nextUnclaimed++];
     }
 
-    // The start pressure each tank's import stored, for telling a cylinder
-    // paired by position apart from another (issue #4665). Only a file with
-    // a Hydrotank needs it.
-    final importedStarts =
-        tanksData.any(
-          (t) => parsedTankRoleName(t['role']) == TankRole.hydrotank.name,
-        )
-        ? backGasImportStartPressures(diveData, tanksData)
-        : const <double?>[];
-    // Shearwater Cloud tanks carry no order, so a pairing must be known to
-    // be the same cylinder, not just the one at that position.
-    final identified = importedStarts.isEmpty
-        ? List<bool>.filled(tanksData.length, false)
-        : identifiedPairings(
-            matched: matched,
-            stored: existing,
-            serials: [
-              for (final t in tanksData)
-                normalizeTransmitterSerial(t['transmitterSerial'] as String?),
-            ],
-            starts: [
-              for (var i = 0; i < tanksData.length; i++)
-                [_asDouble(tanksData[i]['startPressure']), importedStarts[i]],
-            ],
-          );
+    // Shearwater Cloud tanks carry no order, so a Hydrotank role lands only
+    // on a row known to be that cylinder, not just the one at its position
+    // (issue #4665).
+    final identified = identifiedHydrotankPairings(
+      rawDiveData: rawDiveData,
+      tanksData: tanksData,
+      matched: matched,
+      stored: existing,
+    );
 
     final idsByIndex = <String>[];
     for (var i = 0; i < tanksData.length; i++) {

@@ -66,6 +66,50 @@ void main() {
     db.diveTanks,
   )..where((t) => t.tankOrder.equals(1))).getSingle();
 
+  Future<void> seedAt(String id, int order, double bar) => db
+      .into(db.diveTanks)
+      .insert(
+        DiveTanksCompanion.insert(
+          id: id,
+          diveId: diveId,
+          tankOrder: Value(order),
+          startPressure: Value(bar),
+        ),
+      );
+
+  Future<String> roleOf(String id) async => (await (db.select(
+    db.diveTanks,
+  )..where((t) => t.id.equals(id))).getSingle()).tankRole;
+
+  /// Resyncs one Hydrotank whose file start is [start], with [series] as
+  /// its pressure readings (seconds, bar).
+  Future<void> resyncWithSeries({
+    required double start,
+    required List<(int, double)> series,
+  }) => service.applyReimport(
+    diveId: diveId,
+    diveData: {
+      'tanks': [
+        {
+          'startPressure': start,
+          'endPressure': series.last.$2,
+          'role': 'hydrotank',
+        },
+      ],
+      'profile': [
+        for (final (t, bar) in series)
+          {
+            'timestamp': t,
+            'depth': 10.0,
+            'allTankPressures': [
+              {'tankIndex': 0, 'pressure': bar},
+            ],
+          },
+      ],
+    },
+    now: DateTime(2026, 11, 28),
+  );
+
   test(
     'a stored back gas the file tags as the Hydrotank becomes one',
     () async {
@@ -120,36 +164,69 @@ void main() {
   );
 
   test(
-    'a start pressure the import deglitched still names the cylinder',
+    'a start pressure the import deglitched as back gas names the cylinder',
     () async {
-      // The file's start pressure is a 0 bar lead-in reading, which the
-      // import replaced with the series' first reading while it took the
-      // Hydrotank for back gas; resync reads the file's own value.
+      // The diver's first pump-in reads as a lead-in 50 bar below the next
+      // reading. The import, taking the Hydrotank for back gas, replaced
+      // that start with 200 bar; resync, reading it as the Hydrotank, keeps
+      // the real 150 bar, so only the back-gas view matches what is stored.
       await seedTank(role: 'backGas');
 
-      await service.applyReimport(
-        diveId: diveId,
-        diveData: {
-          'tanks': [
-            {'startPressure': 0.0, 'endPressure': 185.0, 'role': 'hydrotank'},
-          ],
-          'profile': [
-            for (final (t, bar) in [(0, 200.0), (60, 195.0), (1200, 185.0)])
-              {
-                'timestamp': t,
-                'depth': 10.0,
-                'allTankPressures': [
-                  {'tankIndex': 0, 'pressure': bar},
-                ],
-              },
-          ],
-        },
-        now: DateTime(2026, 11, 27),
+      await resyncWithSeries(
+        start: 150,
+        series: [
+          (0, 150.0),
+          (30, 150.0),
+          (150, 200.0),
+          (300, 199.0),
+          (600, 198.0),
+          (900, 197.0),
+          (1200, 185.0),
+        ],
       );
 
-      expect((await stored()).tankRole, 'hydrotank');
+      final tank = await stored();
+      expect(tank.tankRole, 'hydrotank');
+      expect(tank.startPressure, 150.0);
     },
   );
+
+  test('a raw start pressure the import stored names the cylinder', () async {
+    // An import from before the pressure clean-up (issue #2441) stored
+    // the file's 0 bar header start as it was; resync cleans it to 200 bar.
+    await seedAt('tank-a', 0, 0);
+
+    await resyncWithSeries(
+      start: 0,
+      series: [(0, 200.0), (60, 195.0), (1200, 185.0)],
+    );
+
+    expect((await stored()).tankRole, 'hydrotank');
+  });
+
+  test('slot order does not hold where serials say the order is off', () async {
+    // The diver reordered the cylinders: the Hydrotank, whose serial is
+    // stored, now sits second, and the pony first with no serial.
+    await seedAt('pony', 0, 200);
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: 'hydro',
+            diveId: diveId,
+            tankOrder: const Value(1),
+            startPressure: const Value(200),
+            transmitterSerial: const Value('222'),
+          ),
+        );
+
+    await resync([
+      {'startPressure': 200.0, 'transmitterSerial': '222', 'role': 'hydrotank'},
+      {'startPressure': 200.0, 'transmitterSerial': '111'},
+    ]);
+
+    expect(await roleOf('pony'), 'backGas');
+  });
 
   test('equal counts do not make a different cylinder the same one', () async {
     // The diver removed the Hydrotank and added another cylinder, so the
@@ -177,21 +254,6 @@ void main() {
     )..where((t) => t.id.equals('pony'))).getSingle();
     expect(pony.tankRole, 'backGas');
   });
-
-  Future<void> seedAt(String id, int order, double bar) => db
-      .into(db.diveTanks)
-      .insert(
-        DiveTanksCompanion.insert(
-          id: id,
-          diveId: diveId,
-          tankOrder: Value(order),
-          startPressure: Value(bar),
-        ),
-      );
-
-  Future<String> roleOf(String id) async => (await (db.select(
-    db.diveTanks,
-  )..where((t) => t.id.equals(id))).getSingle()).tankRole;
 
   test('a start pressure another cylinder shares names neither', () async {
     // The Hydrotank and the pony were both filled to 200 bar, and the diver
