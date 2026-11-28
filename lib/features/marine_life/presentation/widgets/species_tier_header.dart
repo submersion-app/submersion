@@ -26,29 +26,33 @@ class SpeciesTierHeader extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final count = this.count;
 
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: colorScheme.primary),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Semantics(
-            header: true,
-            child: Text(
-              title,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: colorScheme.onSurface,
+    // One heading for assistive tech, the count read with its title rather
+    // than as a bare number after it.
+    return MergeSemantics(
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: colorScheme.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Semantics(
+              header: true,
+              child: Text(
+                title,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
               ),
             ),
           ),
-        ),
-        if (count != null && count > 0)
-          Text(
-            '$count',
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: colorScheme.onSurfaceVariant,
+          if (count != null && count > 0)
+            Text(
+              '$count',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

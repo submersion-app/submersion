@@ -232,11 +232,12 @@ void main() {
         expect(title.color, onSurface);
       }
       expect(spotted.fontSize, greaterThan(category.fontSize!));
-      // Each title is a heading for assistive tech too.
+      // Each title is a heading for assistive tech too, its count read
+      // with it rather than as a bare number after it.
       expect(
         tester.getSemantics(find.text(l.marineLife_siteSection_spottedHere)),
         matchesSemantics(
-          label: l.marineLife_siteSection_spottedHere,
+          label: '${l.marineLife_siteSection_spottedHere}\n1',
           isHeader: true,
         ),
       );

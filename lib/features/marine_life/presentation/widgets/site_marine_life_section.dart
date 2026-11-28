@@ -298,6 +298,7 @@ class SiteMarineLifeSection extends ConsumerWidget {
     final painter = TextPainter(
       textDirection: Directionality.of(context),
       textScaler: MediaQuery.textScalerOf(context),
+      locale: Localizations.maybeLocaleOf(context),
     );
     var widest = 0.0;
     for (final category in SpeciesCategory.values) {
