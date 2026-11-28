@@ -1113,9 +1113,10 @@ final analysisDiveProvider = FutureProvider.autoDispose.family<Dive?, String>((
   // so invalidating it on the broad detail tick (which includes media)
   // re-ran the full analysis cascade after merely viewing a photo.
   ref.invalidateSelfWhen(repository.watchAnalysisInputChanges());
-  // The site's water type is the deco fallback (issue #3196), watched on its
-  // own so a bulk site write never re-runs every analysis.
-  ref.invalidateSelfWhen(repository.watchSiteWaterTypeChanges(diveId));
+  // The site's water type and altitude are the deco fallbacks (issues #3196,
+  // #5040), watched on their own so a bulk site write never re-runs every
+  // analysis.
+  ref.invalidateSelfWhen(repository.watchSiteAnalysisValueChanges(diveId));
   return repository.getDiveForAnalysis(diveId);
 });
 

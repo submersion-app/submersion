@@ -217,13 +217,15 @@ void main() {
     expect(await repo.getDiveById('nope'), isNull);
   });
 
-  group('watchSiteWaterTypeChanges', () {
+  group('watchSiteAnalysisValueChanges', () {
     /// The tick is debounced (300 ms), so each wait outlasts it. The
     /// subscription is cancelled here, while the database is still open.
     Future<int> ticksDuring(Future<void> Function() writes) async {
       const settle = Duration(milliseconds: 500);
       var ticks = 0;
-      final sub = repo.watchSiteWaterTypeChanges('d1').listen((_) => ticks++);
+      final sub = repo
+          .watchSiteAnalysisValueChanges('d1')
+          .listen((_) => ticks++);
       await Future<void>.delayed(settle);
       await writes();
       await Future<void>.delayed(settle);
@@ -239,6 +241,22 @@ void main() {
       final ticks = await ticksDuring(
         () => (db.update(db.diveSites)..where((t) => t.id.equals('s1'))).write(
           const DiveSitesCompanion(waterType: Value('fresh')),
+        ),
+      );
+
+      expect(ticks, 1);
+    });
+
+    test('ticks when the dive site altitude changes', () async {
+      // The dive reads its site's altitude through (issue #5040), so an
+      // altitude edit changes its deco environment as a water type edit does.
+      await insertDive('d1');
+      await insertSite('s1', waterType: 'fresh');
+      await repo.setSite('d1', 's1');
+
+      final ticks = await ticksDuring(
+        () => (db.update(db.diveSites)..where((t) => t.id.equals('s1'))).write(
+          const DiveSitesCompanion(altitude: Value(1200)),
         ),
       );
 
