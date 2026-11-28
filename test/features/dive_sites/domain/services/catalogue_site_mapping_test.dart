@@ -129,4 +129,14 @@ void main() {
     );
     expect(catalogueSiteToDiveSite(withPhone).website, isNull);
   });
+
+  // What the diver reads and what a tap opens must agree (review).
+  test('a website with user info in front of its host is not adopted', () {
+    expect(catalogueWebsiteText('https://shop.example@evil.example'), isNull);
+    expect(catalogueWebsiteText('https://user:pw@stoneycove.com'), isNull);
+    expect(
+      catalogueWebsiteText(' https://stoneycove.com/dive '),
+      'https://stoneycove.com/dive',
+    );
+  });
 }

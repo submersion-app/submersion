@@ -16,6 +16,11 @@ import 'package:submersion/core/opening_hours/opening_hours.dart';
 /// A missing day is closed. Decoding never throws: the value can arrive
 /// from another device, a CSV or UDDF file or an agent, so a bad part is
 /// dropped (and logged) and a value that is not an object reads as null.
+///
+/// A later version only adds to this one, so a newer value is read by the
+/// fields this version knows. Every site save writes the hours again, so
+/// until they are edited such a value is written back as it was stored,
+/// keeping what this version cannot read.
 
 const int _version = 1;
 const String _open24h = '24h';
@@ -24,9 +29,15 @@ const List<String> _dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
 String _dayKey(int weekday) => _dayKeys[weekday - DateTime.monday];
 
+/// The stored text of hours decoded from a newer version, by the decoded
+/// value; an edit makes a new value, which this version then writes.
+final Expando<String> _newerStoredText = Expando('newerOpeningHoursText');
+
 /// The stored text for [hours]; null when there is nothing to store.
 String? encodeOpeningHours(OpeningHours? hours) {
   if (hours == null || hours.isEmpty) return null;
+  final kept = _newerStoredText[hours];
+  if (kept != null) return kept;
   final note = hours.note?.trim();
   return jsonEncode({
     'v': _version,
@@ -94,7 +105,17 @@ OpeningHours? decodeOpeningHours(String? text) {
     schedules: List.unmodifiable(schedules),
     note: note,
   );
-  return hours.isEmpty ? null : hours;
+  if (hours.isEmpty) return null;
+  final version = json['v'];
+  if (version is num && version > _version) {
+    developer.log(
+      'Read version $version by its version $_version fields; kept as '
+      'stored until edited',
+      name: 'OpeningHoursCodec',
+    );
+    _newerStoredText[hours] = text;
+  }
+  return hours;
 }
 
 OpeningSchedule _decodeSchedule(Map raw) {

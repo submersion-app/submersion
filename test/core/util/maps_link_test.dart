@@ -123,10 +123,13 @@ void main() {
       TargetPlatform.windows: MapsPlatform.other,
       TargetPlatform.linux: MapsPlatform.other,
     };
-    for (final MapEntry(key: target, value: maps) in expected.entries) {
-      debugDefaultTargetPlatformOverride = target;
-      expect(currentMapsPlatform(), maps, reason: '$target');
+    try {
+      for (final MapEntry(key: target, value: maps) in expected.entries) {
+        debugDefaultTargetPlatformOverride = target;
+        expect(currentMapsPlatform(), maps, reason: '$target');
+      }
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
     }
-    debugDefaultTargetPlatformOverride = null;
   });
 }

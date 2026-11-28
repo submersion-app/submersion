@@ -132,6 +132,46 @@ void main() {
     expect(decodeOpeningHours(jsonEncode(map)), _specExample());
   });
 
+  // A later version adds to v1, so this reader can show what it knows; a
+  // save that leaves the hours alone must not rewrite them as v1 and drop
+  // what it does not know (review).
+  group('a newer version', () {
+    String newer() {
+      final map =
+          jsonDecode(encodeOpeningHours(_specExample())!)
+              as Map<String, dynamic>;
+      map['v'] = 2;
+      map['holidays'] = ['12-25'];
+      return jsonEncode(map);
+    }
+
+    test('reads the fields this version knows', () {
+      expect(decodeOpeningHours(newer()), _specExample());
+    });
+
+    test('is written back as stored while the hours are unedited', () {
+      final raw = newer();
+      expect(encodeOpeningHours(decodeOpeningHours(raw)), raw);
+    });
+
+    test('is written as this version once the hours are edited', () {
+      final edited = decodeOpeningHours(newer())!.copyWith(note: 'Edited');
+      final map = jsonDecode(encodeOpeningHours(edited)!) as Map;
+      expect(map['v'], 1);
+      expect(map['note'], 'Edited');
+      expect(map.containsKey('holidays'), isFalse);
+    });
+
+    test('a v1 value is re-encoded, not kept as stored', () {
+      final map =
+          jsonDecode(encodeOpeningHours(_specExample())!)
+              as Map<String, dynamic>;
+      map['foo'] = 1;
+      final hours = decodeOpeningHours(jsonEncode(map));
+      expect(jsonDecode(encodeOpeningHours(hours)!), isNot(contains('foo')));
+    });
+  });
+
   group('YearlyDateRange', () {
     test('29 Feb is a valid month day', () {
       expect(const MonthDay(2, 29).isValid, isTrue);
