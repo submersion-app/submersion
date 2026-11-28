@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/editor_context_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/editor_toolbar.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_editor_app_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_editor_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/remove_source_flow.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -395,41 +396,21 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Row(
-            children: [
-              Text(context.l10n.diveLog_profileEditor_title),
-              // The revision history is the primary profile's lineage, so
-              // switching it would reload a profile other than the source
-              // being edited.
-              if (showRevisions) ...[
-                const SizedBox(width: 12),
-                Flexible(
-                  child: _buildProfileRevisionControl(
-                    context,
-                    ref,
-                    widget.diveId,
-                    enabled: !state.hasChanges,
-                  ),
-                ),
-              ],
-            ],
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.undo),
-              onPressed: state.undoStack.isNotEmpty
-                  ? () => notifier.undo()
-                  : null,
-              tooltip: context.l10n.diveLog_profileEditor_undo,
-            ),
-            FilledButton.icon(
-              onPressed: state.hasChanges ? _handleSave : null,
-              icon: const Icon(Icons.save, size: 18),
-              label: Text(context.l10n.common_action_save),
-            ),
-            const SizedBox(width: 8),
-          ],
+        appBar: ProfileEditorAppBar.forScreen(
+          context,
+          // The revision history is the primary profile's lineage, so
+          // switching it would reload a profile other than the source being
+          // edited. A history known to be empty has nothing to show.
+          revisionControl: showRevisions && !(history?.isEmpty ?? false)
+              ? _buildProfileRevisionControl(
+                  context,
+                  ref,
+                  widget.diveId,
+                  enabled: !state.hasChanges,
+                )
+              : null,
+          onUndo: state.undoStack.isNotEmpty ? notifier.undo : null,
+          onSave: state.hasChanges ? _handleSave : null,
         ),
         body: Column(
           children: [
