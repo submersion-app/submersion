@@ -42828,7 +42828,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String equipment_seller_keepTyped(String name) {
-    return 'Mantener «$name» tal cual';
+    return 'Mantener «$name» sin vincular';
   }
 
   @override

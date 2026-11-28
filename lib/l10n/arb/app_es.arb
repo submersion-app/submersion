@@ -12230,7 +12230,7 @@
   "settings_conflict_ref_soldBy": "Vendido por",
   "equipment_seller_kindBuddy": "Compañero",
   "equipment_seller_kindDiveCenter": "Centro de buceo",
-  "equipment_seller_keepTyped": "Mantener «{name}» tal cual",
+  "equipment_seller_keepTyped": "Mantener «{name}» sin vincular",
   "equipment_seller_clear": "Quitar vendedor",
   "equipment_boughtFrom_title": "Comprado a {name}",
   "equipment_boughtHere_title": "Comprado aquí",
