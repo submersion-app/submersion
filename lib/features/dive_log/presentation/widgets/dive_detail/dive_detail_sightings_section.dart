@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/species_profile_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_sightings_sitting.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_sightings_list.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sighting_depth_label.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
-import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
-import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_sightings_sitting.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_sighting_row.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
 import 'package:submersion/features/media/presentation/pages/dive_species_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -105,10 +105,15 @@ class DiveSightingsSection extends ConsumerWidget {
                             ),
                     ),
                     const Divider(),
-                    for (final sighting in sightings)
-                      DiveSightingRow(
-                        sighting: sighting,
-                        photoCount: photoCounts[sighting.speciesId] ?? 0,
+                    // Two columns when wide, and a long list collapsed
+                    // (issue #5067). Keyed by dive: each dive opens collapsed.
+                    DiveSightingsList(
+                      key: ValueKey(dive.id),
+                      sightings: sightings,
+                      photoCounts: photoCounts,
+                      onOpen: (sighting) =>
+                          context.push('/species/${sighting.speciesId}'),
+                      whereSeen: (sighting) => (
                         depthLabel: switch (positions[sighting.speciesId]) {
                           final p? when !p.isEmpty => sightingDepthLabel(
                             p,
@@ -131,18 +136,17 @@ class DiveSightingsSection extends ConsumerWidget {
                                 formatElapsedMmSs(sighting.seenAtSeconds!),
                               )
                             : null,
-                        onOpen: () =>
-                            context.push('/species/${sighting.speciesId}'),
-                        onOpenPhotos: () => Navigator.of(context).push(
-                          MaterialPageRoute(
-                            fullscreenDialog: true,
-                            builder: (_) => DiveSpeciesPhotoViewerPage(
-                              diveId: dive.id,
-                              speciesId: sighting.speciesId,
-                            ),
+                      ),
+                      onOpenPhotos: (sighting) => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          fullscreenDialog: true,
+                          builder: (_) => DiveSpeciesPhotoViewerPage(
+                            diveId: dive.id,
+                            speciesId: sighting.speciesId,
                           ),
                         ),
                       ),
+                    ),
                     if (panel) DiveFindSpeciesPanel(dive: dive),
                     if (prompt) const SpeciesDownloadPrompt(),
                   ],

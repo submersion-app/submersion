@@ -148,43 +148,47 @@ class DiveSightingRow extends StatelessWidget {
       child: InkWell(
         onTap: onOpen,
         borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final compact = constraints.maxWidth < _compactWidth;
-              return Row(
-                children: [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: colorForSpeciesCategory(
-                      sighting.speciesCategory,
-                      theme.brightness,
-                    ),
-                    child: Icon(
-                      iconForSpeciesCategory(
-                        sighting.speciesCategory ?? SpeciesCategory.other,
+        // Compact, since a dive can log dozens of species (issue #5067).
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 40),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final compact = constraints.maxWidth < _compactWidth;
+                return Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 14,
+                      backgroundColor: colorForSpeciesCategory(
+                        sighting.speciesCategory,
+                        theme.brightness,
                       ),
-                      color: Colors.white,
-                      size: 18,
+                      child: Icon(
+                        iconForSpeciesCategory(
+                          sighting.speciesCategory ?? SpeciesCategory.other,
+                        ),
+                        color: Colors.white,
+                        size: 16,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(child: details(chipsBelow: compact)),
-                  if (!compact)
-                    for (final chip in chips)
+                    const SizedBox(width: 12),
+                    Expanded(child: details(chipsBelow: compact)),
+                    if (!compact)
+                      for (final chip in chips)
+                        Padding(
+                          padding: const EdgeInsetsDirectional.only(start: 8),
+                          child: chip,
+                        ),
+                    if (sighting.abundance != SightingAbundance.seen)
                       Padding(
                         padding: const EdgeInsetsDirectional.only(start: 8),
-                        child: chip,
+                        child: SightingAmountBadge(amount: sighting.amount),
                       ),
-                  if (sighting.abundance != SightingAbundance.seen)
-                    Padding(
-                      padding: const EdgeInsetsDirectional.only(start: 8),
-                      child: SightingAmountBadge(amount: sighting.amount),
-                    ),
-                ],
-              );
-            },
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ),
