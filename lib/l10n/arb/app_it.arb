@@ -9774,6 +9774,7 @@
   "tankPresets_deleted": "\"{name}\" eliminato",
   "tankPresets_duplicatePreset": "Duplica",
   "tankPresets_duplicateName": "{name} (copia)",
+  "tankPresets_duplicateNameNumbered": "{name} (copia {number})",
   "tankPresets_editPreset": "Modifica preset",
   "tankPresets_edit_created": "\"{name}\" creato",
   "tankPresets_edit_descriptionHint": "es. La mia bombola a noleggio dal diving",

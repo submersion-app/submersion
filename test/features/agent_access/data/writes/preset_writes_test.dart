@@ -64,6 +64,16 @@ void main() {
     ]);
     expect((await h.one('tank_presets', id))!['rated_capacity_cuft'], 77.4);
 
+    // The same size sent back through a unit conversion is the same
+    // cylinder: a last-digit difference keeps the rating.
+    await h.run([
+      updateOp('tank_presets', id, {
+        'volume_l': 11.099999999999998,
+        'description': 'Rental',
+      }),
+    ]);
+    expect((await h.one('tank_presets', id))!['rated_capacity_cuft'], 77.4);
+
     await h.run([
       updateOp('tank_presets', id, {'volume_l': 12.0}),
     ]);

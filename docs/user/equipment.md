@@ -360,7 +360,8 @@ when you come back.
 - **Add cylinder preset:** create your own.
 - **Duplicate:** the copy button on a built-in preset opens a new preset filled
   from it, named with "(copy)", for when your cylinder differs a little from
-  the standard one. The copy keeps the built-in's rated capacity (AL80 reads
+  the standard one. A second copy of the same preset is named "(copy 2)", and
+  so on, so every preset keeps its own name. The copy keeps the built-in's rated capacity (AL80 reads
   77.4 cu ft) until you change its volume or working pressure; then its
   capacity is worked out from the new size.
 

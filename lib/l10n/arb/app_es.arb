@@ -9903,6 +9903,7 @@
   "tankPresets_deleted": "Se eliminó \"{name}\"",
   "tankPresets_duplicatePreset": "Duplicar",
   "tankPresets_duplicateName": "{name} (copia)",
+  "tankPresets_duplicateNameNumbered": "{name} (copia {number})",
   "tankPresets_editPreset": "Editar preset",
   "tankPresets_edit_created": "Se creó \"{name}\"",
   "tankPresets_edit_descriptionHint": "p. ej., Mi botella de alquiler de la tienda de buceo",

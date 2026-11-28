@@ -9778,6 +9778,7 @@
   "tankPresets_deleted": "\"{name}\" törölve",
   "tankPresets_duplicatePreset": "Másolás",
   "tankPresets_duplicateName": "{name} (másolat)",
+  "tankPresets_duplicateNameNumbered": "{name} ({number}. másolat)",
   "tankPresets_editPreset": "Sablon szerkesztése",
   "tankPresets_edit_created": "\"{name}\" létrehozva",
   "tankPresets_edit_descriptionHint": "pl. Bérelt palack a búvárüzletből",

@@ -9903,6 +9903,7 @@
   "tankPresets_deleted": "\"{name}\" verwijderd",
   "tankPresets_duplicatePreset": "Dupliceren",
   "tankPresets_duplicateName": "{name} (kopie)",
+  "tankPresets_duplicateNameNumbered": "{name} (kopie {number})",
   "tankPresets_editPreset": "Instelling bewerken",
   "tankPresets_edit_created": "\"{name}\" aangemaakt",
   "tankPresets_edit_descriptionHint": "bijv. Mijn huurfles van de duikshop",

@@ -37389,6 +37389,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name（副本 $number）';
+  }
+
+  @override
   String get tankPresets_editPreset => '编辑预设';
 
   @override

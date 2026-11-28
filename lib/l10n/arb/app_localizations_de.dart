@@ -39699,6 +39699,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (Kopie $number)';
+  }
+
+  @override
   String get tankPresets_editPreset => 'Vorlage bearbeiten';
 
   @override

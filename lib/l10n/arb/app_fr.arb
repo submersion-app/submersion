@@ -9778,6 +9778,7 @@
   "tankPresets_deleted": "\"{name}\" supprimé",
   "tankPresets_duplicatePreset": "Dupliquer",
   "tankPresets_duplicateName": "{name} (copie)",
+  "tankPresets_duplicateNameNumbered": "{name} (copie {number})",
   "tankPresets_editPreset": "Modifier le preset",
   "tankPresets_edit_created": "\"{name}\" créé",
   "tankPresets_edit_descriptionHint": "ex. Mon bloc de location du centre de plongée",

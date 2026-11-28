@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1137,6 +1139,153 @@ void main() {
         expect(added, isNotNull);
         expect(added!.displayName, 'My AL80');
         expect(added.ratedCapacityCuft, 77.4);
+      },
+    );
+
+    group(
+      'a custom preset name survives an edit that keeps the size (#800)',
+      () {
+        // The diver's copy of AL80, since resized to 12 L on the presets page.
+        final resizedCopy = TankPresetEntity.create(
+          id: 'mine',
+          name: 'al80_copy',
+          displayName: 'AL80 (copy)',
+          volumeLiters: 12,
+          workingPressureBar: 206.843,
+          material: TankMaterial.aluminum,
+        );
+        const tank = DiveTank(
+          id: 'tank-1',
+          volume: 11.1,
+          workingPressure: 206.843,
+          presetName: 'al80_copy',
+          gasMix: GasMix(o2: 32.0, he: 0.0),
+        );
+
+        Future<void> pumpEditor(
+          WidgetTester tester, {
+          required DiveTank tank,
+          required Future<List<TankPresetEntity>> presets,
+          required ValueChanged<DiveTank> onChanged,
+        }) async {
+          SharedPreferences.setMockInitialValues({});
+          final prefs = await SharedPreferences.getInstance();
+          await tester.pumpWidget(
+            ProviderScope(
+              overrides: [
+                sharedPreferencesProvider.overrideWithValue(prefs),
+                settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+                currentDiverIdProvider.overrideWith(
+                  (ref) => MockCurrentDiverIdNotifier(),
+                ),
+                tankPresetListNotifierProvider.overrideWith(
+                  (ref) => _MockTankPresetListNotifier(const []),
+                ),
+                tankPresetsProvider.overrideWith((ref) => presets),
+              ].cast(),
+              child: MaterialApp(
+                locale: const Locale('en'),
+                localizationsDelegates: AppLocalizations.localizationsDelegates,
+                supportedLocales: AppLocalizations.supportedLocales,
+                home: Scaffold(
+                  body: SingleChildScrollView(
+                    child: TankEditor(
+                      tank: tank,
+                      tankNumber: 1,
+                      onChanged: onChanged,
+                      onRemove: () {},
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+          await tester.pump();
+        }
+
+        testWidgets('when the preset no longer matches the size', (
+          tester,
+        ) async {
+          DiveTank? changed;
+          await pumpEditor(
+            tester,
+            tank: tank,
+            presets: Future.value([resizedCopy]),
+            onChanged: (t) => changed = t,
+          );
+          await tester.pumpAndSettle();
+
+          await tester.enterText(
+            find.widgetWithText(TextFormField, '32'),
+            '30',
+          );
+          await tester.pump();
+
+          expect(changed!.presetName, 'al80_copy');
+          expect(changed!.gasMix.o2, 30.0);
+        });
+
+        testWidgets('when the presets are still loading', (tester) async {
+          DiveTank? changed;
+          await pumpEditor(
+            tester,
+            tank: tank,
+            presets: Completer<List<TankPresetEntity>>().future,
+            onChanged: (t) => changed = t,
+          );
+
+          await tester.enterText(
+            find.widgetWithText(TextFormField, '32'),
+            '30',
+          );
+          await tester.pump();
+
+          expect(changed!.presetName, 'al80_copy');
+        });
+
+        testWidgets('but not once the diver chose no preset', (tester) async {
+          DiveTank? changed;
+          await pumpEditor(
+            tester,
+            tank: tank,
+            presets: Future.value([resizedCopy]),
+            onChanged: (t) => changed = t,
+          );
+          await tester.pumpAndSettle();
+
+          await tester.tap(find.byKey(const Key('tank-preset-dropdown')));
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Select Preset...').last);
+          await tester.pumpAndSettle();
+          expect(changed!.presetName, isNull);
+
+          await tester.enterText(
+            find.widgetWithText(TextFormField, '32'),
+            '30',
+          );
+          await tester.pump();
+
+          expect(changed!.presetName, isNull);
+        });
+
+        testWidgets('nor once the diver typed a new size', (tester) async {
+          DiveTank? changed;
+          await pumpEditor(
+            tester,
+            tank: tank,
+            presets: Future.value([resizedCopy]),
+            onChanged: (t) => changed = t,
+          );
+          await tester.pumpAndSettle();
+
+          await tester.enterText(
+            find.widgetWithText(TextFormField, '11.1'),
+            '15',
+          );
+          await tester.pump();
+
+          expect(changed!.presetName, isNull);
+        });
       },
     );
 

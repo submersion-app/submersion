@@ -62116,6 +62116,12 @@ abstract class AppLocalizations {
   /// **'{name} (copy)'**
   String tankPresets_duplicateName(String name);
 
+  /// Name a duplicate starts with when a copy of that preset already exists (issue #800): the second copy is number 2.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (copy {number})'**
+  String tankPresets_duplicateNameNumbered(String name, int number);
+
   /// No description provided for @tankPresets_editPreset.
   ///
   /// In en, this message translates to:

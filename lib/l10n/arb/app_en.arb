@@ -24133,6 +24133,20 @@
       }
     }
   },
+  "tankPresets_duplicateNameNumbered": "{name} (copy {number})",
+  "@tankPresets_duplicateNameNumbered": {
+    "description": "Name a duplicate starts with when a copy of that preset already exists (issue #800): the second copy is number 2.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "AL80"
+      },
+      "number": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
   "tankPresets_editPreset": "Edit preset",
   "tankPresets_edit_created": "Created \"{name}\"",
   "@tankPresets_edit_created": {

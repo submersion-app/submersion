@@ -40333,6 +40333,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (نسخة $number)';
+  }
+
+  @override
   String get tankPresets_editPreset => 'تعديل الإعداد';
 
   @override

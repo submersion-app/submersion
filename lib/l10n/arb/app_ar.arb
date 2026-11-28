@@ -9903,6 +9903,7 @@
   "tankPresets_deleted": "تم حذف \"{name}\"",
   "tankPresets_duplicatePreset": "تكرار",
   "tankPresets_duplicateName": "{name} (نسخة)",
+  "tankPresets_duplicateNameNumbered": "{name} (نسخة {number})",
   "tankPresets_editPreset": "تعديل الإعداد",
   "tankPresets_edit_created": "تم إنشاء \"{name}\"",
   "tankPresets_edit_descriptionHint": "مثال: أسطوانة الإيجار من متجر الغوص",

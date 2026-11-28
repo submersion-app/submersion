@@ -25,6 +25,7 @@ import 'package:submersion/features/cylinder_passports/presentation/utils/scan_c
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/tank_presets/domain/services/tank_preset_size_match.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/computer_recorded_tank.dart';
@@ -306,7 +307,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     // Reset on every read, not only set: a re-read after a fill from a
     // slot with no preset must not keep the old preset, or the next
     // keystroke would write it (and in cuft its volume) back.
-    _sizeEdited = false;
+    _leftStoredPreset = false;
     final builtIn = widget.tank.presetName == null
         ? null
         : TankPresets.byName(widget.tank.presetName!);
@@ -315,30 +316,23 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         : TankPresetEntity.fromBuiltIn(builtIn);
   }
 
-  /// Whether the diver changed the size fields since they were read: a
-  /// preset that loads later must not then claim them.
-  bool _sizeEdited = false;
+  /// Whether the diver moved off the preset the tank was read with: typed a
+  /// new size, chose no preset, or took a size from a cylinder or tag. Until
+  /// then the tank keeps naming its preset even while [_selectedPreset] is
+  /// unresolved (the diver's own presets still loading, or one resized
+  /// since), and a preset that loads later may still claim the fields.
+  bool _leftStoredPreset = false;
 
   /// The diver's own preset [widget.tank] names, when it is still that
   /// preset's size. It resolves like a built-in one (issue #800): its exact
   /// litres stand behind a cuft field, and Save as preset keeps its rating.
-  TankPresetEntity? _ownPresetOf(List<TankPresetEntity>? presets) {
-    final name = widget.tank.presetName;
-    final volume = widget.tank.volume;
-    final pressure = widget.tank.workingPressure;
-    if (name == null || presets == null || volume == null || pressure == null) {
-      return null;
-    }
-    return presets
-        .where(
-          (p) =>
-              !p.isBuiltIn &&
-              p.name == name &&
-              (p.volumeLiters - volume).abs() < 0.005 &&
-              (p.workingPressureBar - pressure).abs() < 0.05,
-        )
-        .firstOrNull;
-  }
+  TankPresetEntity? _ownPresetOf(List<TankPresetEntity>? presets) =>
+      ownPresetFor(
+        widget.tank.presetName,
+        widget.tank.volume,
+        widget.tank.workingPressure,
+        presets,
+      );
 
   @override
   void didUpdateWidget(TankEditor oldWidget) {
@@ -553,7 +547,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       roleSource: _role == widget.tank.role ? widget.tank.roleSource : null,
       material: _material,
       order: widget.tank.order,
-      presetName: _selectedPreset?.name,
+      presetName:
+          _selectedPreset?.name ??
+          (_leftStoredPreset ? null : widget.tank.presetName),
       // Preserve source-computer attribution and transmitter identity
       // through edits; only consolidation/unlink flows may change them.
       computerId: widget.tank.computerId,
@@ -593,7 +589,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     // The diver's own presets load after the first frame: resolve the
     // tank's preset then, unless the size was edited in the meantime.
     ref.listen(tankPresetsProvider, (_, next) {
-      if (_selectedPreset != null || _sizeEdited) return;
+      if (_selectedPreset != null || _leftStoredPreset) return;
       final own = _ownPresetOf(next.value);
       if (own != null) setState(() => _selectedPreset = own);
     });
@@ -761,6 +757,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               _applyPreset(preset);
             } else {
               _specChoice++;
+              _leftStoredPreset = true;
               setState(() {
                 _selectedPreset = null;
                 _nameCylinders(null);
@@ -1528,6 +1525,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         : null;
     // The preset follows the size; a tag that leaves the size alone leaves it.
     final sizeChanged = volumeL != null || workingPressureBar != null;
+    if (sizeChanged) _leftStoredPreset = true;
     setState(() {
       if (sizeChanged) {
         _selectedPreset = match == null
@@ -1621,7 +1619,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
   /// Clears the selected preset when tank specs are manually modified
   void _clearPreset() {
-    _sizeEdited = true;
+    _leftStoredPreset = true;
     if (_selectedPreset != null) {
       setState(() => _selectedPreset = null);
     }

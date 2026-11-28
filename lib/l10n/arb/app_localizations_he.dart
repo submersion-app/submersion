@@ -38821,6 +38821,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (עותק $number)';
+  }
+
+  @override
   String get tankPresets_editPreset => 'ערוך תבנית';
 
   @override

@@ -9903,6 +9903,7 @@
   "tankPresets_deleted": "נמחק \"{name}\"",
   "tankPresets_duplicatePreset": "שכפול",
   "tankPresets_duplicateName": "{name} (עותק)",
+  "tankPresets_duplicateNameNumbered": "{name} (עותק {number})",
   "tankPresets_editPreset": "ערוך תבנית",
   "tankPresets_edit_created": "נוצר \"{name}\"",
   "tankPresets_edit_descriptionHint": "לדוגמה, בלון שכור מחנות הצלילה",

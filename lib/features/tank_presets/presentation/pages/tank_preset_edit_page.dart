@@ -8,9 +8,11 @@ import 'package:submersion/core/constants/tank_preset_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -95,17 +97,24 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
 
   Future<void> _loadDuplicate(String sourceId) async {
     try {
-      final source = await ref
-          .read(tankPresetRepositoryProvider)
-          .getPresetById(sourceId);
+      final repository = ref.read(tankPresetRepositoryProvider);
+      final source = await repository.getPresetById(sourceId);
       if (source == null || !mounted) return;
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      final taken = {
+        for (final p in await repository.getAllPresets(diverId: diverId))
+          p.name,
+      };
+      // The diver began typing while the source loaded: their words stand.
+      if (!mounted || readEditorDraft() != editorStartDraft) return;
       final l10n = context.l10n;
       final shownName = source.isBuiltIn
           ? builtInTankPresetName(l10n, source.name) ?? source.displayName
           : source.displayName;
+      final copyName = _unusedCopyName(l10n, shownName, taken);
       setState(() {
         _fillFrom(source);
-        _displayNameController.text = l10n.tankPresets_duplicateName(shownName);
+        _displayNameController.text = copyName;
         // A built-in's stored description is English; the diver reads it
         // translated, so the copy starts from what they read.
         if (source.isBuiltIn) {
@@ -129,6 +138,26 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
         );
       }
     }
+  }
+
+  /// The copy's name: `AL80 (copy)`, or `AL80 (copy 2)` and on when a
+  /// preset already has that name. Presets are told apart by their name's
+  /// slug, so two copies named alike would be one preset to every picker
+  /// (issue #800).
+  static String _unusedCopyName(
+    AppLocalizations l10n,
+    String name,
+    Set<String> takenSlugs,
+  ) {
+    var candidate = l10n.tankPresets_duplicateName(name);
+    for (
+      var n = 2;
+      takenSlugs.contains(TankPresetEntity.generateSlug(candidate));
+      n++
+    ) {
+      candidate = l10n.tankPresets_duplicateNameNumbered(name, n);
+    }
+    return candidate;
   }
 
   /// Fills the form from [preset] in the diver's units.

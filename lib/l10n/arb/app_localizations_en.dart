@@ -39130,6 +39130,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (copy $number)';
+  }
+
+  @override
   String get tankPresets_editPreset => 'Edit preset';
 
   @override

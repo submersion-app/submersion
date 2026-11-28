@@ -10053,6 +10053,7 @@
   "tankPresets_deleted": "已删除\"{name}\"",
   "tankPresets_duplicatePreset": "复制",
   "tankPresets_duplicateName": "{name}（副本）",
+  "tankPresets_duplicateNameNumbered": "{name}（副本 {number}）",
   "tankPresets_editPreset": "编辑预设",
   "tankPresets_edit_created": "已创建\"{name}\"",
   "tankPresets_edit_descriptionHint": "例如：潜水店的租赁气瓶",

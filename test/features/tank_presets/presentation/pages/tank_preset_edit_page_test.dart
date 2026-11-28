@@ -334,6 +334,8 @@ void main() {
       String? duplicateFromId,
       TankPresetEntity? repoPreset,
       Locale? locale,
+      List<TankPresetEntity> others = const [],
+      Completer<void>? loadGate,
     }) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
@@ -342,8 +344,13 @@ void main() {
         await settings.setPressureUnit(PressureUnit.psi);
         await settings.setVolumeUnit(VolumeUnit.cubicFeet);
       }
-      repo = _MockTankPresetRepository(preset: repoPreset ?? stored)
-        ..failLoad = failLoad;
+      repo =
+          _MockTankPresetRepository(
+              preset: repoPreset ?? stored,
+              others: others,
+            )
+            ..loadGate = loadGate
+            ..failLoad = failLoad;
       list = _MockTankPresetListNotifier([stored]);
       // [onlyPage]: the editor with no page under it, the preset list
       // reachable only by its address.
@@ -632,7 +639,12 @@ void main() {
     testWidgets('a duplicate left alone in psi and cuft keeps the built-in '
         'values exactly (#800)', (tester) async {
       final al80 = TankPresetEntity.fromBuiltIn(TankPresets.byName('al80')!);
-      await pumpEditor(tester, duplicateFromId: 'al80', repoPreset: al80);
+      await pumpEditor(
+        tester,
+        duplicateFromId: 'al80',
+        repoPreset: al80,
+        locale: const Locale('en'),
+      );
       await tester.tap(saveAction());
       await tester.pumpAndSettle();
       final created = repo.created.single;
@@ -646,7 +658,12 @@ void main() {
     testWidgets('a duplicate given a new pressure drops the built-in rating '
         '(#800)', (tester) async {
       final al80 = TankPresetEntity.fromBuiltIn(TankPresets.byName('al80')!);
-      await pumpEditor(tester, duplicateFromId: 'al80', repoPreset: al80);
+      await pumpEditor(
+        tester,
+        duplicateFromId: 'al80',
+        repoPreset: al80,
+        locale: const Locale('en'),
+      );
       await tester.enterText(
         find.widgetWithText(TextFormField, '3000'),
         '3442',
@@ -723,6 +740,54 @@ void main() {
       expect(find.widgetWithText(TextFormField, 'AL80 (copy)'), findsNothing);
     });
 
+    testWidgets('a second duplicate gets a name of its own (#800)', (
+      tester,
+    ) async {
+      final al80 = TankPresetEntity.fromBuiltIn(TankPresets.byName('al80')!);
+      final firstCopy = TankPresetEntity.create(
+        id: 'c1',
+        name: TankPresetEntity.generateSlug('AL80 (copy)'),
+        displayName: 'AL80 (copy)',
+        volumeLiters: 11.1,
+        workingPressureBar: 206.843,
+        material: TankMaterial.aluminum,
+      );
+      await pumpEditor(
+        tester,
+        duplicateFromId: 'al80',
+        repoPreset: al80,
+        others: [firstCopy],
+        metric: true,
+        locale: const Locale('en'),
+      );
+      expect(
+        find.widgetWithText(TextFormField, 'AL80 (copy 2)'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a duplicate that loads late keeps what the diver already '
+        'typed (#800)', (tester) async {
+      final al80 = TankPresetEntity.fromBuiltIn(TankPresets.byName('al80')!);
+      final gate = Completer<void>();
+      await pumpEditor(
+        tester,
+        duplicateFromId: 'al80',
+        repoPreset: al80,
+        metric: true,
+        locale: const Locale('en'),
+        loadGate: gate,
+      );
+      await tester.enterText(find.byType(TextFormField).first, 'My stage');
+      await tester.pumpAndSettle();
+
+      gate.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(TextFormField, 'My stage'), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, '11.1'), findsNothing);
+    });
+
     testWidgets('a new preset opens on the tinted bar from its first frame', (
       tester,
     ) async {
@@ -762,7 +827,13 @@ void main() {
 class _MockTankPresetRepository extends TankPresetRepository {
   final TankPresetEntity? preset;
 
-  _MockTankPresetRepository({this.preset});
+  /// The diver's other presets, listed beside [preset].
+  final List<TankPresetEntity> others;
+
+  /// When set, a load waits for it: a source that arrives late.
+  Completer<void>? loadGate;
+
+  _MockTankPresetRepository({this.preset, this.others = const []});
 
   bool failLoad = false;
 
@@ -789,6 +860,7 @@ class _MockTankPresetRepository extends TankPresetRepository {
 
   @override
   Future<TankPresetEntity?> getPresetById(String id) async {
+    await loadGate?.future;
     if (failLoad) throw StateError('database closed');
     if (deleted) return null;
     final now = latest;
@@ -801,7 +873,7 @@ class _MockTankPresetRepository extends TankPresetRepository {
 
   @override
   Future<List<TankPresetEntity>> getAllPresets({String? diverId}) async {
-    return preset != null ? [preset!] : [];
+    return [?preset, ...others];
   }
 
   @override

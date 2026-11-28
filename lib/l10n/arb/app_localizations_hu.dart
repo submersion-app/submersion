@@ -39556,6 +39556,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name ($number. másolat)';
+  }
+
+  @override
   String get tankPresets_editPreset => 'Sablon szerkesztése';
 
   @override
