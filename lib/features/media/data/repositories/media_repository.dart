@@ -2633,8 +2633,8 @@ class MediaRepository {
   }
 
   /// Of [mediaIds], those carrying metadata a user typed or set that no
-  /// source file holds: a caption, the favorite flag, a species tag, or a
-  /// person tagged on it (issue #1745).
+  /// source file holds: a caption, the favorite flag, a species tag, a
+  /// person tagged on it (issue #1745), or gear linked to it (issue #5046).
   ///
   /// Used to decide whether an unlink needs to warn before it removes the
   /// rows.
@@ -2667,10 +2667,16 @@ class MediaRepository {
                 ..addColumns([_db.mediaPeople.mediaId])
                 ..where(_db.mediaPeople.mediaId.isIn(chunk)))
               .get();
+      final withGear =
+          await (_db.selectOnly(_db.mediaEquipment)
+                ..addColumns([_db.mediaEquipment.mediaId])
+                ..where(_db.mediaEquipment.mediaId.isIn(chunk)))
+              .get();
       out
         ..addAll(rows.map((row) => row.id))
         ..addAll(tagged.map((row) => row.read(_db.mediaSpecies.mediaId)!))
-        ..addAll(withPeople.map((row) => row.read(_db.mediaPeople.mediaId)!));
+        ..addAll(withPeople.map((row) => row.read(_db.mediaPeople.mediaId)!))
+        ..addAll(withGear.map((row) => row.read(_db.mediaEquipment.mediaId)!));
     }
     return out;
   }

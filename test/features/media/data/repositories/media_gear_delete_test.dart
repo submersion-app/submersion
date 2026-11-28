@@ -50,6 +50,14 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
+  test('a photo linked to gear counts as carrying user metadata', () async {
+    // Unlinking it from the Library deletes the links with the row, so the
+    // unlink confirmation must warn (issue #5046).
+    await gear.addGear(['m1'], ['e1']);
+
+    expect(await MediaRepository().idsWithUserMetadata(['m1', 'm2']), {'m1'});
+  });
+
   test('deleting a photo deletes its links and logs each deletion', () async {
     await gear.addGear(['m1', 'm2'], ['e1', 'e2']);
     final m1Links = {
