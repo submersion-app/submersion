@@ -31,6 +31,10 @@ final linkedMediaForEquipmentProvider =
       ref.invalidateSelfWhen(
         ref.read(mediaRepositoryProvider).watchMediaChanges(),
       );
+      // Which photos the diver sees follows whose dive each is on.
+      ref.invalidateSelfWhen(
+        ref.read(diveRepositoryProvider).watchTables(const {'dives'}),
+      );
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
       return repository.linkedMediaFor(equipmentId, diverId: diverId);
     });
