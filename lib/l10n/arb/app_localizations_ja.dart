@@ -21205,11 +21205,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get media_viewer_unlinkConfirmDiveBody =>
-      'このアイテムを、クラウド上のコピーやサムネイルとともにライブラリから削除します。ダイブサイトで使用中の場合は残ります。元のファイルには影響しません。';
+      'このアイテムを、クラウド上のコピーやサムネイルとともにライブラリから削除します。ダイブサイトまたは器材で使用中の場合は残ります。元のファイルには影響しません。';
 
   @override
   String get media_viewer_unlinkConfirmSiteBody =>
-      'このアイテムを、クラウド上のコピーやサムネイルとともにライブラリから削除します。ダイブで使用中の場合は残ります。元のファイルには影響しません。';
+      'このアイテムを、クラウド上のコピーやサムネイルとともにライブラリから削除します。ダイブまたは器材で使用中の場合は残ります。元のファイルには影響しません。';
 
   @override
   String get media_viewer_locatedFileChanged =>

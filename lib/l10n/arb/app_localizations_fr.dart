@@ -22058,11 +22058,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get media_viewer_unlinkConfirmDiveBody =>
-      'Retire ce média de votre bibliothèque, ainsi que ses copies cloud et miniatures, sauf si un site de plongée l\'utilise encore. Votre fichier original n\'est pas affecté.';
+      'Retire ce média de votre bibliothèque, ainsi que ses copies cloud et miniatures, sauf si un site de plongée ou un équipement l\'utilise encore. Votre fichier original n\'est pas affecté.';
 
   @override
   String get media_viewer_unlinkConfirmSiteBody =>
-      'Retire ce média de votre bibliothèque, ainsi que ses copies cloud et miniatures, sauf si une plongée l\'utilise encore. Votre fichier original n\'est pas affecté.';
+      'Retire ce média de votre bibliothèque, ainsi que ses copies cloud et miniatures, sauf si une plongée ou un équipement l\'utilise encore. Votre fichier original n\'est pas affecté.';
 
   @override
   String get media_viewer_locatedFileChanged =>

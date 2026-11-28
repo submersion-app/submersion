@@ -21681,11 +21681,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_viewer_unlinkConfirmDiveBody =>
-      'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive site still uses it. Your original file is not affected.';
+      'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive site or gear item still uses it. Your original file is not affected.';
 
   @override
   String get media_viewer_unlinkConfirmSiteBody =>
-      'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive still uses it. Your original file is not affected.';
+      'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive or gear item still uses it. Your original file is not affected.';
 
   @override
   String get media_viewer_locatedFileChanged =>

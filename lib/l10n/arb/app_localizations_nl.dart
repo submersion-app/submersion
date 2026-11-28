@@ -21876,11 +21876,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_viewer_unlinkConfirmDiveBody =>
-      'Verwijdert dit item uit je bibliotheek, samen met de cloudkopieën en miniaturen, tenzij een duikstek het nog gebruikt. Je originele bestand blijft ongemoeid.';
+      'Verwijdert dit item uit je bibliotheek, samen met de cloudkopieën en miniaturen, tenzij een duikstek of uitrustingsstuk het nog gebruikt. Je originele bestand blijft ongemoeid.';
 
   @override
   String get media_viewer_unlinkConfirmSiteBody =>
-      'Verwijdert dit item uit je bibliotheek, samen met de cloudkopieën en miniaturen, tenzij een duik het nog gebruikt. Je originele bestand blijft ongemoeid.';
+      'Verwijdert dit item uit je bibliotheek, samen met de cloudkopieën en miniaturen, tenzij een duik of uitrustingsstuk het nog gebruikt. Je originele bestand blijft ongemoeid.';
 
   @override
   String get media_viewer_locatedFileChanged =>

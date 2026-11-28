@@ -34599,16 +34599,16 @@ abstract class AppLocalizations {
   /// **'Undo'**
   String get media_viewer_unlinkUndo;
 
-  /// Body of the media viewer's question before it holds unlinking the one item on screen from its dive. A photo a dive site still uses is kept, with only its dive link cleared.
+  /// Body of the media viewer's question before it holds unlinking the one item on screen from its dive. An item a dive site or gear item still uses is kept, with only its dive link cleared.
   ///
   /// In en, this message translates to:
-  /// **'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive site still uses it. Your original file is not affected.'**
+  /// **'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive site or gear item still uses it. Your original file is not affected.'**
   String get media_viewer_unlinkConfirmDiveBody;
 
-  /// Body of the media viewer's question before it holds unlinking the one item on screen from its site. An item a dive still uses is kept, with only its site link cleared.
+  /// Body of the media viewer's question before it holds unlinking the one item on screen from its site. An item a dive or gear item still uses is kept, with only its site link cleared.
   ///
   /// In en, this message translates to:
-  /// **'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive still uses it. Your original file is not affected.'**
+  /// **'Removes this item from your library, along with its cloud copies and thumbnails, unless a dive or gear item still uses it. Your original file is not affected.'**
   String get media_viewer_unlinkConfirmSiteBody;
 
   /// Shown when Save is refused because the file found with Locate file was deleted, moved or edited after it was found. Locating it again holds the file as it is now; Cancel drops the relink.

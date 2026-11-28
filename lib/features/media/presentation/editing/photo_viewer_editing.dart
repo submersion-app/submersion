@@ -226,12 +226,17 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   ({String? id})? _diveAtUnlock;
 
   /// The site a document's sitting began on, where this page edits a
-  /// document's details: one unlinked from it since is not saved to.
+  /// document's details, or a site's own media began on, where Unlink
+  /// unlinks from the site: one unlinked from it since is not saved to.
   String? _siteAtUnlock;
 
   void unlockPhoto(PhotoRecord stored) {
     _diveAtUnlock = (id: stored.item.diveId);
-    _siteAtUnlock = unlocksDocuments ? stored.item.siteId : null;
+    // A site's own media is held to its site too (issue #5126): one moved
+    // off it since is not unlinked from, or saved to, the site it is on now.
+    _siteAtUnlock = unlocksDocuments || unlinkScope == ViewerUnlinkScope.site
+        ? stored.item.siteId
+        : null;
     photoEditController.unlock(stored);
   }
 

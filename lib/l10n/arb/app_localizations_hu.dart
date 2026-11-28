@@ -21914,11 +21914,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_viewer_unlinkConfirmDiveBody =>
-      'Eltávolítja ezt az elemet a médiatárból, a felhőmásolatokkal és bélyegképekkel együtt, kivéve ha egy merülőhely még használja. Az eredeti fájl érintetlen marad.';
+      'Eltávolítja ezt az elemet a médiatárból, a felhőmásolatokkal és bélyegképekkel együtt, kivéve ha egy merülőhely vagy felszerelés még használja. Az eredeti fájl érintetlen marad.';
 
   @override
   String get media_viewer_unlinkConfirmSiteBody =>
-      'Eltávolítja ezt az elemet a médiatárból, a felhőmásolatokkal és bélyegképekkel együtt, kivéve ha egy merülés még használja. Az eredeti fájl érintetlen marad.';
+      'Eltávolítja ezt az elemet a médiatárból, a felhőmásolatokkal és bélyegképekkel együtt, kivéve ha egy merülés vagy felszerelés még használja. Az eredeti fájl érintetlen marad.';
 
   @override
   String get media_viewer_locatedFileChanged =>

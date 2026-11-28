@@ -257,6 +257,28 @@ void main() {
       expect(find.text('1 / 1'), findsOneWidget);
     });
 
+    testWidgets('moved to another site meanwhile, Save unlinks nothing', (
+      tester,
+    ) async {
+      await pumpSiteUnlinkable(tester);
+      await openPushed(tester);
+      await tapUnlock(tester);
+      await holdUnlink(tester);
+      await tester.runAsync(() async {
+        await insertTestSite('s2', 'Shark Point');
+        await db.customStatement(
+          "UPDATE media SET site_id = 's2' WHERE id = 'a1'",
+        );
+      });
+      await settleViewer(tester);
+
+      await tester.tap(find.text('Save'));
+      await settleViewer(tester, rounds: 10);
+
+      expect(coordinator.deleted, isEmpty);
+      expect((await stored(tester, 'a1')).siteId, 's2');
+    });
+
     testWidgets('the only attachment closes the viewer', (tester) async {
       await tester.runAsync(
         () => MediaRepository().deleteMultipleMedia(['a2']),

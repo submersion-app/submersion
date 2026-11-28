@@ -22005,11 +22005,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_viewer_unlinkConfirmDiveBody =>
-      'Remove este item da sua biblioteca, juntamente com as cópias na nuvem e as miniaturas, a menos que um ponto de mergulho ainda o use. O seu ficheiro original não é afetado.';
+      'Remove este item da sua biblioteca, juntamente com as cópias na nuvem e as miniaturas, a menos que um ponto de mergulho ou um equipamento ainda o use. O seu ficheiro original não é afetado.';
 
   @override
   String get media_viewer_unlinkConfirmSiteBody =>
-      'Remove este item da sua biblioteca, juntamente com as cópias na nuvem e as miniaturas, a menos que um mergulho ainda o use. O seu ficheiro original não é afetado.';
+      'Remove este item da sua biblioteca, juntamente com as cópias na nuvem e as miniaturas, a menos que um mergulho ou um equipamento ainda o use. O seu ficheiro original não é afetado.';
 
   @override
   String get media_viewer_locatedFileChanged =>

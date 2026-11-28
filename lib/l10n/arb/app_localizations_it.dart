@@ -22010,11 +22010,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_viewer_unlinkConfirmDiveBody =>
-      'Rimuove questo elemento dalla libreria, insieme alle copie nel cloud e alle miniature, a meno che un sito di immersione lo usi ancora. Il file originale non viene toccato.';
+      'Rimuove questo elemento dalla libreria, insieme alle copie nel cloud e alle miniature, a meno che un sito di immersione o un\'attrezzatura lo usi ancora. Il file originale non viene toccato.';
 
   @override
   String get media_viewer_unlinkConfirmSiteBody =>
-      'Rimuove questo elemento dalla libreria, insieme alle copie nel cloud e alle miniature, a meno che un\'immersione lo usi ancora. Il file originale non viene toccato.';
+      'Rimuove questo elemento dalla libreria, insieme alle copie nel cloud e alle miniature, a meno che un\'immersione o un\'attrezzatura lo usi ancora. Il file originale non viene toccato.';
 
   @override
   String get media_viewer_locatedFileChanged =>
