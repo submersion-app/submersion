@@ -161,7 +161,11 @@ class _EquipmentSellerFieldState extends ConsumerState<EquipmentSellerField> {
         child: InputChip(
           key: const ValueKey('gear-edit-seller-chip'),
           avatar: Icon(_iconFor(isBuddy ? _Kind.buddy : _Kind.center)),
-          label: Text(name ?? value.name),
+          label: Text(
+            name ?? value.name,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
           deleteButtonTooltipMessage: l10n.equipment_seller_clear,
           onDeleted: () =>
               widget.onChanged((buddyId: null, centerId: null, name: '')),

@@ -355,9 +355,9 @@ class EquipmentRepository {
     EquipmentItem equipment, {
     bool notify = true,
   }) async {
-    // One seller at most (issue #5140).
-    await applySellerRules(_db, stored: null, next: equipment);
     try {
+      // One seller at most (issue #5140).
+      await applySellerRules(_db, stored: null, next: equipment);
       _log.info('Creating equipment: ${equipment.name}');
       final id = equipment.id.isEmpty ? _uuid.v4() : equipment.id;
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -515,21 +515,22 @@ class EquipmentRepository {
 
   /// Update equipment. [notify] as for [createEquipment].
   Future<void> updateEquipment(EquipmentItem item, {bool notify = true}) async {
-    // A retailer changed by anything but the Seller field drops the seller
-    // links (issue #5140).
-    final equipment = await applySellerRules(
-      _db,
-      stored: await getEquipmentById(item.id),
-      next: item,
-    );
     try {
-      _log.info('Updating equipment: ${equipment.id}');
+      _log.info('Updating equipment: ${item.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
       // One transaction: a clock baseline that fails to save must not leave
       // its date stored, or a retry would see the date as unchanged and
       // never anchor the clock (issue #3662).
       await _db.transaction(() async {
+        // A retailer changed by anything but the Seller field drops the
+        // seller links (issue #5140), judged against the row as this
+        // transaction reads it.
+        final equipment = await applySellerRules(
+          _db,
+          stored: await getEquipmentById(item.id),
+          next: item,
+        );
         await (_db.update(
           _db.equipment,
         )..where((t) => t.id.equals(equipment.id))).write(
@@ -589,10 +590,10 @@ class EquipmentRepository {
         await _mirrorNameToDevices(equipment, now);
       });
       if (notify) SyncEventBus.notifyLocalChange();
-      _log.info('Updated equipment: ${equipment.id}');
+      _log.info('Updated equipment: ${item.id}');
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to update equipment: ${equipment.id}',
+        'Failed to update equipment: ${item.id}',
         error: e,
         stackTrace: stackTrace,
       );

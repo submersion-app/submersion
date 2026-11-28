@@ -13,7 +13,7 @@
 ## Global Constraints
 
 - Tables in `lib/core/database/tables/`, rungs and helpers in `lib/core/database/migrations/`; never in `database.dart` beyond bumping `currentSchemaVersion`.
-- Schema version: the next free number at build time (main is at 393, so 394); re-check after every merge from main.
+- Schema version: the next free number at build time; re-check after every merge from main. Built as v397: open PRs claimed 394 to 396 when Task 1 ran, and main later took 394.
 - No backfill: existing rows get no link, keep their `retailer` text.
 - Every user-visible string in all 12 ARB files (`ar de en es fr he hu it ja nl pt zh`); `attrLabel_retailer` reads "Seller" in English.
 - No em-dashes anywhere; no tool attribution in commits.
@@ -36,7 +36,7 @@ Each line has its test in the owning task below.
 **Files:**
 - Modify: `lib/core/database/tables/equipment_tables.dart` (two columns after `coverMediaId`)
 - Create: `lib/core/database/migrations/helpers/equipment_seller_migrations.dart` (`part of '../app_database_migrations.dart'`)
-- Modify: `lib/core/database/migrations/app_database_migrations.dart` (part line), `ladder/rungs_v340_onward.dart` (rung 394), `before_open_table_backstops.dart` (backstop), `lib/core/database/database.dart` (`currentSchemaVersion = 394`)
+- Modify: `lib/core/database/migrations/app_database_migrations.dart` (part line), `ladder/rungs_v340_onward.dart` (rung 397), `before_open_table_backstops.dart` (backstop), `lib/core/database/database.dart` (`currentSchemaVersion = 397`)
 - Modify: `lib/features/equipment/domain/entities/equipment_item.dart`, `lib/features/equipment/data/repositories/equipment_repository_impl.dart` (create companion ~L391, update companion ~L549, raw-row read ~L1212, mapper ~L1954), `lib/features/equipment/presentation/editing/gear_item_edit_fields.dart` (`_with` passes both through)
 - Test: `test/core/database/migrations/equipment_seller_migration_test.dart`, `test/features/equipment/domain/equipment_item_seller_test.dart`, `test/features/equipment/data/repositories/equipment_seller_repository_test.dart`
 
@@ -44,7 +44,7 @@ Each line has its test in the owning task below.
 - Produces: `EquipmentItem.sellerBuddyId`, `EquipmentItem.sellerDiveCenterId` (`String?`), `copyWith(sellerBuddyId:, sellerDiveCenterId:, clearSellerLinks: bool)`, both in `props`. Drift: `EquipmentData.sellerBuddyId`, `.sellerDiveCenterId`.
 - Produces: `extension EquipmentSellerMigrations on AppDatabase { Future<void> _assertEquipmentSellerColumns() }`.
 
-- [ ] Step 1: Failing tests. Migration: a v393 database upgraded to 394 has both columns, nullable, existing rows null; running the assert twice is a no-op. Entity: `copyWith(clearSellerLinks: true)` nulls both; equality differs when a link differs. Repository: create then read back an item with `sellerBuddyId: 'b1'` round-trips; update to `sellerDiveCenterId: 'c1'` with `clearSellerLinks` round-trips; `getAllEquipment` (raw-row path) returns the links.
+- [ ] Step 1: Failing tests. Migration: a v396 database upgraded to 397 has both columns, nullable, existing rows null; running the assert twice is a no-op. Entity: `copyWith(clearSellerLinks: true)` nulls both; equality differs when a link differs. Repository: create then read back an item with `sellerBuddyId: 'b1'` round-trips; update to `sellerDiveCenterId: 'c1'` with `clearSellerLinks` round-trips; `getAllEquipment` (raw-row path) returns the links.
 - [ ] Step 2: Run them; expect FAIL (unknown getters / missing columns).
 - [ ] Step 3: Implement. Columns: `TextColumn get sellerBuddyId => text().nullable().references(Buddies, #id, onDelete: KeyAction.setNull)();` and the same for `DiveCenters`. Assert helper uses `_addColumnIfMissing('equipment', 'seller_buddy_id', 'TEXT REFERENCES buddies (id) ON DELETE SET NULL')` (and `seller_dive_center_id` / `dive_centers`), guarded by `_tableExists('equipment')`. Rung comment names issue #5140; floor does not move. Run build_runner (unfiltered, background).
 - [ ] Step 4: Run the three test files; expect PASS. `flutter analyze`.
