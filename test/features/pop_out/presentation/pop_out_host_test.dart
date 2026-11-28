@@ -19,6 +19,7 @@ void main() {
   const mainFrame = PopOutFrame(x: 0, y: 0, width: 1280, height: 900);
   final locked = StateProvider<bool>((_) => false);
   final prefsTrigger = StateProvider<int>((_) => 0);
+  final livePrefs = StateProvider<Map<String, Object>>((_) => const {});
 
   late SharedPreferences prefs;
   late FakePopOutWindows windows;
@@ -51,17 +52,18 @@ void main() {
         popOutPrefsTriggerProvider.overrideWith(
           (ref) => ref.watch(prefsTrigger),
         ),
+        popOutLivePrefsProvider.overrideWith((ref) => ref.watch(livePrefs)),
       ],
     );
   });
 
   // The app root listens to the host for the life of the app, which keeps
   // its own listeners running; a provider nobody listens to is paused.
-  setUp(() => container.listen(popOutHostProvider, (_, _) {}));
+  setUp(() => container.listen(popOutHostNotifierProvider, (_, _) {}));
 
   tearDown(() => container.dispose());
 
-  PopOutHost host() => container.read(popOutHostProvider.notifier);
+  PopOutHost host() => container.read(popOutHostNotifierProvider.notifier);
 
   Future<void> open({String? diveId = 'dive-1'}) async {
     container.read(mainWindowDiveIdProvider.notifier).state = diveId;
@@ -83,7 +85,7 @@ void main() {
         launch.savedFrame,
         const PopOutFrame(x: 5, y: 6, width: 700, height: 500),
       );
-      expect(container.read(popOutHostProvider), isTrue);
+      expect(container.read(popOutHostNotifierProvider), isTrue);
     },
   );
 
@@ -152,7 +154,7 @@ void main() {
       async.flushMicrotasks();
       windows.channel.deliver(const CursorMessage('dive-1', 300));
       expect(
-        container.read(popOutInboundCursorProvider),
+        container.read(popOutInboundCursorProvider)?.message,
         const CursorMessage('dive-1', 300),
       );
       // The main window's cursor moves to it and reports back: dropped.
@@ -173,7 +175,7 @@ void main() {
   test('closed message marks the host closed and stops sending', () async {
     await open();
     windows.channel.deliver(const ClosedMessage());
-    expect(container.read(popOutHostProvider), isFalse);
+    expect(container.read(popOutHostNotifierProvider), isFalse);
     container.read(mainWindowDiveIdProvider.notifier).state = 'dive-9';
     expect(windows.channel.sentOf<ShowDiveMessage>(), isEmpty);
     // Opening again opens a new window.
@@ -205,7 +207,7 @@ void main() {
     await DatabaseService.instance.close();
 
     expect(windows.channel.sentOf<CloseMessage>(), hasLength(1));
-    expect(container.read(popOutHostProvider), isFalse);
+    expect(container.read(popOutHostNotifierProvider), isFalse);
   });
 
   test('dispose closes the pop-out', () async {
@@ -243,7 +245,7 @@ void main() {
     test('a failed open rolls back', () async {
       windows.failNextOpen = true;
       await expectLater(host().openOrFocus(), throwsA(anything));
-      expect(container.read(popOutHostProvider), isFalse);
+      expect(container.read(popOutHostNotifierProvider), isFalse);
       // Hold changes apply in order, so the release lands after the hold.
       await pumpEventQueue();
       expect(otherWindowHolds.last, isFalse);
@@ -281,8 +283,41 @@ void main() {
         expect(done, isFalse);
         async.elapse(const Duration(seconds: 2));
         expect(done, isTrue);
-        expect(container.read(popOutHostProvider), isFalse);
+        expect(container.read(popOutHostNotifierProvider), isFalse);
       });
+    });
+
+    test('close does not wait for a pop-out that is gone', () {
+      // macOS closes the pop-out with the main window directly, skipping its
+      // close sequence; the quit that follows must not wait for it.
+      fakeAsync((async) {
+        open();
+        async.flushMicrotasks();
+        windows.open = false;
+        var done = false;
+        host().close().then((_) => done = true);
+        async.flushMicrotasks();
+        expect(done, isTrue);
+        expect(container.read(popOutHostNotifierProvider), isFalse);
+      });
+    });
+
+    test('the prefs sent carry the live zoom and profile settings', () async {
+      // The main window changes these before it writes them, and a zoom
+      // slider's commit repeats its last preview: the stored prefs lag.
+      container.read(livePrefs.notifier).state = {'display_zoom': 1.1};
+      await open();
+      expect(windows.opened.single.prefs['display_zoom'], 1.1);
+
+      container.read(livePrefs.notifier).state = {'display_zoom': 1.25};
+      container.read(prefsTrigger.notifier).state++;
+      await container.pump();
+
+      expect(prefs.getDouble('display_zoom'), isNull);
+      expect(
+        windows.channel.sentOf<PrefsMessage>().last.values['display_zoom'],
+        1.25,
+      );
     });
 
     test('an unchanged prefs snapshot is not sent again', () async {
@@ -312,7 +347,7 @@ void main() {
     test('a refused write in the pop-out is logged here', () async {
       await open();
       windows.channel.deliver(const RefusedWriteMessage('UPDATE x SET y = 1'));
-      expect(container.read(popOutHostProvider), isTrue);
+      expect(container.read(popOutHostNotifierProvider), isTrue);
     });
   });
 }

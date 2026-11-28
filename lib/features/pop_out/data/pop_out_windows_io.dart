@@ -1,5 +1,6 @@
-import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/services.dart';
+
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/logger_service.dart';

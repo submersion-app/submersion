@@ -39,6 +39,7 @@ void main() {
     ),
     popOutAppLockedProvider.overrideWithValue(false),
     popOutPrefsTriggerProvider.overrideWithValue(0),
+    popOutLivePrefsProvider.overrideWithValue(const <String, Object>{}),
   ];
 
   group('PopOutProfileButton', () {
@@ -139,7 +140,9 @@ void main() {
             ),
           ),
         );
-        await capturedRef.read(popOutHostProvider.notifier).openOrFocus();
+        await capturedRef
+            .read(popOutHostNotifierProvider.notifier)
+            .openOrFocus();
         await tester.pump();
 
         capturedRef
@@ -156,6 +159,21 @@ void main() {
         expect(capturedRef.read(profileTrackingIndexProvider('dive-1')), 1);
 
         windows.channel.deliver(const CursorMessage('other-dive', 0));
+        await tester.pump();
+        expect(capturedRef.read(profileTrackingIndexProvider('dive-1')), 1);
+
+        // The pop-out sends a position, the diver then moves here, and the
+        // pop-out is scrubbed back to that same position: the repeat, equal
+        // to the last one received, still lands.
+        windows.channel.deliver(const CursorMessage('dive-1', 10));
+        await tester.pump();
+        expect(capturedRef.read(profileTrackingIndexProvider('dive-1')), 1);
+        capturedRef
+                .read(profileTrackingIndexProvider('dive-1').notifier)
+                .state =
+            0;
+        await tester.pump(const Duration(milliseconds: 50));
+        windows.channel.deliver(const CursorMessage('dive-1', 10));
         await tester.pump();
         expect(capturedRef.read(profileTrackingIndexProvider('dive-1')), 1);
       },
@@ -187,7 +205,7 @@ void main() {
           ),
         ),
       );
-      await capturedRef.read(popOutHostProvider.notifier).openOrFocus();
+      await capturedRef.read(popOutHostNotifierProvider.notifier).openOrFocus();
       await tester.pump();
 
       windows.channel.deliver(const CursorMessage('dive-1', 125));
@@ -225,7 +243,9 @@ void main() {
             ),
           ),
         );
-        await capturedRef.read(popOutHostProvider.notifier).openOrFocus();
+        await capturedRef
+            .read(popOutHostNotifierProvider.notifier)
+            .openOrFocus();
         await tester.pump();
 
         capturedRef.read(profileReviewProvider('dive-1').notifier).state = 42;
@@ -270,7 +290,7 @@ void main() {
           ),
         ),
       );
-      await capturedRef.read(popOutHostProvider.notifier).openOrFocus();
+      await capturedRef.read(popOutHostNotifierProvider.notifier).openOrFocus();
       await tester.pump();
 
       windows.channel.deliver(const CursorMessage('dive-1', 125));

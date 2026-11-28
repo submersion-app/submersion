@@ -1,6 +1,6 @@
-import 'package:window_manager/window_manager.dart';
-
 import 'package:flutter/foundation.dart';
+
+import 'package:window_manager/window_manager.dart';
 
 import 'package:submersion/core/platform/desktop_target_platform.dart';
 import 'package:submersion/core/platform/host_platform.dart';
@@ -36,8 +36,19 @@ final popOutWindowsProvider = Provider<PopOutWindows>(
 /// dive. Written by [ShownDiveReporter] in the dive detail page.
 final mainWindowDiveIdProvider = StateProvider<String?>((ref) => null);
 
+/// One cursor position as it arrived from the pop-out.
+///
+/// Compared by identity, not by the message's value: the same position sent
+/// again (the pop-out scrubbed back to where it was, after the main window
+/// moved) is a new arrival, and a value-equal state would not notify.
+class InboundCursor {
+  InboundCursor(this.message);
+
+  final CursorMessage message;
+}
+
 /// The last cursor position the pop-out sent; the dive's chart applies it.
-final popOutInboundCursorProvider = StateProvider<CursorMessage?>(
+final popOutInboundCursorProvider = StateProvider<InboundCursor?>(
   (ref) => null,
 );
 
@@ -49,26 +60,36 @@ final popOutAppLockedProvider = Provider<bool>(
   (ref) => ref.watch(appLockNotifierProvider),
 );
 
-/// Changes whenever a value the pop-out reads from SharedPreferences may have
-/// changed: the active diver, the display zoom, and the device-local
-/// settings the profile draws with. Settings kept in the diver's row reach
-/// the pop-out through the shared database instead.
-final popOutPrefsTriggerProvider = Provider<Object?>(
-  (ref) => (
-    ref.watch(currentDiverIdProvider),
-    ref.watch(displayZoomNotifierProvider),
-    ref.watch(
-      settingsProvider.select(
-        (s) => (
-          s.o2CellUnit,
-          s.counterdiffusionShowAll,
-          s.perdixOverlayEnabled,
-          s.perdixOverlayX,
-          s.perdixOverlayY,
-        ),
+/// The prefs the pop-out reads that the main window changes before it
+/// stores them: the display zoom (a slider previews without storing, then
+/// commits the value it previewed) and the device-local settings the profile
+/// draws with. Taken from the live values, so what is sent is what the main
+/// window shows. Settings kept in the diver's row reach the pop-out through
+/// the shared database instead.
+final popOutLivePrefsProvider = Provider<Map<String, Object>>((ref) {
+  // Narrow: only these fields, not every settings change.
+  ref.watch(
+    settingsProvider.select(
+      (s) => (
+        s.o2CellUnit,
+        s.counterdiffusionShowAll,
+        s.perdixOverlayEnabled,
+        s.perdixOverlayX,
+        s.perdixOverlayY,
       ),
     ),
-  ),
+  );
+  return {
+    ...profileDevicePrefs(ref.read(settingsProvider)),
+    SettingsKeys.displayZoom: ref.watch(displayZoomNotifierProvider),
+  };
+});
+
+/// Changes whenever a value the pop-out reads from SharedPreferences may have
+/// changed: the active diver (stored before it changes), and the live prefs.
+final popOutPrefsTriggerProvider = Provider<Object?>(
+  (ref) =>
+      (ref.watch(currentDiverIdProvider), ref.watch(popOutLivePrefsProvider)),
 );
 
 /// Reads the main window's frame, to centre a first pop-out on its screen.

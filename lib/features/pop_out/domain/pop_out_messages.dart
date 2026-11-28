@@ -1,7 +1,8 @@
 import 'dart:convert';
 
-import 'package:equatable/equatable.dart';
 import 'package:flutter/services.dart';
+
+import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/pop_out/domain/pop_out_frame.dart';
 

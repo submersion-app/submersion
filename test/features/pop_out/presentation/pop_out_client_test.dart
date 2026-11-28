@@ -1,7 +1,9 @@
-import 'package:fake_async/fake_async.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:fake_async/fake_async.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_review_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -80,16 +82,16 @@ void main() {
     );
     addTearDown(container.dispose);
     // The pop-out's app listens to the client for its whole life.
-    container.listen(popOutClientProvider, (_, _) {});
+    container.listen(popOutClientNotifierProvider, (_, _) {});
     return container;
   }
 
   PopOutClient client(ProviderContainer c) =>
-      c.read(popOutClientProvider.notifier);
+      c.read(popOutClientNotifierProvider.notifier);
 
   test('starts on the launch dive and lock state', () async {
     final c = await build(launchOn('a', locked: true));
-    final state = c.read(popOutClientProvider);
+    final state = c.read(popOutClientNotifierProvider);
     expect(state.follow.shownDiveId, 'a');
     expect(state.locked, isTrue);
     expect(channel.hasHandler, isTrue);
@@ -98,12 +100,12 @@ void main() {
   test('showDive follows; pin holds; unpin jumps to the latest', () async {
     final c = await build(launchOn('a'));
     channel.deliver(const ShowDiveMessage('b'));
-    expect(c.read(popOutClientProvider).follow.shownDiveId, 'b');
+    expect(c.read(popOutClientNotifierProvider).follow.shownDiveId, 'b');
     client(c).pin();
     channel.deliver(const ShowDiveMessage('c'));
-    expect(c.read(popOutClientProvider).follow.shownDiveId, 'b');
+    expect(c.read(popOutClientNotifierProvider).follow.shownDiveId, 'b');
     client(c).unpin();
-    expect(c.read(popOutClientProvider).follow.shownDiveId, 'c');
+    expect(c.read(popOutClientNotifierProvider).follow.shownDiveId, 'c');
   });
 
   test('deleted pinned dive unpins', () async {
@@ -111,7 +113,7 @@ void main() {
     client(c).pin();
     channel.deliver(const ShowDiveMessage('b'));
     client(c).diveMissing('a');
-    final follow = c.read(popOutClientProvider).follow;
+    final follow = c.read(popOutClientNotifierProvider).follow;
     expect(follow.isPinned, isFalse);
     expect(follow.shownDiveId, 'b');
   });
@@ -231,9 +233,9 @@ void main() {
   test('lock message sets locked', () async {
     final c = await build(launchOn('a'));
     channel.deliver(const LockMessage(true));
-    expect(c.read(popOutClientProvider).locked, isTrue);
+    expect(c.read(popOutClientNotifierProvider).locked, isTrue);
     channel.deliver(const LockMessage(false));
-    expect(c.read(popOutClientProvider).locked, isFalse);
+    expect(c.read(popOutClientNotifierProvider).locked, isFalse);
   });
 
   test('focus request shows and focuses; close message closes', () async {

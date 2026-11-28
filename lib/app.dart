@@ -808,7 +808,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   Widget build(BuildContext context) {
     // Keeps the profile pop-out's host listening for the life of the app,
     // and tells the focus arbiter when a pop-out opens or takes focus.
-    ref.listen<bool>(popOutHostProvider, (_, open) {
+    ref.listen<bool>(popOutHostNotifierProvider, (_, open) {
       _focusArbiter.popOutOpen = open;
     });
     ref.listen<bool>(popOutFocusedProvider, (_, focused) {

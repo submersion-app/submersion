@@ -74,5 +74,12 @@ void main() {
 
     settings.set(settings.state.copyWith(o2CellUnit: O2CellUnit.millivolts));
     expect(container.read(popOutPrefsTriggerProvider), isNot(zoomed));
+
+    // What is sent is the live value, written to the prefs or not yet.
+    final live = container.read(popOutLivePrefsProvider);
+    expect(live[SettingsKeys.displayZoom], 1.25);
+    expect(live[SettingsKeys.o2CellUnit], O2CellUnit.millivolts.name);
+    expect(prefs.getDouble(SettingsKeys.displayZoom), isNull);
+    expect(prefs.getString(SettingsKeys.o2CellUnit), isNull);
   });
 }

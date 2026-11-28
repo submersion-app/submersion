@@ -65,7 +65,8 @@ PopOutFrame resolvePopOutFrame({
   required List<PopOutFrame> displays,
   required PopOutFrame mainWindow,
   // Tall enough that the fullscreen profile keeps its desktop layout (it
-  // hides the playback bar below a 600 pt short side) under a title bar.
+  // switches to the phone layout below a 600 pt short side) under a title
+  // bar.
   double defaultWidth = 1000,
   double defaultHeight = 720,
   double minWidth = 480,

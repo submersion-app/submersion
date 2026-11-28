@@ -17,29 +17,41 @@ class PopOutProfileView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final client = ref.watch(popOutClientProvider);
-    // With no dive shown, the window names no dive: the title shows in the
-    // Dock, the taskbar and the window switcher.
-    void neutralTitle() => WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!context.mounted) return;
-      ref.read(popOutWindowControlProvider).setTitle('Submersion');
-    });
+    final client = ref.watch(popOutClientNotifierProvider);
     if (client.locked) {
-      neutralTitle();
+      _neutralTitle(context, ref);
       return _Message(
         icon: Icons.lock_outline,
         text: context.l10n.popOut_lockedPlaceholder,
       );
     }
     final diveId = client.follow.shownDiveId;
-    if (diveId == null) {
-      neutralTitle();
-      return _Message(
-        icon: Icons.show_chart,
-        text: context.l10n.popOut_selectDivePlaceholder,
-      );
-    }
+    if (diveId == null) return const _SelectDive();
     return _ShownDive(diveId: diveId, pinned: client.follow.isPinned);
+  }
+}
+
+/// With no dive shown, the window names no dive: the title shows in the
+/// Dock, the taskbar and the window switcher.
+void _neutralTitle(BuildContext context, WidgetRef ref) =>
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      ref.read(popOutWindowControlProvider).setTitle(_appName);
+    });
+
+const _appName = 'Submersion';
+
+/// No dive to show: none yet, or the one followed is another diver's.
+class _SelectDive extends ConsumerWidget {
+  const _SelectDive();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    _neutralTitle(context, ref);
+    return _Message(
+      icon: Icons.show_chart,
+      text: context.l10n.popOut_selectDivePlaceholder,
+    );
   }
 }
 
@@ -70,7 +82,7 @@ class _ShownDiveState extends ConsumerState<_ShownDive> {
   @override
   Widget build(BuildContext context) {
     final diveId = widget.diveId;
-    final client = ref.read(popOutClientProvider.notifier);
+    final client = ref.read(popOutClientNotifierProvider.notifier);
     ref.listen<int?>(
       profileReviewProvider(diveId),
       (_, seconds) => client.sendCursor(diveId, seconds),
@@ -83,14 +95,24 @@ class _ShownDiveState extends ConsumerState<_ShownDive> {
     // and would be drawn in the new diver's units and gradient factors.
     final otherDivers =
         activeDiver != null && diveDiver != null && diveDiver != activeDiver;
-    if ((dive.hasValue && dive.value == null) || otherDivers) {
+    if (dive.hasValue && dive.value == null) {
       // Deleted, or gone in a sync: stop showing it.
       _afterFrame(() => client.diveMissing(diveId));
       return const SizedBox.shrink();
     }
+    // Kept, not forgotten: it shows again once the main window is back on
+    // its diver, even when the main window then shows this same dive (its
+    // shown-dive id unchanged, nothing would be sent).
+    if (otherDivers) {
+      _title = null;
+      return const _SelectDive();
+    }
     final loaded = dive.value;
     if (loaded != null) {
-      final title = context.l10n.popOut_windowTitle(_label(loaded));
+      final label = _label(loaded);
+      final title = label.isEmpty
+          ? _appName
+          : context.l10n.popOut_windowTitle(label);
       if (title != _title) {
         _title = title;
         _afterFrame(

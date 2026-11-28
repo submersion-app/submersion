@@ -25,7 +25,9 @@ const _log = LoggerService('PopOutHost');
 const _closeWait = Duration(seconds: 3);
 
 /// The main window's side of the profile pop-out (issue #5078). State: open.
-final popOutHostProvider = NotifierProvider<PopOutHost, bool>(PopOutHost.new);
+final popOutHostNotifierProvider = NotifierProvider<PopOutHost, bool>(
+  PopOutHost.new,
+);
 
 /// Opens the pop-out, keeps it told what the main window shows, and takes in
 /// what it reports back.
@@ -137,6 +139,12 @@ class PopOutHost extends Notifier<bool> {
   /// it lets go of the database before the caller closes it.
   Future<void> close() async {
     if (!state) return;
+    // Already gone without telling us: macOS closes it with the main window
+    // directly, and a crashed one never reports. Nothing to wait for.
+    if (!await _windows.isOpen()) {
+      if (_open) _closed();
+      return;
+    }
     final closed = _closedSignal;
     await _send(const CloseMessage());
     if (closed != null && !closed.isCompleted) {
@@ -162,7 +170,9 @@ class PopOutHost extends Notifier<bool> {
     switch (message) {
       case CursorMessage():
         _gate.noteReceived(message.diveId, message.seconds);
-        ref.read(popOutInboundCursorProvider.notifier).state = message;
+        ref.read(popOutInboundCursorProvider.notifier).state = InboundCursor(
+          message,
+        );
       case FocusReportMessage(:final focused):
         ref.read(popOutFocusedProvider.notifier).state = focused;
       case FrameMessage(:final frame):
@@ -237,7 +247,8 @@ class PopOutHost extends Notifier<bool> {
         values[key] = value;
       }
     }
-    return values;
+    // The live values over the stored ones, which can lag behind them.
+    return {...values, ...ref.read(popOutLivePrefsProvider)};
   }
 
   static PopOutFrame? _savedFrame(SharedPreferences prefs) {

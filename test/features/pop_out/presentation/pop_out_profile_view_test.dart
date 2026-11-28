@@ -24,6 +24,9 @@ class _FakeSettingsNotifier extends StateNotifier<AppSettings>
   _FakeSettingsNotifier() : super(const AppSettings());
 
   @override
+  Future<void> reload() async {}
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -163,6 +166,46 @@ void main() {
     );
     expect(find.byType(FullscreenProfilePage), findsNothing);
     expect(find.text('Select a dive in the main window'), findsOneWidget);
+  });
+
+  testWidgets('a dive of another diver comes back with its diver', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      launchOn('a'),
+      dives: {'a': _dive('a', diverId: 'diver-1')},
+    );
+    expect(find.byType(FullscreenProfilePage), findsOneWidget);
+
+    channel.deliver(const PrefsMessage({currentDiverIdKey: 'diver-2'}));
+    await tester.pumpAndSettle();
+    expect(find.byType(FullscreenProfilePage), findsNothing);
+    expect(control.calls.last, 'title:Submersion');
+
+    // Back to the dive's diver: the pop-out still follows it.
+    channel.deliver(const PrefsMessage({currentDiverIdKey: 'diver-1'}));
+    await tester.pumpAndSettle();
+    expect(find.byType(FullscreenProfilePage), findsOneWidget);
+  });
+
+  testWidgets('a dive with no number or site leaves the title plain', (
+    tester,
+  ) async {
+    final plain = Dive(
+      id: 'p',
+      dateTime: DateTime(2026, 1, 1, 10),
+      profile: List.generate(
+        61,
+        (i) => DiveProfilePoint(timestamp: i * 10, depth: 10, temperature: 20),
+      ),
+    );
+    await pump(tester, launchOn('p'), dives: {'p': plain});
+    expect(find.byType(FullscreenProfilePage), findsOneWidget);
+    expect(
+      control.calls.where((c) => c.startsWith('title:')).last,
+      'title:Submersion',
+    );
   });
 
   testWidgets("the active diver's dive is shown", (tester) async {

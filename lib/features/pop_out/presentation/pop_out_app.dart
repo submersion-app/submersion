@@ -22,7 +22,7 @@ class PopOutApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Listened for the window's whole life, so the client keeps hearing the
     // main window.
-    ref.listen(popOutClientProvider, (_, _) {});
+    ref.listen(popOutClientNotifierProvider, (_, _) {});
     final themeMode = ref.watch(themeModeProvider);
     final themePreset = ref.watch(themePresetProvider);
     final localeSetting = ref.watch(localeProvider);

@@ -4,7 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
-import 'package:submersion/features/pop_out/domain/pop_out_messages.dart';
 import 'package:submersion/features/pop_out/presentation/providers/pop_out_host.dart';
 import 'package:submersion/features/pop_out/presentation/providers/pop_out_providers.dart';
 
@@ -32,9 +31,10 @@ class PopOutCursorBridge extends ConsumerWidget {
       final seconds = index == null || index < 0 || index >= chartProfile.length
           ? null
           : chartProfile[index].timestamp;
-      ref.read(popOutHostProvider.notifier).sendCursor(diveId, seconds);
+      ref.read(popOutHostNotifierProvider.notifier).sendCursor(diveId, seconds);
     });
-    ref.listen<CursorMessage?>(popOutInboundCursorProvider, (_, message) {
+    ref.listen<InboundCursor?>(popOutInboundCursorProvider, (_, inbound) {
+      final message = inbound?.message;
       if (message == null || message.diveId != diveId) return;
       final seconds = message.seconds;
       // The cursor lands on this chart's nearest sample, which is rarely the
@@ -43,7 +43,7 @@ class PopOutCursorBridge extends ConsumerWidget {
           ? null
           : indexForTimestamp(chartProfile, seconds);
       ref
-          .read(popOutHostProvider.notifier)
+          .read(popOutHostNotifierProvider.notifier)
           .noteInboundApplied(
             diveId,
             index == null ? null : chartProfile[index].timestamp,

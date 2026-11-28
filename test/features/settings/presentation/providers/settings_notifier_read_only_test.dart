@@ -1,8 +1,10 @@
-import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter/material.dart' show ThemeMode;
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/database/read_only_query_interceptor.dart';
@@ -12,7 +14,6 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-
 import '../../../../helpers/test_database.dart';
 
 /// A desktop pop-out window reads the main window's settings and must write

@@ -23,7 +23,9 @@ class PopOutProfileButton extends ConsumerWidget {
       // A window that fails to open is rolled back by the host; the failure
       // is logged here rather than left to the zone.
       onPressed: () => logFailure(
-        ref.read(popOutHostProvider.notifier).openOrFocus(diveId: diveId),
+        ref
+            .read(popOutHostNotifierProvider.notifier)
+            .openOrFocus(diveId: diveId),
         PopOutProfileButton,
         'open the profile pop-out',
       ),

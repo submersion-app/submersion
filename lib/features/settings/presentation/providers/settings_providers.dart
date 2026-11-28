@@ -1685,6 +1685,17 @@ final navAlwaysHideLabelsDesktopProvider = FutureProvider<bool>((ref) async {
   return repo.getNavAlwaysHideLabelsDesktop();
 });
 
+/// The device-local settings the dive profile draws with, as the prefs that
+/// store them. The one encoding: [SettingsNotifier] saves them through it,
+/// and a desktop pop-out (issue #5078) is sent them through it.
+Map<String, Object> profileDevicePrefs(AppSettings s) => {
+  SettingsKeys.o2CellUnit: s.o2CellUnit.name,
+  SettingsKeys.counterdiffusionShowAll: s.counterdiffusionShowAll,
+  SettingsKeys.perdixOverlayEnabled: s.perdixOverlayEnabled,
+  SettingsKeys.perdixOverlayX: ?s.perdixOverlayX,
+  SettingsKeys.perdixOverlayY: ?s.perdixOverlayY,
+};
+
 /// Settings notifier that persists to database per-diver
 class SettingsNotifier extends StateNotifier<AppSettings> {
   final DiverSettingsRepository _repository;
@@ -2232,22 +2243,17 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         if (headerWide != null) {
           await prefs.setString(SettingsKeys.homeHeaderStyleWide, headerWide);
         }
-        await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
-        await prefs.setBool(
-          SettingsKeys.counterdiffusionShowAll,
-          state.counterdiffusionShowAll,
-        );
-        await prefs.setBool(
-          SettingsKeys.perdixOverlayEnabled,
-          state.perdixOverlayEnabled,
-        );
-        final perdixX = state.perdixOverlayX;
-        if (perdixX != null) {
-          await prefs.setDouble(SettingsKeys.perdixOverlayX, perdixX);
-        }
-        final perdixY = state.perdixOverlayY;
-        if (perdixY != null) {
-          await prefs.setDouble(SettingsKeys.perdixOverlayY, perdixY);
+        for (final MapEntry(:key, :value) in profileDevicePrefs(
+          state,
+        ).entries) {
+          switch (value) {
+            case final String v:
+              await prefs.setString(key, v);
+            case final bool v:
+              await prefs.setBool(key, v);
+            case final double v:
+              await prefs.setDouble(key, v);
+          }
         }
         await _writeCachedTheme(prefs);
       }

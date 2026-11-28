@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
+import 'package:drift/drift.dart' show DatabaseConnection;
 import 'package:path/path.dart' as p;
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -69,8 +71,24 @@ Future<void> runPopOutApp(PopOutLaunch launch) async {
   // close. The viewer's client takes the handler over once it runs.
   channel.setHandler(startupMessageHandler(windowManager.close));
 
-  final connected = await _joinDatabases(channel);
-  await _placeWindow(launch);
+  // A failure from here on must still end in a window the diver can see
+  // and close: left hidden, it would stay open, and the main window's
+  // button would only ever ask it to come forward.
+  var connected = false;
+  try {
+    connected = await _joinDatabases(channel);
+  } catch (e, stackTrace) {
+    _log.error(
+      'Could not join the main window\'s databases',
+      error: e,
+      stackTrace: stackTrace,
+    );
+  }
+  try {
+    await _placeWindow(launch);
+  } catch (e, stackTrace) {
+    _log.error('Could not place the window', error: e, stackTrace: stackTrace);
+  }
 
   runApp(
     connected
@@ -103,11 +121,17 @@ Future<bool> _joinDatabases(PopOutChannel channel) async {
     interceptor: ReadOnlyQueryInterceptor(onRefused: reportRefusal),
   );
   if (main == null) return false;
-  final cache = await connectToPublishedDatabase(
-    kLocalCacheDatabasePortName,
-    interceptor: ReadOnlyQueryInterceptor(onRefused: reportRefusal),
-  );
   final mainDatabase = AppDatabase(main);
+  final DatabaseConnection? cache;
+  try {
+    cache = await connectToPublishedDatabase(
+      kLocalCacheDatabasePortName,
+      interceptor: ReadOnlyQueryInterceptor(onRefused: reportRefusal),
+    );
+  } catch (_) {
+    await closeDatabaseForAppShutdown(mainDatabase);
+    rethrow;
+  }
   if (cache == null) {
     // Without the cache, every part that reads it would fail; the window
     // shows the could-not-connect message instead, and lets go of the main

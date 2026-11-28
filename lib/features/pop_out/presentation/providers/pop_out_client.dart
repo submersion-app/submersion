@@ -85,9 +85,8 @@ void Function(PopOutMessage message) startupMessageHandler(
 };
 
 /// The pop-out window's side of the profile pop-out (issue #5078).
-final popOutClientProvider = NotifierProvider<PopOutClient, PopOutClientState>(
-  PopOutClient.new,
-);
+final popOutClientNotifierProvider =
+    NotifierProvider<PopOutClient, PopOutClientState>(PopOutClient.new);
 
 /// Follows the main window's dive unless pinned, keeps the shared cursor in
 /// step, and mirrors the main window's prefs and lock.
