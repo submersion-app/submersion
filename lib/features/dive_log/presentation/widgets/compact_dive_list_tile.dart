@@ -365,6 +365,12 @@ class CompactDiveListTile extends ConsumerWidget {
             code: siteCountryCode,
           )
         : null;
+    // A location title already shows the country, so the label adds it only
+    // when the title does not, and the country is never spoken twice.
+    final country = siteCountry?.trim() ?? '';
+    final labelCountry = flagCode != null && !titleText.contains(country)
+        ? country
+        : null;
     final dateText = _buildDateText(units);
     final stat1Text = _buildStatText(stat1Field, DiveField.maxDepth, units);
     final stat2Text = _buildStatText(stat2Field, DiveField.runtime, units);
@@ -404,7 +410,7 @@ class CompactDiveListTile extends ConsumerWidget {
             unfilledState,
             diveNumber,
             siteName,
-            country: flagCode == null ? null : siteCountry?.trim(),
+            country: labelCountry,
           ),
           child: InkWell(
             onTap: onTap,

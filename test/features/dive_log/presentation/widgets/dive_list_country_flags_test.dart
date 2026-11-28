@@ -163,6 +163,20 @@ void main() {
     handle.dispose();
   });
 
+  testWidgets("compact card's label names the country once under a location "
+      'title', (tester) async {
+    final handle = tester.ensureSemantics();
+    await _pump(tester, ListViewMode.compact, title: DiveField.siteLocation);
+    expect(find.text('Lighthouse Reef, Belize'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('Belize')), findsOneWidget);
+    expect(
+      find.bySemanticsLabel(RegExp(r'Belize[\s\S]*Belize')),
+      findsNothing,
+      reason: 'the visible title already names the country',
+    );
+    handle.dispose();
+  });
+
   testWidgets("compact card's label leaves the country out with flags off", (
     tester,
   ) async {
