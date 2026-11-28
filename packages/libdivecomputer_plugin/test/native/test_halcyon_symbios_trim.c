@@ -9,16 +9,21 @@
    No Symbios raw dive is committed, so the log is built here: a header
    record (the sample interval at offset 10), then one depth record per
    sample, each followed by the trim record under test. The parser needs no
-   footer for samples. */
+   footer for samples. The last case goes through the app's wrapper
+   (libdc_parse_raw_dive), the path download and re-parse share. */
 
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <libdivecomputer/context.h>
 #include <libdivecomputer/descriptor.h>
 #include <libdivecomputer/iterator.h>
 #include <libdivecomputer/parser.h>
+
+#include "libdc_wrapper.h"
 
 #define ID_HEADER 0x01
 #define ID_DEPTH 0x03
@@ -141,9 +146,35 @@ static void test_no_trim_records_report_no_trim(void) {
     printf("  PASS: no trim records, no trim\n");
 }
 
+/* The wrapper carries the angle on the sample it belongs to and leaves
+   every other sample at NAN, so the app reads "no trim" there. */
+static void test_wrapper_carries_trim_per_sample(void) {
+    const unsigned char trims[] = {0x05, 0xF3, 0x00, 0x9C};
+    const int present[] = {1, 1, 0, 1};
+    unsigned char log[MAX_LOG];
+    size_t size = build_log(log, trims, present, 4);
+
+    libdc_parsed_dive_t dive;
+    char err[256] = {0};
+    int rc = libdc_parse_raw_dive("Halcyon", "Symbios Handset", 7, log,
+                                  (unsigned int)size, &dive, err, sizeof(err));
+    if (rc != 0) printf("FAIL: libdc_parse_raw_dive returned %d (%s)\n", rc, err);
+    assert(rc == 0);
+    assert(dive.sample_count == 4);
+    assert(dive.samples[0].trim == 5.0);
+    assert(dive.samples[1].trim == -13.0);
+    assert(isnan(dive.samples[2].trim));
+    assert(isnan(dive.samples[3].trim)); /* -100 is not reported */
+    /* libdc_parse_raw_dive fills a caller-owned struct: free its arrays. */
+    free(dive.samples);
+    free(dive.events);
+    printf("  PASS: wrapper carries trim per sample\n");
+}
+
 int main(void) {
     printf("test_halcyon_symbios_trim\n");
     test_reports_signed_degrees_and_skips_out_of_range();
     test_no_trim_records_report_no_trim();
+    test_wrapper_carries_trim_per_sample();
     return 0;
 }

@@ -11,7 +11,7 @@ internal const val LIBDC_MAX_TANKS = 16
  * inserting a field silently renumbers every field after it, with no error on
  * either side.
  */
-internal const val SAMPLE_FIELD_COUNT = 31 + LIBDC_MAX_TANKS
+internal const val SAMPLE_FIELD_COUNT = 32 + LIBDC_MAX_TANKS
 
 /** Index of the first per-tank pressure slot. Matches LIBDC_TANK_PRESSURE_OFFSET in libdc_jni.cpp. */
 private const val TANK_PRESSURE_OFFSET = 28
@@ -23,8 +23,11 @@ private const val TANK_PRESSURE_OFFSET = 28
  */
 private const val AVELO_OFFSET = TANK_PRESSURE_OFFSET + LIBDC_MAX_TANKS
 
+/** The trim angle's slot (issue #5098), after the Avelo slots. */
+private const val TRIM_SLOT = AVELO_OFFSET + 3
+
 /** A NaN-coded double slot, or null when the array predates it (stale .so). */
-private fun aveloDouble(s: DoubleArray, i: Int): Double? =
+private fun trailingDouble(s: DoubleArray, i: Int): Double? =
     if (s.size <= i || s[i].isNaN()) null else s[i]
 
 private fun sentinelLong(s: DoubleArray, i: Int): Long? =
@@ -90,8 +93,9 @@ internal fun decodeProfileSample(s: DoubleArray): ProfileSample = ProfileSample(
     o2SensorMv4 = cellMillivolt(s, 25),
     o2SensorMv5 = cellMillivolt(s, 26),
     o2SensorMv6 = cellMillivolt(s, 27),
-    aveloBuoyancy = aveloDouble(s, AVELO_OFFSET),
+    aveloBuoyancy = trailingDouble(s, AVELO_OFFSET),
     aveloGasRemaining = if (s.size <= AVELO_OFFSET + 1) null else sentinelLong(s, AVELO_OFFSET + 1),
-    computerRmv = aveloDouble(s, AVELO_OFFSET + 2),
+    computerRmv = trailingDouble(s, AVELO_OFFSET + 2),
+    trim = trailingDouble(s, TRIM_SLOT),
     gasMixIndex = sentinelLong(s, 20),
 )

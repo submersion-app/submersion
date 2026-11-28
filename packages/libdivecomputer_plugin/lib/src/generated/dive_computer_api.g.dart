@@ -142,6 +142,7 @@ class ProfileSample {
     this.aveloBuoyancy,
     this.aveloGasRemaining,
     this.computerRmv,
+    this.trim,
     this.gasMixIndex,
   });
 
@@ -227,6 +228,10 @@ class ProfileSample {
 
   double? computerRmv;
 
+  /// The computer's own pitch in degrees, positive head up, as the Halcyon
+  /// Symbios logs it (issue #5098). Null when the computer logs none.
+  double? trim;
+
   /// Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
   /// from the most recent gas switch; null if the computer reported no gas.
   int? gasMixIndex;
@@ -264,6 +269,7 @@ class ProfileSample {
       aveloBuoyancy,
       aveloGasRemaining,
       computerRmv,
+      trim,
       gasMixIndex,
     ];
   }
@@ -302,7 +308,8 @@ class ProfileSample {
       aveloBuoyancy: result[28] as double?,
       aveloGasRemaining: result[29] as int?,
       computerRmv: result[30] as double?,
-      gasMixIndex: result[31] as int?,
+      trim: result[31] as double?,
+      gasMixIndex: result[32] as int?,
     );
   }
 }

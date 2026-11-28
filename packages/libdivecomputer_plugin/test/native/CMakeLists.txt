@@ -402,12 +402,15 @@ if(WIN32)
 endif()
 
 # Issue #5098: the Halcyon Symbios trim record (a signed byte, degrees),
-# reported as DC_SAMPLE_TRIM. Public API only.
+# reported as DC_SAMPLE_TRIM, and carried by the wrapper.
 add_executable(test_halcyon_symbios_trim
     test_halcyon_symbios_trim.c
+    ${WRAPPER_DIR}/libdc_wrapper.c
+    ${WRAPPER_DIR}/libdc_download.c
     ${LIBDC_ALL_SOURCES}
 )
 target_include_directories(test_halcyon_symbios_trim PRIVATE
+    ${WRAPPER_DIR}
     ${LIBDC_DIR}/include
     ${LIBDC_DIR}/src
     ${PLATFORM_CONFIG_DIR}

@@ -1137,7 +1137,7 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveSampleCount(
 }
 
 // Must match SAMPLE_FIELD_COUNT in SampleDecoder.kt.
-#define LIBDC_SAMPLE_FIELD_COUNT (31 + LIBDC_MAX_TANKS)
+#define LIBDC_SAMPLE_FIELD_COUNT (32 + LIBDC_MAX_TANKS)
 
 // Index of the first per-tank pressure slot; must match TANK_PRESSURE_OFFSET in
 // SampleDecoder.kt.
@@ -1157,7 +1157,8 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveSample(
     const libdc_sample_t *s = &dive->samples[index];
     // 28 scalar fields (14 base + 6 O2 cells + gas mix + heading + 6 cell mV),
     // then one slot per tank for the per-transmitter pressures (issue #1223),
-    // then the three Shearwater Avelo fields (issue #4664).
+    // then the three Shearwater Avelo fields (issue #4664), then the trim
+    // angle (issue #5098).
     // Integer sentinels (UINT32_MAX) are cast to double; NAN doubles pass
     // through and become null on the Kotlin side. Kotlin indexes this array
     // positionally (see SampleDecoder.kt): append only, never insert.
@@ -1197,6 +1198,7 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeGetDiveSample(
     values[LIBDC_AVELO_OFFSET] = s->avelo_buoyancy;
     values[LIBDC_AVELO_OFFSET + 1] = static_cast<jdouble>(s->gas_remaining);
     values[LIBDC_AVELO_OFFSET + 2] = s->computer_rmv;
+    values[LIBDC_AVELO_OFFSET + 3] = s->trim;
     jdoubleArray result = env->NewDoubleArray(LIBDC_SAMPLE_FIELD_COUNT);
     env->SetDoubleArrayRegion(result, 0, LIBDC_SAMPLE_FIELD_COUNT, values);
     return result;
