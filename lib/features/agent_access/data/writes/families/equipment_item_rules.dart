@@ -305,6 +305,10 @@ EquipmentItem nextItem(
             parentTypesFor(type).contains(parent.type)
         ? parent.id
         : null,
+    // Not agent-writable; carried so an unrelated edit keeps them. A
+    // changed retailer clears them in the repository (issue #5140).
+    sellerBuddyId: current.sellerBuddyId,
+    sellerDiveCenterId: current.sellerDiveCenterId,
     createdAt: current.createdAt,
   );
 }

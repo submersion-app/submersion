@@ -1034,7 +1034,7 @@ void main() {
       );
       expect(find.text('Product number (SKU)'), findsOneWidget);
       expect(find.text('SP-MK25-EVO'), findsOneWidget);
-      expect(find.text('Retailer'), findsOneWidget);
+      expect(find.text('Seller'), findsOneWidget);
       expect(find.text('Dive Shop Ltd'), findsOneWidget);
       expect(find.text('Web link'), findsOneWidget);
       expect(find.text('https://shop.example.com/mk25'), findsOneWidget);
@@ -1046,7 +1046,7 @@ void main() {
       await pump(tester, itemWith(const {}));
 
       expect(find.text('Product number (SKU)'), findsNothing);
-      expect(find.text('Retailer'), findsNothing);
+      expect(find.text('Seller'), findsNothing);
       expect(find.text('Web link'), findsNothing);
     });
 

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/editing/buddy_new_sitting.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_gear_section.dart';
+import 'package:submersion/features/equipment/presentation/widgets/gear_bought_from_section.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
@@ -56,6 +57,8 @@ void main() {
     await pumpNewBuddyPage(tester);
 
     expect(find.byType(BuddyGearSection), findsNothing);
+    // Nothing was bought from a record not yet saved (issue #5140).
+    expect(find.byType(GearBoughtFromSection), findsNothing);
     // Nor in the strip: lending needs a buddy that exists.
     expect(find.text(l.buddies_editCard_gear), findsNothing);
   });

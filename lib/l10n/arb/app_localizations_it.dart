@@ -43046,7 +43046,37 @@ class AppLocalizationsIt extends AppLocalizations {
       'Dallo scontrino o dall\'etichetta, non il numero di serie';
 
   @override
-  String get attrLabel_retailer => 'Rivenditore';
+  String get settings_conflict_ref_soldBy => 'Venduto da';
+
+  @override
+  String get equipment_seller_kindBuddy => 'Compagno';
+
+  @override
+  String get equipment_seller_kindDiveCenter => 'Diving center';
+
+  @override
+  String equipment_seller_keepTyped(String name) {
+    return 'Mantieni \"$name\" come scritto';
+  }
+
+  @override
+  String get equipment_seller_clear => 'Rimuovi venditore';
+
+  @override
+  String equipment_boughtFrom_title(String name) {
+    return 'Acquistato da $name';
+  }
+
+  @override
+  String get equipment_boughtHere_title => 'Acquistato qui';
+
+  @override
+  String equipment_boughtFrom_showAll(int count) {
+    return 'Mostra tutto ($count)';
+  }
+
+  @override
+  String get attrLabel_retailer => 'Venditore';
 
   @override
   String get attrLabel_product_url => 'Link web';

@@ -123,6 +123,22 @@ void main() {
     expect(seed.parentEquipmentId, 'rebreather');
   });
 
+  test('a clone keeps the seller link beside its name (issue #5140)', () {
+    const bought = EquipmentItem(
+      id: 'reg',
+      name: 'Primary',
+      type: EquipmentType.regulator,
+      sellerBuddyId: 'anna',
+    );
+    final clone = cloneFormSeed(bought, copyName: (n) => '$n copy');
+    expect(clone.sellerBuddyId, 'anna');
+    final fromShop = cloneFormSeed(
+      bought.copyWith(clearSellerLinks: true, sellerDiveCenterId: 'anchor'),
+      copyName: (n) => '$n copy',
+    );
+    expect(fromShop.sellerDiveCenterId, 'anchor');
+  });
+
   test('a clone never carries the source tag (issue #2652)', () {
     const tagged = EquipmentItem(
       id: 'reg',

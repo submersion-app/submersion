@@ -77,6 +77,15 @@ extension _DiveCenterDetailPageBody on _DiveCenterDetailPageState {
           ),
           // A centre not yet created has no gear kept there and no dives.
           if (!isCreating) _calculated(GearHereSection(centerId: stored.id)),
+          // Gear bought here (issue #5140); nothing when there is none.
+          if (!isCreating)
+            _calculated(
+              GearBoughtFromSection(
+                centerId: stored.id,
+                title: context.l10n.equipment_boughtHere_title,
+                frame: GearBoughtFromFrame.divided,
+              ),
+            ),
           const Divider(height: 32),
           _framed(
             DiveCenterCardId.rentalGear,

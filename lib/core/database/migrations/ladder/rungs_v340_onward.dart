@@ -380,5 +380,12 @@ extension RungsFromV340 on AppDatabase {
     // in beforeOpen; the floor does not move.
     if (from < 394) await _assertTankPresetRatedCapacityColumn();
     if (from < 394) await reportProgress();
+
+    // v397 (issue #5140): equipment.seller_buddy_id and
+    // seller_dive_center_id, who sold a gear item. Nullable, no backfill,
+    // re-asserted in beforeOpen; the floor does not move. Numbered 397
+    // because open work claims 395 and 396.
+    if (from < 397) await _assertEquipmentSellerColumns();
+    if (from < 397) await reportProgress();
   }
 }

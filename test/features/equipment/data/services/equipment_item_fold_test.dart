@@ -537,6 +537,58 @@ void main() {
     });
   });
 
+  group('seller (issue #5140)', () {
+    Future<EquipmentData> row(String id) =>
+        (db.select(db.equipment)..where((t) => t.id.equals(id))).getSingle();
+
+    Future<void> retailer(String id, String name) => db
+        .into(db.equipmentAttributes)
+        .insert(
+          EquipmentAttributesCompanion.insert(
+            id: 'attr_${id}_retailer',
+            equipmentId: id,
+            attrKey: 'retailer',
+            valueText: Value(name),
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+
+    Future<void> soldBy(String id, String buddyId) =>
+        (db.update(db.equipment)..where((t) => t.id.equals(id))).write(
+          EquipmentCompanion(sellerBuddyId: Value(buddyId)),
+        );
+
+    test('fold takes the folded seller when the survivor has none', () async {
+      await soldBy('from', 'anna');
+      await retailer('from', 'Anna Berg');
+
+      await fold();
+
+      expect((await row('into')).sellerBuddyId, 'anna');
+    });
+
+    test('fold keeps the survivor typed seller', () async {
+      await retailer('into', 'Dive Shop Ltd');
+      await soldBy('from', 'anna');
+      await retailer('from', 'Anna Berg');
+
+      await fold();
+
+      expect((await row('into')).sellerBuddyId, isNull);
+    });
+
+    test('fold keeps the survivor linked seller', () async {
+      await soldBy('into', 'lars');
+      await retailer('into', 'Lars Holm');
+      await soldBy('from', 'anna');
+
+      await fold();
+
+      expect((await row('into')).sellerBuddyId, 'lars');
+    });
+  });
+
   test("another diver's item is never folded", () async {
     await (db.update(db.equipment)..where((t) => t.id.equals('from'))).write(
       const EquipmentCompanion(diverId: Value('d2')),

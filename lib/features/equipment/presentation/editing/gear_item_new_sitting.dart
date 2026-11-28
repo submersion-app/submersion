@@ -24,6 +24,9 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_creating.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 
 /// A new gear item's sitting (issue #4527, phase 3, plan 11): what its
 /// opener asks for, its seed, a clone's copy of another item, the cards
@@ -116,9 +119,21 @@ Future<GearCloneSource?> readGearClone(
     final place = places[itemId];
     return place != null && mine.any((l) => l.id == place.id) ? place : null;
   }, 'place');
+  final copy = cloneFormSeed(source, copyName: copyName);
+  // A seller link only to the diver's own buddy or centre (issue #5140):
+  // shared gear's owner sold it through their contacts, so the clone keeps
+  // the name alone.
+  final ownSeller = await _readOrNull(() async {
+    final buddies = await read(allBuddiesProvider.future);
+    final centers = await read(allDiveCentersProvider.future);
+    return (copy.sellerBuddyId == null ||
+            buddies.any((b) => b.id == copy.sellerBuddyId)) &&
+        (copy.sellerDiveCenterId == null ||
+            centers.any((c) => c.id == copy.sellerDiveCenterId));
+  }, 'seller');
   return (
     sourceId: itemId,
-    copy: cloneFormSeed(source, copyName: copyName),
+    copy: ownSeller == true ? copy : copy.copyWith(clearSellerLinks: true),
     ownTags: [
       for (final t in tags ?? const <Tag>[])
         if (isOwnOrUnowned(ownerId: t.diverId, activeDiverId: diverId)) t,
@@ -188,8 +203,17 @@ Future<void> applyNewGearItemPrefill(
           if (a.isCustom) a,
       ]);
     for (final a in copy.attributes) {
-      if (!a.isCustom) session.set(gearAttributeField(a.key), a);
+      // The retailer is the Seller's name, set with its link below.
+      if (!a.isCustom && a.key != EquipmentAttrKeys.retailer) {
+        session.set(gearAttributeField(a.key), a);
+      }
     }
+    // Who sold the source (issue #5140), so the Seller field shows it.
+    session.set(gearSellerField, (
+      buddyId: copy.sellerBuddyId,
+      centerId: copy.sellerDiveCenterId,
+      name: copy.retailer ?? '',
+    ));
     final itemId = session.stored.id;
     // The item's first move, held as a move made on its Location card is,
     // so the card shows the place and a move made by hand replaces it.

@@ -44,6 +44,8 @@ EquipmentItem _with(
   Object? customReminderDays = _keep,
   Object? parentEquipmentId = _keep,
   Object? coverMediaId = _keep,
+  Object? sellerBuddyId = _keep,
+  Object? sellerDiveCenterId = _keep,
 }) => EquipmentItem(
   id: e.id,
   diverId: e.diverId,
@@ -68,6 +70,8 @@ EquipmentItem _with(
   customReminderDays: _or<List<int>>(customReminderDays, e.customReminderDays),
   parentEquipmentId: _or<String>(parentEquipmentId, e.parentEquipmentId),
   coverMediaId: _or<String>(coverMediaId, e.coverMediaId),
+  sellerBuddyId: _or<String>(sellerBuddyId, e.sellerBuddyId),
+  sellerDiveCenterId: _or<String>(sellerDiveCenterId, e.sellerDiveCenterId),
   createdAt: e.createdAt,
 );
 
@@ -204,6 +208,46 @@ final gearCustomFieldsField =
       ),
       equals: const ListEquality<EquipmentAttribute>().equals,
     );
+
+/// Who sold the item (issue #5140): a linked buddy or dive centre, or none,
+/// with the seller's name, which is the `retailer` attribute either way.
+typedef GearSeller = ({String? buddyId, String? centerId, String name});
+
+String _trimmedName(GearSeller v) => v.name.trim();
+
+/// The seller as one value, so a pick that sets a link and its name is one
+/// change. A blank name with no link removes the `retailer` row.
+final gearSellerField = EditField<EquipmentItem, GearSeller>(
+  id: 'seller',
+  cardId: _details,
+  read: (e) => (
+    buddyId: e.sellerBuddyId,
+    centerId: e.sellerDiveCenterId,
+    name: e.retailer ?? '',
+  ),
+  write: (e, v) {
+    final name = _trimmedName(v);
+    return _with(
+      e,
+      sellerBuddyId: v.buddyId,
+      sellerDiveCenterId: v.centerId,
+      attributes: [
+        for (final a in e.attributes)
+          if (a.isCustom || a.key != EquipmentAttrKeys.retailer) a,
+        if (name.isNotEmpty)
+          EquipmentAttribute.curated(
+            equipmentId: e.id,
+            key: EquipmentAttrKeys.retailer,
+            valueText: name,
+          ),
+      ],
+    );
+  },
+  equals: (a, b) =>
+      a.buddyId == b.buddyId &&
+      a.centerId == b.centerId &&
+      _trimmedName(a) == _trimmedName(b),
+);
 
 final gearPurchaseDateField = EditField<EquipmentItem, DateTime?>(
   id: 'purchaseDate',

@@ -43149,7 +43149,37 @@ class AppLocalizationsFr extends AppLocalizations {
       'Sur le ticket ou l\'étiquette, pas le numéro de série';
 
   @override
-  String get attrLabel_retailer => 'Revendeur';
+  String get settings_conflict_ref_soldBy => 'Vendu par';
+
+  @override
+  String get equipment_seller_kindBuddy => 'Binôme';
+
+  @override
+  String get equipment_seller_kindDiveCenter => 'Centre de plongée';
+
+  @override
+  String equipment_seller_keepTyped(String name) {
+    return 'Garder « $name » tel quel';
+  }
+
+  @override
+  String get equipment_seller_clear => 'Effacer le vendeur';
+
+  @override
+  String equipment_boughtFrom_title(String name) {
+    return 'Acheté à $name';
+  }
+
+  @override
+  String get equipment_boughtHere_title => 'Acheté ici';
+
+  @override
+  String equipment_boughtFrom_showAll(int count) {
+    return 'Tout afficher ($count)';
+  }
+
+  @override
+  String get attrLabel_retailer => 'Vendeur';
 
   @override
   String get attrLabel_product_url => 'Lien web';

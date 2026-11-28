@@ -42328,7 +42328,37 @@ class AppLocalizationsEn extends AppLocalizations {
       'From the receipt or product label, not the serial number';
 
   @override
-  String get attrLabel_retailer => 'Retailer';
+  String get settings_conflict_ref_soldBy => 'Sold by';
+
+  @override
+  String get equipment_seller_kindBuddy => 'Buddy';
+
+  @override
+  String get equipment_seller_kindDiveCenter => 'Dive center';
+
+  @override
+  String equipment_seller_keepTyped(String name) {
+    return 'Keep \"$name\" as typed';
+  }
+
+  @override
+  String get equipment_seller_clear => 'Clear seller';
+
+  @override
+  String equipment_boughtFrom_title(String name) {
+    return 'Bought from $name';
+  }
+
+  @override
+  String get equipment_boughtHere_title => 'Bought here';
+
+  @override
+  String equipment_boughtFrom_showAll(int count) {
+    return 'Show all ($count)';
+  }
+
+  @override
+  String get attrLabel_retailer => 'Seller';
 
   @override
   String get attrLabel_product_url => 'Web link';

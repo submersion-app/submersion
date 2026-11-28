@@ -2,6 +2,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/media/data/repositories/media_people_buddy_merge.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_seller_links.dart';
 
 /// Snapshot of a DiveBuddies junction row for undo.
 class DiveBuddySnapshot {
@@ -68,6 +69,7 @@ class BuddyMergeSnapshot {
     this.documentOriginalBuddyIds = const {},
     this.mediaPeople = const MediaPeopleMergeSnapshot(),
     this.placeOriginalBuddyIds = const {},
+    this.sellerOriginals = const {},
   });
 
   /// Document id -> the buddy it was filed under before the merge
@@ -79,6 +81,10 @@ class BuddyMergeSnapshot {
 
   /// Gear place id -> the buddy it stood for before the merge (issue #3790).
   final Map<String, String> placeOriginalBuddyIds;
+
+  /// Gear item id -> the buddy that sold it and its seller name before the
+  /// merge (issue #5140).
+  final Map<String, SellerLinkSnapshot> sellerOriginals;
 }
 
 /// Result from a buddy merge operation.

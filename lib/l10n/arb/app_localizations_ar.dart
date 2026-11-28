@@ -43632,7 +43632,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrHelper_sku => 'من الإيصال أو الملصق، وليس الرقم التسلسلي';
 
   @override
-  String get attrLabel_retailer => 'المتجر';
+  String get settings_conflict_ref_soldBy => 'البائع';
+
+  @override
+  String get equipment_seller_kindBuddy => 'رفيق';
+
+  @override
+  String get equipment_seller_kindDiveCenter => 'مركز غوص';
+
+  @override
+  String equipment_seller_keepTyped(String name) {
+    return 'الإبقاء على \"$name\" كما كُتب';
+  }
+
+  @override
+  String get equipment_seller_clear => 'مسح البائع';
+
+  @override
+  String equipment_boughtFrom_title(String name) {
+    return 'تم الشراء من $name';
+  }
+
+  @override
+  String get equipment_boughtHere_title => 'تم الشراء هنا';
+
+  @override
+  String equipment_boughtFrom_showAll(int count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get attrLabel_retailer => 'البائع';
 
   @override
   String get attrLabel_product_url => 'رابط الويب';

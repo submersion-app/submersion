@@ -41986,7 +41986,37 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrHelper_sku => 'מהקבלה או מהתווית, לא המספר הסידורי';
 
   @override
-  String get attrLabel_retailer => 'קמעונאי';
+  String get settings_conflict_ref_soldBy => 'נמכר על ידי';
+
+  @override
+  String get equipment_seller_kindBuddy => 'שותף';
+
+  @override
+  String get equipment_seller_kindDiveCenter => 'מרכז צלילה';
+
+  @override
+  String equipment_seller_keepTyped(String name) {
+    return 'להשאיר את \"$name\" כפי שהוקלד';
+  }
+
+  @override
+  String get equipment_seller_clear => 'ניקוי המוכר';
+
+  @override
+  String equipment_boughtFrom_title(String name) {
+    return 'נקנה מ-$name';
+  }
+
+  @override
+  String get equipment_boughtHere_title => 'נקנה כאן';
+
+  @override
+  String equipment_boughtFrom_showAll(int count) {
+    return 'הצג הכול ($count)';
+  }
+
+  @override
+  String get attrLabel_retailer => 'מוכר';
 
   @override
   String get attrLabel_product_url => 'קישור אינטרנט';

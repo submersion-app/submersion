@@ -10,6 +10,7 @@ import 'package:submersion/features/documents/data/repositories/document_reposit
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 
 /// A child table whose rows carry their own id and name an item in
@@ -236,6 +237,13 @@ class EquipmentItemFold {
   ) async {
     bool blank(String? v) => v == null || v.trim().isEmpty;
     final takePrice = into.purchasePrice == null && from.purchasePrice != null;
+    // The seller travels with its name: only when the survivor records no
+    // seller, so its retailer row is the one that moves here (issue #5140).
+    final takeSeller =
+        into.sellerBuddyId == null &&
+        into.sellerDiveCenterId == null &&
+        (from.sellerBuddyId != null || from.sellerDiveCenterId != null) &&
+        !await _hasRetailer(into.id);
     final notes = _mergedNotes(into.notes, from.notes);
     final fill = EquipmentCompanion(
       brand: blank(into.brand) && !blank(from.brand)
@@ -264,6 +272,12 @@ class EquipmentItemFold {
       coverMediaId: into.coverMediaId == null && from.coverMediaId != null
           ? Value(from.coverMediaId)
           : const Value.absent(),
+      sellerBuddyId: takeSeller
+          ? Value(from.sellerBuddyId)
+          : const Value.absent(),
+      sellerDiveCenterId: takeSeller
+          ? Value(from.sellerDiveCenterId)
+          : const Value.absent(),
     );
     if (fill == const EquipmentCompanion()) return;
     await (_db.update(_db.equipment)..where((t) => t.id.equals(into.id))).write(
@@ -275,6 +289,16 @@ class EquipmentItemFold {
       localUpdatedAt: now,
     );
   }
+
+  Future<bool> _hasRetailer(String id) async =>
+      await (_db.select(_db.equipmentAttributes)..where(
+            (t) =>
+                t.equipmentId.equals(id) &
+                t.attrKey.equals(EquipmentAttrKeys.retailer) &
+                t.isCustom.equals(false),
+          ))
+          .getSingleOrNull() !=
+      null;
 
   static String _mergedNotes(String into, String from) {
     final kept = into.trim();

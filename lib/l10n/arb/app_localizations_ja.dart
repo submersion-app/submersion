@@ -41188,7 +41188,37 @@ class AppLocalizationsJa extends AppLocalizations {
   String get attrHelper_sku => 'シリアル番号ではなく、レシートや製品ラベルに記載の番号';
 
   @override
-  String get attrLabel_retailer => '販売店';
+  String get settings_conflict_ref_soldBy => '販売者';
+
+  @override
+  String get equipment_seller_kindBuddy => 'バディ';
+
+  @override
+  String get equipment_seller_kindDiveCenter => 'ダイブセンター';
+
+  @override
+  String equipment_seller_keepTyped(String name) {
+    return '「$name」を入力どおりに使う';
+  }
+
+  @override
+  String get equipment_seller_clear => '販売者をクリア';
+
+  @override
+  String equipment_boughtFrom_title(String name) {
+    return '$nameから購入';
+  }
+
+  @override
+  String get equipment_boughtHere_title => 'ここで購入';
+
+  @override
+  String equipment_boughtFrom_showAll(int count) {
+    return 'すべて表示（$count）';
+  }
+
+  @override
+  String get attrLabel_retailer => '販売者';
 
   @override
   String get attrLabel_product_url => 'ウェブリンク';

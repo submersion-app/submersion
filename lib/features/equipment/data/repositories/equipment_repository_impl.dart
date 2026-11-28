@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
 import 'package:submersion/features/equipment/data/repositories/equipment_location_move_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_seller_rules.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_color_queries.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_visibility_queries.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
@@ -355,6 +356,8 @@ class EquipmentRepository {
     bool notify = true,
   }) async {
     try {
+      // One seller at most (issue #5140).
+      await applySellerRules(_db, stored: null, next: equipment);
       _log.info('Creating equipment: ${equipment.name}');
       final id = equipment.id.isEmpty ? _uuid.v4() : equipment.id;
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -389,6 +392,8 @@ class EquipmentRepository {
                     : null,
               ),
               parentEquipmentId: Value(equipment.parentEquipmentId),
+              sellerBuddyId: Value(equipment.sellerBuddyId),
+              sellerDiveCenterId: Value(equipment.sellerDiveCenterId),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -509,18 +514,23 @@ class EquipmentRepository {
       _db.transaction(action);
 
   /// Update equipment. [notify] as for [createEquipment].
-  Future<void> updateEquipment(
-    EquipmentItem equipment, {
-    bool notify = true,
-  }) async {
+  Future<void> updateEquipment(EquipmentItem item, {bool notify = true}) async {
     try {
-      _log.info('Updating equipment: ${equipment.id}');
+      _log.info('Updating equipment: ${item.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
 
       // One transaction: a clock baseline that fails to save must not leave
       // its date stored, or a retry would see the date as unchanged and
       // never anchor the clock (issue #3662).
       await _db.transaction(() async {
+        // A retailer changed by anything but the Seller field drops the
+        // seller links (issue #5140), judged against the row as this
+        // transaction reads it.
+        final equipment = await applySellerRules(
+          _db,
+          stored: await getEquipmentById(item.id),
+          next: item,
+        );
         await (_db.update(
           _db.equipment,
         )..where((t) => t.id.equals(equipment.id))).write(
@@ -547,6 +557,8 @@ class EquipmentRepository {
                   : null,
             ),
             parentEquipmentId: Value(equipment.parentEquipmentId),
+            sellerBuddyId: Value(equipment.sellerBuddyId),
+            sellerDiveCenterId: Value(equipment.sellerDiveCenterId),
             updatedAt: Value(now),
           ),
         );
@@ -578,10 +590,10 @@ class EquipmentRepository {
         await _mirrorNameToDevices(equipment, now);
       });
       if (notify) SyncEventBus.notifyLocalChange();
-      _log.info('Updated equipment: ${equipment.id}');
+      _log.info('Updated equipment: ${item.id}');
     } catch (e, stackTrace) {
       _log.error(
-        'Failed to update equipment: ${equipment.id}',
+        'Failed to update equipment: ${item.id}',
         error: e,
         stackTrace: stackTrace,
       );
@@ -1210,6 +1222,8 @@ class EquipmentRepository {
                     .cast<int>()
               : null,
           parentEquipmentId: row.data['parent_equipment_id'] as String?,
+          sellerBuddyId: row.data['seller_buddy_id'] as String?,
+          sellerDiveCenterId: row.data['seller_dive_center_id'] as String?,
           createdAt: DateTime.fromMillisecondsSinceEpoch(
             row.data['created_at'] as int,
           ),
@@ -1953,6 +1967,8 @@ class EquipmentRepository {
           : null,
       parentEquipmentId: row.parentEquipmentId,
       coverMediaId: row.coverMediaId,
+      sellerBuddyId: row.sellerBuddyId,
+      sellerDiveCenterId: row.sellerDiveCenterId,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     );
   }

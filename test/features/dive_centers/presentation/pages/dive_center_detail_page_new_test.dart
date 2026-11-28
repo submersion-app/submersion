@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/gear_here_section.dart';
+import 'package:submersion/features/equipment/presentation/widgets/gear_bought_from_section.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
 
@@ -52,6 +53,8 @@ void main() {
     );
     expect(find.byType(PopupMenuButton<String>), findsNothing);
     expect(find.byType(GearHereSection), findsNothing);
+    // Nothing was bought from a record not yet saved (issue #5140).
+    expect(find.byType(GearBoughtFromSection), findsNothing);
   });
 
   testWidgets('Save waits for the first entry, then pops the id', (

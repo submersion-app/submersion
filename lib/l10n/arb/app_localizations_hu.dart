@@ -42778,7 +42778,37 @@ class AppLocalizationsHu extends AppLocalizations {
       'A blokkon vagy a címkén található, nem a sorozatszám';
 
   @override
-  String get attrLabel_retailer => 'Forgalmazó';
+  String get settings_conflict_ref_soldBy => 'Eladó';
+
+  @override
+  String get equipment_seller_kindBuddy => 'Búvártárs';
+
+  @override
+  String get equipment_seller_kindDiveCenter => 'Búvárközpont';
+
+  @override
+  String equipment_seller_keepTyped(String name) {
+    return '„$name” megtartása beírva';
+  }
+
+  @override
+  String get equipment_seller_clear => 'Eladó törlése';
+
+  @override
+  String equipment_boughtFrom_title(String name) {
+    return 'Vásárolva: $name';
+  }
+
+  @override
+  String get equipment_boughtHere_title => 'Itt vásárolt';
+
+  @override
+  String equipment_boughtFrom_showAll(int count) {
+    return 'Az összes ($count)';
+  }
+
+  @override
+  String get attrLabel_retailer => 'Eladó';
 
   @override
   String get attrLabel_product_url => 'Webhivatkozás';

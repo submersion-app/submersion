@@ -9,8 +9,10 @@ library;
 
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/database/tables/buddy_tables.dart';
 import 'package:submersion/core/database/tables/dive_tables.dart';
 import 'package:submersion/core/database/tables/diver_tables.dart';
+import 'package:submersion/core/database/tables/site_tables.dart';
 import 'package:submersion/core/database/tables/tag_tables.dart';
 
 /// Equipment catalog
@@ -60,6 +62,21 @@ class Equipment extends Table {
   /// key: a peer can delete the photo, and a reader treats an id with no
   /// row as none.
   TextColumn get coverMediaId => text().nullable()();
+
+  /// Who sold the item (v397, issue #5140): a buddy or a saved dive centre.
+  /// At most one is set, and the `retailer` attribute always holds the
+  /// seller's name, so a cleared link still reads. SET NULL so deleting the
+  /// buddy or centre keeps the item; the delete paths also clear these by
+  /// hand and write the name, because a SET NULL reaches no peer.
+  TextColumn get sellerBuddyId =>
+      text().nullable().references(Buddies, #id, onDelete: KeyAction.setNull)();
+
+  /// The saved dive centre that sold the item; see [sellerBuddyId].
+  TextColumn get sellerDiveCenterId => text().nullable().references(
+    DiveCenters,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

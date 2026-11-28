@@ -89,11 +89,14 @@ final exempt = <String, String>{
     'cylinder_gear_links.dart:*',
     'equipment_location_buddy_links.dart:*',
     'equipment_location_center_links.dart:*',
+    'equipment_seller_links.dart:*',
     'equipment_tag_repository.dart:deleteLinksForEquipment',
     'equipment_share_repository.dart:deleteForEquipment',
     'equipment_location_move_repository.dart:deleteForEquipment',
   ])
     '$gear/$step': 'an inner step of a delete of its owner',
+  '$gear/equipment_seller_rules.dart:applySellerRules':
+      'a rule every equipment save applies, which equipment covers',
   '$gear/equipment_location_move_repository.dart:recordMoveGroups':
       'a bulk shortcut for moves, which equipment_location_moves covers '
       'one move at a time through recordMoves',

@@ -13,6 +13,7 @@ import 'package:submersion/features/certifications/data/repositories/certificati
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_buddy_links.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_seller_links.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 
 /// Reads and writes that turn legacy buddy text into buddy records (#1831).
@@ -311,6 +312,10 @@ class BuddyConversionRepository {
     await MediaPeopleRepository().deleteForBuddies([id]);
     // Their gear places stay, without the link (issue #3790).
     await clearEquipmentLocationBuddyLinks(_db, _sync, [
+      id,
+    ], now: DateTime.now().millisecondsSinceEpoch);
+    // Gear they sold keeps their name (issue #5140).
+    await clearEquipmentSellerBuddyLinks(_db, _sync, [
       id,
     ], now: DateTime.now().millisecondsSinceEpoch);
     for (final cert in certs) {

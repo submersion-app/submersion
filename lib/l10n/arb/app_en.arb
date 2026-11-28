@@ -26344,7 +26344,54 @@
   "attrLabel_tow_speed_factor": "Tow speed factor",
   "attrLabel_sku": "Product number (SKU)",
   "attrHelper_sku": "From the receipt or product label, not the serial number",
-  "attrLabel_retailer": "Retailer",
+  "settings_conflict_ref_soldBy": "Sold by",
+  "@settings_conflict_ref_soldBy": {
+    "description": "Conflict dialog label for the buddy or dive center a gear item was bought from"
+  },
+  "equipment_seller_kindBuddy": "Buddy",
+  "@equipment_seller_kindBuddy": {
+    "description": "Tag on a Seller suggestion that is one of the diver's buddies"
+  },
+  "equipment_seller_kindDiveCenter": "Dive center",
+  "@equipment_seller_kindDiveCenter": {
+    "description": "Tag on a Seller suggestion that is a saved dive center"
+  },
+  "equipment_seller_keepTyped": "Keep \"{name}\" as typed",
+  "@equipment_seller_keepTyped": {
+    "description": "Seller suggestion that keeps the typed text as the seller name instead of linking a buddy or dive center",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_seller_clear": "Clear seller",
+  "@equipment_seller_clear": {
+    "description": "Tooltip of the button that removes the linked seller from a gear item"
+  },
+  "equipment_boughtFrom_title": "Bought from {name}",
+  "@equipment_boughtFrom_title": {
+    "description": "Heading on a buddy page above the gear bought from that buddy",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_boughtHere_title": "Bought here",
+  "@equipment_boughtHere_title": {
+    "description": "Heading on a dive center page above the gear bought there"
+  },
+  "equipment_boughtFrom_showAll": "Show all ({count})",
+  "@equipment_boughtFrom_showAll": {
+    "description": "Button that expands the bought-gear list to every item; count is the total",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "attrLabel_retailer": "Seller",
   "attrLabel_product_url": "Web link",
   "attrLabel_color": "Color",
   "attrLabel_figure_position": "Position on figure",

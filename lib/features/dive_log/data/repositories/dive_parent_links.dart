@@ -4,6 +4,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_center_links.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_seller_links.dart';
 
 /// `dives.site_id`, `dives.dive_center_id` and `dives.trip_id` reference
 /// `dive_sites`, `dive_centers` and `trips` with no ON DELETE action. Under `PRAGMA foreign_keys = ON`
@@ -58,6 +59,13 @@ Future<void> clearDiveCenterLinks(
     now: now,
   );
   await clearEquipmentLocationCenterLinks(
+    db,
+    syncRepository,
+    centerIds,
+    now: now,
+  );
+  // Gear bought there keeps the centre's name (issue #5140).
+  await clearEquipmentSellerCenterLinks(
     db,
     syncRepository,
     centerIds,

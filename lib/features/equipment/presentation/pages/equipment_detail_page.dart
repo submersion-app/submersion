@@ -100,6 +100,9 @@ import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart
 import 'package:submersion/shared/widgets/record_editing/record_edit_host.dart';
 import 'package:submersion/shared/widgets/record_editing/record_open_unlocked.dart';
 import 'package:submersion/shared/widgets/record_editing/record_pane_row.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_seller.dart';
 
 part 'equipment_detail_page_creating.dart';
 part 'equipment_detail_page_editing.dart';

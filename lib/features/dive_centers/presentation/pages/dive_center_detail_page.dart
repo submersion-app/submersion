@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/gear_here_section.dart';
+import 'package:submersion/features/equipment/presentation/widgets/gear_bought_from_section.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/rental_gear_section.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_delete_usage.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';

@@ -49,6 +49,9 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_transmitter;
     case 'bagEquipmentId':
       return l10n.settings_conflict_ref_packedIn;
+    case 'sellerBuddyId':
+    case 'sellerDiveCenterId':
+      return l10n.settings_conflict_ref_soldBy;
     case 'linkedDiverId':
       return l10n.settings_conflict_ref_samePerson;
   }
