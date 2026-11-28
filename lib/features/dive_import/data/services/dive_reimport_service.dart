@@ -118,6 +118,10 @@ class DiveReimportService {
     if (diveRow == null) {
       return const DiveReimportResult.skipped(DiveResyncFailure.diveMissing);
     }
+    // The file's cylinder pressures as an import writes them, with each
+    // signal dropout or lead-in reading the import replaced (issue #2441)
+    // replaced again, so a resync never puts one back (issue #4665).
+    final fileData = deglitchDiveTankPressures(diveData);
 
     var profilePreserved = false;
     DiveDataSourcesData? primarySource;
@@ -161,7 +165,7 @@ class DiveReimportService {
           diveRow: await (db.select(
             db.dives,
           )..where((t) => t.id.equals(diveId))).getSingle(),
-          diveData: diveData,
+          diveData: fileData,
           now: now,
           replaceHandSet: replaceHandSet,
         );
@@ -170,34 +174,34 @@ class DiveReimportService {
       if (ownsEverything) {
         final tanks = await _carryOverTanks(
           diveId: diveId,
-          diveData: diveData,
+          diveData: fileData,
           now: now,
         );
 
         await _replaceGasSwitches(
           diveId: diveId,
-          diveData: diveData,
+          diveData: fileData,
           tanks: tanks,
           now: now,
         );
 
         await _replaceTankPressures(
           diveId: diveId,
-          diveData: diveData,
+          diveData: fileData,
           tanks: tanks,
           sourceId: primary?.id,
         );
 
         await _replaceProfile(
           diveId: diveId,
-          diveData: diveData,
+          diveData: fileData,
           source: primary,
           now: now,
         );
 
         await _replaceProfileEvents(
           diveId: diveId,
-          diveData: diveData,
+          diveData: fileData,
           now: now,
         );
 
@@ -213,7 +217,7 @@ class DiveReimportService {
 
       await _updateDataSourceSnapshot(
         primary: primary,
-        diveData: diveData,
+        diveData: fileData,
         now: now,
       );
     });
@@ -225,7 +229,7 @@ class DiveReimportService {
     await settleTransmittersForDives([diveId]);
     final computersAdded = await _addMissingComputers(
       diveId: diveId,
-      diveData: diveData,
+      diveData: fileData,
       primary: primarySource,
       now: now,
     );
