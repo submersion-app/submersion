@@ -70,6 +70,18 @@ the role.
    in point 4 re-runs that deglitch with the tank read as back gas to
    recover the start pressure the import stored.
 
+6. **Resync pairs unordered tanks by identity, never by position alone.**
+   The same test now places every file tank that carries no order
+   (Shearwater Cloud, Subsurface), not just the Hydrotank's role: a tank
+   pairs with the stored cylinder its serial names, or the one its start
+   pressure identifies, or all pair in order when nothing contradicts. A
+   file tank that names no stored cylinder while one is left unplaced
+   writes nothing and adds nothing (the cylinder may be one the diver
+   edited); with none left it is added, as before. The maintainer chose
+   this strict rule over pairing by position whenever the counts match:
+   a later parser fix that moves a header start pressure by more than
+   1 bar on such a dive without serials leaves that cylinder as it was.
+
 ## Known limit
 
 A diver who sets a Hydrotank back to back gas by hand sees it upgraded again

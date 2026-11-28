@@ -75,14 +75,15 @@ void _warnUnreadable(Map<String, dynamic> diveData, Object error) {
 /// span the other.
 ///
 /// [tankIds] are the ids of the dive's tanks, in the order of the parsed
-/// `tanks` list, whose `uddfTankId` is what a series' `tankRef` names. A
-/// series naming no tank of the dive is dropped.
+/// `tanks` list, whose `uddfTankId` is what a series' `tankRef` names; a
+/// null id is a tank a resync placed on no stored cylinder. A series naming
+/// no tank of the dive is dropped.
 ///
 /// Empty when the dive carries no series block, which leaves the restore to
 /// the waypoint pressures as before.
 List<RestoredTankSeries> restoredTankPressureSeries(
   Map<String, dynamic> diveData,
-  List<String> tankIds,
+  List<String?> tankIds,
 ) {
   final entries = diveData[UddfSourceAttribution.seriesKey];
   if (entries is! List || entries.isEmpty) return const [];
@@ -133,13 +134,13 @@ Map<String, ({String? sourceId, String? computerId})> restoredTankAttribution(
 /// [tankIds] are in the order of the parsed `tanks` list.
 Map<String, String> _tankIdByRef(
   Map<String, dynamic> diveData,
-  List<String> tankIds,
+  List<String?> tankIds,
 ) {
   final tanksData = diveData['tanks'];
   return {
     if (tanksData is List)
       for (var i = 0; i < tanksData.length && i < tankIds.length; i++)
         if ((tanksData[i] as Map)['uddfTankId'] case final String ref)
-          ref: tankIds[i],
+          ref: ?tankIds[i],
   };
 }

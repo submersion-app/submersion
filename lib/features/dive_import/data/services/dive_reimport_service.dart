@@ -481,8 +481,13 @@ class DiveReimportService {
   ///
   /// Matching runs in two passes because `order` is not an identity every
   /// parser supplies: an explicit `order` claims the row with that
-  /// `tank_order` first, and whatever is left is paired by list position --
-  /// which is how the import path wrote the rows in the first place.
+  /// `tank_order` first, and whatever is left is paired by what tells the
+  /// cylinders apart, transmitter serial or start pressure, never by
+  /// position alone (see [pairUnorderedTanks], issue #4665). A file tank
+  /// that names no stored cylinder while one is left unplaced is skipped,
+  /// writing nothing and adding nothing: the cylinder may be one the diver
+  /// edited, and a copy of it would be a duplicate. One with no stored
+  /// cylinder left is added, as a tank the file gained.
   ///
   /// An existing tank the fresh parse no longer reports is KEPT. `dive_tanks`
   /// carries no provenance, so a stage cylinder the diver added by hand is
@@ -530,23 +535,27 @@ class DiveReimportService {
       for (final row in existing)
         if (!claimed.contains(row.id)) row,
     ];
-    var nextUnclaimed = 0;
-    for (var i = 0; i < tanksData.length; i++) {
-      if (matched[i] != null || nextUnclaimed >= unclaimed.length) continue;
-      matched[i] = unclaimed[nextUnclaimed++];
-    }
-
-    // Shearwater Cloud tanks carry no order, so a Hydrotank role lands only
-    // on a row known to be that cylinder, not just the one at its position
-    // (issue #4665).
-    final identified = identifiedHydrotankPairings(
-      rawDiveData: rawDiveData,
-      tanksData: tanksData,
-      matched: matched,
-      stored: existing,
+    final placed = pairUnorderedTanks(
+      fileIndexes: [
+        for (var i = 0; i < tanksData.length; i++)
+          if (matched[i] == null) i,
+      ],
+      rows: unclaimed,
+      serials: [
+        for (final t in tanksData)
+          normalizeTransmitterSerial(t['transmitterSerial'] as String?),
+      ],
+      starts: storedStartCandidates(
+        rawDiveData: rawDiveData,
+        tanksData: tanksData,
+      ),
     );
+    for (final MapEntry(key: i, value: row) in placed.entries) {
+      matched[i] = row;
+    }
+    final storedLeftUnplaced = unclaimed.length > placed.length;
 
-    final idsByIndex = <String>[];
+    final idsByIndex = <String?>[];
     for (var i = 0; i < tanksData.length; i++) {
       final t = tanksData[i];
       final startPressure = _asDouble(t['startPressure']);
@@ -603,12 +612,11 @@ class DiveReimportService {
             // import has no re-parse for (issue #4665). Written before the
             // transmitter setup below, which fills only a back gas.
             tankRole:
-                identified[i] &&
-                    upgradesToHydrotank(
-                      storedRole: row.tankRole,
-                      storedRoleSource: row.roleSource,
-                      parsedRole: fileRole,
-                    )
+                upgradesToHydrotank(
+                  storedRole: row.tankRole,
+                  storedRoleSource: row.roleSource,
+                  parsedRole: fileRole,
+                )
                 ? Value(TankRole.hydrotank.name)
                 : const Value.absent(),
           ),
@@ -618,6 +626,10 @@ class DiveReimportService {
           recordId: row.id,
           localUpdatedAt: now.millisecondsSinceEpoch,
         );
+      } else if (storedLeftUnplaced) {
+        // No stored cylinder is known to be this tank, and one is left that
+        // might be: write nothing to either, and add no copy.
+        idsByIndex.add(null);
       } else {
         final newId = _uuid.v4();
         idsByIndex.add(newId);
@@ -1003,20 +1015,23 @@ class _ParsedTanks {
 
   factory _ParsedTanks.from({
     required List<Map<String, dynamic>> tanksData,
-    required List<String> idsByIndex,
+    required List<String?> idsByIndex,
   }) {
     final idByTankRef = <String, String>{};
     final idByGasMixRef = <String, String>{};
     for (var i = 0; i < idsByIndex.length && i < tanksData.length; i++) {
+      // A file tank resync could place on no stored cylinder has no id.
+      final id = idsByIndex[i];
+      if (id == null) continue;
       final ref = (tanksData[i]['uddfTankId'] as String?)?.trim();
-      if (ref != null && ref.isNotEmpty) idByTankRef[ref] = idsByIndex[i];
+      if (ref != null && ref.isNotEmpty) idByTankRef[ref] = id;
       // First tank on a given gas wins, matching the import path: several
       // tanks routinely share one mix.
       final mixRef = (tanksData[i]['uddfGasMixRef'] as String?)?.trim();
       if (mixRef != null &&
           mixRef.isNotEmpty &&
           !idByGasMixRef.containsKey(mixRef)) {
-        idByGasMixRef[mixRef] = idsByIndex[i];
+        idByGasMixRef[mixRef] = id;
       }
     }
     return _ParsedTanks._(
@@ -1026,7 +1041,7 @@ class _ParsedTanks {
     );
   }
 
-  final List<String> idsByIndex;
+  final List<String?> idsByIndex;
   final Map<String, String> idByTankRef;
   final Map<String, String> idByGasMixRef;
 

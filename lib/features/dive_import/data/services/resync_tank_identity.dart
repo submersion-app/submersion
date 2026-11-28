@@ -11,12 +11,42 @@ String? parsedTankRoleName(Object? role) => switch (role) {
   _ => null,
 };
 
+/// For each of the file's tanks, the start pressures a stored cylinder that
+/// is that tank may hold (issue #4665): the file's raw start (an import from
+/// before the pressure clean-up, issue #2441, stored it as it was), the
+/// deglitched one in [tanksData], and, for a file with an Avelo Hydrotank,
+/// the one the import stored while it took every tank for back gas.
+///
+/// [tanksData] are the file's tanks as resync writes them, deglitched with
+/// their own roles; [rawDiveData] is the file as parsed.
+List<List<double?>> storedStartCandidates({
+  required Map<String, dynamic> rawDiveData,
+  required List<Map<String, dynamic>> tanksData,
+}) {
+  final rawTanks =
+      (rawDiveData['tanks'] as List?)?.cast<Map<String, dynamic>>() ??
+      tanksData;
+  final hasHydrotank = tanksData.any(
+    (t) => parsedTankRoleName(t['role']) == TankRole.hydrotank.name,
+  );
+  final asImported = hasHydrotank
+      ? _backGasImportStarts(rawDiveData, rawTanks)
+      : const <double?>[];
+  double? startOf(List<Object?> tanks, int i) =>
+      i < tanks.length ? _bar((tanks[i] as Map)['startPressure']) : null;
+
+  return [
+    for (var i = 0; i < tanksData.length; i++)
+      [startOf(rawTanks, i), startOf(tanksData, i), startOf(asImported, i)],
+  ];
+}
+
 /// Each file tank's start pressure as the import stored it while it took
-/// every tank for back gas (issue #4665): resync deglitches with the file's
-/// Hydrotank role, which spares a pump-in at the start, while before the
-/// Hydrotank role the import's deglitch read that pump-in as a lead-in
-/// glitch.
-List<double?> backGasImportStartPressures(
+/// every tank for back gas: resync deglitches with the file's Hydrotank
+/// role, which spares a pump-in at the start, while before the Hydrotank
+/// role the import's deglitch read that pump-in as a lead-in glitch. Each
+/// entry is a tank map holding only its `startPressure`.
+List<Map<String, dynamic>> _backGasImportStarts(
   Map<String, dynamic> diveData,
   List<Map<String, dynamic>> tanksData,
 ) {
@@ -32,112 +62,84 @@ List<double?> backGasImportStartPressures(
   });
   return [
     for (final t in asImported['tanks'] as List)
-      _bar((t as Map)['startPressure']),
+      {'startPressure': (t as Map)['startPressure']},
   ];
-}
-
-/// For each tank of a file with an Avelo Hydrotank, whether the stored row
-/// resync paired it with is known to be that cylinder (see
-/// [identifiedPairings]); none is when the file has no Hydrotank.
-///
-/// [tanksData] are the file's tanks as resync writes them, deglitched with
-/// their own roles; [rawDiveData] is the file as parsed. A stored start
-/// pressure is compared with the raw start (an import from before the
-/// pressure clean-up, issue #2441, stored it as it was), the deglitched one,
-/// and the one the import stored while it took the Hydrotank for back gas.
-List<bool> identifiedHydrotankPairings({
-  required Map<String, dynamic> rawDiveData,
-  required List<Map<String, dynamic>> tanksData,
-  required List<DiveTank?> matched,
-  required List<DiveTank> stored,
-}) {
-  final hasHydrotank = tanksData.any(
-    (t) => parsedTankRoleName(t['role']) == TankRole.hydrotank.name,
-  );
-  if (!hasHydrotank) return List<bool>.filled(tanksData.length, false);
-
-  final rawTanks =
-      (rawDiveData['tanks'] as List?)?.cast<Map<String, dynamic>>() ??
-      tanksData;
-  final asImported = backGasImportStartPressures(rawDiveData, rawTanks);
-  double? startOf(List<Map<String, dynamic>> tanks, int i) =>
-      i < tanks.length ? _bar(tanks[i]['startPressure']) : null;
-
-  return identifiedPairings(
-    matched: matched,
-    stored: stored,
-    serials: [
-      for (final t in tanksData)
-        normalizeTransmitterSerial(t['transmitterSerial'] as String?),
-    ],
-    starts: [
-      for (var i = 0; i < tanksData.length; i++)
-        [
-          startOf(rawTanks, i),
-          startOf(tanksData, i),
-          i < asImported.length ? asImported[i] : null,
-        ],
-    ],
-  );
 }
 
 double? _bar(Object? value) => value is num ? value.toDouble() : null;
 
-/// For each file tank, whether the stored row resync paired it with
-/// ([matched], by position for Shearwater Cloud, whose tanks carry no order)
-/// is known to be that cylinder (issue #4665).
+/// Pairs the file tanks the `order` pass left unplaced ([fileIndexes], in
+/// file order) with the stored cylinders it left unclaimed ([rows], in
+/// stored order), by what tells a cylinder apart, never by position alone
+/// (issue #4665): Shearwater Cloud and Subsurface tanks carry no order, and
+/// a diver who removed or reordered a cylinder shifts every position after
+/// it. Returns the stored row for each file index it places.
 ///
-/// A transmitter serial both name settles it. Otherwise the stored start
-/// pressure must agree with one of the tank's [starts] (raw, or as the
-/// import stored it), and that agreement must say which cylinder it is:
-/// either every stored cylinder pairs in order and every pair agrees, which
+/// When every unplaced tank lines up with an unclaimed row in order and no
+/// pair contradicts itself (serials that differ, or a stored start pressure
+/// that agrees with none of the tank's [starts]), they pair in order, which
 /// settles two cylinders filled to the same pressure as Cloud import pairs
-/// them, or the pressure matches this one tank and this one stored row
-/// only. A pressure another cylinder shares names neither.
-List<bool> identifiedPairings({
-  required List<DiveTank?> matched,
-  required List<DiveTank> stored,
+/// them. Otherwise a tank pairs with the one row whose transmitter serial it
+/// names, or else with the one row whose start pressure agrees and whose
+/// serial does not contradict it, and only when no other unplaced tank
+/// points at that row too. Anything less certain stays unplaced.
+Map<int, DiveTank> pairUnorderedTanks({
+  required List<int> fileIndexes,
+  required List<DiveTank> rows,
   required List<String?> serials,
   required List<List<double?>> starts,
 }) {
-  bool agrees(DiveTank row, List<double?> candidates) {
+  String? storedSerial(DiveTank row) =>
+      normalizeTransmitterSerial(row.transmitterSerial);
+  bool sameSerial(DiveTank row, int i) {
+    final stored = storedSerial(row);
+    return stored != null && serials[i] != null && stored == serials[i];
+  }
+
+  bool serialsConflict(DiveTank row, int i) {
+    final stored = storedSerial(row);
+    return stored != null && serials[i] != null && stored != serials[i];
+  }
+
+  bool pressureAgrees(DiveTank row, int i) {
     final bar = row.startPressure;
     return bar != null &&
-        candidates.any((p) => p != null && sameCylinderStartPressure(bar, p));
+        starts[i].any((p) => p != null && sameCylinderStartPressure(bar, p));
   }
 
-  // Whether serials both sides name contradict each other: the pair is then
-  // two different cylinders, and the order they sit in proves nothing.
-  bool serialsConflict(DiveTank row, String? serial) {
-    final storedSerial = normalizeTransmitterSerial(row.transmitterSerial);
-    return storedSerial != null && serial != null && storedSerial != serial;
+  final inOrder =
+      rows.length == fileIndexes.length &&
+      [for (var k = 0; k < rows.length; k++) (rows[k], fileIndexes[k])].every(
+        (pair) =>
+            !serialsConflict(pair.$1, pair.$2) &&
+            (sameSerial(pair.$1, pair.$2) ||
+                pair.$1.startPressure == null ||
+                pressureAgrees(pair.$1, pair.$2)),
+      );
+  if (inOrder) {
+    return {for (var k = 0; k < rows.length; k++) fileIndexes[k]: rows[k]};
   }
 
-  var inSlotOrder = stored.length == matched.length;
-  for (var i = 0; inSlotOrder && i < matched.length; i++) {
-    final row = matched[i];
-    inSlotOrder =
-        row != null &&
-        !serialsConflict(row, serials[i]) &&
-        agrees(row, starts[i]);
+  List<DiveTank> candidatesFor(int i) {
+    final bySerial = [
+      for (final row in rows)
+        if (sameSerial(row, i)) row,
+    ];
+    if (bySerial.isNotEmpty) return bySerial;
+    return [
+      for (final row in rows)
+        if (!serialsConflict(row, i) && pressureAgrees(row, i)) row,
+    ];
   }
 
-  return [
-    for (var i = 0; i < matched.length; i++)
-      if (matched[i] case final row?)
-        switch ((
-          normalizeTransmitterSerial(row.transmitterSerial),
-          serials[i],
-        )) {
-          (final String storedSerial, final String serial) =>
-            storedSerial == serial,
-          _ =>
-            agrees(row, starts[i]) &&
-                (inSlotOrder ||
-                    (stored.where((r) => agrees(r, starts[i])).length == 1 &&
-                        starts.where((s) => agrees(row, s)).length == 1)),
-        }
-      else
-        false,
-  ];
+  final candidates = {for (final i in fileIndexes) i: candidatesFor(i)};
+  return {
+    for (final MapEntry(key: i, value: rowsFor) in candidates.entries)
+      if (rowsFor case [final row]
+          when candidates.values
+                  .where((others) => others.any((r) => r.id == row.id))
+                  .length ==
+              1)
+        i: row,
+  };
 }
