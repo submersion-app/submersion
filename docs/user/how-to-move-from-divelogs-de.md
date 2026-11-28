@@ -9,7 +9,7 @@ You can run the same import again later; Submersion brings in only what is new.
 | Comes across | Does not come across |
 |---|---|
 | Dives, with depth and temperature profiles | Heart rate, gas switches, events and deco data |
-| Tanks, with gas and pressures | Dive numbers, ratings, trips and tags |
+| Cylinders, with gas and pressures | Dive numbers, ratings, trips and tags |
 | Dive sites, with coordinates | Buddies as people: each dive's buddy is kept as text |
 | Gear, linked to the dives you used it on | Your dive computer as a device (its model is kept as text) |
 | Certifications | |
@@ -59,7 +59,7 @@ Any dive that looks like one already in Submersion is listed under **Potential D
 
 ## Check it worked
 
-When **Successfully Imported** appears, the summary counts the dives, sites, gear, certifications and **Photos attached**. Tap **View Dives**, and open a dive to see its site, tanks, gear and photos.
+When **Successfully Imported** appears, the summary counts the dives, sites, gear, certifications and **Photos attached**. Tap **View Dives**, and open a dive to see its site, cylinders, gear and photos.
 
 ## Getting new dives later
 

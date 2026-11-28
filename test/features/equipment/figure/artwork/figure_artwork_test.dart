@@ -13,8 +13,8 @@ import 'package:submersion/features/equipment/figure/domain/figure_space.dart';
 /// file honest: its digest must match the sources it was built from, and
 /// every path must parse and stay inside the figure box.
 void main() {
-  test('the generated artwork matches tool/figure', () {
-    final dir = Directory(p.join('tool', 'figure'));
+  test('the generated artwork matches scripts/artwork/figure', () {
+    final dir = Directory(p.join('scripts', 'artwork', 'figure'));
     final files =
         dir
             .listSync()
@@ -39,7 +39,7 @@ void main() {
     expect(
       figureArtworkDigest,
       sha256.convert(bytes).toString(),
-      reason: 'run: python3 tool/build_figure_artwork.py',
+      reason: 'run: python3 scripts/artwork/build_figure_artwork.py',
     );
   });
 

@@ -59,6 +59,8 @@ class DiveSpeciesPhotoViewerPage extends ConsumerWidget {
           initialMediaId: initialMediaId ?? mediaList.first.id,
           // Every photo is on the dive the viewer was opened from.
           showGoToDive: false,
+          // Its videos start at the species' sightings (issue #5084).
+          focusSpeciesId: speciesId,
         );
       },
       loading: () => const Scaffold(

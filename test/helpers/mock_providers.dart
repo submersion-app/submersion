@@ -71,6 +71,7 @@ import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_p
 import 'package:submersion/features/demo_mode/domain/demo_manifest.dart';
 import 'package:submersion/core/services/nearby/nearby_link_manager.dart';
 import 'package:submersion/features/settings/presentation/providers/nearby_providers.dart';
+import 'package:submersion/core/constants/profile_zoom_mode.dart';
 
 import '../support/fake_nearby_link_manager.dart';
 
@@ -81,6 +82,9 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   MockSettingsNotifier([AppSettings? initial])
     : super(initial ?? const AppSettings());
+
+  @override
+  Future<void> reload() async {}
 
   /// Already "loaded": the mock's state is supplied up front, so nothing
   /// awaits a database read.
@@ -940,6 +944,15 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setProfileMetricsFollowViewport(bool value) async =>
       state = state.copyWith(profileMetricsFollowViewport: value);
+
+  @override
+  Future<void> setProfileZoomMode(ProfileZoomMode mode) async =>
+      state = state.copyWith(
+        profileZoomTimeOnly: mode == ProfileZoomMode.timeOnly,
+        profileMetricsFollowViewport: mode == ProfileZoomMode.timeOnly
+            ? state.profileMetricsFollowViewport
+            : mode == ProfileZoomMode.keepOverlaysInView,
+      );
 
   @override
   Future<void> setPerdixOverlayEnabled(bool value) async =>

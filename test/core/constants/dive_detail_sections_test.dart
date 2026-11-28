@@ -561,7 +561,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.tanks.description,
-        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption',
+        'Cylinder list, gas mixes, pressures, MOD/MND, per-cylinder consumption',
       );
       expect(DiveDetailSectionId.buddies.description, 'Buddy list with roles');
       expect(
@@ -718,7 +718,7 @@ void main() {
       );
       expect(
         DiveDetailSectionId.tanks.localizedDescription(l10n),
-        'Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption',
+        'Cylinder list, gas mixes, pressures, MOD/MND, per-cylinder consumption',
       );
       expect(
         DiveDetailSectionId.buddies.localizedDescription(l10n),

@@ -324,3 +324,72 @@ Widget buildBehaviorItem(
     ),
   );
 }
+
+/// A row that names a setting and shows its current [value], opening a menu
+/// of choices on tap (the Zoom and Right axis rows, issue #5069). The label
+/// sits above the value so a long value wraps instead of crowding the label
+/// at phone width.
+Widget buildMenuRow(
+  BuildContext context, {
+  required String label,
+  required String value,
+  required void Function(BuildContext rowContext) onTap,
+  Key? key,
+}) {
+  final colorScheme = Theme.of(context).colorScheme;
+  final textTheme = Theme.of(context).textTheme;
+  return Builder(
+    key: key,
+    builder: (rowContext) => MergeSemantics(
+      child: Semantics(
+        button: true,
+        value: value,
+        child: InkWell(
+          onTap: () => onTap(rowContext),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: textTheme.labelMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(value, style: TextStyle(color: colorScheme.primary)),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_drop_down,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+/// Where a menu opened from [rowContext]'s row should appear: just under it,
+/// spanning its width.
+RelativeRect menuPositionBelow(BuildContext rowContext) {
+  final box = rowContext.findRenderObject()! as RenderBox;
+  final overlay =
+      Overlay.of(rowContext).context.findRenderObject()! as RenderBox;
+  final topLeft = box.localToGlobal(
+    Offset(0, box.size.height),
+    ancestor: overlay,
+  );
+  return RelativeRect.fromRect(
+    topLeft & Size(box.size.width, 0),
+    Offset.zero & overlay.size,
+  );
+}

@@ -52,15 +52,41 @@ class EquipmentFoldsNotifier extends Notifier<List<String>> {
     );
   }
 
-  /// Opens every group.
-  void expandAll() => _apply((_) => const []);
+  /// Whether every assembly starts open (issue #5071): while a filter is
+  /// on, so a matching part is never hidden inside a folded assembly. See
+  /// `resolveCollapsedKeys` for what a stored assembly key means then.
+  bool get assembliesStartOpen => _sessionOnly;
+
+  /// Opens every group and every assembly in [assemblyIds].
+  void expandAll({Iterable<String> assemblyIds = const []}) {
+    final opened = assembliesStartOpen
+        ? const <String>[]
+        : [for (final id in assemblyIds) assemblyFoldKey(id)];
+    // Kept to the cap like every other write, so the next toggle trims
+    // nothing the diver just opened.
+    final overflow = opened.length - kMaxStoredFoldKeys;
+    _apply(
+      (_) => List.unmodifiable(overflow > 0 ? opened.skip(overflow) : opened),
+    );
+  }
 
   /// Folds [outer], the outermost groups on screen (the places when the
-  /// list groups by location, the types otherwise), keeping the inner folds.
-  void collapseAll(List<String> outer) {
+  /// list groups by location, the types otherwise), keeping the inner folds,
+  /// and folds every assembly in [assemblyIds].
+  void collapseAll(
+    List<String> outer, {
+    Iterable<String> assemblyIds = const [],
+  }) {
+    final startOpen = assembliesStartOpen;
     _apply((keys) {
-      var next = keys;
-      for (final key in outer) {
+      var next = startOpen
+          ? keys
+          : List<String>.unmodifiable(keys.where((k) => !isAssemblyFoldKey(k)));
+      for (final key in [
+        ...outer,
+        if (startOpen)
+          for (final id in assemblyIds) assemblyFoldKey(id),
+      ]) {
         if (!next.contains(key)) next = toggleFoldKey(next, key);
       }
       return next;

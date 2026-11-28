@@ -34,6 +34,7 @@ const _record = CatalogueSite(
   difficulty: SiteDifficulty.advanced,
   hazards: 'Current',
   description: 'Cargo ship, lost 1941',
+  website: ' https://thistlegorm.example ',
   source: 'ukho',
 );
 
@@ -144,6 +145,7 @@ void main() {
     expect(site.difficulty, SiteDifficulty.advanced);
     expect(site.hazards, 'Current');
     expect(site.description, 'Cargo ship, lost 1941');
+    expect(site.website, 'https://thistlegorm.example');
     expect(await typesOf(), {'wreck'});
     // The site had a position: it is not a field that can be written.
     expect(

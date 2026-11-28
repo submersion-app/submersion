@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/platform/host_platform.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/features/buddies/domain/services/buddy_card_codec.dart';
 import 'package:submersion/features/buddies/presentation/utils/open_buddy_card.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -122,11 +123,14 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
     // dropped there earns the hint rather than ending in silence.
     final mediaPaths = <String>[];
     final diveLogPaths = <String>[];
+    final folderPaths = <String>{};
     for (final xFile in details.files) {
       final path = xFile.path;
       if (path.isEmpty) continue;
       if (FileSystemEntity.isDirectorySync(path)) {
-        mediaPaths.addAll(await compute(scanFolderForMediaFiles, path));
+        final found = await compute(scanFolderForMediaFiles, path);
+        mediaPaths.addAll(found);
+        folderPaths.addAll(found);
         diveLogPaths.addAll(await scanFolderForImportableFiles(path));
       } else if (isLinkableMediaPath(path)) {
         mediaPaths.add(path);
@@ -146,7 +150,13 @@ class _GlobalDropTargetState extends ConsumerState<GlobalDropTarget> {
       } else {
         // Awaited, so dive logs in the same drop open their wizard only
         // after the media importer closes, rather than underneath it.
-        await widget.onMediaDrop(context, ref, mediaDestination, mediaPaths);
+        await widget.onMediaDrop(
+          context,
+          ref,
+          mediaDestination,
+          mediaPaths,
+          folderPaths: folderPaths,
+        );
         if (!mounted) return;
       }
     }
@@ -284,7 +294,7 @@ class _FrostedDropOverlay extends StatelessWidget {
                         color: const Color(0x9964B4FF),
                         width: 2,
                       ),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(Radii.r16),
                     ),
                     child: const Icon(
                       Icons.upload_file,
@@ -292,7 +302,7 @@ class _FrostedDropOverlay extends StatelessWidget {
                       color: Color(0xCC64B4FF),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: Spacing.s16),
                   Text(
                     l10n.dropTarget_title,
                     style: const TextStyle(
@@ -301,7 +311,7 @@ class _FrostedDropOverlay extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: Spacing.s4),
                   Text(
                     l10n.dropTarget_subtitle,
                     style: const TextStyle(

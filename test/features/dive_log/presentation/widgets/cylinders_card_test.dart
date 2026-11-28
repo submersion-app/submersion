@@ -479,7 +479,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Tank 1'), findsOneWidget);
+      expect(find.text('Cylinder 1'), findsOneWidget);
     });
 
     testWidgets('every tank gets its own figure', (tester) async {
@@ -1328,7 +1328,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      expect(find.text('Truck 2 · Bottle 14'), findsOneWidget);
+      expect(find.text('Truck 2 · Cylinder 14'), findsOneWidget);
     });
 
     testWidgets('an unlinked tank shows no trip cylinder line', (tester) async {
@@ -1337,7 +1337,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.byKey(const Key('tank-trip-cylinder-tank-1')), findsNothing);
-      expect(find.textContaining('Bottle'), findsNothing);
+      expect(find.textContaining(' · Cylinder'), findsNothing);
     });
   });
 

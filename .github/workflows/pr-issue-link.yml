@@ -4,7 +4,7 @@ name: PR Issue Link
 # closing keyword (`Closes #N`) when it resolves the issue, or `Refs #N` /
 # `Part of #N` / `Related to #N` when it does not. Without the keyword GitHub
 # leaves a resolved issue open after the merge. The rule itself lives in
-# scripts/check_pr_issue_link.py, which Script Tests in ci.yaml unit-tests.
+# scripts/checks/check_pr_issue_link.py, which Script Tests in ci.yaml unit-tests.
 #
 # Kept out of ci.yaml on purpose. The check has to re-run when the description
 # is edited, and adding `edited` to ci.yaml's triggers would restart the whole
@@ -70,7 +70,7 @@ jobs:
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
           AUTHOR_TYPE: ${{ github.event.pull_request.user.type }}
         run: |
-          python3 scripts/check_pr_issue_link.py \
+          python3 scripts/checks/check_pr_issue_link.py \
             --body-file "${RUNNER_TEMP}/pr_body.md" \
             --branch "$HEAD_REF" \
             --author-type "$AUTHOR_TYPE" \

@@ -193,7 +193,7 @@ void main() {
       contains(colors[ProfileMetric.density]),
     );
     expect(
-      _rowColors(tester, 'Tank 1').map((c) => c.toARGB32()),
+      _rowColors(tester, 'Cylinder 1').map((c) => c.toARGB32()),
       contains(tankFallbackColor(0).toARGB32()),
     );
   });

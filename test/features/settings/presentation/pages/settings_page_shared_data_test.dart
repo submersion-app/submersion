@@ -62,6 +62,7 @@ import 'package:submersion/features/gas_calculators/domain/blending/blender_pref
 import 'package:submersion/core/constants/o2_cell_unit.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
+import 'package:submersion/core/constants/profile_zoom_mode.dart';
 
 import '../../../../helpers/shared_items_fixture.dart';
 
@@ -182,6 +183,9 @@ class _FakeAppSettingsRepository implements AppSettingsRepository {
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _MockSettingsNotifier() : super(const AppSettings());
+
+  @override
+  Future<void> reload() async {}
 
   /// Already "loaded": the mock's state is supplied up front.
   @override
@@ -1027,6 +1031,15 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setProfileMetricsFollowViewport(bool value) async =>
       state = state.copyWith(profileMetricsFollowViewport: value);
+
+  @override
+  Future<void> setProfileZoomMode(ProfileZoomMode mode) async =>
+      state = state.copyWith(
+        profileZoomTimeOnly: mode == ProfileZoomMode.timeOnly,
+        profileMetricsFollowViewport: mode == ProfileZoomMode.timeOnly
+            ? state.profileMetricsFollowViewport
+            : mode == ProfileZoomMode.keepOverlaysInView,
+      );
 
   @override
   Future<void> setPerdixOverlayEnabled(bool value) async =>

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
+import 'package:submersion/shared/widgets/forms/form_style.dart';
+
 /// Muted explanatory text under a [FormOverline], aligned with its label:
 /// says what a sub-list is for when that is not obvious from its name.
 class FormCaption extends StatelessWidget {
@@ -11,7 +14,12 @@ class FormCaption extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 2, 14, 6),
+      padding: const EdgeInsets.fromLTRB(
+        FormStyle.rowInset,
+        Spacing.s2,
+        FormStyle.rowInset,
+        Spacing.s6,
+      ),
       child: Text(
         text,
         style: theme.textTheme.bodySmall?.copyWith(

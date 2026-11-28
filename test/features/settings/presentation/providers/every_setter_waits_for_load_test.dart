@@ -17,6 +17,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/constants/o2_cell_unit.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/constants/profile_zoom_mode.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
@@ -274,6 +275,7 @@ Future<void> _changeEverySetting(SettingsNotifier n) {
       !d.siteDetailSections.first.expanded,
     ),
     n.setProfileMetricsFollowViewport(!d.profileMetricsFollowViewport),
+    n.setProfileZoomMode(ProfileZoomMode.timeOnly),
     n.setO2CellUnit(O2CellUnit.values.last),
     n.setCounterdiffusionShowAll(!d.counterdiffusionShowAll),
     n.setPerdixOverlayEnabled(!d.perdixOverlayEnabled),
@@ -365,9 +367,13 @@ void main() {
         'every_setter_waits_for_load_test.dart',
       ),
     ).readAsStringSync();
+    // Public futures that change no setting. reload() reads the stored
+    // settings again for a desktop pop-out's read-only notifier (#5078) and
+    // asserts it is one, so it has no place among the setters above.
+    const notSetters = {'reload'};
     final missing = [
       for (final name in setters)
-        if (!self.contains('n.$name(')) name,
+        if (!notSetters.contains(name) && !self.contains('n.$name(')) name,
     ];
     expect(
       missing,

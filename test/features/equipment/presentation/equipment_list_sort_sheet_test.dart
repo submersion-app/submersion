@@ -127,6 +127,16 @@ void main() {
     expect(find.text('Service Due'), findsOneWidget);
   });
 
+  testWidgets('offers the assembly view switch with the page-only grouping', (
+    tester,
+  ) async {
+    // Issue #5071: only this page folds parts under their assembly.
+    await pumpSheet(tester);
+
+    expect(find.text('Group by location'), findsOneWidget);
+    expect(find.text('Show parts under their assembly'), findsOneWidget);
+  });
+
   testWidgets('does not offer Type, which "Order types by" now owns', (
     tester,
   ) async {

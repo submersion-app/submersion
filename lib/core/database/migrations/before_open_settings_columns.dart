@@ -51,6 +51,9 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // v359 backstop: diver_settings.pin_profile_on_scroll (issue #4423).
     await _assertPinProfileOnScrollColumn();
 
+    // v389 backstop: diver_settings.profile_zoom_time_only (issue #5069).
+    await _assertProfileZoomTimeOnlyColumn();
+
     // v360 backstop: diver_settings.show_country_flags (issue #4426).
     await _assertShowCountryFlagsColumn();
 
@@ -75,7 +78,7 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // v371 backstop: diver_settings.favourite_dive_type_ids (issue #4413).
     await _assertFavouriteDiveTypeIdsColumn();
 
-    // v388 backstop: diver_settings.preferred_currency_codes (issue #4997).
+    // v395 backstop: diver_settings.preferred_currency_codes (issue #4997).
     await _assertPreferredCurrencyCodesColumn();
 
     // v374 backstop: the planner's SCR injection rate and VO2 columns on

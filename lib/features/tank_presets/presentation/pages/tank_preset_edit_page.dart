@@ -4,12 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/tank_preset_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
@@ -31,7 +34,11 @@ typedef TankPresetDraft = ({
 class TankPresetEditPage extends ConsumerStatefulWidget {
   final String? presetId;
 
-  const TankPresetEditPage({super.key, this.presetId});
+  /// A new preset filled from this one, a built-in as a rule (issue #800):
+  /// the diver's own copy to change. Ignored when [presetId] is set.
+  final String? duplicateFromId;
+
+  const TankPresetEditPage({super.key, this.presetId, this.duplicateFromId});
 
   bool get isEditing => presetId != null;
 
@@ -51,6 +58,12 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
 
   bool _isLoading = false;
   TankPresetEntity? _existingPreset;
+
+  /// The preset a duplicate was filled from, and the form as filled: a field
+  /// the diver leaves alone keeps the source's value, not its rounded text
+  /// converted back (issue #800).
+  TankPresetEntity? _duplicateSource;
+  TankPresetDraft? _duplicateFilled;
 
   @override
   void initState() {
@@ -74,7 +87,104 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
       // A new preset starts empty: its sitting opens on the empty form, so
       // the first frame already shows the Cancel and Save bar.
       openEditor();
+      // A duplicate fills it after: the filled form is the change, so Save
+      // works without the diver touching a field.
+      if (widget.duplicateFromId case final sourceId?) {
+        _loadDuplicate(sourceId);
+      }
     }
+  }
+
+  Future<void> _loadDuplicate(String sourceId) async {
+    try {
+      final repository = ref.read(tankPresetRepositoryProvider);
+      final source = await repository.getPresetById(sourceId);
+      if (source == null || !mounted) return;
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      final taken = {
+        for (final p in await repository.getAllPresets(diverId: diverId))
+          p.name,
+      };
+      // The diver began typing while the source loaded: their words stand.
+      if (!mounted || readEditorDraft() != editorStartDraft) return;
+      final l10n = context.l10n;
+      final shownName = source.isBuiltIn
+          ? builtInTankPresetName(l10n, source.name) ?? source.displayName
+          : source.displayName;
+      final copyName = _unusedCopyName(l10n, shownName, taken);
+      setState(() {
+        _fillFrom(source);
+        _displayNameController.text = copyName;
+        // A built-in's stored description is English; the diver reads it
+        // translated, so the copy starts from what they read.
+        if (source.isBuiltIn) {
+          _descriptionController.text =
+              builtInTankPresetDescription(l10n, source.name) ??
+              source.description;
+        }
+        _duplicateSource = source;
+        _duplicateFilled = readEditorDraft();
+      });
+    } catch (e) {
+      // The empty new-preset form stays: the diver can still type one in.
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.l10n.tankPresets_edit_errorLoading(e.toString()),
+            ),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
+  /// The copy's name: `AL80 (copy)`, or `AL80 (copy 2)` and on when a
+  /// preset already has that name. Presets are told apart by their name's
+  /// slug, so two copies named alike would be one preset to every picker
+  /// (issue #800).
+  static String _unusedCopyName(
+    AppLocalizations l10n,
+    String name,
+    Set<String> takenSlugs,
+  ) {
+    var candidate = l10n.tankPresets_duplicateName(name);
+    for (
+      var n = 2;
+      takenSlugs.contains(TankPresetEntity.generateSlug(candidate));
+      n++
+    ) {
+      candidate = l10n.tankPresets_duplicateNameNumbered(name, n);
+    }
+    return candidate;
+  }
+
+  /// Fills the form from [preset] in the diver's units.
+  void _fillFrom(TankPresetEntity preset) {
+    final settings = ref.read(settingsProvider);
+    final units = UnitFormatter(settings);
+    _displayNameController.text = preset.displayName;
+    _descriptionController.text = preset.description;
+    _material = preset.material;
+
+    // Convert volume to user's preferred units
+    if (settings.volumeUnit == VolumeUnit.cubicFeet) {
+      _volumeController.text = formatRoundedForInput(preset.volumeCuft, 1);
+    } else {
+      // A small bottle keeps two decimals, as the tank editor does:
+      // a 0.85 L argon bottle must not save as 0.9 (issue #4243).
+      _volumeController.text = formatRoundedForInput(
+        preset.volumeLiters,
+        UnitFormatter.tankVolumeLiterDecimals(preset.volumeLiters),
+      );
+    }
+
+    // Convert pressure to user's preferred units
+    _workingPressureController.text = formatRoundedForInput(
+      units.convertPressure(preset.workingPressureBar),
+      0,
+    );
   }
 
   Future<void> _loadPreset() async {
@@ -85,35 +195,9 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
       final preset = await repository.getPresetById(widget.presetId!);
 
       if (preset != null && mounted) {
-        final settings = ref.read(settingsProvider);
-        final units = UnitFormatter(settings);
-
         setState(() {
           _existingPreset = preset;
-          _displayNameController.text = preset.displayName;
-          _descriptionController.text = preset.description;
-          _material = preset.material;
-
-          // Convert volume to user's preferred units
-          if (settings.volumeUnit == VolumeUnit.cubicFeet) {
-            _volumeController.text = formatRoundedForInput(
-              preset.volumeCuft,
-              1,
-            );
-          } else {
-            // A small bottle keeps two decimals, as the tank editor does:
-            // a 0.85 L argon bottle must not save as 0.9 (issue #4243).
-            _volumeController.text = formatRoundedForInput(
-              preset.volumeLiters,
-              UnitFormatter.tankVolumeLiterDecimals(preset.volumeLiters),
-            );
-          }
-
-          // Convert pressure to user's preferred units
-          _workingPressureController.text = formatRoundedForInput(
-            units.convertPressure(preset.workingPressureBar),
-            0,
-          );
+          _fillFrom(preset);
         });
         openEditor();
       } else if (preset == null && mounted) {
@@ -408,7 +492,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
     // in a field the diver did not touch is not written back over.
     final existing = _existingPreset;
     final editing = widget.isEditing && existing != null;
-    final start = editing ? editorStartDraft : null;
+    final start = editing ? editorStartDraft : _duplicateFilled;
     final material = _material;
     final nameText = _displayNameController.text;
     final descriptionText = _descriptionController.text;
@@ -432,16 +516,24 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
       }
     }
 
+    // What an untouched field keeps: the stored preset, or a duplicate's
+    // source.
+    final kept = stored ?? (editing ? null : _duplicateSource);
+
     // Convert to storage units (metric)
-    final workingPressureBar = pressureChanged || stored == null
+    final workingPressureBar = pressureChanged || kept == null
         ? units.pressureToBar(pressureDisplay)
-        : stored.workingPressureBar;
-    final volumeLiters = !volumeChanged && stored != null
-        ? stored.volumeLiters
+        : kept.workingPressureBar;
+    final volumeLiters = !volumeChanged && kept != null
+        ? kept.volumeLiters
         : inCuft
         // liters = (cuft * 28.3168) / pressure_bar
         ? (volumeDisplay * 28.3168) / workingPressureBar
         : volumeDisplay;
+
+    // A manufacturer's rating belongs to one volume at one pressure: it
+    // holds while neither changes and goes when either does (issue #800).
+    final sameCylinder = !volumeChanged && !pressureChanged;
 
     // A stored preset is always updated, never created again: with no
     // start draft to compare with, every field counts as changed.
@@ -460,6 +552,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
           workingPressureBar: workingPressureBar,
           material: materialChanged ? material : stored.material,
           description: descriptionChanged ? description : stored.description,
+          clearRatedCapacityCuft: !sameCylinder,
           updatedAt: DateTime.now(),
         ),
       );
@@ -479,6 +572,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
         workingPressureBar: workingPressureBar,
         material: _material,
         description: description,
+        ratedCapacityCuft: sameCylinder ? kept?.ratedCapacityCuft : null,
       ),
     );
   }

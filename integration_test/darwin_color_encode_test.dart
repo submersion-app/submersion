@@ -6,7 +6,7 @@ import 'package:path/path.dart' as p;
 import 'helpers/color_encode_cases.dart';
 import 'helpers/color_encode_in_app.dart';
 
-/// Phase 2 of scripts/run_color_encode_it.sh (issue #3521): the real
+/// Phase 2 of scripts/testing/run_color_encode_it.sh (issue #3521): the real
 /// AVFoundation colour encode on a macOS build. The sandboxed app may not
 /// run ffmpeg, so the script synthesizes the inputs into the app's temp
 /// folder first and checks the outputs afterwards; this test only encodes,

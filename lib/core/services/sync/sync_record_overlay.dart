@@ -68,8 +68,9 @@ String? _compositeId(Object? left, Object? right) {
 ///
 /// The import applies a further rule after this overlay: for the few
 /// columns where null means "never held a value" (the diver's pSCR ratio and
-/// viewport choice, v262), an explicit null is dropped as if omitted, so a
-/// peer with none keeps ours (`_withoutUnsetNulls` in SyncDataSerializer).
+/// viewport choice, v262, and Time only zoom choice, v389), an explicit null
+/// is dropped as if omitted, so a peer with none keeps ours
+/// (`_withoutUnsetNulls` in SyncDataSerializer).
 Map<String, dynamic> overlayOntoLocal(
   String entityType,
   Map<String, dynamic> remote,

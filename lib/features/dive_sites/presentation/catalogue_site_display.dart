@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_sites/domain/services/catalogue_site_mapping.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
@@ -77,12 +78,10 @@ String catalogueSiteSummary(
 /// and it is opened from a button labelled "Website": only a web address
 /// qualifies. A phone number, a mail address or another app's own scheme
 /// would open something else behind that label.
-Uri? catalogueWebsiteUri(String? raw) {
-  final uri = Uri.tryParse(raw?.trim() ?? '');
-  if (uri == null || uri.host.isEmpty) return null;
-  if (uri.scheme != 'https' && uri.scheme != 'http') return null;
-  return uri;
-}
+Uri? catalogueWebsiteUri(String? raw) => switch (catalogueWebsiteText(raw)) {
+  final String text => Uri.parse(text),
+  null => null,
+};
 
 /// What kind of record a built-in site is, in words: a dive site, or a
 /// charted wreck or reef. A register record typed as a wreck (a ship sunk

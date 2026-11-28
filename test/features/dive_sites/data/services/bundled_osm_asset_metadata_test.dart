@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Guards the metadata block that `scripts/dive_site_harvester.py` stamps
+/// Guards the metadata block that `scripts/datasets/dive_sites/dive_site_harvester.py` stamps
 /// onto both of the assets it writes: the site catalogue and the dive
 /// centre list.
 ///

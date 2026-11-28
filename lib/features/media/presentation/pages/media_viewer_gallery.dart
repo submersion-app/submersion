@@ -46,6 +46,9 @@ class _PhotoGallery extends ConsumerStatefulWidget {
   /// hidden.
   final double videoControlsInset;
 
+  /// The species the viewer follows (issue #5084), for the fullscreen bar.
+  final String? focusSpeciesId;
+
   const _PhotoGallery({
     required this.mediaList,
     required this.pageController,
@@ -63,6 +66,7 @@ class _PhotoGallery extends ConsumerStatefulWidget {
     this.identificationsEditable = true,
     this.hideIdentifications = false,
     this.videoControlsInset = 0,
+    this.focusSpeciesId,
   });
 
   @override
@@ -166,6 +170,7 @@ class _PhotoGalleryState extends ConsumerState<_PhotoGallery> {
               identificationsEditable: widget.identificationsEditable,
               hideIdentifications: widget.hideIdentifications,
               controlsInset: widget.videoControlsInset,
+              focusSpeciesId: widget.focusSpeciesId,
             ),
           );
         }

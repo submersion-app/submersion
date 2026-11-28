@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_sites/domain/services/catalogue_site_mapping.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/data/services/catalogue_sea_name.dart';
@@ -296,6 +297,8 @@ void _fill(
         }
       case CatalogueGapField.hazards:
         text(siteHazardsField, record.hazards);
+      case CatalogueGapField.website:
+        text(siteWebsiteField, catalogueWebsiteText(record.website));
       case CatalogueGapField.description:
         if (blank(session.valueOf(siteDescriptionField)) &&
             !blank(record.description)) {

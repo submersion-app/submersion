@@ -26,6 +26,7 @@ const _full = CatalogueSite(
   difficulty: SiteDifficulty.beginner,
   hazards: 'Boat traffic',
   description: 'Pillars.',
+  website: 'https://saltpier.example',
   source: 'osm',
 );
 
@@ -60,6 +61,7 @@ void main() {
       CatalogueGapField.difficulty,
       CatalogueGapField.hazards,
       CatalogueGapField.description,
+      CatalogueGapField.website,
     });
   });
 
@@ -91,6 +93,7 @@ void main() {
       difficulty: SiteDifficulty.advanced,
       hazards: 'None',
       description: 'Mine.',
+      website: 'mine.example',
     );
 
     expect(_offer(filled, siteHasTypes: true), isEmpty);
@@ -330,5 +333,35 @@ void main() {
     const site = DiveSite(id: 's1', name: 'Salt Pier');
 
     expect(_offer(site).toList(), CatalogueGapField.values);
+  });
+
+  group('website (issue #5073)', () {
+    const withSite = CatalogueSite(
+      id: 'r3',
+      name: 'Salt Pier',
+      website: 'https://saltpier.example',
+      source: 'osm',
+    );
+
+    test('is offered to a site without one', () {
+      expect(_offer(_atRecord, record: withSite), {CatalogueGapField.website});
+    });
+
+    test('is not offered over the site\'s own', () {
+      expect(
+        _offer(_atRecord.copyWith(website: 'mine.example'), record: withSite),
+        isEmpty,
+      );
+    });
+
+    test('a value that is not a web address is not offered', () {
+      const phoneOnly = CatalogueSite(
+        id: 'r4',
+        name: 'Salt Pier',
+        website: 'tel:+5997171234',
+        source: 'osm',
+      );
+      expect(_offer(_atRecord, record: phoneOnly), isEmpty);
+    });
   });
 }

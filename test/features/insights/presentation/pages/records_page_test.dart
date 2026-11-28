@@ -46,6 +46,7 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/constants/o2_cell_unit.dart';
+import 'package:submersion/core/constants/profile_zoom_mode.dart';
 
 typedef Override = riverpod.Override;
 
@@ -53,6 +54,9 @@ typedef Override = riverpod.Override;
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _MockSettingsNotifier() : super(const AppSettings());
+
+  @override
+  Future<void> reload() async {}
 
   /// Already "loaded": the mock's state is supplied up front.
   @override
@@ -901,6 +905,15 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setProfileMetricsFollowViewport(bool value) async =>
       state = state.copyWith(profileMetricsFollowViewport: value);
+
+  @override
+  Future<void> setProfileZoomMode(ProfileZoomMode mode) async =>
+      state = state.copyWith(
+        profileZoomTimeOnly: mode == ProfileZoomMode.timeOnly,
+        profileMetricsFollowViewport: mode == ProfileZoomMode.timeOnly
+            ? state.profileMetricsFollowViewport
+            : mode == ProfileZoomMode.keepOverlaysInView,
+      );
 
   @override
   Future<void> setPerdixOverlayEnabled(bool value) async =>

@@ -233,6 +233,30 @@ void main() {
     expect(fake.settings.written.last, EquipmentArrangement.defaults);
   });
 
+  testWidgets('reset keeps the Equipment page assembly view switch', (
+    tester,
+  ) async {
+    // Issue #5071: this sheet does not show the switch, so its reset must
+    // not turn the assembly view back on behind the diver's back.
+    final fake = _FakeSettingsRepository(
+      stored: EquipmentArrangement.defaults.copyWith(
+        groupByType: false,
+        nestParts: false,
+      ),
+    );
+    await pumpSheet(tester, fake);
+
+    await tester.ensureVisible(find.text('Reset to defaults'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Reset to defaults'));
+    await tester.pumpAndSettle();
+
+    expect(
+      fake.settings.written.last,
+      EquipmentArrangement.defaults.copyWith(nestParts: false),
+    );
+  });
+
   testWidgets('a failed save shows a message and leaves state unchanged', (
     tester,
   ) async {
@@ -280,5 +304,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the dive surfaces do not offer the assembly view switch', (
+    tester,
+  ) async {
+    // Issue #5071: the switch acts on the Equipment page alone.
+    await pumpSheet(tester, _FakeSettingsRepository());
+    expect(find.text('Show parts under their assembly'), findsNothing);
   });
 }

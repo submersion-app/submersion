@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row.dart';
 
 /// A detail-page row: a leading icon, a label, and a bold value right
@@ -46,7 +47,7 @@ class IconDetailRow extends StatelessWidget {
         fontWeight: FontWeight.bold,
         color: valueColor,
       ),
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: Spacing.s6),
       copyable: copyable,
     );
     // A copyable row reads as one node by itself, beside its copy button.

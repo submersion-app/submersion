@@ -211,7 +211,7 @@ void main() {
     expect(
       find.descendant(
         of: r,
-        matching: find.textContaining('Truck 1 · Bottle 14'),
+        matching: find.textContaining('Truck 1 · Cylinder 14'),
       ),
       findsOneWidget,
     );
@@ -376,8 +376,8 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('record-gaps')));
     await tester.pumpAndSettle();
-    expect(find.text('Tank 1 · Teric'), findsOneWidget);
-    expect(find.text('Tank 2 · Perdix'), findsOneWidget);
+    expect(find.text('Cylinder 1 · Teric'), findsOneWidget);
+    expect(find.text('Cylinder 2 · Perdix'), findsOneWidget);
   });
 
   testWidgets('sources naming no computer are named by their file', (
@@ -424,8 +424,8 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('record-gaps')));
     await tester.pumpAndSettle();
-    expect(find.text('Tank 1 · morning.csv'), findsOneWidget);
-    expect(find.text('Tank 2 · buddy.csv'), findsOneWidget);
+    expect(find.text('Cylinder 1 · morning.csv'), findsOneWidget);
+    expect(find.text('Cylinder 2 · buddy.csv'), findsOneWidget);
   });
 
   testWidgets('a single-computer dive\'s gap names no computer', (
@@ -459,7 +459,7 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('record-gaps')));
     await tester.pumpAndSettle();
-    expect(find.text('Tank 1'), findsOneWidget);
+    expect(find.text('Cylinder 1'), findsOneWidget);
   });
 
   testWidgets('the open gaps sheet follows the record', (tester) async {

@@ -59,7 +59,7 @@ CylinderConfigItem _item(
 
 final _saved = CylinderConfig(
   id: 'cfg',
-  name: 'Saved tanks',
+  name: 'Saved cylinders',
   items: [
     _item('i1', 'D12', volume: 24),
     _item('i2', 'S80 EAN50', o2: 50, role: TankRole.deco),
@@ -134,9 +134,9 @@ Future<void> _saveOnlyPlanTank(WidgetTester tester) async {
   );
   final planTank = container.read(divePlanNotifierProvider).tanks.single;
 
-  await tester.tap(find.textContaining('Saved tanks'));
+  await tester.tap(find.textContaining('Saved cylinders'));
   await tester.pumpAndSettle();
-  await tester.tap(find.text('Save a tank'));
+  await tester.tap(find.text('Save a cylinder'));
   await tester.pumpAndSettle();
   await tester.tap(
     find.descendant(
@@ -168,7 +168,7 @@ void main() {
     await tester.pumpWidget(_harness([_saved]));
     await tester.pumpAndSettle();
 
-    expect(find.text('Saved tanks (2)'), findsOneWidget);
+    expect(find.text('Saved cylinders (2)'), findsOneWidget);
     expect(find.text('D12'), findsNothing);
     expect(find.byIcon(Icons.expand_more), findsOneWidget);
   });
@@ -179,13 +179,13 @@ void main() {
     await tester.pumpWidget(_harness([_saved]));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Saved tanks (2)'));
+    await tester.tap(find.text('Saved cylinders (2)'));
     await tester.pumpAndSettle();
 
     expect(find.text('D12'), findsOneWidget);
     expect(find.text('S80 EAN50'), findsOneWidget);
     expect(find.byIcon(Icons.expand_less), findsOneWidget);
-    expect(find.text('Save a tank'), findsOneWidget);
+    expect(find.text('Save a cylinder'), findsOneWidget);
     expect(find.text('Manage'), findsOneWidget);
   });
 
@@ -199,7 +199,7 @@ void main() {
     );
     final before = container.read(divePlanNotifierProvider).tanks.length;
 
-    await tester.tap(find.text('Saved tanks (2)'));
+    await tester.tap(find.text('Saved cylinders (2)'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('S80 EAN50'));
     await tester.pumpAndSettle();
@@ -221,9 +221,9 @@ void main() {
     await tester.pumpWidget(_harness([_saved]));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Saved tanks (2)'));
+    await tester.tap(find.text('Saved cylinders (2)'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Save a tank'));
+    await tester.tap(find.text('Save a cylinder'));
     await tester.pumpAndSettle();
 
     // The default plan has one tank; the menu lists it.
@@ -235,8 +235,8 @@ void main() {
     await tester.tap(menuEntry);
     await tester.pumpAndSettle();
 
-    expect(find.text('Save tank as'), findsOneWidget);
-    expect(find.text('Tank name'), findsOneWidget);
+    expect(find.text('Save cylinder as'), findsOneWidget);
+    expect(find.text('Cylinder name'), findsOneWidget);
     expect(find.text('Plan Name'), findsNothing);
   });
 
@@ -296,9 +296,9 @@ void main() {
         );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Saved tanks'));
+    await tester.tap(find.text('Saved cylinders'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Save a tank'));
+    await tester.tap(find.text('Save a cylinder'));
     await tester.pumpAndSettle();
     await tester.tap(
       find.descendant(
@@ -323,10 +323,10 @@ void main() {
     await tester.pumpWidget(_harness(const []));
     await tester.pumpAndSettle();
 
-    expect(find.text('Saved tanks'), findsOneWidget);
-    await tester.tap(find.text('Saved tanks'));
+    expect(find.text('Saved cylinders'), findsOneWidget);
+    await tester.tap(find.text('Saved cylinders'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('No saved tanks yet'), findsOneWidget);
+    expect(find.textContaining('No saved cylinders yet'), findsOneWidget);
   });
   testWidgets('Manage opens the cylinder configurations page', (tester) async {
     String? pushedPath;
@@ -359,7 +359,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Saved tanks (2)'));
+    await tester.tap(find.text('Saved cylinders (2)'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Manage'));
     await tester.pumpAndSettle();
@@ -368,8 +368,31 @@ void main() {
     expect(find.byType(PlanSavedTanksBar), findsNothing);
   });
 
-  testWidgets('saving into an existing Saved tanks folder appends to it '
+  testWidgets('saving into an existing Saved cylinders folder appends to it '
       'instead of creating another', (tester) async {
+    final folder = CylinderConfig(
+      id: 'folder',
+      name: 'Saved cylinders',
+      items: [_item('i1', 'D12', volume: 24)],
+      createdAt: _now,
+      updatedAt: _now,
+    );
+    final repository = _FakeConfigRepository(configs: [folder]);
+    await tester.pumpWidget(_barHarness(repository));
+    await tester.pumpAndSettle();
+
+    await _saveOnlyPlanTank(tester);
+
+    expect(repository.createConfigCalls, 0);
+    expect(repository.savedConfigId, 'folder');
+    final labels = repository.savedItems!.map((item) => item.label).toList();
+    expect(labels, ['D12', 'Primary']);
+    expect(repository.savedItems!.first.id, 'i1');
+    expect(find.text('Cylinder saved'), findsOneWidget);
+  });
+
+  testWidgets('a folder named before the cylinder rename is still the one '
+      'saves go to (#5106)', (tester) async {
     final folder = CylinderConfig(
       id: 'folder',
       name: 'Saved tanks',
@@ -388,7 +411,7 @@ void main() {
     final labels = repository.savedItems!.map((item) => item.label).toList();
     expect(labels, ['D12', 'Primary']);
     expect(repository.savedItems!.first.id, 'i1');
-    expect(find.text('Tank saved'), findsOneWidget);
+    expect(find.text('Cylinder saved'), findsOneWidget);
   });
 
   testWidgets('a repository failure while saving surfaces as a snackbar', (
@@ -407,7 +430,7 @@ void main() {
     expect(repository.savedItems, isNull);
     expect(find.byType(SnackBar), findsOneWidget);
     expect(find.textContaining('disk full'), findsOneWidget);
-    expect(find.text('Tank saved'), findsNothing);
+    expect(find.text('Cylinder saved'), findsNothing);
   });
 
   testWidgets('with no plan tanks the save menu is greyed out and inert', (
@@ -424,7 +447,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Saved tanks'));
+    await tester.tap(find.text('Saved cylinders'));
     await tester.pumpAndSettle();
 
     final menu = tester.widget<PopupMenuButton<DiveTank>>(
@@ -436,7 +459,7 @@ void main() {
     expect(icon.color!.a, closeTo(0.38, 0.01));
     expect(icon.color, isNot(theme.colorScheme.primary));
 
-    await tester.tap(find.text('Save a tank'));
+    await tester.tap(find.text('Save a cylinder'));
     await tester.pumpAndSettle();
     expect(find.byType(PopupMenuItem<DiveTank>), findsNothing);
   });
@@ -453,8 +476,8 @@ void main() {
     await tester.pumpWidget(_harness([withSuit]));
     await tester.pumpAndSettle();
 
-    expect(find.text('Saved tanks (2)'), findsOneWidget);
-    await tester.tap(find.text('Saved tanks (2)'));
+    expect(find.text('Saved cylinders (2)'), findsOneWidget);
+    await tester.tap(find.text('Saved cylinders (2)'));
     await tester.pumpAndSettle();
     expect(find.text('Argon'), findsNothing);
   });

@@ -26,6 +26,7 @@ import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/core/constants/profile_zoom_mode.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_types/domain/favourite_dive_types.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
@@ -193,6 +194,10 @@ class SettingsKeys {
   // when zoomed. Per-diver since v262; see [pscrRatio].
   static const String profileMetricsFollowViewport =
       'profile_metrics_follow_viewport';
+
+  // Whether the profile chart zooms time alone (issue #5069). Per-diver
+  // since v389, stored and adopted like [profileMetricsFollowViewport].
+  static const String profileZoomTimeOnly = 'profile_zoom_time_only';
 
   // Which unit the O2 cell traces are drawn in when a dive carries both
   // (device-local, a viewing preference stored directly in
@@ -846,6 +851,18 @@ class AppSettings implements UnitFormatterSettings {
   /// (synced) since v262. See MetricBand.
   final bool profileMetricsFollowViewport;
 
+  /// Whether zooming the dive profile chart scales the time axis alone,
+  /// keeping the whole depth range (issue #5069). Wins over
+  /// [profileMetricsFollowViewport], which it pairs with as one Zoom choice.
+  /// Per-diver (synced) since v389.
+  final bool profileZoomTimeOnly;
+
+  /// The Zoom choice the two flags above stand for.
+  ProfileZoomMode get profileZoomMode => ProfileZoomMode.fromFlags(
+    timeOnly: profileZoomTimeOnly,
+    followViewport: profileMetricsFollowViewport,
+  );
+
   /// Unit for the per-cell O2 traces on dives that log both a calibrated ppO2
   /// and the raw cell output. The two are the same measurement one calibration
   /// constant apart, so only one is drawn.
@@ -1086,6 +1103,7 @@ class AppSettings implements UnitFormatterSettings {
     this.homeHeaderStylePhone,
     this.homeHeaderStyleWide,
     this.profileMetricsFollowViewport = false,
+    this.profileZoomTimeOnly = false,
     this.o2CellUnit = O2CellUnit.ppO2,
     this.counterdiffusionShowAll = false,
     this.perdixOverlayEnabled = false,
@@ -1341,6 +1359,7 @@ class AppSettings implements UnitFormatterSettings {
     String? homeHeaderStylePhone,
     String? homeHeaderStyleWide,
     bool? profileMetricsFollowViewport,
+    bool? profileZoomTimeOnly,
     O2CellUnit? o2CellUnit,
     bool? counterdiffusionShowAll,
     bool? perdixOverlayEnabled,
@@ -1633,6 +1652,7 @@ class AppSettings implements UnitFormatterSettings {
       homeHeaderStyleWide: homeHeaderStyleWide ?? this.homeHeaderStyleWide,
       profileMetricsFollowViewport:
           profileMetricsFollowViewport ?? this.profileMetricsFollowViewport,
+      profileZoomTimeOnly: profileZoomTimeOnly ?? this.profileZoomTimeOnly,
       o2CellUnit: o2CellUnit ?? this.o2CellUnit,
       counterdiffusionShowAll:
           counterdiffusionShowAll ?? this.counterdiffusionShowAll,
@@ -1702,6 +1722,17 @@ final navAlwaysHideLabelsDesktopProvider = FutureProvider<bool>((ref) async {
   ref.invalidateSelfWhen(repo.watchSettingsChanges());
   return repo.getNavAlwaysHideLabelsDesktop();
 });
+
+/// The device-local settings the dive profile draws with, as the prefs that
+/// store them. The one encoding: [SettingsNotifier] saves them through it,
+/// and a desktop pop-out (issue #5078) is sent them through it.
+Map<String, Object> profileDevicePrefs(AppSettings s) => {
+  SettingsKeys.o2CellUnit: s.o2CellUnit.name,
+  SettingsKeys.counterdiffusionShowAll: s.counterdiffusionShowAll,
+  SettingsKeys.perdixOverlayEnabled: s.perdixOverlayEnabled,
+  SettingsKeys.perdixOverlayX: ?s.perdixOverlayX,
+  SettingsKeys.perdixOverlayY: ?s.perdixOverlayY,
+};
 
 /// Settings notifier that persists to database per-diver
 class SettingsNotifier extends StateNotifier<AppSettings> {
@@ -1816,14 +1847,43 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     this._ref, {
     required AppSettings settings,
     required String? diverId,
-  }) : super(settings) {
+  }) : _readOnly = false,
+       super(settings) {
     _validatedDiverId = diverId;
     _persisted = diverId == null ? null : settings;
     _initialLoad = Future<void>.value();
     _currentLoad = _initialLoad;
   }
 
-  SettingsNotifier(this._repository, this._ref) : super(const AppSettings()) {
+  SettingsNotifier(this._repository, this._ref)
+    : _readOnly = false,
+      super(const AppSettings()) {
+    _start();
+  }
+
+  /// Settings that are read and never written: a desktop pop-out window's
+  /// view of the main window's (issue #5078). It loads the diver's row and
+  /// this device's prefs as [SettingsNotifier] does, but creates no row,
+  /// adopts nothing into one, writes no prefs, schedules no notifications,
+  /// and its setters change [state] without saving it.
+  SettingsNotifier.readOnly(this._repository, this._ref)
+    : _readOnly = true,
+      super(const AppSettings()) {
+    _start();
+  }
+
+  final bool _readOnly;
+
+  /// Reads the diver's row and this device's prefs again, keeping [state]
+  /// until the fresh load lands. For a desktop pop-out window (issue #5078)
+  /// whose in-memory prefs the main window just replaced: a new notifier
+  /// would start from the defaults and flash them.
+  Future<void> reload() {
+    assert(_readOnly, 'Only a read-only notifier reloads on request');
+    return _startLoad();
+  }
+
+  void _start() {
     logFailure(_startLoad(), SettingsNotifier, 'load diver settings');
     // Not the first load itself: a diver-id change while it is out (the
     // active id realigned after a restore, say) supersedes it, and it then
@@ -1988,6 +2048,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final followViewportPref = prefs.getBool(
       SettingsKeys.profileMetricsFollowViewport,
     );
+    // The Time only zoom choice (v389, issue #5069) follows the same rule.
+    final zoomTimeOnlyPref = prefs.getBool(SettingsKeys.profileZoomTimeOnly);
     final o2CellUnit = O2CellUnit.values.firstWhere(
       (u) => u.name == prefs.getString(SettingsKeys.o2CellUnit),
       orElse: () => O2CellUnit.ppO2,
@@ -2019,6 +2081,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         homeHeaderStyleWide: homeHeaderStyleWide,
         pscrRatio: pscrRatioPref ?? 100.0,
         profileMetricsFollowViewport: followViewportPref ?? false,
+        profileZoomTimeOnly: zoomTimeOnlyPref ?? false,
         o2CellUnit: o2CellUnit,
         counterdiffusionShowAll: counterdiffusionShowAll,
         perdixOverlayEnabled: perdixOverlayEnabled,
@@ -2028,7 +2091,31 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       );
       _prefsAreStore = true;
       _landedGeneration = generation;
-      await _writeCachedTheme(prefs);
+      if (!_readOnly) await _writeCachedTheme(prefs);
+      return;
+    }
+
+    if (_readOnly) {
+      // Read the row as it is: no adoption, no creation, no pref retired.
+      final settings =
+          await _repository.getSettingsForDiver(diverId) ?? const AppSettings();
+      if (!_isCurrentLoad(generation)) return;
+      _replaceBase(settings);
+      state = settings.copyWith(
+        hiddenHomeChips: hiddenHomeChips,
+        hiddenHomeCards: hiddenHomeCards,
+        homePanelOrder: homePanelOrder,
+        hiddenHomePanels: hiddenHomePanels,
+        hiddenHomeKeyNumbers: hiddenHomeKeyNumbers,
+        homeHeaderStylePhone: homeHeaderStylePhone,
+        homeHeaderStyleWide: homeHeaderStyleWide,
+        o2CellUnit: o2CellUnit,
+        counterdiffusionShowAll: counterdiffusionShowAll,
+        perdixOverlayEnabled: perdixOverlayEnabled,
+        perdixOverlayX: perdixOverlayX,
+        perdixOverlayY: perdixOverlayY,
+      );
+      _landedGeneration = generation;
       return;
     }
 
@@ -2051,13 +2138,27 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         followViewportPref != defaults.profileMetricsFollowViewport
         ? followViewportPref
         : null;
+    final zoomTimeOnlyCandidate =
+        zoomTimeOnlyPref != defaults.profileZoomTimeOnly
+        ? zoomTimeOnlyPref
+        : null;
     // Nothing to adopt (no pref, or only defaults): skip the row read.
-    final unset = pscrRatioCandidate == null && followViewportCandidate == null
-        ? (pscrRatio: false, profileMetricsFollowViewport: false)
+    final unset =
+        pscrRatioCandidate == null &&
+            followViewportCandidate == null &&
+            zoomTimeOnlyCandidate == null
+        ? (
+            pscrRatio: false,
+            profileMetricsFollowViewport: false,
+            profileZoomTimeOnly: false,
+          )
         : await _repository.unsetAdoptableColumns(diverId);
     final adoptPscrRatio = unset.pscrRatio ? pscrRatioCandidate : null;
     final adoptFollowViewport = unset.profileMetricsFollowViewport
         ? followViewportCandidate
+        : null;
+    final adoptZoomTimeOnly = unset.profileZoomTimeOnly
+        ? zoomTimeOnlyCandidate
         : null;
 
     // Load settings from database
@@ -2066,11 +2167,15 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     // write only fills columns still null, so whenever one was attempted
     // re-read the row: a sync may have filled a column since [created] was
     // read, and then the write lands nothing but the row has still moved.
-    final adopting = adoptPscrRatio != null || adoptFollowViewport != null;
+    final adopting =
+        adoptPscrRatio != null ||
+        adoptFollowViewport != null ||
+        adoptZoomTimeOnly != null;
     await _repository.adoptDeviceLocalValues(
       diverId,
       pscrRatio: adoptPscrRatio,
       profileMetricsFollowViewport: adoptFollowViewport,
+      profileZoomTimeOnly: adoptZoomTimeOnly,
     );
     final settings = adopting
         ? await _repository.getSettingsForDiver(diverId) ?? created
@@ -2149,6 +2254,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// [devicePrefs] false skips the preferences for a change that has none,
   /// such as how a list was left (issue #3748), saved on most list taps.
   Future<void> _saveSettings({bool devicePrefs = true}) async {
+    if (_readOnly) return;
     // Taken before the first await: [state] can move on, and a diver switch
     // can start, while the writes below are out. The row write carries
     // exactly this change, to the diver it was made for.
@@ -2196,22 +2302,17 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         if (headerWide != null) {
           await prefs.setString(SettingsKeys.homeHeaderStyleWide, headerWide);
         }
-        await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
-        await prefs.setBool(
-          SettingsKeys.counterdiffusionShowAll,
-          state.counterdiffusionShowAll,
-        );
-        await prefs.setBool(
-          SettingsKeys.perdixOverlayEnabled,
-          state.perdixOverlayEnabled,
-        );
-        final perdixX = state.perdixOverlayX;
-        if (perdixX != null) {
-          await prefs.setDouble(SettingsKeys.perdixOverlayX, perdixX);
-        }
-        final perdixY = state.perdixOverlayY;
-        if (perdixY != null) {
-          await prefs.setDouble(SettingsKeys.perdixOverlayY, perdixY);
+        for (final MapEntry(:key, :value) in profileDevicePrefs(
+          state,
+        ).entries) {
+          switch (value) {
+            case final String v:
+              await prefs.setString(key, v);
+            case final bool v:
+              await prefs.setBool(key, v);
+            case final double v:
+              await prefs.setDouble(key, v);
+          }
         }
         await _writeCachedTheme(prefs);
       }
@@ -2225,6 +2326,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
           await prefs.setBool(
             SettingsKeys.profileMetricsFollowViewport,
             state.profileMetricsFollowViewport,
+          );
+          await prefs.setBool(
+            SettingsKeys.profileZoomTimeOnly,
+            state.profileZoomTimeOnly,
           );
         }
         // No diver yet: the device-local pref is the seascape knobs' only
@@ -2291,6 +2396,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       if (DiverSettingsRepository.storesSameSettings(stored, base)) return;
       _replaceBase(stored);
       state = _withDeviceLocalPrefs(stored);
+      // A read-only notifier (a desktop pop-out, issue #5078) only shows the
+      // change: the cached theme and the notifications are the main window's.
+      if (_readOnly) return;
       await _writeCachedTheme(_ref.read(sharedPreferencesProvider));
       _scheduleNotificationsIfNeeded();
       return;
@@ -3529,6 +3637,22 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setProfileMetricsFollowViewport(bool value) =>
       _update((s) => s.copyWith(profileMetricsFollowViewport: value));
+
+  /// Saves the Zoom choice as the pair of flags it stands for. Time only
+  /// leaves the viewport flag alone, so going back restores it.
+  Future<void> setProfileZoomMode(ProfileZoomMode mode) => _update(
+    (s) => switch (mode) {
+      ProfileZoomMode.timeOnly => s.copyWith(profileZoomTimeOnly: true),
+      ProfileZoomMode.keepOverlaysInView => s.copyWith(
+        profileZoomTimeOnly: false,
+        profileMetricsFollowViewport: true,
+      ),
+      ProfileZoomMode.magnifyOverlays => s.copyWith(
+        profileZoomTimeOnly: false,
+        profileMetricsFollowViewport: false,
+      ),
+    },
+  );
 
   Future<void> setO2CellUnit(O2CellUnit value) =>
       _update((s) => s.copyWith(o2CellUnit: value));

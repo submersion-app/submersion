@@ -121,7 +121,7 @@ class DiverSettings extends Table {
       text().withDefault(const Constant('salt'))();
   TextColumn get defaultCurrency => text().withDefault(const Constant('USD'))();
 
-  /// v388: the currencies this diver lists first in every currency picker, a
+  /// v395: the currencies this diver lists first in every currency picker, a
   /// JSON list of ISO 4217 codes in the diver's order (issue #4997). Null
   /// means the built-in defaults; an empty list means none.
   TextColumn get preferredCurrencyCodes => text().nullable()();
@@ -462,6 +462,13 @@ class DiverSettings extends Table {
   /// SettingsNotifier). Null reads as off and 100.
   BoolColumn get profileMetricsFollowViewport => boolean().nullable()();
   RealColumn get pscrRatio => real().nullable()();
+
+  /// v389 (issue #5069): the profile chart zooms time alone. Pairs with
+  /// [profileMetricsFollowViewport] as one Zoom choice, so it has the same
+  /// shape: nullable ON PURPOSE, null marking a row that has never held a
+  /// value, adopted from this device's pref like the pair above. Null reads
+  /// as off.
+  BoolColumn get profileZoomTimeOnly => boolean().nullable()();
   // Map style (v67)
   TextColumn get mapStyle =>
       text().withDefault(const Constant('openStreetMap'))();

@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/ed
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_hero_header.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_banner.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
@@ -43,7 +44,7 @@ void main() {
 
   // The Add strip coming in under the bar moves the whole page down a page
   // that fits (#4566); the hero itself must not grow or shift sideways.
-  testWidgets('unlocked: a pencil in the title row, and the hero keeps its '
+  testWidgets('unlocked: a pencil at the top right, and the hero keeps its '
       'size', (tester) async {
     await pumpPage(tester, stored: headed);
     final locked = tester.getRect(find.byType(DiveHeroHeader));
@@ -54,6 +55,31 @@ void main() {
     final unlocked = tester.getRect(find.byType(DiveHeroHeader));
     expect(unlocked.size, locked.size);
     expect(unlocked.left, locked.left);
+
+    // At the card's far right like every other card's pencil, not after
+    // the name (issue #4888): inside the hero card's 16 px padding, clear of
+    // the mode badge.
+    final disc = tester.getRect(pencil());
+    final surface = tester.getRect(
+      find
+          .descendant(
+            of: find.descendant(
+              of: find.byType(DiveHeroHeader),
+              matching: find.byType(Card),
+            ),
+            matching: find.byType(Material),
+          )
+          .first,
+    );
+    expect(surface.right - disc.right, closeTo(16, 0.5));
+    expect(
+      disc.left,
+      greaterThanOrEqualTo(tester.getRect(find.byType(DiveModeBadge)).right),
+    );
+    expect(
+      disc.left,
+      greaterThan(tester.getRect(find.text('Morning drift')).right),
+    );
   });
 
   testWidgets('the pencil opens the header card where it sits', (tester) async {

@@ -1268,17 +1268,17 @@
   "diveLog_bulkEdit_fieldMyRole": "My role",
   "diveLog_bulkEdit_buddyRoleMixed": "Mixed",
   "diveLog_bulkEdit_collectionWeights": "Weights",
-  "diveLog_bulkEdit_collectionTanks": "Tanks",
+  "diveLog_bulkEdit_collectionTanks": "Cylinders",
   "diveLog_bulkEdit_notesSet": "Set",
   "diveLog_bulkEdit_notesAppend": "Append",
   "diveLog_bulkEdit_modeAdd": "Add",
   "diveLog_bulkEdit_modeRemove": "Remove",
   "diveLog_bulkEdit_modeReplace": "Replace",
   "diveLog_bulkEdit_modeUpdate": "Update",
-  "diveLog_bulkEdit_tankOnlyIfEmpty": "Only dives that don't already have a tank",
-  "diveLog_bulkEdit_tankSpecsHint": "Choose which attributes to overwrite on the tanks these dives already have. Start and end pressures are never changed.",
-  "diveLog_bulkEdit_tankSpecsTemplateTitle": "All tanks",
-  "diveLog_bulkEdit_tankSpecsNoFields": "Choose at least one tank attribute to update.",
+  "diveLog_bulkEdit_tankOnlyIfEmpty": "Only dives that don't already have a cylinder",
+  "diveLog_bulkEdit_tankSpecsHint": "Choose which attributes to overwrite on the cylinders these dives already have. Start and end pressures are never changed.",
+  "diveLog_bulkEdit_tankSpecsTemplateTitle": "All cylinders",
+  "diveLog_bulkEdit_tankSpecsNoFields": "Choose at least one cylinder attribute to update.",
   "diveLog_bulkEdit_tankFieldPreset": "Preset",
   "diveLog_bulkEdit_tankFieldRole": "Role",
   "diveLog_bulkEdit_tankFieldVolume": "Volume",
@@ -1286,7 +1286,7 @@
   "diveLog_bulkEdit_tankFieldMaterial": "Material",
   "diveLog_bulkEdit_tankFieldGasMix": "Gas mix",
   "diveLog_bulkEdit_tankFieldName": "Name",
-  "diveLog_bulkEdit_tankSpecsSkipped": "{count, plural, =1{1 selected dive has no tanks and will be skipped.} other{{count} selected dives have no tanks and will be skipped.}}",
+  "diveLog_bulkEdit_tankSpecsSkipped": "{count, plural, =1{1 selected dive has no cylinders and will be skipped.} other{{count} selected dives have no cylinders and will be skipped.}}",
   "@diveLog_bulkEdit_tankSpecsSkipped": {
     "placeholders": {
       "count": {
@@ -1294,11 +1294,11 @@
       }
     }
   },
-  "diveLog_bulkEdit_tankRoleSameForAll": "Same role on every tank",
-  "diveLog_bulkEdit_tankRoleByPosition": "Role by tank position",
+  "diveLog_bulkEdit_tankRoleSameForAll": "Same role on every cylinder",
+  "diveLog_bulkEdit_tankRoleByPosition": "Role by cylinder position",
   "diveLog_bulkEdit_tankRoleAddPosition": "Add position",
   "diveLog_bulkEdit_tankRoleRemovePosition": "Remove position",
-  "diveLog_bulkEdit_tankRolesByPositionHint": "{count, plural, one{Only dives with exactly {count} tank get this role.} other{Only dives with exactly {count} tanks get these roles, in tank order.}}",
+  "diveLog_bulkEdit_tankRolesByPositionHint": "{count, plural, one{Only dives with exactly {count} cylinder get this role.} other{Only dives with exactly {count} cylinders get these roles, in cylinder order.}}",
   "@diveLog_bulkEdit_tankRolesByPositionHint": {
     "placeholders": {
       "count": {
@@ -1306,7 +1306,7 @@
       }
     }
   },
-  "diveLog_bulkEdit_tankRolesSkipped": "{count, plural, one{{count} dive doesn't match the tank positions, so its tank roles stay as they are.} other{{count} dives don't match the tank positions, so their tank roles stay as they are.}}",
+  "diveLog_bulkEdit_tankRolesSkipped": "{count, plural, one{{count} dive doesn't match the cylinder positions, so its cylinder roles stay as they are.} other{{count} dives don't match the cylinder positions, so their cylinder roles stay as they are.}}",
   "@diveLog_bulkEdit_tankRolesSkipped": {
     "placeholders": {
       "count": {
@@ -4443,7 +4443,7 @@
   "diveLog_collapsible_semantics_collapse": "Collapse {title} section",
   "diveLog_collapsible_semantics_expand": "Expand {title} section",
   "diveLog_combine_confirm": "Combine into one dive",
-  "diveLog_combine_dataNote": "Details come from the earliest dive, with blanks filled from later dives. Notes are combined. Tanks, gear, buddies, tags, and sightings are all kept.",
+  "diveLog_combine_dataNote": "Details come from the earliest dive, with blanks filled from later dives. Notes are combined. Cylinders, gear, buddies, tags, and sightings are all kept.",
   "diveLog_combine_error": "Couldn't combine the dives. Nothing was changed.",
   "diveLog_combine_gapLabel": "Surface interval: {duration}",
   "diveLog_combine_longSurfaceWarning": "One or more surface intervals are longer than 30 minutes. These may be separate dives rather than one continuous dive.",
@@ -4628,7 +4628,7 @@
   "diveLog_deco_withheld_ccr": "This rebreather dive has no recorded setpoint or loop ppO2, so its tissue loading, NDL and decompression cannot be calculated. Add the setpoint when editing the dive to calculate them.",
   "diveLog_deco_withheld_scr": "This semi-closed rebreather dive has no measured loop ppO2, so its tissue loading, NDL and decompression cannot be calculated.",
   "diveLog_delete_cancel": "Cancel",
-  "diveLog_delete_confirm": "This action cannot be undone. The dive and all associated data (profile, tanks, sightings) will be permanently deleted.",
+  "diveLog_delete_confirm": "This action cannot be undone. The dive and all associated data (profile, cylinders, sightings) will be permanently deleted.",
   "diveLog_delete_delete": "Delete",
   "diveLog_delete_title": "Delete Dive?",
   "diveLog_detail_appBar": "Dive Details",
@@ -4799,7 +4799,7 @@
   "diveLog_detail_viewSite": "View Site",
   "diveLog_diveMode_ccrDescription": "Closed circuit rebreather with constant ppO₂",
   "diveLog_diveMode_gaugeDescription": "Depth and time only; no gas or decompression tracking",
-  "diveLog_diveMode_ocDescription": "Standard open circuit scuba with tanks",
+  "diveLog_diveMode_ocDescription": "Standard open circuit scuba with cylinders",
   "diveLog_diveMode_scrDescription": "Semi-closed rebreather with variable ppO₂",
   "diveLog_diveMode_title": "Dive Mode",
   "diveLog_editSighting_notes": "Notes",
@@ -4810,7 +4810,7 @@
   "diveLog_editSighting_save": "Save Changes",
   "diveLog_edit_add": "Add",
   "diveLog_edit_addCustomField": "Add Field",
-  "diveLog_edit_addTank": "Add Tank",
+  "diveLog_edit_addTank": "Add Cylinder",
   "diveLog_edit_addWeightEntry": "Add Weight Entry",
   "diveLog_edit_appBarNew": "Log Dive",
   "diveLog_edit_cancel": "Cancel",
@@ -4818,9 +4818,9 @@
   "diveLog_edit_createdSite": "Created site: {name}",
   "diveLog_edit_customFieldKey": "Key",
   "diveLog_edit_customFieldValue": "Value",
-  "diveLog_edit_equipmentCaption": "Gear you used, for its dive count and service history. A cylinder listed here adds no gas data; add it under Tanks too.",
+  "diveLog_edit_equipmentCaption": "Gear you used, for its dive count and service history. A cylinder listed here adds no gas data; add it under Cylinders too.",
   "diveLog_edit_errorLoadingDiveTypes": "Error loading dive types: {error}",
-  "diveLog_edit_gasSwitches_caption": "When you changed cylinders. Deco, tissue loading and per-tank SAC follow these switches.",
+  "diveLog_edit_gasSwitches_caption": "When you changed cylinders. Deco, tissue loading and per-cylinder SAC follow these switches.",
   "diveLog_edit_gasSwitches_startsOn": "Starts on {tank}",
   "@diveLog_edit_gasSwitches_startsOn": {
     "description": "Gas switch editor: the cylinder the dive starts on",
@@ -4866,7 +4866,7 @@
     }
   },
   "diveLog_edit_gasSwitches_pickConfirm": "Set time",
-  "diveLog_edit_gasSwitches_removedWithTank": "{count, plural, one{{count} gas switch removed with its tank} other{{count} gas switches removed with their tank}}",
+  "diveLog_edit_gasSwitches_removedWithTank": "{count, plural, one{{count} gas switch removed with its cylinder} other{{count} gas switches removed with their cylinder}}",
   "@diveLog_edit_gasSwitches_removedWithTank": {
     "description": "Gas switch editor: switches dropped because their cylinder was removed",
     "placeholders": {
@@ -4971,7 +4971,7 @@
   },
   "diveLog_edit_notSpecified": "Not specified",
   "diveLog_edit_overline_gasSwitches": "Gas switches",
-  "diveLog_edit_overline_tanks": "Tanks",
+  "diveLog_edit_overline_tanks": "Cylinders",
   "@diveLog_edit_overline_tanks": {
     "description": "Sub-header overline above the tank rows in the Gas & Gear edit section"
   },
@@ -5169,7 +5169,7 @@
   "@diveLog_edit_tankCard_done": {
     "description": "Collapse the tank editor back to the card"
   },
-  "diveLog_edit_tankCard_title": "Tank {number}",
+  "diveLog_edit_tankCard_title": "Cylinder {number}",
   "@diveLog_edit_tankCard_title": {
     "description": "Caption on a tank card",
     "placeholders": {
@@ -5178,7 +5178,7 @@
       }
     }
   },
-  "diveLog_edit_tanksCaption": "What you breathed from. Gas graphs, gas consumption and statistics come from these tanks.",
+  "diveLog_edit_tanksCaption": "What you breathed from. Gas graphs, gas consumption and statistics come from these cylinders.",
   "diveLog_edit_tooltip_calculateFromProfile": "Calculate from dive profile",
   "diveLog_edit_tooltip_removeEquipment": "Remove equipment",
   "diveLog_edit_tooltip_removeSighting": "Remove sighting",
@@ -5333,8 +5333,8 @@
   "diveLog_filter_sectionDiveType": "Dive Type",
   "diveLog_filter_sectionDuration": "Duration (minutes)",
   "diveLog_filter_sectionGasMix": "Gas Mix (O₂%)",
-  "diveLog_filter_sectionTankConfiguration": "Tank configuration",
-  "diveLog_filter_sectionTankExtras": "Tank extras",
+  "diveLog_filter_sectionTankConfiguration": "Cylinder configuration",
+  "diveLog_filter_sectionTankExtras": "Cylinder extras",
   "diveLog_filter_sectionMinRating": "Minimum Rating",
   "diveLog_filter_sectionTags": "Tags",
   "diveLog_filter_sectionWeekdays": "Weekdays",
@@ -5421,9 +5421,13 @@
   "diveLog_chartSection_gasAnalysis": "Gas Analysis",
   "diveLog_chartSection_display": "Display",
   "diveLog_chartSection_other": "Other",
-  "diveLog_chartSection_tankPressures": "Tank Pressures",
-  "diveLog_chartOption_metricsFollowViewport": "Keep overlays in view",
+  "diveLog_chartSection_tankPressures": "Cylinder Pressures",
   "diveLog_chartOption_tooltipFollowsCursor": "Tooltip follows cursor",
+  "diveLog_chartOption_zoom": "Zoom",
+  "diveLog_chartOption_zoom_magnify": "Both axes, magnify overlays",
+  "diveLog_chartOption_zoom_keepInView": "Both axes, keep overlays in view",
+  "diveLog_chartOption_zoom_timeOnly": "Time only",
+  "diveLog_chartOption_rightAxis": "Right axis",
   "diveLog_pressure_estimatedSuffix": "(est.)",
   "@diveLog_pressure_estimatedSuffix": {
     "description": "Short suffix appended to a tank label when its pressure line is a linear start-to-end estimate rather than measured air-integrated data. Abbreviation of 'estimated'."
@@ -6266,7 +6270,11 @@
   "diveLog_tank_label_o2": "O2",
   "diveLog_tank_label_role": "Role",
   "diveLog_tank_label_startPressure": "Start Pressure",
-  "diveLog_tank_label_tankPreset": "Tank Preset",
+  "diveLog_tank_managePresets": "Manage presets",
+  "@diveLog_tank_managePresets": {
+    "description": "Last entry of the tank editor's preset dropdown (issue #800): opens the presets page over the dive being edited. Not a preset, so choosing it leaves the cylinder's preset as it was."
+  },
+  "diveLog_tank_label_tankPreset": "Cylinder Preset",
   "diveLog_tank_label_volume": "Volume",
   "diveLog_tank_label_workingPressure": "Working P",
   "diveLog_tank_mndHelper": "Set to auto-calculate He%",
@@ -6299,7 +6307,7 @@
   "diveLog_tank_selectPreset": "Select Preset...",
   "diveLog_tank_saveAsPreset": "Save as preset",
   "diveLog_tank_saveAsPreset_needSpecs": "Enter a volume and working pressure first",
-  "diveLog_tank_saveAsPreset_nameTitle": "Save tank preset",
+  "diveLog_tank_saveAsPreset_nameTitle": "Save cylinder preset",
   "diveLog_tank_saveAsPreset_nameHint": "e.g. My AL80",
   "diveLog_tank_saveAsPreset_saved": "Saved preset \"{name}\"",
   "@diveLog_tank_saveAsPreset_saved": {
@@ -6309,11 +6317,11 @@
       }
     }
   },
-  "diveLog_tank_title": "Tank {number}",
-  "diveLog_tank_tooltip_remove": "Remove tank",
+  "diveLog_tank_title": "Cylinder {number}",
+  "diveLog_tank_tooltip_remove": "Remove cylinder",
   "diveLog_tank_fromOwnCylinder": "Fill from my cylinders",
-  "diveLog_tank_ownCylinderFailed": "Could not fill the tank from that cylinder. Try again.",
-  "diveLog_tank_ownCylinderHint": "Copies the cylinder's size and latest fill into this tank and adds the cylinder to this dive's equipment.",
+  "diveLog_tank_ownCylinderFailed": "Could not fill this dive's cylinder from that one. Try again.",
+  "diveLog_tank_ownCylinderHint": "Copies your cylinder's size and latest fill onto this dive and adds it to this dive's equipment.",
   "diveLog_tank_ownCylinderTitle": "My cylinders",
   "cylindersFromTanks_title": "Add cylinders to your gear",
   "cylindersFromTanks_onDives": "{count, plural, =1{on {count} dive} other{on {count} dives}}",
@@ -6348,7 +6356,7 @@
       }
     }
   },
-  "cylindersFromTanks_summary": "{count, plural, =1{{count} tank isn't in your gear} other{{count} tanks aren't in your gear}}",
+  "cylindersFromTanks_summary": "{count, plural, =1{{count} cylinder isn't in your gear} other{{count} cylinders aren't in your gear}}",
   "@cylindersFromTanks_summary": {
     "placeholders": {
       "count": {
@@ -6373,7 +6381,7 @@
   "diveLog_tank_gearMenu": "Cylinder options",
   "diveLog_tank_addToGear": "Add to my gear",
   "diveLog_tank_linkCylinder": "Link to a cylinder I own",
-  "diveLog_tank_linkCylinderHint": "Links this tank to the cylinder and adds the cylinder to this dive's equipment. The tank keeps its recorded size.",
+  "diveLog_tank_linkCylinderHint": "Links this dive's cylinder to one you own and adds that cylinder to this dive's equipment. The recorded size stays as it is.",
   "diveLog_tank_unlinkCylinder": "Unlink cylinder",
   "diveLog_tank_linkFailed": "Couldn't change the cylinder link",
   "diveLog_tank_regulatorLabel": "Regulator",
@@ -6477,7 +6485,7 @@
   "diveLog_sources_menu_split": "Split into separate dive",
   "diveLog_sources_overlayTooltip": "Overlay on chart",
   "diveLog_sources_splitDialog_title": "Split into separate dive?",
-  "diveLog_sources_splitDialog_body": "This source's profile, events, and tanks will move to a new dive. The logbook entry stays on this dive.",
+  "diveLog_sources_splitDialog_body": "This source's profile, events, and cylinders will move to a new dive. The logbook entry stays on this dive.",
   "diveLog_sources_splitDialog_confirm": "Split",
   "diveLog_sources_splitDone": "Dive split",
   "diveLog_sources_splitFailed": "Split failed",
@@ -6520,7 +6528,7 @@
   },
   "diveLog_sources_menu_separate": "Separate combined dives",
   "diveLog_sources_separateDialog_title": "Separate combined dives?",
-  "diveLog_sources_separateDialog_body": "This dive was combined from {count} dives. Each one's profile, events, tanks and gas switches move back to its own dive. The rest of the logbook entry, including buddies, tags, equipment, media, notes and the dive number, stays on this dive.",
+  "diveLog_sources_separateDialog_body": "This dive was combined from {count} dives. Each one's profile, events, cylinders and gas switches move back to its own dive. The rest of the logbook entry, including buddies, tags, equipment, media, notes and the dive number, stays on this dive.",
   "@diveLog_sources_separateDialog_body": {
     "placeholders": {
       "count": {
@@ -7201,9 +7209,9 @@
       }
     }
   },
-  "divePlanner_action_addTank": "Add Tank",
+  "divePlanner_action_addTank": "Add Cylinder",
   "divePlanner_action_deletePlan": "Delete plan",
-  "divePlanner_action_editTank": "Edit Tank",
+  "divePlanner_action_editTank": "Edit Cylinder",
   "divePlanner_action_fillBestMix": "Best mix for {depth}: {mix}",
   "@divePlanner_action_fillBestMix": {
     "placeholders": {
@@ -7222,7 +7230,7 @@
   "divePlanner_action_resetPlan": "Reset Plan",
   "divePlanner_action_savePlan": "Save Plan",
   "divePlanner_error_cannotConvert": "Cannot convert: plan has critical warnings",
-  "divePlanner_error_reserveExceedsTank": "Exceeds tank pressure",
+  "divePlanner_error_reserveExceedsTank": "Exceeds cylinder pressure",
   "divePlanner_error_reserveMustBePositive": "Must be greater than 0",
   "divePlanner_info_reserveDefault": "Not entered — assuming {value} {unit}",
   "divePlanner_field_diluentGas": "Diluent",
@@ -7248,7 +7256,7 @@
       }
     }
   },
-  "divePlanner_hint_tankName": "Enter tank name",
+  "divePlanner_hint_tankName": "Enter cylinder name",
   "divePlanner_label_airBreaks": "Air breaks",
   "divePlanner_label_airBreaksBreak": "Break (min)",
   "divePlanner_label_airBreaksOnO2": "On O2 (min)",
@@ -7298,7 +7306,7 @@
   "divePlanner_gasOptions_o2Narcotic": "Treat O₂ as narcotic for this plan",
   "divePlanner_label_on": "On",
   "divePlanner_label_off": "Off",
-  "divePlanner_label_tanks": "Tanks",
+  "divePlanner_label_tanks": "Cylinders",
   "divePlanner_label_loopGases": "Loop",
   "@divePlanner_label_loopGases": {
     "description": "Heading over a CCR plan's diluent and oxygen cylinders in the planner's tank list"
@@ -7311,13 +7319,13 @@
   "@divePlanner_label_noBailout": {
     "description": "Shown under the Bailout heading of a CCR plan's tank list while no bailout cylinder has been added"
   },
-  "divePlanner_savedTanks_title": "Saved tanks",
-  "divePlanner_savedTanks_save": "Save a tank",
-  "divePlanner_savedTanks_saveTitle": "Save tank as",
-  "divePlanner_savedTanks_nameField": "Tank name",
-  "divePlanner_savedTanks_saved": "Tank saved",
+  "divePlanner_savedTanks_title": "Saved cylinders",
+  "divePlanner_savedTanks_save": "Save a cylinder",
+  "divePlanner_savedTanks_saveTitle": "Save cylinder as",
+  "divePlanner_savedTanks_nameField": "Cylinder name",
+  "divePlanner_savedTanks_saved": "Cylinder saved",
   "divePlanner_savedTanks_manage": "Manage",
-  "divePlanner_savedTanks_empty": "No saved tanks yet. Save a tank from this plan to reuse it in other plans.",
+  "divePlanner_savedTanks_empty": "No saved cylinders yet. Save a cylinder from this plan to reuse it in other plans.",
   "divePlanner_label_timeAxis": "Time (min)",
   "divePlanner_label_tts": "TTS",
   "divePlanner_label_warnings": "Warnings",
@@ -7339,8 +7347,8 @@
   "divePlanner_warning_cnsCritical": "CNS% exceeds 100%",
   "divePlanner_warning_cnsWarning": "CNS% exceeds {threshold}%",
   "divePlanner_warning_endExceedsLimit": "END of {depth} exceeds the {limit} limit",
-  "divePlanner_warning_gasLow": "Tank below {threshold} reserve",
-  "divePlanner_warning_gasOut": "Tank will be empty",
+  "divePlanner_warning_gasLow": "Cylinder below {threshold} reserve",
+  "divePlanner_warning_gasOut": "Cylinder will be empty",
   "divePlanner_warning_otuWarning": "OTU accumulation high",
   "divePlanner_warning_ppO2Critical": "ppO₂ of {value} bar exceeds critical limit",
   "divePlanner_warning_ppO2High": "ppO₂ of {value} bar exceeds working limit",
@@ -7415,6 +7423,114 @@
   "diveSites_detail_rating_notRated": "Not rated",
   "diveSites_detail_rating_value": "{rating} out of 5",
   "diveSites_detail_section_access": "Access & Logistics",
+  "diveSites_detail_section_contact": "Contact",
+  "diveSites_detail_section_openingHours": "Opening Hours",
+  "diveSites_contact_mapsFailed": "Could not open maps",
+  "diveSites_contact_linkFailed": "Could not open the link",
+  "diveSites_contact_directions": "Directions",
+  "diveSites_contact_address": "Address",
+  "diveSites_contact_phone": "Phone",
+  "diveSites_contact_email": "Email",
+  "diveSites_contact_website": "Website",
+  "diveSites_hours_alwaysOpen": "Open 24/7",
+  "diveSites_hours_addSchedule": "Add schedule",
+  "diveSites_hours_scheduleName": "Name",
+  "diveSites_hours_scheduleName_hint": "Summer",
+  "diveSites_hours_seasonal": "Seasonal",
+  "diveSites_hours_seasonFrom": "From",
+  "diveSites_hours_seasonTo": "To",
+  "diveSites_hours_deleteSchedule": "Delete schedule",
+  "diveSites_hours_closed": "Closed",
+  "diveSites_hours_open24h": "Open 24 hours",
+  "diveSites_hours_kindHours": "Hours",
+  "diveSites_hours_addRange": "Add hours",
+  "diveSites_hours_removeRange": "Remove hours",
+  "diveSites_hours_copyDay": "Copy to other days",
+  "diveSites_hours_copyTitle": "Copy {day} to",
+  "@diveSites_hours_copyTitle": {
+    "description": "Title of the dialog that copies one weekday's opening hours to other days.",
+    "placeholders": {
+      "day": {
+        "type": "String",
+        "example": "Saturday"
+      }
+    }
+  },
+  "diveSites_hours_selectAll": "Select all",
+  "diveSites_hours_copy": "Copy",
+  "diveSites_hours_note": "Note",
+  "diveSites_hours_note_hint": "Book slots by phone, closed public holidays",
+  "diveSites_hours_invalid": "Some hours overlap or close before they open",
+  "diveSites_hours_noSchedule": "No weekly hours yet",
+  "diveSites_hours_openUntil": "Open now, closes {time}",
+  "@diveSites_hours_openUntil": {
+    "description": "Status line on a dive site's opening hours card.",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "17:00"
+      }
+    }
+  },
+  "diveSites_hours_openNoClose": "Open now",
+  "diveSites_hours_closedOpensAt": "Closed, opens {when}",
+  "@diveSites_hours_closedOpensAt": {
+    "description": "Status line when a dive site is closed; when is a time, or a weekday and time.",
+    "placeholders": {
+      "when": {
+        "type": "String",
+        "example": "Sat 10:00"
+      }
+    }
+  },
+  "diveSites_hours_closedForSeason": "Closed for the season, opens {date}",
+  "@diveSites_hours_closedForSeason": {
+    "description": "Status line when no seasonal schedule applies today.",
+    "placeholders": {
+      "date": {
+        "type": "String",
+        "example": "Apr 1"
+      }
+    }
+  },
+  "diveSites_hours_closedNow": "Closed",
+  "diveSites_hours_span": "{from} to {to}",
+  "@diveSites_hours_span": {
+    "description": "A run of weekdays or a season, from one end to the other.",
+    "placeholders": {
+      "from": {
+        "type": "String",
+        "example": "Mon"
+      },
+      "to": {
+        "type": "String",
+        "example": "Fri"
+      }
+    }
+  },
+  "diveSites_hours_namedSeason": "{name}, {season}",
+  "@diveSites_hours_namedSeason": {
+    "description": "A named seasonal schedule and its dates.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Summer"
+      },
+      "season": {
+        "type": "String",
+        "example": "Apr 1 to Oct 31"
+      }
+    }
+  },
+  "diveSites_merge_hoursSchedules": "{count, plural, =1{{count} schedule} other{{count} schedules}}",
+  "@diveSites_merge_hoursSchedules": {
+    "description": "Opening hours on the merge page, as a count of weekly schedules.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveSites_detail_section_altitude": "Altitude",
   "diveSites_detail_section_depthRange": "Depth Range",
   "diveSites_detail_section_description": "Description",
@@ -7451,6 +7567,16 @@
   "diveSites_edit_access_mooringNumber_hint": "e.g., Buoy #12",
   "diveSites_edit_access_mooringNumber_label": "Mooring Number",
   "diveSites_edit_access_parkingInfo_hint": "Parking availability, fees, tips",
+  "diveSites_edit_contact_address_label": "Address",
+  "diveSites_edit_contact_address_hint": "Street, town and postcode",
+  "diveSites_edit_contact_phone_label": "Phone",
+  "diveSites_edit_contact_phone_hint": "Booking or owner number",
+  "diveSites_edit_contact_email_label": "Email",
+  "diveSites_edit_contact_email_hint": "name@example.com",
+  "diveSites_edit_contact_website_label": "Website",
+  "diveSites_edit_contact_website_hint": "example.com",
+  "diveSites_edit_contact_emailInvalid": "Enter an email address like name@example.com",
+  "diveSites_edit_contact_websiteInvalid": "Enter a web address like example.com",
   "diveSites_edit_access_parkingInfo_label": "Parking Information",
   "diveSites_edit_access_entryMethod_label": "Entry Method",
   "@diveSites_edit_access_entryMethod_label": {
@@ -8782,7 +8908,15 @@
   "enum_equipmentType_baselayer": "Base Layer",
   "enum_equipmentType_firstStage": "First Stage",
   "enum_equipmentType_harness": "Harness",
-  "enum_equipmentType_tankBand": "Tank Band",
+  "equipment_searchWords_cylinder": "tank, bottle, stage, pony",
+  "@equipment_searchWords_cylinder": {
+    "description": "Search words (issue #5106): other words divers use for a cylinder, comma separated. Typing any of them in the equipment search finds cylinders. List this language's own words, including any the app no longer uses as the label."
+  },
+  "equipment_searchWords_tankBand": "tank band, cam band",
+  "@equipment_searchWords_tankBand": {
+    "description": "Search words (issue #5106): other names for a cylinder band, comma separated. Typing any of them in the equipment search finds cylinder bands."
+  },
+  "enum_equipmentType_tankBand": "Cylinder Band",
   "enum_equipmentType_weightPocket": "Weight Pocket",
   "enum_equipmentType_gearPocket": "Gear Pocket",
   "enum_equipmentType_bag": "Bag",
@@ -8807,7 +8941,7 @@
   "enum_equipmentType_reel": "Reel",
   "enum_equipmentType_regulator": "Regulator",
   "enum_equipmentType_smb": "SMB",
-  "enum_equipmentType_tank": "Tank",
+  "enum_equipmentType_tank": "Cylinder",
   "enum_equipmentType_weights": "Weights",
   "enum_equipmentType_wetsuit": "Wetsuit",
   "enum_equipmentType_snorkel": "Snorkel",
@@ -8949,7 +9083,7 @@
   "enum_tankRole_deco": "Deco",
   "enum_tankRole_diluent": "Diluent",
   "enum_tankRole_oxygenSupply": "O₂ Supply",
-  "enum_tankRole_pony": "Pony Bottle",
+  "enum_tankRole_pony": "Pony",
   "enum_tankRole_sidemountLeft": "Sidemount Left",
   "enum_tankRole_sidemountRight": "Sidemount Right",
   "enum_tankRole_stage": "Stage",
@@ -9101,7 +9235,7 @@
   "passport_fill_fromTag": "From tag",
   "passport_fill_analyseBeforeDiving": "Analyse the gas yourself before you dive it",
   "passport_fill_writeToTagTitle": "Fill logged",
-  "passport_fill_writeToTagBody": "Write it to the tank's tag?",
+  "passport_fill_writeToTagBody": "Write it to the cylinder's tag?",
   "passport_fill_writeToTag": "Write to tag",
   "passport_fill_notNow": "Not now",
   "passport_foreign_lastFill": "Last fill on the tag",
@@ -9933,7 +10067,7 @@
       }
     }
   },
-  "cylinderConfigs_overwriteTank": "Tank {number} · {role}",
+  "cylinderConfigs_overwriteTank": "Cylinder {number} · {role}",
   "@cylinderConfigs_overwriteTank": {
     "placeholders": {
       "number": {
@@ -10272,6 +10406,28 @@
   "equipment_edit_webLinkHint": "e.g., shop.example.com/product",
   "equipment_edit_typeLabel": "Type *",
   "equipment_edit_typeLockedHelper": "A connected dive computer or transmitter keeps its type.",
+  "equipment_suggest_link": "Can't find a fit? Suggest a category",
+  "equipment_suggest_title": "Suggest a category",
+  "equipment_suggest_intro": "This opens a prefilled feature request on GitHub. You review it and post it from your browser.",
+  "equipment_suggest_kindQuestion": "What are you suggesting?",
+  "equipment_suggest_kindCategory": "New type of gear",
+  "equipment_suggest_kindSubcategory": "New kind of a type",
+  "equipment_suggest_nameLabel": "Name",
+  "equipment_suggest_parentSubcategoryLabel": "A kind of",
+  "equipment_suggest_parentCategoryLabel": "Closest existing type",
+  "equipment_suggest_parentNone": "None",
+  "equipment_suggest_reasonLabel": "Why is it needed?",
+  "equipment_suggest_reasonHint": "What sets it apart from the existing types?",
+  "equipment_suggest_includeExample": "Include this item as an example ({example})",
+  "@equipment_suggest_includeExample": {
+    "placeholders": {
+      "example": {
+        "type": "String",
+        "example": "Scubapro 52 mm brass"
+      }
+    }
+  },
+  "equipment_suggest_open": "Open in GitHub",
   "equipment_edit_useCustomReminders": "Use Custom Reminders",
   "equipment_edit_useCustomRemindersSubtitle": "Set different reminder days for this item",
   "equipment_fab_addEquipment": "Add Equipment",
@@ -10467,6 +10623,12 @@
   "@equipment_list_expandAllGroups": {"description": "Equipment list overflow menu: open every folded group"},
   "equipment_list_collapseAllGroups": "Collapse all",
   "@equipment_list_collapseAllGroups": {"description": "Equipment list overflow menu: fold every outermost group"},
+  "equipment_list_showParts": "Show parts",
+  "@equipment_list_showParts": {"description": "Equipment list: tooltip and screen reader label of the chevron that opens a folded assembly to show its parts"},
+  "equipment_list_hideParts": "Hide parts",
+  "@equipment_list_hideParts": {"description": "Equipment list: tooltip and screen reader label of the chevron that folds an open assembly's parts away"},
+  "equipment_list_partCount": "{count, plural, =1{1 part} other{{count} parts}}",
+  "@equipment_list_partCount": {"description": "Equipment list assembly view: chip on an assembly row counting the parts listed under it, components and installed parts alike", "placeholders": {"count": {"type": "int"}}},
   "equipment_location_activeFilter": "Location",
   "@equipment_location_activeFilter": {"description": "Chip in the active filters bar when the list is filtered by location"},
   "equipment_location_tileSemantics": "Location: {name}",
@@ -10477,6 +10639,10 @@
   "@equipment_arrange_groupByLocation": {"description": "Switch on the Equipment page's sort sheet grouping the list under one heading per place"},
   "equipment_arrange_groupByLocationSubtitle": "One heading per place, on this page only",
   "@equipment_arrange_groupByLocationSubtitle": {"description": "Subtitle of the group by location switch"},
+  "equipment_arrange_nestParts": "Show parts under their assembly",
+  "@equipment_arrange_nestParts": {"description": "Equipment page sort sheet: switch that lists each assembly's parts under the assembly instead of in their own type groups"},
+  "equipment_arrange_nestPartsSubtitle": "Fold each assembly's parts under it",
+  "@equipment_arrange_nestPartsSubtitle": {"description": "Subtitle of the switch that lists each assembly's parts under it"},
   "equipment_locations_title": "Locations",
   "@equipment_locations_title": {"description": "Title of the page listing places where gear is kept"},
   "equipment_locations_empty": "No places yet. Add one to start tracking where your gear is.",
@@ -11125,11 +11291,37 @@
   "gasCalculators_consumption_avgDepth": "Average Depth",
   "gasCalculators_consumption_breakdown": "Calculation Breakdown",
   "gasCalculators_consumption_diveTime": "Dive Time",
-  "gasCalculators_consumption_exceedsTank": "Exceeds tank capacity ({pressure} {symbol})",
+  "gasCalculators_consumption_semantics": "Gas consumption: {volume} {volumeSymbol}, {pressure} {pressureSymbol}{exceeds, select, yes{. Warning: exceeds cylinder capacity} other{}}",
+  "@gasCalculators_consumption_semantics": {
+    "description": "What a screen reader says for the gas consumption result card (issue #5106): the volume and the pressure it takes from the cylinder. exceeds is yes when the plan needs more gas than the cylinder holds, which adds a warning sentence.",
+    "placeholders": {
+      "volume": {
+        "type": "String",
+        "example": "2400"
+      },
+      "volumeSymbol": {
+        "type": "String",
+        "example": "L"
+      },
+      "pressure": {
+        "type": "String",
+        "example": "200"
+      },
+      "pressureSymbol": {
+        "type": "String",
+        "example": "bar"
+      },
+      "exceeds": {
+        "type": "String",
+        "example": "yes"
+      }
+    }
+  },
+  "gasCalculators_consumption_exceedsTank": "Exceeds cylinder capacity ({pressure} {symbol})",
   "gasCalculators_consumption_gasAtDepth": "Gas consumption at depth",
   "gasCalculators_consumption_pressure": "Pressure",
   "gasCalculators_consumption_remainingGas": "Remaining gas",
-  "gasCalculators_consumption_tankCapacity": "Tank capacity ({tankSize}{volumeSymbol} @ {fillPressure} {pressureSymbol})",
+  "gasCalculators_consumption_tankCapacity": "Cylinder capacity ({tankSize}{volumeSymbol} @ {fillPressure} {pressureSymbol})",
   "gasCalculators_consumption_title": "Gas Consumption",
   "gasCalculators_consumption_totalGas": "Total gas for {time} minutes",
   "gasCalculators_consumption_volume": "Volume",
@@ -11697,7 +11889,7 @@
   },
   "gasCalculators_tab_mod": "MOD",
   "gasCalculators_tab_rockBottom": "Rock Bottom",
-  "gasCalculators_tankSize": "Tank Size",
+  "gasCalculators_tankSize": "Cylinder Size",
   "gasCalculators_title": "Gas Calculators",
   "gasCalculators_desc_mod": "Deepest safe depth for a mix",
   "gasCalculators_desc_bestMix": "Richest mix for a target depth",
@@ -11859,7 +12051,6 @@
   },
   "marineLife_speciesDetail_suggestForCatalog": "Suggest for the catalog",
   "marineLife_suggest_couldNotOpen": "Could not open the browser",
-  "marineLife_suggest_copyLink": "Copy link",
   "marineLife_editCard_photos": "Photos",
   "@marineLife_editCard_photos": {
     "description": "A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed."
@@ -14250,7 +14441,7 @@
       }
     }
   },
-  "plannerSeries_fillAll": "Fill all tanks",
+  "plannerSeries_fillAll": "Fill all cylinders",
   "plannerSeries_createPlannedDive": "Create planned dive",
   "plannerSeries_createPlannedDives": "Create planned dives",
   "plannerSeries_updatePlannedDive": "Update planned dive",
@@ -14941,10 +15132,10 @@
   "buoyancy_minDitchable": "Min ditchable weight",
   "buoyancy_ditchWarning": "More than you can ditch",
   "buoyancy_drysuitGas": "Drysuit gas added",
-  "buoyancy_estimatedPressures": "Tank pressures are estimated",
+  "buoyancy_estimatedPressures": "Cylinder pressures are estimated",
   "buoyancy_linkSuitHint": "Link an exposure suit to this dive for a fuller picture",
   "buoyancy_noLeadHint": "No lead recorded: add weights to this dive, or a dry weight to your weights gear",
-  "buoyancy_tankMaterialAssumedHint": "Tank material not set, so aluminum was assumed: set the material or pick a tank preset",
+  "buoyancy_tankMaterialAssumedHint": "Cylinder material not set, so aluminum was assumed: set the material or pick a cylinder preset",
   "buoyancy_chartNet": "Net",
   "buoyancy_chartMinutes": "Time (min)",
   "buoyancy_historyCarried": "Carried",
@@ -15067,7 +15258,7 @@
       }
     }
   },
-  "buoyancy_causeGas": "Gas breathed left the tanks {amount} lighter",
+  "buoyancy_causeGas": "Gas breathed left the cylinders {amount} lighter",
   "@buoyancy_causeGas": {
     "placeholders": {
       "amount": {
@@ -15126,7 +15317,7 @@
     }
   },
   "diveDetailSection_tanks_name": "Cylinders",
-  "diveDetailSection_tanks_description": "Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption",
+  "diveDetailSection_tanks_description": "Cylinder list, gas mixes, pressures, MOD/MND, per-cylinder consumption",
   "diveDetailSection_buddies_name": "Buddies",
   "diveDetailSection_buddies_description": "Buddy list with roles",
   "diveDetailSection_signatures_name": "Signatures",
@@ -15163,6 +15354,8 @@
   "siteDetailSection_rating_description": "Your rating of the site",
   "siteDetailSection_hazards_description": "Hazards and safety notes",
   "siteDetailSection_access_description": "Entry and exit, parking, mooring, access notes",
+  "siteDetailSection_contact_description": "Address, phone, email and website",
+  "siteDetailSection_openingHours_description": "Opening days and hours, by season",
   "siteDetailSection_notes_description": "Your notes about the site",
   "settings_siteDetailSections_title": "Site Detail Sections",
   "settings_appearance_header_siteDetails": "Site Details",
@@ -15194,7 +15387,7 @@
   "settings_appearance_metric_aveloGasRemaining": "Gas remaining (Avelo)",
   "settings_appearance_metric_computerRmv": "RMV (computer)",
   "settings_appearance_metric_events": "Events",
-  "settings_appearance_metric_estimatedTankPressure": "Estimated Tank Pressure",
+  "settings_appearance_metric_estimatedTankPressure": "Estimated Cylinder Pressure",
   "@settings_appearance_metric_estimatedTankPressure": {
     "description": "Settings switch that turns off the synthesized (estimated) tank pressure line on the dive profile chart."
   },
@@ -15227,9 +15420,10 @@
     }
   },
   "settings_appearance_pressureThresholdMarkers": "Pressure threshold markers",
-  "settings_appearance_pressureThresholdMarkers_subtitleFull": "Show markers when tank pressure crosses 2/3, 1/2, and 1/3 thresholds",
+  "settings_appearance_pressureThresholdMarkers_subtitleFull": "Show markers when cylinder pressure crosses 2/3, 1/2, and 1/3 thresholds",
   "settings_appearance_metricsFollowViewport": "Keep overlays in view when zooming",
-  "settings_appearance_metricsFollowViewport_subtitle": "Fit overlays such as NDL and ppO2 to the visible area instead of magnifying them with the depth axis",
+  "settings_appearance_profileZoom": "Zoom",
+  "settings_appearance_zoomTimeOnly_conflict": "Profile zoom: time only",
   "settings_appearance_rightYAxisMetric": "Right Y-axis metric",
   "settings_appearance_rightYAxisMetric_subtitle": "Default metric shown on right axis",
   "settings_appearance_viewerFullscreen": "Fullscreen mode",
@@ -15250,7 +15444,7 @@
   "settings_metricColors_auto": "Auto",
   "settings_metricColors_autoTemperature": "Auto: follows the theme",
   "settings_metricColors_autoPressure": "Auto: each gas has its own color",
-  "settings_metricColors_pressureCustom": "Used on single-tank dives",
+  "settings_metricColors_pressureCustom": "Used on single-cylinder dives",
   "settings_metricColors_sheetTitle": "{metric} color",
   "@settings_metricColors_sheetTitle": {"placeholders": {"metric": {"type": "String"}}},
   "settings_metricColors_swapsWith": "Swaps with {metric}",
@@ -15924,7 +16118,7 @@
   "settings_conflict_field_appliesToDives": "Offered on dives",
   "settings_conflict_field_appliesToEquipment": "Offered on equipment",
   "settings_conflict_field_appliesToSites": "Offered on dive sites",
-  "settings_conflict_field_applyDefaultTankToImports": "Default tank on imported dives",
+  "settings_conflict_field_applyDefaultTankToImports": "Default cylinder on imported dives",
   "settings_conflict_field_ascentGasSet": "Ascent gases",
   "settings_conflict_field_ascentRate": "Ascent rate",
   "settings_conflict_field_ascentRateCritical": "Critical ascent rate",
@@ -16033,7 +16227,7 @@
   "settings_conflict_field_boatCaptain": "Boat captain",
   "settings_conflict_field_boatName": "Boat name",
   "settings_conflict_field_bookmarkRef": "File access",
-  "settings_conflict_field_bottleLabel": "Bottle number",
+  "settings_conflict_field_bottleLabel": "Cylinder number",
   "settings_conflict_field_buddyListViewMode": "Buddy list view",
   "settings_conflict_field_builtinKey": "Built-in template",
   "settings_conflict_field_buoyancyKg": "Buoyancy",
@@ -16115,7 +16309,7 @@
   "settings_conflict_field_defaultRightAxisMetric": "Profile right axis",
   "settings_conflict_field_defaultShowAscentRateLine": "Profile shows ascent rate",
   "settings_conflict_field_defaultShowCns": "Profile shows CNS",
-  "settings_conflict_field_defaultShowEstimatedTankPressure": "Profile shows estimated tank pressure",
+  "settings_conflict_field_defaultShowEstimatedTankPressure": "Profile shows estimated cylinder pressure",
   "settings_conflict_field_defaultShowEvents": "Profile shows events",
   "settings_conflict_field_defaultShowGasDensity": "Profile shows gas density",
   "settings_conflict_field_defaultShowGasSwitchMarkers": "Profile shows gas switches",
@@ -16130,15 +16324,15 @@
   "settings_conflict_field_defaultShowPpHe": "Profile shows ppHe",
   "settings_conflict_field_defaultShowPpN2": "Profile shows ppN2",
   "settings_conflict_field_defaultShowPpO2": "Profile shows ppO2",
-  "settings_conflict_field_defaultShowPressure": "Profile shows tank pressure",
+  "settings_conflict_field_defaultShowPressure": "Profile shows cylinder pressure",
   "settings_conflict_field_defaultShowSac": "Profile shows gas consumption",
   "settings_conflict_field_defaultShowSurfaceGf": "Profile shows surface gradient factor",
   "settings_conflict_field_defaultShowTemperature": "Profile shows temperature",
   "settings_conflict_field_defaultShowTts": "Profile shows time to surface",
   "settings_conflict_field_defaultStartPressure": "Default start pressure",
   "settings_conflict_field_defaultStartPressureBar": "Default start pressure",
-  "settings_conflict_field_defaultTankPreset": "Default tank preset",
-  "settings_conflict_field_defaultTankVolume": "Default tank volume",
+  "settings_conflict_field_defaultTankPreset": "Default cylinder preset",
+  "settings_conflict_field_defaultTankVolume": "Default cylinder volume",
   "settings_conflict_field_defaultTtsSource": "Time to surface data source",
   "settings_conflict_field_depth": "Depth",
   "settings_conflict_field_depthM": "Depth",
@@ -16178,7 +16372,7 @@
   "settings_conflict_field_diveName": "Dive name",
   "settings_conflict_field_diveOperator": "Dive operator",
   "settings_conflict_field_divePlanSegments_type": "Segment",
-  "settings_conflict_field_divePlanTanks_role": "Tank role",
+  "settings_conflict_field_divePlanTanks_role": "Cylinder role",
   "settings_conflict_field_diveProfileEvents_severity": "Severity",
   "settings_conflict_field_diveProfileEvents_source": "Source",
   "settings_conflict_field_diveSafetyFindings_severity": "Severity",
@@ -16273,7 +16467,7 @@
   "settings_conflict_field_heightCm": "Height",
   "settings_conflict_field_heightMeters": "Tide height",
   "settings_conflict_field_hiddenChamberIds": "Hidden chambers",
-  "settings_conflict_field_hiddenTankPresetIds": "Hidden tank presets",
+  "settings_conflict_field_hiddenTankPresetIds": "Hidden cylinder presets",
   "settings_conflict_field_highO2ThresholdPercent": "High oxygen threshold",
   "settings_conflict_field_highTideHeight": "High tide height",
   "settings_conflict_field_highTideTime": "High tide",
@@ -16345,7 +16539,7 @@
   "settings_conflict_field_manualElapsedSeconds": "Time into dive, set by hand",
   "settings_conflict_field_manufacturer": "Manufacturer",
   "settings_conflict_field_matchConfidence": "Match",
-  "settings_conflict_field_material": "Tank material",
+  "settings_conflict_field_material": "Cylinder material",
   "settings_conflict_field_maxAscentRate": "Maximum ascent rate",
   "settings_conflict_field_maxDescentRate": "Maximum descent rate",
   "settings_conflict_field_maxHeartRate": "Maximum heart rate",
@@ -16421,6 +16615,8 @@
   "settings_conflict_field_overnightHrvMs": "Overnight heart rate variability",
   "settings_conflict_field_params": "Details",
   "settings_conflict_field_parkingInfo": "Parking",
+  "settings_conflict_field_address": "Address",
+  "settings_conflict_field_openingHours": "Opening hours",
   "settings_conflict_field_passportId": "Cylinder passport",
   "settings_conflict_field_phone": "Phone",
   "settings_conflict_field_photo": "Photo",
@@ -16452,7 +16648,7 @@
   "settings_conflict_field_preDiveChecklistTemplates_category": "Category",
   "settings_conflict_field_preDiveSessions_status": "Status",
   "settings_conflict_field_presetJson": "Preset",
-  "settings_conflict_field_presetName": "Tank preset",
+  "settings_conflict_field_presetName": "Cylinder preset",
   "settings_conflict_field_pressure": "Pressure",
   "settings_conflict_field_pressureBar": "Pressure",
   "settings_conflict_field_pressureUnit": "Pressure unit",
@@ -16591,8 +16787,8 @@
   "settings_conflict_field_sourceItemId": "Linked item",
   "settings_conflict_field_sourceMetadata": "Extra data from the source",
   "settings_conflict_field_sourceRef": "Source file or device",
-  "settings_conflict_field_sourceTankId": "Carried over from tank",
-  "settings_conflict_field_sourceTankIndex": "Tank number in the source log",
+  "settings_conflict_field_sourceTankId": "Carried over from cylinder",
+  "settings_conflict_field_sourceTankIndex": "Cylinder number in the source log",
   "settings_conflict_field_sourceType": "Source",
   "settings_conflict_field_sourceUuid": "Source ID",
   "settings_conflict_field_sourceValueNumber": "Reference reading",
@@ -16626,10 +16822,10 @@
   "settings_conflict_field_surfaceSwimLimitM": "Longest surface swim",
   "settings_conflict_field_swimSpeedMps": "Swim speed",
   "settings_conflict_field_takenAt": "Taken",
-  "settings_conflict_field_tankMaterial": "Tank material",
-  "settings_conflict_field_tankName": "Tank name",
-  "settings_conflict_field_tankOrder": "Tank order",
-  "settings_conflict_field_tankRole": "Tank role",
+  "settings_conflict_field_tankMaterial": "Cylinder material",
+  "settings_conflict_field_tankName": "Cylinder name",
+  "settings_conflict_field_tankOrder": "Cylinder order",
+  "settings_conflict_field_tankRole": "Cylinder role",
   "settings_conflict_field_targetCount": "Target",
   "settings_conflict_field_taxonomyClass": "Taxonomic class",
   "settings_conflict_field_temperatureC": "Temperature",
@@ -16655,7 +16851,7 @@
   "settings_conflict_field_transmitterSerial": "Transmitter serial number",
   "settings_conflict_field_trimEndTime": "Trimmed end",
   "settings_conflict_field_trimStartTime": "Trimmed start",
-  "settings_conflict_field_trimTankPressureAtSurfacing": "Tank pressure trimmed at surfacing",
+  "settings_conflict_field_trimTankPressureAtSurfacing": "Cylinder pressure trimmed at surfacing",
   "settings_conflict_field_tripChecklistItems_category": "Category",
   "settings_conflict_field_tripCylinderEvents_kind": "Event",
   "settings_conflict_field_tripListViewMode": "Trip list view",
@@ -16691,6 +16887,10 @@
   "settings_conflict_field_visibilityScaleModerateM": "Moderate visibility from",
   "settings_conflict_field_volume": "Volume",
   "settings_conflict_field_volumeL": "Volume",
+  "settings_conflict_field_ratedCapacityCuft": "Rated capacity",
+  "@settings_conflict_field_ratedCapacityCuft": {
+    "description": "Conflict dialog label for a custom cylinder preset's rated capacity, the manufacturer's figure a copy of a built-in preset keeps (issue #800)."
+  },
   "settings_conflict_field_volumeLiters": "Volume",
   "settings_conflict_field_volumeUnit": "Volume unit",
   "settings_conflict_field_walkSpeedMps": "Walking speed",
@@ -17017,7 +17217,7 @@
   "settings_conflict_ref_mediaSubscription": "Media subscription",
   "settings_conflict_ref_missing": "No longer in this library",
   "settings_conflict_ref_named": "{name} ({date})",
-  "settings_conflict_ref_plannedTank": "Planned tank",
+  "settings_conflict_ref_plannedTank": "Planned cylinder",
   "settings_conflict_ref_preDiveChecklistTemplate": "Pre-dive checklist template",
   "settings_conflict_ref_preDiveChecklistTemplateSection": "Pre-dive checklist template section",
   "settings_conflict_ref_preDiveSession": "Pre-dive checklist run",
@@ -17035,7 +17235,7 @@
   "settings_conflict_ref_sourceDive": "Source dive",
   "settings_conflict_ref_species": "Species",
   "settings_conflict_ref_tag": "Tag",
-  "settings_conflict_ref_tank": "Tank",
+  "settings_conflict_ref_tank": "Cylinder",
   "settings_conflict_ref_weight": "Weight",
   "settings_conflict_ref_customField": "Custom field",
   "settings_conflict_ref_gasSwitch": "Gas switch",
@@ -17119,7 +17319,7 @@
   "enum_qualityCategory_pressure": "Pressure",
   "enum_qualityCategory_profile": "Profile",
   "enum_qualityCategory_source": "Source",
-  "enum_qualityCategory_tank": "Tank",
+  "enum_qualityCategory_tank": "Cylinder",
   "enum_qualityCategory_temperature": "Temperature",
   "enum_qualityCategory_time": "Time",
   "enum_eventSource_computed": "Calculated",
@@ -17292,14 +17492,14 @@
   "@settings_speciesId_levelBalanced": {"description": "Naming level between Surer and Eager"},
   "settings_speciesId_levelEager": "Eager",
   "@settings_speciesId_levelEager": {"description": "Naming level: the most names, the least often right"},
-  "settings_speciesId_levelSurerAccuracy": "Fewest names. About {percent}% right",
-  "@settings_speciesId_levelSurerAccuracy": {"description": "Under Surer: how often its names were right when measured", "placeholders": {"percent": {"type": "int"}}},
+  "settings_speciesId_levelSurerAccuracy": "Fewest names. About {percent}% right on photos",
+  "@settings_speciesId_levelSurerAccuracy": {"description": "Under Surer: how often its names were right when measured on held-out still photos (issue #5121); video frames were not measured", "placeholders": {"percent": {"type": "int"}}},
   "settings_speciesId_levelSurerUnmeasured": "Fewest names, most often right",
   "@settings_speciesId_levelSurerUnmeasured": {"description": "Under Surer when the model carries no measured accuracy for it"},
-  "settings_speciesId_levelBalancedAccuracy": "More names. About {percent}% right",
-  "@settings_speciesId_levelBalancedAccuracy": {"description": "Under Balanced: how often its names were right when measured", "placeholders": {"percent": {"type": "int"}}},
-  "settings_speciesId_levelEagerAccuracy": "Most names. About {percent}% right",
-  "@settings_speciesId_levelEagerAccuracy": {"description": "Under Eager: how often its names were right when measured", "placeholders": {"percent": {"type": "int"}}},
+  "settings_speciesId_levelBalancedAccuracy": "More names. About {percent}% right on photos",
+  "@settings_speciesId_levelBalancedAccuracy": {"description": "Under Balanced: how often its names were right when measured on held-out still photos (issue #5121); video frames were not measured", "placeholders": {"percent": {"type": "int"}}},
+  "settings_speciesId_levelEagerAccuracy": "Most names. About {percent}% right on photos",
+  "@settings_speciesId_levelEagerAccuracy": {"description": "Under Eager: how often its names were right when measured on held-out still photos (issue #5121); video frames were not measured", "placeholders": {"percent": {"type": "int"}}},
   "settings_speciesId_levelFallback": "{chosen} is not in this version of the model, so the app uses {inForce} until an update adds {chosen}. Choose {inForce} to keep using it.",
   "@settings_speciesId_levelFallback": {"description": "Under the naming levels when the level the diver chose is not in the installed model: the app names at the nearest surer level it has, and choosing that one keeps it", "placeholders": {"chosen": {"type": "String"}, "inForce": {"type": "String"}}},
   "settings_speciesId_kept": "Suggestions kept on this device",
@@ -17594,8 +17794,8 @@
   "settings_manage_species_subtitle": "Manage the species catalog",
   "settings_manage_tags": "Tags",
   "settings_manage_tags_subtitle": "Manage, merge, and delete tags",
-  "settings_manage_tankPresets": "Tank Presets",
-  "settings_manage_tankPresets_subtitle": "Manage custom tank configurations",
+  "settings_manage_tankPresets": "Cylinder Presets",
+  "settings_manage_tankPresets_subtitle": "Manage custom cylinder configurations",
   "settings_manage_weightPresets": "Weight Presets",
   "settings_manage_weightPresets_subtitle": "Reusable sets of weights for a dive",
   "weightPresets_page_title": "Weight Presets",
@@ -18051,7 +18251,7 @@
   "settings_section_plannerDefaults_subtitle": "Rates, gas, contingency, DPV team",
   "settings_section_diverProfile_subtitle": "Active diver & profiles",
   "settings_section_diverProfile_title": "Diver Profile",
-  "settings_section_manage_subtitle": "Dive types & tank presets",
+  "settings_section_manage_subtitle": "Dive types & cylinder presets",
   "settings_section_manage_title": "Manage",
   "settings_network_mode_header": "Proxy",
   "settings_network_mode_system": "System proxy",
@@ -18219,8 +18419,8 @@
   "settings_units_quickSelect": "Quick Select",
   "settings_units_gasConsumption_both_subtitle": "Show SAC and RMV side by side.",
   "settings_units_gasConsumption_both": "Both",
-  "settings_units_gasConsumption_rmv_subtitle": "Gas volume breathed per minute at the surface ({unit}). Needs a tank volume.",
-  "settings_units_gasConsumption_sac_subtitle": "Tank pressure drop per minute ({unit}). Works with any logged pressures.",
+  "settings_units_gasConsumption_rmv_subtitle": "Gas volume breathed per minute at the surface ({unit}). Needs a cylinder volume.",
+  "settings_units_gasConsumption_sac_subtitle": "Cylinder pressure drop per minute ({unit}). Works with any logged pressures.",
   "settings_units_dialog_gasConsumption": "Gas consumption display",
   "settings_units_gasConsumption": "Gas consumption",
   "settings_units_temperature": "Temperature",
@@ -18942,8 +19142,8 @@
   "insights_gas_sacTrend_error": "Failed to load consumption trend",
   "insights_gas_sacTrend_subtitle": "Every dive in range",
   "insights_gas_sacTrend_title": "Gas consumption trend",
-  "insights_gas_tankConfig_title": "Tank configuration",
-  "insights_gas_tankConfig_subtitle": "Dives by how the tanks were set up",
+  "insights_gas_tankConfig_title": "Cylinder configuration",
+  "insights_gas_tankConfig_subtitle": "Dives by how the cylinders were set up",
   "insights_gas_tankConfig_configurationHeading": "Configuration",
   "insights_gas_tankConfig_extrasHeading": "Extras",
   "insights_gas_tankConfig_rebreather": "Rebreather",
@@ -18951,7 +19151,7 @@
   "insights_gas_tankConfig_twinBackmount": "Twin backmount",
   "insights_gas_tankConfig_singleBackmount": "Single backmount",
   "insights_gas_tankConfig_other": "Other",
-  "insights_gas_tankConfig_noTanks": "No tanks logged",
+  "insights_gas_tankConfig_noTanks": "No cylinders logged",
   "insights_gas_tankConfig_stages": "Stage(s)",
   "insights_gas_tankConfig_decoGas": "Deco gas",
   "insights_gas_tankConfig_multiGas": "Multi-gas",
@@ -19007,7 +19207,7 @@
   "insights_gas_twinSetReview_failed": "Could not set the role",
   "insights_gas_twinSetReview_chart": "Looks like a twin set",
   "insights_gas_tankConfig_empty": "No dives to show",
-  "insights_gas_tankConfig_error": "Unable to load tank configuration",
+  "insights_gas_tankConfig_error": "Unable to load cylinder configuration",
   "insights_focus_title": "Dive focus",
   "insights_focus_intro": "See what a group of your dives has in common.",
   "insights_focus_error": "Failed to load dive focus",
@@ -19220,7 +19420,7 @@
   "insights_focus_factor_site": "Site",
   "insights_focus_factor_diveType": "Dive type",
   "insights_focus_factor_gas": "Gas",
-  "insights_focus_factor_tankVolume": "Tank size",
+  "insights_focus_factor_tankVolume": "Cylinder size",
   "insights_focus_factor_suit": "Suit",
   "insights_focus_factor_buddy": "Solo or buddy",
   "insights_focus_gas_air": "Air",
@@ -20609,9 +20809,9 @@
   "tags_manage_mergeAction": "Merge",
   "tank_al100_description": "Aluminum 100 cu ft",
   "tank_al100_displayName": "AL100",
-  "tank_al30Stage_description": "Aluminum 30 cu ft stage tank",
+  "tank_al30Stage_description": "Aluminum 30 cu ft stage cylinder",
   "tank_al30Stage_displayName": "AL30 Stage",
-  "tank_al40Stage_description": "Aluminum 40 cu ft stage tank",
+  "tank_al40Stage_description": "Aluminum 40 cu ft stage cylinder",
   "tank_al40Stage_displayName": "AL40 Stage",
   "tank_al40_description": "Aluminum 40 cu ft (pony)",
   "tank_al40_displayName": "AL40",
@@ -21362,7 +21562,7 @@
       }
     }
   },
-  "trips_cylinders_record_unlinked": "{count, plural, one{{count} dive tank not linked to a cylinder} other{{count} dive tanks not linked to a cylinder}}",
+  "trips_cylinders_record_unlinked": "{count, plural, one{{count} dive cylinder not linked to one on this board} other{{count} dive cylinders not linked to one on this board}}",
   "@trips_cylinders_record_unlinked": {
     "placeholders": {
       "count": {
@@ -21371,7 +21571,7 @@
     }
   },
   "trips_cylinders_record_unlinkedTitle": "Not linked to a cylinder",
-  "trips_cylinders_record_tank": "Tank {number}",
+  "trips_cylinders_record_tank": "Cylinder {number}",
   "@trips_cylinders_record_tank": {
     "placeholders": {
       "number": {
@@ -21432,7 +21632,7 @@
   "trips_cylinders_action_fillSeveral": "Fill several",
   "trips_cylinders_action_adjust": "Adjust",
   "trips_cylinders_action_logDive": "Log dive",
-  "trips_cylinders_bottle": "Bottle {label}",
+  "trips_cylinders_bottle": "Cylinder {label}",
   "@trips_cylinders_bottle": {
     "placeholders": {
       "label": {
@@ -21499,7 +21699,7 @@
   "trips_cylinders_kind_fill": "Fill",
   "trips_cylinders_kind_adjustment": "Adjustment",
   "trips_cylinders_deleteConfirmUnused": "Delete this cylinder and its fills?",
-  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{Delete this cylinder and its fills? {count} dive used it. That dive keeps its tank; only the link is removed.} other{Delete this cylinder and its fills? {count} dives used it. Those dives keep their tanks; only the link is removed.}}",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{Delete this cylinder and its fills? {count} dive used it. That dive keeps its own record of the cylinder; only the link is removed.} other{Delete this cylinder and its fills? {count} dives used it. Those dives keep their own record of it; only the link is removed.}}",
   "@trips_cylinders_deleteConfirmUsed": {
     "placeholders": {
       "count": {
@@ -21532,7 +21732,7 @@
   "trips_cylinders_fill_he": "He ordered (%)",
   "trips_cylinders_fill_analyzedO2": "O2 analyzed (%)",
   "trips_cylinders_fill_analyzedHe": "He analyzed (%)",
-  "trips_cylinders_fill_bottle": "Bottle number",
+  "trips_cylinders_fill_bottle": "Cylinder number",
   "trips_cylinders_fill_cost": "Cost",
   "trips_cylinders_fill_costEach": "Cost per cylinder",
   "trips_cylinders_fill_currency": "Currency",
@@ -21874,7 +22074,7 @@
   "@universalImport_summary_newProfile": {"description": "Import summary label on a profile the import created"},
   "@universalImport_summary_switchToSee": {"description": "Import summary hint on a profile that is not the active one", "placeholders": {"name": {"type": "String"}}},
   "universalImport_summary_noticesTitle": "Import notes",
-  "universalImport_summary_noticeNoTankPressureTitle": "Tank pressure not recorded",
+  "universalImport_summary_noticeNoTankPressureTitle": "Cylinder pressure not recorded",
   "universalImport_summary_noticeNoTankPressureBody": "Air consumption and SAC cannot be calculated. You can add start and end pressure by editing the dive.",
   "universalImport_summary_noticeAffectedDives": "{count, plural, =1{Affects 1 dive} other{Affects {count} dives}}",
   "@universalImport_summary_noticeAffectedDives": {
@@ -23504,7 +23704,7 @@
   },
   "divePlanner_segmentEditor_splitAtRateHint": "Travel at the configured rate, the rest of the duration as hold time",
   "divePlanner_segmentEditor_editTitle": "Edit Segment",
-  "divePlanner_segmentEditor_tankGas": "Tank / Gas",
+  "divePlanner_segmentEditor_tankGas": "Cylinder / Gas",
   "divePlanner_segmentList_addSegment": "Add Segment",
   "divePlanner_segmentList_ascent": "Ascent {startDepth} → {endDepth}",
   "@divePlanner_segmentList_ascent": {
@@ -23627,7 +23827,7 @@
   },
   "gasCalculators_rockBottom_stressedSacHint": "Use a higher RMV to account for stress during an emergency",
   "gasCalculators_rockBottom_stressedSacRates": "Stressed RMV",
-  "gasCalculators_rockBottom_tankSize": "Tank Size",
+  "gasCalculators_rockBottom_tankSize": "Cylinder Size",
   "gasCalculators_rockBottom_totalReserveNeeded": "Total reserve needed",
   "gasCalculators_rockBottom_turnDive": "Turn the dive when reaching {pressure} {pressureUnit} remaining",
   "@gasCalculators_rockBottom_turnDive": {
@@ -24037,14 +24237,14 @@
   "maps_regionSelector_zoomIn": "Zoom in",
   "maps_regionSelector_zoomOut": "Zoom out",
   "maps_regionSelector_dateLine": "The box crosses the date line. Keep it on one side, or draw two boxes.",
-  "tankPresets_addPreset": "Add tank preset",
+  "tankPresets_addPreset": "Add cylinder preset",
   "tankPresets_builtInPresets": "Built-in Presets",
-  "tankPresets_builtInPresets_description": "Switch off the presets you don't use to hide them from the tank pickers. The default preset is always shown.",
+  "tankPresets_builtInPresets_description": "Switch off the presets you don't use to hide them from the cylinder pickers. The default preset is always shown.",
   "tankPresets_currentDefault": "Current default",
   "tankPresets_customPresets": "Custom Presets",
-  "tankPresets_defaultSettings": "Default Tank",
-  "tankPresets_defaultSettings_description": "The starred preset is used as the default tank when logging new dives.",
-  "tankPresets_deleteDefaultMessage": "Are you sure you want to delete \"{name}\"? This is your current default tank preset and will be reset to AL80.",
+  "tankPresets_defaultSettings": "Default Cylinder",
+  "tankPresets_defaultSettings_description": "The starred preset is used as the default cylinder when logging new dives.",
+  "tankPresets_deleteDefaultMessage": "Are you sure you want to delete \"{name}\"? This is your current default cylinder preset and will be reset to AL80.",
   "@tankPresets_deleteDefaultMessage": {
     "placeholders": {
       "name": {
@@ -24061,12 +24261,40 @@
     }
   },
   "tankPresets_deletePreset": "Delete preset",
-  "tankPresets_deleteTitle": "Delete Tank Preset?",
+  "tankPresets_deleteTitle": "Delete Cylinder Preset?",
   "tankPresets_deleted": "Deleted \"{name}\"",
   "@tankPresets_deleted": {
     "placeholders": {
       "name": {
         "type": "Object"
+      }
+    }
+  },
+  "tankPresets_duplicatePreset": "Duplicate",
+  "@tankPresets_duplicatePreset": {
+    "description": "Tooltip of the button on a built-in cylinder preset (issue #800) that opens the new-preset form filled from it."
+  },
+  "tankPresets_duplicateName": "{name} (copy)",
+  "@tankPresets_duplicateName": {
+    "description": "Name a duplicated built-in preset starts with (issue #800).",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "AL80"
+      }
+    }
+  },
+  "tankPresets_duplicateNameNumbered": "{name} (copy {number})",
+  "@tankPresets_duplicateNameNumbered": {
+    "description": "Name a duplicate starts with when a copy of that preset already exists (issue #800): the second copy is number 2.",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "AL80"
+      },
+      "number": {
+        "type": "int",
+        "example": "2"
       }
     }
   },
@@ -24079,7 +24307,7 @@
       }
     }
   },
-  "tankPresets_edit_descriptionHint": "e.g., My rental tank from dive shop",
+  "tankPresets_edit_descriptionHint": "e.g., My rental cylinder from dive shop",
   "tankPresets_edit_descriptionOptional": "Description (optional)",
   "tankPresets_edit_errorLoading": "Error loading preset: {error}",
   "@tankPresets_edit_errorLoading": {
@@ -24097,7 +24325,7 @@
       }
     }
   },
-  "tankPresets_edit_notFound": "This tank preset no longer exists.",
+  "tankPresets_edit_notFound": "This cylinder preset no longer exists.",
   "tankPresets_edit_gasCapacity": "• Gas capacity: {capacity} cuft",
   "@tankPresets_edit_gasCapacity": {
     "placeholders": {
@@ -24108,13 +24336,13 @@
   },
   "tankPresets_edit_material": "Material",
   "tankPresets_edit_name": "Name",
-  "tankPresets_edit_nameHelper": "A friendly name for this tank preset",
+  "tankPresets_edit_nameHelper": "A friendly name for this cylinder preset",
   "tankPresets_edit_nameHint": "e.g., My AL80",
   "tankPresets_edit_nameRequired": "Please enter a name",
   "tankPresets_edit_ratedPressure": "Rated pressure",
   "tankPresets_edit_required": "Required",
-  "tankPresets_edit_tankSpecifications": "Tank Specifications",
-  "tankPresets_edit_title": "Edit Tank Preset",
+  "tankPresets_edit_tankSpecifications": "Cylinder Specifications",
+  "tankPresets_edit_title": "Edit Cylinder Preset",
   "tankPresets_edit_updated": "Updated \"{name}\"",
   "@tankPresets_edit_updated": {
     "placeholders": {
@@ -24162,9 +24390,9 @@
     }
   },
   "tankPresets_applyToImports": "Also apply to imported dives",
-  "tankPresets_applyToImports_subtitle": "Fill in missing tank data on imported dives using the default preset",
+  "tankPresets_applyToImports_subtitle": "Fill in missing cylinder data on imported dives using the default preset",
   "tankPresets_defaultStartPressure": "Default start pressure",
-  "tankPresets_defaultStartPressure_subtitle": "Filled in on new tanks, and on imported tanks with no start pressure when the default tank is applied to imports",
+  "tankPresets_defaultStartPressure_subtitle": "Filled in on new cylinders, and on imported cylinders with no start pressure when the default cylinder is applied to imports",
   "tankPresets_defaultStartPressure_range": "Enter a pressure from {min} to {max}",
   "@tankPresets_defaultStartPressure_range": {
     "placeholders": {
@@ -24176,11 +24404,11 @@
       }
     }
   },
-  "tankPresets_new_title": "New Tank Preset",
-  "tankPresets_noPresets": "No tank presets available",
+  "tankPresets_new_title": "New Cylinder Preset",
+  "tankPresets_noPresets": "No cylinder presets available",
   "tankPresets_setAsDefault": "Set as default",
-  "tankPresets_showInPickers": "Show in tank pickers",
-  "tankPresets_title": "Tank Presets",
+  "tankPresets_showInPickers": "Show in cylinder pickers",
+  "tankPresets_title": "Cylinder Presets",
   "tools_gpsLogger_title": "GPS Logger",
   "tools_weight_bodyWeightOptional": "Body Weight (optional)",
   "tools_weight_disclaimer": "This is an estimate only. Always perform a buoyancy check at the start of your dive and adjust as needed. Factors like BCD, personal buoyancy, and breathing patterns will affect your actual weight requirements.",
@@ -24190,7 +24418,7 @@
   "settings_section_dataSources_subtitle": "Health data integration",
   "settings_siteMatch_title": "Auto site matching",
   "settings_siteMatch_subtitle": "How aggressively downloaded dives are matched to sites",
-  "settings_tankPressureAtSurfacing_title": "Tank pressure at surfacing",
+  "settings_tankPressureAtSurfacing_title": "Cylinder pressure at surfacing",
   "settings_tankPressureAtSurfacing_subtitle": "Read end pressure when you reached the surface, not when the computer stopped recording",
   "settings_siteMatch_strict": "Strict",
   "settings_siteMatch_balanced": "Balanced",
@@ -24296,7 +24524,7 @@
   "diveField_category_core": "Core",
   "diveField_category_environment": "Environment",
   "diveField_category_gas": "Gas",
-  "diveField_category_tank": "Tank",
+  "diveField_category_tank": "Cylinder",
   "diveField_category_weight": "Weight",
   "diveField_category_equipment": "Equipment",
   "diveField_category_deco": "Decompression",
@@ -25473,7 +25701,7 @@
   "planner_gearWeights_title": "Gear & Weights",
   "planner_gearWeights_useSet": "Use set",
   "tools_weight_addGear": "Add gear",
-  "tools_weight_addTank": "Add tank",
+  "tools_weight_addTank": "Add cylinder",
   "tools_weight_basedOnDives": "Based on {count} logged dives",
   "@tools_weight_basedOnDives": {
     "placeholders": {
@@ -25514,7 +25742,7 @@
   "tools_weight_source_physics": "physics",
   "tools_weight_source_typeDefault": "default estimate",
   "tools_weight_source_userSpec": "from your gear specs",
-  "tools_weight_tanks": "Tanks",
+  "tools_weight_tanks": "Cylinders",
   "tools_weight_useSet": "Use set",
   "tools_weight_waterTerm": "Water type",
   "dive3d_previewTitle": "3D View",
@@ -25737,7 +25965,7 @@
   "@dive3d_readout_runTime": {},
   "dive3d_readout_ceiling": "Ceiling",
   "@dive3d_readout_ceiling": {},
-  "dive3d_readout_tank": "Tank {n}",
+  "dive3d_readout_tank": "Cylinder {n}",
   "@dive3d_readout_tank": {
     "placeholders": {
       "n": {
@@ -26500,8 +26728,8 @@
   "safetyHub_noFly_disclaimer": "DAN/UHMS guideline intervals from your last dive. Not a substitute for your dive computer's no-fly time.",
   "diveLog_detail_altitudeMismatch_title": "Site is at altitude",
   "diveLog_detail_altitudeMismatch_subtitle": "This site records an altitude but the dive has none set, so decompression analysis assumed sea level. Set the dive's altitude to correct it.",
-  "diveLog_detail_sacSegmentsNoPressure": "Only start and end tank pressures were recorded, so gas use can't be split into segments. A breakdown needs pressure readings taken during the dive, such as from an air-integrated transmitter. The whole-dive average appears under Cylinders.",
-  "diveLog_detail_sacSegmentsNoPressure_subtitle": "No tank pressure recorded during the dive",
+  "diveLog_detail_sacSegmentsNoPressure": "Only start and end cylinder pressures were recorded, so gas use can't be split into segments. A breakdown needs pressure readings taken during the dive, such as from an air-integrated transmitter. The whole-dive average appears under Cylinders.",
+  "diveLog_detail_sacSegmentsNoPressure_subtitle": "No cylinder pressure recorded during the dive",
   "diveLog_detail_sacSegments_time": "Time",
   "@diveLog_detail_sacSegments_time": {
     "description": "Heading of the time chart and of the duration column in the gas consumption by segment card"
@@ -26535,18 +26763,6 @@
       }
     }
   },
-  "diveLog_detail_sacSegments_peak": "Peak {rate} at {range}",
-  "@diveLog_detail_sacSegments_peak": {
-    "description": "Shown under the time chart when no segment is selected",
-    "placeholders": {
-      "rate": {
-        "type": "String"
-      },
-      "range": {
-        "type": "String"
-      }
-    }
-  },
   "diveLog_detail_sacSegments_average": "Average {rate}",
   "@diveLog_detail_sacSegments_average": {
     "description": "Collapsed subtitle of the gas consumption by segment card",
@@ -26559,6 +26775,15 @@
   "diveLog_detail_sacSegments_summaryAverage": "Average",
   "@diveLog_detail_sacSegments_summaryAverage": {
     "description": "Label over the dive average rate in the gas consumption by segment card"
+  },
+  "diveLog_detail_sacSegments_averageMark": "avg {rate}",
+  "@diveLog_detail_sacSegments_averageMark": {
+    "description": "Label on the line marking the dive average in the gas consumption by segment chart, such as avg 18. Keep it short: it sits inside the chart",
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
   },
   "diveLog_detail_sacSegments_summaryPeak": "Peak",
   "@diveLog_detail_sacSegments_summaryPeak": {
@@ -27076,6 +27301,69 @@
       }
     }
   },
+  "equipmentCondition_exposure_lastDivedLabel": "Last dived",
+  "equipmentCondition_exposure_divesLabel": "Dives",
+  "equipmentCondition_exposure_hoursLabel": "Hours",
+  "equipmentCondition_exposure_today": "Today",
+  "equipmentCondition_exposure_daysAgo": "{count, plural, =1{{count} day ago} other{{count} days ago}}",
+  "@equipmentCondition_exposure_daysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_monthsAgo": "{count, plural, =1{{count} month ago} other{{count} months ago}}",
+  "@equipmentCondition_exposure_monthsAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_yearsAgo": "{count, plural, =1{{count} year ago} other{{count} years ago}}",
+  "@equipmentCondition_exposure_yearsAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_lastDivedSemantic": "Last dived {ago}, on {date}",
+  "@equipmentCondition_exposure_lastDivedSemantic": {
+    "placeholders": {
+      "ago": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "equipmentCondition_exposure_range12Months": "12 months",
+  "equipmentCondition_exposure_rangeAllYears": "All years",
+  "equipmentCondition_exposure_last12Months": "{count, plural, =0{No dives in the last 12 months} =1{{count} dive in the last 12 months} other{{count} dives in the last 12 months}}",
+  "@equipmentCondition_exposure_last12Months": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipmentCondition_exposure_barTooltip": "{period}\n{dives}, {hours}",
+  "@equipmentCondition_exposure_barTooltip": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      },
+      "dives": {
+        "type": "String"
+      },
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
   "equipmentCondition_finding_cellOutputDeclining": "Cell {slot} output fell {percent} percent across {n} dives since {since}",
   "@equipmentCondition_finding_cellOutputDeclining": {
     "placeholders": {
@@ -27464,7 +27752,7 @@
   },
   "dataQuality_dive_tanks": "Affects {tanks}",
   "@dataQuality_dive_tanks": {
-    "description": "Names the tank or tanks a finding is about, e.g. 'Affects Tank 2' or 'Affects Tank 1, Tank 2'.",
+    "description": "Names the cylinder or cylinders a finding is about, e.g. 'Affects Cylinder 2' or 'Affects Cylinder 1, Cylinder 2'.",
     "placeholders": {
       "tanks": {
         "type": "String"
@@ -27473,7 +27761,7 @@
   },
   "dataQuality_dive_tankPair": "{first} and {second}",
   "@dataQuality_dive_tankPair": {
-    "description": "The two tanks of a twin-tank finding inside dataQuality_dive_tanks, e.g. 'Tank 1 and Tank 2'.",
+    "description": "The two cylinders of a twin-cylinder finding inside dataQuality_dive_tanks, e.g. 'Cylinder 1 and Cylinder 2'.",
     "placeholders": {
       "first": {
         "type": "String"
@@ -27539,7 +27827,7 @@
   "dataQuality_chip_time": "Time",
   "dataQuality_chip_profile": "Profile",
   "dataQuality_chip_gas": "Gas",
-  "dataQuality_chip_tanks": "Tanks",
+  "dataQuality_chip_tanks": "Cylinders",
   "dataQuality_chip_duplicates": "Duplicates",
   "dataQuality_chip_sources": "Sources",
   "dataQuality_detector_clock_offset": "Clock & timezone",
@@ -27771,7 +28059,7 @@
       }
     }
   },
-  "dataQuality_msg_pressureEndpoint": "Tank record says {record} but the sensor series shows {series}",
+  "dataQuality_msg_pressureEndpoint": "Cylinder record says {record} but the sensor series shows {series}",
   "@dataQuality_msg_pressureEndpoint": {
     "placeholders": {
       "record": {
@@ -27873,7 +28161,7 @@
       }
     }
   },
-  "dataQuality_msg_tankInactive": "This tank lost {drop} while the gas timeline says it was not in use",
+  "dataQuality_msg_tankInactive": "This cylinder lost {drop} while the gas timeline says it was not in use",
   "@dataQuality_msg_tankInactive": {
     "placeholders": {
       "drop": {
@@ -27967,7 +28255,7 @@
     }
   },
   "dataQuality_detector_transmitter_role": "Transmitter role",
-  "dataQuality_msg_transmitterRoleBailout": "Tank {tankNumber} is marked {role} from its transmitter's name, but it lost {ocDrop} after the switch to open circuit and almost none on the loop, so it looks like the bailout. A bailout that was never breathed, or one breathed without a gas switch on the computer, cannot be detected this way.",
+  "dataQuality_msg_transmitterRoleBailout": "Cylinder {tankNumber} is marked {role} from its transmitter's name, but it lost {ocDrop} after the switch to open circuit and almost none on the loop, so it looks like the bailout. A bailout that was never breathed, or one breathed without a gas switch on the computer, cannot be detected this way.",
   "@dataQuality_msg_transmitterRoleBailout": {
     "placeholders": {
       "tankNumber": {
@@ -27981,7 +28269,7 @@
       }
     }
   },
-  "dataQuality_msg_twinTanks": "Two tanks carry a near-identical pressure series",
+  "dataQuality_msg_twinTanks": "Two cylinders carry a near-identical pressure series",
   "dataQuality_msg_sourceDepth": "Sources disagree on max depth: {primary} vs {source}",
   "@dataQuality_msg_sourceDepth": {
     "placeholders": {
@@ -28210,8 +28498,8 @@
   "dataQuality_repairLabel_recompute": "Recalculate from profile",
   "dataQuality_repairLabel_swapPressures": "Swap start/end pressure",
   "dataQuality_repairLabel_setFromSeries": "Use sensor values",
-  "dataQuality_repairLabel_swapSeries": "Swap tank series",
-  "dataQuality_repairLabel_reassignSeries": "Move series to another tank",
+  "dataQuality_repairLabel_swapSeries": "Swap cylinder series",
+  "dataQuality_repairLabel_reassignSeries": "Move series to another cylinder",
   "dataQuality_repairLabel_addGasSwitches": "{count, plural, one{Add gas switch} other{Add {count} gas switches}}",
   "@dataQuality_repairLabel_addGasSwitches": {
     "description": "Repair button that writes the suggested gas switches to the dive.",
@@ -28758,7 +29046,7 @@
   "enum_diveField_surfaceConditions": "Surface Conditions",
   "enum_diveField_primaryGas": "Primary Gas",
   "enum_diveField_diluentGas": "Diluent Gas",
-  "enum_diveField_tankCount": "Tank Count",
+  "enum_diveField_tankCount": "Cylinder Count",
   "enum_diveField_startPressure": "Start Pressure",
   "enum_diveField_endPressure": "End Pressure",
   "enum_diveField_rmv": "RMV (volume rate)",
@@ -28896,7 +29184,7 @@
   "enum_diveField_surfaceConditions_short": "Surface",
   "enum_diveField_primaryGas_short": "Gas",
   "enum_diveField_diluentGas_short": "Dil",
-  "enum_diveField_tankCount_short": "Tanks",
+  "enum_diveField_tankCount_short": "Cylinders",
   "enum_diveField_startPressure_short": "Start P",
   "enum_diveField_endPressure_short": "End P",
   "enum_diveField_rmv_short": "RMV",
@@ -28950,6 +29238,10 @@
   "enum_siteField_entryType": "Entry Type",
   "enum_siteField_bestSeason": "Best Season",
   "enum_siteField_mooringNumber": "Mooring Number",
+  "enum_siteField_address": "Address",
+  "enum_siteField_phone": "Phone",
+  "enum_siteField_email": "Email",
+  "enum_siteField_website": "Website",
   "enum_siteField_hazards": "Hazards",
   "enum_siteField_rating": "Rating",
   "enum_siteField_notes": "Notes",
@@ -28981,6 +29273,10 @@
   },
   "enum_siteField_bestSeason_short": "Season",
   "enum_siteField_mooringNumber_short": "Mooring",
+  "enum_siteField_address_short": "Address",
+  "enum_siteField_phone_short": "Phone",
+  "enum_siteField_email_short": "Email",
+  "enum_siteField_website_short": "Web",
   "enum_siteField_hazards_short": "Hazards",
   "enum_siteField_rating_short": "Rating",
   "enum_siteField_notes_short": "Notes",
@@ -31357,8 +31653,8 @@
   "diveLog_filterChip_waterTypeCount": "{count} water types",
   "diveLog_filterChip_roleCount": "{count} roles",
   "@diveLog_filterChip_roleCount": {"description": "Active filter chip for the diver's own role axis when several choices are picked (roles, or a role and Not set)", "placeholders": {"count": {"type": "int"}}},
-  "diveLog_filterChip_tankConfigCount": "{count} tank configurations",
-  "diveLog_filterChip_tankExtrasCount": "{count} tank extras",
+  "diveLog_filterChip_tankConfigCount": "{count} cylinder configurations",
+  "diveLog_filterChip_tankExtrasCount": "{count} cylinder extras",
   "diveLog_filter_sectionSpecies": "Species",
   "diveLog_filter_sectionVisibilityUnit": "Visibility ({unit})",
   "diveLog_filter_sectionWaterTempUnit": "Water temperature ({unit})",
@@ -31512,7 +31808,7 @@
   "settings_decompression_ttsSource": "TTS Source",
   "settings_decompression_gtrSource": "GTR Source",
   "settings_decompression_gtrReserve": "GTR reserve pressure",
-  "settings_decompression_gtrReserve_subtitle": "Tank pressure the gas time remaining counts down to. The calculated GTR assumes a direct ascent at 10 m/min with no stops.",
+  "settings_decompression_gtrReserve_subtitle": "Cylinder pressure the gas time remaining counts down to. The calculated GTR assumes a direct ascent at 10 m/min with no stops.",
   "settings_fixDiveTimes_applied": "Updated {count} {count, plural, =1{dive} other{dives}} by {hours} {hoursAbs, plural, =1{hour} other{hours}}.",
   "settings_fixDiveTimes_apply": "Apply to {count} {count, plural, =1{dive} other{dives}}",
   "settings_fixDiveTimes_clearRange": "Clear date range",
@@ -33781,8 +34077,8 @@
   "media_species_noDiveHint": "This photo is not linked to a dive. Search for a species to tag it.",
   "media_species_chipsLabel": "Species tags",
   "media_species_suggested": "Suggested",
-  "media_species_suggestedChip": "{name} {percent}%",
-  "@media_species_suggestedChip": {"placeholders": {"name": {"type": "String"}, "percent": {"type": "int"}}},
+  "media_species_suggestedChipLabel": "Suggested: {name}",
+  "@media_species_suggestedChipLabel": {"description": "What a screen reader says for a suggested species chip in the viewer: the chip shows the name alone, so this tells it apart from a confirmed tag (issue #5121)", "placeholders": {"name": {"type": "String"}}},
   "media_species_suggestedCount": "{name} ({count})",
   "@media_species_suggestedCount": {"placeholders": {"name": {"type": "String"}, "count": {"type": "int"}}},
   "media_species_add": "Add",
@@ -33843,6 +34139,8 @@
   "@media_species_seenStretch": {"description": "A stretch of a video where a species was seen, as player times such as 0:04 to 0:31 (issue #5032).", "placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
   "media_species_playFrom": "Play from {time}",
   "@media_species_playFrom": {"description": "Screen reader label of a time on a species' crop sheet: tapping it plays the video from there (issue #5032).", "placeholders": {"time": {"type": "String"}}},
+  "media_species_nextSighting": "Next sighting",
+  "@media_species_nextSighting": {"description": "Button on a video's controls, in the viewer opened from a species on a dive, that jumps to the next time that species was seen in the video (issue #5084)."},
   "media_species_openSpeciesPage": "Species page",
   "@media_species_openSpeciesPage": {"description": "Button on a species' crop sheet that opens the species page (issue #5024)."},
   "media_species_cropThumb": "Image {index} of {count}",
@@ -34434,7 +34732,7 @@
   "diveLab_buoyancy_netAtStop": "Net buoyancy at the stop",
   "diveLab_buoyancy_peakLift": "Peak lift demand",
   "diveLab_buoyancy_minDitchable": "Min ditchable lead",
-  "diveLab_buoyancy_unavailable": "Buoyancy needs tanks or an exposure suit on the dive.",
+  "diveLab_buoyancy_unavailable": "Buoyancy needs cylinders or an exposure suit on the dive.",
   "diveLab_sheet_ascentRate": "Ascent rate ({unit}/min)",
   "@diveLab_sheet_ascentRate": {"placeholders": {"unit": {"type": "String"}}},
   "diveLab_sheet_lastStop": "Last stop depth",
@@ -35426,8 +35724,8 @@
     }
   },
   "dataQuality_repairLabel_useAsBailout": "Use as bailout",
-  "dataQuality_useAsBailout_title": "Make this tank the bailout?",
-  "dataQuality_useAsBailout_merge": "Removes the duplicate Bailout cylinder (switches move to Tank {tankNumber})",
+  "dataQuality_useAsBailout_title": "Make this cylinder the bailout?",
+  "dataQuality_useAsBailout_merge": "Removes the duplicate Bailout cylinder (switches move to Cylinder {tankNumber})",
   "@dataQuality_useAsBailout_merge": {
     "placeholders": {
       "tankNumber": {
@@ -36012,9 +36310,9 @@
   "diveCenters_rental_empty": "No rental notes for this center yet.",
   "diveCenters_rental_addNote": "Add rental note",
   "diveCenters_rental_applyLastDive": "Apply last dive",
-  "diveCenters_rental_applied": "Weights and tanks copied from your last dive here.",
-  "diveCenters_rental_applyConfirmTitle": "Replace weights and tanks?",
-  "diveCenters_rental_applyConfirmBody": "This dive already has weights or tanks. Replace them with the ones from your last dive here?",
+  "diveCenters_rental_applied": "Weights and cylinders copied from your last dive here.",
+  "diveCenters_rental_applyConfirmTitle": "Replace weights and cylinders?",
+  "diveCenters_rental_applyConfirmBody": "This dive already has weights or cylinders. Replace them with the ones from your last dive here?",
   "diveCenters_rental_applyConfirmReplace": "Replace",
   "diveCenters_rental_leadTotal": "Lead: {total}",
   "@diveCenters_rental_leadTotal": {"placeholders": {"total": {"type": "Object"}}},
@@ -36022,7 +36320,7 @@
   "@diveCenters_rental_feedbackOver": {"placeholders": {"amount": {"type": "Object"}}},
   "diveCenters_rental_feedbackUnder": "{amount} under",
   "@diveCenters_rental_feedbackUnder": {"placeholders": {"amount": {"type": "Object"}}},
-  "diveCenters_rental_tanksLabel": "Tanks",
+  "diveCenters_rental_tanksLabel": "Cylinders",
   "diveCenters_rental_verdictWorked": "Worked",
   "diveCenters_rental_verdictAvoid": "Avoid",
   "diveCenters_rental_extraLead": "{amount} extra lead",
@@ -36212,13 +36510,13 @@
   "@query_dives_exitMethod": {"description": "Field label in the query builder"},
   "query_dives_favorite": "Favorite",
   "@query_dives_favorite": {"description": "Field label in the query builder"},
-  "query_dives_gasCount": "Number of tanks",
+  "query_dives_gasCount": "Number of cylinders",
   "@query_dives_gasCount": {"description": "Field label in the query builder"},
   "query_dives_gear": "Gear",
   "@query_dives_gear": {"description": "Field label in the query builder"},
   "query_dives_hasProfile": "Has profile",
   "@query_dives_hasProfile": {"description": "Field label in the query builder"},
-  "query_dives_tankConfig": "Tank configuration",
+  "query_dives_tankConfig": "Cylinder configuration",
   "@query_dives_tankConfig": {"description": "Field label in the query builder"},
   "query_dives_stages": "Stage(s)",
   "@query_dives_stages": {"description": "Field label in the query builder"},
@@ -36284,7 +36582,7 @@
   "@query_dives_surfaceInterval": {"description": "Field label in the query builder"},
   "query_dives_tags": "Tags",
   "@query_dives_tags": {"description": "Field label in the query builder"},
-  "query_dives_tanks": "Tanks",
+  "query_dives_tanks": "Cylinders",
   "@query_dives_tanks": {"description": "Field label in the query builder"},
   "query_dives_trip": "Trip",
   "@query_dives_trip": {"description": "Field label in the query builder"},
@@ -36356,7 +36654,7 @@
   "@query_entity_species": {"description": "Field label in the query builder"},
   "query_entity_tags": "Tags",
   "@query_entity_tags": {"description": "Field label in the query builder"},
-  "query_entity_tanks": "Tanks",
+  "query_entity_tanks": "Cylinders",
   "@query_entity_tanks": {"description": "Field label in the query builder"},
   "query_entity_trips": "Trips",
   "@query_entity_trips": {"description": "Field label in the query builder"},
@@ -38508,7 +38806,7 @@
   "info_surfaceIntervalTool_howToUse": "Set the first dive, the second dive and the surface interval. The result shows the minimum interval and the NDL for the second dive.",
   "info_equipment_trend_summary": "One point per dive, so a slow change in this item shows as a trend over its life.",
   "info_equipment_findings_summary": "Patterns in this item's dives and reported issues that the condition rules flagged.",
-  "info_equipment_exposure_summary": "How much use this item has seen, counted in each of the units its service clocks use.",
+  "info_equipment_exposure_summary": "How much use this item has seen, counted in each of the units its service clocks use. The chart counts its dives per month or per year, up to today.",
   "info_site_altitude_summary": "The site's height above sea level and the air pressure there, which the decompression model starts from.",
   "info_trips_scrubberMargin_summary": "How much rated scrubber time is left for the trip's planned rebreather dives.",
   "info_settings_gradientFactors_summary": "How conservative the app's decompression model is.",
@@ -38553,7 +38851,7 @@
   "@equipment_setEdit_weights_noneAvailable": {"description": "Shown in the picker when every weight preset is already on the equipment set."},
   "equipment_setEdit_weights_total": "Total {weight}",
   "@equipment_setEdit_weights_total": {"description": "Total lead of the weight presets on an equipment set. {weight} is formatted in the diver's unit.", "placeholders": {"weight": {"type": "String"}}},
-  "equipment_setEdit_tanks_title": "Tanks",
+  "equipment_setEdit_tanks_title": "Cylinders",
   "@equipment_setEdit_tanks_title": {"description": "Section title on the equipment set editor: cylinder configurations this set applies."},
   "equipment_setEdit_tanks_add": "Add cylinder configuration",
   "@equipment_setEdit_tanks_add": {"description": "Button on the equipment set editor that adds a cylinder configuration to this set."},
@@ -38565,7 +38863,7 @@
   "@equipment_setEdit_bundle_remove": {"description": "Tooltip of the button that removes an included set, weight preset or cylinder configuration from an equipment set."},
   "equipment_setEdit_bundle_total": "Applies in total: {summary}",
   "@equipment_setEdit_bundle_total": {"description": "Summary of everything an equipment set applies. {summary} is a comma-separated list such as \"8 items, 12 lbs lead, 1 cylinder\".", "placeholders": {"summary": {"type": "String"}}},
-  "equipment_setEdit_bundle_noGearHint": "A set with no gear does not appear on a dive as a set, so its weights and tanks have to be removed by hand.",
+  "equipment_setEdit_bundle_noGearHint": "A set with no gear does not appear on a dive as a set, so its weights and cylinders have to be removed by hand.",
   "@equipment_setEdit_bundle_noGearHint": {"description": "Note on the equipment set editor when the set carries weights or tanks but no gear."},
   "equipment_setDetail_fromSet": "From {setName}",
   "@equipment_setDetail_fromSet": {"description": "Marks a gear row on the equipment set page that comes from an included set. {setName} is that set's name.", "placeholders": {"setName": {"type": "String"}}},
@@ -38585,7 +38883,7 @@
   "@diveLog_edit_setWeights_keep": {"description": "Button: leave the dive's weights as they are."},
   "rules_change_weights": "Weights",
   "@rules_change_weights": {"description": "Label of a rule run change to a dive's weights."},
-  "rules_change_tanks": "Tanks",
+  "rules_change_tanks": "Cylinders",
   "@rules_change_tanks": {"description": "Label of a rule run change to a dive's tanks."},
   "preDive_setChecks_weights": "Weights: {total} ({breakdown})",
   "@preDive_setChecks_weights": {"description": "Title of a pre-dive check for the lead an equipment set carries. {total} is the total and {breakdown} lists each weight, both in the diver's unit.", "placeholders": {"total": {"type": "String"}, "breakdown": {"type": "String"}}},
@@ -38801,5 +39099,19 @@
   "settings_currencies_undo": "Undo",
   "@settings_currencies_undo": {"description": "Currencies page: snack bar action that restores the enabled currencies from before Reset"},
   "settings_conflict_field_preferredCurrencyCodes": "Enabled currencies",
-  "@settings_conflict_field_preferredCurrencyCodes": {"description": "Sync conflict dialog label for the enabled currencies a diver lists first in the currency pickers"}
+  "@settings_conflict_field_preferredCurrencyCodes": {"description": "Sync conflict dialog label for the enabled currencies a diver lists first in the currency pickers"},
+  "popOut_openProfileWindow": "Open in a new window",
+  "@popOut_openProfileWindow": {"description": "Dive profile card: button opening the profile in its own desktop window"},
+  "popOut_pin": "Pin to this dive",
+  "@popOut_pin": {"description": "Pop-out profile window: tooltip of the button that holds the window on the dive it shows"},
+  "popOut_unpin": "Follow the main window",
+  "@popOut_unpin": {"description": "Pop-out profile window: tooltip of the pinned button, which goes back to showing the main window's dive"},
+  "popOut_selectDivePlaceholder": "Select a dive in the main window",
+  "@popOut_selectDivePlaceholder": {"description": "Pop-out profile window: shown when the main window has not shown a dive yet"},
+  "popOut_lockedPlaceholder": "Unlock Submersion in the main window",
+  "@popOut_lockedPlaceholder": {"description": "Pop-out profile window: shown while App Lock has locked the app"},
+  "popOut_windowTitle": "Profile: {dive}",
+  "@popOut_windowTitle": {"description": "Pop-out profile window: the OS window title; dive is the dive's number and site, like #142 Salt Pier", "placeholders": {"dive": {"type": "String", "example": "#142 Salt Pier"}}},
+  "popOut_connectFailed": "This window could not reach the logbook. Close it and try again.",
+  "@popOut_connectFailed": {"description": "Pop-out profile window: shown when the window could not connect to the main window's database"}
 }
