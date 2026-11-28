@@ -54,6 +54,8 @@ class _CurrenciesPageState extends ConsumerState<CurrenciesPage> {
       ..showSnackBar(
         SnackBar(
           content: Text(l10n.settings_currencies_resetDone),
+          persist: false,
+          duration: const Duration(seconds: 5),
           action: SnackBarAction(
             label: l10n.settings_currencies_undo,
             onPressed: () => _setEnabled(enabled),
