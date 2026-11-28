@@ -8,7 +8,7 @@ import 'package:submersion_transcoder/submersion_transcoder.dart';
 
 import 'color_encode_cases.dart';
 
-/// Phase 2 of scripts/run_color_encode_it.sh (issue #3521), shared by the
+/// Phase 2 of scripts/testing/run_color_encode_it.sh (issue #3521), shared by the
 /// platform tests: encodes each input found under `<root>/in` with the real
 /// engine into `<root>/out`, with a JSON report beside each output for the
 /// host-side check. Skips cases whose input is absent.
@@ -58,7 +58,9 @@ void colorEncodeInAppTests({
       }
       final source = await input(c.fileName);
       if (source == null) {
-        markTestSkipped('no ${c.fileName}; run scripts/run_color_encode_it.sh');
+        markTestSkipped(
+          'no ${c.fileName}; run scripts/testing/run_color_encode_it.sh',
+        );
         return;
       }
       final out = await output(c.fileName);
@@ -98,7 +100,7 @@ void colorEncodeInAppTests({
     final source = await input(longCase.fileName);
     if (source == null) {
       markTestSkipped(
-        'no ${longCase.fileName}; run scripts/run_color_encode_it.sh',
+        'no ${longCase.fileName}; run scripts/testing/run_color_encode_it.sh',
       );
       return;
     }

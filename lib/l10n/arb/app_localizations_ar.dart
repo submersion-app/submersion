@@ -57613,6 +57613,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get media_species_nextSighting => 'المشاهدة التالية';
+
+  @override
   String get media_species_openSpeciesPage => 'صفحة النوع';
 
   @override

@@ -11,7 +11,7 @@ release zip still asks a self-hosted copy for a client id of its own.
 ## How it works
 
 - **The build.** `build-all.yml`'s web job passes the repository variable
-  `GOOGLE_WEB_CLIENT_ID` to `scripts/build_web.sh`, with
+  `GOOGLE_WEB_CLIENT_ID` to `scripts/web/build_web.sh`, with
   `GOOGLE_WEB_CLIENT_ORIGINS=https://web.submersion.app`. The app uses the
   client only at that address, so one `Submersion-<tag>-Web.zip` serves
   both the site and self-hosters. The client goes in when the beta is

@@ -35,7 +35,7 @@ git at them.
 ## Pull Requests
 
 Every PR must relate to an issue, and its description must say which one. The
-"PR Issue Link" check (`scripts/check_pr_issue_link.py`) blocks the merge until
+"PR Issue Link" check (`scripts/checks/check_pr_issue_link.py`) blocks the merge until
 it does.
 
 - **Resolves the issue:** `Closes #123` (or `Fixes` / `Resolves`). GitHub
@@ -117,7 +117,7 @@ change when it touches `lib/**/presentation/`, `lib/shared/widgets/`,
 - Design records live under `docs/design/`: specs in `docs/design/specs/`,
   implementation plans in `docs/design/plans/`, investigation write-ups in
   `docs/design/findings/`. This overrides the superpowers skills' default
-  location. `scripts/check_docs_links.py` fails CI if the retired
+  location. `scripts/checks/check_docs_links.py` fails CI if the retired
   `docs/superpowers/` or `docs/plans/` folder reappears or is cited from code.
 
 ### Attribution
@@ -161,6 +161,9 @@ tool does not generate, such as a body typed into a `gh` command.
 - High cohesion, low coupling
 - 200-400 lines typical, 800 max per file
 - Organize by feature/domain, not by type
+- Scripts live in scripts/<purpose>/ (Python, shell) and tool/ (Dart);
+  scripts/README.md indexes every one, and check_scripts_index.py fails CI on
+  a loose or unindexed script
 
 ### 2. Code Style
 

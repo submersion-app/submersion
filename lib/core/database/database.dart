@@ -1834,6 +1834,9 @@ class AppDatabase extends _$AppDatabase {
     // only zoom choice (issue #5069). Nullable, no backfill; the floor does
     // not move. Numbered 389 because open work claims 388.
     389,
+    // v393: the built-in BCD/wing inspection kind applies to wings (issue
+    // #5110). Built-in reference data never syncs; the floor does not move.
+    393,
     // v394: equipment.catalogue_id and equipment.catalogue_answers, an
     // item's equipment catalogue link and answers (issue #5118). Nullable,
     // no backfill; the floor does not move. Skips 388 to 393, which open

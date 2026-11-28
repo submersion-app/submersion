@@ -5,7 +5,7 @@ name: Demo package age
 # younger than about five weeks (issue #3803), so this job checks the
 # published manifest once a week, opens one rolling issue asking for a rebuild
 # when the newest package is older, and closes it once a newer one is
-# published; scripts/demo_package_age_alert.py has the details.
+# published; scripts/bots/demo_package_age_alert.py has the details.
 on:
   schedule:
     - cron: "23 13 * * 1"
@@ -37,4 +37,4 @@ jobs:
       - name: Open or close the demo package rebuild alert
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 scripts/demo_package_age_alert.py
+        run: python3 scripts/bots/demo_package_age_alert.py

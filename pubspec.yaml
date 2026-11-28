@@ -289,8 +289,8 @@ flutter:
         - asset: assets/fonts/materialdesignicons-webfont.ttf
     # Dive-gear glyphs that no icon font has (wetsuit, drysuit, BCD,
     # rebreather, hood, gloves, bootie, reel, DPV, regulator). Drawn in
-    # tool/equipment_glyphs.py and compiled by
-    # tool/build_equipment_icon_font.py; referenced via
+    # scripts/artwork/equipment_glyphs.py and compiled by
+    # scripts/artwork/build_equipment_icon_font.py; referenced via
     # lib/core/icons/submersion_icons.dart.
     - family: Submersion Equipment
       fonts:
@@ -302,3 +302,29 @@ flutter:
       fonts:
         - asset: assets/fonts/InterDisplay-ExtraBold.ttf
           weight: 800
+
+flutter_launcher_icons:
+  image_path: "assets/icon/icon.png"
+
+  ios: true
+  remove_alpha_ios: true
+
+  android: true
+  adaptive_icon_background: "assets/icon/icon_adaptive_background.png"
+  adaptive_icon_foreground: "assets/icon/icon_adaptive_foreground.png"
+  min_sdk_android: 21
+
+  web:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    background_color: "#002D50"
+    theme_color: "#006994"
+
+  windows:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    icon_size: 256
+
+  macos:
+    generate: true
+    image_path: "assets/icon/icon_macos.png"

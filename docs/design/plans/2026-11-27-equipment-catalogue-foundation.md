@@ -155,7 +155,7 @@ Work in a clone outside the app repository: `~/repos/submersion-app/equipment-ca
 - Create: `lib/features/equipment/data/catalogue/equipment_catalogue_client.dart`
 - Create: `lib/features/equipment/data/catalogue/equipment_catalogue_store.dart`
 - Create: `lib/features/equipment/presentation/providers/equipment_catalogue_providers.dart`
-- Create: `.github/workflows/equipment-catalogue-release.yml`, `scripts/equipment_catalogue_intake.py` (modelled on `site-catalogue-release.yml` and `scripts/site_catalogue_intake.py`)
+- Create: `.github/workflows/equipment-catalogue-release.yml`, `scripts/datasets/equipment_catalogue/equipment_catalogue_intake.py` (modelled on `site-catalogue-release.yml` and `scripts/site_catalogue_intake.py`)
 - Modify: `lib/features/settings/presentation/providers/settings_providers.dart` (a `SettingsKeys.equipmentCatalogueUpdates` key)
 - Test: `test/features/equipment/data/catalogue/equipment_catalogue_client_test.dart`, `.../equipment_catalogue_store_test.dart`, `test/features/equipment/presentation/providers/equipment_catalogue_providers_test.dart`
 
