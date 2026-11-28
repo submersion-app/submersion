@@ -91,13 +91,19 @@ class EquipmentCatalogueAnswers extends Equatable {
     });
   }
 
+  EquipmentCatalogueAnswers copyWith({
+    Set<String>? notSame,
+    Map<String, Set<String>>? declined,
+    Map<String, Object?>? unknown,
+  }) => EquipmentCatalogueAnswers(
+    notSame: notSame ?? this.notSame,
+    declined: declined ?? this.declined,
+    unknown: unknown ?? this.unknown,
+  );
+
   /// With [recordId] remembered as not this item.
   EquipmentCatalogueAnswers withNotSame(String recordId) =>
-      EquipmentCatalogueAnswers(
-        notSame: {...notSame, recordId},
-        declined: declined,
-        unknown: unknown,
-      );
+      copyWith(notSame: {...notSame, recordId});
 
   /// With [fieldNames] left empty for [recordId], added to any before.
   EquipmentCatalogueAnswers withDeclined(
@@ -106,11 +112,7 @@ class EquipmentCatalogueAnswers extends Equatable {
   ) {
     final fields = {...?declined[recordId], ...fieldNames};
     if (fields.isEmpty) return this;
-    return EquipmentCatalogueAnswers(
-      notSame: notSame,
-      declined: {...declined, recordId: fields},
-      unknown: unknown,
-    );
+    return copyWith(declined: {...declined, recordId: fields});
   }
 
   @override

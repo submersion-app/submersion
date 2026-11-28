@@ -121,4 +121,13 @@ void main() {
       isEmpty,
     );
   });
+
+  test('a record copyWith replaces only what it is given', () {
+    final record = _record('a-b', 'A', 'B', aliases: ['b1']);
+    final changed = record.copyWith(model: 'C', firmwareId: 'a-c');
+    expect(changed.model, 'C');
+    expect(changed.firmwareId, 'a-c');
+    expect(changed.aliases, ['b1']);
+    expect(record.copyWith(), record);
+  });
 }

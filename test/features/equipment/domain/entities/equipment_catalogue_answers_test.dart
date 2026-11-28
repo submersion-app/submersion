@@ -50,4 +50,18 @@ void main() {
       isTrue,
     );
   });
+
+  test('copyWith replaces only what it is given', () {
+    final answers = EquipmentCatalogueAnswers.empty.withNotSame('a');
+    final changed = answers.copyWith(
+      declined: {
+        'r': {'mount'},
+      },
+    );
+    expect(changed.notSame, {'a'});
+    expect(changed.declined, {
+      'r': {'mount'},
+    });
+    expect(answers.copyWith(), answers);
+  });
 }

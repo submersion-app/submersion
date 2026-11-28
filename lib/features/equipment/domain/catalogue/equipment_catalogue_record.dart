@@ -77,6 +77,30 @@ class EquipmentCatalogueRecord extends Equatable {
   final String? firmwareId;
   final List<EquipmentCatalogueSource> sources;
 
+  EquipmentCatalogueRecord copyWith({
+    String? id,
+    String? manufacturer,
+    List<String>? manufacturerAliases,
+    String? model,
+    List<String>? aliases,
+    EquipmentType? type,
+    Map<String, Object>? attributes,
+    EquipmentCatalogueLinks? links,
+    String? firmwareId,
+    List<EquipmentCatalogueSource>? sources,
+  }) => EquipmentCatalogueRecord(
+    id: id ?? this.id,
+    manufacturer: manufacturer ?? this.manufacturer,
+    manufacturerAliases: manufacturerAliases ?? this.manufacturerAliases,
+    model: model ?? this.model,
+    aliases: aliases ?? this.aliases,
+    type: type ?? this.type,
+    attributes: attributes ?? this.attributes,
+    links: links ?? this.links,
+    firmwareId: firmwareId ?? this.firmwareId,
+    sources: sources ?? this.sources,
+  );
+
   /// The record's value for [key] as the app stores an attribute, or null
   /// when the record has none.
   EquipmentAttribute? attributeFor(String key) {
