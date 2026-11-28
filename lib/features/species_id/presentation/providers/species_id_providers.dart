@@ -479,7 +479,7 @@ final mediaSuggestionsProvider = FutureProvider.autoDispose
         ),
         await repository.taggedSpecies(mediaId),
       );
-    });
+    }, dependencies: [mediaIdentificationRepositoryProvider]);
 
 /// How far the scan of a video has got, 0 to 1, while it is being
 /// scanned; null otherwise (issue #4675).
@@ -490,7 +490,7 @@ final mediaIdentificationProgressProvider = StreamProvider.autoDispose
       await for (final _ in service.watchActivity()) {
         yield service.progressOf(mediaId);
       }
-    });
+    }, dependencies: [mediaIdentificationServiceProvider]);
 
 /// The animals followed through a video, for the labels over it (issue
 /// #4675). Empty when the feature is off.
@@ -510,7 +510,7 @@ final videoTracksProvider = FutureProvider.autoDispose
         ))
           if (i.isTrack) i,
       ];
-    });
+    }, dependencies: [mediaIdentificationRepositoryProvider]);
 
 /// Whether the photo is being analysed, or waiting to be.
 final mediaIdentificationBusyProvider = StreamProvider.autoDispose
@@ -520,7 +520,7 @@ final mediaIdentificationBusyProvider = StreamProvider.autoDispose
       await for (final _ in service.watchActivity()) {
         yield service.isBusy(mediaId);
       }
-    });
+    }, dependencies: [mediaIdentificationServiceProvider]);
 
 /// Tags confident matches with no tap, when the setting is on (issue
 /// #4727).
@@ -558,46 +558,65 @@ final identificationCropProvider = FutureProvider.autoDispose
     .family<
       IdentificationCropImage?,
       (String mediaId, String identificationId)
-    >((ref, key) async {
-      final store = ref.watch(identificationCropStoreProvider);
-      final table = ref.watch(identificationCropRepositoryProvider);
-      ref.invalidateSelfWhen(store.watchChanges().where((id) => id == key.$1));
-      final crop = await store.read(key.$1, key.$2);
-      if (crop != null || !ref.mounted) return crop;
-      // A synced crop is written once, so only one still to come is waited
-      // for: a sync bringing other crops must not read this one again and
-      // have its picture decoded and drawn anew.
-      ref.invalidateSelfWhen(table.watchChanges());
-      // A video keeps only a few crops of each species (issue #5032): a
-      // dropped one shows the largest kept crop of its group instead.
-      final repository = ref.read(mediaIdentificationRepositoryProvider);
-      final rows = await _rowsWithoutPaths(repository, key.$1);
-      final row = rows.firstWhereOrNull((i) => i.id == key.$2);
-      if (row == null || !row.isTrack || !ref.mounted) return null;
-      // Its tags tell a track the diver accepted as another species, which
-      // falls back within that species, as the cap ranks it.
-      final tags = await repository.taggedSpecies(key.$1);
-      if (!ref.mounted) return null;
-      final present = await ref.watch(presentCropIdsProvider(key.$1).future);
-      final standIn = keptStandIn(rows, row, present, tags: tags);
-      if (standIn == null) return null;
-      return store.read(key.$1, standIn.id);
-    });
+    >(
+      (ref, key) async {
+        final store = ref.watch(identificationCropStoreProvider);
+        final table = ref.watch(identificationCropRepositoryProvider);
+        ref.invalidateSelfWhen(
+          store.watchChanges().where((id) => id == key.$1),
+        );
+        final crop = await store.read(key.$1, key.$2);
+        if (crop != null || !ref.mounted) return crop;
+        // A synced crop is written once, so only one still to come is waited
+        // for: a sync bringing other crops must not read this one again and
+        // have its picture decoded and drawn anew.
+        ref.invalidateSelfWhen(table.watchChanges());
+        // A video keeps only a few crops of each species (issue #5032): a
+        // dropped one shows the largest kept crop of its group instead.
+        final repository = ref.read(mediaIdentificationRepositoryProvider);
+        final rows = await _rowsWithoutPaths(repository, key.$1);
+        final row = rows.firstWhereOrNull((i) => i.id == key.$2);
+        if (row == null || !row.isTrack || !ref.mounted) return null;
+        // Its tags tell a track the diver accepted as another species, which
+        // falls back within that species, as the cap ranks it.
+        final tags = await repository.taggedSpecies(key.$1);
+        if (!ref.mounted) return null;
+        final present = await ref.watch(presentCropIdsProvider(key.$1).future);
+        final standIn = keptStandIn(rows, row, present, tags: tags);
+        if (standIn == null) return null;
+        return store.read(key.$1, standIn.id);
+      },
+      dependencies: [
+        identificationCropStoreProvider,
+        identificationCropRepositoryProvider,
+        mediaIdentificationRepositoryProvider,
+        presentCropIdsProvider,
+      ],
+    );
 
 /// The identifications of a media item that have a crop on this device, a
 /// file or a synced one (issue #5032): a video keeps only a few of each
 /// species.
 final presentCropIdsProvider = FutureProvider.autoDispose
-    .family<Set<String>, String>((ref, mediaId) async {
-      final store = ref.watch(identificationCropStoreProvider);
-      final repository = ref.watch(mediaIdentificationRepositoryProvider);
-      ref.invalidateSelfWhen(store.watchChanges().where((id) => id == mediaId));
-      ref.invalidateSelfWhen(
-        ref.watch(identificationCropRepositoryProvider).watchChanges(),
-      );
-      final rows = await _rowsWithoutPaths(repository, mediaId);
-      return store.presentAmong(mediaId, [for (final i in rows) i.id]);
-    });
+    .family<Set<String>, String>(
+      (ref, mediaId) async {
+        final store = ref.watch(identificationCropStoreProvider);
+        final repository = ref.watch(mediaIdentificationRepositoryProvider);
+        ref.invalidateSelfWhen(
+          store.watchChanges().where((id) => id == mediaId),
+        );
+        ref.invalidateSelfWhen(
+          ref.watch(identificationCropRepositoryProvider).watchChanges(),
+        );
+        final rows = await _rowsWithoutPaths(repository, mediaId);
+        return store.presentAmong(mediaId, [for (final i in rows) i.id]);
+      },
+      dependencies: [
+        identificationCropStoreProvider,
+        mediaIdentificationRepositoryProvider,
+        identificationCropRepositoryProvider,
+      ],
+    );
 
 /// [mediaId]'s identifications without their track paths, which only the
 /// labels over a playing video need.

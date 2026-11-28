@@ -27,8 +27,16 @@ import 'package:submersion/features/media/domain/entities/species_tag_chip.dart'
 /// published nothing, because tagging a photo never edits the photo
 /// (issue #1638).
 class MediaSpeciesRepository {
-  AppDatabase get _db => DatabaseService.instance.database;
-  final SyncRepository _syncRepository = SyncRepository();
+  /// [database] is the open logbook unless given: the Identify viewer gives
+  /// its own in-memory one (issue #5122), and sync bookkeeping goes there
+  /// with the rows.
+  MediaSpeciesRepository({AppDatabase? database})
+    : _database = database,
+      _syncRepository = SyncRepository(database: database);
+
+  final AppDatabase? _database;
+  AppDatabase get _db => _database ?? DatabaseService.instance.database;
+  final SyncRepository _syncRepository;
   static const Uuid _uuid = Uuid();
 
   /// Bound-variable budget per `isIn` chunk, well under SQLite's 999 limit.

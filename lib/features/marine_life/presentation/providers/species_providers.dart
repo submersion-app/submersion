@@ -18,7 +18,7 @@ final allSpeciesProvider = FutureProvider<List<Species>>((ref) async {
   final repository = ref.watch(speciesRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchSpeciesChanges());
   return repository.getAllSpecies();
-});
+}, dependencies: [speciesRepositoryProvider]);
 
 /// Species by category provider
 /// Sighting counts per species, so a list can tell which species the
@@ -62,7 +62,7 @@ final speciesProvider = FutureProvider.family<Species?, String>((
   final repository = ref.watch(speciesRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchSpeciesChanges());
   return repository.getSpeciesById(id);
-});
+}, dependencies: [speciesRepositoryProvider]);
 
 /// Sightings for a dive provider
 final diveSightingsProvider = FutureProvider.family<List<Sighting>, String>((
