@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v388: `tank_presets.rated_capacity_cuft` (REAL, nullable), the
+/// Schema v390: `tank_presets.rated_capacity_cuft` (REAL, nullable), the
 /// manufacturer's rated capacity a custom preset copied from a built-in keeps
 /// (issue #800). Nullable with no backfill, so the sync floor holds.
 void main() {
@@ -36,23 +36,23 @@ void main() {
               .getSingle())
           .data;
 
-  test('v388 is in the ladder and keeps the floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(388));
-    expect(AppDatabase.migrationVersions, contains(388));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(388));
+  test('v390 is in the ladder and keeps the floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(390));
+    expect(AppDatabase.migrationVersions, contains(390));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, isNot(390));
   });
 
   test(
-    'upgrading from v387 leaves an existing preset with no rating',
+    'upgrading from v389 leaves an existing preset with no rating',
     () async {
-      final db = AppDatabase(dbAt(387));
+      final db = AppDatabase(dbAt(389));
       addTearDown(db.close);
       expect(await stored(db), {'rated_capacity_cuft': null});
     },
   );
 
   test('a database already carrying the column keeps its value', () async {
-    final db = AppDatabase(dbAt(387, withColumn: true));
+    final db = AppDatabase(dbAt(389, withColumn: true));
     addTearDown(db.close);
     expect(await stored(db), {'rated_capacity_cuft': 77.4});
   });

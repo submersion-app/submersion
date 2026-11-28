@@ -1,11 +1,16 @@
+import 'package:clock/clock.dart';
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/local_day_changes.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_exposure_totals.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_usage_history.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/services/battery_cycles.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_usage_builder.dart';
 import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
@@ -116,5 +121,30 @@ final equipmentExposureTotalsProvider =
         diveCount: inputs.samples.length,
         firstDive: first,
         lastDive: last,
+      );
+    });
+
+/// When and how often the item was dived, for the exposure card's recency
+/// tile and usage chart (issue #5074). Built from the same samples as the
+/// totals, so the chart and the Dives and Hours tiles never disagree.
+/// [EquipmentUsageHistory.empty] for an unknown item or one with no dives.
+final equipmentUsageHistoryProvider =
+    FutureProvider.family<EquipmentUsageHistory, String>((
+      ref,
+      equipmentId,
+    ) async {
+      // "Today" moves at local midnight even when no dive changes.
+      ref.invalidateSelfWhen(localDayChanges());
+      // The device's local date in the dives' wall-clock-as-UTC frame.
+      final now = clock.now();
+      final today = DateTime.utc(now.year, now.month, now.day);
+      final inputs = await ref.watch(
+        equipmentExposureInputsProvider(equipmentId).future,
+      );
+      if (inputs == null) return EquipmentUsageHistory.empty;
+      return buildUsageHistory(
+        samples: inputs.samples,
+        classifier: inputs.classifier,
+        today: today,
       );
     });

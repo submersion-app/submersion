@@ -343,5 +343,87 @@ void main() {
       const deep = ChartViewport(zoom: 20, offsetX: 0.5, zoomLimit: 40);
       expect(ChartViewport.lerp(deep, ChartViewport.reset, 0.5).zoomLimit, 40);
     });
+
+    test('interpolates the depth edges on their own', () {
+      final half = ChartViewport.lerp(
+        const ChartViewport(zoom: 2, zoomY: 1),
+        const ChartViewport(zoom: 2, zoomY: 2),
+        0.5,
+      );
+      expect(half.visibleHeight, closeTo(0.75, 1e-9));
+      expect(half.visibleWidth, closeTo(0.5, 1e-9));
+    });
+  });
+
+  // Time-only zoom on the dive profile (#5069): depth has its own factor.
+  group('depth zoom', () {
+    test('zoomY defaults to zoom', () {
+      const vp = ChartViewport(zoom: 3);
+      expect(vp.zoomY, 3);
+      expect(vp.visibleHeight, closeTo(1 / 3, 1e-12));
+    });
+
+    test('a time-only zoom leaves depth untouched', () {
+      final vp = ChartViewport.reset.zoomedAt(0.5, 0.5, 2, timeOnly: true);
+      expect(vp.zoom, 2);
+      expect(vp.zoomY, 1);
+      expect(vp.offsetY, 0);
+      expect(vp.visibleHeight, 1);
+    });
+
+    test('a time-only zoom keeps the time anchor', () {
+      final vp = ChartViewport.reset.zoomedAt(0.25, 0.9, 4, timeOnly: true);
+      expect(vp.offsetX + 0.25 / 4, closeTo(0.25, 1e-12));
+      expect(vp.offsetY, 0);
+    });
+
+    test('a both-axes zoom scales each factor on its own', () {
+      final once = const ChartViewport(zoom: 4, zoomY: 1).zoomedAt(0.5, 0.5, 2);
+      expect(once.zoom, 8);
+      expect(once.zoomY, 2);
+      final twice = once.zoomedAt(0.5, 0.5, 2);
+      expect(twice.zoom, ChartViewport.maxZoom);
+      expect(twice.zoomY, 4);
+    });
+
+    test('a both-axes zoom never takes depth past time', () {
+      final random = math.Random(5069);
+      var vp = const ChartViewport(zoom: 5, zoomY: 1);
+      for (var i = 0; i < 30; i++) {
+        vp = vp.zoomedAt(0.5, 0.5, 0.5 + random.nextDouble() * 1.5);
+        expect(vp.zoomY, lessThanOrEqualTo(vp.zoom + 1e-9));
+      }
+    });
+
+    test('a vertical pan does nothing at full depth', () {
+      final vp = const ChartViewport(zoom: 3, zoomY: 1).pannedBy(0.1, 0.3);
+      expect(vp.offsetY, 0);
+      expect(vp.offsetX, closeTo(0.1, 1e-12));
+    });
+
+    test('withFullDepth keeps the time window', () {
+      final vp = const ChartViewport(
+        zoom: 3,
+        offsetX: 0.4,
+        offsetY: 0.5,
+      ).withFullDepth();
+      expect(vp.zoom, 3);
+      expect(vp.offsetX, 0.4);
+      expect(vp.zoomY, 1);
+      expect(vp.offsetY, 0);
+    });
+
+    test('sameWindowAs sees the depth zoom', () {
+      expect(
+        const ChartViewport(
+          zoom: 2,
+        ).sameWindowAs(const ChartViewport(zoom: 2, zoomY: 1)),
+        isFalse,
+      );
+    });
+
+    test('isZoomed when only depth is zoomed', () {
+      expect(const ChartViewport(zoom: 1, zoomY: 2).isZoomed, isTrue);
+    });
   });
 }

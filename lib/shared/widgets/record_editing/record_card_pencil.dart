@@ -25,19 +25,26 @@ class RecordPencilDisc extends StatelessWidget {
   /// Opens the card; null when something around the disc does that.
   final VoidCallback? onTap;
 
+  /// The disc's diameter as drawn under [context]'s text scale.
+  static double diameterOf(BuildContext context) =>
+      // Whole points, rounded down: a title's line can come out a fraction
+      // under its scaled height, and the disc must not be the taller.
+      _scalerOf(context).scale(size).floorToDouble();
+
+  static TextScaler _scalerOf(BuildContext context) =>
+      MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1);
+
   @override
   Widget build(BuildContext context) {
     final colors = RecordPencilColors.of(context);
-    final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1);
+    final scaler = _scalerOf(context);
     final glyph = Icon(
       Icons.edit,
       size: scaler.scale(16),
       color: colors.onFill,
     );
     return SizedBox.square(
-      // Whole points, rounded down: a title's line can come out a fraction
-      // under its scaled height, and the disc must not be the taller.
-      dimension: scaler.scale(size).floorToDouble(),
+      dimension: diameterOf(context),
       child: Material(
         color: colors.fill,
         shape: CircleBorder(side: BorderSide(color: colors.outline)),
@@ -87,18 +94,37 @@ class RecordCardPencil extends StatelessWidget {
   /// The card's title, named to a screen reader and in the tooltip.
   final String cardTitle;
 
+  static const double _dotSlot = 8;
+  static const double _gap = 4;
+
+  /// The frame the pencil draws for, null while it draws nothing.
+  static RecordCardFrameData? _shownFrame(BuildContext context) {
+    final frame = RecordCardFrameScope.maybeOf(context);
+    return frame == null || frame.isOpen ? null : frame;
+  }
+
+  /// The size a [RecordCardPencil] takes under [context]: none while it
+  /// draws nothing, so a header laying it over its corner can keep exactly
+  /// its room (the dive page's header card, issue #4888). Built from the
+  /// same parts as [build]: the dot's slot, the gap and the disc.
+  static Size sizeOf(BuildContext context) {
+    if (_shownFrame(context) == null) return Size.zero;
+    final disc = RecordPencilDisc.diameterOf(context);
+    return Size(_dotSlot + _gap + disc, disc);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final frame = RecordCardFrameScope.maybeOf(context);
-    if (frame == null || frame.isOpen) return const SizedBox.shrink();
+    final frame = _shownFrame(context);
+    if (frame == null) return const SizedBox.shrink();
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox.square(
-          dimension: 8,
+          dimension: _dotSlot,
           child: frame.isChanged ? const RecordChangedDot() : null,
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: _gap),
         // The only way into the card: the body's own taps (the site, the
         // map) keep doing what they do while reading. A node of its own, or
         // a Card around the title row would merge it into one button named
