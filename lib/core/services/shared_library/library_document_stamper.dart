@@ -83,17 +83,22 @@ class LibraryDocumentStamper {
 
   /// Stamps [fields] on shared document [documentId] under the member
   /// [actingDiverId] edits as, and marks it for upload.
+  /// [authorized] when the caller checked the role before its write: a
+  /// role changed by a sync since then must not leave that write unstamped,
+  /// and so never uploaded.
   Future<void> stamp(
     String documentId,
     Set<String> fields, {
     String? actingDiverId,
+    bool authorized = false,
   }) async {
     if (fields.isEmpty) return;
     final row = await _row(documentId);
     final libraryId = row?.sharedLibraryId;
     if (row == null || libraryId == null) return;
     // A write nobody here may make is never uploaded, as for sites.
-    if (!await _sites.mayEditLibrary(libraryId, actingDiverId: actingDiverId)) {
+    if (!authorized &&
+        !await _sites.mayEditLibrary(libraryId, actingDiverId: actingDiverId)) {
       return;
     }
     final existing = await _store.getDocumentState(documentId);

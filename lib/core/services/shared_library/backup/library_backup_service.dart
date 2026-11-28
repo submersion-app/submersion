@@ -151,7 +151,7 @@ class LibraryBackupService {
       memberCount: header.memberCount,
       sizeBytes: zip.length,
       localPath: local,
-      pageFileIds: await _pageFileIdsOf(t),
+      pageFileIds: await _pageFileIdsOf(t, files),
     );
     var uploaded = false;
     try {
@@ -282,15 +282,25 @@ class LibraryBackupService {
 
   /// The page files the library's shared documents name now: what a
   /// backup of it needs kept in storage (issue #4713).
-  static Future<List<String>> _pageFileIdsOf(SharedLibraryTransport t) async {
+  /// The page files the document records in [files], the archived
+  /// snapshot itself, name: an edit after the snapshot cannot change them.
+  /// A record that cannot be read may name any file, so then every page
+  /// file in storage is kept for this backup.
+  static Future<List<String>> _pageFileIdsOf(
+    SharedLibraryTransport t,
+    Map<String, Uint8List> files,
+  ) async {
     final ids = <String>{};
-    for (final f in await t.listDocuments()) {
-      try {
-        final doc = await t.readDocument(f.id);
-        if (!doc.deleted) ids.addAll(doc.pageRefs.map((r) => r.fileId));
-      } catch (e) {
-        if (!SharedLibraryTransport.isUnreadable(e)) rethrow;
+    for (final e in files.entries) {
+      if (!e.key.startsWith('${SharedLibraryLayout.documentsDir}/')) continue;
+      final doc = await t.documentInSnapshot(e.key, e.value);
+      if (doc == null) {
+        return [
+          for (final f in await t.listPageFiles())
+            SharedLibraryTransport.pageFileIdOf(f),
+        ]..sort();
       }
+      if (!doc.deleted) ids.addAll(doc.pageRefs.map((r) => r.fileId));
     }
     return ids.toList()..sort();
   }

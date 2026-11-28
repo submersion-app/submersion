@@ -258,7 +258,13 @@ extension _DocumentSync on SharedLibraryService {
     required _PageFiles pageFiles,
   }) async {
     final id = remote.id;
-    // The site a document is filed under never changes.
+    // The site a document is filed under never changes: a record that names
+    // another one is not merged, so one id cannot be refiled across sites.
+    if (state != null && remote.siteId != state.siteId) {
+      _log.warning('Library document $id names another site; skipped');
+      await _store.putDocumentState(state.copyWith(remoteModifiedTime: stamp));
+      return false;
+    }
     final siteId = state?.siteId ?? remote.siteId;
     final outcome = mergeClockedRecords(local: local, remote: remote);
     final merged = outcome.merged;
@@ -421,16 +427,22 @@ extension _DocumentSync on SharedLibraryService {
       }
       try {
         uploadAttempted = true;
-        // The pages first: a record never names a file that is not there.
+        // The pages first: a record never names a file that is not there,
+        // so one whose bytes this device lacks stays dirty, unsent.
+        var pagesThere = true;
         if (!doc.deleted) {
           for (final ref in doc.pageRefs) {
             if (stored.contains(ref.fileId)) continue;
             final bytes = await _documentBridge.heldPageBytes(ref.fileId);
-            if (bytes == null) continue;
+            if (bytes == null) {
+              pagesThere = false;
+              break;
+            }
             await t.writePageFile(ref.fileId, bytes, checked: true);
             stored.add(ref.fileId);
           }
         }
+        if (!pagesThere) continue;
         var carried = const <String, FieldClock?>{};
         final remoteId = remoteFiles[state.documentId];
         final othersSigned = doc.clocks.values.any(

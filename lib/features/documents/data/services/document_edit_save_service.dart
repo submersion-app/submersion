@@ -84,6 +84,7 @@ class DocumentEditSaveService {
         documentId,
         libraryFieldsChanged(saved.before, saved.after),
         actingDiverId: actingDiverId,
+        authorized: true,
       );
     }
     return saved;

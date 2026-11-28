@@ -1,4 +1,5 @@
 import 'package:submersion/core/services/shared_library/library_document_stamper.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
@@ -12,6 +13,7 @@ const String documentLinksKey = 'documentLinks';
 const String _noteKey = 'documentLinks.held';
 const String _repoKey = 'documentLinks.repo';
 const String _ownerKey = 'documentLinks.owner';
+const String _diverKey = 'documentLinks.diver';
 
 /// What a sitting holds for the record's documents: those to attach (each
 /// created as Personal, a record of its own), and the stored ones to
@@ -36,7 +38,9 @@ void holdDocumentLinks<T>(
 }) {
   session
     ..remember(_repoKey, read(documentRepositoryProvider))
-    ..remember(_ownerKey, (owner: owner, cardId: cardId));
+    ..remember(_ownerKey, (owner: owner, cardId: cardId))
+    // The profile editing: a shared document's removal goes by its role.
+    ..remember(_diverKey, read(validatedCurrentDiverIdProvider).value);
 }
 
 /// The ids to attach and detach, for the page and the tests.
@@ -107,7 +111,10 @@ void _set<T>(EditSession<T> session, _Held next) {
       // never moves to another owner (issue #4713).
       for (final id in held.detach) {
         if (onRecord[id]?.isShared ?? false) {
-          await library.removeFromLibrary(id);
+          await library.removeFromLibrary(
+            id,
+            actingDiverId: session.recall<String>(_diverKey),
+          );
         }
       }
       // A new document on a library site starts shared, unless its type is

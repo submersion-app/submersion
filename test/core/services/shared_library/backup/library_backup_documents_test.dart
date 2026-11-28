@@ -299,4 +299,21 @@ void main() {
     ).sync(lib.id, diverId: 'd1');
     expect(await transport().listPageFiles(), hasLength(1));
   });
+
+  test('a document a backup cannot read keeps every page file', () async {
+    await sharedDoc('Access');
+    await syncer().sync(lib.id, diverId: 'd1');
+    await transport().writeRaw(
+      'documents/document-bad.json',
+      Uint8List.fromList([1, 2, 3]),
+    );
+    // A page only the unreadable record could name.
+    await transport().writePageFile('orphan', Uint8List.fromList([4]));
+    final record = await backups.backUp(libraryId: lib.id, diverId: 'd1');
+    final stored = (await transport().listPageFiles())
+        .map(SharedLibraryTransport.pageFileIdOf)
+        .toSet();
+    expect(record.pageFileIds.toSet(), stored);
+    expect(stored, contains('orphan'));
+  });
 }

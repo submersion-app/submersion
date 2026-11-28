@@ -399,4 +399,41 @@ void main() {
     final five = await listingsFor(5);
     expect(five, one);
   });
+
+  test('a record refiled under another site is not merged', () async {
+    await seedTestLibrary(cloud);
+    final id = await ownerShares();
+    final b = await libraryDevice(cloud, 'b', file: fileOf('b'));
+    await b.sync('L', diverId: 'd-b');
+
+    // The owner's key re-signs the record under another site.
+    final t = transport();
+    final file = (await t.listDocuments()).single;
+    final current = await t.readDocument(file.id);
+    final at = DateTime.now().add(const Duration(minutes: 1));
+    final moved = await signOwnFields(
+      LibraryDocumentRecord(
+        id: id,
+        siteId: 's9',
+        fields: {...current.fields, 'title': 'Moved'},
+        clocks: {
+          for (final f in current.fields.keys)
+            f: FieldClock(
+              hlc: Hlc(at.millisecondsSinceEpoch, 0, 'a'),
+              memberId: 'a',
+            ),
+        },
+      ),
+      libraryId: 'L',
+      memberId: 'a',
+      key: await testMemberKey('a'),
+    );
+    await t.writeDocument(moved);
+
+    await libraryDevice(cloud, 'b', file: fileOf('b'));
+    await b.sync('L', diverId: 'd-b');
+    final doc = (await DocumentRepository().getById(id))!;
+    expect(doc.title, 'Access');
+    expect(doc.owner.id, 's1');
+  });
 }

@@ -137,6 +137,24 @@ extension SharedLibraryTransportDocuments on SharedLibraryTransport {
   Future<void> deletePageFile(String storageFileId) =>
       _provider.deleteFile(storageFileId);
 
+  /// The document record held at [path] in a snapshot, as stored ([raw]),
+  /// or null when it does not open or parse. Reading it records nothing for
+  /// a rewrite: it is a copy, not the file in storage.
+  Future<LibraryDocumentRecord?> documentInSnapshot(
+    String path,
+    Uint8List raw,
+  ) async {
+    final before = mismatched.containsKey(path);
+    try {
+      return LibraryDocumentRecord.decode(await _open(path, '', raw));
+    } catch (e) {
+      if (!SharedLibraryTransport.isUnreadable(e)) rethrow;
+      return null;
+    } finally {
+      if (!before) mismatched.remove(path);
+    }
+  }
+
   /// The page files backup [backupId] refers to (issue #4713), in a file
   /// of its own beside the backup: an older owner app rewrites the backup
   /// index with only the keys it knows, but never touches this.
