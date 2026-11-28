@@ -13138,6 +13138,18 @@
       }
     }
   },
+  "equipmentCondition_exposure_lastDivedLabel": "آخر غطسة",
+  "equipmentCondition_exposure_divesLabel": "الغطسات",
+  "equipmentCondition_exposure_hoursLabel": "الساعات",
+  "equipmentCondition_exposure_today": "اليوم",
+  "equipmentCondition_exposure_daysAgo": "{count, plural, =1{منذ يوم واحد} two{منذ يومين} few{منذ {count} أيام} many{منذ {count} يومًا} other{منذ {count} يوم}}",
+  "equipmentCondition_exposure_monthsAgo": "{count, plural, =1{منذ شهر واحد} two{منذ شهرين} few{منذ {count} أشهر} many{منذ {count} شهرًا} other{منذ {count} شهر}}",
+  "equipmentCondition_exposure_yearsAgo": "{count, plural, =1{منذ سنة واحدة} two{منذ سنتين} few{منذ {count} سنوات} many{منذ {count} سنة} other{منذ {count} سنة}}",
+  "equipmentCondition_exposure_lastDivedSemantic": "آخر غطسة {ago}، في {date}",
+  "equipmentCondition_exposure_range12Months": "12 شهرًا",
+  "equipmentCondition_exposure_rangeAllYears": "كل السنوات",
+  "equipmentCondition_exposure_last12Months": "{count, plural, =0{لا غطسات في آخر 12 شهرًا} =1{غطسة واحدة في آخر 12 شهرًا} two{غطستان في آخر 12 شهرًا} few{{count} غطسات في آخر 12 شهرًا} many{{count} غطسة في آخر 12 شهرًا} other{{count} غطسة في آخر 12 شهرًا}}",
+  "equipmentCondition_exposure_barTooltip": "{period}\n{dives}، {hours}",
   "equipmentCondition_finding_cellOutputDeclining": "انخفض خرج الخلية {slot} بنسبة {percent} بالمئة عبر {n} غطسة منذ {since}",
   "@equipmentCondition_finding_cellOutputDeclining": {
     "placeholders": {
@@ -19194,7 +19206,7 @@
   "info_surfaceIntervalTool_howToUse": "اضبط الغطسة الأولى والثانية والفاصل السطحي. تعرض النتيجة الحد الأدنى للفاصل وNDL للغطسة الثانية.",
   "info_equipment_trend_summary": "نقطة لكل غطسة، لذا يظهر التغير البطيء في هذه القطعة كاتجاه عبر عمرها.",
   "info_equipment_findings_summary": "أنماط في غطسات هذه القطعة ومشكلاتها المبلغ عنها رصدتها قواعد الحالة.",
-  "info_equipment_exposure_summary": "مقدار استخدام هذه القطعة، محسوبًا بكل وحدة تستخدمها ساعات الصيانة الخاصة بها.",
+  "info_equipment_exposure_summary": "مقدار استخدام هذه القطعة، محسوبًا بكل وحدة تستخدمها ساعات الصيانة الخاصة بها. يعدّ المخطط غطساتها شهريًا أو سنويًا حتى اليوم.",
   "info_site_altitude_summary": "ارتفاع الموقع عن سطح البحر وضغط الهواء فيه، وهو ما يبدأ منه نموذج إزالة الضغط.",
   "info_trips_scrubberMargin_summary": "مقدار وقت وحدة امتصاص CO2 المتبقي لغطسات جهاز إعادة التنفس المخططة في الرحلة.",
   "info_settings_gradientFactors_summary": "مدى تحفظ نموذج إزالة الضغط في التطبيق.",

@@ -13138,6 +13138,18 @@
       }
     }
   },
+  "equipmentCondition_exposure_lastDivedLabel": "Laatst gedoken",
+  "equipmentCondition_exposure_divesLabel": "Duiken",
+  "equipmentCondition_exposure_hoursLabel": "Uren",
+  "equipmentCondition_exposure_today": "Vandaag",
+  "equipmentCondition_exposure_daysAgo": "{count, plural, =1{{count} dag geleden} other{{count} dagen geleden}}",
+  "equipmentCondition_exposure_monthsAgo": "{count, plural, =1{{count} maand geleden} other{{count} maanden geleden}}",
+  "equipmentCondition_exposure_yearsAgo": "{count, plural, =1{{count} jaar geleden} other{{count} jaar geleden}}",
+  "equipmentCondition_exposure_lastDivedSemantic": "Laatst gedoken: {ago}, op {date}",
+  "equipmentCondition_exposure_range12Months": "12 maanden",
+  "equipmentCondition_exposure_rangeAllYears": "Alle jaren",
+  "equipmentCondition_exposure_last12Months": "{count, plural, =0{Geen duiken in de afgelopen 12 maanden} =1{{count} duik in de afgelopen 12 maanden} other{{count} duiken in de afgelopen 12 maanden}}",
+  "equipmentCondition_exposure_barTooltip": "{period}\n{dives}, {hours}",
   "equipmentCondition_finding_cellOutputDeclining": "De uitvoer van cel {slot} daalde {percent} procent over {n} duiken sinds {since}",
   "@equipmentCondition_finding_cellOutputDeclining": {
     "placeholders": {
@@ -19194,7 +19206,7 @@
   "info_surfaceIntervalTool_howToUse": "Stel de eerste duik, de tweede duik en het oppervlakte-interval in. Het resultaat toont het minimale interval en de nultijd van de tweede duik.",
   "info_equipment_trend_summary": "Eén punt per duik, zodat een langzame verandering van dit item als trend over zijn levensduur zichtbaar wordt.",
   "info_equipment_findings_summary": "Patronen in de duiken en gemelde problemen van dit item die de staatregels hebben gesignaleerd.",
-  "info_equipment_exposure_summary": "Hoeveel dit item is gebruikt, geteld in elke eenheid die zijn onderhoudsklokken gebruiken.",
+  "info_equipment_exposure_summary": "Hoeveel dit item is gebruikt, geteld in elke eenheid die zijn onderhoudsklokken gebruiken. De grafiek telt de duiken per maand of per jaar, tot vandaag.",
   "info_site_altitude_summary": "De hoogte van de locatie boven zeeniveau en de luchtdruk daar, waarmee het decompressiemodel begint.",
   "info_trips_scrubberMargin_summary": "Hoeveel nominale kalktijd er over is voor de geplande rebreatherduiken van de reis.",
   "info_settings_gradientFactors_summary": "Hoe conservatief het decompressiemodel van de app rekent.",

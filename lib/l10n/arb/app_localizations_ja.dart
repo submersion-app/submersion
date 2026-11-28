@@ -42559,6 +42559,82 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get equipmentCondition_exposure_lastDivedLabel => '最終ダイブ';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => 'ダイブ数';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => '時間';
+
+  @override
+  String get equipmentCondition_exposure_today => '今日';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count日前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countか月前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count年前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return '最終ダイブ：$ago（$date）';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12か月';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => '全期間';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '過去12か月で$count本',
+      zero: '過去12か月のダイブはありません',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives、$hours';
+  }
+
+  @override
   String equipmentCondition_finding_cellOutputDeclining(
     int slot,
     String percent,
@@ -63448,7 +63524,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_equipment_exposure_summary =>
-      'この器材の使用量を、メンテナンス時期の計算に使う各単位で数えたものです。';
+      'この器材の使用量を、メンテナンス時期の計算に使う各単位で数えたものです。グラフは今日までのダイブ数を月別または年別に数えます。';
 
   @override
   String get info_site_altitude_summary => 'サイトの標高とそこでの気圧で、減圧モデルの開始時の値になります。';

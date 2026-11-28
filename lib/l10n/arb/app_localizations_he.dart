@@ -43366,6 +43366,89 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get equipmentCondition_exposure_lastDivedLabel => 'צלילה אחרונה';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => 'צלילות';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => 'שעות';
+
+  @override
+  String get equipmentCondition_exposure_today => 'היום';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לפני $count ימים',
+      two: 'לפני יומיים',
+      one: 'לפני יום',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לפני $count חודשים',
+      two: 'לפני חודשיים',
+      one: 'לפני חודש',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לפני $count שנים',
+      two: 'לפני שנתיים',
+      one: 'לפני שנה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return 'צלילה אחרונה: $ago, ב-$date';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12 חודשים';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => 'כל השנים';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות ב-12 החודשים האחרונים',
+      one: 'צלילה אחת ב-12 החודשים האחרונים',
+      zero: 'אין צלילות ב-12 החודשים האחרונים',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives, $hours';
+  }
+
+  @override
   String equipmentCondition_finding_cellOutputDeclining(
     int slot,
     String percent,
@@ -64782,7 +64865,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_equipment_exposure_summary =>
-      'כמה שימוש עבר הפריט הזה, נספר בכל יחידה ששעוני השירות שלו משתמשים בה.';
+      'כמה שימוש עבר הפריט הזה, נספר בכל יחידה ששעוני השירות שלו משתמשים בה. התרשים סופר את הצלילות שלו לפי חודש או לפי שנה, עד היום.';
 
   @override
   String get info_site_altitude_summary =>
