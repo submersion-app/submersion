@@ -235,6 +235,61 @@ void main() {
     });
   });
 
+  group('SectionAppearancePage - Equipment section', () {
+    testWidgets('shows an Equipment Details group linking to the card '
+        'settings (issue #4975)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_buildTestWidget('equipment'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Equipment Details'), findsOneWidget);
+      expect(find.text('Section Order & Visibility'), findsOneWidget);
+      expect(find.text('Site Details'), findsNothing);
+    });
+
+    testWidgets('the Equipment Details row opens the equipment sections '
+        'page', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) =>
+                const SectionAppearancePage(sectionKey: 'equipment'),
+          ),
+          GoRoute(
+            path: '/settings/equipment-detail-sections',
+            builder: (context, state) =>
+                const Scaffold(body: Text('EQUIPMENT_SECTIONS_PAGE')),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          ],
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Section Order & Visibility'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('EQUIPMENT_SECTIONS_PAGE'), findsOneWidget);
+    });
+  });
+
   group('SectionAppearancePage - Buddies section', () {
     testWidgets('shows List View and Table Mode only (no Cards)', (
       tester,
@@ -651,7 +706,9 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(400, 4000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(_buildTestWidget('equipment'));
+      // Buddies: no detail page with arrangeable cards at all. Equipment
+      // has one of its own (issue #4975).
+      await tester.pumpWidget(_buildTestWidget('buddies'));
       await tester.pumpAndSettle();
 
       expect(find.text('Dive Details'), findsNothing);

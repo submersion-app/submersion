@@ -24041,6 +24041,107 @@ class AppLocalizationsDe extends AppLocalizations {
   String get siteDetailSection_notes_description => 'Notizen zum Tauchplatz';
 
   @override
+  String get equipmentDetailSection_sharingHistory_name =>
+      'Nutzung und Freigaben';
+
+  @override
+  String get settings_equipmentDetailSections_title =>
+      'Ausrüstungs-Detailabschnitte';
+
+  @override
+  String get settings_appearance_header_equipmentDetails =>
+      'Ausrüstungsdetails';
+
+  @override
+  String get settings_conflict_field_equipmentDetailSections =>
+      'Abschnitte der Ausrüstungsdetails';
+
+  @override
+  String get equipmentDetailSection_transmitter_name => 'Transmitter';
+
+  @override
+  String get equipmentDetailSection_passport_name => 'Pass';
+
+  @override
+  String get equipmentDetailSection_condition_name => 'Zustand';
+
+  @override
+  String get equipmentDetailSection_diveComputer_description =>
+      'Tauchgänge herunterladen und Verbindung des Computers verwalten';
+
+  @override
+  String get equipmentDetailSection_details_description =>
+      'Marke, Modell, Seriennummer, Kauf und Größe';
+
+  @override
+  String get equipmentDetailSection_transmitter_description =>
+      'Seriennummer, Kanal und zugehörige Flasche';
+
+  @override
+  String get equipmentDetailSection_location_description =>
+      'Wo das Teil aufbewahrt wird, und letzte Ortswechsel';
+
+  @override
+  String get equipmentDetailSection_passport_description =>
+      'Füllungen und Prüfungen der Flasche oder Ausrüstungs-Tag';
+
+  @override
+  String get equipmentDetailSection_twinSet_description =>
+      'Die Flasche, mit der diese gekoppelt ist';
+
+  @override
+  String get equipmentDetailSection_serviceClocks_description =>
+      'Wann der nächste Service fällig ist';
+
+  @override
+  String get equipmentDetailSection_exposure_description =>
+      'Was das Teil bei deinen Tauchgängen erlebt hat';
+
+  @override
+  String get equipmentDetailSection_condition_description =>
+      'Zustandsbefunde und Verläufe';
+
+  @override
+  String get equipmentDetailSection_childItems_description =>
+      'Im Teil eingebaute Zellen und Batterien';
+
+  @override
+  String get equipmentDetailSection_photos_description =>
+      'Referenzfotos des Teils';
+
+  @override
+  String get equipmentDetailSection_observations_description =>
+      'Check-ins mit Zustandsnotizen und Fotos';
+
+  @override
+  String get equipmentDetailSection_components_description =>
+      'Die Teile, aus denen es zusammengesetzt ist';
+
+  @override
+  String get equipmentDetailSection_unitConfigurations_description =>
+      'Gespeicherte Konfigurationen des Rebreathers';
+
+  @override
+  String get equipmentDetailSection_linkedFiles_description =>
+      'Vor den Dokumenten verknüpfte Dateien';
+
+  @override
+  String get equipmentDetailSection_sharingHistory_description =>
+      'Wer das Teil benutzt hat, und jede Freigabe';
+
+  @override
+  String get equipmentDetailSection_serviceHistory_description =>
+      'Bisherige Services und Reparaturen';
+
+  @override
+  String get equipmentDetailSection_notes_description =>
+      'Deine Notizen zum Teil';
+
+  @override
+  String get equipmentDetailSection_documents_description =>
+      'Anleitungen, Rechnungen und Zertifikate';
+
+  @override
   String get settings_siteDetailSections_title => 'Tauchplatz-Detailabschnitte';
 
   @override

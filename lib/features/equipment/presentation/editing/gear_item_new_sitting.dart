@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/equipment_detail_sections.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/equipment/domain/constants/equipment_fitting
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_clone_seed.dart';
+import 'package:submersion/features/equipment/presentation/editing/equipment_detail_section_cards.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
@@ -146,6 +148,23 @@ final List<String> newGearItemLaidOut = List.unmodifiable([
   GearItemCardId.details.name,
   GearItemCardId.location.name,
 ]);
+
+/// [newGearItemLaidOut] less the cards of [sections] switched off (issue
+/// #4975), which wait on the add strip instead. The header block is no
+/// section, so it always opens.
+List<String> newGearItemLaidOutFor(
+  List<EquipmentDetailSectionConfig> sections,
+) {
+  final hidden = {
+    for (final section in sections)
+      if (!section.visible)
+        if (equipmentDetailSectionCards[section.id] case final card?) card.name,
+  };
+  return [
+    for (final id in newGearItemLaidOut)
+      if (!hidden.contains(id)) id,
+  ];
+}
 
 const _cloneExtrasKey = 'equipment.new.cloneExtras';
 

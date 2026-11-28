@@ -152,6 +152,31 @@ void main() {
     // The one gap every card on the page has, not two.
     expect(detailsTop - headerBottom, 24);
   });
+
+  // The section's gap moved to its top when the cards became arrangeable
+  // (issue #4975); the page still shows one gap on either side of it.
+  testWidgets('a loaded section has one gap above it and one below', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      const EquipmentItem(
+        id: 'perdix',
+        name: 'Perdix',
+        type: EquipmentType.computer,
+      ),
+    );
+
+    Finder cardOf(Finder text) =>
+        find.ancestor(of: text, matching: find.byType(Card)).first;
+    final headerBottom = tester
+        .getBottomLeft(cardOf(find.text('Perdix').first))
+        .dy;
+    final connect = cardOf(find.text('Connect and download'));
+    final detailsTop = tester.getTopLeft(cardOf(find.text('Details'))).dy;
+    expect(tester.getTopLeft(connect).dy - headerBottom, 24);
+    expect(detailsTop - tester.getBottomLeft(connect).dy, 24);
+  });
 }
 
 class _MockServiceRecordNotifier

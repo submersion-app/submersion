@@ -380,5 +380,11 @@ extension RungsFromV340 on AppDatabase {
     // in beforeOpen; the floor does not move.
     if (from < 394) await _assertTankPresetRatedCapacityColumn();
     if (from < 394) await reportProgress();
+
+    // v397 (issue #4975): diver_settings.equipment_detail_sections, the gear
+    // item page's card order and visibility. Nullable column, no backfill;
+    // re-asserted in beforeOpen. The floor does not move.
+    if (from < 397) await _assertEquipmentDetailSectionsColumn();
+    if (from < 397) await reportProgress();
   }
 }

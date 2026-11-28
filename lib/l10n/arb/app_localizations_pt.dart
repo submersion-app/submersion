@@ -24063,6 +24063,107 @@ class AppLocalizationsPt extends AppLocalizations {
       'Suas observações sobre o ponto';
 
   @override
+  String get equipmentDetailSection_sharingHistory_name =>
+      'Uso e compartilhamento';
+
+  @override
+  String get settings_equipmentDetailSections_title =>
+      'Seções do detalhe do equipamento';
+
+  @override
+  String get settings_appearance_header_equipmentDetails =>
+      'Detalhes do equipamento';
+
+  @override
+  String get settings_conflict_field_equipmentDetailSections =>
+      'Seções do detalhe do equipamento';
+
+  @override
+  String get equipmentDetailSection_transmitter_name => 'Transmissor';
+
+  @override
+  String get equipmentDetailSection_passport_name => 'Passaporte';
+
+  @override
+  String get equipmentDetailSection_condition_name => 'Condição';
+
+  @override
+  String get equipmentDetailSection_diveComputer_description =>
+      'Baixar mergulhos e gerenciar a conexão do computador';
+
+  @override
+  String get equipmentDetailSection_details_description =>
+      'Marca, modelo, número de série, compra e tamanho';
+
+  @override
+  String get equipmentDetailSection_transmitter_description =>
+      'Número de série, canal e o cilindro associado';
+
+  @override
+  String get equipmentDetailSection_location_description =>
+      'Onde o item é guardado e suas últimas mudanças';
+
+  @override
+  String get equipmentDetailSection_passport_description =>
+      'Recargas e inspeções do cilindro, ou a etiqueta do equipamento';
+
+  @override
+  String get equipmentDetailSection_twinSet_description =>
+      'O cilindro ao qual este está emparelhado';
+
+  @override
+  String get equipmentDetailSection_serviceClocks_description =>
+      'Quando a próxima manutenção vence';
+
+  @override
+  String get equipmentDetailSection_exposure_description =>
+      'O que o item enfrentou nos seus mergulhos';
+
+  @override
+  String get equipmentDetailSection_condition_description =>
+      'Constatações de condição e tendências';
+
+  @override
+  String get equipmentDetailSection_childItems_description =>
+      'Células e baterias instaladas no item';
+
+  @override
+  String get equipmentDetailSection_photos_description =>
+      'Fotos de referência do item';
+
+  @override
+  String get equipmentDetailSection_observations_description =>
+      'Verificações com notas de condição e fotos';
+
+  @override
+  String get equipmentDetailSection_components_description =>
+      'As peças que compõem o item';
+
+  @override
+  String get equipmentDetailSection_unitConfigurations_description =>
+      'Configurações salvas do rebreather';
+
+  @override
+  String get equipmentDetailSection_linkedFiles_description =>
+      'Arquivos vinculados antes de existirem Documentos';
+
+  @override
+  String get equipmentDetailSection_sharingHistory_description =>
+      'Quem usou o item e cada compartilhamento';
+
+  @override
+  String get equipmentDetailSection_serviceHistory_description =>
+      'Manutenções e reparos anteriores';
+
+  @override
+  String get equipmentDetailSection_notes_description =>
+      'Suas observações sobre o item';
+
+  @override
+  String get equipmentDetailSection_documents_description =>
+      'Manuais, faturas e certificados';
+
+  @override
   String get settings_siteDetailSections_title => 'Seções de detalhes do ponto';
 
   @override

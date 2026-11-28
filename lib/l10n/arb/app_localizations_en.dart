@@ -23720,6 +23720,105 @@ class AppLocalizationsEn extends AppLocalizations {
   String get siteDetailSection_notes_description => 'Your notes about the site';
 
   @override
+  String get equipmentDetailSection_sharingHistory_name => 'Usage and sharing';
+
+  @override
+  String get settings_equipmentDetailSections_title =>
+      'Equipment Detail Sections';
+
+  @override
+  String get settings_appearance_header_equipmentDetails => 'Equipment Details';
+
+  @override
+  String get settings_conflict_field_equipmentDetailSections =>
+      'Equipment detail sections';
+
+  @override
+  String get equipmentDetailSection_transmitter_name => 'Transmitter';
+
+  @override
+  String get equipmentDetailSection_passport_name => 'Passport';
+
+  @override
+  String get equipmentDetailSection_condition_name => 'Condition';
+
+  @override
+  String get equipmentDetailSection_diveComputer_description =>
+      'Download dives and manage the computer\'s connection';
+
+  @override
+  String get equipmentDetailSection_details_description =>
+      'Brand, model, serial number, purchase and size';
+
+  @override
+  String get equipmentDetailSection_transmitter_description =>
+      'Serial, channel and the cylinder it reports for';
+
+  @override
+  String get equipmentDetailSection_location_description =>
+      'Where the item is kept, and its recent moves';
+
+  @override
+  String get equipmentDetailSection_passport_description =>
+      'Cylinder fills and inspections, or the gear tag';
+
+  @override
+  String get equipmentDetailSection_twinSet_description =>
+      'The cylinder this one is paired with';
+
+  @override
+  String get equipmentDetailSection_serviceClocks_description =>
+      'When the next service is due';
+
+  @override
+  String get equipmentDetailSection_exposure_description =>
+      'What the item has been through on your dives';
+
+  @override
+  String get equipmentDetailSection_condition_description =>
+      'Condition findings and trends';
+
+  @override
+  String get equipmentDetailSection_childItems_description =>
+      'Cells and batteries installed in the item';
+
+  @override
+  String get equipmentDetailSection_photos_description =>
+      'Reference photos of the item';
+
+  @override
+  String get equipmentDetailSection_observations_description =>
+      'Check-ins with condition notes and photos';
+
+  @override
+  String get equipmentDetailSection_components_description =>
+      'The parts the item is assembled from';
+
+  @override
+  String get equipmentDetailSection_unitConfigurations_description =>
+      'The rebreather\'s saved configurations';
+
+  @override
+  String get equipmentDetailSection_linkedFiles_description =>
+      'Files linked before Documents existed';
+
+  @override
+  String get equipmentDetailSection_sharingHistory_description =>
+      'Who used the item, and every share';
+
+  @override
+  String get equipmentDetailSection_serviceHistory_description =>
+      'Past services and repairs';
+
+  @override
+  String get equipmentDetailSection_notes_description =>
+      'Your notes about the item';
+
+  @override
+  String get equipmentDetailSection_documents_description =>
+      'Manuals, invoices and certificates';
+
+  @override
   String get settings_siteDetailSections_title => 'Site Detail Sections';
 
   @override

@@ -37,8 +37,12 @@ mixin _EquipmentDetailPageCreating
     return newGearItemSeed(read, id: id);
   }
 
+  /// The starter cards, less those the diver has switched off (issue
+  /// #4975): a card laid out opens on the page, so a hidden one would show
+  /// all the same. It waits on the add strip instead.
   @override
-  List<String> newRecordLaidOut(EquipmentItem seed) => newGearItemLaidOut;
+  List<String> newRecordLaidOut(EquipmentItem seed) =>
+      newGearItemLaidOutFor(ref.read(settingsProvider).equipmentDetailSections);
 
   @override
   Future<void> applyNewRecordPrefill(EditSession<EquipmentItem> session) =>
@@ -149,67 +153,5 @@ mixin _EquipmentDetailPageCreating
     body: error == null
         ? context.l10n.equipment_detail_notFoundMessage
         : context.l10n.equipment_detail_errorMessage('$error'),
-  );
-}
-
-/// The body of an item not yet created: the cards of its own values (the
-/// header block, Details, Location, its service clocks and reminder,
-/// Notes, Documents). What reads the stored item by its id (a dive
-/// computer's controls, passports, twin sets, parts, photos, observations,
-/// components, findings, history) waits until it exists (plan 11,
-/// Question 9).
-extension _EquipmentDetailNewItemBody on _EquipmentDetailContent {
-  Widget _newItemBody(
-    BuildContext context,
-    WidgetRef ref,
-    UnitFormatter units,
-  ) => SingleChildScrollView(
-    controller: DetailScrollController.maybeOf(context),
-    padding: const EdgeInsets.all(16),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _framed(
-          GearItemCardId.header,
-          _buildHeaderSection(context, equipment, false, null),
-        ),
-        const SizedBox(height: 24),
-        _framed(
-          GearItemCardId.details,
-          _buildDetailsSection(context, ref, equipment, units),
-        ),
-        const SizedBox(height: 24),
-        _framed(
-          GearItemCardId.location,
-          EquipmentLocationCard(equipment: equipment, shown: _session),
-        ),
-        if (!equipment.isWanted) ...[
-          const SizedBox(height: 24),
-          _framed(
-            GearItemCardId.serviceClocks,
-            ServiceClocksCard(
-              equipmentId: equipmentId,
-              customReminder: (
-                enabled: equipment.customReminderEnabled,
-                days: equipment.customReminderDays,
-              ),
-              shown: _session,
-            ),
-          ),
-        ],
-        if (equipment.notes.trim().isNotEmpty ||
-            _shows(GearItemCardId.notes)) ...[
-          const SizedBox(height: 24),
-          _framed(GearItemCardId.notes, _buildNotesSection(context, equipment)),
-        ],
-        const SizedBox(height: 24),
-        _framed(
-          GearItemCardId.documents,
-          DocumentsSection<EquipmentItem>(
-            owner: DocumentOwner(DocumentOwnerKind.equipment, equipmentId),
-          ),
-        ),
-      ],
-    ),
   );
 }

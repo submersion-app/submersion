@@ -338,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 394;
+  static const int currentSchemaVersion = 397;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1843,6 +1843,11 @@ class AppDatabase extends _$AppDatabase {
     // v394: tank_presets.rated_capacity_cuft, the rated capacity a copy of a
     // built-in preset keeps (issue #800). Nullable; the floor does not move.
     394,
+    // v397: diver_settings.equipment_detail_sections, the gear item page's
+    // card order and visibility (issue #4975). Additive nullable column, no
+    // backfill; the floor does not move. Takes 397: main shipped 388, 389,
+    // 393 and 394 while this branch was open, and open PRs hold 395 and 396.
+    397,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

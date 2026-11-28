@@ -23927,6 +23927,106 @@ class AppLocalizationsNl extends AppLocalizations {
       'Jouw notities over de duikstek';
 
   @override
+  String get equipmentDetailSection_sharingHistory_name => 'Gebruik en delen';
+
+  @override
+  String get settings_equipmentDetailSections_title =>
+      'Secties van uitrustingsdetails';
+
+  @override
+  String get settings_appearance_header_equipmentDetails =>
+      'Uitrustingsdetails';
+
+  @override
+  String get settings_conflict_field_equipmentDetailSections =>
+      'Secties van uitrustingsdetails';
+
+  @override
+  String get equipmentDetailSection_transmitter_name => 'Zender';
+
+  @override
+  String get equipmentDetailSection_passport_name => 'Paspoort';
+
+  @override
+  String get equipmentDetailSection_condition_name => 'Staat';
+
+  @override
+  String get equipmentDetailSection_diveComputer_description =>
+      'Duiken downloaden en de verbinding van de computer beheren';
+
+  @override
+  String get equipmentDetailSection_details_description =>
+      'Merk, model, serienummer, aankoop en maat';
+
+  @override
+  String get equipmentDetailSection_transmitter_description =>
+      'Serienummer, kanaal en de bijbehorende fles';
+
+  @override
+  String get equipmentDetailSection_location_description =>
+      'Waar het item ligt, en de laatste verplaatsingen';
+
+  @override
+  String get equipmentDetailSection_passport_description =>
+      'Vullingen en keuringen van de fles, of het uitrustingslabel';
+
+  @override
+  String get equipmentDetailSection_twinSet_description =>
+      'De fles waarmee deze gekoppeld is';
+
+  @override
+  String get equipmentDetailSection_serviceClocks_description =>
+      'Wanneer de volgende onderhoudsbeurt nodig is';
+
+  @override
+  String get equipmentDetailSection_exposure_description =>
+      'Wat het item tijdens je duiken heeft doorstaan';
+
+  @override
+  String get equipmentDetailSection_condition_description =>
+      'Bevindingen over de staat en trends';
+
+  @override
+  String get equipmentDetailSection_childItems_description =>
+      'Cellen en batterijen in het item';
+
+  @override
+  String get equipmentDetailSection_photos_description =>
+      'Referentiefoto\'s van het item';
+
+  @override
+  String get equipmentDetailSection_observations_description =>
+      'Controles met notities over de staat en foto\'s';
+
+  @override
+  String get equipmentDetailSection_components_description =>
+      'De onderdelen waaruit het item bestaat';
+
+  @override
+  String get equipmentDetailSection_unitConfigurations_description =>
+      'Opgeslagen configuraties van de rebreather';
+
+  @override
+  String get equipmentDetailSection_linkedFiles_description =>
+      'Bestanden gekoppeld voordat Documenten bestonden';
+
+  @override
+  String get equipmentDetailSection_sharingHistory_description =>
+      'Wie het item gebruikte, en elke deling';
+
+  @override
+  String get equipmentDetailSection_serviceHistory_description =>
+      'Eerdere onderhoudsbeurten en reparaties';
+
+  @override
+  String get equipmentDetailSection_notes_description =>
+      'Jouw notities over het item';
+
+  @override
+  String get equipmentDetailSection_documents_description =>
+      'Handleidingen, facturen en certificaten';
+
+  @override
   String get settings_siteDetailSections_title => 'Secties duikstekdetails';
 
   @override

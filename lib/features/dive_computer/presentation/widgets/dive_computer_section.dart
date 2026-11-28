@@ -14,14 +14,16 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// added by hand offers to connect, which binds the discovered device to
 /// this item.
 ///
-/// It brings its own bottom gap, so while it loads, or when it fails, it
-/// takes no room at all instead of leaving a doubled gap at the top of the
-/// page (issue #4622).
+/// It brings its own gap, [padding], so while it loads, or when it fails, it
+/// takes no room at all instead of leaving a doubled gap on the page (issue
+/// #4622). The gap sits on top, as every card of the page has it since the
+/// diver arranges them (issue #4975).
 class DiveComputerSection extends ConsumerWidget {
   const DiveComputerSection({
     super.key,
     required this.equipmentId,
     this.editing,
+    this.padding = const EdgeInsets.only(top: 24),
   });
 
   final String equipmentId;
@@ -30,12 +32,16 @@ class DiveComputerSection extends ConsumerWidget {
   /// editor (issue #4527, phase 3).
   final EditSession<EquipmentItem>? editing;
 
+  /// The gap the section brings once it has something to show. None in the
+  /// open card, whose frame keeps the read card's gap above it.
+  final EdgeInsets padding;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final computers = ref.watch(computersForEquipmentProvider(equipmentId));
     return computers.when(
       data: (list) => Padding(
-        padding: const EdgeInsets.only(bottom: 24),
+        padding: padding,
         child: list.isEmpty
             ? _ConnectCard(equipmentId: equipmentId)
             : DiveComputerControls(computerId: list.first.id, editing: editing),

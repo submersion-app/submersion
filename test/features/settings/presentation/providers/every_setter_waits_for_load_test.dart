@@ -62,6 +62,7 @@ Future<void> _changeEverySetting(SettingsNotifier n) {
     n.resetProfileMetricColors(),
     n.resetDiveDetailSections(),
     n.resetSiteDetailSections(),
+    n.resetEquipmentDetailSections(),
     n.setTemperatureUnit(TemperatureUnit.fahrenheit),
     n.setPressureUnit(PressureUnit.psi),
     n.setVolumeUnit(VolumeUnit.cubicFeet),
@@ -269,6 +270,7 @@ Future<void> _changeEverySetting(SettingsNotifier n) {
     ),
     n.setSiteDetailSections(d.siteDetailSections.reversed.toList()),
     n.setSiteDetailLayout(DiveDetailLayout.values.last),
+    n.setEquipmentDetailSections(d.equipmentDetailSections.reversed.toList()),
     n.setSiteDetailSectionExpanded(
       d.siteDetailSections.first.id,
       !d.siteDetailSections.first.expanded,

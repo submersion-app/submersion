@@ -23178,6 +23178,94 @@ class AppLocalizationsJa extends AppLocalizations {
   String get siteDetailSection_notes_description => 'サイトについてのあなたのメモ';
 
   @override
+  String get equipmentDetailSection_sharingHistory_name => '使用と共有';
+
+  @override
+  String get settings_equipmentDetailSections_title => '器材詳細のセクション';
+
+  @override
+  String get settings_appearance_header_equipmentDetails => '器材の詳細';
+
+  @override
+  String get settings_conflict_field_equipmentDetailSections => '器材詳細のセクション';
+
+  @override
+  String get equipmentDetailSection_transmitter_name => 'トランスミッター';
+
+  @override
+  String get equipmentDetailSection_passport_name => 'パスポート';
+
+  @override
+  String get equipmentDetailSection_condition_name => '状態';
+
+  @override
+  String get equipmentDetailSection_diveComputer_description =>
+      'ダイブのダウンロードとコンピューターの接続管理';
+
+  @override
+  String get equipmentDetailSection_details_description =>
+      'ブランド、モデル、シリアル番号、購入情報、サイズ';
+
+  @override
+  String get equipmentDetailSection_transmitter_description =>
+      'シリアル、チャンネル、対応するシリンダー';
+
+  @override
+  String get equipmentDetailSection_location_description => '器材の保管場所と最近の移動';
+
+  @override
+  String get equipmentDetailSection_passport_description =>
+      'シリンダーの充填と検査、または器材のタグ';
+
+  @override
+  String get equipmentDetailSection_twinSet_description => 'このシリンダーとペアのシリンダー';
+
+  @override
+  String get equipmentDetailSection_serviceClocks_description => '次回のメンテナンス時期';
+
+  @override
+  String get equipmentDetailSection_exposure_description => 'ダイブで器材が受けた負荷';
+
+  @override
+  String get equipmentDetailSection_condition_description => '状態の所見と推移';
+
+  @override
+  String get equipmentDetailSection_childItems_description =>
+      '器材に取り付けたセルとバッテリー';
+
+  @override
+  String get equipmentDetailSection_photos_description => '器材の参考写真';
+
+  @override
+  String get equipmentDetailSection_observations_description =>
+      '状態メモと写真付きのチェックイン';
+
+  @override
+  String get equipmentDetailSection_components_description => '器材を構成する部品';
+
+  @override
+  String get equipmentDetailSection_unitConfigurations_description =>
+      'リブリーザーの保存済み構成';
+
+  @override
+  String get equipmentDetailSection_linkedFiles_description =>
+      'ドキュメント機能以前にリンクしたファイル';
+
+  @override
+  String get equipmentDetailSection_sharingHistory_description =>
+      '器材の使用者とすべての共有';
+
+  @override
+  String get equipmentDetailSection_serviceHistory_description =>
+      '過去のメンテナンスと修理';
+
+  @override
+  String get equipmentDetailSection_notes_description => '器材についてのあなたのメモ';
+
+  @override
+  String get equipmentDetailSection_documents_description => 'マニュアル、請求書、証明書';
+
+  @override
   String get settings_siteDetailSections_title => 'サイト詳細のセクション';
 
   @override

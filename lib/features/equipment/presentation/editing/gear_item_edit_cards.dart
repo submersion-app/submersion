@@ -44,8 +44,11 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
         GearItemCardId.diveComputer.localizedDisplayName(context.l10n),
     // Shown for a computer item only, as the page always has.
     isEmpty: (_) => false,
-    editorBuilder: (context, session) =>
-        DiveComputerSection(equipmentId: session.stored.id, editing: session),
+    editorBuilder: (context, session) => DiveComputerSection(
+      equipmentId: session.stored.id,
+      editing: session,
+      padding: EdgeInsets.zero,
+    ),
   ),
   GearItemCardId.details: EditCard<EquipmentItem>(
     id: GearItemCardId.details.name,

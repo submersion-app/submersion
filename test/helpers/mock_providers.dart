@@ -38,6 +38,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
+import 'package:submersion/core/constants/equipment_detail_sections.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
@@ -873,6 +874,15 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> resetSiteDetailSections() async =>
       state = state.copyWith(clearSiteDetailSections: true);
+
+  @override
+  Future<void> setEquipmentDetailSections(
+    List<EquipmentDetailSectionConfig> sections,
+  ) async => state = state.copyWith(equipmentDetailSections: sections);
+
+  @override
+  Future<void> resetEquipmentDetailSections() async =>
+      state = state.copyWith(clearEquipmentDetailSections: true);
 
   @override
   Future<void> setSiteDetailLayout(DiveDetailLayout layout) async =>

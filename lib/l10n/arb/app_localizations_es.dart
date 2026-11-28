@@ -24066,6 +24066,106 @@ class AppLocalizationsEs extends AppLocalizations {
   String get siteDetailSection_notes_description => 'Tus notas sobre el sitio';
 
   @override
+  String get equipmentDetailSection_sharingHistory_name => 'Uso y compartición';
+
+  @override
+  String get settings_equipmentDetailSections_title =>
+      'Secciones del detalle del equipo';
+
+  @override
+  String get settings_appearance_header_equipmentDetails =>
+      'Detalles del equipo';
+
+  @override
+  String get settings_conflict_field_equipmentDetailSections =>
+      'Secciones del detalle del equipo';
+
+  @override
+  String get equipmentDetailSection_transmitter_name => 'Transmisor';
+
+  @override
+  String get equipmentDetailSection_passport_name => 'Pasaporte';
+
+  @override
+  String get equipmentDetailSection_condition_name => 'Estado';
+
+  @override
+  String get equipmentDetailSection_diveComputer_description =>
+      'Descargar inmersiones y gestionar la conexión del ordenador';
+
+  @override
+  String get equipmentDetailSection_details_description =>
+      'Marca, modelo, número de serie, compra y talla';
+
+  @override
+  String get equipmentDetailSection_transmitter_description =>
+      'Número de serie, canal y la botella asociada';
+
+  @override
+  String get equipmentDetailSection_location_description =>
+      'Dónde se guarda el artículo y sus últimos traslados';
+
+  @override
+  String get equipmentDetailSection_passport_description =>
+      'Cargas e inspecciones de la botella, o la etiqueta del equipo';
+
+  @override
+  String get equipmentDetailSection_twinSet_description =>
+      'La botella con la que está emparejada';
+
+  @override
+  String get equipmentDetailSection_serviceClocks_description =>
+      'Cuándo toca el próximo mantenimiento';
+
+  @override
+  String get equipmentDetailSection_exposure_description =>
+      'Lo que ha soportado el artículo en tus inmersiones';
+
+  @override
+  String get equipmentDetailSection_condition_description =>
+      'Hallazgos de estado y tendencias';
+
+  @override
+  String get equipmentDetailSection_childItems_description =>
+      'Células y baterías instaladas en el artículo';
+
+  @override
+  String get equipmentDetailSection_photos_description =>
+      'Fotos de referencia del artículo';
+
+  @override
+  String get equipmentDetailSection_observations_description =>
+      'Revisiones con notas de estado y fotos';
+
+  @override
+  String get equipmentDetailSection_components_description =>
+      'Las piezas que componen el artículo';
+
+  @override
+  String get equipmentDetailSection_unitConfigurations_description =>
+      'Configuraciones guardadas del rebreather';
+
+  @override
+  String get equipmentDetailSection_linkedFiles_description =>
+      'Archivos vinculados antes de existir Documentos';
+
+  @override
+  String get equipmentDetailSection_sharingHistory_description =>
+      'Quién ha usado el artículo y cada uso compartido';
+
+  @override
+  String get equipmentDetailSection_serviceHistory_description =>
+      'Mantenimientos y reparaciones anteriores';
+
+  @override
+  String get equipmentDetailSection_notes_description =>
+      'Tus notas sobre el artículo';
+
+  @override
+  String get equipmentDetailSection_documents_description =>
+      'Manuales, facturas y certificados';
+
+  @override
   String get settings_siteDetailSections_title =>
       'Secciones del detalle del sitio';
 

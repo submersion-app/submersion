@@ -48,17 +48,38 @@ mixin _EquipmentDetailPageEditing
     );
   }
 
-  /// The cards the page leaves out while they are empty.
+  /// The cards the page leaves out, in the diver's section order: hidden by
+  /// the diver (issue #4975), or optional and empty. One brought in from the
+  /// strip stays on the page for the sitting.
   @override
   List<AddStripEntry> addStripEntries(EquipmentItem working) {
     final session = maybeEditController?.session;
     if (session == null) return const [];
+    final sections = ref.watch(
+      settingsProvider.select((s) => s.equipmentDetailSections),
+    );
+    final multipleDivers = ref.watch(hasMultipleDiversProvider);
+    // What `isCreating` reads: that mixin is applied after this one, so its
+    // getter is out of reach here.
+    final creating = widget.newItem != null;
     return [
-      for (final id in gearItemOptionalCards)
-        if (gearItemEditCards[id]!.isEmpty(working) && !_showsWhileEmpty(id))
+      for (final section in sections)
+        if (equipmentDetailSectionCards[section.id] case final id?
+            when !_showsWhileEmpty(id) &&
+                equipmentDetailSectionApplies(
+                  section.id,
+                  working,
+                  creating: creating,
+                  multipleDivers: multipleDivers,
+                ) &&
+                (!section.visible ||
+                    (gearItemOptionalCards.contains(id) &&
+                        gearItemEditCards[id]!.isEmpty(working))))
           AddStripEntry(
             cardId: id.name,
-            label: gearItemEditCards[id]!.title(context),
+            // The name the diver switched it off by in Settings.
+            label: section.id.localizedDisplayName(context.l10n),
+            hidden: !section.visible,
             changed: session.changedCardIds.contains(id.name),
           ),
     ];
