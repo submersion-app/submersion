@@ -19,7 +19,7 @@ import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 /// their orphan sweep and delete cascades spare a row with
 /// `retain_in_library` set. A device that publishes an older
 /// `writerSchemaVersion` would delete such a row and sync the delete.
-const int heldMediaSchemaVersion = 394;
+const int heldMediaSchemaVersion = 395;
 
 /// The sync entities that belong to one media row, keyed by `mediaId`. Held
 /// with their row: a build before v1.8.5 drops a child whose row is missing,

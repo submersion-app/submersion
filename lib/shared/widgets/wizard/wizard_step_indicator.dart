@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
+
 /// A reusable step indicator widget for multi-step wizards.
 ///
 /// Displays a horizontal row of numbered dots connected by lines. Each dot
@@ -23,7 +25,7 @@ class WizardStepIndicator extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.s16),
       child: Row(
         children: [
           for (int i = 0; i < labels.length; i++) ...[
@@ -98,7 +100,7 @@ class _WizardStepDot extends StatelessWidget {
                   ),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: Spacing.s4),
         Text(
           label,
           style: TextStyle(

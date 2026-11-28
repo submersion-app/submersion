@@ -516,8 +516,8 @@ void main() {
         isTrue,
       );
       expect(find.byKey(const Key('planDetailsOpenInLog')), findsOneWidget);
-      expect(find.byTooltip('Add Tank'), findsNothing);
-      expect(find.text('Saved tanks'), findsNothing);
+      expect(find.byTooltip('Add Cylinder'), findsNothing);
+      expect(find.text('Saved cylinders'), findsNothing);
       // Nothing that looks like it can still be changed.
       expect(find.byTooltip('Clear the start time'), findsNothing);
       expect(find.byTooltip('15 minutes less'), findsNothing);
@@ -588,7 +588,7 @@ void main() {
       expect(find.byKey(const Key('planActualToggle')), findsNothing);
       expect(find.byTooltip('Remove Dive B'), findsOneWidget);
       // A plan still open has its tanks' controls, and no link to a dive.
-      expect(find.byTooltip('Add Tank'), findsOneWidget);
+      expect(find.byTooltip('Add Cylinder'), findsOneWidget);
       expect(find.byKey(const Key('planDetailsOpenInLog')), findsNothing);
     });
 

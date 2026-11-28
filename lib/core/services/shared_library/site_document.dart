@@ -50,6 +50,13 @@ class SiteDocument {
     'accessNotes',
     'mooringNumber',
     'parkingInfo',
+    // Contact details and opening hours (issue #5073); hours travel as
+    // their stored JSON text.
+    'address',
+    'phone',
+    'email',
+    'website',
+    'openingHours',
     'altitude',
     'entryMethod',
     'exitMethod',

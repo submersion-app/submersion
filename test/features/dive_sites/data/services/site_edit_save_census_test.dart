@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/opening_hours/opening_hours.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' hide DiveSite;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
@@ -60,13 +61,13 @@ void main() {
   });
 
   test('a sitting carries every column it does not change', () async {
-    const first = DiveSite(
+    final first = DiveSite(
       id: 's1',
       diverId: 'me',
       name: 'Blue Hole',
       description: 'Wall',
       notes: 'Calm',
-      location: GeoPoint(17.3, -87.5),
+      location: const GeoPoint(17.3, -87.5),
       minDepth: 5,
       maxDepth: 40,
       difficulty: SiteDifficulty.advanced,
@@ -82,9 +83,14 @@ void main() {
       accessNotes: 'Boat only',
       mooringNumber: 'M12',
       parkingInfo: 'None',
+      address: 'Main Road 1',
+      phone: '+501 555 0100',
+      email: 'dive@bluehole.bz',
+      website: 'bluehole.bz',
+      openingHours: OpeningHours(alwaysOpen: true),
       altitude: 3,
-      entryMethods: [EntryMethod.backRoll],
-      exitMethods: [EntryMethod.ladder],
+      entryMethods: const [EntryMethod.backRoll],
+      exitMethods: const [EntryMethod.ladder],
     );
     await sites.createSite(first);
     // Every value changed underneath, as a sync would, after the sitting
@@ -108,6 +114,11 @@ void main() {
       accessNotes: 'Shore',
       mooringNumber: 'M13',
       parkingInfo: 'Lot',
+      address: 'Coast Road 2',
+      phone: '+52 984 555 0100',
+      email: 'info@cenote.mx',
+      website: 'cenote.mx',
+      openingHours: OpeningHours(note: 'Mornings only'),
       altitude: 4,
       entryMethods: [EntryMethod.shore],
       exitMethods: [EntryMethod.shore],

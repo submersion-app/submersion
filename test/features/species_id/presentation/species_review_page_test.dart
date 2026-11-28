@@ -357,6 +357,27 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Recorded nearby'), findsOneWidget);
     });
+
+    testWidgets('neither a row nor its photos show a score: a model score is '
+        'not how often a name is right (issue #5121)', (tester) async {
+      final twoPhotos = ReviewRow(
+        key: 'g:1',
+        candidate: suggestedRow.candidate,
+        items: [
+          ...suggestedRow.items,
+          ReviewItem(
+            media: testMediaItem(id: 'c', diveId: 'd1'),
+            suggestion: suggestion,
+            score: 0.64,
+          ),
+        ],
+      );
+      await pump(tester, taggedRows: const [], suggestedRows: [twoPhotos]);
+      expect(find.textContaining('%'), findsNothing);
+      await tester.tap(find.text('Queen Parrotfish'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('%'), findsNothing);
+    });
   });
 
   testWidgets('both sections, with the dive in the title', (tester) async {

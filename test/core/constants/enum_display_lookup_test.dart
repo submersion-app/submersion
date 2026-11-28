@@ -19,6 +19,26 @@ void main() {
     check(Precipitation.values, (v) => v.displayName);
   });
 
+  test('equipment types export as Cylinder and Cylinder Band (#5106)', () {
+    expect(EquipmentType.tank.displayName, 'Cylinder');
+    expect(EquipmentType.tankBand.displayName, 'Cylinder Band');
+    expect(TankRole.pony.displayName, 'Pony');
+  });
+
+  test('the names an older export wrote still read back (#5106)', () {
+    EquipmentType? type(String text) => enumByDisplayName(
+      EquipmentType.values,
+      (v) => v.displayName,
+      text,
+      legacyNames: EquipmentType.legacyDisplayNames,
+    );
+    expect(type('Tank'), EquipmentType.tank);
+    expect(type('Tank Band'), EquipmentType.tankBand);
+    expect(type(' tank band '), EquipmentType.tankBand);
+    expect(type('Cylinder'), EquipmentType.tank);
+    expect(type('Cylinder Band'), EquipmentType.tankBand);
+  });
+
   test('matching ignores case and surrounding spaces', () {
     expect(
       enumByDisplayName(

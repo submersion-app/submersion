@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/opening_hours/opening_hours_codec.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
@@ -214,6 +215,11 @@ class SiteRepository {
                 accessNotes: Value(site.accessNotes),
                 mooringNumber: Value(site.mooringNumber),
                 parkingInfo: Value(site.parkingInfo),
+                address: Value(_textOrNull(site.address)),
+                phone: Value(_textOrNull(site.phone)),
+                email: Value(_textOrNull(site.email)),
+                website: Value(_textOrNull(site.website)),
+                openingHours: Value(encodeOpeningHours(site.openingHours)),
                 altitude: Value(site.altitude),
                 entryMethod: Value(encodeEntryMethods(site.entryMethods)),
                 exitMethod: Value(encodeEntryMethods(site.exitMethods)),
@@ -385,6 +391,11 @@ class SiteRepository {
         accessNotes: Value(site.accessNotes),
         mooringNumber: Value(site.mooringNumber),
         parkingInfo: Value(site.parkingInfo),
+        address: Value(_textOrNull(site.address)),
+        phone: Value(_textOrNull(site.phone)),
+        email: Value(_textOrNull(site.email)),
+        website: Value(_textOrNull(site.website)),
+        openingHours: Value(encodeOpeningHours(site.openingHours)),
         altitude: Value(site.altitude),
         entryMethod: Value(encodeEntryMethods(site.entryMethods)),
         exitMethod: Value(encodeEntryMethods(site.exitMethods)),
@@ -1379,6 +1390,11 @@ class SiteRepository {
                   accessNotes: Value(site.accessNotes),
                   mooringNumber: Value(site.mooringNumber),
                   parkingInfo: Value(site.parkingInfo),
+                  address: Value(_textOrNull(site.address)),
+                  phone: Value(_textOrNull(site.phone)),
+                  email: Value(_textOrNull(site.email)),
+                  website: Value(_textOrNull(site.website)),
+                  openingHours: Value(encodeOpeningHours(site.openingHours)),
                   altitude: Value(site.altitude),
                   entryMethod: Value(encodeEntryMethods(site.entryMethods)),
                   exitMethod: Value(encodeEntryMethods(site.exitMethods)),
@@ -1561,7 +1577,7 @@ class SiteRepository {
     }
   }
 
-  /// Search sites by name or location, ignoring case.
+  /// Search sites by name, location or contact details, ignoring case.
   ///
   /// Each column is folded by `unicode_lower` to meet the Dart-lowered
   /// needle: LIKE folds ASCII only, so "österreich" missed "Österreich"
@@ -1588,6 +1604,12 @@ class SiteRepository {
               t.city.searchFold().contains(needle),
               t.island.searchFold().contains(needle),
               t.bodyOfWater.searchFold().contains(needle),
+              // Contact details (issue #5073): a postcode, a number or a
+              // web address finds its site.
+              t.address.searchFold().contains(needle),
+              t.phone.searchFold().contains(needle),
+              t.email.searchFold().contains(needle),
+              t.website.searchFold().contains(needle),
               if (countryCodes.isNotEmpty) t.countryCode.isIn(countryCodes),
               if (uncodedCountries.isNotEmpty) t.country.isIn(uncodedCountries),
             ].reduce((a, b) => a | b),
@@ -1827,6 +1849,11 @@ class SiteRepository {
         accessNotes: Value(site.accessNotes),
         mooringNumber: Value(site.mooringNumber),
         parkingInfo: Value(site.parkingInfo),
+        address: Value(_textOrNull(site.address)),
+        phone: Value(_textOrNull(site.phone)),
+        email: Value(_textOrNull(site.email)),
+        website: Value(_textOrNull(site.website)),
+        openingHours: Value(encodeOpeningHours(site.openingHours)),
         altitude: Value(site.altitude),
         entryMethod: Value(encodeEntryMethods(site.entryMethods)),
         exitMethod: Value(encodeEntryMethods(site.exitMethods)),
@@ -2139,4 +2166,11 @@ class SiteSpeciesSnapshot {
     required this.notes,
     required this.createdAt,
   });
+}
+
+/// A free-text contact value as stored: trimmed, and null when blank
+/// (issue #5073).
+String? _textOrNull(String? value) {
+  final trimmed = value?.trim();
+  return trimmed == null || trimmed.isEmpty ? null : trimmed;
 }

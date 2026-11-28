@@ -39,7 +39,7 @@ live naming controller.
   registration lines.
 - Media is linked, never stored by the app: a kept camera capture is saved to
   the photo library first and linked as a gallery asset.
-- `heldMediaSchemaVersion` = the schema version this PR ships (394 unless main
+- `heldMediaSchemaVersion` = the schema version this PR ships (395 unless main
   has moved; re-number on merge if so).
 - Live naming samples a frame every 250 ms and pauses when
   `VisionMemory.availableBytes` is below `liveNamingMemoryMarginBytes =
@@ -191,18 +191,18 @@ live naming controller.
 
 ## Phase B: holding kept media back from older devices
 
-### Task 7: Schema 394 with a device-local `held_media` table
+### Task 7: Schema 395 with a device-local `held_media` table
 
 **Files:**
 - Create: `lib/core/database/tables/held_media_tables.dart`. `class HeldMedia extends Table` with `mediaId` (text, PK) and `heldAt` (int). It has **no `hlc` column**, after `NearbyPeers` in `nearby_tables.dart:18`.
 - Modify: `lib/core/database/database.dart`:
   - Register the table in `@DriftDatabase(tables:)`, with an import/export line.
-  - Set `currentSchemaVersion = 394`.
-  - Append 394 to `migrationVersions`.
-  - Add `static const int heldMediaSchemaVersion = 394;`.
+  - Set `currentSchemaVersion = 395`.
+  - Append 395 to `migrationVersions`.
+  - Add `static const int heldMediaSchemaVersion = 395;`.
   - Leave `minimumCompatibleSchemaVersion` at 386.
 - Create: `lib/core/database/migrations/helpers/held_media_migrations.dart` with `extension HeldMediaMigrations on AppDatabase { Future<void> _assertHeldMediaSchema() }`, which creates the table if missing. Register its `part` in `app_database_migrations.dart`.
-- Modify: `migrations/ladder/rungs_v340_onward.dart`. Add a 394 rung after 387 (:357-358). Add a backstop in `before_open_table_backstops.dart` as nearby does (:134).
+- Modify: `migrations/ladder/rungs_v340_onward.dart`. Add a 395 rung after 387 (:357-358). Add a backstop in `before_open_table_backstops.dart` as nearby does (:134).
 - Modify: `lib/core/database/change_log/change_log_policy.dart:181`, adding `'held_media': ChangeLogClass.excluded`.
 - Modify: `tool/demo_data/src/checks/coverage_check.dart:15`, adding `held_media`.
 - Create: `lib/features/media/data/repositories/held_media_repository.dart`, `class HeldMediaRepository({AppDatabase? database})`, with:
@@ -211,17 +211,17 @@ live naming controller.
   - `Future<void> release(Iterable<String> mediaIds)`
   - `Future<bool> isHeld(String mediaId)`
 - Run codegen (`dart run build_runner build --delete-conflicting-outputs`, never `--build-filter`) in the background.
-- Tests: `test/core/database/migration_v394_held_media_test.dart` (new, after `migration_v387_ccr_setpoint_switch_test.dart`), `test/features/media/data/held_media_repository_test.dart` (new). Then run each guard file named in the sync recon: `database_table_libraries_test.dart`, `change_log_every_table_test.dart`, `change_log_policy_test.dart`, `sync_hlc_target_registration_test.dart`, `fresh_schema_declared_columns_test.dart`, `test/tool/demo_data/coverage_check_test.dart`, `test/web/database/web_database_install_test.dart`.
+- Tests: `test/core/database/migration_v395_held_media_test.dart` (new, after `migration_v387_ccr_setpoint_switch_test.dart`), `test/features/media/data/held_media_repository_test.dart` (new). Then run each guard file named in the sync recon: `database_table_libraries_test.dart`, `change_log_every_table_test.dart`, `change_log_policy_test.dart`, `sync_hlc_target_registration_test.dart`, `fresh_schema_declared_columns_test.dart`, `test/tool/demo_data/coverage_check_test.dart`, `test/web/database/web_database_install_test.dart`.
 
 - [ ] **Step 1: Failing tests:**
-  - `v387 database upgrades to 394 with an empty held_media table`
+  - `v387 database upgrades to 395 with an empty held_media table`
   - `hold is idempotent`
   - `release removes ids`
   - `held_media never appears in SyncData exports`
 - [ ] **Step 2:** Run and expect FAILs.
 - [ ] **Step 3:** Implement and run codegen.
 - [ ] **Step 4:** Run the new tests and every guard file, and expect them to pass.
-- [ ] **Step 5:** Commit `feat(sync): a device-local held_media table, schema 394`.
+- [ ] **Step 5:** Commit `feat(sync): a device-local held_media table, schema 395`.
 
 ### Task 8: The export filter
 
@@ -245,9 +245,9 @@ live naming controller.
   - `... absent from the base export`
   - `... present when not holding`
   - `a retained row with a site is never held`
-  - `olderPeersPresent ignores fenced peers and peers at 394`
-  - `nearby export to a 387 peer holds; to a 394 peer it does not`
-  - `a reusable nearby full copy made while holding is not reused for a 394 peer`
+  - `olderPeersPresent ignores fenced peers and peers at 395`
+  - `nearby export to a 387 peer holds; to a 395 peer it does not`
+  - `a reusable nearby full copy made while holding is not reused for a 395 peer`
 - [ ] **Step 2:** Run and expect FAILs.
 - [ ] **Step 3:** Implement.
 - [ ] **Step 4:** Run and expect them to pass.

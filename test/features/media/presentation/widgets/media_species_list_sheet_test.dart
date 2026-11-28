@@ -130,7 +130,9 @@ void main() {
     expect(find.text('Species in this photo'), findsOneWidget);
     expect(find.text('Unlock to add or dismiss'), findsOneWidget);
     expect(find.text('Blue Tang'), findsOneWidget);
-    expect(find.text('Brown Chromis 71%'), findsOneWidget);
+    expect(find.text('Brown Chromis'), findsOneWidget);
+    // A model score is not how often a name is right (issue #5121).
+    expect(find.textContaining('%'), findsNothing);
   });
 
   testWidgets('says video for a video', (tester) async {
@@ -158,7 +160,7 @@ void main() {
     await pump(tester);
     final chip = tester.widget<ActionChip>(
       find.ancestor(
-        of: find.text('Brown Chromis 71%'),
+        of: find.text('Brown Chromis'),
         matching: find.byType(ActionChip),
       ),
     );

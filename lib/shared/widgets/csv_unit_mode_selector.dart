@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// "My units" / "Metric" for a CSV export, with a line saying what the
@@ -29,7 +30,7 @@ class CsvUnitModeSelector extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: Spacing.s8),
         SegmentedButton<CsvUnitMode>(
           key: const ValueKey('csv-unit-mode-selector'),
           showSelectedIcon: false,
@@ -46,7 +47,7 @@ class CsvUnitModeSelector extends StatelessWidget {
           selected: {value},
           onSelectionChanged: (selection) => onChanged(selection.first),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: Spacing.s4),
         Text(
           value == CsvUnitMode.myUnits
               ? l10n.transfer_csvExport_unitsMineDescription

@@ -536,6 +536,75 @@ void main() {
       expect(switchFor('lp85').hitTestable(), findsNothing);
       expect(switchFor('al80').hitTestable(), findsOneWidget);
     });
+
+    testWidgets('a built-in preset offers Duplicate, a custom one does not '
+        '(#800)', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final custom = TankPresetEntity(
+        id: 'c1',
+        diverId: 'diver-1',
+        name: 'my_twin',
+        displayName: 'My Twin',
+        volumeLiters: 24,
+        workingPressureBar: 232,
+        material: TankMaterial.steel,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => const TankPresetsPage(),
+          ),
+          GoRoute(
+            path: '/tank-presets/new',
+            builder: (context, state) => Scaffold(
+              body: Text('new from ${state.uri.queryParameters['from']}'),
+            ),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            tankPresetListNotifierProvider.overrideWith(
+              (ref) => _MockTankPresetListNotifier([
+                custom,
+                ...TankPresets.all.map(TankPresetEntity.fromBuiltIn),
+              ]),
+            ),
+          ].cast(),
+          child: MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('tank-preset-duplicate-my_twin')),
+        findsNothing,
+      );
+      final duplicate = find.byKey(const Key('tank-preset-duplicate-al80'));
+      await tester.scrollUntilVisible(
+        duplicate,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(duplicate);
+      await tester.pumpAndSettle();
+      expect(find.text('new from al80'), findsOneWidget);
+    });
   });
 }
 

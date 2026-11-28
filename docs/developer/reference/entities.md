@@ -206,6 +206,11 @@ Dive site location.
 | `accessNotes` | String? | Access instructions |
 | `mooringNumber` | String? | Mooring buoy number |
 | `parkingInfo` | String? | Parking details |
+| `address` | String? | Street address, free text |
+| `phone` | String? | Phone number |
+| `email` | String? | Email address |
+| `website` | String? | Website, as typed |
+| `openingHours` | OpeningHours? | Schedules, seasons, 24/7 flag and note |
 
 ---
 

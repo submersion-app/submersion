@@ -1067,6 +1067,11 @@ class UddfImportParsers {
     site['accessNotes'] = getElementText(siteElement, 'accessnotes');
     site['mooringNumber'] = getElementText(siteElement, 'mooringnumber');
     site['parkingInfo'] = getElementText(siteElement, 'parkinginfo');
+    site['address'] = getElementText(siteElement, 'siteaddress');
+    site['phone'] = getElementText(siteElement, 'sitephone');
+    site['email'] = getElementText(siteElement, 'siteemail');
+    site['website'] = getElementText(siteElement, 'sitewebsite');
+    site['openingHours'] = getElementText(siteElement, 'openinghours');
     site['catalogueId'] = getElementText(siteElement, 'catalogueid');
     site['catalogueAnswers'] = getElementText(siteElement, 'catalogueanswers');
 

@@ -1,5 +1,10 @@
+import 'dart:convert';
 import 'package:drift/drift.dart' show QueryRow, Variable;
 
+import 'package:submersion/core/opening_hours/opening_hours.dart';
+import 'package:submersion/features/agent_access/data/writes/json_object_codec.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_contact_rules.dart';
+import 'package:submersion/core/opening_hours/opening_hours_codec.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart'
     show SharedItemKind;
@@ -54,6 +59,28 @@ class SiteWrites extends WritableEntry {
     'access_notes': const FieldCodec.text(nullable: true),
     'mooring_number': const FieldCodec.text(maxLength: 200, nullable: true),
     'parking_info': const FieldCodec.text(nullable: true),
+    // Contact details and opening hours (issue #5073).
+    'street_address': const FieldCodec.text(
+      maxLength: 500,
+      nullable: true,
+      trim: true,
+    ),
+    'phone': const FieldCodec.text(maxLength: 200, nullable: true, trim: true),
+    'email': const _CheckedTextCodec(
+      check: isValidSiteEmail,
+      shape: 'an email address',
+    ),
+    'website': const _CheckedTextCodec(
+      check: isValidSiteWebsite,
+      shape: 'a web address (http or https)',
+      // A booking page's address can run long; the app stores any length.
+      maxLength: 2000,
+    ),
+    'opening_hours': const JsonObjectCodec(
+      shape: 'an opening hours object',
+      normalize: _openingHoursJson,
+      nullable: true,
+    ),
     'is_shared': const FieldCodec.flag(),
   };
 
@@ -438,6 +465,86 @@ class SiteWrites extends WritableEntry {
       clearMooringNumber: clears('mooring_number'),
       parkingInfo: value<String>('parking_info'),
       clearParkingInfo: clears('parking_info'),
+      address: value<String>('street_address'),
+      clearAddress: clears('street_address'),
+      phone: value<String>('phone'),
+      clearPhone: clears('phone'),
+      email: value<String>('email'),
+      clearEmail: clears('email'),
+      website: value<String>('website'),
+      clearWebsite: clears('website'),
+      openingHours: _openingHoursOf(v['opening_hours']),
+      clearOpeningHours: clears('opening_hours'),
     );
+  }
+}
+
+/// An agent's opening hours object, validated and written back in the
+/// stored form. Refused when any part cannot be read (rather than saved
+/// without it, which would change what the site says unseen), when it is
+/// not this version (a newer one is stored as sent), or when it holds
+/// nothing, since null is how hours are cleared.
+Map<String, Object?> _openingHoursJson(Map<String, Object?> raw) {
+  final version = raw['v'];
+  if (version != null && version != 1) {
+    throw FieldRefusal(
+      'Opening hours are written as version 1; this is version $version.',
+    );
+  }
+  final dropped = <String>[];
+  final hours = decodeOpeningHours(jsonEncode(raw), onDrop: dropped.add);
+  if (dropped.isNotEmpty) {
+    throw FieldRefusal(
+      'These opening hours have parts that cannot be read: '
+      '${dropped.join('; ')}.',
+    );
+  }
+  final encoded = encodeOpeningHours(hours);
+  if (encoded == null) {
+    throw const FieldRefusal(
+      'These opening hours hold nothing readable; send null to clear them.',
+    );
+  }
+  return (jsonDecode(encoded) as Map).cast<String, Object?>();
+}
+
+/// Opening hours as sent (an object) or as parsed (its JSON text).
+OpeningHours? _openingHoursOf(Object? raw) => switch (raw) {
+  final String json => decodeOpeningHours(json),
+  final Map<Object?, Object?> map => decodeOpeningHours(jsonEncode(map)),
+  _ => null,
+};
+
+/// Text that must pass [check] to be written: a site's email or website,
+/// which the site page hands to another app.
+class _CheckedTextCodec extends FieldCodec {
+  const _CheckedTextCodec({
+    required this.check,
+    required this.shape,
+    this.maxLength = 200,
+  }) : super(nullable: true);
+
+  final bool Function(String text) check;
+  final String shape;
+  final int maxLength;
+
+  @override
+  String get describe => shape;
+
+  @override
+  Object? parse(Object? raw) =>
+      raw is String && raw.trim().isEmpty ? null : super.parse(raw);
+
+  @override
+  Object parseValue(Object raw) {
+    final text =
+        FieldCodec.text(
+              maxLength: maxLength,
+              nullable: true,
+              trim: true,
+            ).parseValue(raw)
+            as String;
+    if (!check(text)) throw FieldRefusal('This field takes $shape.');
+    return text;
   }
 }

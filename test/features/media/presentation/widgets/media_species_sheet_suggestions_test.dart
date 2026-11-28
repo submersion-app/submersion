@@ -170,7 +170,8 @@ void main() {
   }
 
   group('Suggested', () {
-    testWidgets('lists one row per species, with its count', (tester) async {
+    testWidgets('lists one row per species, with its count and no score '
+        '(issue #5121)', (tester) async {
       await pump(
         tester,
         suggestions: [
@@ -184,7 +185,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Brown Chromis (3)'), findsOneWidget);
-      expect(find.text('92%'), findsOneWidget);
+      expect(find.textContaining('%'), findsNothing);
     });
 
     testWidgets('nothing suggested and nothing running shows no section', (
@@ -287,6 +288,22 @@ void main() {
       await tester.pumpAndSettle();
       expect(session.working.species.map((c) => c.speciesId), ['own-2']);
       expect(find.byKey(const ValueKey('media_suggested_row_2')), findsNothing);
+    });
+
+    testWidgets('the crop view lists possible matches with no score '
+        '(issue #5121)', (tester) async {
+      await pump(
+        tester,
+        suggestions: [suggestion(parrotfish, score: 0.92)],
+        chips: const [],
+      );
+      await tester.tap(find.byKey(const ValueKey('media_suggested_crop_1')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('media_suggested_candidate_2')),
+        findsOneWidget,
+      );
+      expect(find.textContaining('%'), findsNothing);
     });
 
     testWidgets('Add on a possible match in the crop view holds it', (

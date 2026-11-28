@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/title_with_subtitle.dart';
@@ -153,7 +154,7 @@ class FeatureAppBarTitle extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, color: color),
-        const SizedBox(width: 8),
+        const SizedBox(width: Spacing.s8),
         Flexible(child: _titleBlock()),
       ],
     );

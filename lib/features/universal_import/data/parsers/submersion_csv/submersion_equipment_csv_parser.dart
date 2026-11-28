@@ -93,6 +93,7 @@ class SubmersionEquipmentCsvParser implements ImportParser {
             EquipmentType.values,
             (v) => v.displayName,
             table.text(row, 'Type'),
+            legacyNames: EquipmentType.legacyDisplayNames,
           ) ??
           EquipmentType.other;
       final attributes = <Map<String, dynamic>>[];

@@ -8,6 +8,7 @@ Welcome to the Submersion developer documentation. This section covers architect
 - [Database](database.md): Schema and Drift ORM
 - [State Management](state-management.md): Riverpod patterns
 - [Navigation](navigation.md): go_router setup
+- [UI Conventions](ui-conventions.md): Which API serves which styling role, the spacing scale and radii, and the standing UI rules
 - [Testing](testing.md): Test organization and running
 - [Agent access](agent-access.md): The in-app MCP server, its tools, security rules and lifecycle
 - [Local Test Performance](local-test-performance.md): Making local test runs fast

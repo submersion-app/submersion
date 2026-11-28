@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/shared/widgets/detail_row/copyable_detail_row.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
 import 'package:submersion/shared/widgets/detail_row/render_detail_row.dart';
@@ -29,7 +30,7 @@ class DetailRow extends StatefulWidget {
     this.iconSize = 20,
     this.iconGap = 12,
     this.iconColor,
-    this.padding = const EdgeInsets.symmetric(vertical: 8),
+    this.padding = const EdgeInsets.symmetric(vertical: Spacing.s8),
     this.copyValue,
   });
 
@@ -46,7 +47,9 @@ class DetailRow extends StatefulWidget {
     double iconSize = 20,
     double iconGap = 12,
     Color? iconColor,
-    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(vertical: 8),
+    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(
+      vertical: Spacing.s8,
+    ),
     bool copyable = false,
   }) : this(
          key: key,

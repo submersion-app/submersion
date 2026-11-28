@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/core/utils/unit_axis.dart';
 
 /// A labelled slider bound to a [UnitAxis].
@@ -52,7 +53,7 @@ class UnitSlider extends StatelessWidget {
               child: Row(
                 children: [
                   Icon(icon, size: 20, color: colorScheme.primary),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: Spacing.s8),
                   Flexible(
                     child: Text(
                       label,
@@ -65,10 +66,13 @@ class UnitSlider extends StatelessWidget {
               ),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(
+                horizontal: Spacing.s12,
+                vertical: Spacing.s4,
+              ),
               decoration: BoxDecoration(
                 color: colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(Radii.r16),
               ),
               child: Text(
                 readout,
@@ -80,7 +84,7 @@ class UnitSlider extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: Spacing.s8),
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
             activeTrackColor: colorScheme.primary,

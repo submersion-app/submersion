@@ -28,6 +28,26 @@ Map<String, dynamic> _attr(Map<String, dynamic> item, String key) =>
     );
 
 void main() {
+  test(
+    'an export from before the cylinder rename reads back (#5106)',
+    () async {
+      final csv = CsvEquipmentWriter(CsvExportUnits.metric)
+          .write(const [
+            EquipmentItem(id: 'c', name: 'Twin 12', type: EquipmentType.tank),
+            EquipmentItem(id: 'b', name: 'Cam', type: EquipmentType.tankBand),
+          ])
+          .replaceAll(EquipmentType.tankBand.displayName, 'Tank Band')
+          .replaceAll(EquipmentType.tank.displayName, 'Tank');
+      expect(csv, contains('Tank Band'));
+      final payload = await const SubmersionEquipmentCsvParser().parse(
+        _bytes(csv),
+      );
+      final items = payload.entitiesOf(ImportEntityType.equipment);
+      expect(_byName(items, 'Twin 12')['type'], 'tank');
+      expect(_byName(items, 'Cam')['type'], 'tankBand');
+    },
+  );
+
   test('the registry routes the format to this parser', () {
     expect(
       parserForFormat(ImportFormat.submersionEquipmentCsv),

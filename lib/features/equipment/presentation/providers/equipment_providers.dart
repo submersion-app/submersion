@@ -6,7 +6,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
 // The dependency-only module, not dive_providers.dart: that file imports
 // trip_providers.dart, which imports this feature's repository impl.
-import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/clock_sync_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
@@ -25,6 +24,7 @@ import 'package:submersion/features/equipment/domain/entities/service_record.dar
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
+import 'package:submersion/features/equipment/domain/services/equipment_part_tree.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
@@ -373,23 +373,10 @@ final childEquipmentProvider =
       // the equipment row.
       ref.invalidateSelfWhen(repository.watchAttributeChanges());
       final children = await repository.getChildEquipment(parentId);
-      int slotOf(EquipmentItem e) => e.cellSlot ?? 1 << 20;
-      int rankOf(EquipmentType t) => switch (t) {
-        EquipmentType.o2Cell => 0,
-        EquipmentType.battery => 1,
-        _ => 2,
-      };
       // isFitted, not isActive: a legacy row can be retired or sold with
       // isActive left true, and must not show as an installed part.
-      return children.where((c) => c.isFitted).toList()..sort((a, b) {
-        final byRank = rankOf(a.type).compareTo(rankOf(b.type));
-        if (byRank != 0) return byRank;
-        final byType = a.type.name.compareTo(b.type.name);
-        if (byType != 0) return byType;
-        final bySlot = slotOf(a).compareTo(slotOf(b));
-        if (bySlot != 0) return bySlot;
-        return compareTextForSort(a.name, b.name);
-      });
+      return children.where((c) => c.isFitted).toList()
+        ..sort(compareInstalledParts);
     });
 
 /// The tables an item's dives are read from: the dives and their gear and

@@ -135,8 +135,8 @@ void main() {
           ],
         ),
       );
-      expect(find.text('2 tank configurations'), findsOneWidget);
-      expect(find.text('2 tank extras'), findsOneWidget);
+      expect(find.text('2 cylinder configurations'), findsOneWidget);
+      expect(find.text('2 cylinder extras'), findsOneWidget);
     });
 
     testWidgets('removing a chip clears only its axis', (tester) async {

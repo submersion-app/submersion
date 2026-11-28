@@ -44,10 +44,10 @@ void main() {
     await tester.pumpWidget(buildDataSection(await getBaseOverrides()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Tank pressure at surfacing'), findsOneWidget);
+    expect(find.text('Cylinder pressure at surfacing'), findsOneWidget);
     final toggle = tester.widget<SwitchListTile>(
       find.ancestor(
-        of: find.text('Tank pressure at surfacing'),
+        of: find.text('Cylinder pressure at surfacing'),
         matching: find.byType(SwitchListTile),
       ),
     );
@@ -64,7 +64,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Tank pressure at surfacing'));
+    await tester.tap(find.text('Cylinder pressure at surfacing'));
     await tester.pumpAndSettle();
 
     expect(settings.state.trimTankPressureAtSurfacing, isFalse);

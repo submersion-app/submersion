@@ -1,3 +1,4 @@
+import 'package:submersion/core/opening_hours/opening_hours_codec.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
@@ -40,6 +41,11 @@ domain.DiveSite mapDiveSiteRow(DiveSite row) {
     accessNotes: row.accessNotes,
     mooringNumber: row.mooringNumber,
     parkingInfo: row.parkingInfo,
+    address: row.address,
+    phone: row.phone,
+    email: row.email,
+    website: row.website,
+    openingHours: decodeOpeningHours(row.openingHours),
     altitude: row.altitude,
     entryMethods: decodeEntryMethods(row.entryMethod),
     exitMethods: decodeEntryMethods(row.exitMethod),

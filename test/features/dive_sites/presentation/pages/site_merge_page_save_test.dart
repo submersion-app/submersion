@@ -10,11 +10,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/database/database.dart' hide Diver, DiveSite;
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/opening_hours/opening_hours.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/dive_info_section.dart';
+import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/identity_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/life_notes_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/location_section.dart';
@@ -228,6 +230,66 @@ void main() {
     expect((merged! as SiteMergeResult).survivorId, 'a');
     expect(await stored('a'), isTrue);
     expect(await stored('b'), isFalse);
+  });
+
+  // Contact details and opening hours (issue #5073): a merge keeps the ones
+  // only one site has.
+  testWidgets('a merge keeps contact details and hours from either site', (
+    tester,
+  ) async {
+    final hours = OpeningHours(alwaysOpen: true, note: 'Gate code 1234');
+    final sites = SiteRepository();
+    await sites.createSite(
+      const DiveSite(id: 'a', name: 'Stoney Cove', diverId: 'd2'),
+    );
+    await sites.createSite(
+      DiveSite(
+        id: 'b',
+        name: 'Stoney Cove North',
+        diverId: 'd2',
+        address: 'LE9 4DW',
+        phone: '+44 1455 273089',
+        email: 'info@stoneycove.com',
+        website: 'stoneycove.com',
+        openingHours: hours,
+      ),
+    );
+    final result = await pump(tester, const ['a', 'b'], active: 'd2');
+
+    await saveAndMerge(tester);
+
+    expect(await result, isA<SiteMergeResult>());
+    final merged = (await sites.getSiteById('a'))!;
+    expect(merged.address, 'LE9 4DW');
+    expect(merged.phone, '+44 1455 273089');
+    expect(merged.email, 'info@stoneycove.com');
+    expect(merged.website, 'stoneycove.com');
+    expect(merged.openingHours, hours);
+  });
+
+  testWidgets('a merge refuses a website that will not open', (tester) async {
+    await seedSite(db, 'a', owner: 'd2', name: 'Stoney Cove');
+    await seedSite(db, 'b', owner: 'd2', name: 'Stoney Cove North');
+    await pump(tester, const ['a', 'b'], active: 'd2');
+
+    final website = find.descendant(
+      of: find.widgetWithText(
+        SuggestionFormRow,
+        l.diveSites_edit_contact_website_label,
+      ),
+      matching: find.byType(EditableText),
+    );
+    await tester.ensureVisible(website);
+    await tester.enterText(website, 'mailto:x@y.com');
+    await tester.pump();
+    await tester.tap(find.text(l.forms_save).first);
+    // A save that went on would open the confirmation over a spinner.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.text(l.diveSites_edit_contact_websiteInvalid), findsOneWidget);
+    expect(find.text(l.diveSites_edit_appBar_merge), findsNothing);
+    expect(await stored('b'), isTrue);
   });
 
   // What a merge stores (final review): the chosen candidates, the chosen

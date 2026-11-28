@@ -424,7 +424,8 @@ class PlanCalculatorService {
             PlanWarning(
               type: PlanWarningType.gasOut,
               severity: PlanWarningSeverity.critical,
-              message: 'Tank ${tank.name ?? tank.gasMix.name} will be empty',
+              message:
+                  'Cylinder ${tank.name ?? tank.gasMix.name} will be empty',
               value: remainingPressure,
             ),
           );
@@ -435,7 +436,7 @@ class PlanCalculatorService {
               type: PlanWarningType.gasLow,
               severity: PlanWarningSeverity.alert,
               message:
-                  'Tank ${tank.name ?? tank.gasMix.name} below ${reservePressure.toStringAsFixed(0)} bar reserve',
+                  'Cylinder ${tank.name ?? tank.gasMix.name} below ${reservePressure.toStringAsFixed(0)} bar reserve',
               value: remainingPressure,
               threshold: reservePressure,
             ),
