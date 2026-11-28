@@ -149,7 +149,7 @@ class PopOutHost extends Notifier<bool> {
   /// its own nearest sample to what the pop-out sent: that is an echo, not
   /// the diver's move, so it must not go back.
   void noteInboundApplied(String diveId, int? seconds) =>
-      _gate.noteReceived(diveId, seconds);
+      _gate.alsoExpect(diveId, seconds);
 
   /// The main window's cursor for [diveId] moved to [seconds].
   void sendCursor(String diveId, int? seconds) {

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_review_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/pop_out/domain/pop_out_frame.dart';
 import 'package:submersion/features/pop_out/domain/pop_out_messages.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/pop_out/presentation/providers/pop_out_host.
 import 'package:submersion/features/pop_out/presentation/providers/pop_out_providers.dart';
 import 'package:submersion/features/pop_out/presentation/widgets/pop_out_cursor_bridge.dart';
 import 'package:submersion/features/pop_out/presentation/widgets/pop_out_profile_button.dart';
+import 'package:submersion/features/pop_out/presentation/widgets/pop_out_review_bridge.dart';
 import 'package:submersion/features/pop_out/presentation/widgets/shown_dive_reporter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -194,6 +196,90 @@ void main() {
       // The main window snapped to a sample of its own...
       expect(capturedRef.read(profileTrackingIndexProvider('dive-1')), 12);
       // ...and keeps that to itself.
+      expect(windows.channel.sentOf<CursorMessage>(), isEmpty);
+    });
+  });
+
+  // The main window's own fullscreen profile shares its cursor too.
+  group('PopOutReviewBridge', () {
+    final tenSecondSamples = [
+      for (var t = 0; t <= 300; t += 10)
+        DiveProfilePoint(timestamp: t, depth: 10),
+    ];
+
+    testWidgets(
+      'sends the fullscreen cursor and applies inbound for its dive',
+      (tester) async {
+        late WidgetRef capturedRef;
+        await tester.pumpWidget(
+          testApp(
+            overrides: overrides(),
+            child: Consumer(
+              builder: (context, ref, _) {
+                capturedRef = ref;
+                return const PopOutReviewBridge(
+                  diveId: 'dive-1',
+                  child: SizedBox(),
+                );
+              },
+            ),
+          ),
+        );
+        await capturedRef.read(popOutHostProvider.notifier).openOrFocus();
+        await tester.pump();
+
+        capturedRef.read(profileReviewProvider('dive-1').notifier).state = 42;
+        await tester.pump(const Duration(milliseconds: 50));
+        expect(windows.channel.sentOf<CursorMessage>(), [
+          const CursorMessage('dive-1', 42),
+        ]);
+
+        windows.channel.deliver(const CursorMessage('dive-1', 125));
+        await tester.pump(const Duration(milliseconds: 50));
+        expect(capturedRef.read(profileReviewProvider('dive-1')), 125);
+
+        windows.channel.deliver(const CursorMessage('other-dive', 7));
+        await tester.pump();
+        expect(capturedRef.read(profileReviewProvider('dive-1')), 125);
+        // Nothing received went back.
+        expect(windows.channel.sentOf<CursorMessage>(), hasLength(1));
+      },
+    );
+
+    testWidgets('with the detail chart beneath, a position is not sent back', (
+      tester,
+    ) async {
+      late WidgetRef capturedRef;
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides(),
+          child: Consumer(
+            builder: (context, ref, _) {
+              capturedRef = ref;
+              return Column(
+                children: [
+                  PopOutCursorBridge(
+                    diveId: 'dive-1',
+                    chartProfile: tenSecondSamples,
+                    child: const SizedBox(),
+                  ),
+                  const PopOutReviewBridge(diveId: 'dive-1', child: SizedBox()),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+      await capturedRef.read(popOutHostProvider.notifier).openOrFocus();
+      await tester.pump();
+
+      windows.channel.deliver(const CursorMessage('dive-1', 125));
+      await tester.pump(const Duration(milliseconds: 50));
+
+      // The detail chart snapped to 120, the fullscreen view took 125...
+      expect(capturedRef.read(profileTrackingIndexProvider('dive-1')), 12);
+      expect(capturedRef.read(profileReviewProvider('dive-1')), 125);
+      // ...and neither landing went back to the pop-out.
       expect(windows.channel.sentOf<CursorMessage>(), isEmpty);
     });
   });

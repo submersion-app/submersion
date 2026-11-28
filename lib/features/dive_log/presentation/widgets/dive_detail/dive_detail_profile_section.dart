@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/pop_out/presentation/providers/pop_out_providers.dart';
 import 'package:submersion/features/pop_out/presentation/widgets/pop_out_profile_button.dart';
+import 'package:submersion/features/pop_out/presentation/widgets/pop_out_review_bridge.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -370,10 +371,14 @@ class DiveDetailProfileSection extends ConsumerWidget {
     // otherwise reads (issue #4527).
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
-        builder: (context) => FullscreenProfilePage(
+        // Its cursor is shared with the profile pop-out too (issue #5078).
+        builder: (context) => PopOutReviewBridge(
           diveId: diveId,
-          onOpenInNotes: onOpenInNotes,
-          session: editing,
+          child: FullscreenProfilePage(
+            diveId: diveId,
+            onOpenInNotes: onOpenInNotes,
+            session: editing,
+          ),
         ),
       ),
     );

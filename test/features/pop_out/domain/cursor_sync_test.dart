@@ -41,6 +41,34 @@ void main() {
     });
   });
 
+  // The main window's fullscreen view and the detail chart under it both
+  // apply a received position, one exactly and one snapped to a sample.
+  group('CursorEchoGate with two landings', () {
+    test('both landings of one received position are dropped', () {
+      final gate = CursorEchoGate();
+      gate.noteReceived('a', 125);
+      gate.alsoExpect('a', 120);
+      expect(gate.shouldSend('a', 120), isFalse);
+      expect(gate.shouldSend('a', 125), isFalse);
+    });
+
+    test("a newer received position forgets the last one's landings", () {
+      final gate = CursorEchoGate();
+      gate.noteReceived('a', 125);
+      gate.alsoExpect('a', 120);
+      gate.noteReceived('a', 200);
+      expect(gate.shouldSend('a', 120), isTrue);
+    });
+
+    test('a move of the diver\'s own forgets landings still expected', () {
+      final gate = CursorEchoGate();
+      gate.noteReceived('a', 125);
+      gate.alsoExpect('a', 120);
+      expect(gate.shouldSend('a', 130), isTrue);
+      expect(gate.shouldSend('a', 120), isTrue);
+    });
+  });
+
   group('CursorCoalescer', () {
     test('coalescer sends only the latest value per interval', () {
       fakeAsync((async) {
