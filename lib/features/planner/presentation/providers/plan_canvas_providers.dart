@@ -553,6 +553,18 @@ final selectedContingencyProvider = Provider<CombinedContingencyOutcome?>((
 
 /// Chart series for the selected contingency, drawn as a ghost overlay.
 final contingencyGhostSeriesProvider = Provider<PlanCanvasSeries?>((ref) {
+  // In Bailout view the preview is the deviated dive's bailout (#5020).
+  if (ref.watch(planBailoutViewProvider)) {
+    // Drawn over the plan's bailout only, never over the loop plan.
+    final base = ref.watch(
+      planChartBailoutProvider.select((c) => c.picture != null),
+    );
+    if (!base) return null;
+    final picture = ref.watch(
+      planChartBailoutPreviewProvider.select((c) => c.picture),
+    );
+    return picture == null ? null : buildBailoutCanvasSeries(picture);
+  }
   final preview = ref.watch(selectedContingencyProvider);
   if (preview == null) return null;
   return buildCanvasSeries(

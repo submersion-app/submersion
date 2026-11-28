@@ -366,14 +366,18 @@ class _PlanProfileChartState extends ConsumerState<PlanProfileChart> {
           if (picked >= 0) activeMarker = picked;
         }
 
-        // On the line that is drawn, live plan or bailout picture alike.
+        // On the line of the dive it belongs to: a previewed deviation's
+        // (#5020) on the ghost, the plan's on the plan's line.
+        final worstCaseLine = worstCase != null && worstCase.onDeviation
+            ? ghost ?? series
+            : series;
         final placedWorstCase = worstCase == null
             ? null
             : placeWorstCaseMarker(
                 worstCase: worstCase,
                 geometry: geometry,
-                depthAt: series.depthAt,
-                profileEndSeconds: series.profile.last.timeSeconds,
+                depthAt: worstCaseLine.depthAt,
+                profileEndSeconds: worstCaseLine.profile.last.timeSeconds,
                 pillSize: worstCasePillSize(
                   worstCaseLabel,
                   tagStyle,

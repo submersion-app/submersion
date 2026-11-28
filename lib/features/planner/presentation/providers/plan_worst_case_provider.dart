@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 
 /// The worst-case bailout point as the chart marks it (issue #4211): the
@@ -16,6 +17,7 @@ class PlanChartWorstCase {
     required this.availableLiters,
     required this.sufficient,
     required this.stale,
+    this.onDeviation = false,
   });
 
   final int runtimeSeconds;
@@ -33,6 +35,10 @@ class PlanChartWorstCase {
   /// result is on the way: still marked, but dimmed.
   final bool stale;
 
+  /// Whether this is a previewed deviation's worst case (#5020), marked on
+  /// the deviated dive's line (the ghost) rather than on the plan's.
+  final bool onDeviation;
+
   PlanChartWorstCase copyWith({
     int? runtimeSeconds,
     double? depthMeters,
@@ -41,6 +47,7 @@ class PlanChartWorstCase {
     double? availableLiters,
     bool? sufficient,
     bool? stale,
+    bool? onDeviation,
   }) => PlanChartWorstCase(
     runtimeSeconds: runtimeSeconds ?? this.runtimeSeconds,
     depthMeters: depthMeters ?? this.depthMeters,
@@ -49,6 +56,7 @@ class PlanChartWorstCase {
     availableLiters: availableLiters ?? this.availableLiters,
     sufficient: sufficient ?? this.sufficient,
     stale: stale ?? this.stale,
+    onDeviation: onDeviation ?? this.onDeviation,
   );
 
   @override
@@ -60,7 +68,8 @@ class PlanChartWorstCase {
       other.litersRequired == litersRequired &&
       other.availableLiters == availableLiters &&
       other.sufficient == sufficient &&
-      other.stale == stale;
+      other.stale == stale &&
+      other.onDeviation == onDeviation;
 
   @override
   int get hashCode => Object.hash(
@@ -71,6 +80,7 @@ class PlanChartWorstCase {
     availableLiters,
     sufficient,
     stale,
+    onDeviation,
   );
 }
 
@@ -99,10 +109,24 @@ PlanChartWorstCase? chartWorstCaseFrom(PlanResultView<BailoutOutcome?> view) {
 /// first, so removing the last bailout cylinder drops the marker that frame.
 final planChartWorstCaseProvider = Provider<PlanChartWorstCase?>((ref) {
   if (!ref.watch(planMayHaveBailoutProvider)) return null;
-  return chartWorstCaseFrom(
+  final base = chartWorstCaseFrom(
     planResultView(
       ref.watch(planBailoutProvider),
       ref.watch(divePlanNotifierProvider.select((s) => s.id)),
     ),
   );
+  // The deviation's own result: the shown bailout stands the plan's in for
+  // it while it computes, and that is no worst case of the deviated dive.
+  final preview = ref.watch(planPreviewBailoutViewProvider);
+  if (preview == null) return base;
+  // A previewed deviation's worst case (#5020) belongs on the deviated dive's
+  // line, so it is marked only while that line is drawn and its bailout has
+  // a worst case to mark. Otherwise (still computing, a gas gap, or no
+  // deviated line under it) the plan's stays marked on the plan's line.
+  final lineDrawn = ref.watch(
+    contingencyGhostSeriesProvider.select((ghost) => ghost != null),
+  );
+  if (!lineDrawn) return base;
+  final deviated = chartWorstCaseFrom(preview);
+  return deviated?.copyWith(onDeviation: true) ?? base;
 });

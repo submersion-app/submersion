@@ -10,7 +10,8 @@ import 'package:submersion/features/planner/presentation/widgets/plan_status_chi
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Contingency toggles for the chart: Base / +depth / +time / one chip per
-/// losable cylinder. All but Base combine freely; Base clears them.
+/// losable cylinder. All but Base combine freely; Base clears them and leaves
+/// the Bailout view.
 class ContingencyChips extends ConsumerWidget {
   const ContingencyChips({super.key, this.overlay = false});
 
@@ -26,8 +27,6 @@ class ContingencyChips extends ConsumerWidget {
     final selection = ref.watch(contingencySelectionProvider);
     final losable = ref.watch(planLosableTanksProvider);
     final notifier = ref.read(contingencySelectionProvider.notifier);
-    // Not in effect in Bailout view, so held as they are, dimmed (#5018).
-    final held = ref.watch(planBailoutViewProvider);
     final units = ref.watch(unitFormatterProvider);
 
     // The plan's own deviation, else the diver's Settings default (#3552).
@@ -43,9 +42,11 @@ class ContingencyChips extends ConsumerWidget {
         selection.deeper ||
         selection.longer ||
         selection.lostTankIds.any(losableIds.contains);
+    // Base is the plan itself, so the Bailout view counts against it too,
+    // while it is in effect.
+    final bailoutOn = ref.watch(planBailoutViewProvider);
 
-    Widget chip(String label, bool on, VoidCallback? toggle) {
-      final onTap = held ? null : toggle;
+    Widget chip(String label, bool on, VoidCallback? onTap) {
       return Semantics(
         selected: on,
         enabled: onTap != null,
@@ -72,7 +73,15 @@ class ContingencyChips extends ConsumerWidget {
     }
 
     final chips = [
-      chip(context.l10n.plannerCanvas_contingency_base, !anyOn, notifier.clear),
+      chip(
+        context.l10n.plannerCanvas_contingency_base,
+        !anyOn && !bailoutOn,
+        () {
+          notifier.clear();
+          ref.read(chartDisplayModeProvider.notifier).state =
+              ChartDisplayMode.ccr;
+        },
+      ),
       chip(depthLabel, selection.deeper, notifier.toggleDeeper),
       if (canLengthen) chip(timeLabel, selection.longer, notifier.toggleLonger),
       for (final tank in losable) lostChip(tank),

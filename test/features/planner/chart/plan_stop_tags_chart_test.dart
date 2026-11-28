@@ -59,7 +59,7 @@ void main() {
     expect(painter.stopTags, isEmpty);
   });
 
-  testWidgets('the Bailout view keeps its own tags, with no preview', (
+  testWidgets('in the Bailout view the tags follow the deviated bailout', (
     tester,
   ) async {
     await tester.pumpWidget(
@@ -104,17 +104,16 @@ void main() {
                 .widget<CustomPaint>(find.byKey(const Key('planChartSeries')))
                 .painter
             as PlanChartSeriesPainter;
-    // The contingencies are not in effect in Bailout view (#5018): no ghost,
-    // and the bailout stops keep their own plain tags.
+    // +5 m previews the deviated dive's bailout (#5020): the tags are its
+    // stops, compared with the plan's bailout.
     (double, double, int) stop(CanvasMarker m) =>
         (m.timeSeconds, m.depth, m.durationSeconds);
-    final bailout = container.read(planCanvasSeriesProvider);
-    expect(container.read(contingencyGhostSeriesProvider), isNull);
+    final ghost = container.read(contingencyGhostSeriesProvider)!;
     expect(
       painter.stopTags.map((t) => stop(t.marker)),
-      orderedEquals(bailout.stopLabels.map(stop)),
+      orderedEquals(ghost.stopLabels.map(stop)),
     );
-    expect(painter.stopTags.every((t) => t.change == null && !t.isNew), isTrue);
+    expect(painter.stopTags.any((t) => t.change != null || t.isNew), isTrue);
   });
 
   testWidgets('in the Bailout view the phone readouts list the bailout stops', (
