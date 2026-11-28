@@ -29,8 +29,9 @@ extension SharedLibraryTransportDocuments on SharedLibraryTransport {
   }
 
   Future<List<CloudFileInfo>> listDocuments() async {
-    final folder =
-        _documents ?? await _existingFolder(SharedLibraryLayout.documentsDir);
+    final folder = _documents ??= await _existingFolder(
+      SharedLibraryLayout.documentsDir,
+    );
     if (folder == null) return const [];
     return _listKind(folder, SharedLibraryTransport._documentPrefix);
   }
@@ -73,8 +74,9 @@ extension SharedLibraryTransportDocuments on SharedLibraryTransport {
   /// Every page file directly in the pages folder whose name this app could
   /// have written.
   Future<List<CloudFileInfo>> listPageFiles() async {
-    final folder =
-        _pages ?? await _existingFolder(SharedLibraryLayout.pagesDir);
+    final folder = _pages ??= await _existingFolder(
+      SharedLibraryLayout.pagesDir,
+    );
     if (folder == null) return const [];
     final files = await _provider.listFiles(folderId: folder);
     return [
@@ -103,8 +105,9 @@ extension SharedLibraryTransportDocuments on SharedLibraryTransport {
 
   /// The stored page file named [pageFileId], or null when there is none.
   Future<CloudFileInfo?> findPageFile(String pageFileId) async {
-    final folder =
-        _pages ?? await _existingFolder(SharedLibraryLayout.pagesDir);
+    final folder = _pages ??= await _existingFolder(
+      SharedLibraryLayout.pagesDir,
+    );
     if (folder == null) return null;
     return _find(folder, SharedLibraryTransport.pageFileName(pageFileId));
   }

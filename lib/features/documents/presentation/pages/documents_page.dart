@@ -257,14 +257,19 @@ class _DocumentsListContentState extends ConsumerState<DocumentsListContent> {
       hintText: l10n.documents_search_hint,
       alwaysShown: true,
     );
+    // The chip shows while the diver has shared documents at all; the list
+    // under it follows the search like the diver's own.
     final shared =
         ref.watch(sharedLibraryDocumentsProvider).value ??
+        const <DocumentListEntry>[];
+    final sharedShown =
+        ref.watch(filteredSharedLibraryDocumentsProvider).value ??
         const <DocumentListEntry>[];
     final list = all.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text(l10n.documents_error_load('$e'))),
       data: (own) {
-        final raw = _sharedOnly ? shared : own;
+        final raw = _sharedOnly ? sharedShown : own;
         final catalog = ref.watch(certificationCatalogSyncProvider);
         final entries = [
           for (final e in raw)

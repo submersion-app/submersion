@@ -439,16 +439,20 @@ class _DocumentDetailPageState extends ConsumerState<DocumentDetailPage>
     final library = doc.isShared && doc.owner.id != null
         ? ref.read(siteLibraryViewProvider(doc.owner.id!)).value
         : null;
+    // Chosen by the document, not by whether the library's name has
+    // loaded: a shared one always leaves the library.
+    final libraryName =
+        library?.libraryName ?? l10n.documents_filter_sharedLibraries;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(
-          library == null
+          !doc.isShared
               ? l10n.documents_delete_title
-              : l10n.documents_libraryShare_removeTitle(library.libraryName),
+              : l10n.documents_libraryShare_removeTitle(libraryName),
         ),
         content: Text(
-          library == null
+          !doc.isShared
               ? l10n.documents_delete_content
               : l10n.documents_libraryShare_removeBody,
         ),

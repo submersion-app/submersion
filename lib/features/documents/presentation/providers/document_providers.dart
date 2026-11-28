@@ -77,6 +77,19 @@ final filteredDocumentsProvider = Provider<AsyncValue<List<DocumentListEntry>>>(
   ),
 );
 
+/// [sharedLibraryDocumentsProvider] narrowed by the Documents page's query,
+/// as [filteredDocumentsProvider] narrows the diver's own (issue #4713).
+final filteredSharedLibraryDocumentsProvider =
+    Provider<AsyncValue<List<DocumentListEntry>>>(
+      (ref) => narrowByQuery(
+        ref,
+        ref.watch(sharedLibraryDocumentsProvider),
+        documentQueryEntity,
+        ref.watch(documentQueryProvider),
+        (e) => e.document.id,
+      ),
+    );
+
 final documentByIdProvider = FutureProvider.family<Document?, String>((
   ref,
   id,
