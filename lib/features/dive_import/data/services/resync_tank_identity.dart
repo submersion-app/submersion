@@ -68,6 +68,23 @@ List<Map<String, dynamic>> _backGasImportStarts(
 
 double? _bar(Object? value) => value is num ? value.toDouble() : null;
 
+/// Whether something positively says stored [row] is the file tank with
+/// [serial] and start pressure [starts] (issue #4665): the transmitter
+/// serial both name, or a start pressure that agrees while the serials do
+/// not contradict. Lining up in order is no such evidence, so a role only
+/// this tank carries, the Hydrotank's, waits for it.
+bool identifiesStoredCylinder(
+  DiveTank row,
+  String? serial,
+  List<double?> starts,
+) {
+  final stored = normalizeTransmitterSerial(row.transmitterSerial);
+  if (stored != null && serial != null) return stored == serial;
+  final bar = row.startPressure;
+  return bar != null &&
+      starts.any((p) => p != null && sameCylinderStartPressure(bar, p));
+}
+
 /// Pairs the file tanks the `order` pass left unplaced ([fileIndexes], in
 /// file order) with the stored cylinders it left unclaimed ([rows], in
 /// stored order), by what tells a cylinder apart, never by position alone

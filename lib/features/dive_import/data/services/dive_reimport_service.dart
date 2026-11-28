@@ -535,20 +535,22 @@ class DiveReimportService {
       for (final row in existing)
         if (!claimed.contains(row.id)) row,
     ];
+    final serials = [
+      for (final t in tanksData)
+        normalizeTransmitterSerial(t['transmitterSerial'] as String?),
+    ];
+    final starts = storedStartCandidates(
+      rawDiveData: rawDiveData,
+      tanksData: tanksData,
+    );
     final placed = pairUnorderedTanks(
       fileIndexes: [
         for (var i = 0; i < tanksData.length; i++)
           if (matched[i] == null) i,
       ],
       rows: unclaimed,
-      serials: [
-        for (final t in tanksData)
-          normalizeTransmitterSerial(t['transmitterSerial'] as String?),
-      ],
-      starts: storedStartCandidates(
-        rawDiveData: rawDiveData,
-        tanksData: tanksData,
-      ),
+      serials: serials,
+      starts: starts,
     );
     for (final MapEntry(key: i, value: row) in placed.entries) {
       matched[i] = row;
@@ -610,13 +612,16 @@ class DiveReimportService {
             // The role stays the diver's, save an Avelo Hydrotank stored as
             // back gas before the Hydrotank role, the case a Shearwater Cloud
             // import has no re-parse for (issue #4665). Written before the
-            // transmitter setup below, which fills only a back gas.
+            // transmitter setup below, which fills only a back gas. Pairing
+            // in order is no evidence the row is the Hydrotank, so the role
+            // waits for a serial or start pressure that says so.
             tankRole:
-                upgradesToHydrotank(
-                  storedRole: row.tankRole,
-                  storedRoleSource: row.roleSource,
-                  parsedRole: fileRole,
-                )
+                identifiesStoredCylinder(row, serials[i], starts[i]) &&
+                    upgradesToHydrotank(
+                      storedRole: row.tankRole,
+                      storedRoleSource: row.roleSource,
+                      parsedRole: fileRole,
+                    )
                 ? Value(TankRole.hydrotank.name)
                 : const Value.absent(),
           ),

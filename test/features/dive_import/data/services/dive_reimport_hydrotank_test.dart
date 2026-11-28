@@ -284,6 +284,31 @@ void main() {
     expect(await roleOf('second'), 'backGas');
   });
 
+  test(
+    'a cylinder nothing identifies takes the readings, not the role',
+    () async {
+      // A stored cylinder with no start pressure and no serial pairs in order,
+      // so it takes the file's readings, but nothing says it is the Hydrotank.
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: 'tank-a',
+              diveId: diveId,
+              tankOrder: const Value(0),
+            ),
+          );
+
+      await resync([
+        {'startPressure': 200.0, 'role': 'hydrotank'},
+      ]);
+
+      final tank = await stored();
+      expect(tank.startPressure, 200.0);
+      expect(tank.tankRole, 'backGas');
+    },
+  );
+
   test('a stored serial names the cylinder whatever its pressure', () async {
     await db
         .into(db.diveTanks)
