@@ -119,9 +119,8 @@ class SacTimeColumns extends StatelessWidget {
 
   static const double _tooltipMaxWidth = 220;
 
-  /// How far in from its end of the line the average tag may reach, for
-  /// keeping a bar's label off it.
-  static const double _averageTagReach = 64;
+  /// Space on each side of the average tag's text, inside its pill.
+  static const double _averageTagPadding = 4;
 
   /// How much of its color a column keeps while another one is picked, so
   /// the picked column is the only one at full strength (issue #4697).
@@ -230,6 +229,7 @@ class SacTimeColumns extends StatelessWidget {
     // Time runs left to right in every locale, but words read in the
     // locale's own direction.
     final textDirection = Directionality.of(context);
+    final textScaler = MediaQuery.textScalerOf(context);
 
     return Directionality(
       textDirection: TextDirection.ltr,
@@ -247,6 +247,7 @@ class SacTimeColumns extends StatelessWidget {
                 constraints.maxWidth,
                 band,
                 textDirection,
+                textScaler,
               ),
             ),
           ),
@@ -337,22 +338,50 @@ class SacTimeColumns extends StatelessWidget {
     );
   }
 
-  /// Whether a bar label would meet the average tag at the left end of a
-  /// plot [width] wide, or at the right end with [fromRight]: its column is
-  /// within the tag's reach of that end, and its bar is too short to lift the
-  /// label of [lineHeight] clear of the line the tag sits on.
+  static double _textWidth(
+    String text,
+    TextStyle? style,
+    TextScaler textScaler,
+    TextDirection textDirection,
+  ) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: textDirection,
+      textScaler: textScaler,
+    )..layout();
+    final width = painter.width;
+    painter.dispose();
+    return width;
+  }
+
+  /// Whether a bar label would meet an average tag [tagWidth] wide at the
+  /// left end of a plot [width] wide, or at the right end with [fromRight]:
+  /// the label, as [SacPinLayout] places it, runs into the tag's span, and
+  /// its bar is too short to lift the label of [lineHeight] clear of the
+  /// line the tag sits on.
   bool _labelBlocksEnd(
     double width,
-    double lineHeight, {
+    double lineHeight,
+    double tagWidth,
+    TextStyle? style,
+    TextScaler textScaler, {
     required bool fromRight,
   }) => barLabels.any((label) {
     if (label.index < 0 || label.index >= columns.length) return false;
+    if (_barLength(label.index) + _labelGap >= lineHeight) return false;
     final column = columns[label.index];
     final x = _xAt(width, column.startSeconds + column.durationSeconds / 2);
-    final nearEnd = fromRight
-        ? x > width - _averageTagReach
-        : x < _averageTagReach;
-    return nearEnd && _barLength(label.index) + _labelGap < lineHeight;
+    final labelWidth = _textWidth(
+      label.text,
+      style,
+      textScaler,
+      TextDirection.ltr,
+    );
+    final left = (x - labelWidth / 2).clamp(
+      0.0,
+      math.max(0.0, width - labelWidth),
+    );
+    return fromRight ? left + labelWidth > width - tagWidth : left < tagWidth;
   });
 
   /// The average tag, at the left end of the line unless a bar's label meets
@@ -361,14 +390,27 @@ class SacTimeColumns extends StatelessWidget {
   Widget? _averageTag(
     ThemeData theme,
     TextStyle? style,
+    TextStyle? valueStyle,
     String label,
     double width,
     double band,
     TextDirection textDirection,
+    TextScaler textScaler,
   ) {
     final lineHeight = band - _labelGap;
-    final leftBlocked = _labelBlocksEnd(width, lineHeight, fromRight: false);
-    final rightBlocked = _labelBlocksEnd(width, lineHeight, fromRight: true);
+    final tagWidth =
+        _textWidth(label, style, textScaler, textDirection) +
+        _averageTagPadding * 2;
+    bool blocked({required bool fromRight}) => _labelBlocksEnd(
+      width,
+      lineHeight,
+      tagWidth,
+      valueStyle,
+      textScaler,
+      fromRight: fromRight,
+    );
+    final leftBlocked = blocked(fromRight: false);
+    final rightBlocked = blocked(fromRight: true);
     if (leftBlocked && rightBlocked) return null;
     final right = leftBlocked;
     return CustomSingleChildLayout(
@@ -383,7 +425,7 @@ class SacTimeColumns extends StatelessWidget {
           borderRadius: BorderRadius.circular(4),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
+          padding: const EdgeInsets.symmetric(horizontal: _averageTagPadding),
           child: Text(
             label,
             style: style,
@@ -428,6 +470,7 @@ class SacTimeColumns extends StatelessWidget {
     double width,
     double band,
     TextDirection textDirection,
+    TextScaler textScaler,
   ) {
     final colorScheme = theme.colorScheme;
     final valueStyle = labelStyle?.copyWith(color: colorScheme.onSurface);
@@ -483,10 +526,12 @@ class SacTimeColumns extends StatelessWidget {
                         ?_averageTag(
                           theme,
                           labelStyle,
+                          valueStyle,
                           averageLabel!,
                           width,
                           band,
                           textDirection,
+                          textScaler,
                         ),
                     ],
                   ),

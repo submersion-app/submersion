@@ -386,6 +386,47 @@ void main() {
       );
     });
 
+    testWidgets('a long average tag makes way for a label it would reach', (
+      tester,
+    ) async {
+      // The label's column sits well past 64 px from the left end, but a
+      // long translated tag reaches further still.
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 342,
+              child: SacTimeColumns(
+                columns: [
+                  for (var i = 0; i < 10; i++)
+                    SacTimeColumn(
+                      startSeconds: i * 300,
+                      durationSeconds: 300,
+                      barFactor: i == 3 ? 0.01 : 0,
+                      semanticLabel: '$i',
+                    ),
+                ],
+                baselineFactor: 0.5,
+                averageLabel: 'average 10.0',
+                barLabels: const [SacBarLabel(index: 3, text: '+0.1')],
+                activeIndex: null,
+                endLabel: (minutes) => '$minutes min',
+                onTap: (_) {},
+                onScrub: (_) {},
+                onHover: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+      final tag = tester.getRect(find.text('average 10.0'));
+      final label = tester.getRect(find.text('+0.1'));
+
+      expect(label.left, greaterThan(64));
+      expect(tag.overlaps(label), isFalse);
+      expect(tag.right, closeTo(342 - 4, 1));
+    });
+
     testWidgets('a dive at one steady rate writes no differences', (
       tester,
     ) async {
