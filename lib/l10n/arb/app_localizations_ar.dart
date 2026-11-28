@@ -17935,6 +17935,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'طي الكل';
 
   @override
+  String get equipment_list_showParts => 'إظهار الأجزاء';
+
+  @override
+  String get equipment_list_hideParts => 'إخفاء الأجزاء';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count جزء',
+      many: '$count جزءًا',
+      few: '$count أجزاء',
+      two: 'جزآن',
+      one: 'جزء واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'الموقع';
 
   @override
@@ -17951,6 +17971,12 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'عنوان لكل مكان، في هذه الصفحة فقط';
+
+  @override
+  String get equipment_arrange_nestParts => 'إظهار الأجزاء تحت تجميعتها';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle => 'طيّ أجزاء كل تجميعة تحتها';
 
   @override
   String get equipment_locations_title => 'المواقع';

@@ -17681,6 +17681,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Tout replier';
 
   @override
+  String get equipment_list_showParts => 'Afficher les pièces';
+
+  @override
+  String get equipment_list_hideParts => 'Masquer les pièces';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pièces',
+      one: '$count pièce',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Emplacement';
 
   @override
@@ -17697,6 +17714,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'Un titre par lieu, sur cette page uniquement';
+
+  @override
+  String get equipment_arrange_nestParts =>
+      'Afficher les pièces sous leur ensemble';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Replie les pièces de chaque ensemble sous celui-ci';
 
   @override
   String get equipment_locations_title => 'Emplacements';

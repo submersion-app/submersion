@@ -73,7 +73,7 @@ class EquipmentArrangeSheet extends ConsumerWidget {
             onPressed: () => applyEquipmentArrangement(
               context,
               ref,
-              (_) => EquipmentArrangement.defaults,
+              (current) => current.resetSharedAxes(),
             ),
             child: Text(l10n.equipment_arrange_reset),
           ),

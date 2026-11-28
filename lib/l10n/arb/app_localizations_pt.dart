@@ -17646,6 +17646,23 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Recolher tudo';
 
   @override
+  String get equipment_list_showParts => 'Mostrar peças';
+
+  @override
+  String get equipment_list_hideParts => 'Ocultar peças';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count peças',
+      one: '$count peça',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Localização';
 
   @override
@@ -17662,6 +17679,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'Um título por local, apenas nesta página';
+
+  @override
+  String get equipment_arrange_nestParts =>
+      'Mostrar as peças sob o seu conjunto';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Recolhe as peças de cada conjunto sob ele';
 
   @override
   String get equipment_locations_title => 'Localizações';

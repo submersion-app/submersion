@@ -113,6 +113,46 @@ final equipmentRollupClockProvider = FutureProvider<Map<String, RollupClock>>((
 ) async {
   final evaluated = await ref.watch(activeEquipmentClocksProvider.future);
   final index = await ref.watch(equipmentComponentsIndexProvider.future);
+  return rollUpClocks(
+    evaluated,
+    (id) => [
+      for (final edge in index.byParent[id] ?? const <EquipmentComponent>[])
+        edge.componentEquipmentId,
+    ],
+  );
+});
+
+/// The rollup of [equipmentRollupClockProvider] over both "part of" links
+/// (issue #5071): components and the parts installed in a host, so a folded
+/// assembly row in the Equipment list's assembly view still names a due cell
+/// hidden under it. Only that row reads it; every other surface keeps the
+/// components-only rollup.
+final equipmentAssemblyRollupClockProvider =
+    FutureProvider<Map<String, RollupClock>>((ref) async {
+      final evaluated = await ref.watch(activeEquipmentClocksProvider.future);
+      final index = await ref.watch(equipmentComponentsIndexProvider.future);
+      final installed = <String, List<String>>{};
+      for (final e in evaluated) {
+        final host = e.item.parentEquipmentId;
+        if (host == null || !e.item.isFitted) continue;
+        installed.putIfAbsent(host, () => []).add(e.item.id);
+      }
+      return rollUpClocks(
+        evaluated,
+        (id) => [
+          for (final edge in index.byParent[id] ?? const <EquipmentComponent>[])
+            edge.componentEquipmentId,
+          ...?installed[id],
+        ],
+      );
+    });
+
+/// Worst clock across each item in [evaluated] and everything [childrenOf]
+/// reaches below it, keyed by item id; see [equipmentRollupClockProvider].
+Map<String, RollupClock> rollUpClocks(
+  List<EquipmentClocks> evaluated,
+  Iterable<String> Function(String id) childrenOf,
+) {
   final byId = {for (final e in evaluated) e.item.id: e};
   final memo = <String, RollupClock?>{};
   final visiting = <String>{};
@@ -136,12 +176,12 @@ final equipmentRollupClockProvider = FutureProvider<Map<String, RollupClock>>((
         consider((ownerId: id, ownerName: own.item.name, status: status));
       }
     }
-    for (final edge in index.byParent[id] ?? const <EquipmentComponent>[]) {
-      consider(rollupFor(edge.componentEquipmentId));
+    for (final child in childrenOf(id)) {
+      consider(rollupFor(child));
     }
     visiting.remove(id);
     return memo[id] = worst;
   }
 
   return {for (final e in evaluated) e.item.id: ?rollupFor(e.item.id)};
-});
+}

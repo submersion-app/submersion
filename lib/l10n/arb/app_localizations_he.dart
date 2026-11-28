@@ -17288,6 +17288,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'כווץ הכול';
 
   @override
+  String get equipment_list_showParts => 'הצגת החלקים';
+
+  @override
+  String get equipment_list_hideParts => 'הסתרת החלקים';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count חלקים',
+      one: 'חלק אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'מיקום';
 
   @override
@@ -17304,6 +17321,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'כותרת אחת לכל מקום, רק בעמוד זה';
+
+  @override
+  String get equipment_arrange_nestParts => 'הצגת חלקים תחת המכלול שלהם';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'קיפול החלקים של כל מכלול תחתיו';
 
   @override
   String get equipment_locations_title => 'מיקומים';

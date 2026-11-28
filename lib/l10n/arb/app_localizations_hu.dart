@@ -17593,6 +17593,23 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Összes összecsukása';
 
   @override
+  String get equipment_list_showParts => 'Részek megjelenítése';
+
+  @override
+  String get equipment_list_hideParts => 'Részek elrejtése';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rész',
+      one: '1 rész',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Hely';
 
   @override
@@ -17609,6 +17626,13 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'Helyenként egy fejléc, csak ezen az oldalon';
+
+  @override
+  String get equipment_arrange_nestParts => 'Részek az összeállításuk alatt';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Minden összeállítás részeit alá csukja';
 
   @override
   String get equipment_locations_title => 'Helyek';
