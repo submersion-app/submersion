@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dar
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_location_buddy_links.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_seller_links.dart';
 import 'package:submersion/features/media/data/repositories/media_people_buddy_merge.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 
@@ -194,6 +195,7 @@ class BuddyMergeRepository {
       final documentOwners = <String, String>{};
       var mediaPeople = const MediaPeopleMergeSnapshot();
       var placeLinks = const <String, String>{};
+      var sellerLinks = const <String, SellerLinkSnapshot>{};
 
       await _db.transaction(() async {
         // Update survivor with merged fields. Its country code is read
@@ -408,6 +410,14 @@ class BuddyMergeRepository {
           toBuddyId: survivorId,
           now: now,
         );
+        // So does the gear they sold (issue #5140).
+        sellerLinks = await repointEquipmentSellerBuddyLinks(
+          _db,
+          _syncRepository,
+          fromBuddyIds: duplicateIds,
+          toBuddyId: survivorId,
+          now: now,
+        );
 
         // Delete duplicate buddy rows (CASCADE cleans remaining junction rows)
         for (final duplicateId in duplicateIds) {
@@ -461,6 +471,7 @@ class BuddyMergeRepository {
           documentOriginalBuddyIds: documentOwners,
           mediaPeople: mediaPeople,
           placeOriginalBuddyIds: placeLinks,
+          sellerOriginals: sellerLinks,
         ),
       );
     } catch (e, stackTrace) {
@@ -597,6 +608,13 @@ class BuddyMergeRepository {
           snapshot.placeOriginalBuddyIds,
           now: now,
         );
+        // 4d. Gear sellers back on the re-created buddies (issue #5140).
+        await restoreEquipmentSellerBuddyLinks(
+          _db,
+          _syncRepository,
+          snapshot.sellerOriginals,
+          now: now,
+        );
 
         // 5a. People tags back to the re-created buddies (issue #1745).
         await undoMediaPeopleMerge(
@@ -674,6 +692,13 @@ class BuddyMergeRepository {
         await MediaPeopleRepository().deleteForBuddies(ids);
         // Their gear places stay, without the link (issue #3790).
         await clearEquipmentLocationBuddyLinks(
+          _db,
+          _syncRepository,
+          ids,
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
+        // Gear they sold keeps their name (issue #5140).
+        await clearEquipmentSellerBuddyLinks(
           _db,
           _syncRepository,
           ids,
