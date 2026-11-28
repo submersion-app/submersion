@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -63,7 +64,7 @@ class ListViewModeToggle extends StatelessWidget {
               size: 20,
               color: isCurrent ? primary : null,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: Spacing.s12),
             Text(
               _labelForModeStatic(mode, l10n),
               style: isCurrent
@@ -113,7 +114,7 @@ class ListViewModeToggle extends StatelessWidget {
                     ? Theme.of(context).colorScheme.primary
                     : null,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: Spacing.s12),
               Text(
                 _labelForMode(mode, l10n),
                 style: mode == currentMode

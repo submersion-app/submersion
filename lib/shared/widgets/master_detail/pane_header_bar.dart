@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/shared/widgets/section_header_title.dart';
 
 /// The title bar over a desktop list pane, where the list has no app bar of
@@ -49,7 +50,10 @@ class PaneHeaderBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.symmetric(
+              horizontal: Spacing.s8,
+              vertical: Spacing.s4,
+            ),
             child: SectionHeaderRows(
               title: title,
               titleWidth: titleWidth,

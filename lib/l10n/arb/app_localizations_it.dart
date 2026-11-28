@@ -17654,6 +17654,23 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Comprimi tutto';
 
   @override
+  String get equipment_list_showParts => 'Mostra parti';
+
+  @override
+  String get equipment_list_hideParts => 'Nascondi parti';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count parti',
+      one: '1 parte',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Posizione';
 
   @override
@@ -17670,6 +17687,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'Un\'intestazione per luogo, solo in questa pagina';
+
+  @override
+  String get equipment_arrange_nestParts =>
+      'Mostra le parti sotto il loro assieme';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Raccoglie le parti di ogni assieme sotto di esso';
 
   @override
   String get equipment_locations_title => 'Posizioni';
@@ -67414,4 +67439,30 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compatta è una barra sottile con le spie di stato. Banner è il banner di benvenuto con i totali delle tue immersioni. Salvato su questo dispositivo.';
+
+  @override
+  String get popOut_openProfileWindow => 'Apri in una nuova finestra';
+
+  @override
+  String get popOut_pin => 'Fissa a questa immersione';
+
+  @override
+  String get popOut_unpin => 'Segui la finestra principale';
+
+  @override
+  String get popOut_selectDivePlaceholder =>
+      'Seleziona un\'immersione nella finestra principale';
+
+  @override
+  String get popOut_lockedPlaceholder =>
+      'Sblocca Submersion nella finestra principale';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Profilo: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'Questa finestra non ha potuto raggiungere il logbook. Chiudila e riprova.';
 }

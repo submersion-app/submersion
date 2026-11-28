@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One section's items for [SectionListEditor]. Items are already in their
@@ -337,7 +338,12 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
       children: [
         for (final section in widget.sections) ...[
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 4, 4),
+            padding: const EdgeInsets.fromLTRB(
+              Spacing.s16,
+              Spacing.s8,
+              Spacing.s4,
+              Spacing.s4,
+            ),
             child: Text(
               section.title,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
@@ -358,7 +364,7 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
     final idx = widget.sections.indexOf(section);
     final canDelete = widget.sections.length > 1;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: Spacing.s12),
       child: DragTarget<_ItemDrag>(
         onWillAcceptWithDetails: (details) => true,
         onAcceptWithDetails: (details) {
@@ -382,7 +388,7 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
                     ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
                     : null,
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(Spacing.s12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -405,7 +411,7 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
                               ),
                               decoration: const InputDecoration(
                                 contentPadding: EdgeInsets.symmetric(
-                                  vertical: 12,
+                                  vertical: Spacing.s12,
                                 ),
                                 border: InputBorder.none,
                               ),
@@ -430,12 +436,12 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
                             data: section.id,
                             feedback: Material(
                               child: Padding(
-                                padding: const EdgeInsets.all(8),
+                                padding: const EdgeInsets.all(Spacing.s8),
                                 child: Text(section.title),
                               ),
                             ),
                             child: const Padding(
-                              padding: EdgeInsets.all(8),
+                              padding: EdgeInsets.all(Spacing.s8),
                               child: Icon(Icons.drag_handle),
                             ),
                           ),
@@ -457,10 +463,10 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
   Widget _buildUnsectionedGroup(List<T> items) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: Spacing.s12),
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(Spacing.s12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -525,7 +531,7 @@ class _SectionListEditorState<T> extends State<SectionListEditor<T>> {
                   child: Icon(Icons.drag_handle),
                 ),
                 child: const Padding(
-                  padding: EdgeInsets.all(8),
+                  padding: EdgeInsets.all(Spacing.s8),
                   child: Icon(Icons.drag_handle),
                 ),
               ),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:submersion/core/constants/sort_options.dart';
@@ -18,6 +19,13 @@ import 'package:submersion/features/equipment/domain/constants/equipment_type_or
 ///
 /// Splitting [typeOrder] from [groupByType] is what lets #1576's flat
 /// head-to-toe list and #1486's grouped view share one model.
+///
+/// [nestParts] (issue #5071) is read by the Equipment page alone: it folds
+/// each assembly's parts under the assembly's row. Every other gear surface
+/// ignores it.
+///
+/// Keys this build does not know are kept and written back, so an axis a
+/// newer build adds survives this one saving the arrangement.
 @immutable
 class EquipmentArrangement {
   final EquipmentTypeOrder typeOrder;
@@ -35,13 +43,41 @@ class EquipmentArrangement {
   /// page's own sort, since both are edited through one sheet layout.
   final SortDirection itemSortDirection;
 
+  /// Whether the Equipment page lists each assembly's parts under it rather
+  /// than in their own type groups (issue #5071). On unless the diver turned
+  /// it off.
+  final bool nestParts;
+
+  /// The stored keys this build does not know, written back untouched.
+  final Map<String, Object?> _extras;
+
   const EquipmentArrangement({
     required this.typeOrder,
     this.typeOrderDescending = false,
     required this.groupByType,
     required this.itemSortField,
     required this.itemSortDirection,
-  });
+    this.nestParts = true,
+  }) : _extras = const {};
+
+  const EquipmentArrangement._withExtras({
+    required this.typeOrder,
+    required this.typeOrderDescending,
+    required this.groupByType,
+    required this.itemSortField,
+    required this.itemSortDirection,
+    required this.nestParts,
+    required Map<String, Object?> extras,
+  }) : _extras = extras;
+
+  static const _knownKeys = {
+    'typeOrder',
+    'typeOrderDescending',
+    'groupByType',
+    'itemSortField',
+    'itemSortDirection',
+    'nestParts',
+  };
 
   /// Group by type, types alphabetical by localized name, items A to Z.
   ///
@@ -56,28 +92,46 @@ class EquipmentArrangement {
     itemSortDirection: SortDirection.ascending,
   );
 
+  /// [defaults] on every axis the shared arrange sheet shows, for its
+  /// Reset. Keeps [nestParts], which only the Equipment page's own sheet
+  /// offers, and the keys this build does not know (issue #5071).
+  EquipmentArrangement resetSharedAxes() => EquipmentArrangement._withExtras(
+    typeOrder: defaults.typeOrder,
+    typeOrderDescending: defaults.typeOrderDescending,
+    groupByType: defaults.groupByType,
+    itemSortField: defaults.itemSortField,
+    itemSortDirection: defaults.itemSortDirection,
+    nestParts: nestParts,
+    extras: _extras,
+  );
+
   EquipmentArrangement copyWith({
     EquipmentTypeOrder? typeOrder,
     bool? typeOrderDescending,
     bool? groupByType,
     EquipmentItemSortField? itemSortField,
     SortDirection? itemSortDirection,
+    bool? nestParts,
   }) {
-    return EquipmentArrangement(
+    return EquipmentArrangement._withExtras(
       typeOrder: typeOrder ?? this.typeOrder,
       typeOrderDescending: typeOrderDescending ?? this.typeOrderDescending,
       groupByType: groupByType ?? this.groupByType,
       itemSortField: itemSortField ?? this.itemSortField,
       itemSortDirection: itemSortDirection ?? this.itemSortDirection,
+      nestParts: nestParts ?? this.nestParts,
+      extras: _extras,
     );
   }
 
   Map<String, dynamic> toJson() => {
+    ..._extras,
     'typeOrder': typeOrder.name,
     'typeOrderDescending': typeOrderDescending,
     'groupByType': groupByType,
     'itemSortField': itemSortField.name,
     'itemSortDirection': itemSortDirection.name,
+    'nestParts': nestParts,
   };
 
   /// Decodes a stored blob, falling back per axis.
@@ -96,7 +150,8 @@ class EquipmentArrangement {
 
     final rawGroup = json['groupByType'];
     final rawTypeDesc = json['typeOrderDescending'];
-    return EquipmentArrangement(
+    final rawNest = json['nestParts'];
+    return EquipmentArrangement._withExtras(
       typeOrder: decode(
         'typeOrder',
         EquipmentTypeOrder.values,
@@ -116,6 +171,11 @@ class EquipmentArrangement {
         SortDirection.values,
         defaults.itemSortDirection,
       ),
+      nestParts: rawNest is bool ? rawNest : defaults.nestParts,
+      extras: Map.unmodifiable({
+        for (final entry in json.entries)
+          if (!_knownKeys.contains(entry.key)) entry.key: entry.value,
+      }),
     );
   }
 
@@ -127,7 +187,9 @@ class EquipmentArrangement {
           other.typeOrderDescending == typeOrderDescending &&
           other.groupByType == groupByType &&
           other.itemSortField == itemSortField &&
-          other.itemSortDirection == itemSortDirection;
+          other.itemSortDirection == itemSortDirection &&
+          other.nestParts == nestParts &&
+          const DeepCollectionEquality().equals(other._extras, _extras);
 
   @override
   int get hashCode => Object.hash(
@@ -136,13 +198,15 @@ class EquipmentArrangement {
     groupByType,
     itemSortField,
     itemSortDirection,
+    nestParts,
   );
 
   @override
   String toString() =>
       'EquipmentArrangement(typeOrder: $typeOrder, '
       'typeOrderDescending: $typeOrderDescending, groupByType: $groupByType, '
-      'itemSortField: $itemSortField, itemSortDirection: $itemSortDirection)';
+      'itemSortField: $itemSortField, itemSortDirection: $itemSortDirection, '
+      'nestParts: $nestParts)';
 }
 
 /// Encodes [arrangement] as the JSON a diver's settings row stores (issue

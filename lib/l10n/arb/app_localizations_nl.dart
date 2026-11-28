@@ -17548,6 +17548,23 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Alles inklappen';
 
   @override
+  String get equipment_list_showParts => 'Onderdelen tonen';
+
+  @override
+  String get equipment_list_hideParts => 'Onderdelen verbergen';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count onderdelen',
+      one: '1 onderdeel',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Locatie';
 
   @override
@@ -17564,6 +17581,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'Eén kop per plek, alleen op deze pagina';
+
+  @override
+  String get equipment_arrange_nestParts =>
+      'Onderdelen onder hun samenstel tonen';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Vouwt de onderdelen van elk samenstel eronder in';
 
   @override
   String get equipment_locations_title => 'Locaties';
@@ -67008,4 +67033,30 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compact is een smalle balk met statuslampjes. Banner is de welkomstbanner met je duiktotalen. Opgeslagen op dit apparaat.';
+
+  @override
+  String get popOut_openProfileWindow => 'Openen in een nieuw venster';
+
+  @override
+  String get popOut_pin => 'Vastzetten op deze duik';
+
+  @override
+  String get popOut_unpin => 'Het hoofdvenster volgen';
+
+  @override
+  String get popOut_selectDivePlaceholder =>
+      'Selecteer een duik in het hoofdvenster';
+
+  @override
+  String get popOut_lockedPlaceholder =>
+      'Ontgrendel Submersion in het hoofdvenster';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Profiel: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'Dit venster kon het logboek niet bereiken. Sluit het en probeer het opnieuw.';
 }

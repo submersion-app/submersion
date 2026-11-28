@@ -17409,6 +17409,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Collapse all';
 
   @override
+  String get equipment_list_showParts => 'Show parts';
+
+  @override
+  String get equipment_list_hideParts => 'Hide parts';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count parts',
+      one: '1 part',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Location';
 
   @override
@@ -17425,6 +17442,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'One heading per place, on this page only';
+
+  @override
+  String get equipment_arrange_nestParts => 'Show parts under their assembly';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Fold each assembly\'s parts under it';
 
   @override
   String get equipment_locations_title => 'Locations';
@@ -66390,4 +66414,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compact is a slim bar with status lights. Banner is the welcome banner with your dive totals. Saved on this device.';
+
+  @override
+  String get popOut_openProfileWindow => 'Open in a new window';
+
+  @override
+  String get popOut_pin => 'Pin to this dive';
+
+  @override
+  String get popOut_unpin => 'Follow the main window';
+
+  @override
+  String get popOut_selectDivePlaceholder => 'Select a dive in the main window';
+
+  @override
+  String get popOut_lockedPlaceholder => 'Unlock Submersion in the main window';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Profile: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'This window could not reach the logbook. Close it and try again.';
 }

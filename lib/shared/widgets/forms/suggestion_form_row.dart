@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/text/fuzzy_match.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
 import 'package:submersion/shared/widgets/forms/form_field_semantics.dart';
 import 'package:submersion/shared/widgets/forms/form_style.dart';
@@ -96,7 +97,7 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
       visibleFormLabel(widget.label, style: theme.textTheme.bodyMedium);
 
   Widget _caption(ThemeData theme) => Padding(
-    padding: const EdgeInsets.only(top: 2),
+    padding: const EdgeInsets.only(top: Spacing.s2),
     child: Text(
       widget.caption!,
       style: theme.textTheme.bodySmall!.copyWith(
@@ -117,7 +118,7 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
               ?widget.trailing,
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: Spacing.s4),
           MarkdownNotesField(
             controller: widget.controller,
             focusNode: _focusNode,
@@ -160,7 +161,7 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
                 : CrossAxisAlignment.center,
             children: [
               _visibleLabel(theme),
-              const SizedBox(width: 12),
+              const SizedBox(width: Spacing.s12),
               Expanded(
                 child: RawAutocomplete<String>(
                   textEditingController: widget.controller,
@@ -206,7 +207,7 @@ class _SuggestionFormRowState extends State<SuggestionFormRow> {
                 ),
               ),
               if (widget.trailing != null) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: Spacing.s8),
                 widget.trailing!,
               ],
             ],

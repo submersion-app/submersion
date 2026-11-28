@@ -15,6 +15,10 @@
 
 #include "flutter/generated_plugin_registrant.h"
 
+#include <desktop_multi_window/desktop_multi_window_plugin.h>
+#include <screen_retriever_linux/screen_retriever_linux_plugin.h>
+#include <window_manager/window_manager_plugin.h>
+
 // Returns PNG bytes for a video poster using ffmpegthumbnailer, or empty on
 // failure / when the tool is not installed. No hard dependency: absence just
 // yields the placeholder on the Dart side.
@@ -234,6 +238,22 @@ static void my_application_activate(GApplication* application) {
   gtk_widget_realize(GTK_WIDGET(view));
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
+
+  // Pop-out windows (issue #5078) get only the plugins they use. Registering
+  // every plugin again would let some take process-wide hooks away from the
+  // main window.
+  desktop_multi_window_plugin_set_window_created_callback(
+      [](FlPluginRegistry* registry) {
+        g_autoptr(FlPluginRegistrar) window_manager_registrar =
+            fl_plugin_registry_get_registrar_for_plugin(registry,
+                                                        "WindowManagerPlugin");
+        window_manager_plugin_register_with_registrar(window_manager_registrar);
+        g_autoptr(FlPluginRegistrar) screen_retriever_registrar =
+            fl_plugin_registry_get_registrar_for_plugin(
+                registry, "ScreenRetrieverLinuxPlugin");
+        screen_retriever_linux_plugin_register_with_registrar(
+            screen_retriever_registrar);
+      });
 
   // Local media channel: OS-generated video poster thumbnails. Kept alive for
   // the app lifetime by tying it to the view's object lifetime.

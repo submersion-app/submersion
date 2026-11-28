@@ -16817,6 +16817,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_list_collapseAllGroups => '全部折叠';
 
   @override
+  String get equipment_list_showParts => '显示部件';
+
+  @override
+  String get equipment_list_hideParts => '隐藏部件';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个部件',
+      one: '1 个部件',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => '位置';
 
   @override
@@ -16832,6 +16849,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_arrange_groupByLocationSubtitle => '每个地点一个标题，仅限此页';
+
+  @override
+  String get equipment_arrange_nestParts => '在所属组合下显示部件';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle => '将每个组合的部件折叠在其下';
 
   @override
   String get equipment_locations_title => '位置';
@@ -63170,4 +63193,27 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       '紧凑是带状态灯的窄栏。横幅是显示潜水总计的欢迎横幅。保存在此设备上。';
+
+  @override
+  String get popOut_openProfileWindow => '在新窗口中打开';
+
+  @override
+  String get popOut_pin => '固定到此潜水';
+
+  @override
+  String get popOut_unpin => '跟随主窗口';
+
+  @override
+  String get popOut_selectDivePlaceholder => '请在主窗口中选择一次潜水';
+
+  @override
+  String get popOut_lockedPlaceholder => '请在主窗口中解锁 Submersion';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return '剖面图：$dive';
+  }
+
+  @override
+  String get popOut_connectFailed => '此窗口无法访问日志。请关闭后重试。';
 }

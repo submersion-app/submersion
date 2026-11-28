@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/item_shares_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -49,7 +50,12 @@ class SharedByBanner extends ConsumerWidget {
     final hidden = watchHiddenHere(ref, kind, itemId, canDestroy: false);
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      padding: const EdgeInsets.fromLTRB(
+        Spacing.s16,
+        Spacing.s8,
+        Spacing.s16,
+        0,
+      ),
       child: Row(
         children: [
           Icon(
@@ -57,7 +63,7 @@ class SharedByBanner extends ConsumerWidget {
             size: 16,
             color: theme.colorScheme.onSurfaceVariant,
           ),
-          const SizedBox(width: 6),
+          const SizedBox(width: Spacing.s6),
           Flexible(
             child: Text(
               [

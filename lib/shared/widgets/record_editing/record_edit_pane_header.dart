@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 
@@ -56,7 +57,7 @@ class RecordEditPaneHeader extends StatelessWidget {
         border: Border(bottom: BorderSide(color: scheme.primary, width: 2)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.symmetric(horizontal: Spacing.s8),
         child: Row(
           children: [
             RecordEditAction(
@@ -64,7 +65,7 @@ class RecordEditPaneHeader extends StatelessWidget {
               onPressed: waiting ? null : onCancel,
               style: RecordEditActionStyle.ring,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: Spacing.s8),
             Expanded(
               child: Text(
                 title,

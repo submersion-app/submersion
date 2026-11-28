@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart' show sqlite3;
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/background_database_connection.dart';
+import 'package:submersion/core/database/shared_database_ports.dart';
 
 /// Minimal drift database used only to drive the remote executor.
 class _TinyDb extends GeneratedDatabase {
@@ -270,5 +271,34 @@ void main() {
     } finally {
       reopened.close();
     }
+  }, timeout: const Timeout(Duration(seconds: 60)));
+
+  // A pop-out window's engine connects to the main window's worker (#5078).
+  // That second client must not keep the worker alive once the main window
+  // closes its database: shutdown and restore wait for the worker to exit.
+  test('awaitWorkerShutdown exits the worker while another client is '
+      'connected', () async {
+    final dir = Directory.systemTemp.createTempSync('bg_conn_shared');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    const name = 'test.background_connection.shared';
+    addTearDown(() => unpublishDatabase(name));
+
+    final connection = await BackgroundDatabaseConnection.open(
+      p.join(dir.path, 'app.db'),
+    );
+    final db = _TinyDb(connection.connection);
+    await db.customSelect('SELECT 1').get();
+    publishDatabase(name, connection);
+
+    final other = _TinyDb((await connectToPublishedDatabase(name))!);
+    await other.customSelect('SELECT 1').get();
+
+    await db.close();
+    final exitedCleanly = await connection.awaitWorkerShutdown(
+      timeout: const Duration(seconds: 5),
+      killIfStuck: false,
+    );
+    expect(exitedCleanly, isTrue);
+    await other.close().timeout(const Duration(seconds: 2), onTimeout: () {});
   }, timeout: const Timeout(Duration(seconds: 60)));
 }
