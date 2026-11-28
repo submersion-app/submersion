@@ -5,7 +5,8 @@ import 'package:submersion/features/dive_log/domain/codecs/deco_type.dart';
 /// (the codec's column order), minus the identity columns (`id`, `dive_id`,
 /// `computer_id`, `source_id`, `is_primary`) that live on the series row,
 /// plus the codec v2 fields ([gf99], [n2Load]) and the codec v3 fields
-/// ([aveloBuoyancy], [aveloGasRemaining], [computerRmv]) appended after them.
+/// ([aveloBuoyancy], [aveloGasRemaining], [computerRmv]) and the codec v4
+/// field ([trim]) appended after them.
 ///
 /// This is the codec's input and output type. It differs from the domain
 /// `DiveProfilePoint` in one field: the legacy per-sample [pressure]
@@ -52,6 +53,7 @@ class ProfileSample extends Equatable {
     this.aveloBuoyancy,
     this.aveloGasRemaining,
     this.computerRmv,
+    this.trim,
   });
 
   /// Seconds from dive start.
@@ -108,6 +110,10 @@ class ProfileSample extends Equatable {
   /// (Shearwater Avelo mode). Codec v3.
   final double? computerRmv;
 
+  /// The dive computer's own pitch in degrees, positive head up (Halcyon
+  /// Symbios). Codec v4.
+  final double? trim;
+
   /// This sample without the ceiling a safety stop carried, or this same
   /// sample when it is no safety stop or has no ceiling.
   ///
@@ -148,6 +154,7 @@ class ProfileSample extends Equatable {
       aveloBuoyancy: aveloBuoyancy,
       aveloGasRemaining: aveloGasRemaining,
       computerRmv: computerRmv,
+      trim: trim,
     );
   }
 
@@ -187,6 +194,7 @@ class ProfileSample extends Equatable {
     aveloBuoyancy: aveloBuoyancy,
     aveloGasRemaining: aveloGasRemaining,
     computerRmv: computerRmv,
+    trim: trim,
   );
 
   /// The same sample with exactly these tissue fields: an omitted argument
@@ -225,6 +233,7 @@ class ProfileSample extends Equatable {
     aveloBuoyancy: aveloBuoyancy,
     aveloGasRemaining: aveloGasRemaining,
     computerRmv: computerRmv,
+    trim: trim,
   );
 
   /// The same sample with exactly these Avelo fields: an omitted argument
@@ -267,6 +276,46 @@ class ProfileSample extends Equatable {
     aveloBuoyancy: aveloBuoyancy,
     aveloGasRemaining: aveloGasRemaining,
     computerRmv: computerRmv,
+    trim: trim,
+  );
+
+  /// The same sample with exactly this trim: an omitted argument clears it
+  /// (as [withTissue]).
+  ProfileSample withTrim({double? trim}) => ProfileSample(
+    timestamp: timestamp,
+    depth: depth,
+    pressure: pressure,
+    temperature: temperature,
+    heartRate: heartRate,
+    ascentRate: ascentRate,
+    ceiling: ceiling,
+    ndl: ndl,
+    setpoint: setpoint,
+    ppO2: ppO2,
+    o2Sensor1: o2Sensor1,
+    o2Sensor2: o2Sensor2,
+    o2Sensor3: o2Sensor3,
+    o2Sensor4: o2Sensor4,
+    o2Sensor5: o2Sensor5,
+    o2Sensor6: o2Sensor6,
+    cns: cns,
+    tts: tts,
+    rbt: rbt,
+    decoType: decoType,
+    heartRateSource: heartRateSource,
+    heading: heading,
+    o2SensorMv1: o2SensorMv1,
+    o2SensorMv2: o2SensorMv2,
+    o2SensorMv3: o2SensorMv3,
+    o2SensorMv4: o2SensorMv4,
+    o2SensorMv5: o2SensorMv5,
+    o2SensorMv6: o2SensorMv6,
+    gf99: gf99,
+    n2Load: n2Load,
+    aveloBuoyancy: aveloBuoyancy,
+    aveloGasRemaining: aveloGasRemaining,
+    computerRmv: computerRmv,
+    trim: trim,
   );
 
   @override
@@ -304,5 +353,6 @@ class ProfileSample extends Equatable {
     aveloBuoyancy,
     aveloGasRemaining,
     computerRmv,
+    trim,
   ];
 }

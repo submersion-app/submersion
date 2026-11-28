@@ -45,6 +45,7 @@ extension ProfileSampleToPoint on ProfileSample {
       aveloBuoyancy: aveloBuoyancy,
       aveloGasRemaining: aveloGasRemaining,
       computerRmv: computerRmv,
+      trim: trim,
     );
   }
 }
@@ -89,5 +90,6 @@ ProfileSample profileSampleFromPoint(
     aveloBuoyancy: point.aveloBuoyancy,
     aveloGasRemaining: point.aveloGasRemaining,
     computerRmv: point.computerRmv,
+    trim: point.trim,
   );
 }

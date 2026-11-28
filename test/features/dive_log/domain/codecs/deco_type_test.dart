@@ -86,6 +86,7 @@ void main() {
         aveloBuoyancy: 1.242,
         aveloGasRemaining: 35,
         computerRmv: 29.75,
+        trim: -13.0,
       );
       // A field added to ProfileSample but left null here fails this line,
       // which forces the fixture (and the method) to be brought up to date.

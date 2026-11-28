@@ -37,15 +37,15 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  /// A blob written by a hypothetical v4 codec: the v1 field table, version
-  /// byte 4, which this build has no table for.
+  /// A blob written by a hypothetical v5 codec: the v1 field table, version
+  /// byte 5, which this build has no table for.
   Uint8List futureBlob() =>
-      const ProfileSeriesCodec(fieldTables: {4: kProfileFieldTableV1}).encode(
+      const ProfileSeriesCodec(fieldTables: {5: kProfileFieldTableV1}).encode(
         const [
           ProfileSample(timestamp: 0, depth: 1.0),
           ProfileSample(timestamp: 60, depth: 9.0),
         ],
-        version: 4,
+        version: 5,
       ).bytes;
 
   test('the codec names a forward version as such', () {
@@ -53,7 +53,7 @@ void main() {
       const ProfileSeriesCodec().decode(futureBlob());
       fail('expected a refusal');
     } on UnknownSeriesVersionException catch (e) {
-      expect(e.blobVersion, 4);
+      expect(e.blobVersion, 5);
       expect(e.isForwardVersion, isTrue);
     }
   });
@@ -73,7 +73,7 @@ void main() {
       'hasDecoType': false,
       'hasDecoStop': false,
       'hasPositiveCeiling': false,
-      'codecVersion': 4,
+      'codecVersion': 5,
       'samples': base64Encode(bytes),
       'createdAt': now,
       'updatedAt': now,

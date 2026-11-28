@@ -247,11 +247,11 @@ void main() {
               updatedAt: 1000,
               samples:
                   const ProfileSeriesCodec(
-                    fieldTables: {4: kProfileFieldTableV1},
+                    fieldTables: {5: kProfileFieldTableV1},
                   ).encode(const [
                     ProfileSample(timestamp: 0, depth: 1.0),
                     ProfileSample(timestamp: 60, depth: 9.0),
-                  ], version: 4).bytes,
+                  ], version: 5).bytes,
             ).copyWith(isPrimary: const Value(true)),
           );
 

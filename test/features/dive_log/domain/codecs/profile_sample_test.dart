@@ -93,6 +93,6 @@ void main() {
     expect(a, b);
     expect(a.hashCode, b.hashCode);
     expect(a, isNot(c));
-    expect(a.props, hasLength(33));
+    expect(a.props, hasLength(34));
   });
 }

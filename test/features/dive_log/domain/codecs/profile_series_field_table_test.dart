@@ -58,10 +58,28 @@ const frozenFieldTableV3 = <(String, ProfileFieldKind)>[
   ('computer_rmv', ProfileFieldKind.float64),
 ];
 
+/// The v4 field table, frozen the same way: v3 in full, then the trim angle
+/// a dive computer logs (issue #5098).
+const frozenFieldTableV4 = <(String, ProfileFieldKind)>[
+  ...frozenFieldTableV3,
+  ('trim', ProfileFieldKind.float64),
+];
+
 void main() {
-  test('codec v3 is the newest version', () {
-    expect(ProfileSeriesCodec.version, 3);
-    expect(const ProfileSeriesCodec().fieldTables.keys, {1, 2, 3});
+  test('codec v4 is the newest version', () {
+    expect(ProfileSeriesCodec.version, 4);
+    expect(const ProfileSeriesCodec().fieldTables.keys, {1, 2, 3, 4});
+  });
+
+  test('codec v4 carries exactly the frozen field table, in order', () {
+    expect(
+      [for (final f in ProfileSeriesCodec.fieldTableV4) (f.name, f.kind)],
+      frozenFieldTableV4,
+      reason:
+          'fieldTableV4 changed. Every v4 blob already written decodes '
+          'against this exact order. Append the new field under a NEW '
+          'version in ProfileSeriesCodec; never edit fieldTableV4.',
+    );
   });
 
   test('codec v3 carries exactly the frozen field table, in order', () {
@@ -103,7 +121,7 @@ void main() {
     // sample field added without a matching field-table entry would be
     // silently dropped on encode, and this is what says so.
     expect(
-      kProfileFieldTableV3.length,
+      kProfileFieldTableV4.length,
       const ProfileSample(timestamp: 0, depth: 0.0).props.length,
     );
   });

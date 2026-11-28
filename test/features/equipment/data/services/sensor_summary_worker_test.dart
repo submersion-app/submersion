@@ -112,15 +112,15 @@ void main() {
   });
 
   group('forward codec versions', () {
-    /// A blob written by a hypothetical v4 codec: this build has no field
+    /// A blob written by a hypothetical v5 codec: this build has no field
     /// table for it, but the samples are fine and a newer build reads them.
     Uint8List futureProfile() =>
-        const ProfileSeriesCodec(fieldTables: {4: kProfileFieldTableV1}).encode(
+        const ProfileSeriesCodec(fieldTables: {5: kProfileFieldTableV1}).encode(
           const [
             ProfileSample(timestamp: 0, depth: 1.0),
             ProfileSample(timestamp: 60, depth: 9.0),
           ],
-          version: 4,
+          version: 5,
         ).bytes;
 
     test('a forward-version profile blob is refused, not summarised', () {

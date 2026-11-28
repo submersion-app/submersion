@@ -36,26 +36,33 @@ class EncodedProfileSeries {
 /// for how the sync door tells a forward version from corruption).
 ///
 /// v2 appended `gf99` and `n2_load` (issue #1977); v3 appended
-/// `avelo_buoyancy`, `avelo_gas_remaining` and `computer_rmv` (issue #4664).
+/// `avelo_buoyancy`, `avelo_gas_remaining` and `computer_rmv` (issue #4664);
+/// v4 appended `trim` (issue #5098).
 /// [encode] writes the lowest version that holds the series' fields, so a
 /// dive without computer tissue data stays readable by a build that knows
-/// only v1, and one without Avelo data by a build that knows only v2.
+/// only v1, one without Avelo data by a build that knows only v2, and one
+/// without trim by a build that knows only v3.
 class ProfileSeriesCodec {
   const ProfileSeriesCodec({
     this.fieldTables = const {
       1: fieldTableV1,
       2: fieldTableV2,
-      version: fieldTableV3,
+      aveloVersion: fieldTableV3,
+      version: fieldTableV4,
     },
   });
 
-  /// The newest version, which a series with any v3 field is written with.
-  static const int version = 3;
+  /// The newest version, which a series with trim is written with.
+  static const int version = 4;
 
-  /// The version a series with a v2 field and no v3 field is written with.
+  /// The version a series with a v3 field and no v4 field is written with.
+  static const int aveloVersion = 3;
+
+  /// The version a series with a v2 field and no v3 or v4 field is written
+  /// with.
   static const int tissueVersion = 2;
 
-  /// The version a series that uses no v2 or v3 field is written with.
+  /// The version a series that uses no v2, v3 or v4 field is written with.
   static const int baseVersion = 1;
 
   /// Codec v1 field table. See [kProfileFieldTableV1].
@@ -66,6 +73,9 @@ class ProfileSeriesCodec {
 
   /// Codec v3 field table. See [kProfileFieldTableV3].
   static const List<ProfileField> fieldTableV3 = kProfileFieldTableV3;
+
+  /// Codec v4 field table. See [kProfileFieldTableV4].
+  static const List<ProfileField> fieldTableV4 = kProfileFieldTableV4;
 
   /// Field table per version byte this codec can read.
   final Map<int, List<ProfileField>> fieldTables;
@@ -225,13 +235,14 @@ class ProfileSeriesCodec {
 
   /// The lowest version whose field table holds every field [samples] use.
   static int _lowestVersionFor(List<ProfileSample> samples) {
+    if (samples.any((s) => s.trim != null)) return version;
     if (samples.any(
       (s) =>
           s.aveloBuoyancy != null ||
           s.aveloGasRemaining != null ||
           s.computerRmv != null,
     )) {
-      return version;
+      return aveloVersion;
     }
     if (samples.any((s) => s.gf99 != null || s.n2Load != null)) {
       return tissueVersion;
@@ -240,7 +251,7 @@ class ProfileSeriesCodec {
   }
 
   static final Map<String, ProfileFieldKind> _frozenKinds = {
-    for (final field in kProfileFieldTableV3) field.name: field.kind,
+    for (final field in kProfileFieldTableV4) field.name: field.kind,
   };
 
   static Object? _fieldOf(ProfileSample s, String name) => switch (name) {
@@ -277,6 +288,7 @@ class ProfileSeriesCodec {
     'avelo_buoyancy' => s.aveloBuoyancy,
     'avelo_gas_remaining' => s.aveloGasRemaining,
     'computer_rmv' => s.computerRmv,
+    'trim' => s.trim,
     _ => throw ArgumentError.value(name, 'name', 'not a profile sample field'),
   };
 
@@ -452,6 +464,7 @@ class ProfileSeriesCodec {
     final aveloBuoyancies = column<double>('avelo_buoyancy');
     final aveloGasRemainings = column<int>('avelo_gas_remaining');
     final computerRmvs = column<double>('computer_rmv');
+    final trims = column<double>('trim');
 
     return [
       for (var i = 0; i < count; i++)
@@ -493,6 +506,7 @@ class ProfileSeriesCodec {
           aveloBuoyancy: aveloBuoyancies[i],
           aveloGasRemaining: aveloGasRemainings[i],
           computerRmv: computerRmvs[i],
+          trim: trims[i],
         ),
     ];
   }
