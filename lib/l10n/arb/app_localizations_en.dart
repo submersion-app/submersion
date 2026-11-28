@@ -65921,4 +65921,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_equipmentCatalogue_subtitle =>
       'Checks GitHub at most once a day. Nothing about you or your gear is sent.';
+
+  @override
+  String equipment_manufacturer_checked(String date) {
+    return 'Checked $date';
+  }
 }

@@ -19469,5 +19469,6 @@
   "equipment_manufacturer_support": "Assistenza",
   "equipment_manufacturer_unlink": "Scollega dal catalogo",
   "settings_equipmentCatalogue_title": "Scarica gli aggiornamenti del catalogo attrezzatura",
-  "settings_equipmentCatalogue_subtitle": "Controlla GitHub al massimo una volta al giorno. Non viene inviato nulla su di te o sulla tua attrezzatura."
+  "settings_equipmentCatalogue_subtitle": "Controlla GitHub al massimo una volta al giorno. Non viene inviato nulla su di te o sulla tua attrezzatura.",
+  "equipment_manufacturer_checked": "Verificato il {date}"
 }

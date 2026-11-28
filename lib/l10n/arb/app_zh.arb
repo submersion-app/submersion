@@ -19469,5 +19469,6 @@
   "equipment_manufacturer_support": "支持",
   "equipment_manufacturer_unlink": "取消与目录的关联",
   "settings_equipmentCatalogue_title": "下载装备目录更新",
-  "settings_equipmentCatalogue_subtitle": "每天最多检查一次 GitHub。不会发送任何关于你或你的装备的信息。"
+  "settings_equipmentCatalogue_subtitle": "每天最多检查一次 GitHub。不会发送任何关于你或你的装备的信息。",
+  "equipment_manufacturer_checked": "核实于{date}"
 }

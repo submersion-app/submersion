@@ -104570,6 +104570,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Checks GitHub at most once a day. Nothing about you or your gear is sent.'**
   String get settings_equipmentCatalogue_subtitle;
+
+  /// No description provided for @equipment_manufacturer_checked.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked {date}'**
+  String equipment_manufacturer_checked(String date);
 }
 
 class _AppLocalizationsDelegate

@@ -65579,4 +65579,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_equipmentCatalogue_subtitle =>
       'בודק ב-GitHub לכל היותר פעם ביום. שום מידע עליך או על הציוד שלך לא נשלח.';
+
+  @override
+  String equipment_manufacturer_checked(String date) {
+    return 'נבדק ב-$date';
+  }
 }

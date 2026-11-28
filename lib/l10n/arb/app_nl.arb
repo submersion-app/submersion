@@ -19469,5 +19469,6 @@
   "equipment_manufacturer_support": "Ondersteuning",
   "equipment_manufacturer_unlink": "Ontkoppelen van catalogus",
   "settings_equipmentCatalogue_title": "Updates van de uitrustingscatalogus downloaden",
-  "settings_equipmentCatalogue_subtitle": "Controleert GitHub hooguit eenmaal per dag. Er wordt niets over jou of je uitrusting verzonden."
+  "settings_equipmentCatalogue_subtitle": "Controleert GitHub hooguit eenmaal per dag. Er wordt niets over jou of je uitrusting verzonden.",
+  "equipment_manufacturer_checked": "Gecontroleerd op {date}"
 }

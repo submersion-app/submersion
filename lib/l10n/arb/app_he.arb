@@ -19469,5 +19469,6 @@
   "equipment_manufacturer_support": "תמיכה",
   "equipment_manufacturer_unlink": "ביטול הקישור לקטלוג",
   "settings_equipmentCatalogue_title": "הורדת עדכונים של קטלוג הציוד",
-  "settings_equipmentCatalogue_subtitle": "בודק ב-GitHub לכל היותר פעם ביום. שום מידע עליך או על הציוד שלך לא נשלח."
+  "settings_equipmentCatalogue_subtitle": "בודק ב-GitHub לכל היותר פעם ביום. שום מידע עליך או על הציוד שלך לא נשלח.",
+  "equipment_manufacturer_checked": "נבדק ב-{date}"
 }

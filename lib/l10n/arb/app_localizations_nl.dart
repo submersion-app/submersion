@@ -66542,4 +66542,9 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_equipmentCatalogue_subtitle =>
       'Controleert GitHub hooguit eenmaal per dag. Er wordt niets over jou of je uitrusting verzonden.';
+
+  @override
+  String equipment_manufacturer_checked(String date) {
+    return 'Gecontroleerd op $date';
+  }
 }

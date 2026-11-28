@@ -67077,4 +67077,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_equipmentCatalogue_subtitle =>
       'Consulte GitHub au plus une fois par jour. Rien sur vous ni sur votre équipement n\'est envoyé.';
+
+  @override
+  String equipment_manufacturer_checked(String date) {
+    return 'Vérifié le $date';
+  }
 }

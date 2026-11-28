@@ -66549,4 +66549,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_equipmentCatalogue_subtitle =>
       'Legfeljebb naponta egyszer ellenőrzi a GitHubot. Rólad vagy a felszerelésedről semmit nem küld.';
+
+  @override
+  String equipment_manufacturer_checked(String date) {
+    return 'Ellenőrizve: $date';
+  }
 }

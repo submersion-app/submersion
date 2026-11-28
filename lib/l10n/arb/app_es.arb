@@ -19469,5 +19469,6 @@
   "equipment_manufacturer_support": "Soporte",
   "equipment_manufacturer_unlink": "Desvincular del catálogo",
   "settings_equipmentCatalogue_title": "Descargar actualizaciones del catálogo de equipo",
-  "settings_equipmentCatalogue_subtitle": "Consulta GitHub como mucho una vez al día. No se envía nada sobre ti ni sobre tu equipo."
+  "settings_equipmentCatalogue_subtitle": "Consulta GitHub como mucho una vez al día. No se envía nada sobre ti ni sobre tu equipo.",
+  "equipment_manufacturer_checked": "Comprobado el {date}"
 }

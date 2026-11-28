@@ -19469,5 +19469,6 @@
   "equipment_manufacturer_support": "الدعم",
   "equipment_manufacturer_unlink": "إلغاء الربط بالكتالوج",
   "settings_equipmentCatalogue_title": "تنزيل تحديثات كتالوج المعدات",
-  "settings_equipmentCatalogue_subtitle": "يتحقق من GitHub مرة واحدة يوميًا على الأكثر. لا يُرسل أي شيء عنك أو عن معداتك."
+  "settings_equipmentCatalogue_subtitle": "يتحقق من GitHub مرة واحدة يوميًا على الأكثر. لا يُرسل أي شيء عنك أو عن معداتك.",
+  "equipment_manufacturer_checked": "تم التحقق في {date}"
 }

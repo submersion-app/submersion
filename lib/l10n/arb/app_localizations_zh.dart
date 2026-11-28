@@ -62722,4 +62722,9 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_equipmentCatalogue_subtitle =>
       '每天最多检查一次 GitHub。不会发送任何关于你或你的装备的信息。';
+
+  @override
+  String equipment_manufacturer_checked(String date) {
+    return '核实于$date';
+  }
 }

@@ -64233,4 +64233,9 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get settings_equipmentCatalogue_subtitle =>
       'GitHubの確認は1日1回まで。あなたや器材に関する情報は送信されません。';
+
+  @override
+  String equipment_manufacturer_checked(String date) {
+    return '$dateに確認';
+  }
 }

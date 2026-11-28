@@ -19468,5 +19468,6 @@
   "equipment_manufacturer_support": "サポート",
   "equipment_manufacturer_unlink": "カタログとのリンクを解除",
   "settings_equipmentCatalogue_title": "器材カタログの更新をダウンロード",
-  "settings_equipmentCatalogue_subtitle": "GitHubの確認は1日1回まで。あなたや器材に関する情報は送信されません。"
+  "settings_equipmentCatalogue_subtitle": "GitHubの確認は1日1回まで。あなたや器材に関する情報は送信されません。",
+  "equipment_manufacturer_checked": "{date}に確認"
 }

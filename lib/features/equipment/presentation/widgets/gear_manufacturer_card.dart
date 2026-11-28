@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
@@ -32,11 +33,19 @@ class GearManufacturerCard extends ConsumerWidget {
 
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final source = catalogueSourceLine(
-      l10n,
-      Localizations.localeOf(context).toLanguageTag(),
+    // The title says whose pages these are; the line dates them by the
+    // sources that gave the links.
+    final checked = catalogueSourceSummary(
       record,
-    );
+      fieldPrefix: 'links.',
+    )?.checked;
+    final source = checked == null
+        ? null
+        : l10n.equipment_manufacturer_checked(
+            DateFormat.yMMMd(
+              Localizations.localeOf(context).toLanguageTag(),
+            ).format(checked),
+          );
     final links = <(String, String?)>[
       (l10n.equipment_manufacturer_product, record.links.product),
       (l10n.equipment_manufacturer_manual, record.links.manual),

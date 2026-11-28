@@ -19594,5 +19594,6 @@
   "equipment_manufacturer_support": "Support",
   "equipment_manufacturer_unlink": "Verknüpfung zum Katalog lösen",
   "settings_equipmentCatalogue_title": "Updates des Ausrüstungskatalogs laden",
-  "settings_equipmentCatalogue_subtitle": "Prüft höchstens einmal am Tag bei GitHub. Nichts über dich oder deine Ausrüstung wird gesendet."
+  "settings_equipmentCatalogue_subtitle": "Prüft höchstens einmal am Tag bei GitHub. Nichts über dich oder deine Ausrüstung wird gesendet.",
+  "equipment_manufacturer_checked": "Geprüft am {date}"
 }

@@ -33,6 +33,13 @@ final _perdix = EquipmentCatalogueRecord(
       checked: DateTime.utc(2026, 11, 27),
       fields: const {'links.product', 'links.manual'},
     ),
+    // A later source that gives no link must not date the links.
+    EquipmentCatalogueSource(
+      url: 'https://github.com/submersion-app/libdivecomputer',
+      publisher: CataloguePublisher.libdivecomputer,
+      checked: DateTime.utc(2026, 11, 28),
+      fields: const {'manufacturer', 'model'},
+    ),
   ],
 );
 
@@ -117,10 +124,9 @@ void main() {
     expect(find.text('Product page'), findsOneWidget);
     expect(find.text('Manual'), findsOneWidget);
     expect(find.text('Support'), findsNothing);
-    expect(
-      find.text('From the manufacturer, checked Nov 27, 2026'),
-      findsOneWidget,
-    );
+    // The title already says whose links they are: the line only dates
+    // them, by the sources that give the links.
+    expect(find.text('Checked Nov 27, 2026'), findsOneWidget);
   });
 
   testWidgets('a row opens its link', (tester) async {

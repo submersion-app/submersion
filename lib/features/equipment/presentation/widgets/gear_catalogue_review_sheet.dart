@@ -28,16 +28,25 @@ Future<GearCatalogueReviewResult?> showGearCatalogueReview(
 );
 
 /// The publisher and newest date of [record]'s sources, for the line
-/// under its name: the manufacturer when any source is theirs.
+/// under its name: the manufacturer when any source is theirs. With
+/// [fieldPrefix], only the sources that give a field starting with it (the
+/// manufacturer card dates its links by the pages that gave them).
 ({CataloguePublisher publisher, DateTime? checked})? catalogueSourceSummary(
-  EquipmentCatalogueRecord record,
-) {
-  if (record.sources.isEmpty) return null;
+  EquipmentCatalogueRecord record, {
+  String? fieldPrefix,
+}) {
+  final sources = [
+    for (final source in record.sources)
+      if (fieldPrefix == null ||
+          source.fields.any((f) => f.startsWith(fieldPrefix)))
+        source,
+  ];
+  if (sources.isEmpty) return null;
   final publisher = CataloguePublisher.values.firstWhere(
-    (p) => record.sources.any((s) => s.publisher == p),
+    (p) => sources.any((s) => s.publisher == p),
   );
   DateTime? newest;
-  for (final source in record.sources) {
+  for (final source in sources) {
     final checked = source.checked;
     if (checked != null && (newest == null || checked.isAfter(newest))) {
       newest = checked;

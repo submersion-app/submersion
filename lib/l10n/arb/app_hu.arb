@@ -19469,5 +19469,6 @@
   "equipment_manufacturer_support": "Támogatás",
   "equipment_manufacturer_unlink": "Leválasztás a katalógusról",
   "settings_equipmentCatalogue_title": "A felszereléskatalógus frissítéseinek letöltése",
-  "settings_equipmentCatalogue_subtitle": "Legfeljebb naponta egyszer ellenőrzi a GitHubot. Rólad vagy a felszerelésedről semmit nem küld."
+  "settings_equipmentCatalogue_subtitle": "Legfeljebb naponta egyszer ellenőrzi a GitHubot. Rólad vagy a felszerelésedről semmit nem küld.",
+  "equipment_manufacturer_checked": "Ellenőrizve: {date}"
 }

@@ -38795,5 +38795,7 @@
   "equipment_manufacturer_support": "Support",
   "equipment_manufacturer_unlink": "Unlink from catalogue",
   "settings_equipmentCatalogue_title": "Download equipment catalogue updates",
-  "settings_equipmentCatalogue_subtitle": "Checks GitHub at most once a day. Nothing about you or your gear is sent."
+  "settings_equipmentCatalogue_subtitle": "Checks GitHub at most once a day. Nothing about you or your gear is sent.",
+  "equipment_manufacturer_checked": "Checked {date}",
+  "@equipment_manufacturer_checked": {"placeholders": {"date": {"type": "String"}}}
 }
