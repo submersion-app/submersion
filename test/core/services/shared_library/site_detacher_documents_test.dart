@@ -203,4 +203,30 @@ void main() {
     await SharedLibraryStore().deleteLibrary('L');
     expect(await SharedLibraryStore().getDocumentState('club'), isNull);
   });
+
+  test('a private copy has the same page ids on every device', () async {
+    await sharedDoc();
+    final copyId = await LibraryDocumentStamper().keepAsPrivate('club', 'd1');
+    final pages = await DocumentRepository().getPages(copyId);
+    expect(pages.single.id, privateCopyPageId(copyId, 'p1'));
+  });
+
+  test(
+    'a copy that already arrived by personal sync is kept, not doubled',
+    () async {
+      await sharedDoc();
+      final copyId = await LibraryDocumentStamper().keepAsPrivate('club', 'd1');
+      final first = (await DocumentRepository().getPages(copyId)).single;
+      // Another device's detach, with the library rows back on this one.
+      await sharedDoc();
+      await LibraryDocumentStamper().keepAsPrivate('club', 'd1');
+      final pages = await DocumentRepository().getPages(copyId);
+      expect(pages, hasLength(1));
+      // Kept as it arrived: not saved again, so personal sync re-sends
+      // nothing.
+      expect(pages.single.id, first.id);
+      expect(pages.single.hlc, first.hlc);
+      expect(await DocumentRepository().getById('club'), isNull);
+    },
+  );
 }

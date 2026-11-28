@@ -44,6 +44,15 @@ String detachedDocumentId(String documentId) => const Uuid().v5(
   'submersion:detached-library-document:$documentId',
 );
 
+/// The id of page [pageId] in the private copy [copyId]: deterministic, so
+/// the copies a diver's devices make on their own hold the same pages and
+/// personal sync merges them instead of doubling them. Frozen, as
+/// [unsharedDocumentId] is.
+String privateCopyPageId(String copyId, String pageId) => const Uuid().v5(
+  Namespace.url.value,
+  'submersion:library-copy-page:$copyId:$pageId',
+);
+
 /// Records local edits to shared library documents (issue #4713), and moves
 /// documents into and out of a library: the document twin of
 /// [LibraryEditStamper]. A personal document is never touched.
@@ -285,12 +294,14 @@ class LibraryDocumentStamper {
   }
 
   /// Saves [document]'s rows as [diverId]'s personal document [copyId],
-  /// pages and tags included, for personal sync to carry.
+  /// pages and tags included, for personal sync to carry. A copy already
+  /// here (another device of the diver made it first) is kept as it is.
   Future<void> _keepPrivateCopy(
     Document document,
     String copyId,
     String diverId,
   ) async {
+    if (await _documents.getById(copyId) != null) return;
     final pages = await _documents.getPages(document.id);
     final tagIds = [
       for (final r
@@ -302,7 +313,13 @@ class LibraryDocumentStamper {
     ];
     await _documents.save(
       document.copyWith(id: copyId, diverId: diverId, sharedLibraryId: null),
-      [for (final p in pages) p.copyWith(id: '', clearLibraryFileId: true)],
+      [
+        for (final p in pages)
+          p.copyWith(
+            id: privateCopyPageId(copyId, p.id),
+            clearLibraryFileId: true,
+          ),
+      ],
       tagIds: tagIds,
       notify: false,
     );
