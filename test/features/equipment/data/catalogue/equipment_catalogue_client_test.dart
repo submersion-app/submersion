@@ -38,6 +38,13 @@ void main() {
     expect(client.fetch(), throwsA(isA<EquipmentCatalogueFetchException>()));
   });
 
+  test('throws on a network failure', () {
+    final client = EquipmentCatalogueClient(
+      client: MockClient((_) async => throw http.ClientException('offline')),
+    );
+    expect(client.fetch(), throwsA(isA<EquipmentCatalogueFetchException>()));
+  });
+
   test('throws on timeout', () {
     final client = EquipmentCatalogueClient(
       client: MockClient((_) => Completer<http.Response>().future),

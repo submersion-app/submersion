@@ -97,6 +97,13 @@ final equipmentCatalogueUpdatesEnabledProvider =
       ),
     );
 
+/// Keeps a downloaded catalogue between launches; a test stands in for the
+/// app support directory here.
+final equipmentCatalogueCacheWriterProvider =
+    Provider<Future<void> Function(String json)>(
+      (ref) => writeEquipmentCatalogueCache,
+    );
+
 final equipmentCatalogueHttpClientProvider = Provider<http.Client>((ref) {
   final client = http.Client();
   ref.onDispose(client.close);
@@ -115,7 +122,7 @@ final equipmentCatalogueRefreshProvider = Provider<Future<void> Function()>((
     fetch: EquipmentCatalogueClient(
       client: ref.read(equipmentCatalogueHttpClientProvider),
     ).fetch,
-    writeCache: writeEquipmentCatalogueCache,
+    writeCache: ref.read(equipmentCatalogueCacheWriterProvider),
     prefs: ref.read(sharedPreferencesProvider),
     enabled: () => ref.read(equipmentCatalogueUpdatesEnabledProvider),
     isBrowser: ref.read(deviceCapabilitiesProvider).isBrowser,

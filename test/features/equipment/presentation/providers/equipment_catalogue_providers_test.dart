@@ -1,7 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_catalogue_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -99,5 +102,56 @@ void main() {
         .setEnabled(false);
     expect(c.read(equipmentCatalogueUpdatesEnabledProvider), isFalse);
     expect(prefs.getBool(SettingsKeys.equipmentCatalogueUpdates), isFalse);
+  });
+
+  group('equipmentCatalogueRefreshProvider', () {
+    ProviderContainer refreshing({
+      required http.Client client,
+      required List<String> written,
+      bool browser = false,
+    }) {
+      final c = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          equipmentCatalogueHttpClientProvider.overrideWithValue(client),
+          equipmentCatalogueCacheWriterProvider.overrideWithValue(
+            (json) async => written.add(json),
+          ),
+          if (browser)
+            deviceCapabilitiesProvider.overrideWithValue(
+              DeviceCapabilities.web,
+            ),
+        ],
+      );
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    test('a downloaded release is kept', () async {
+      final written = <String>[];
+      final body = _file('2026-11-20T00:00:00Z', 'Downloaded');
+      final c = refreshing(
+        client: MockClient((_) async => http.Response(body, 200)),
+        written: written,
+      );
+      await c.read(equipmentCatalogueRefreshProvider)();
+      expect(written, [body]);
+    });
+
+    test('a browser never downloads', () async {
+      final written = <String>[];
+      var requests = 0;
+      final c = refreshing(
+        client: MockClient((_) async {
+          requests++;
+          return http.Response('', 404);
+        }),
+        written: written,
+        browser: true,
+      );
+      await c.read(equipmentCatalogueRefreshProvider)();
+      expect(requests, 0);
+      expect(written, isEmpty);
+    });
   });
 }
