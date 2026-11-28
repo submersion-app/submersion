@@ -9234,6 +9234,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_legend_label_computerRmv => 'RMV (Tauchcomputer)';
 
   @override
+  String get diveLog_legend_label_trim => 'Trimm';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -23124,6 +23127,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Profil zeigt Auftrieb';
 
   @override
+  String get settings_conflict_field_defaultShowTrim => 'Profil zeigt Trimm';
+
+  @override
   String get settings_conflict_field_defaultShowAveloBuoyancy =>
       'Profil zeigt Avelo-Auftrieb';
 
@@ -24139,6 +24145,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_computerRmv => 'RMV (Tauchcomputer)';
+
+  @override
+  String get settings_appearance_metric_trim => 'Trimm';
 
   @override
   String get settings_appearance_metric_events => 'Ereignisse';
@@ -57571,6 +57580,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_profileMetric_computerRmv => 'RMV (Tauchcomputer)';
 
   @override
+  String get enum_profileMetric_trim => 'Trimm';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Zellen';
 
   @override
@@ -57584,6 +57596,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_profileMetric_computerRmv_short => 'RMV';
+
+  @override
+  String get enum_profileMetric_trim_short => 'Trimm';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2-Zellenstreuung';
@@ -65390,6 +65405,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get info_term_aveloProfile_body =>
       'Der Avelo-Modus von Shearwater zeichnet diese Werte so auf, wie der Tauchcomputer sie erfasst hat: Avelo-Auftrieb (negativ heißt zu schwer), das Restgas im Hydrotank in Prozent und das computereigene RMV. Die App berechnet sie nicht, und der Auftrieb ist nicht der modellierte Auftrieb der Auftriebskarte.';
+
+  @override
+  String get info_term_trimProfile_label => 'Trimm';
+
+  @override
+  String get info_term_trimProfile_body =>
+      'Der Winkel, den der Tauchcomputer für seine eigene Neigung aufgezeichnet hat: positiv heißt Kopf hoch, negativ Kopf runter, 0 waagerecht. An einem Handgelenkscomputer folgt er dem Unterarm wie dem Körper, und er ist nicht die Schätzung des Trimm-Rechners.';
 
   @override
   String get info_term_hypercapnia_label => 'Hyperkapnie';

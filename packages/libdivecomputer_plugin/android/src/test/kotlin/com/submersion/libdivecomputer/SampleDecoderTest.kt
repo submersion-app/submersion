@@ -106,6 +106,29 @@ class SampleDecoderTest {
         assertEquals(12.5, s.depthMeters, 1e-9)
     }
 
+    /** Issue #5098: the trim angle follows the Avelo slots. */
+    @Test
+    fun `trim decodes from the slot after the avelo fields`() {
+        val a = sampleArray()
+        a[31 + LIBDC_MAX_TANKS] = -13.0
+        assertEquals(-13.0, decodeProfileSample(a).trim!!, 1e-9)
+    }
+
+    @Test
+    fun `absent trim decodes as null`() {
+        val a = sampleArray()
+        a[31 + LIBDC_MAX_TANKS] = Double.NaN
+        assertNull(decodeProfileSample(a).trim)
+    }
+
+    /** A .so built before the trim slot returns the array without it. */
+    @Test
+    fun `array without the trim slot yields null trim`() {
+        val s = decodeProfileSample(sampleArray().copyOf(31 + LIBDC_MAX_TANKS))
+        assertNull(s.trim)
+        assertEquals(12.5, s.depthMeters, 1e-9)
+    }
+
     /** The tank pressures do not depend on the Avelo slots being there. */
     @Test
     fun `array without avelo slots keeps its tank pressures`() {

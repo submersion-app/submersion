@@ -8894,6 +8894,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_legend_label_computerRmv => 'RMV（コンピューター）';
 
   @override
+  String get diveLog_legend_label_trim => 'トリム';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -22307,6 +22310,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_conflict_field_defaultShowBuoyancy => 'プロファイルに浮力を表示';
 
   @override
+  String get settings_conflict_field_defaultShowTrim => 'プロファイルにトリムを表示';
+
+  @override
   String get settings_conflict_field_defaultShowAveloBuoyancy =>
       'プロファイルにAvelo浮力を表示';
 
@@ -23269,6 +23275,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_computerRmv => 'RMV（コンピューター）';
+
+  @override
+  String get settings_appearance_metric_trim => 'トリム';
 
   @override
   String get settings_appearance_metric_events => 'イベント';
@@ -55340,6 +55349,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get enum_profileMetric_computerRmv => 'RMV（コンピューター）';
 
   @override
+  String get enum_profileMetric_trim => 'トリム';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'セル';
 
   @override
@@ -55353,6 +55365,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get enum_profileMetric_computerRmv_short => 'RMV';
+
+  @override
+  String get enum_profileMetric_trim_short => 'トリム';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2セルのばらつき';
@@ -62861,6 +62876,13 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get info_term_aveloProfile_body =>
       'ShearwaterのAveloモードは、ダイブコンピューターが記録したままの値として、Aveloの浮力（マイナスは沈む方向）、Hydrotankの残りガスの割合、ダイブコンピューター独自のRMVを記録します。これらはアプリが計算した値ではなく、この浮力は浮力カードのモデルによる浮力とは異なります。';
+
+  @override
+  String get info_term_trimProfile_label => 'トリム';
+
+  @override
+  String get info_term_trimProfile_body =>
+      'ダイブコンピューターが自身の傾きとして記録した角度で、プラスは頭が上、マイナスは頭が下、0は水平です。腕時計型では体だけでなく前腕の向きも反映し、トリム計算機の推定値ではありません。';
 
   @override
   String get info_term_hypercapnia_label => '高炭酸ガス血症';

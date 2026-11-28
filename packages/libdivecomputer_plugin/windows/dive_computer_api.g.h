@@ -208,6 +208,7 @@ class ProfileSample {
     const double* avelo_buoyancy,
     const int64_t* avelo_gas_remaining,
     const double* computer_rmv,
+    const double* trim,
     const int64_t* gas_mix_index);
 
   int64_t time_seconds() const;
@@ -352,6 +353,12 @@ class ProfileSample {
   void set_computer_rmv(const double* value_arg);
   void set_computer_rmv(double value_arg);
 
+  // The computer's own pitch in degrees, positive head up, as the Halcyon
+  // Symbios logs it (issue #5098). Null when the computer logs none.
+  const double* trim() const;
+  void set_trim(const double* value_arg);
+  void set_trim(double value_arg);
+
   // Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
   // from the most recent gas switch; null if the computer reported no gas.
   const int64_t* gas_mix_index() const;
@@ -396,6 +403,7 @@ class ProfileSample {
   std::optional<double> avelo_buoyancy_;
   std::optional<int64_t> avelo_gas_remaining_;
   std::optional<double> computer_rmv_;
+  std::optional<double> trim_;
   std::optional<int64_t> gas_mix_index_;
 
 };

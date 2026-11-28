@@ -9186,6 +9186,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_computerRmv => 'RMV (duikcomputer)';
 
   @override
+  String get diveLog_legend_label_trim => 'Trim';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -23011,6 +23014,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Profiel toont drijfvermogen';
 
   @override
+  String get settings_conflict_field_defaultShowTrim => 'Profiel toont trim';
+
+  @override
   String get settings_conflict_field_defaultShowAveloBuoyancy =>
       'Profiel toont Avelo-drijfvermogen';
 
@@ -24026,6 +24032,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_computerRmv => 'RMV (duikcomputer)';
+
+  @override
+  String get settings_appearance_metric_trim => 'Trim';
 
   @override
   String get settings_appearance_metric_events => 'Gebeurtenissen';
@@ -57341,6 +57350,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_profileMetric_computerRmv => 'RMV (duikcomputer)';
 
   @override
+  String get enum_profileMetric_trim => 'Trim';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Cellen';
 
   @override
@@ -57354,6 +57366,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_profileMetric_computerRmv_short => 'RMV';
+
+  @override
+  String get enum_profileMetric_trim_short => 'Trim';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2-celspreiding';
@@ -65128,6 +65143,13 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get info_term_aveloProfile_body =>
       'De Avelo-modus van Shearwater legt deze waarden vast zoals de duikcomputer ze registreerde: Avelo-drijfvermogen (negatief is zwaar), het resterende gas in de Hydrotank als percentage en de eigen RMV van de computer. De app berekent ze niet, en dit drijfvermogen is niet het gemodelleerde drijfvermogen van de drijfvermogenkaart.';
+
+  @override
+  String get info_term_trimProfile_label => 'Trim';
+
+  @override
+  String get info_term_trimProfile_body =>
+      'De hoek die de duikcomputer voor zijn eigen kanteling heeft vastgelegd: positief is hoofd omhoog, negatief hoofd omlaag en 0 is vlak. Bij een polscomputer volgt hij de onderarm en het lichaam, en het is niet de schatting van de trimcalculator.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnie';

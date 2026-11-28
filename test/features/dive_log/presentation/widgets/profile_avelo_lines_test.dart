@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/profile_avelo_lines.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_sample_lines.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
 
 /// Issue #4664: the three Avelo lines, read straight from the profile.
@@ -26,17 +26,17 @@ void main() {
   ];
 
   test('each curve reads its own field, null where the sample has none', () {
-    expect(aveloCurve(ProfileRightAxisMetric.aveloBuoyancy, profile), [
+    expect(sampleLineCurve(ProfileRightAxisMetric.aveloBuoyancy, profile), [
       -0.5,
       null,
       1.5,
     ]);
-    expect(aveloCurve(ProfileRightAxisMetric.aveloGasRemaining, profile), [
+    expect(sampleLineCurve(ProfileRightAxisMetric.aveloGasRemaining, profile), [
       100.0,
       null,
       50.0,
     ]);
-    expect(aveloCurve(ProfileRightAxisMetric.computerRmv, profile), [
+    expect(sampleLineCurve(ProfileRightAxisMetric.computerRmv, profile), [
       null,
       10.0,
       20.0,
@@ -44,18 +44,18 @@ void main() {
   });
 
   test('gas remaining spans 0 to 100, RMV 0 to 120% of its peak', () {
-    expect(aveloLineRange(ProfileRightAxisMetric.aveloGasRemaining, profile), (
+    expect(sampleLineRange(ProfileRightAxisMetric.aveloGasRemaining, profile), (
       min: 0.0,
       max: 100.0,
     ));
-    expect(aveloLineRange(ProfileRightAxisMetric.computerRmv, profile), (
+    expect(sampleLineRange(ProfileRightAxisMetric.computerRmv, profile), (
       min: 0.0,
       max: 24.0,
     ));
   });
 
   test('the buoyancy range spans neutral', () {
-    final range = aveloLineRange(
+    final range = sampleLineRange(
       ProfileRightAxisMetric.aveloBuoyancy,
       profile,
     )!;
@@ -69,16 +69,16 @@ void main() {
       DiveProfilePoint(timestamp: 10, depth: 5.0),
     ];
     for (final m in aveloLineMetrics) {
-      expect(aveloLineRange(m, plain), isNull, reason: '$m');
+      expect(sampleLineRange(m, plain), isNull, reason: '$m');
     }
   });
 
   test('the line breaks at a sample without a value', () {
     const band = MetricBand(top: 0, span: 100);
-    final line = buildAveloLine(
+    final line = buildSampleLine(
       color: Colors.blue,
       band: band,
-      curve: aveloCurve(ProfileRightAxisMetric.aveloGasRemaining, profile),
+      curve: sampleLineCurve(ProfileRightAxisMetric.aveloGasRemaining, profile),
       range: (min: 0.0, max: 100.0),
       profile: profile,
     );
@@ -99,10 +99,10 @@ void main() {
       DiveProfilePoint(timestamp: 30, depth: 5.0),
       DiveProfilePoint(timestamp: 40, depth: 5.0, aveloGasRemaining: 86),
     ];
-    final line = buildAveloLine(
+    final line = buildSampleLine(
       color: Colors.green,
       band: const MetricBand(top: 0, span: 100),
-      curve: aveloCurve(ProfileRightAxisMetric.aveloGasRemaining, points),
+      curve: sampleLineCurve(ProfileRightAxisMetric.aveloGasRemaining, points),
       range: (min: 0.0, max: 100.0),
       profile: points,
       // Sample 1 was decimated away; sample 3 is a blank.

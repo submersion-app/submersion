@@ -1356,6 +1356,9 @@ class DiveProfilePoint extends Equatable {
   final double? aveloBuoyancy; // kg, negative is heavy
   final int? aveloGasRemaining; // Hydrotank gas remaining, percent
   final double? computerRmv; // The computer's own RMV, L/min
+  // The computer's own pitch in degrees, positive head up (Halcyon Symbios,
+  // issue #5098); null when the computer logs none.
+  final double? trim;
 
   const DiveProfilePoint({
     required this.timestamp,
@@ -1390,6 +1393,7 @@ class DiveProfilePoint extends Equatable {
     this.aveloBuoyancy,
     this.aveloGasRemaining,
     this.computerRmv,
+    this.trim,
   });
 
   DiveProfilePoint copyWith({
@@ -1425,6 +1429,7 @@ class DiveProfilePoint extends Equatable {
     double? aveloBuoyancy,
     int? aveloGasRemaining,
     double? computerRmv,
+    double? trim,
   }) {
     return DiveProfilePoint(
       timestamp: timestamp ?? this.timestamp,
@@ -1459,6 +1464,7 @@ class DiveProfilePoint extends Equatable {
       aveloBuoyancy: aveloBuoyancy ?? this.aveloBuoyancy,
       aveloGasRemaining: aveloGasRemaining ?? this.aveloGasRemaining,
       computerRmv: computerRmv ?? this.computerRmv,
+      trim: trim ?? this.trim,
     );
   }
 
@@ -1496,6 +1502,7 @@ class DiveProfilePoint extends Equatable {
     aveloBuoyancy,
     aveloGasRemaining,
     computerRmv,
+    trim,
   ];
 }
 

@@ -208,6 +208,9 @@ struct ProfileSample {
   var aveloBuoyancy: Double? = nil
   var aveloGasRemaining: Int64? = nil
   var computerRmv: Double? = nil
+  /// The computer's own pitch in degrees, positive head up, as the Halcyon
+  /// Symbios logs it (issue #5098). Null when the computer logs none.
+  var trim: Double? = nil
   /// Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
   /// from the most recent gas switch; null if the computer reported no gas.
   var gasMixIndex: Int64? = nil
@@ -246,7 +249,8 @@ struct ProfileSample {
     let aveloBuoyancy: Double? = nilOrValue(pigeonVar_list[28])
     let aveloGasRemaining: Int64? = nilOrValue(pigeonVar_list[29])
     let computerRmv: Double? = nilOrValue(pigeonVar_list[30])
-    let gasMixIndex: Int64? = nilOrValue(pigeonVar_list[31])
+    let trim: Double? = nilOrValue(pigeonVar_list[31])
+    let gasMixIndex: Int64? = nilOrValue(pigeonVar_list[32])
 
     return ProfileSample(
       timeSeconds: timeSeconds,
@@ -280,6 +284,7 @@ struct ProfileSample {
       aveloBuoyancy: aveloBuoyancy,
       aveloGasRemaining: aveloGasRemaining,
       computerRmv: computerRmv,
+      trim: trim,
       gasMixIndex: gasMixIndex
     )
   }
@@ -316,6 +321,7 @@ struct ProfileSample {
       aveloBuoyancy,
       aveloGasRemaining,
       computerRmv,
+      trim,
       gasMixIndex,
     ]
   }

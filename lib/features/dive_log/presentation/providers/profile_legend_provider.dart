@@ -108,6 +108,10 @@ class ProfileLegendState {
   final bool showAveloGasRemaining;
   final bool showComputerRmv;
 
+  /// The trim line (issue #5098), the angle the computer logged. Seeds from
+  /// its persisted default.
+  final bool showTrim;
+
   // Per-metric data source preferences (session overrides).
   // The ceiling line has no source toggle: every import path stores only the
   // computer's stepped stop depth in `ceiling`, so a "computer" ceiling line
@@ -195,6 +199,7 @@ class ProfileLegendState {
     this.showAveloBuoyancy = false,
     this.showAveloGasRemaining = false,
     this.showComputerRmv = false,
+    this.showTrim = false,
     this.counterdiffusionShowAll = false,
     this.showGtr = false,
     // Same per-metric default as AppSettings (#1859); build() seeds from
@@ -253,6 +258,7 @@ class ProfileLegendState {
     if (showAveloBuoyancy) count++;
     if (showAveloGasRemaining) count++;
     if (showComputerRmv) count++;
+    if (showTrim) count++;
     if (showGtr) count++;
     count += showTankPressure.values.where((v) => v).length;
     return count;
@@ -307,6 +313,7 @@ class ProfileLegendState {
     bool? showAveloBuoyancy,
     bool? showAveloGasRemaining,
     bool? showComputerRmv,
+    bool? showTrim,
     bool? counterdiffusionShowAll,
     bool? showGtr,
     MetricDataSource? ndlSource,
@@ -363,6 +370,7 @@ class ProfileLegendState {
       showAveloGasRemaining:
           showAveloGasRemaining ?? this.showAveloGasRemaining,
       showComputerRmv: showComputerRmv ?? this.showComputerRmv,
+      showTrim: showTrim ?? this.showTrim,
       counterdiffusionShowAll:
           counterdiffusionShowAll ?? this.counterdiffusionShowAll,
       showGtr: showGtr ?? this.showGtr,
@@ -424,6 +432,7 @@ class ProfileLegendState {
           showAveloBuoyancy == other.showAveloBuoyancy &&
           showAveloGasRemaining == other.showAveloGasRemaining &&
           showComputerRmv == other.showComputerRmv &&
+          showTrim == other.showTrim &&
           counterdiffusionShowAll == other.counterdiffusionShowAll &&
           showGtr == other.showGtr &&
           ndlSource == other.ndlSource &&
@@ -479,6 +488,7 @@ class ProfileLegendState {
     showAveloBuoyancy,
     showAveloGasRemaining,
     showComputerRmv,
+    showTrim,
     showGtr,
     ndlSource,
     ttsSource,
@@ -539,6 +549,7 @@ class ProfileLegend extends _$ProfileLegend {
           defaultShowAveloBuoyancy: s.defaultShowAveloBuoyancy,
           defaultShowAveloGasRemaining: s.defaultShowAveloGasRemaining,
           defaultShowComputerRmv: s.defaultShowComputerRmv,
+          defaultShowTrim: s.defaultShowTrim,
           showNdlOnProfile: s.showNdlOnProfile,
           defaultShowPpO2: s.defaultShowPpO2,
           defaultShowPpN2: s.defaultShowPpN2,
@@ -599,6 +610,7 @@ class ProfileLegend extends _$ProfileLegend {
       showAveloBuoyancy: settings.defaultShowAveloBuoyancy,
       showAveloGasRemaining: settings.defaultShowAveloGasRemaining,
       showComputerRmv: settings.defaultShowComputerRmv,
+      showTrim: settings.defaultShowTrim,
       counterdiffusionShowAll: ref
           .read(settingsProvider)
           .counterdiffusionShowAll,
@@ -698,6 +710,7 @@ class ProfileLegend extends _$ProfileLegend {
       showAveloGasRemaining: true,
     ),
     ProfileRightAxisMetric.computerRmv => s.copyWith(showComputerRmv: true),
+    ProfileRightAxisMetric.trim => s.copyWith(showTrim: true),
   };
 
   /// Explicitly hide the right axis ("None" selection)
@@ -884,6 +897,10 @@ class ProfileLegend extends _$ProfileLegend {
 
   void toggleComputerRmv() {
     state = state.copyWith(showComputerRmv: !state.showComputerRmv);
+  }
+
+  void toggleTrim() {
+    state = state.copyWith(showTrim: !state.showTrim);
   }
 
   void setCounterdiffusionShowAll(bool showAll) {

@@ -834,6 +834,7 @@ class SectionAppearancePage extends ConsumerWidget {
       ProfileRightAxisMetric.aveloGasRemaining =>
         l10n.enum_profileMetric_aveloGasRemaining,
       ProfileRightAxisMetric.computerRmv => l10n.enum_profileMetric_computerRmv,
+      ProfileRightAxisMetric.trim => l10n.enum_profileMetric_trim,
     };
   }
 
@@ -881,6 +882,7 @@ class SectionAppearancePage extends ConsumerWidget {
     settings.defaultShowAveloBuoyancy,
     settings.defaultShowAveloGasRemaining,
     settings.defaultShowComputerRmv,
+    settings.defaultShowTrim,
     settings.defaultShowGf,
     settings.defaultShowSurfaceGf,
     settings.defaultShowMeanDepth,

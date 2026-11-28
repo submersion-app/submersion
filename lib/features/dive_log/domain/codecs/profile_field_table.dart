@@ -78,3 +78,11 @@ const List<ProfileField> kProfileFieldTableV3 = [
   ProfileField('avelo_gas_remaining', ProfileFieldKind.deltaInt),
   ProfileField('computer_rmv', ProfileFieldKind.float64),
 ];
+
+/// Codec v4: v3 plus the trim angle a dive computer logs (issue #5098):
+/// `trim`, the computer's own pitch in degrees, positive head up (Halcyon
+/// Symbios). Same freeze rule: append under a new version, never edit.
+const List<ProfileField> kProfileFieldTableV4 = [
+  ...kProfileFieldTableV3,
+  ProfileField('trim', ProfileFieldKind.float64),
+];

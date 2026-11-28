@@ -9221,6 +9221,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_computerRmv => 'RMV (komputer)';
 
   @override
+  String get diveLog_legend_label_trim => 'Trimm';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -23052,6 +23055,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A profil mutatja a felhajtóerőt';
 
   @override
+  String get settings_conflict_field_defaultShowTrim =>
+      'A profil mutatja a trimmet';
+
+  @override
   String get settings_conflict_field_defaultShowAveloBuoyancy =>
       'A profil mutatja az Avelo felhajtóerőt';
 
@@ -24073,6 +24080,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_computerRmv => 'RMV (komputer)';
+
+  @override
+  String get settings_appearance_metric_trim => 'Trimm';
 
   @override
   String get settings_appearance_metric_events => 'Események';
@@ -57366,6 +57376,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_profileMetric_computerRmv => 'RMV (komputer)';
 
   @override
+  String get enum_profileMetric_trim => 'Trimm';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Cellák';
 
   @override
@@ -57379,6 +57392,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_profileMetric_computerRmv_short => 'RMV';
+
+  @override
+  String get enum_profileMetric_trim_short => 'Trimm';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2-cellák szórása';
@@ -65134,6 +65150,13 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get info_term_aveloProfile_body =>
       'A Shearwater Avelo módja úgy rögzíti ezeket, ahogy a búvárkomputer mérte: az Avelo felhajtóerőt (a negatív nehezet jelent), a Hydrotankban maradt gázt százalékban és a komputer saját RMV-jét. Az alkalmazás nem számítja őket, és ez a felhajtóerő nem a Felhajtóerő kártya modellezett értéke.';
+
+  @override
+  String get info_term_trimProfile_label => 'Trimm';
+
+  @override
+  String get info_term_trimProfile_body =>
+      'A szög, amelyet a búvárkomputer a saját dőléséről rögzített: a pozitív fej fent, a negatív fej lent, a 0 vízszintes. Csuklón viselt komputernél az alkart is követi, nem csak a testet, és nem a trimmkalkulátor becslése.';
 
   @override
   String get info_term_hypercapnia_label => 'Hiperkapnia';

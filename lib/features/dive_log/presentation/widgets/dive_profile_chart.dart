@@ -43,8 +43,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_l
 import 'package:submersion/features/dive_log/presentation/widgets/legend_candidates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/profile_avelo_lines.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/profile_avelo_readout.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_sample_lines.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_sample_readout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
@@ -1043,6 +1043,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showAveloBuoyancy = false;
   bool _showAveloGasRemaining = false;
   bool _showComputerRmv = false;
+  // The trim angle the computer logged (#5098).
+  bool _showTrim = false;
   bool _showLateGasSwitches = true;
   bool _showCounterdiffusion = false;
   bool _counterdiffusionShowAll = false;
@@ -2628,14 +2630,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
-    // The computer's Avelo values (issue #4664), shown once enabled on a
-    // dive that carries them.
+    // The computer's Avelo values and trim angle (issues #4664, #5098),
+    // shown once enabled on a dive that carries them.
     rows.addAll(
-      aveloReadoutRows(
+      sampleLineReadoutRows(
         // The readout's own point: on the surface lead-in it is the
         // synthetic surface sample, which carries no Avelo values.
         point: point,
-        shown: (metric) => _aveloShown(metric) && _hasDataForMetric(metric),
+        shown: (metric) =>
+            _sampleLineShown(metric) && _hasDataForMetric(metric),
         l10n: l10n,
         units: units,
         direction: Directionality.of(context),
@@ -3156,6 +3159,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showAveloBuoyancy = false;
     _showAveloGasRemaining = false;
     _showComputerRmv = false;
+    _showTrim = false;
     _showCns = false;
     _showOtu = false;
     _showPressure = true;
@@ -3297,6 +3301,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showAveloBuoyancy = legendState.showAveloBuoyancy;
     _showAveloGasRemaining = legendState.showAveloGasRemaining;
     _showComputerRmv = legendState.showComputerRmv;
+    _showTrim = legendState.showTrim;
     _showCns = legendState.showCns;
     _showOtu = legendState.showOtu;
     // Sync per-tank pressure visibility. Replace rather than merge: the
@@ -3392,6 +3397,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         ProfileRightAxisMetric.aveloGasRemaining,
       ),
       hasComputerRmv: _hasDataForMetric(ProfileRightAxisMetric.computerRmv),
+      hasTrim: _hasDataForMetric(ProfileRightAxisMetric.trim),
       hasGfData: hasGfData,
       hasSurfaceGfData: hasSurfaceGfData,
       hasMeanDepthData: hasMeanDepthData,
@@ -4501,13 +4507,27 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           final neutralRule = buoyancyRange == null
               ? const <LineChartBarData>[]
               : [_buildNeutralRule(metricBand, buoyancyRange)];
+          // The trim line's dashed flat rule at 0 degrees (#5098), only on
+          // the trim axis: under another metric's axis it would be an
+          // unlabelled line.
+          final trimRange =
+              _sampleLineShown(ProfileRightAxisMetric.trim) &&
+                  effectiveRightAxisMetric == ProfileRightAxisMetric.trim
+              ? sampleLineCurveRange(
+                  ProfileRightAxisMetric.trim,
+                  _sampleCurveOf(ProfileRightAxisMetric.trim),
+                )
+              : null;
+          final flatRule = trimRange == null
+              ? const <LineChartBarData>[]
+              : [_buildNeutralRule(metricBand, trimRange)];
 
-          // The three Avelo lines (if showing), straight from the samples
-          // (#4664).
+          // The three Avelo lines and the trim line (if showing), straight
+          // from the samples (#4664, #5098).
           final aveloLines = [
-            for (final metric in aveloLineMetrics)
-              if (_aveloShown(metric))
-                if (_buildAveloLine(metric, metricBand) case final bar?)
+            for (final metric in computerSampleLineMetrics)
+              if (_sampleLineShown(metric))
+                if (_buildSampleLine(metric, metricBand) case final bar?)
                   (bar: bar, tag: metric),
           ];
 
@@ -4531,6 +4551,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             ..._tagAll(cnsLines, ProfileRightAxisMetric.cns),
             ..._tagAll(otuLines, ProfileRightAxisMetric.otu),
             ..._tagAll(neutralRule, null),
+            ..._tagAll(flatRule, null),
             ..._tagAll(buoyancyLines, ProfileRightAxisMetric.buoyancy),
             ...aveloLines,
           ];
@@ -7407,46 +7428,44 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _seriesGetsLeadIn,
   );
 
-  /// Build the gas time remaining line.
-  ///
-  /// Null samples are where the computer (or the calculation) blanked the
-  /// value, so the line breaks there instead of dropping to zero. No surface
-  /// lead-in: GTR is blank on the surface by definition.
-  /// [metric]'s Avelo curve, read once per profile: the decimation cache is
-  /// keyed by the curve's identity and kept until the profile or viewport
-  /// changes, so a fresh list on every rebuild would never hit it and would
-  /// pile up in it.
-  List<double?> _aveloCurveOf(ProfileRightAxisMetric metric) {
-    if (!identical(_aveloCurvesProfile, widget.profile)) {
-      _aveloCurves.clear();
-      _aveloCurvesProfile = widget.profile;
+  /// [metric]'s per-sample curve, read once per profile: the decimation
+  /// cache is keyed by the curve's identity and kept until the profile or
+  /// viewport changes, so a fresh list on every rebuild would never hit it
+  /// and would pile up in it.
+  List<double?> _sampleCurveOf(ProfileRightAxisMetric metric) {
+    if (!identical(_sampleCurvesProfile, widget.profile)) {
+      _sampleCurves.clear();
+      _sampleCurvesProfile = widget.profile;
     }
-    return _aveloCurves.putIfAbsent(
+    return _sampleCurves.putIfAbsent(
       metric,
-      () => aveloCurve(metric, widget.profile),
+      () => sampleLineCurve(metric, widget.profile),
     );
   }
 
-  final Map<ProfileRightAxisMetric, List<double?>> _aveloCurves = {};
-  List<DiveProfilePoint>? _aveloCurvesProfile;
+  final Map<ProfileRightAxisMetric, List<double?>> _sampleCurves = {};
+  List<DiveProfilePoint>? _sampleCurvesProfile;
 
-  /// Whether the legend has [metric], one of the Avelo lines, switched on.
-  bool _aveloShown(ProfileRightAxisMetric metric) => switch (metric) {
+  /// Whether the legend has [metric], one of the
+  /// [computerSampleLineMetrics], switched on.
+  bool _sampleLineShown(ProfileRightAxisMetric metric) => switch (metric) {
     ProfileRightAxisMetric.aveloBuoyancy => _showAveloBuoyancy,
     ProfileRightAxisMetric.aveloGasRemaining => _showAveloGasRemaining,
+    ProfileRightAxisMetric.trim => _showTrim,
     _ => _showComputerRmv,
   };
 
-  /// One Avelo line (issue #4664), decimated like the other nullable lines,
-  /// or null when the dive has nothing to draw for [metric].
-  LineChartBarData? _buildAveloLine(
+  /// One per-sample line (an Avelo line, #4664, or trim, #5098), decimated
+  /// like the other nullable lines, or null when the dive has nothing to
+  /// draw for [metric].
+  LineChartBarData? _buildSampleLine(
     ProfileRightAxisMetric metric,
     MetricBand band,
   ) {
-    final curve = _aveloCurveOf(metric);
-    final range = aveloCurveRange(metric, curve);
+    final curve = _sampleCurveOf(metric);
+    final range = sampleLineCurveRange(metric, curve);
     if (range == null) return null;
-    return buildAveloLine(
+    return buildSampleLine(
       color: _palette.rightAxisColor(metric),
       band: band,
       curve: curve,
@@ -7456,6 +7475,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
   }
 
+  /// Build the gas time remaining line.
+  ///
+  /// Null samples are where the computer (or the calculation) blanked the
+  /// value, so the line breaks there instead of dropping to zero. No surface
+  /// lead-in: GTR is blank on the surface by definition.
   LineChartBarData _buildGtrLine(MetricBand band) => buildGtrLine(
     _metricColor(ProfileMetric.gtr),
     band,
@@ -8142,6 +8166,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ProfileRightAxisMetric.aveloBuoyancy => _showAveloBuoyancy,
       ProfileRightAxisMetric.aveloGasRemaining => _showAveloGasRemaining,
       ProfileRightAxisMetric.computerRmv => _showComputerRmv,
+      ProfileRightAxisMetric.trim => _showTrim,
     };
     return toggledOn && _hasDataForMetric(metric);
   }

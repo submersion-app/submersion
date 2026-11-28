@@ -111,6 +111,7 @@ DownloadedDive parsedDiveToDownloaded(
             aveloBuoyancy: s.aveloBuoyancy,
             aveloGasRemaining: s.aveloGasRemaining,
             computerRmv: s.computerRmv,
+            trim: s.trim,
           ),
         )
         .toList(),

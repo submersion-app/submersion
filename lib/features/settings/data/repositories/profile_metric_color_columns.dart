@@ -36,6 +36,7 @@ DiverSettingsCompanion withProfileMetricColors(
     profileColorAveloBuoyancy: v(ProfileMetric.aveloBuoyancy),
     profileColorAveloGasRemaining: v(ProfileMetric.aveloGasRemaining),
     profileColorComputerRmv: v(ProfileMetric.computerRmv),
+    profileColorTrim: v(ProfileMetric.trim),
   );
 }
 
@@ -67,4 +68,5 @@ ProfileMetricColorOverrides profileMetricColorsFromRow(DiverSetting row) =>
       ProfileMetric.aveloBuoyancy: row.profileColorAveloBuoyancy,
       ProfileMetric.aveloGasRemaining: row.profileColorAveloGasRemaining,
       ProfileMetric.computerRmv: row.profileColorComputerRmv,
+      ProfileMetric.trim: row.profileColorTrim,
     }).deduped();

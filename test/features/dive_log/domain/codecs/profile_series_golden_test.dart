@@ -199,6 +199,22 @@ void main() {
     0, 0, 0, 0, 0, 0, 52, 64,
   ];
 
+  /// The v3 samples with the v4 trim angle set.
+  final samplesV4 = [
+    samplesV3[0].withTrim(trim: -13.0),
+    samplesV3[1].withTrim(trim: 5.0),
+  ];
+
+  // v4 is v3 with the version byte 4 and one column appended:
+  //   trim: presence kPresenceAll, float64 -13.0, 5.0
+  final goldenBodyV4 = <int>[
+    4,
+    ...goldenBodyV3.sublist(1),
+    1, //
+    0, 0, 0, 0, 0, 0, 42, 192, //
+    0, 0, 0, 0, 0, 0, 20, 64,
+  ];
+
   const tankSamples = [
     TankPressureSample(timestamp: 0, pressure: 200.0),
     TankPressureSample(timestamp: 10, pressure: 190.5),
@@ -245,6 +261,24 @@ void main() {
       expect(decoded, samples);
       expect(decoded.map((s) => s.gf99), everyElement(isNull));
       expect(decoded.map((s) => s.n2Load), everyElement(isNull));
+    });
+  });
+
+  group('profile series codec v4', () {
+    test('encoding freezes to the golden body', () {
+      final encoded = codec.encode(samplesV4);
+      expect(encoded.codecVersion, 4);
+      expect(inflate(encoded.bytes), goldenBodyV4);
+    });
+
+    test('the golden body decodes to the source samples', () {
+      expect(codec.decode(recompress(goldenBodyV4)), samplesV4);
+    });
+
+    test('the v3 golden body still decodes, with trim null', () {
+      final decoded = codec.decode(recompress(goldenBodyV3));
+      expect(decoded, samplesV3);
+      expect(decoded.map((s) => s.trim), everyElement(isNull));
     });
   });
 

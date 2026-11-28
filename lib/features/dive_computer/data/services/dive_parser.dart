@@ -59,6 +59,7 @@ class DiveParser {
           aveloBuoyancy: sample.aveloBuoyancy,
           aveloGasRemaining: sample.aveloGasRemaining,
           computerRmv: sample.computerRmv,
+          trim: sample.trim,
         ),
       );
     }

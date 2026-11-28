@@ -47,6 +47,7 @@ ProfileSample fullSample(int i) => ProfileSample(
   aveloBuoyancy: -0.4 + i * 0.125,
   aveloGasRemaining: 100 - i,
   computerRmv: 10.68 + i,
+  trim: -13.0 + i * 4,
 );
 
 /// Depth and timestamp only, like a manually entered profile.
@@ -123,7 +124,7 @@ void main() {
       for (var i = 0; i < 6; i++) {
         expect(decoded[i].gf99, isNull);
         expect(decoded[i].n2Load, isNull);
-        expect(decoded[i], samples[i].withTissue().withAvelo());
+        expect(decoded[i], samples[i].withTissue().withAvelo().withTrim());
       }
     });
 
@@ -187,7 +188,50 @@ void main() {
         expect(decoded[i].aveloBuoyancy, isNull);
         expect(decoded[i].aveloGasRemaining, isNull);
         expect(decoded[i].computerRmv, isNull);
-        expect(decoded[i], samples[i].withAvelo());
+        expect(decoded[i], samples[i].withAvelo().withTrim());
+      }
+    });
+
+    test('v4 carries the trim angle', () {
+      final samples = [
+        for (var i = 0; i < 6; i++)
+          minimalSample(i).withTrim(trim: i == 2 ? null : -13.0 + i * 20),
+      ];
+      final encoded = codec.encode(samples);
+      expect(encoded.codecVersion, 4);
+      final decoded = codec.decode(encoded.bytes);
+      expect(decoded, samples);
+      expect(decoded[0].trim, -13.0);
+      expect(decoded[2].trim, isNull);
+      expect(decoded[5].trim, 87.0);
+    });
+
+    test('a series with Avelo fields and no trim is still written as v3', () {
+      final samples = [
+        for (var i = 0; i < 6; i++)
+          minimalSample(i).withAvelo(computerRmv: 10.0 + i),
+      ];
+      expect(codec.encode(samples).codecVersion, 3);
+    });
+
+    test('one sample with trim makes the series v4', () {
+      final samples = [
+        for (var i = 0; i < 6; i++)
+          i == 3 ? minimalSample(i).withTrim(trim: 0.0) : minimalSample(i),
+      ];
+      final encoded = codec.encode(samples);
+      expect(encoded.codecVersion, 4);
+      expect(codec.decode(encoded.bytes), samples);
+    });
+
+    test('a v3 blob decodes with trim null', () {
+      final samples = [for (var i = 0; i < 6; i++) fullSample(i)];
+      final encoded = codec.encode(samples, version: 3);
+      expect(encoded.codecVersion, 3);
+      final decoded = codec.decode(encoded.bytes);
+      for (var i = 0; i < 6; i++) {
+        expect(decoded[i].trim, isNull);
+        expect(decoded[i], samples[i].withTrim());
       }
     });
 

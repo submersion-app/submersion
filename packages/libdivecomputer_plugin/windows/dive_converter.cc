@@ -99,6 +99,10 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
                 std::isnan(s.computer_rmv)
                     ? std::nullopt
                     : std::optional<double>(s.computer_rmv);
+            // Halcyon Symbios trim (issue #5098): NaN -> nullopt.
+            std::optional<double> trim =
+                std::isnan(s.trim) ? std::nullopt
+                                   : std::optional<double>(s.trim);
 
             // Every tank's pressure at this sample (issue #1223): a sample can
             // carry one reading per air-integrated transmitter, and `pressure`
@@ -186,6 +190,7 @@ ParsedDive ConvertParsedDive(const libdc_parsed_dive_t& dive) {
                     avelo_buoyancy ? &*avelo_buoyancy : nullptr,
                     gas_remaining ? &*gas_remaining : nullptr,
                     computer_rmv ? &*computer_rmv : nullptr,
+                    trim ? &*trim : nullptr,
                     gas_mix_index ? &*gas_mix_index : nullptr)));
         }
     }

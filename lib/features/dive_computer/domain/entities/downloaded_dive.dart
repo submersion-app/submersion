@@ -334,6 +334,10 @@ class ProfileSample {
   final int? aveloGasRemaining;
   final double? computerRmv;
 
+  /// The computer's own pitch in degrees, positive head up (Halcyon Symbios,
+  /// issue #5098); null when the computer logs none.
+  final double? trim;
+
   const ProfileSample({
     required this.timeSeconds,
     required this.depth,
@@ -369,6 +373,7 @@ class ProfileSample {
     this.aveloBuoyancy,
     this.aveloGasRemaining,
     this.computerRmv,
+    this.trim,
   });
 }
 

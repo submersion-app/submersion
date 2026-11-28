@@ -260,6 +260,7 @@ ProfileSample::ProfileSample(
   const double* avelo_buoyancy,
   const int64_t* avelo_gas_remaining,
   const double* computer_rmv,
+  const double* trim,
   const int64_t* gas_mix_index)
  : time_seconds_(time_seconds),
     depth_meters_(depth_meters),
@@ -292,6 +293,7 @@ ProfileSample::ProfileSample(
     avelo_buoyancy_(avelo_buoyancy ? std::optional<double>(*avelo_buoyancy) : std::nullopt),
     avelo_gas_remaining_(avelo_gas_remaining ? std::optional<int64_t>(*avelo_gas_remaining) : std::nullopt),
     computer_rmv_(computer_rmv ? std::optional<double>(*computer_rmv) : std::nullopt),
+    trim_(trim ? std::optional<double>(*trim) : std::nullopt),
     gas_mix_index_(gas_mix_index ? std::optional<int64_t>(*gas_mix_index) : std::nullopt) {}
 
 int64_t ProfileSample::time_seconds() const {
@@ -689,6 +691,19 @@ void ProfileSample::set_computer_rmv(double value_arg) {
 }
 
 
+const double* ProfileSample::trim() const {
+  return trim_ ? &(*trim_) : nullptr;
+}
+
+void ProfileSample::set_trim(const double* value_arg) {
+  trim_ = value_arg ? std::optional<double>(*value_arg) : std::nullopt;
+}
+
+void ProfileSample::set_trim(double value_arg) {
+  trim_ = value_arg;
+}
+
+
 const int64_t* ProfileSample::gas_mix_index() const {
   return gas_mix_index_ ? &(*gas_mix_index_) : nullptr;
 }
@@ -704,7 +719,7 @@ void ProfileSample::set_gas_mix_index(int64_t value_arg) {
 
 EncodableList ProfileSample::ToEncodableList() const {
   EncodableList list;
-  list.reserve(32);
+  list.reserve(33);
   list.push_back(EncodableValue(time_seconds_));
   list.push_back(EncodableValue(depth_meters_));
   list.push_back(temperature_celsius_ ? EncodableValue(*temperature_celsius_) : EncodableValue());
@@ -736,6 +751,7 @@ EncodableList ProfileSample::ToEncodableList() const {
   list.push_back(avelo_buoyancy_ ? EncodableValue(*avelo_buoyancy_) : EncodableValue());
   list.push_back(avelo_gas_remaining_ ? EncodableValue(*avelo_gas_remaining_) : EncodableValue());
   list.push_back(computer_rmv_ ? EncodableValue(*computer_rmv_) : EncodableValue());
+  list.push_back(trim_ ? EncodableValue(*trim_) : EncodableValue());
   list.push_back(gas_mix_index_ ? EncodableValue(*gas_mix_index_) : EncodableValue());
   return list;
 }
@@ -860,7 +876,11 @@ ProfileSample ProfileSample::FromEncodableList(const EncodableList& list) {
   if (!encodable_computer_rmv.IsNull()) {
     decoded.set_computer_rmv(std::get<double>(encodable_computer_rmv));
   }
-  auto& encodable_gas_mix_index = list[31];
+  auto& encodable_trim = list[31];
+  if (!encodable_trim.IsNull()) {
+    decoded.set_trim(std::get<double>(encodable_trim));
+  }
+  auto& encodable_gas_mix_index = list[32];
   if (!encodable_gas_mix_index.IsNull()) {
     decoded.set_gas_mix_index(std::get<int64_t>(encodable_gas_mix_index));
   }

@@ -78,6 +78,12 @@ class DefaultVisibleMetricsPage extends ConsumerWidget {
             value: settings.defaultShowComputerRmv,
             onChanged: notifier.setDefaultShowComputerRmv,
           ),
+          // The angle a computer such as the Halcyon Symbios logs (#5098).
+          SwitchListTile(
+            title: Text(context.l10n.settings_appearance_metric_trim),
+            value: settings.defaultShowTrim,
+            onChanged: notifier.setDefaultShowTrim,
+          ),
           SwitchListTile(
             title: Text(context.l10n.settings_appearance_metric_events),
             value: settings.defaultShowEvents,

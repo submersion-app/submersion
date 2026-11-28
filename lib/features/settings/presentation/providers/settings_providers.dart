@@ -700,6 +700,10 @@ class AppSettings implements UnitFormatterSettings {
   final bool defaultShowAveloGasRemaining;
   final bool defaultShowComputerRmv;
 
+  /// Default visibility of the trim line on the dive profile, the angle a
+  /// computer such as the Halcyon Symbios logs (issue #5098).
+  final bool defaultShowTrim;
+
   /// The dive types this diver starred, listed first in the dive type
   /// pickers (issue #4413). Ids that match no type are ignored.
   final Set<String> favouriteDiveTypeIds;
@@ -1038,6 +1042,7 @@ class AppSettings implements UnitFormatterSettings {
     this.defaultShowAveloBuoyancy = false,
     this.defaultShowAveloGasRemaining = false,
     this.defaultShowComputerRmv = false,
+    this.defaultShowTrim = false,
     this.favouriteDiveTypeIds = const {},
     this.defaultShowEstimatedTankPressure = true,
     this.defaultShowAscentRateLine = false,
@@ -1288,6 +1293,7 @@ class AppSettings implements UnitFormatterSettings {
     bool? defaultShowAveloBuoyancy,
     bool? defaultShowAveloGasRemaining,
     bool? defaultShowComputerRmv,
+    bool? defaultShowTrim,
     Set<String>? favouriteDiveTypeIds,
     bool? defaultShowEstimatedTankPressure,
     bool? defaultShowAscentRateLine,
@@ -1548,6 +1554,7 @@ class AppSettings implements UnitFormatterSettings {
           defaultShowAveloGasRemaining ?? this.defaultShowAveloGasRemaining,
       defaultShowComputerRmv:
           defaultShowComputerRmv ?? this.defaultShowComputerRmv,
+      defaultShowTrim: defaultShowTrim ?? this.defaultShowTrim,
       favouriteDiveTypeIds: favouriteDiveTypeIds ?? this.favouriteDiveTypeIds,
       defaultShowEstimatedTankPressure:
           defaultShowEstimatedTankPressure ??
@@ -3515,6 +3522,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setDefaultShowComputerRmv(bool value) =>
       _update((s) => s.copyWith(defaultShowComputerRmv: value));
+
+  Future<void> setDefaultShowTrim(bool value) =>
+      _update((s) => s.copyWith(defaultShowTrim: value));
 
   Future<void> setDefaultShowEstimatedTankPressure(bool value) =>
       _update((s) => s.copyWith(defaultShowEstimatedTankPressure: value));

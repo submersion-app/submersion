@@ -1039,6 +1039,7 @@ class ReparseService {
     aveloBuoyancy: s.aveloBuoyancy,
     aveloGasRemaining: s.aveloGasRemaining,
     computerRmv: s.computerRmv,
+    trim: s.trim,
   );
 
   Future<void> _insertEvents({

@@ -195,6 +195,11 @@ data class ProfileSample (
   val aveloGasRemaining: Long? = null,
   val computerRmv: Double? = null,
   /**
+   * The computer's own pitch in degrees, positive head up, as the Halcyon
+   * Symbios logs it (issue #5098). Null when the computer logs none.
+   */
+  val trim: Double? = null,
+  /**
    * Active gas mix index at this sample (from DC_SAMPLE_GASMIX), carried forward
    * from the most recent gas switch; null if the computer reported no gas.
    */
@@ -234,8 +239,9 @@ data class ProfileSample (
       val aveloBuoyancy = pigeonVar_list[28] as Double?
       val aveloGasRemaining = pigeonVar_list[29] as Long?
       val computerRmv = pigeonVar_list[30] as Double?
-      val gasMixIndex = pigeonVar_list[31] as Long?
-      return ProfileSample(timeSeconds, depthMeters, temperatureCelsius, pressureBar, tankIndex, tankPressuresBar, heartRate, heading, setpoint, ppo2, cns, rbt, decoType, decoTime, decoDepth, tts, o2Sensor1, o2Sensor2, o2Sensor3, o2Sensor4, o2Sensor5, o2Sensor6, o2SensorMv1, o2SensorMv2, o2SensorMv3, o2SensorMv4, o2SensorMv5, o2SensorMv6, aveloBuoyancy, aveloGasRemaining, computerRmv, gasMixIndex)
+      val trim = pigeonVar_list[31] as Double?
+      val gasMixIndex = pigeonVar_list[32] as Long?
+      return ProfileSample(timeSeconds, depthMeters, temperatureCelsius, pressureBar, tankIndex, tankPressuresBar, heartRate, heading, setpoint, ppo2, cns, rbt, decoType, decoTime, decoDepth, tts, o2Sensor1, o2Sensor2, o2Sensor3, o2Sensor4, o2Sensor5, o2Sensor6, o2SensorMv1, o2SensorMv2, o2SensorMv3, o2SensorMv4, o2SensorMv5, o2SensorMv6, aveloBuoyancy, aveloGasRemaining, computerRmv, trim, gasMixIndex)
     }
   }
   fun toList(): List<Any?> {
@@ -271,6 +277,7 @@ data class ProfileSample (
       aveloBuoyancy,
       aveloGasRemaining,
       computerRmv,
+      trim,
       gasMixIndex,
     )
   }

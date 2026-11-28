@@ -1034,6 +1034,14 @@ void main() {
             (n) => n.toggleComputerRmv(),
             const AppSettings(defaultShowComputerRmv: true),
           ),
+          // Issue #5098: the trim angle follows the same pattern.
+          (
+            'trim',
+            (s) => s.showTrim,
+            (s) => s.copyWith(showTrim: true),
+            (n) => n.toggleTrim(),
+            const AppSettings(defaultShowTrim: true),
+          ),
         ];
 
     for (final (name, read, turnOn, toggle, seeded) in lines) {

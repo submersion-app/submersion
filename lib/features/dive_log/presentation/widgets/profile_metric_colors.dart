@@ -59,6 +59,10 @@ abstract final class ProfileMetricColors {
   static const Color aveloGasRemaining = Color(0xFF689F38); // Light Green 700
   static const Color computerRmv = Color(0xFFFF7043); // Deep Orange 400
 
+  /// The trim line (#5098), a brown no other metric is near: apart from the
+  /// depth blue it is usually drawn against and from every other line.
+  static const Color trim = Color(0xFF8D6E63); // Brown 400
+
   /// The net buoyancy line (#4593), one colour per side of neutral. Fixed,
   /// not diver-chosen, because the colour carries the meaning. The Okabe-Ito
   /// bluish green and reddish purple: apart from depth blue and from each

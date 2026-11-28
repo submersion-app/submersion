@@ -9100,6 +9100,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_legend_label_computerRmv => 'RMV (computer)';
 
   @override
+  String get diveLog_legend_label_trim => 'Trim';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -22811,6 +22814,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Profile shows buoyancy';
 
   @override
+  String get settings_conflict_field_defaultShowTrim => 'Profile shows trim';
+
+  @override
   String get settings_conflict_field_defaultShowAveloBuoyancy =>
       'Profile shows Avelo buoyancy';
 
@@ -23819,6 +23825,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_computerRmv => 'RMV (computer)';
+
+  @override
+  String get settings_appearance_metric_trim => 'Trim';
 
   @override
   String get settings_appearance_metric_events => 'Events';
@@ -56810,6 +56819,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_profileMetric_computerRmv => 'RMV (computer)';
 
   @override
+  String get enum_profileMetric_trim => 'Trim';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Cells';
 
   @override
@@ -56823,6 +56835,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_profileMetric_computerRmv_short => 'RMV';
+
+  @override
+  String get enum_profileMetric_trim_short => 'Trim';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2 Cell Spread';
@@ -64515,6 +64530,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get info_term_aveloProfile_body =>
       'Shearwater\'s Avelo mode logs these as the dive computer recorded them: Avelo buoyancy (negative is heavy), the gas left in the Hydrotank as a percentage, and the computer\'s own RMV. They are not calculated by the app, and the buoyancy is not the modelled buoyancy of the Buoyancy card.';
+
+  @override
+  String get info_term_trimProfile_label => 'Trim';
+
+  @override
+  String get info_term_trimProfile_body =>
+      'The angle the dive computer logged for its own tilt: positive is head up, negative head down and 0 is flat. On a wrist-worn computer it follows the forearm as well as the body, and it is not the Trim Calculator\'s estimate.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnia';

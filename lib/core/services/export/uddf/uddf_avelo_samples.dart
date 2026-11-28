@@ -8,10 +8,12 @@ typedef UddfDiveAveloSamples = ({
   Map<int, double> buoyancyByTime,
   Map<int, int> gasRemainingByTime,
   Map<int, double> computerRmvByTime,
+  Map<int, double> trimByTime,
 });
 
 /// The values Shearwater's Avelo mode logs per sample, in UDDF (issue
-/// #4664).
+/// #4664), and the trim angle a computer such as the Halcyon Symbios logs
+/// (issue #5098).
 ///
 /// UDDF has no element for them, so they ride in the per-dive entry of the
 /// private `<computertissue>` block (see `UddfComputerTissue`), beside the
@@ -22,28 +24,31 @@ typedef UddfDiveAveloSamples = ({
 ///   <avelobuoyancy>0:-0.096 120:-0.393</avelobuoyancy>
 ///   <avelogasremaining>0:100 120:64</avelogasremaining>
 ///   <computerrmv>120:10.68</computerrmv>
+///   <trim>0:70 120:-13</trim>
 /// </dive>
 /// ```
 ///
 /// Riding in that block reuses its place in both writers and in the
 /// streamed export; a build that does not know these elements skips them.
 /// The sample map keys this produces are the ones the libdivecomputer path
-/// sets: `aveloBuoyancy`, `aveloGasRemaining`, `computerRmv`.
+/// sets: `aveloBuoyancy`, `aveloGasRemaining`, `computerRmv`, `trim`.
 abstract final class UddfAveloSamples {
   static const _buoyancyElement = 'avelobuoyancy';
   static const _gasRemainingElement = 'avelogasremaining';
   static const _computerRmvElement = 'computerrmv';
+  static const _trimElement = 'trim';
 
-  /// Whether [dive] has an Avelo value on any sample.
+  /// Whether [dive] has an Avelo value or a trim angle on any sample.
   static bool hasData(Dive dive) => dive.profile.any(
     (p) =>
         p.aveloBuoyancy != null ||
         p.aveloGasRemaining != null ||
-        p.computerRmv != null,
+        p.computerRmv != null ||
+        p.trim != null,
   );
 
-  /// Writes [dive]'s Avelo elements into the `<dive>` entry being built;
-  /// writes nothing for a value no sample carries.
+  /// Writes [dive]'s Avelo and trim elements into the `<dive>` entry being
+  /// built; writes nothing for a value no sample carries.
   static void writeChildren(XmlBuilder builder, Dive dive) {
     void pairs(String element, Object? Function(DiveProfilePoint) valueOf) {
       final text = [
@@ -56,6 +61,7 @@ abstract final class UddfAveloSamples {
     pairs(_buoyancyElement, (p) => p.aveloBuoyancy);
     pairs(_gasRemainingElement, (p) => p.aveloGasRemaining);
     pairs(_computerRmvElement, (p) => p.computerRmv);
+    pairs(_trimElement, (p) => p.trim);
   }
 
   /// Reads the Avelo elements of every `<dive ref>` in [block], skipping a
@@ -78,10 +84,15 @@ abstract final class UddfAveloSamples {
           dive.getElement(_computerRmvElement)?.innerText,
           double.tryParse,
         ),
+        trimByTime: _pairs(
+          dive.getElement(_trimElement)?.innerText,
+          double.tryParse,
+        ),
       );
       if (samples.buoyancyByTime.isEmpty &&
           samples.gasRemainingByTime.isEmpty &&
-          samples.computerRmvByTime.isEmpty) {
+          samples.computerRmvByTime.isEmpty &&
+          samples.trimByTime.isEmpty) {
         continue;
       }
       byDive[ref] = samples;
@@ -97,6 +108,8 @@ abstract final class UddfAveloSamples {
       if (parts.length != 2) continue;
       final time = int.tryParse(parts[0]);
       final value = parse(parts[1]);
+      // double.tryParse accepts "NaN" and "Infinity"; neither is a reading.
+      if (value is double && !value.isFinite) continue;
       if (time != null && value != null) values[time] = value;
     }
     return values;
@@ -118,6 +131,9 @@ abstract final class UddfAveloSamples {
       }
       if (data.computerRmvByTime[time] case final value?) {
         point['computerRmv'] = value;
+      }
+      if (data.trimByTime[time] case final value?) {
+        point['trim'] = value;
       }
     }
   }

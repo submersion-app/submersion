@@ -120,6 +120,10 @@ class ProfileLegendConfig {
   final bool hasAveloBuoyancy;
   final bool hasAveloGasRemaining;
   final bool hasComputerRmv;
+
+  /// The samples carry the trim angle the computer logged, so the trim line
+  /// can be offered (#5098).
+  final bool hasTrim;
   final bool hasPhotoMarkers;
   final bool hasMultiTankPressure;
   final bool hasGasData;
@@ -198,6 +202,7 @@ class ProfileLegendConfig {
     this.hasAveloBuoyancy = false,
     this.hasAveloGasRemaining = false,
     this.hasComputerRmv = false,
+    this.hasTrim = false,
     this.hasPhotoMarkers = false,
     this.hasMultiTankPressure = false,
     this.hasGasData = false,
@@ -247,6 +252,7 @@ class ProfileLegendConfig {
       hasAveloBuoyancy ||
       hasAveloGasRemaining ||
       hasComputerRmv ||
+      hasTrim ||
       hasPhotoMarkers ||
       hasTankListSection ||
       hasGasData ||

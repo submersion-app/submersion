@@ -6,8 +6,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/profile_avelo_lines.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_sample_lines.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Every sample with a temperature the chart can draw: the active source's and
@@ -76,7 +76,8 @@ bool hasDataForMetric(
     case ProfileRightAxisMetric.aveloBuoyancy:
     case ProfileRightAxisMetric.aveloGasRemaining:
     case ProfileRightAxisMetric.computerRmv:
-      return aveloLineRange(metric, config.profile) != null;
+    case ProfileRightAxisMetric.trim:
+      return sampleLineRange(metric, config.profile) != null;
   }
 }
 
@@ -197,8 +198,9 @@ bool hasDataForMetric(
     case ProfileRightAxisMetric.aveloBuoyancy:
     case ProfileRightAxisMetric.aveloGasRemaining:
     case ProfileRightAxisMetric.computerRmv:
-      // Kilograms, percent and litres per minute (#4664).
-      return aveloLineRange(metric, config.profile);
+    case ProfileRightAxisMetric.trim:
+      // Kilograms, percent, litres per minute (#4664) and degrees (#5098).
+      return sampleLineRange(metric, config.profile);
   }
 }
 
@@ -265,6 +267,7 @@ String profileMetricName(
   ProfileRightAxisMetric.aveloGasRemaining =>
     l10n.enum_profileMetric_aveloGasRemaining,
   ProfileRightAxisMetric.computerRmv => l10n.enum_profileMetric_computerRmv,
+  ProfileRightAxisMetric.trim => l10n.enum_profileMetric_trim,
 };
 
 /// Localized short name for a right-axis metric, used on the axis itself
@@ -299,6 +302,7 @@ String profileMetricShortName(
     l10n.enum_profileMetric_aveloGasRemaining_short,
   ProfileRightAxisMetric.computerRmv =>
     l10n.enum_profileMetric_computerRmv_short,
+  ProfileRightAxisMetric.trim => l10n.enum_profileMetric_trim_short,
 };
 
 /// Localized unit suffix for the metrics whose unit is fixed rather than
@@ -321,6 +325,8 @@ String? profileMetricUnitSuffix(
   ProfileRightAxisMetric.surfaceGf ||
   ProfileRightAxisMetric.cns ||
   ProfileRightAxisMetric.aveloGasRemaining => l10n.units_profileMetric_percent,
+  // A degree sign reads the same in every locale (#5098).
+  ProfileRightAxisMetric.trim => '°',
   _ => null,
 };
 

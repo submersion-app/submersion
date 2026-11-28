@@ -71,6 +71,10 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // on diver_settings (issue #4664).
     await _assertAveloLineColumns();
 
+    // v395 backstop: the trim line's visibility and colour columns on
+    // diver_settings (issue #5098).
+    await _assertTrimLineColumns();
+
     // v387 backstop: diver_settings.ccr_setpoint_switch_depth and
     // dive_plans.setpoint_switch_off (issue #3793).
     await _assertCcrSetpointSwitchColumns();

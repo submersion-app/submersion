@@ -9243,6 +9243,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_legend_label_computerRmv => 'RMV (computador)';
 
   @override
+  String get diveLog_legend_label_trim => 'Trim';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -23144,6 +23147,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Perfil mostra a flutuabilidade';
 
   @override
+  String get settings_conflict_field_defaultShowTrim => 'Perfil mostra o trim';
+
+  @override
   String get settings_conflict_field_defaultShowAveloBuoyancy =>
       'Perfil mostra a flutuabilidade Avelo';
 
@@ -24162,6 +24168,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_computerRmv => 'RMV (computador)';
+
+  @override
+  String get settings_appearance_metric_trim => 'Trim';
 
   @override
   String get settings_appearance_metric_events => 'Eventos';
@@ -57678,6 +57687,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_profileMetric_computerRmv => 'RMV (computador)';
 
   @override
+  String get enum_profileMetric_trim => 'Trim';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Células';
 
   @override
@@ -57691,6 +57703,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_profileMetric_computerRmv_short => 'RMV';
+
+  @override
+  String get enum_profileMetric_trim_short => 'Trim';
 
   @override
   String get diveLog_o2CellSpread_label => 'Dispersão das células O2';
@@ -65493,6 +65508,13 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get info_term_aveloProfile_body =>
       'O modo Avelo da Shearwater registra estes valores tal como o computador de mergulho os registrou: a flutuabilidade Avelo (negativa significa pesado), o gás restante no Hydrotank em porcentagem e o RMV do próprio computador. O app não os calcula, e esta flutuabilidade não é a flutuabilidade modelada do cartão de flutuabilidade.';
+
+  @override
+  String get info_term_trimProfile_label => 'Trim';
+
+  @override
+  String get info_term_trimProfile_body =>
+      'O ângulo que o computador de mergulho registou para a sua própria inclinação: positivo é cabeça para cima, negativo cabeça para baixo e 0 é horizontal. Num computador de pulso segue o antebraço além do corpo, e não é a estimativa da calculadora de trim.';
 
   @override
   String get info_term_hypercapnia_label => 'Hipercapnia';

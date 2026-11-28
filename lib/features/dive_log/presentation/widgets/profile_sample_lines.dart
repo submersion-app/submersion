@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_line_builders.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_trim_line.dart';
 
 /// The three lines for the values Shearwater's Avelo mode logs (issue
 /// #4664), in the order the legend and the chart draw them.
@@ -17,10 +18,19 @@ const aveloLineMetrics = [
   ProfileRightAxisMetric.computerRmv,
 ];
 
+/// Every line drawn straight from a value the computer logged per sample:
+/// the Avelo lines, then the trim angle a computer such as the Halcyon
+/// Symbios logs (issue #5098). The helpers below serve all of them.
+const computerSampleLineMetrics = [
+  ...aveloLineMetrics,
+  ProfileRightAxisMetric.trim,
+];
+
 /// [metric]'s value on each sample of [profile], null where the computer
 /// logged none: kilograms for buoyancy, percent for gas remaining, litres
-/// per minute for RMV. [metric] is one of [aveloLineMetrics].
-List<double?> aveloCurve(
+/// per minute for RMV, degrees for trim. [metric] is one of
+/// [computerSampleLineMetrics].
+List<double?> sampleLineCurve(
   ProfileRightAxisMetric metric,
   List<DiveProfilePoint> profile,
 ) => [
@@ -30,22 +40,31 @@ List<double?> aveloCurve(
       ProfileRightAxisMetric.aveloGasRemaining =>
         p.aveloGasRemaining?.toDouble(),
       ProfileRightAxisMetric.computerRmv => p.computerRmv,
-      _ => throw ArgumentError.value(metric, 'metric', 'not an Avelo line'),
+      // A non-finite angle is no reading (it would break the axis range).
+      ProfileRightAxisMetric.trim => switch (p.trim) {
+        final t? when t.isFinite => t,
+        _ => null,
+      },
+      _ => throw ArgumentError.value(
+        metric,
+        'metric',
+        'not a computer sample line',
+      ),
     },
 ];
 
 /// The range [metric]'s line and right axis are drawn over, or null when
 /// [profile] has nothing to draw: gas remaining 0 to 100 percent, RMV from 0
 /// to a fifth above its peak, buoyancy spanning neutral like the modelled
-/// buoyancy line.
-({double min, double max})? aveloLineRange(
+/// buoyancy line, trim symmetric about flat (see [trimAxisHalfRange]).
+({double min, double max})? sampleLineRange(
   ProfileRightAxisMetric metric,
   List<DiveProfilePoint> profile,
-) => aveloCurveRange(metric, aveloCurve(metric, profile));
+) => sampleLineCurveRange(metric, sampleLineCurve(metric, profile));
 
-/// [aveloLineRange] for a [curve] already read by [aveloCurve], so a caller
-/// that draws the line too reads the samples once.
-({double min, double max})? aveloCurveRange(
+/// [sampleLineRange] for a [curve] already read by [sampleLineCurve], so a
+/// caller that draws the line too reads the samples once.
+({double min, double max})? sampleLineCurveRange(
   ProfileRightAxisMetric metric,
   List<double?> curve,
 ) {
@@ -53,17 +72,23 @@ List<double?> aveloCurve(
   return switch (metric) {
     ProfileRightAxisMetric.aveloBuoyancy => buoyancyAxisRange(curve),
     ProfileRightAxisMetric.aveloGasRemaining => (min: 0.0, max: 100.0),
+    ProfileRightAxisMetric.trim => switch (trimAxisHalfRange([
+      for (final v in curve) ?v,
+    ])) {
+      final half => (min: -half, max: half),
+    },
     _ => (min: 0.0, max: [for (final v in curve) ?v].reduce(math.max) * 1.2),
   };
 }
 
-/// One Avelo line: [curve] on [band] over [range], at each sample's time in
+/// One line of a value the computer logged per sample (an Avelo line or
+/// trim): [curve] on [band] over [range], at each sample's time in
 /// [profile]. [indices] are the samples to draw, in order (the chart's
 /// decimation of [curve]); without them every sample with a value is drawn.
 /// Where the computer logged nothing between two drawn samples the line
 /// breaks rather than bridging or dropping to zero, as the computer's GTR
 /// line does; a value left out by decimation is no break.
-LineChartBarData buildAveloLine({
+LineChartBarData buildSampleLine({
   required Color color,
   required MetricBand band,
   required List<double?> curve,

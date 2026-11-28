@@ -874,6 +874,8 @@ class DiveComputerHostApiImpl: DiveComputerHostApi {
                     aveloBuoyancy: s.avelo_buoyancy.isNaN ? nil : s.avelo_buoyancy,
                     aveloGasRemaining: s.gas_remaining == UInt32.max ? nil : Int64(s.gas_remaining),
                     computerRmv: s.computer_rmv.isNaN ? nil : s.computer_rmv,
+                    // Halcyon Symbios trim (issue #5098).
+                    trim: s.trim.isNaN ? nil : s.trim,
                     gasMixIndex: s.gasmix == UInt32.max ? nil : Int64(s.gasmix)
                 ))
             }

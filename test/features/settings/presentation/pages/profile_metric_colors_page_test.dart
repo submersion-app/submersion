@@ -175,7 +175,7 @@ void main() {
         )
         .map((w) => w.properties.label)
         .toList();
-    expect(labels, hasLength(27));
+    expect(labels, hasLength(28));
     expect(labels.toSet(), hasLength(labels.length), reason: '$labels');
   });
 

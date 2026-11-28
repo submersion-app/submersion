@@ -126,6 +126,9 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
             double computer_rmv_val = s->computer_rmv;
             double* computer_rmv =
                 isnan(s->computer_rmv) ? NULL : &computer_rmv_val;
+            // Halcyon Symbios trim (issue #5098): NaN -> NULL.
+            double trim_val = s->trim;
+            double* trim = isnan(s->trim) ? NULL : &trim_val;
 
             // Every tank's pressure at this sample (issue #1223): a sample can
             // carry one reading per air-integrated transmitter, and `pressure`
@@ -160,7 +163,7 @@ LibdivecomputerPluginParsedDive* convert_parsed_dive(
                     o2_sensor[2], o2_sensor[3], o2_sensor[4], o2_sensor[5],
                     o2_sensor_mv[0], o2_sensor_mv[1], o2_sensor_mv[2],
                     o2_sensor_mv[3], o2_sensor_mv[4], o2_sensor_mv[5],
-                    avelo_buoyancy, gas_remaining, computer_rmv,
+                    avelo_buoyancy, gas_remaining, computer_rmv, trim,
                     gas_mix_index);
 
             if (tank_pressures != NULL) {

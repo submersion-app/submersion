@@ -228,6 +228,7 @@ struct _LibdivecomputerPluginProfileSample {
   double* avelo_buoyancy;
   int64_t* avelo_gas_remaining;
   double* computer_rmv;
+  double* trim;
   int64_t* gas_mix_index;
 };
 
@@ -264,6 +265,7 @@ static void libdivecomputer_plugin_profile_sample_dispose(GObject* object) {
   g_clear_pointer(&self->avelo_buoyancy, g_free);
   g_clear_pointer(&self->avelo_gas_remaining, g_free);
   g_clear_pointer(&self->computer_rmv, g_free);
+  g_clear_pointer(&self->trim, g_free);
   g_clear_pointer(&self->gas_mix_index, g_free);
   G_OBJECT_CLASS(libdivecomputer_plugin_profile_sample_parent_class)->dispose(object);
 }
@@ -275,7 +277,7 @@ static void libdivecomputer_plugin_profile_sample_class_init(LibdivecomputerPlug
   G_OBJECT_CLASS(klass)->dispose = libdivecomputer_plugin_profile_sample_dispose;
 }
 
-LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample_new(int64_t time_seconds, double depth_meters, double* temperature_celsius, double* pressure_bar, int64_t* tank_index, FlValue* tank_pressures_bar, int64_t* heart_rate, double* heading, double* setpoint, double* ppo2, double* cns, int64_t* rbt, int64_t* deco_type, int64_t* deco_time, double* deco_depth, int64_t* tts, double* o2_sensor1, double* o2_sensor2, double* o2_sensor3, double* o2_sensor4, double* o2_sensor5, double* o2_sensor6, int64_t* o2_sensor_mv1, int64_t* o2_sensor_mv2, int64_t* o2_sensor_mv3, int64_t* o2_sensor_mv4, int64_t* o2_sensor_mv5, int64_t* o2_sensor_mv6, double* avelo_buoyancy, int64_t* avelo_gas_remaining, double* computer_rmv, int64_t* gas_mix_index) {
+LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample_new(int64_t time_seconds, double depth_meters, double* temperature_celsius, double* pressure_bar, int64_t* tank_index, FlValue* tank_pressures_bar, int64_t* heart_rate, double* heading, double* setpoint, double* ppo2, double* cns, int64_t* rbt, int64_t* deco_type, int64_t* deco_time, double* deco_depth, int64_t* tts, double* o2_sensor1, double* o2_sensor2, double* o2_sensor3, double* o2_sensor4, double* o2_sensor5, double* o2_sensor6, int64_t* o2_sensor_mv1, int64_t* o2_sensor_mv2, int64_t* o2_sensor_mv3, int64_t* o2_sensor_mv4, int64_t* o2_sensor_mv5, int64_t* o2_sensor_mv6, double* avelo_buoyancy, int64_t* avelo_gas_remaining, double* computer_rmv, double* trim, int64_t* gas_mix_index) {
   LibdivecomputerPluginProfileSample* self = LIBDIVECOMPUTER_PLUGIN_PROFILE_SAMPLE(g_object_new(libdivecomputer_plugin_profile_sample_get_type(), nullptr));
   self->time_seconds = time_seconds;
   self->depth_meters = depth_meters;
@@ -481,6 +483,13 @@ LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample_new(in
   else {
     self->computer_rmv = nullptr;
   }
+  if (trim != nullptr) {
+    self->trim = static_cast<double*>(malloc(sizeof(double)));
+    *self->trim = *trim;
+  }
+  else {
+    self->trim = nullptr;
+  }
   if (gas_mix_index != nullptr) {
     self->gas_mix_index = static_cast<int64_t*>(malloc(sizeof(int64_t)));
     *self->gas_mix_index = *gas_mix_index;
@@ -646,6 +655,11 @@ double* libdivecomputer_plugin_profile_sample_get_computer_rmv(LibdivecomputerPl
   return self->computer_rmv;
 }
 
+double* libdivecomputer_plugin_profile_sample_get_trim(LibdivecomputerPluginProfileSample* self) {
+  g_return_val_if_fail(LIBDIVECOMPUTER_PLUGIN_IS_PROFILE_SAMPLE(self), nullptr);
+  return self->trim;
+}
+
 int64_t* libdivecomputer_plugin_profile_sample_get_gas_mix_index(LibdivecomputerPluginProfileSample* self) {
   g_return_val_if_fail(LIBDIVECOMPUTER_PLUGIN_IS_PROFILE_SAMPLE(self), nullptr);
   return self->gas_mix_index;
@@ -684,6 +698,7 @@ static FlValue* libdivecomputer_plugin_profile_sample_to_list(LibdivecomputerPlu
   fl_value_append_take(values, self->avelo_buoyancy != nullptr ? fl_value_new_float(*self->avelo_buoyancy) : fl_value_new_null());
   fl_value_append_take(values, self->avelo_gas_remaining != nullptr ? fl_value_new_int(*self->avelo_gas_remaining) : fl_value_new_null());
   fl_value_append_take(values, self->computer_rmv != nullptr ? fl_value_new_float(*self->computer_rmv) : fl_value_new_null());
+  fl_value_append_take(values, self->trim != nullptr ? fl_value_new_float(*self->trim) : fl_value_new_null());
   fl_value_append_take(values, self->gas_mix_index != nullptr ? fl_value_new_int(*self->gas_mix_index) : fl_value_new_null());
   return values;
 }
@@ -895,13 +910,20 @@ static LibdivecomputerPluginProfileSample* libdivecomputer_plugin_profile_sample
     computer_rmv = &computer_rmv_value;
   }
   FlValue* value31 = fl_value_get_list_value(values, 31);
+  double* trim = nullptr;
+  double trim_value;
+  if (fl_value_get_type(value31) != FL_VALUE_TYPE_NULL) {
+    trim_value = fl_value_get_float(value31);
+    trim = &trim_value;
+  }
+  FlValue* value32 = fl_value_get_list_value(values, 32);
   int64_t* gas_mix_index = nullptr;
   int64_t gas_mix_index_value;
-  if (fl_value_get_type(value31) != FL_VALUE_TYPE_NULL) {
-    gas_mix_index_value = fl_value_get_int(value31);
+  if (fl_value_get_type(value32) != FL_VALUE_TYPE_NULL) {
+    gas_mix_index_value = fl_value_get_int(value32);
     gas_mix_index = &gas_mix_index_value;
   }
-  return libdivecomputer_plugin_profile_sample_new(time_seconds, depth_meters, temperature_celsius, pressure_bar, tank_index, tank_pressures_bar, heart_rate, heading, setpoint, ppo2, cns, rbt, deco_type, deco_time, deco_depth, tts, o2_sensor1, o2_sensor2, o2_sensor3, o2_sensor4, o2_sensor5, o2_sensor6, o2_sensor_mv1, o2_sensor_mv2, o2_sensor_mv3, o2_sensor_mv4, o2_sensor_mv5, o2_sensor_mv6, avelo_buoyancy, avelo_gas_remaining, computer_rmv, gas_mix_index);
+  return libdivecomputer_plugin_profile_sample_new(time_seconds, depth_meters, temperature_celsius, pressure_bar, tank_index, tank_pressures_bar, heart_rate, heading, setpoint, ppo2, cns, rbt, deco_type, deco_time, deco_depth, tts, o2_sensor1, o2_sensor2, o2_sensor3, o2_sensor4, o2_sensor5, o2_sensor6, o2_sensor_mv1, o2_sensor_mv2, o2_sensor_mv3, o2_sensor_mv4, o2_sensor_mv5, o2_sensor_mv6, avelo_buoyancy, avelo_gas_remaining, computer_rmv, trim, gas_mix_index);
 }
 
 struct _LibdivecomputerPluginGasMix {

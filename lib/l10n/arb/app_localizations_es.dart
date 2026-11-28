@@ -9246,6 +9246,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_legend_label_computerRmv => 'RMV (ordenador)';
 
   @override
+  String get diveLog_legend_label_trim => 'Trimado';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -23141,6 +23144,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'El perfil muestra la flotabilidad';
 
   @override
+  String get settings_conflict_field_defaultShowTrim =>
+      'El perfil muestra el trimado';
+
+  @override
   String get settings_conflict_field_defaultShowAveloBuoyancy =>
       'El perfil muestra la flotabilidad Avelo';
 
@@ -24167,6 +24174,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_computerRmv => 'RMV (ordenador)';
+
+  @override
+  String get settings_appearance_metric_trim => 'Trimado';
 
   @override
   String get settings_appearance_metric_events => 'Eventos';
@@ -57753,6 +57763,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get enum_profileMetric_computerRmv => 'RMV (ordenador)';
 
   @override
+  String get enum_profileMetric_trim => 'Trimado';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Células';
 
   @override
@@ -57766,6 +57779,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get enum_profileMetric_computerRmv_short => 'RMV';
+
+  @override
+  String get enum_profileMetric_trim_short => 'Trimado';
 
   @override
   String get diveLog_o2CellSpread_label => 'Dispersión de células O2';
@@ -65570,6 +65586,13 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get info_term_aveloProfile_body =>
       'El modo Avelo de Shearwater registra estos valores tal como los registró el ordenador de buceo: la flotabilidad Avelo (negativa es pesado), el gas restante en el Hydrotank en porcentaje y el RMV del propio ordenador. La aplicación no los calcula, y la flotabilidad no es la flotabilidad modelada de la tarjeta de flotabilidad.';
+
+  @override
+  String get info_term_trimProfile_label => 'Trimado';
+
+  @override
+  String get info_term_trimProfile_body =>
+      'El ángulo que registró el ordenador de buceo para su propia inclinación: positivo es cabeza arriba, negativo cabeza abajo y 0 horizontal. En un ordenador de muñeca sigue al antebrazo además del cuerpo, y no es la estimación de la calculadora de trimado.';
 
   @override
   String get info_term_hypercapnia_label => 'Hipercapnia';

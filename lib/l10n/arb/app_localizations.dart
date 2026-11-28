@@ -14586,6 +14586,12 @@ abstract class AppLocalizations {
   /// **'RMV (computer)'**
   String get diveLog_legend_label_computerRmv;
 
+  /// No description provided for @diveLog_legend_label_trim.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim'**
+  String get diveLog_legend_label_trim;
+
   /// No description provided for @diveLog_legend_source_dc.
   ///
   /// In en, this message translates to:
@@ -36399,6 +36405,12 @@ abstract class AppLocalizations {
   /// **'Profile shows buoyancy'**
   String get settings_conflict_field_defaultShowBuoyancy;
 
+  /// No description provided for @settings_conflict_field_defaultShowTrim.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile shows trim'**
+  String get settings_conflict_field_defaultShowTrim;
+
   /// No description provided for @settings_conflict_field_defaultShowAveloBuoyancy.
   ///
   /// In en, this message translates to:
@@ -37988,6 +38000,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'RMV (computer)'**
   String get settings_appearance_metric_computerRmv;
+
+  /// No description provided for @settings_appearance_metric_trim.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim'**
+  String get settings_appearance_metric_trim;
 
   /// No description provided for @settings_appearance_metric_events.
   ///
@@ -90203,6 +90221,12 @@ abstract class AppLocalizations {
   /// **'RMV (computer)'**
   String get enum_profileMetric_computerRmv;
 
+  /// No description provided for @enum_profileMetric_trim.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim'**
+  String get enum_profileMetric_trim;
+
   /// No description provided for @enum_profileMetric_o2CellMv_short.
   ///
   /// In en, this message translates to:
@@ -90232,6 +90256,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'RMV'**
   String get enum_profileMetric_computerRmv_short;
+
+  /// No description provided for @enum_profileMetric_trim_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim'**
+  String get enum_profileMetric_trim_short;
 
   /// No description provided for @diveLog_o2CellSpread_label.
   ///
@@ -102366,6 +102396,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shearwater\'s Avelo mode logs these as the dive computer recorded them: Avelo buoyancy (negative is heavy), the gas left in the Hydrotank as a percentage, and the computer\'s own RMV. They are not calculated by the app, and the buoyancy is not the modelled buoyancy of the Buoyancy card.'**
   String get info_term_aveloProfile_body;
+
+  /// No description provided for @info_term_trimProfile_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim'**
+  String get info_term_trimProfile_label;
+
+  /// No description provided for @info_term_trimProfile_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The angle the dive computer logged for its own tilt: positive is head up, negative head down and 0 is flat. On a wrist-worn computer it follows the forearm as well as the body, and it is not the Trim Calculator\'s estimate.'**
+  String get info_term_trimProfile_body;
 
   /// No description provided for @info_term_hypercapnia_label.
   ///

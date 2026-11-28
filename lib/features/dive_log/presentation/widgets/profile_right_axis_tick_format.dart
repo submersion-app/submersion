@@ -40,10 +40,12 @@ String formatRightAxisTick(
   final rounded = double.parse(display.toStringAsFixed(decimals));
   final label = formatFixedForDisplay(rounded == 0 ? 0 : display, decimals);
   // Net buoyancy reads by its sign: buoyant above 0, heavy below (#4593).
-  // So does ascent rate, like its bars: ascents above 0 (#5069).
+  // So does ascent rate, like its bars: ascents above 0 (#5069), and trim:
+  // head up above flat, head down below (#5098).
   if ((metric == ProfileRightAxisMetric.buoyancy ||
           metric == ProfileRightAxisMetric.aveloBuoyancy ||
-          metric == ProfileRightAxisMetric.ascentRate) &&
+          metric == ProfileRightAxisMetric.ascentRate ||
+          metric == ProfileRightAxisMetric.trim) &&
       rounded > 0) {
     return '+$label';
   }
@@ -89,7 +91,9 @@ double _displayValue(
   ProfileRightAxisMetric.cns ||
   ProfileRightAxisMetric.otu ||
   ProfileRightAxisMetric.o2CellMv ||
-  ProfileRightAxisMetric.aveloGasRemaining => value,
+  ProfileRightAxisMetric.aveloGasRemaining ||
+  // Degrees, the same in every unit system (#5098).
+  ProfileRightAxisMetric.trim => value,
 };
 
 int _baseDecimals(ProfileRightAxisMetric metric) => switch (metric) {

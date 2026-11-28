@@ -251,6 +251,15 @@ class ChartOptionsDialog extends StatelessWidget {
           isEnabled: legendState.showComputerRmv,
           onTap: legendNotifier.toggleComputerRmv,
         ),
+      // The trim angle the computer logged (#5098).
+      if (config.hasTrim)
+        buildToggleItem(
+          context,
+          label: context.l10n.diveLog_legend_label_trim,
+          color: palette.colorOf(ProfileMetric.trim),
+          isEnabled: legendState.showTrim,
+          onTap: legendNotifier.toggleTrim,
+        ),
       if (config.hasAscentRates)
         buildToggleItem(
           context,

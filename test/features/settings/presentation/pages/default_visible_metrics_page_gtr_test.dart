@@ -40,6 +40,10 @@ void main() {
       'GTR (Gas Time Remaining)',
     );
     await tester.scrollUntilVisible(tile, 100);
+    // scrollUntilVisible stops once any part shows; a row added above can
+    // leave the tile's centre, where tap lands, just off screen.
+    await tester.ensureVisible(tile);
+    await tester.pumpAndSettle();
     expect(tester.widget<SwitchListTile>(tile).value, isFalse);
 
     await tester.tap(tile);

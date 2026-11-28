@@ -283,6 +283,8 @@ typedef struct {
     double avelo_buoyancy;     // kg, negative is heavy (NAN if unavailable)
     unsigned int gas_remaining; // percent 0-100 (UINT32_MAX if unavailable)
     double computer_rmv;       // L/min, the computer's own figure (NAN if unavailable)
+    // Halcyon Symbios (issue #5098), from the fork's DC_SAMPLE_TRIM.
+    double trim;               // degrees, the computer's pitch, positive head up (NAN if unavailable)
 } libdc_sample_t;
 
 typedef struct {
