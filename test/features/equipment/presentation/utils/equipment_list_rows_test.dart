@@ -389,6 +389,85 @@ void main() {
       expect(layout.itemIdByNavKey[rows[3].navKey], 's');
       expect(layout.foldKeysByItem['s'], ['type:regulator', 'asm:regA']);
       expect(rows[3].parentId, 'regB');
+      expect(layout.foldPathsByItem['s'], [
+        ['type:regulator', 'asm:regA'],
+        ['type:regulator', 'asm:regB'],
+      ]);
+      expect(layout.foldPathsByItem['regA'], [
+        ['type:regulator'],
+      ]);
+    });
+
+    group('revealKeys', () {
+      const viaA = ['type:a', 'asm:regA'];
+      const viaB = ['type:b', 'asm:regB'];
+
+      test('opens nothing when a path is open already', () {
+        // The part shows under regB, so regA and its group stay folded.
+        expect(
+          revealKeys(
+            const [viaA, viaB],
+            collapsed: const {'type:a', 'asm:regA'},
+            dismissed: const {},
+          ),
+          isEmpty,
+        );
+      });
+
+      test('opens the path with the fewest folds', () {
+        expect(
+          revealKeys(
+            const [viaA, viaB],
+            collapsed: const {'type:a', 'asm:regA', 'asm:regB'},
+            dismissed: const {},
+          ),
+          {'asm:regB'},
+        );
+      });
+
+      test('takes the first path on a tie', () {
+        expect(
+          revealKeys(
+            const [viaA, viaB],
+            collapsed: const {'asm:regA', 'asm:regB'},
+            dismissed: const {},
+          ),
+          {'asm:regA'},
+        );
+      });
+
+      test('skips a path the diver folded shut', () {
+        expect(
+          revealKeys(
+            const [viaA, viaB],
+            collapsed: const {'asm:regA', 'type:b', 'asm:regB'},
+            dismissed: const {'asm:regA'},
+          ),
+          {'type:b', 'asm:regB'},
+        );
+      });
+
+      test('with every path folded shut, opens the rest of the first', () {
+        expect(
+          revealKeys(
+            const [viaA],
+            collapsed: const {'type:a', 'asm:regA'},
+            dismissed: const {'type:a'},
+          ),
+          {'asm:regA'},
+        );
+      });
+
+      test('an item on no path opens nothing', () {
+        expect(
+          revealKeys(
+            const [],
+            collapsed: const {'type:a'},
+            dismissed: const {},
+          ),
+          isEmpty,
+        );
+      });
     });
 
     test('loop members still show', () {

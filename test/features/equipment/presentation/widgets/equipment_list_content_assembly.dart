@@ -37,7 +37,16 @@ void _assemblyViewTests() {
       Future<ComponentsIndex>? index,
       List<Override> extra = const [],
       SelectionController? selection,
+      ValueNotifier<String?>? selectedFrom,
     }) async {
+      Widget list(String? id) => EquipmentListContent(
+        showAppBar: false,
+        selectedId: id,
+        selectionController: selection,
+        onItemSelected: selected == null
+            ? null
+            : (next) => selected.value = next,
+      );
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
@@ -73,14 +82,14 @@ void _assemblyViewTests() {
             ),
             ...extra,
           ],
-          child: EquipmentListContent(
-            showAppBar: false,
-            selectedId: selectedId,
-            selectionController: selection,
-            onItemSelected: selected == null
-                ? null
-                : (next) => selected.value = next,
-          ),
+          // [selectedFrom] stands in for the page around the list, whose
+          // selection can change from outside it (a deep link).
+          child: selectedFrom == null
+              ? list(selectedId)
+              : ValueListenableBuilder<String?>(
+                  valueListenable: selectedFrom,
+                  builder: (_, id, _) => list(id),
+                ),
         ),
       );
       await tester.pumpAndSettle();
@@ -323,6 +332,17 @@ void _assemblyViewTests() {
         expect(find.text('2 service due'), findsOneWidget);
       });
 
+      testWidgets('a heading counts the parts nested under its assemblies', (
+        tester,
+      ) async {
+        // The count agrees with the folded summaries, which count every
+        // part: the SF2 and its three cells are four items.
+        await pumpList(tester);
+        expect(rowNames(tester), ['Fins', 'SF2']);
+        expect(find.text('4 items'), findsOneWidget);
+        expect(find.text('1 item'), findsOneWidget);
+      });
+
       testWidgets('turning the view on keeps the open part in sight', (
         tester,
       ) async {
@@ -409,6 +429,55 @@ void _assemblyViewTests() {
         );
         await tester.pumpAndSettle();
         expect(find.text('1 of 4 selected'), findsOneWidget);
+      });
+
+      testWidgets('a deep link to a part already in sight opens no other rig', (
+        tester,
+      ) async {
+        final regA = item('regA', 'Reg A', EquipmentType.regulator);
+        final regB = item('regB', 'Reg B', EquipmentType.regulator);
+        final stage = item('s', 'Stage', EquipmentType.secondStage);
+        await pumpList(
+          tester,
+          items: [regA, regB, stage],
+          edges: [edge('regA', 's'), edge('regB', 's')],
+          saved: '["asm:regB"]',
+          selectedId: 's',
+        );
+        expect(rowNames(tester), ['Reg A', 'Reg B', 'Stage']);
+      });
+
+      testWidgets('an outside selection puts the cursor on the first row', (
+        tester,
+      ) async {
+        final regA = item('regA', 'Reg A', EquipmentType.regulator);
+        final regB = item('regB', 'Reg B', EquipmentType.regulator);
+        final stage = item('s', 'Stage', EquipmentType.secondStage);
+        final selected = ValueNotifier<String?>(null);
+        addTearDown(selected.dispose);
+        await pumpList(
+          tester,
+          items: [regA, regB, stage],
+          edges: [edge('regA', 's'), edge('regB', 's')],
+          saved: '["asm:regA","asm:regB"]',
+          selected: selected,
+          selectedFrom: selected,
+        );
+        String? cursor() => tester
+            .widget<KeyboardListNavigator>(find.byType(KeyboardListNavigator))
+            .currentKey;
+
+        // The diver taps the Stage row under Reg B: the cursor keeps to it.
+        await tester.tap(find.text('Stage').last);
+        await tester.pumpAndSettle();
+        expect(cursor(), isNot('s'));
+
+        // A deep link opens Reg A, then the Stage again.
+        selected.value = 'regA';
+        await tester.pumpAndSettle();
+        selected.value = 's';
+        await tester.pumpAndSettle();
+        expect(cursor(), 's');
       });
 
       testWidgets('an assembly opened for a deep link can be folded again', (

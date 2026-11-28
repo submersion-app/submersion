@@ -162,5 +162,19 @@ void main() {
       expect(read.toJson()['futureAxis'], 3);
       expect(read.copyWith(groupByType: true).toJson()['futureAxis'], 3);
     });
+
+    test('resetting the shared axes keeps nestParts and unknown keys', () {
+      final read = EquipmentArrangement.fromJson(const {
+        'futureAxis': 3,
+        'typeOrder': 'dressingOrder',
+        'groupByType': false,
+        'nestParts': false,
+      });
+      final reset = read.resetSharedAxes();
+      expect(reset.typeOrder, EquipmentArrangement.defaults.typeOrder);
+      expect(reset.groupByType, isTrue);
+      expect(reset.nestParts, isFalse);
+      expect(reset.toJson()['futureAxis'], 3);
+    });
   });
 }

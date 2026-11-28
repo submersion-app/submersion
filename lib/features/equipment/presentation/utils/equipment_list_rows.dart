@@ -110,13 +110,19 @@ class EquipmentRowLayout {
     this.assemblyFoldByNavKey = const {},
     this.parentNavKeyOf = const {},
     this.itemsByFoldKey = const {},
+    this.foldPathsByItem = const {},
   });
 
   final List<EquipmentListRow> rows;
 
   /// Every fold key that can hide an item, outermost first, whether folded
-  /// now or not: what a reveal has to open to show it.
+  /// now or not, on the first path that reaches it.
   final Map<String, List<String>> foldKeysByItem;
+
+  /// Every path of fold keys to each item, outermost first and in list
+  /// order: a part in two rigs has one path through each (issue #5071).
+  /// What [revealKeys] picks from.
+  final Map<String, List<List<String>>> foldPathsByItem;
 
   /// The outermost headings' fold keys, in order: what Collapse all folds.
   final List<String> outerKeys;
@@ -142,9 +148,36 @@ class EquipmentRowLayout {
 
   /// Every item each fold hides, by every path that reaches it: a part in
   /// two rigs counts under both rigs' headings. What a folded heading's
-  /// summaries count; [foldKeysByItem] keeps only the first path, for the
+  /// summaries count; [foldPathsByItem] keeps each path apart, for the
   /// reveal.
   final Map<String, Set<String>> itemsByFoldKey;
+}
+
+/// The folds a reveal opens to show an item reached by [paths] (see
+/// [EquipmentRowLayout.foldPathsByItem]): those on the path with the fewest
+/// folds in [collapsed], the first on a tie, so an item already showing
+/// under one open rig opens nothing. A path through a fold the diver closed
+/// again ([dismissed]) is no way in; with no other path, the first path's
+/// other folds open, as for an item with one path.
+Set<String> revealKeys(
+  List<List<String>> paths, {
+  required Set<String> collapsed,
+  required Set<String> dismissed,
+}) {
+  Set<String> opens(List<String> path) => {
+    for (final key in path)
+      if (collapsed.contains(key) && !dismissed.contains(key)) key,
+  };
+  Set<String>? best;
+  for (final path in paths) {
+    final shut = path.any(
+      (k) => collapsed.contains(k) && dismissed.contains(k),
+    );
+    if (shut) continue;
+    final keys = opens(path);
+    if (best == null || keys.length < best.length) best = keys;
+  }
+  return best ?? (paths.isEmpty ? const {} : opens(paths.first));
 }
 
 /// The keyboard stop of the heading whose fold key is [foldKey].
@@ -179,8 +212,10 @@ EquipmentRowLayout layoutEquipmentRows({
   // Items with a row on screen already, so a repeated part gets its own stop.
   final shownIds = <String>{};
   final itemsByFoldKey = <String, Set<String>>{};
+  final foldPathsByItem = <String, List<List<String>>>{};
   void record(String id, List<String> keys) {
     foldKeysByItem.putIfAbsent(id, () => List.unmodifiable(keys));
+    foldPathsByItem.putIfAbsent(id, () => []).add(List.unmodifiable(keys));
     for (final key in keys) {
       itemsByFoldKey.putIfAbsent(key, () => <String>{}).add(id);
     }
@@ -363,5 +398,9 @@ EquipmentRowLayout layoutEquipmentRows({
     assemblyFoldByNavKey: Map.unmodifiable(assemblyFoldByNavKey),
     parentNavKeyOf: Map.unmodifiable(parentNavKeyOf),
     itemsByFoldKey: Map.unmodifiable(itemsByFoldKey),
+    foldPathsByItem: Map.unmodifiable({
+      for (final MapEntry(:key, :value) in foldPathsByItem.entries)
+        key: List<List<String>>.unmodifiable(value),
+    }),
   );
 }

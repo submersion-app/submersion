@@ -92,6 +92,19 @@ class EquipmentArrangement {
     itemSortDirection: SortDirection.ascending,
   );
 
+  /// [defaults] on every axis the shared arrange sheet shows, for its
+  /// Reset. Keeps [nestParts], which only the Equipment page's own sheet
+  /// offers, and the keys this build does not know (issue #5071).
+  EquipmentArrangement resetSharedAxes() => EquipmentArrangement._withExtras(
+    typeOrder: defaults.typeOrder,
+    typeOrderDescending: defaults.typeOrderDescending,
+    groupByType: defaults.groupByType,
+    itemSortField: defaults.itemSortField,
+    itemSortDirection: defaults.itemSortDirection,
+    nestParts: nestParts,
+    extras: _extras,
+  );
+
   EquipmentArrangement copyWith({
     EquipmentTypeOrder? typeOrder,
     bool? typeOrderDescending,

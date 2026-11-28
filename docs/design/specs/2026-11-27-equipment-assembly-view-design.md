@@ -152,8 +152,10 @@ Nesting is a pass over the already arranged rows, so `arrangeEquipment`
   inside a loop with no top-level entry) is added at the top level in its
   own type group, so a loop never hides its members.
 - **Type headings.** A type group whose items all moved under assemblies
-  disappears (it has nothing at the top level). Type heading counts count
-  top-level rows only.
+  disappears (it has nothing at the top level). A type or place heading
+  counts every item it holds, parts nested under its assemblies included,
+  so the count agrees with the folded service-due and selection summaries,
+  which count each part (decided in review).
 - **Indentation.** Each nesting level indents the row by one step. The
   indent stops growing after the fourth level so deep rigs stay readable at
   phone width.

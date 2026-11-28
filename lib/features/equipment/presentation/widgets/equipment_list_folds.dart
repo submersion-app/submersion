@@ -70,7 +70,7 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
   }
 
   /// Every item each fold hides this build, by every path that reaches it,
-  /// from the layout: what a folded heading's summaries count.
+  /// from the layout: what a heading's count and its folded summaries count.
   Map<String, Set<String>> _itemsByFoldKey = const {};
 
   /// Every item [foldKey] hides when folded, parts under its assemblies
@@ -101,6 +101,9 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
       if (selectedId != null && selectedId != _listSelectedId) {
         _revealTarget = selectedId;
         _dismissed = const {};
+        // The cursor follows the reveal to the item's first row, not a row
+        // the cursor last rested on before this outside selection.
+        _cursorNavKey = null;
       }
       _listSelectedId = null;
     }
@@ -136,12 +139,14 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
       parts: parts,
     );
     var layout = layOut(const {});
-    // The target's path does not depend on the folds, so the first layout
-    // finds it; a second opens whatever on it is folded now.
-    _revealed = {
-      for (final key in layout.foldKeysByItem[_revealTarget] ?? const [])
-        if (collapsed.contains(key) && !_dismissed.contains(key)) key,
-    };
+    // The target's paths do not depend on the folds, so the first layout
+    // finds them; a second opens whatever is folded on the most open one,
+    // so a part already showing under one open rig opens no other.
+    _revealed = revealKeys(
+      layout.foldPathsByItem[_revealTarget] ?? const [],
+      collapsed: collapsed,
+      dismissed: _dismissed,
+    );
     if (_revealed.isNotEmpty) layout = layOut(_revealed);
     // A part shown under two assemblies is one item to a Shift range.
     _visibleItemIds = {
@@ -177,13 +182,21 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
         if (!row.isFirst) const Divider(height: 1),
         EquipmentLocationGroupHeader(
           location: row.location,
-          count: row.items.length,
+          count: _idsUnder(row.foldKey).length,
           isExpanded: row.isExpanded,
           onTap: () => _toggleFold(row.foldKey, folds),
           summary: row.isExpanded
               ? null
               : (_selectionSummary(context, row.foldKey) ??
-                    foldedLocationSummary(context.l10n, row.typeCounts)),
+                    foldedLocationSummary(context.l10n, [
+                      for (final (type, _) in row.typeCounts)
+                        (
+                          type,
+                          _idsUnder(
+                            typeFoldKey(type, parentKey: row.foldKey),
+                          ).length,
+                        ),
+                    ])),
         ),
       ],
     ),
@@ -203,7 +216,7 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
     child: EquipmentTypeFoldHeader(
       foldKey: row.foldKey,
       type: row.type,
-      count: row.items.length,
+      count: _idsUnder(row.foldKey).length,
       isExpanded: row.isExpanded,
       nested: row.parentKey != null,
       onTap: () => _toggleFold(row.foldKey, folds),
