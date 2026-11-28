@@ -289,7 +289,11 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
               // Purchase record (issue #1517): the receipt trail, shown with
               // the date and price rather than among the physical specs.
               for (final def in EquipmentAttributeCatalog.purchase)
-                if (equipment.attributes.firstWhereOrNull(
+                // Who sold it: a buddy or centre to open, or a typed name
+                // (issue #5140).
+                if (def.key == EquipmentAttrKeys.retailer)
+                  ?_buildSellerRow(context, ref, equipment)
+                else if (equipment.attributes.firstWhereOrNull(
                       (a) => !a.isCustom && a.key == def.key,
                     )
                     case final attr? when attr.hasValue)
@@ -411,6 +415,64 @@ extension _EquipmentDetailSections on _EquipmentDetailContent {
       context,
       label,
       formatAttributeValue(attr, def, units, context.l10n),
+    );
+  }
+
+  /// The Seller row, or null when the item records none. A buddy or dive
+  /// centre this profile can open is a link to it; a typed name, or a link
+  /// to another profile's buddy, is plain text.
+  Widget? _buildSellerRow(
+    BuildContext context,
+    WidgetRef ref,
+    EquipmentItem equipment,
+  ) {
+    final seller = resolveEquipmentSeller(
+      equipment,
+      buddies: {
+        for (final b in ref.watch(allBuddiesProvider).value ?? const [])
+          b.id: b,
+      },
+      centers: {
+        for (final c in ref.watch(allDiveCentersProvider).value ?? const [])
+          c.id: c,
+      },
+    );
+    if (seller == null) return null;
+    final label = attributeLabel(context.l10n, EquipmentAttrKeys.retailer);
+    final route = switch (seller.kind) {
+      EquipmentSellerKind.buddy => '/buddies/${seller.id}',
+      EquipmentSellerKind.diveCenter => '/dive-centers/${seller.id}',
+      EquipmentSellerKind.typed => null,
+    };
+    if (route == null) return _buildDetailRow(context, label, seller.name);
+    final theme = Theme.of(context);
+    return DetailRow(
+      label: label,
+      value: InkWell(
+        key: const ValueKey('equipment-detail-seller-link'),
+        onTap: () => context.push(route),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              seller.kind == EquipmentSellerKind.buddy
+                  ? Icons.person_outline
+                  : Icons.storefront_outlined,
+              size: 16,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                seller.name,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
