@@ -188,6 +188,10 @@ class VideoIdentificationScan {
   /// Follows the animals through one run of consecutive chunks.
   var _tracker = VideoTracker();
 
+  /// The longest gap between two sightings [_tracker] links in view, at
+  /// this scan's [sampleIntervalMs].
+  int get _liveGapMs => (_tracker.maxGapSamples + 1) * sampleIntervalMs;
+
   /// Where the current run of consecutive chunks has got; null before the
   /// first chunk of a run.
   int? _runEndMs;
@@ -357,7 +361,7 @@ class VideoIdentificationScan {
     }
     final early = [
       for (final t in _tracker.openTracks)
-        if (t.inViewMs >= earlyNamingMs) t,
+        if (t.inViewMs(maxGapMs: _liveGapMs) >= earlyNamingMs) t,
     ];
     final toName = <TrackedAnimal>[];
     final toKeep = <TrackedAnimal>[];
@@ -392,7 +396,7 @@ class VideoIdentificationScan {
       openRows: byId,
       stored: stored,
       seamMs: seamMs,
-      maxGapMs: (_tracker.maxGapSamples + 1) * sampleIntervalMs,
+      maxGapMs: _liveGapMs,
       lostGapMs: (_tracker.maxLostSamples + 1) * sampleIntervalMs,
       link: _tracker.link,
       lostLink: _tracker.lostLink,

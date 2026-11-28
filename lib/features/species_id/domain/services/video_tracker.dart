@@ -29,13 +29,13 @@ const int liveGapMs =
 
 /// How long an animal seen at [ms] (oldest first) was in view: the time
 /// from its first sighting to its last, less each gap longer than
-/// [liveGapMs], where it was out of sight (issue #5120). An animal seen
-/// at every sample is in view for its whole span.
-int seenMs(List<int> ms) {
+/// [maxGapMs] (the live link's reach), where it was out of sight (issue
+/// #5120). An animal seen at every sample is in view for its whole span.
+int seenMs(List<int> ms, {int maxGapMs = liveGapMs}) {
   var total = 0;
   for (var k = 1; k < ms.length; k++) {
     final step = ms[k] - ms[k - 1];
-    if (step <= liveGapMs) total += step;
+    if (step <= maxGapMs) total += step;
   }
   return total;
 }
@@ -287,9 +287,10 @@ class TrackedAnimal {
   int get startMs => points.first.ms;
   int get endMs => points.last.ms;
 
-  /// How long it was in view ([seenMs]): its span less the gaps it was
-  /// lost in.
-  int get inViewMs => seenMs([for (final p in points) p.ms]);
+  /// How long it was in view ([seenMs]): its span less the gaps longer
+  /// than [maxGapMs] it was lost in.
+  int inViewMs({int maxGapMs = liveGapMs}) =>
+      seenMs([for (final p in points) p.ms], maxGapMs: maxGapMs);
 
   List<TrackSample> get samples => [
     for (final p in points) TrackSample(ms: p.ms, box: p.detection.box),

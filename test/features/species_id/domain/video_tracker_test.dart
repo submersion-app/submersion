@@ -458,7 +458,9 @@ void main() {
       expect(tracks.single.points, hasLength(6));
       expect((tracks.single.startMs, tracks.single.endMs), (0, 2250));
       // In view 500 ms before and 500 ms after.
-      expect(tracks.single.inViewMs, 1000);
+      expect(tracks.single.inViewMs(), 1000);
+      // With a live reach of 1.25 s, the 1.25 s step counts as in view.
+      expect(tracks.single.inViewMs(maxGapMs: 1250), 2250);
     });
 
     test('hidden for 3 s it is one track; for longer, two', () {
@@ -566,6 +568,7 @@ void main() {
     expect(seenMs(const [0, 250, 500, 1250]), 1250);
     // 500 seen, then 3 s out of sight, then 250 more.
     expect(seenMs(const [0, 250, 500, 3750, 4000]), 750);
+    expect(seenMs(const [0, 250, 500, 3750, 4000], maxGapMs: 3250), 4000);
   });
 
   test('a track resumed past the lost reach links nothing and closes on '
