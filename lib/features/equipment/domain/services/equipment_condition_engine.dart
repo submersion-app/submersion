@@ -476,6 +476,8 @@ class EquipmentConditionEngine {
   static const _correlatedTypes = {
     EquipmentType.regulator,
     EquipmentType.bcd,
+    // A standalone wing has the BCD's inflator and dumps (issue #5110).
+    EquipmentType.wing,
     EquipmentType.drysuit,
     EquipmentType.light,
   };
