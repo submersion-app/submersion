@@ -117,6 +117,7 @@ part 'helpers/equipment_photo_migrations.dart';
 part 'helpers/first_day_of_week_migrations.dart';
 part 'helpers/insight_migrations.dart';
 part 'helpers/nearby_migrations.dart';
+part 'helpers/held_media_migrations.dart';
 part 'helpers/media_migrations.dart';
 part 'helpers/media_people_migrations.dart';
 part 'helpers/planner_defaults_migrations.dart';

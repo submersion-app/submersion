@@ -53,6 +53,9 @@ import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 import 'package:submersion/core/services/sync/changeset_log/tombstone_horizon.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone_applier.dart';
+import 'package:submersion/core/services/sync/held_media_export.dart';
+import 'package:submersion/core/services/sync/held_media_releaser.dart';
+import 'package:submersion/core/services/sync/held_media_store.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
@@ -312,6 +315,17 @@ class SyncService {
 
   /// What the running apply has deleted for [_onIdentificationsDeleted].
   final List<DeletedIdentification> _deletedIdentifications = [];
+
+  /// Each device's schema, by id, as its manifest or a nearby hello gave
+  /// it: whose delete of held media is the diver's (issue #5122). Kept for
+  /// the app's run; each pull reads every manifest again before applying.
+  Map<String, int> _writerSchemas = const {};
+
+  void _recordWriterSchema(String? deviceId, int? schema) {
+    if (deviceId == null || schema == null) return;
+    _writerSchemas = {..._writerSchemas, deviceId: schema};
+  }
+
   final _log = LoggerService.forClass(SyncService);
   final _uuid = const Uuid();
 
@@ -443,11 +457,17 @@ class SyncService {
   /// when this device last synced with that peer: it scopes the two-sided
   /// edit conflict and the tombstone age guard to the peer, as the cloud
   /// path scopes them to its backend.
+  ///
+  /// [peerSchemaVersion] is the peer's build, from its hello: a delete of
+  /// held media it made is applied only from a build that keeps such media.
   Future<NearbyApplyResult> applyNearbyPayload(
     SyncPayload payload, {
     required DateTime? lastSync,
+    String? peerDeviceId,
+    int? peerSchemaVersion,
   }) {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+    _recordWriterSchema(peerDeviceId, peerSchemaVersion);
     return SyncCoordinator.run(() async {
       final r = await _applyRemotePayload(payload, lastSync);
       return (
@@ -465,9 +485,11 @@ class SyncService {
     String filePath, {
     required DateTime? lastSync,
     String? peerDeviceId,
+    int? peerSchemaVersion,
     void Function(double fraction)? onProgress,
   }) {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+    _recordWriterSchema(peerDeviceId, peerSchemaVersion);
     return SyncCoordinator.run(() async {
       final r = await _applyRemoteBaseFile(
         filePath,
@@ -782,6 +804,10 @@ class SyncService {
         // the folder and needs a fresh view).
         preListedFiles: fence.files,
         peerNames: _peerNames,
+        onPeerManifest: (manifest) => _recordWriterSchema(
+          manifest.deviceId,
+          manifest.writerSchemaVersion ?? manifest.schemaVersion,
+        ),
         apply: (payload) async {
           final r = await _applyRemotePayload(payload, lastSyncTime);
           recordsSynced += r.recordsApplied;
@@ -888,6 +914,24 @@ class SyncService {
         0.8,
         _l10n.settings_cloudSync_progress_publishing,
       );
+      // Media kept with no place stays out of the export while a device in
+      // the library would delete it (issue #5122). Rows held back before go
+      // out once it is safe: stamped again before the export reads them.
+      // Peers on another library epoch are inert (the reader skips them),
+      // so they never hold anything back.
+      final holdUnplacedMedia = olderPeersPresent(pullResult.peerManifests, {
+        ...fencedPeerIds,
+        ...pullResult.skippedPeerDeviceIds,
+        deviceId,
+      });
+      try {
+        await HeldMediaReleaser(
+          db: DatabaseService.instance.database,
+          sync: _syncRepository,
+        ).release(holding: holdUnplacedMedia);
+      } catch (e) {
+        _log.warning('Held media release failed (non-fatal): $e');
+      }
       final deletions = await _syncRepository.getAllDeletions();
       var publishAttempted = false;
       // When the publish read its export snapshot (see
@@ -919,6 +963,7 @@ class SyncService {
               _recordUploadNonce(nonce, provider.providerId),
           deviceName: await _deviceNameForManifest(),
           appliedPeerHlc: appliedPeerHlc,
+          holdUnplacedMedia: holdUnplacedMedia,
           // Republish our log from what we actually hold now. Without this
           // the cold-start above never converges: our manifest keeps
           // claiming an HLC we no longer have, so the next sync detects the
@@ -2964,6 +3009,10 @@ class SyncService {
     var failed = 0;
     // A library site ignores a personal tombstone (issue #2567).
     final librarySites = await _serializer.librarySiteIds();
+    // Media held back from an older device ignores that device's delete
+    // (issue #5122): its orphan sweep or a delete cascade. A delete the
+    // diver made on a device that keeps such media is applied.
+    final heldMedia = await HeldMediaStore().heldIds();
 
     for (final entry in deletions.entries) {
       final entityType = entry.key;
@@ -3005,6 +3054,18 @@ class SyncService {
             final local = await _serializer.fetchRecord(entityType, recordId);
             if (local != null && librarySites.contains(local['siteId'])) {
               continue;
+            }
+          }
+          if (heldMedia.isNotEmpty &&
+              !isDeliberateHeldMediaDelete(deletion.hlc, _writerSchemas)) {
+            if (entityType == 'media' && heldMedia.contains(recordId)) {
+              continue;
+            }
+            if (heldMediaChildEntities.contains(entityType)) {
+              final local = await _serializer.fetchRecord(entityType, recordId);
+              if (local != null && heldMedia.contains(local['mediaId'])) {
+                continue;
+              }
             }
           }
           if (pendingByEntity[entityType]?.contains(recordId) == true) {
@@ -5305,11 +5366,24 @@ class SyncService {
     final watermark = state?.publishedHlcHigh;
     SyncPayload? pending;
     if (watermark != null) {
+      // Media held back from an older device (issue #5122) is in no cloud
+      // log, and sits below the watermark: stamped again, it is in the
+      // snapshot. The snapshot holds nothing back, as it never leaves this
+      // device; the next publish decides what to hold.
+      try {
+        await HeldMediaReleaser(
+          db: db,
+          sync: _syncRepository,
+        ).release(holding: false);
+      } catch (e) {
+        _log.warning('Held media release before rejoin failed: $e');
+      }
       pending = await _serializer.exportChangeset(
         deviceId: deviceId,
         hlcWatermark: watermark,
         deletions: await _syncRepository.getAllDeletions(),
         seq: 0,
+        holdUnplacedMedia: false,
       );
     }
 

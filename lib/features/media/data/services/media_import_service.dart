@@ -426,6 +426,23 @@ class MediaImportService {
     );
   }
 
+  /// Keeps [selectedAssets] in the library with no dive, site or gear
+  /// (issue #5122), marked `retain_in_library` so the orphan sweep and the
+  /// delete cascades leave them. Same dedupe contract as
+  /// [importPhotosForSite], against the rows already kept that way.
+  Future<ImportResult> importPhotosUnplaced({
+    required List<AssetInfo> selectedAssets,
+  }) async {
+    DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.mediaImport);
+    return _importOwned(
+      selectedAssets: selectedAssets,
+      owner: 'no place',
+      galleryLinks: _mediaRepository.getGalleryLinksUnplaced,
+      localPaths: _mediaRepository.getLinkedLocalPathsUnplaced,
+      link: (item) => item.copyWith(retainInLibrary: true),
+    );
+  }
+
   /// Links [selectedAssets] to gear item [equipmentId] (issue #3355), and to
   /// check-in [observationId] when the photos back one up. Like a site
   /// attachment: no dive window, no enrichment, and picks already linked to

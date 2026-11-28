@@ -27,7 +27,7 @@ void main() {
               child: SizedBox(
                 width: width,
                 child: const RecordedNearbyLine(
-                  request: (diveId: 'd1', photo: null),
+                  request: (diveId: 'd1', photo: null, siteId: null),
                   gbifKeys: {1},
                 ),
               ),

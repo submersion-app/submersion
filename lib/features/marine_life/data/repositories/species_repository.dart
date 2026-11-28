@@ -25,8 +25,16 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart'
 const _log = LoggerService('SpeciesRepository');
 
 class SpeciesRepository {
-  AppDatabase get _db => DatabaseService.instance.database;
-  final SyncRepository _syncRepository = SyncRepository();
+  /// [database] is the open logbook unless given: the Identify viewer gives
+  /// its own in-memory one (issue #5122), and sync bookkeeping goes there
+  /// with the rows.
+  SpeciesRepository({AppDatabase? database})
+    : _database = database,
+      _syncRepository = SyncRepository(database: database);
+
+  final AppDatabase? _database;
+  AppDatabase get _db => _database ?? DatabaseService.instance.database;
+  final SyncRepository _syncRepository;
   final LibraryEditStamper _libraryStamper = LibraryEditStamper();
   final _uuid = const Uuid();
 

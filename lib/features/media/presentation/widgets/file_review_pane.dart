@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
+import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/helpers/dive_group_header_text.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/capture_time_offset_bar.dart';
@@ -129,7 +132,16 @@ class FileReviewPane extends ConsumerWidget {
                   // title, so the label squeezed "Unmatched" to one fragment
                   // per line in German (issue #2717).
                   subtitle: assignableDiveId == null
-                      ? unmatchedCount
+                      ? Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            unmatchedCount,
+                            _UnmatchedTargetChips(
+                              target: state.unmatchedTarget,
+                            ),
+                          ],
+                        )
                       : Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,6 +211,59 @@ class FileReviewPane extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Where the unmatched files of a session with no owner go (issue #5122):
+/// all on one site, or kept with no place. Tapping the chosen chip again
+/// leaves them out, as before.
+class _UnmatchedTargetChips extends ConsumerWidget {
+  const _UnmatchedTargetChips({required this.target});
+
+  final MediaAttachTarget? target;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final notifier = ref.read(filesTabNotifierProvider.notifier);
+    final site = target;
+    final siteName = site is SiteAttachTarget
+        ? ref.watch(siteProvider(site.siteId)).value?.name
+        : null;
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 4,
+        children: [
+          FilterChip(
+            key: const ValueKey('files_unmatched_all_on_site'),
+            avatar: const Icon(Icons.place_outlined, size: 18),
+            label: Text(siteName ?? l10n.media_photoPicker_files_allOnSite),
+            selected: site is SiteAttachTarget,
+            onSelected: (selected) async {
+              if (!selected) return notifier.setUnmatchedTarget(null);
+              final result = await showSitePicker(
+                context,
+                useDeviceLocation: false,
+              );
+              if (result is SitePicked) {
+                notifier.setUnmatchedTarget(SiteAttachTarget(result.site.id));
+              }
+            },
+          ),
+          FilterChip(
+            key: const ValueKey('files_unmatched_all_unplaced'),
+            avatar: const Icon(Icons.inventory_2_outlined, size: 18),
+            label: Text(l10n.media_photoPicker_files_allUnplaced),
+            selected: target is UnplacedAttachTarget,
+            onSelected: (selected) => notifier.setUnmatchedTarget(
+              selected ? const UnplacedAttachTarget() : null,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -18,6 +18,8 @@ import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     show GeoPoint;
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart'
+    show siteProvider;
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
@@ -29,14 +31,15 @@ import 'package:submersion/features/media/data/services/metadata_write_service.d
 import 'package:submersion/features/media/domain/entities/media_dive_window.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
+import 'package:submersion/features/media/presentation/pages/viewer_scratch.dart';
 import 'package:submersion/features/media/presentation/editing/photo_edit_fields.dart';
 import 'package:submersion/features/media/presentation/editing/photo_sitting_shown.dart';
 import 'package:submersion/features/media/presentation/editing/photo_viewer_editing.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
+import 'package:submersion/features/media/presentation/helpers/video_diver_moves.dart';
 import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
 import 'package:submersion/features/media/presentation/helpers/set_time_seed.dart';
-import 'package:submersion/features/media/presentation/helpers/video_diver_moves.dart';
 import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
@@ -80,8 +83,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/media/presentation/match_confidence_display.dart';
-import 'package:submersion/features/species_id/presentation/providers/video_sighting_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/identification_labels.dart';
+import 'package:submersion/features/species_id/presentation/providers/video_sighting_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/identification_trigger.dart';
 import 'package:submersion/features/species_id/presentation/widgets/labels_menu.dart';
 import 'package:submersion/features/species_id/presentation/widgets/photo_identification_layer.dart';
@@ -93,7 +96,9 @@ part 'media_viewer_bottom_metadata.dart';
 part 'media_viewer_chrome.dart';
 part 'media_viewer_gallery.dart';
 part 'media_viewer_keyboard.dart';
+part 'media_viewer_paging.dart';
 part 'media_viewer_perdix.dart';
+part 'media_viewer_scratch.dart';
 part 'media_viewer_sightings.dart';
 part 'media_viewer_video_item.dart';
 part 'media_viewer_write_metadata.dart';
@@ -131,6 +136,10 @@ class MediaViewerPage extends ConsumerStatefulWidget {
   /// video starts at its first sighting, and its bar marks them all.
   final String? focusSpeciesId;
 
+  /// Set for files the diver has not kept (issue #5122): see
+  /// [ViewerScratch].
+  final ViewerScratch? scratch;
+
   const MediaViewerPage({
     super.key,
     required this.mediaList,
@@ -139,6 +148,7 @@ class MediaViewerPage extends ConsumerStatefulWidget {
     this.captionFor,
     this.initialVideoPosition,
     this.focusSpeciesId,
+    this.scratch,
   });
 
   @override
@@ -152,6 +162,25 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
         ColorAdjustViewerMixin<MediaViewerPage>,
         PeopleTagViewerMixin<MediaViewerPage>,
         PhotoViewerEditing<MediaViewerPage> {
+  /// A file not kept holds its species in a sitting of its own (#5122).
+  @override
+  EditSession<PhotoRecord>? get photoSitting =>
+      widget.scratch == null ? super.photoSitting : _scratchSitting();
+
+  /// Never left unsaved for a file not kept: the Keep sheet reads it.
+  @override
+  Future<bool> leaveGuarded() =>
+      widget.scratch == null ? super.leaveGuarded() : _scratchLeave();
+
+  /// Each scratch file's sitting by id, the files kept, and a keep running.
+  final Map<String, EditSession<PhotoRecord>> _scratchSittings = {};
+  Set<String> _scratchKept = const {};
+  bool _scratchKeeping = false;
+
+  /// Records [ids] as kept: their banner says so.
+  void _markScratchKept(Set<String> ids) =>
+      setState(() => _scratchKept = {..._scratchKept, ...ids});
+
   /// Tag mode holds its changes in the photo's sitting.
   @override
   EditSession<PhotoRecord>? get peopleSitting => photoSitting;
@@ -167,18 +196,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     dismissHeldOffer();
     if (taggingPeople) togglePeopleTagging();
   }
-
-  /// The pageable subset of [MediaViewerPage.mediaList].
-  ///
-  /// Documents (PDF, docx, ...) resolve to raw bytes the Image widgets cannot
-  /// decode, so they never enter the pager: they would render as a grey
-  /// placeholder tile, count toward the "n / m" indicator, and be swipeable
-  /// onto for no purpose. Filtering here rather than in each caller covers
-  /// every wrapper at once (PhotoViewerPage, TripPhotoViewerPage,
-  /// SiteMediaViewerPage, and the library view), which is what the per-caller
-  /// guards kept missing.
-  List<MediaItem> get _pageableMedia =>
-      widget.mediaList.where((m) => !m.isDocument).toList();
 
   final _metadataWriter = MetadataWriteService();
 
@@ -279,8 +296,9 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   /// pushed. Trusting it is what produced this class of bug twice already,
   /// so the rule is that the on-screen item always comes from the database.
   /// The passed item stands in only while the read is in flight.
-  MediaItem _hydrate(MediaItem item) =>
-      ref.watch(mediaByIdProvider(item.id)).value ?? item;
+  MediaItem _hydrate(MediaItem item) => widget.scratch != null
+      ? item
+      : ref.watch(mediaByIdProvider(item.id)).value ?? item;
 
   @override
   void initState() {
@@ -301,6 +319,9 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
 
   @override
   void dispose() {
+    for (final sitting in _scratchSittings.values) {
+      sitting.dispose();
+    }
     disposePhotoEditing();
     _pageController.dispose();
     _audio.dispose();
@@ -325,31 +346,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     }
     cancelVideoOverlayClock();
     setState(() => _showOverlay = show);
-  }
-
-  /// Steps [delta] pages from the last page *requested*, not the last one
-  /// settled on.
-  ///
-  /// onPageChanged only fires once the pager crosses the halfway point, so
-  /// [_currentIndex] lags an in-flight animation; stepping from it would drop
-  /// the second of two quick presses instead of advancing two items.
-  void _stepPage(int delta) {
-    if (!_pageController.hasClients) return;
-    final count = keepSittingPhoto(_pageableMedia).length;
-    if (count == 0) return;
-    // The gallery is live and can shrink under the viewer, stranding the nav
-    // target past the new end. Clamp to the same bounds the arrows and the
-    // page indicator are drawn from, or every press would fall out of range
-    // and navigation would freeze with the controls still showing.
-    final target = _navTargetIndex.clamp(0, count - 1) + delta;
-    // Out-of-range steps do nothing: the ends of the list do not wrap.
-    if (target < 0 || target >= count) return;
-    _navTargetIndex = target;
-    _pageController.animateToPage(
-      target,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOut,
-    );
   }
 
   @override
@@ -395,390 +391,405 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       ),
     );
 
-    return photoEditScope(
-      backsOutFirst: () => isFullscreen,
-      child: fullscreenPopScope(
-        child: Scaffold(
-          backgroundColor: Colors.black,
-          body: Builder(
-            builder: (context) {
-              if (mediaList.isEmpty) {
-                // Nothing left to tap means no exit button (a sync can empty the
-                // list under the viewer).
-                exitFullscreenWhenEmpty();
-                return Center(
-                  child: Text(
-                    context.l10n.media_photoViewer_noPhotosAvailable,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                );
-              }
-
-              // Non-null once mediaList is known non-empty. Every consumer below
-              // reads the hydrated record: the mini profile, the Perdix gate, the
-              // toolbar's Go-to-dive and write-metadata flags, the bottom
-              // depth/temp/elapsed chips and the info sheet.
-              final heldProfile = diveAsync.value?.profile ?? const [];
-              final currentItem = shownItem(hydratedItem!, heldProfile);
-              final enrichment = currentItem.enrichment;
-              if (enrichment == null && currentDiveId != null) {
-                _backfillEnrichment(currentDiveId);
-              }
-
-              // Get dive profile for the mini chart overlay
-              final diveProfile = diveAsync.whenOrNull(
-                data: (dive) => dive?.profile ?? [],
-              );
-
-              final dive = diveAsync.value;
-              final profileLength = MediaDiveWindow.profileLengthSeconds(
-                diveProfile ?? const [],
-              );
-              // Whether this item is synced to a moment in the profile, decided
-              // from the enrichment alone (inside the dive-window tolerance, or
-              // pinned by the diver). Media that is not synced can never show
-              // the Perdix face, whatever the analysis would say.
-              final positioned =
-                  enrichment != null &&
-                  enrichment.isWithinDiveWindow(profileLength);
-              final perdixPrecondition = positioned;
-
-              PerdixFaceResolver? perdixResolver;
-              if (currentDiveId != null &&
-                  perdixPrecondition &&
-                  settings.perdixOverlayEnabled) {
-                perdixResolver = _perdixResolverFor(currentDiveId, dive);
-              }
-              // Toolbar-toggle visibility, decided the same cheap way in BOTH
-              // toggle states: a synced item and a non-empty merged profile.
-              // Deliberately NOT the resolver's answer. On a multi-computer dive
-              // whose ACTIVE source is metadata-only, the resolver scopes to an
-              // empty bucket and reports unavailable; a toggle that followed it
-              // would vanish the moment the user turned it on, stranding the
-              // setting with no control on this page to turn it back off. The
-              // cheap test's cost is an inert toggle in that case, never a
-              // vanished one. The resolver's own availability still gates the
-              // face mount below.
-              final perdixToggleAvailable =
-                  perdixPrecondition && (diveProfile?.isNotEmpty ?? false);
-
-              // People tag mode (issue #1745), shared with every gallery page.
-              final peopleSession = buildPeopleSession(
-                pauseVideo: (id) => unawaited(_videoControllers[id]?.pause()),
-              );
-
-              // The bottom panel, a video's scrub bar its top row so no tag
-              // can cover it (issue #4762).
-              final panelShown =
-                  (_showOverlay || photoUnlocked) &&
-                  !isFullscreen &&
-                  !pickingWhite &&
-                  !taggingPeople;
-              final miniProfileShown =
-                  diveProfile != null && diveProfile.isNotEmpty && positioned;
-
-              final viewer = GestureDetector(
-                // Swipe down to close (common pattern for fullscreen viewers)
-                onVerticalDragEnd: (details) {
-                  if (details.primaryVelocity != null &&
-                      details.primaryVelocity! > 300) {
-                    closeGuarded();
-                  }
-                },
-                child: Stack(
-                  children: [
-                    RepaintBoundary(
-                      key: galleryBoundaryKey,
-                      child: _PhotoGallery(
-                        focusSpeciesId: widget.focusSpeciesId,
-                        mediaList: shownMediaList(mediaList, heldProfile),
-                        pagingLocked: photoUnlocked,
-                        pageController: _pageController,
-                        onPageChanged: (index) {
-                          // Swipes and settles both land here, which is what
-                          // re-syncs the nav target after a gesture.
-                          setState(() {
-                            _currentIndex = index;
-                            _navTargetIndex = index;
-                            selectedPeopleTagId = null;
-                          });
-                          // Controls left up on a paused video have no timer; the
-                          // next page restarts the 3-second hide so they do not
-                          // linger over a photo nobody tapped.
-                          if (isFullscreen && fullscreenControlsVisible) {
-                            revealFullscreenControls(autoHide: true);
-                          }
-                          // A mouse-move clock left by a video is not the
-                          // next page's to act on.
-                          cancelVideoOverlayClock();
-                        },
-                        showOverlay: isFullscreen
-                            ? fullscreenControlsVisible
-                            : _showOverlay || photoUnlocked,
-                        fullscreen: isFullscreen,
-                        onFullscreenTap: toggleFullscreenControls,
-                        onSetOverlay: _onSetOverlay,
-                        onVideoHoldChanged: videoHoldChanged,
-                        onVideoControllerChanged: _onVideoControllerChanged,
-                        audio: _audio,
-                        currentIndex: currentIndex,
-                        people: peopleSession,
-                        identificationsEditable: !photoLocked,
-                        hideIdentifications: pickingWhite,
-                        videoControlsInset: panelShown ? _bottomPanelHeight : 0,
-                      ),
+    return _scratchPopScope(
+      child: photoEditScope(
+        backsOutFirst: () => isFullscreen,
+        child: fullscreenPopScope(
+          child: Scaffold(
+            backgroundColor: Colors.black,
+            body: Builder(
+              builder: (context) {
+                if (mediaList.isEmpty) {
+                  // Nothing left to tap means no exit button (a sync can empty the
+                  // list under the viewer).
+                  exitFullscreenWhenEmpty();
+                  return Center(
+                    child: Text(
+                      context.l10n.media_photoViewer_noPhotosAvailable,
+                      style: const TextStyle(color: Colors.white),
                     ),
+                  );
+                }
 
-                    // A photo's tap layer; a video takes its own taps.
-                    if (!currentItem.isVideo)
-                      Positioned.fill(
-                        child: Semantics(
-                          label:
-                              context.l10n.media_photoViewer_toggleOverlayLabel,
-                          child: GestureDetector(
-                            behavior: HitTestBehavior.translucent,
-                            onTapUp: taggingPeople && !pickingWhite
-                                ? null
-                                : _photoTapUp(
-                                    currentItem,
-                                    () => context.size ?? Size.zero,
-                                    isFullscreen
-                                        ? toggleFullscreenControls
-                                        : () {
-                                            cancelVideoOverlayClock();
-                                            setState(
-                                              () =>
-                                                  _showOverlay = !_showOverlay,
-                                            );
-                                          },
-                                  ),
-                            child: const SizedBox.expand(),
-                          ),
+                // Non-null once mediaList is known non-empty. Every consumer below
+                // reads the hydrated record: the mini profile, the Perdix gate, the
+                // toolbar's Go-to-dive and write-metadata flags, the bottom
+                // depth/temp/elapsed chips and the info sheet.
+                final heldProfile = diveAsync.value?.profile ?? const [];
+                final currentItem = shownItem(hydratedItem!, heldProfile);
+                final enrichment = currentItem.enrichment;
+                if (enrichment == null && currentDiveId != null) {
+                  _backfillEnrichment(currentDiveId);
+                }
+
+                // Get dive profile for the mini chart overlay
+                final diveProfile = diveAsync.whenOrNull(
+                  data: (dive) => dive?.profile ?? [],
+                );
+
+                final dive = diveAsync.value;
+                final profileLength = MediaDiveWindow.profileLengthSeconds(
+                  diveProfile ?? const [],
+                );
+                // Whether this item is synced to a moment in the profile, decided
+                // from the enrichment alone (inside the dive-window tolerance, or
+                // pinned by the diver). Media that is not synced can never show
+                // the Perdix face, whatever the analysis would say.
+                final positioned =
+                    enrichment != null &&
+                    enrichment.isWithinDiveWindow(profileLength);
+                final perdixPrecondition = positioned;
+
+                PerdixFaceResolver? perdixResolver;
+                if (currentDiveId != null &&
+                    perdixPrecondition &&
+                    settings.perdixOverlayEnabled) {
+                  perdixResolver = _perdixResolverFor(currentDiveId, dive);
+                }
+                // Toolbar-toggle visibility, decided the same cheap way in BOTH
+                // toggle states: a synced item and a non-empty merged profile.
+                // Deliberately NOT the resolver's answer. On a multi-computer dive
+                // whose ACTIVE source is metadata-only, the resolver scopes to an
+                // empty bucket and reports unavailable; a toggle that followed it
+                // would vanish the moment the user turned it on, stranding the
+                // setting with no control on this page to turn it back off. The
+                // cheap test's cost is an inert toggle in that case, never a
+                // vanished one. The resolver's own availability still gates the
+                // face mount below.
+                final perdixToggleAvailable =
+                    perdixPrecondition && (diveProfile?.isNotEmpty ?? false);
+
+                // People tag mode (issue #1745), shared with every gallery page.
+                final peopleSession = buildPeopleSession(
+                  pauseVideo: (id) => unawaited(_videoControllers[id]?.pause()),
+                );
+
+                // The bottom panel, a video's scrub bar its top row so no tag
+                // can cover it (issue #4762).
+                final panelShown =
+                    (_showOverlay || photoUnlocked) &&
+                    !isFullscreen &&
+                    !pickingWhite &&
+                    !taggingPeople;
+                final miniProfileShown =
+                    diveProfile != null && diveProfile.isNotEmpty && positioned;
+
+                final viewer = GestureDetector(
+                  // Swipe down to close (common pattern for fullscreen viewers)
+                  onVerticalDragEnd: (details) {
+                    if (details.primaryVelocity != null &&
+                        details.primaryVelocity! > 300) {
+                      closeGuarded();
+                    }
+                  },
+                  child: Stack(
+                    children: [
+                      RepaintBoundary(
+                        key: galleryBoundaryKey,
+                        child: _PhotoGallery(
+                          focusSpeciesId: widget.focusSpeciesId,
+                          mediaList: shownMediaList(mediaList, heldProfile),
+                          pagingLocked: photoUnlocked,
+                          pageController: _pageController,
+                          onPageChanged: (index) {
+                            // Swipes and settles both land here, which is what
+                            // re-syncs the nav target after a gesture.
+                            setState(() {
+                              _currentIndex = index;
+                              _navTargetIndex = index;
+                              selectedPeopleTagId = null;
+                            });
+                            // Controls left up on a paused video have no timer; the
+                            // next page restarts the 3-second hide so they do not
+                            // linger over a photo nobody tapped.
+                            if (isFullscreen && fullscreenControlsVisible) {
+                              revealFullscreenControls(autoHide: true);
+                            }
+                            // A mouse-move clock left by a video is not the
+                            // next page's to act on.
+                            cancelVideoOverlayClock();
+                          },
+                          showOverlay: isFullscreen
+                              ? fullscreenControlsVisible
+                              : _showOverlay || photoUnlocked,
+                          fullscreen: isFullscreen,
+                          onFullscreenTap: toggleFullscreenControls,
+                          onSetOverlay: _onSetOverlay,
+                          onVideoHoldChanged: videoHoldChanged,
+                          onVideoControllerChanged: _onVideoControllerChanged,
+                          audio: _audio,
+                          currentIndex: currentIndex,
+                          people: peopleSession,
+                          // A file not kept is the diver's to name.
+                          identificationsEditable: _namesEditable(currentItem),
+                          hideIdentifications: pickingWhite,
+                          videoControlsInset: panelShown
+                              ? _bottomPanelHeight
+                              : 0,
                         ),
                       ),
 
-                    // Above the tap target, which would take its taps.
-                    if (!currentItem.isVideo)
-                      MotionPhotoOverlay(
-                        item: currentItem,
-                        enabled: !pickingWhite && !taggingPeople,
-                        showButton: isFullscreen
-                            ? fullscreenControlsVisible
-                            : _showOverlay || photoUnlocked,
-                      ),
-
-                    // "Pick white" on a paused video: the player owns ordinary
-                    // taps, so the pick gets its own catcher above it.
-                    if (pickingWhite && currentItem.isVideo)
-                      Positioned.fill(
-                        child: LayoutBuilder(
-                          builder: (context, box) => GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTapUp: (details) => _pickWhiteAt(
-                              currentItem,
-                              details.localPosition,
-                              box.biggest,
+                      // A photo's tap layer; a video takes its own taps.
+                      if (!currentItem.isVideo)
+                        Positioned.fill(
+                          child: Semantics(
+                            label: context
+                                .l10n
+                                .media_photoViewer_toggleOverlayLabel,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.translucent,
+                              onTapUp: taggingPeople && !pickingWhite
+                                  ? null
+                                  : _photoTapUp(
+                                      currentItem,
+                                      () => context.size ?? Size.zero,
+                                      isFullscreen
+                                          ? toggleFullscreenControls
+                                          : () {
+                                              cancelVideoOverlayClock();
+                                              setState(
+                                                () => _showOverlay =
+                                                    !_showOverlay,
+                                              );
+                                            },
+                                    ),
+                              child: const SizedBox.expand(),
                             ),
                           ),
                         ),
-                      ),
-                    if (pickingWhite) const PickWhiteHint(),
 
-                    // Looks for marine life in the photo on screen (issue
-                    // #4668); never for the neighbours built ahead.
-                    IdentificationTrigger(
-                      key: const ValueKey('media_identification_trigger'),
-                      item: currentItem,
-                      location: _photoLocation(currentItem, diveAsync.value),
-                    ),
+                      // Above the tap target, which would take its taps.
+                      if (!currentItem.isVideo)
+                        MotionPhotoOverlay(
+                          item: currentItem,
+                          enabled: !pickingWhite && !taggingPeople,
+                          showButton: isFullscreen
+                              ? fullscreenControlsVisible
+                              : _showOverlay || photoUnlocked,
+                        ),
 
-                    // The controls; while unlocked the bar never hides: it
-                    // holds Cancel and Save.
-                    if ((_showOverlay || photoUnlocked) &&
-                        !isFullscreen &&
-                        !pickingWhite) ...[
-                      // Top app bar
-                      _toolbar(
-                        context,
-                        currentItem: currentItem,
-                        currentIndex: currentIndex,
-                        totalCount: mediaList.length,
-                        currentDiveId: currentDiveId,
-                        enrichment: enrichment,
-                        perdixToggleAvailable: perdixToggleAvailable,
-                        perdixEnabled: settings.perdixOverlayEnabled,
-                        storedPhoto: storedPhoto,
+                      // "Pick white" on a paused video: the player owns ordinary
+                      // taps, so the pick gets its own catcher above it.
+                      if (pickingWhite && currentItem.isVideo)
+                        Positioned.fill(
+                          child: LayoutBuilder(
+                            builder: (context, box) => GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTapUp: (details) => _pickWhiteAt(
+                                currentItem,
+                                details.localPosition,
+                                box.biggest,
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (pickingWhite) const PickWhiteHint(),
+
+                      // Looks for marine life in the photo on screen (issue
+                      // #4668); never for the neighbours built ahead.
+                      if (widget.scratch != null)
+                        _scratchBanner(context, currentItem),
+
+                      IdentificationTrigger(
+                        key: const ValueKey('media_identification_trigger'),
+                        item: currentItem,
                         location: _photoLocation(currentItem, diveAsync.value),
                       ),
 
-                      // What colour correction the item is drawn with.
-                      Positioned(
-                        top:
-                            MediaQuery.paddingOf(context).top +
-                            kMediaViewerToolbarHeight +
-                            4,
-                        left: 12,
-                        child: ColorCorrectionLabel(item: currentItem),
-                      ),
+                      // The controls; while unlocked the bar never hides: it
+                      // holds Cancel and Save.
+                      if ((_showOverlay || photoUnlocked) &&
+                          !isFullscreen &&
+                          !pickingWhite) ...[
+                        // Top app bar
+                        _toolbar(
+                          context,
+                          currentItem: currentItem,
+                          currentIndex: currentIndex,
+                          totalCount: mediaList.length,
+                          currentDiveId: currentDiveId,
+                          enrichment: enrichment,
+                          perdixToggleAvailable: perdixToggleAvailable,
+                          perdixEnabled: settings.perdixOverlayEnabled,
+                          storedPhoto: storedPhoto,
+                          location: _photoLocation(
+                            currentItem,
+                            diveAsync.value,
+                          ),
+                        ),
 
-                      // Where the item comes from (issue #3355).
-                      if (widget.captionFor?.call(currentItem)
-                          case final caption? when caption.isNotEmpty)
+                        // What colour correction the item is drawn with.
                         Positioned(
                           top:
                               MediaQuery.paddingOf(context).top +
                               kMediaViewerToolbarHeight +
                               4,
-                          right: 12,
-                          child: MediaViewerCaption(text: caption),
+                          left: 12,
+                          child: ColorCorrectionLabel(item: currentItem),
                         ),
 
-                      // Tag mode keeps the photo clear below the toolbar.
-                      if (!taggingPeople) ...[
-                        // Previous / next controls. Mounted with the rest of the
-                        // chrome, so the tap-to-hide gesture takes them away too.
-                        MediaNavArrows(
-                          currentIndex: currentIndex,
-                          totalCount: mediaList.length,
-                          onPrevious: () => _step(-1),
-                          onNext: () => _step(1),
-                        ),
+                        // Where the item comes from (issue #3355).
+                        if (widget.captionFor?.call(currentItem)
+                            case final caption? when caption.isNotEmpty)
+                          Positioned(
+                            top:
+                                MediaQuery.paddingOf(context).top +
+                                kMediaViewerToolbarHeight +
+                                4,
+                            right: 12,
+                            child: MediaViewerCaption(text: caption),
+                          ),
 
-                        // Mini dive profile overlay (lower right)
-                        if (diveProfile != null &&
-                            diveProfile.isNotEmpty &&
-                            positioned)
-                          PositionedMiniProfileOverlay(
-                            profile: diveProfile,
-                            photoElapsedSeconds: enrichment.elapsedSeconds!,
-                            photoDepthMeters: enrichment.depthMeters,
+                        // Tag mode keeps the photo clear below the toolbar.
+                        if (!taggingPeople) ...[
+                          // Previous / next controls. Mounted with the rest of the
+                          // chrome, so the tap-to-hide gesture takes them away too.
+                          MediaNavArrows(
+                            currentIndex: currentIndex,
+                            totalCount: mediaList.length,
+                            onPrevious: () => _step(-1),
+                            onNext: () => _step(1),
+                          ),
+
+                          // Mini dive profile overlay (lower right)
+                          if (diveProfile != null &&
+                              diveProfile.isNotEmpty &&
+                              positioned)
+                            PositionedMiniProfileOverlay(
+                              profile: diveProfile,
+                              photoElapsedSeconds: enrichment.elapsedSeconds!,
+                              photoDepthMeters: enrichment.depthMeters,
+                              settings: units.settings,
+                              visible: _showOverlay || photoUnlocked,
+                            ),
+
+                          // Bottom metadata
+                          _bottomPanel(
+                            context,
+                            item: currentItem,
                             settings: units.settings,
-                            visible: _showOverlay || photoUnlocked,
+                            diveProfile: diveProfile,
+                            profileLength: profileLength,
+                            photoLocked: photoLocked,
+                            siteName: diveAsync.whenOrNull(
+                              data: (dive) => dive?.site?.name,
+                            ),
+                            miniProfileShown: miniProfileShown,
                           ),
-
-                        // Bottom metadata
-                        _bottomPanel(
-                          context,
-                          item: currentItem,
-                          settings: units.settings,
-                          diveProfile: diveProfile,
-                          profileLength: profileLength,
-                          photoLocked: photoLocked,
-                          siteName: diveAsync.whenOrNull(
-                            data: (dive) => dive?.site?.name,
-                          ),
-                          miniProfileShown: miniProfileShown,
-                        ),
+                        ],
                       ],
-                    ],
 
-                    // People tag mode's hint and actions (issue #1745).
-                    if (taggingPeople)
-                      peopleTagHint(
-                        currentItem,
-                        video: currentItem.isVideo
-                            ? _videoControllers[currentItem.id]?.value
-                            : null,
-                        onShowMoment: (tag) => _showMoment(currentItem, tag),
-                      ),
-
-                    // Perdix dive computer overlay. Deliberately independent of
-                    // the _showOverlay chrome, which auto-hides during video
-                    // playback exactly when this must stay up.
-                    //
-                    // Mounted ABOVE the chrome so it always wins the pointers
-                    // that drag it: the bottom metadata's gradient Container and
-                    // the mini profile chart both absorb hit tests across their
-                    // full bounds, and either would strand the face where it
-                    // could no longer be picked up. Neither is interactive, so
-                    // nothing is lost by the face shadowing them. The top
-                    // toolbar is the exception -- it does have buttons -- so
-                    // rather than order, the face is kept out of its band
-                    // entirely via topReserve.
-                    //
-                    // The face absorbs pointer events over its own bounds (drags
-                    // move it, taps do nothing); chrome-toggle and video
-                    // play/pause taps work anywhere outside it.
-                    if (!isFullscreen &&
-                        settings.perdixOverlayEnabled &&
-                        perdixResolver != null &&
-                        perdixResolver.isAvailable)
-                      DraggablePerdixOverlay(
-                        // Re-key when the persisted seed first arrives so a late
-                        // settings load re-seeds the position (same trick as the
-                        // fullscreen readout card).
-                        key: ValueKey(
-                          'perdix-${currentItem.id}-'
-                          '${settings.perdixOverlayX}-${settings.perdixOverlayY}',
+                      // People tag mode's hint and actions (issue #1745).
+                      if (taggingPeople)
+                        peopleTagHint(
+                          currentItem,
+                          video: currentItem.isVideo
+                              ? _videoControllers[currentItem.id]?.value
+                              : null,
+                          onShowMoment: (tag) => _showMoment(currentItem, tag),
                         ),
-                        resolver: perdixResolver,
-                        // Non-null here: the resolver is only ever built for
-                        // items passing perdixPrecondition.
-                        baseElapsedSeconds: enrichment!.elapsedSeconds!,
-                        settings: units.settings,
-                        topReserve:
-                            MediaQuery.paddingOf(context).top +
-                            kMediaViewerToolbarHeight,
-                        playback: currentItem.isVideo
-                            ? _videoControllers[currentItem.id]
-                            : null,
-                        positionGetter:
-                            currentItem.isVideo &&
-                                _videoControllers[currentItem.id] != null
-                            ? () =>
-                                  _videoControllers[currentItem.id]
-                                      ?.value
-                                      .position ??
-                                  Duration.zero
-                            : null,
-                        initialFraction:
-                            (settings.perdixOverlayX != null &&
-                                settings.perdixOverlayY != null)
-                            ? Offset(
-                                settings.perdixOverlayX!,
-                                settings.perdixOverlayY!,
-                              )
-                            : null,
-                        onDragEnd: (fraction) => ref
-                            .read(settingsProvider.notifier)
-                            .setPerdixOverlayPosition(fraction.dx, fraction.dy),
-                      ),
 
-                    if (isFullscreen && fullscreenControlsVisible)
-                      MediaFullscreenExitButton(onExit: exitFullscreen),
-                  ],
-                ),
-              );
+                      // Perdix dive computer overlay. Deliberately independent of
+                      // the _showOverlay chrome, which auto-hides during video
+                      // playback exactly when this must stay up.
+                      //
+                      // Mounted ABOVE the chrome so it always wins the pointers
+                      // that drag it: the bottom metadata's gradient Container and
+                      // the mini profile chart both absorb hit tests across their
+                      // full bounds, and either would strand the face where it
+                      // could no longer be picked up. Neither is interactive, so
+                      // nothing is lost by the face shadowing them. The top
+                      // toolbar is the exception -- it does have buttons -- so
+                      // rather than order, the face is kept out of its band
+                      // entirely via topReserve.
+                      //
+                      // The face absorbs pointer events over its own bounds (drags
+                      // move it, taps do nothing); chrome-toggle and video
+                      // play/pause taps work anywhere outside it.
+                      if (!isFullscreen &&
+                          settings.perdixOverlayEnabled &&
+                          perdixResolver != null &&
+                          perdixResolver.isAvailable)
+                        DraggablePerdixOverlay(
+                          // Re-key when the persisted seed first arrives so a late
+                          // settings load re-seeds the position (same trick as the
+                          // fullscreen readout card).
+                          key: ValueKey(
+                            'perdix-${currentItem.id}-'
+                            '${settings.perdixOverlayX}-${settings.perdixOverlayY}',
+                          ),
+                          resolver: perdixResolver,
+                          // Non-null here: the resolver is only ever built for
+                          // items passing perdixPrecondition.
+                          baseElapsedSeconds: enrichment!.elapsedSeconds!,
+                          settings: units.settings,
+                          topReserve:
+                              MediaQuery.paddingOf(context).top +
+                              kMediaViewerToolbarHeight,
+                          playback: currentItem.isVideo
+                              ? _videoControllers[currentItem.id]
+                              : null,
+                          positionGetter:
+                              currentItem.isVideo &&
+                                  _videoControllers[currentItem.id] != null
+                              ? () =>
+                                    _videoControllers[currentItem.id]
+                                        ?.value
+                                        .position ??
+                                    Duration.zero
+                              : null,
+                          initialFraction:
+                              (settings.perdixOverlayX != null &&
+                                  settings.perdixOverlayY != null)
+                              ? Offset(
+                                  settings.perdixOverlayX!,
+                                  settings.perdixOverlayY!,
+                                )
+                              : null,
+                          onDragEnd: (fraction) => ref
+                              .read(settingsProvider.notifier)
+                              .setPerdixOverlayPosition(
+                                fraction.dx,
+                                fraction.dy,
+                              ),
+                        ),
 
-              // A mouse move brings a video's controls up, and they go again
-              // once it rests or leaves the window while the video plays.
-              final videoOnScreen = currentItem.isVideo
-                  ? _videoControllers[currentItem.id]
-                  : null;
-              final hoverViewer = MouseRegion(
-                onHover: (_) => videoPointerMoved(videoOnScreen),
-                onExit: (_) => videoPointerLeft(videoOnScreen),
-                child: viewer,
-              );
+                      if (isFullscreen && fullscreenControlsVisible)
+                        MediaFullscreenExitButton(onExit: exitFullscreen),
+                    ],
+                  ),
+                );
 
-              // Keyboard nav has to wrap the whole viewer to see its key events.
-              // Built as a local above rather than nested inline so the tree it
-              // wraps stays where it is.
-              return Focus(
-                autofocus: true,
-                onKeyEvent: _handleKeyEvent,
-                // Adjust color (issue #3520).
-                child: colorAdjustLayout(
-                  item: currentItem,
-                  fullscreen: isFullscreen,
-                  pickWhiteAvailable:
-                      !currentItem.isVideo ||
-                      _videoControllers[currentItem.id] != null,
-                  onPickWhite: () => _startPickingWhite(currentItem),
-                  child: hoverViewer,
-                ),
-              );
-            },
+                // A mouse move brings a video's controls up, and they go again
+                // once it rests or leaves the window while the video plays.
+                final videoOnScreen = currentItem.isVideo
+                    ? _videoControllers[currentItem.id]
+                    : null;
+                final hoverViewer = MouseRegion(
+                  onHover: (_) => videoPointerMoved(videoOnScreen),
+                  onExit: (_) => videoPointerLeft(videoOnScreen),
+                  child: viewer,
+                );
+
+                // Keyboard nav has to wrap the whole viewer to see its key events.
+                // Built as a local above rather than nested inline so the tree it
+                // wraps stays where it is.
+                return Focus(
+                  autofocus: true,
+                  onKeyEvent: _handleKeyEvent,
+                  // Adjust color (issue #3520).
+                  child: colorAdjustLayout(
+                    item: currentItem,
+                    fullscreen: isFullscreen,
+                    pickWhiteAvailable:
+                        !currentItem.isVideo ||
+                        _videoControllers[currentItem.id] != null,
+                    onPickWhite: () => _startPickingWhite(currentItem),
+                    child: hoverViewer,
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),

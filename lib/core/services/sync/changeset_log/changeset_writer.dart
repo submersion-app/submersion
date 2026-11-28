@@ -107,6 +107,11 @@ class ChangesetWriter {
     /// nothing to say writes none, and a heartbeat reports none: it re-carries
     /// a nonce it read back and never minted.
     Future<void> Function(String nonce)? onManifestNonce,
+
+    /// Leaves media kept with no place, and its children, out of the export
+    /// (issue #5122): on unless the caller knows no device in the library
+    /// would delete them. See `held_media_export.dart`.
+    bool holdUnplacedMedia = true,
   }) async {
     final providerId = provider.providerId;
     final ownManifest = await _readOwnManifest(provider, folderId, deviceId);
@@ -179,11 +184,21 @@ class ChangesetWriter {
       // forces the entire library out as one base, and on a phone that is
       // minutes of upload; restarting it from part 0 every time the app
       // reopened is why the reporter's sync never converged (#1032).
-      final resumed = await _resumable.find(
+      var resumed = await _resumable.find(
         providerId: providerId,
         deviceId: deviceId,
         epochId: epochId,
       );
+      // An export that held nothing back carries media kept with no place,
+      // which an older device in the library now would delete (issue
+      // #5122): it is made again, holding them. One that held them back is
+      // still good once nothing is held: the release sends them next.
+      if (resumed != null &&
+          holdUnplacedMedia &&
+          resumed.heldUnplacedMedia != true) {
+        await _resumable.discard(resumed);
+        resumed = null;
+      }
 
       // Stream the base to a temp file and slice-upload it, so a large library
       // is never materialized in RAM (#358 write side). Do NOT call
@@ -205,6 +220,7 @@ class ChangesetWriter {
           epochId: epochId,
           uploadNonce: uploadNonce,
           seq: newSeq,
+          holdUnplacedMedia: holdUnplacedMedia,
         );
         rowCount = base.rowCount;
         // Nothing to say -- except under [forceBase], where the point of the
@@ -226,6 +242,7 @@ class ChangesetWriter {
           epochId,
           uploadNonce,
           exportedAt: now,
+          heldUnplacedMedia: holdUnplacedMedia,
         );
       }
 
@@ -333,6 +350,7 @@ class ChangesetWriter {
       // A relayed child edit (a tank on an older dive) is not pending here,
       // and its parent sits below the floor: only its own clock finds it.
       childrenByOwnClock: relaying,
+      holdUnplacedMedia: holdUnplacedMedia,
     );
     if (_isEmpty(payload)) {
       await _clearRelayFloorRead(providerId, relayFloor);
@@ -460,6 +478,7 @@ class ChangesetWriter {
         deviceName: deviceName,
         appliedPeerHlc: appliedPeerHlc,
         onBasePartUploaded: onBasePartUploaded,
+        holdUnplacedMedia: holdUnplacedMedia,
         onManifestNonce: onManifestNonce,
       );
       return ChangesetWriteResult(ChangesetWriteKind.compacted, compSeq, now);
@@ -573,6 +592,11 @@ class ChangesetWriter {
     String? deviceName,
     void Function(int uploaded, int total)? onBasePartUploaded,
     Future<void> Function(String nonce)? onManifestNonce,
+
+    /// Leaves media kept with no place, and its children, out of the export
+    /// (issue #5122): on unless the caller knows no device in the library
+    /// would delete them. See `held_media_export.dart`.
+    bool holdUnplacedMedia = true,
   }) async {
     // The fresh base must carry the full deletion log: a peer that still holds
     // a since-deleted record and cold-starts from this base (its prior
@@ -592,6 +616,7 @@ class ChangesetWriter {
       epochId: epochId,
       uploadNonce: uploadNonce,
       seq: compSeq,
+      holdUnplacedMedia: holdUnplacedMedia,
     );
     final BasePartUploadResult upload;
     try {
@@ -696,6 +721,7 @@ class ChangesetWriter {
     String? epochId,
     String? uploadNonce, {
     required int exportedAt,
+    required bool heldUnplacedMedia,
   }) async {
     final String target;
     if (_resumable.persistent) {
@@ -724,6 +750,7 @@ class ChangesetWriter {
       epochId: epochId,
       uploadNonce: uploadNonce,
       toHlc: base.toHlc,
+      heldUnplacedMedia: heldUnplacedMedia,
     );
     await _resumable.save(publish);
     return publish;

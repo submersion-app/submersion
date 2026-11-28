@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -1279,5 +1280,106 @@ void main() {
         DateTime.utc(2025, 12, 27, 11, 47),
       );
     });
+  });
+
+  // Issue #5122: with no owner, the unmatched files can go to one site or be
+  // kept with no place instead of being left out.
+  group('commit with an unmatched target', () {
+    late List<MediaItem> captured;
+
+    setUp(() {
+      when(
+        mockPlatform.createBookmark(any),
+      ).thenAnswer((_) async => Uint8List.fromList([1, 2, 3]));
+      when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
+      captured = [];
+      var counter = 0;
+      when(mockRepo.createMedia(any)).thenAnswer((invocation) async {
+        captured.add(invocation.positionalArguments.first as MediaItem);
+        counter += 1;
+        return _saved('saved-$counter');
+      });
+    });
+
+    void stage(FilesTabNotifier notifier) {
+      final matched = _ef(p.join(Directory.systemTemp.path, 'matched.jpg'));
+      final loose = _ef(p.join(Directory.systemTemp.path, 'loose.mp4'));
+      notifier.setFiles(
+        [matched, loose],
+        match: MatchedSelection(
+          matched: {
+            'd1': [matched],
+          },
+          unmatched: [loose],
+        ),
+      );
+    }
+
+    test('keeps the unmatched files retained with no links', () async {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      stage(notifier);
+      notifier.setUnmatchedTarget(const UnplacedAttachTarget());
+
+      final created = await notifier.commit();
+
+      expect(created, hasLength(2));
+      final kept = captured.singleWhere((m) => m.diveId == null);
+      expect(kept.siteId, isNull);
+      expect(kept.equipmentId, isNull);
+      expect(kept.retainInLibrary, isTrue);
+      expect(
+        captured.singleWhere((m) => m.diveId == 'd1').retainInLibrary,
+        isFalse,
+      );
+    });
+
+    test('puts the unmatched files on the chosen site', () async {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      stage(notifier);
+      notifier.setUnmatchedTarget(const SiteAttachTarget('site-1'));
+
+      await notifier.commit();
+
+      final placed = captured.singleWhere((m) => m.diveId == null);
+      expect(placed.siteId, 'site-1');
+      expect(placed.retainInLibrary, isFalse);
+    });
+
+    test('a new import starts with no choice for unmatched files', () {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      stage(notifier);
+      notifier.setUnmatchedTarget(const UnplacedAttachTarget());
+
+      notifier.clearStagedFiles();
+
+      expect(container.read(filesTabNotifierProvider).unmatchedTarget, isNull);
+    });
+
+    test('clearing the choice leaves them out again', () async {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      stage(notifier);
+      notifier
+        ..setUnmatchedTarget(const UnplacedAttachTarget())
+        ..setUnmatchedTarget(null);
+
+      final created = await notifier.commit();
+
+      expect(created, hasLength(1));
+      expect(captured.single.diveId, 'd1');
+    });
+
+    test(
+      'a dive session ignores it: the dive takes them (issue #5063)',
+      () async {
+        final notifier = container.read(filesTabNotifierProvider.notifier);
+        stage(notifier);
+        notifier.setUnmatchedTarget(const UnplacedAttachTarget());
+
+        await notifier.commit(target: const DiveAttachTarget('d1'));
+
+        expect(captured.map((m) => m.diveId), everyElement('d1'));
+        expect(captured.any((m) => m.retainInLibrary), isFalse);
+      },
+    );
   });
 }

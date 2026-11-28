@@ -20066,6 +20066,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get media_photoPicker_files_allOnSite => '全部放到潜点';
+
+  @override
+  String get media_photoPicker_files_allUnplaced => '全部不指定位置保留';
+
+  @override
   String get media_photoPicker_files_addToDiveTooltip => '添加到此潜水';
 
   @override
@@ -20673,7 +20679,100 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_import_review_chooseDive => '选择潜水';
 
   @override
+  String get media_import_review_keepUnplaced => '不指定位置保留';
+
+  @override
+  String get media_import_review_unplaced => '保留在媒体库中,不关联潜水或潜点';
+
+  @override
+  String get media_import_review_allOnSite => '其余放到潜点';
+
+  @override
+  String get media_import_review_allUnplaced => '其余不指定位置保留';
+
+  @override
   String get media_console_sources => '来源';
+
+  @override
+  String get media_console_identify => '识别物种';
+
+  @override
+  String get media_identify_notKeptBanner => '不在您的媒体库中。除非您保留,否则不会保存任何内容。';
+
+  @override
+  String get media_identify_keep => '保留';
+
+  @override
+  String get media_identify_kept => '已保留在您的媒体库中';
+
+  @override
+  String get media_identify_leaveTitle => '不保留就离开?';
+
+  @override
+  String get media_identify_leaveBody => '您在未保留的文件上选择的物种将会丢失。';
+
+  @override
+  String get media_identify_leave => '离开';
+
+  @override
+  String get media_identify_keepTitle => '保留在您的媒体库中';
+
+  @override
+  String get media_identify_keepOnDive => '放到一次潜水';
+
+  @override
+  String get media_identify_keepOnSite => '放到一个潜点';
+
+  @override
+  String get media_identify_keepUnplaced => '不指定位置保留';
+
+  @override
+  String get media_identify_keepThis => '此文件';
+
+  @override
+  String get media_identify_keepAll => '所有尚未保留的文件';
+
+  @override
+  String get media_identify_cameraTitle => '识别';
+
+  @override
+  String get media_identify_photo => '照片';
+
+  @override
+  String get media_identify_video => '视频';
+
+  @override
+  String get media_identify_namesOn => '名称';
+
+  @override
+  String get media_identify_noLocation => '仅为建议,不限地区:不使用您的位置。';
+
+  @override
+  String get media_identify_namesPaused => '名称已暂停:设备内存不足。';
+
+  @override
+  String get media_identify_cameraDenied =>
+      'Submersion 无法使用相机。请在设置中允许访问相机,或改为选择文件。';
+
+  @override
+  String get media_identify_pickFiles => '选择文件';
+
+  @override
+  String get media_identify_takePhoto => '拍照';
+
+  @override
+  String get media_identify_record => '录制';
+
+  @override
+  String get media_identify_stop => '停止';
+
+  @override
+  String get media_identify_captures => '已拍摄的照片和片段';
+
+  @override
+  String media_identify_keepFailed(String name) {
+    return '无法保留 $name';
+  }
 
   @override
   String get media_sources_browseHeader => '按来源浏览';

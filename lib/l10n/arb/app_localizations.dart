@@ -33267,6 +33267,18 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Add 1 to this dive} other{Add all {count} to this dive}}'**
   String media_photoPicker_files_addAllToDive(int count);
 
+  /// Unmatched files group action: put every unmatched file on one dive site
+  ///
+  /// In en, this message translates to:
+  /// **'Put all on a site'**
+  String get media_photoPicker_files_allOnSite;
+
+  /// Unmatched files group action: keep every unmatched file in the library with no dive and no site
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all without a place'**
+  String get media_photoPicker_files_allUnplaced;
+
   /// No description provided for @media_photoPicker_files_addToDiveTooltip.
   ///
   /// In en, this message translates to:
@@ -34233,11 +34245,191 @@ abstract class AppLocalizations {
   /// **'Choose dive'**
   String get media_import_review_chooseDive;
 
+  /// Review row menu: keep the file in the media library with no dive and no site
+  ///
+  /// In en, this message translates to:
+  /// **'Keep without a place'**
+  String get media_import_review_keepUnplaced;
+
+  /// Review row subtitle for a file kept with no dive and no site
+  ///
+  /// In en, this message translates to:
+  /// **'Keep in the library, no dive or site'**
+  String get media_import_review_unplaced;
+
+  /// Review action: put every file that has no dive or site yet on one dive site
+  ///
+  /// In en, this message translates to:
+  /// **'Put the rest on a site'**
+  String get media_import_review_allOnSite;
+
+  /// Review action: keep every file that has no dive or site yet in the library with no place
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the rest without a place'**
+  String get media_import_review_allUnplaced;
+
   /// Media console label for the sources section
   ///
   /// In en, this message translates to:
   /// **'Sources'**
   String get media_console_sources;
+
+  /// Media console button: identify species in photos or videos without keeping them
+  ///
+  /// In en, this message translates to:
+  /// **'Identify species'**
+  String get media_console_identify;
+
+  /// Identify viewer banner over a file that is not in the media library
+  ///
+  /// In en, this message translates to:
+  /// **'Not in your library. Nothing is kept unless you keep it.'**
+  String get media_identify_notKeptBanner;
+
+  /// Identify viewer button: keep this file in the media library
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get media_identify_keep;
+
+  /// Identify viewer banner once the file is kept
+  ///
+  /// In en, this message translates to:
+  /// **'Kept in your library'**
+  String get media_identify_kept;
+
+  /// Identify viewer: dialog title when leaving with species chosen on files not kept
+  ///
+  /// In en, this message translates to:
+  /// **'Leave without keeping?'**
+  String get media_identify_leaveTitle;
+
+  /// Identify viewer: dialog body when leaving with species chosen on files not kept
+  ///
+  /// In en, this message translates to:
+  /// **'The species you chose on files you have not kept will be lost.'**
+  String get media_identify_leaveBody;
+
+  /// Identify viewer: dialog button that leaves without keeping
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get media_identify_leave;
+
+  /// Keep sheet title
+  ///
+  /// In en, this message translates to:
+  /// **'Keep in your library'**
+  String get media_identify_keepTitle;
+
+  /// Keep sheet choice: keep the file on a dive
+  ///
+  /// In en, this message translates to:
+  /// **'Put on a dive'**
+  String get media_identify_keepOnDive;
+
+  /// Keep sheet choice: keep the file on a dive site
+  ///
+  /// In en, this message translates to:
+  /// **'Put on a site'**
+  String get media_identify_keepOnSite;
+
+  /// Keep sheet choice: keep the file with no dive and no site
+  ///
+  /// In en, this message translates to:
+  /// **'Keep without a place'**
+  String get media_identify_keepUnplaced;
+
+  /// Keep sheet scope: only the file on screen
+  ///
+  /// In en, this message translates to:
+  /// **'This file'**
+  String get media_identify_keepThis;
+
+  /// Keep sheet scope: every file in the Identify viewer not kept yet
+  ///
+  /// In en, this message translates to:
+  /// **'All files not kept yet'**
+  String get media_identify_keepAll;
+
+  /// Identify camera screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Identify'**
+  String get media_identify_cameraTitle;
+
+  /// Identify camera mode: take photos
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get media_identify_photo;
+
+  /// Identify camera mode: record clips
+  ///
+  /// In en, this message translates to:
+  /// **'Video'**
+  String get media_identify_video;
+
+  /// Identify camera switch: show species suggestions over the live picture
+  ///
+  /// In en, this message translates to:
+  /// **'Names'**
+  String get media_identify_namesOn;
+
+  /// Identify camera line under the picture: names are suggestions and not limited to the diver's location
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestions only, from anywhere: your location is not used.'**
+  String get media_identify_noLocation;
+
+  /// Identify camera line when live naming has paused to save memory
+  ///
+  /// In en, this message translates to:
+  /// **'Names paused: the device is low on memory.'**
+  String get media_identify_namesPaused;
+
+  /// Identify camera when camera access is refused
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion can\'t use the camera. Allow camera access in Settings, or pick files instead.'**
+  String get media_identify_cameraDenied;
+
+  /// Identify camera button: pick photos or videos instead
+  ///
+  /// In en, this message translates to:
+  /// **'Pick files'**
+  String get media_identify_pickFiles;
+
+  /// Identify camera shutter tooltip in photo mode
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get media_identify_takePhoto;
+
+  /// Identify camera shutter tooltip in video mode
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get media_identify_record;
+
+  /// Identify camera shutter tooltip while recording
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get media_identify_stop;
+
+  /// Identify camera button: open the photos and clips taken in the Identify viewer
+  ///
+  /// In en, this message translates to:
+  /// **'Photos and clips taken'**
+  String get media_identify_captures;
+
+  /// Snackbar when a file in the Identify viewer could not be kept, usually because it was moved or deleted
+  ///
+  /// In en, this message translates to:
+  /// **'{name} could not be kept'**
+  String media_identify_keepFailed(String name);
 
   /// Sources section: per-source browse list header
   ///

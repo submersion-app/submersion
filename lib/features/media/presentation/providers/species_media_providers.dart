@@ -87,14 +87,18 @@ final speciesTagCandidatesProvider =
 /// The species tags on one photo, as the viewer's chips show them. Ticks on
 /// species too, so a renamed custom species relabels its chip.
 final mediaTagChipsProvider =
-    FutureProvider.family<List<SpeciesTagChip>, String>((ref, mediaId) async {
-      final repository = ref.watch(mediaSpeciesRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchTagChanges());
-      ref.invalidateSelfWhen(
-        ref.watch(speciesRepositoryProvider).watchSpeciesChanges(),
-      );
-      return repository.getTagChipsForMedia(mediaId);
-    });
+    FutureProvider.family<List<SpeciesTagChip>, String>(readMediaTagChips);
+
+/// The body of [mediaTagChipsProvider], also read by the Identify viewer's scope
+/// (issue #5122), where it reads that session's stores.
+Future<List<SpeciesTagChip>> readMediaTagChips(Ref ref, String mediaId) async {
+  final repository = ref.watch(mediaSpeciesRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchTagChanges());
+  ref.invalidateSelfWhen(
+    ref.watch(speciesRepositoryProvider).watchSpeciesChanges(),
+  );
+  return repository.getTagChipsForMedia(mediaId);
+}
 
 /// Newest tagged photo per species, for the Species page's tile avatars.
 /// One query for the whole list; derived, never chosen (built-in species

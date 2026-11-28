@@ -20356,6 +20356,12 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get media_photoPicker_files_allOnSite => 'すべてをサイトに追加';
+
+  @override
+  String get media_photoPicker_files_allUnplaced => 'すべてを場所なしで保持';
+
+  @override
   String get media_photoPicker_files_addToDiveTooltip => 'このダイブに追加';
 
   @override
@@ -20976,7 +20982,100 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_import_review_chooseDive => 'ダイブを選択';
 
   @override
+  String get media_import_review_keepUnplaced => '場所なしで保持';
+
+  @override
+  String get media_import_review_unplaced => 'ダイブやサイトなしでライブラリに保持';
+
+  @override
+  String get media_import_review_allOnSite => '残りをサイトに追加';
+
+  @override
+  String get media_import_review_allUnplaced => '残りを場所なしで保持';
+
+  @override
   String get media_console_sources => 'ソース';
+
+  @override
+  String get media_console_identify => '生物を識別';
+
+  @override
+  String get media_identify_notKeptBanner => 'ライブラリにありません。保持しない限り何も残りません。';
+
+  @override
+  String get media_identify_keep => '保持';
+
+  @override
+  String get media_identify_kept => 'ライブラリに保持済み';
+
+  @override
+  String get media_identify_leaveTitle => '保持せずに終了しますか?';
+
+  @override
+  String get media_identify_leaveBody => '保持していないファイルで選んだ生物は失われます。';
+
+  @override
+  String get media_identify_leave => '終了';
+
+  @override
+  String get media_identify_keepTitle => 'ライブラリに保持';
+
+  @override
+  String get media_identify_keepOnDive => 'ダイブに追加';
+
+  @override
+  String get media_identify_keepOnSite => 'サイトに追加';
+
+  @override
+  String get media_identify_keepUnplaced => '場所なしで保持';
+
+  @override
+  String get media_identify_keepThis => 'このファイル';
+
+  @override
+  String get media_identify_keepAll => 'まだ保持していないすべてのファイル';
+
+  @override
+  String get media_identify_cameraTitle => '識別';
+
+  @override
+  String get media_identify_photo => '写真';
+
+  @override
+  String get media_identify_video => '動画';
+
+  @override
+  String get media_identify_namesOn => '名前';
+
+  @override
+  String get media_identify_noLocation => '候補のみ、地域を問わず:位置情報は使用しません。';
+
+  @override
+  String get media_identify_namesPaused => '名前を一時停止中:端末のメモリが不足しています。';
+
+  @override
+  String get media_identify_cameraDenied =>
+      'Submersion はカメラを使用できません。設定でカメラへのアクセスを許可するか、代わりにファイルを選んでください。';
+
+  @override
+  String get media_identify_pickFiles => 'ファイルを選択';
+
+  @override
+  String get media_identify_takePhoto => '写真を撮る';
+
+  @override
+  String get media_identify_record => '録画';
+
+  @override
+  String get media_identify_stop => '停止';
+
+  @override
+  String get media_identify_captures => '撮影した写真とクリップ';
+
+  @override
+  String media_identify_keepFailed(String name) {
+    return '$name を保持できませんでした';
+  }
 
   @override
   String get media_sources_browseHeader => 'ソース別に表示';

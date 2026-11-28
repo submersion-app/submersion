@@ -21487,6 +21487,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get media_photoPicker_files_allOnSite => 'وضع الكل في موقع';
+
+  @override
+  String get media_photoPicker_files_allUnplaced => 'الاحتفاظ بالكل دون مكان';
+
+  @override
   String get media_photoPicker_files_addToDiveTooltip => 'إضافة إلى هذه الغوصة';
 
   @override
@@ -22152,7 +22158,105 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_import_review_chooseDive => 'اختيار الغطسة';
 
   @override
+  String get media_import_review_keepUnplaced => 'الاحتفاظ دون مكان';
+
+  @override
+  String get media_import_review_unplaced =>
+      'الاحتفاظ في المكتبة دون غطسة أو موقع';
+
+  @override
+  String get media_import_review_allOnSite => 'وضع الباقي في موقع';
+
+  @override
+  String get media_import_review_allUnplaced => 'الاحتفاظ بالباقي دون مكان';
+
+  @override
   String get media_console_sources => 'المصادر';
+
+  @override
+  String get media_console_identify => 'التعرف على الأنواع';
+
+  @override
+  String get media_identify_notKeptBanner =>
+      'ليس في مكتبتك. لا يُحتفظ بشيء ما لم تحتفظ به.';
+
+  @override
+  String get media_identify_keep => 'احتفاظ';
+
+  @override
+  String get media_identify_kept => 'تم الاحتفاظ به في مكتبتك';
+
+  @override
+  String get media_identify_leaveTitle => 'المغادرة دون احتفاظ؟';
+
+  @override
+  String get media_identify_leaveBody =>
+      'ستضيع الأنواع التي اخترتها في الملفات التي لم تحتفظ بها.';
+
+  @override
+  String get media_identify_leave => 'مغادرة';
+
+  @override
+  String get media_identify_keepTitle => 'الاحتفاظ في مكتبتك';
+
+  @override
+  String get media_identify_keepOnDive => 'وضعه في غطسة';
+
+  @override
+  String get media_identify_keepOnSite => 'وضعه في موقع';
+
+  @override
+  String get media_identify_keepUnplaced => 'الاحتفاظ دون مكان';
+
+  @override
+  String get media_identify_keepThis => 'هذا الملف';
+
+  @override
+  String get media_identify_keepAll => 'كل الملفات التي لم يُحتفظ بها بعد';
+
+  @override
+  String get media_identify_cameraTitle => 'تعرّف';
+
+  @override
+  String get media_identify_photo => 'صورة';
+
+  @override
+  String get media_identify_video => 'فيديو';
+
+  @override
+  String get media_identify_namesOn => 'الأسماء';
+
+  @override
+  String get media_identify_noLocation =>
+      'اقتراحات فقط، من أي مكان: لا يُستخدم موقعك.';
+
+  @override
+  String get media_identify_namesPaused =>
+      'الأسماء متوقفة مؤقتًا: ذاكرة الجهاز منخفضة.';
+
+  @override
+  String get media_identify_cameraDenied =>
+      'لا يستطيع Submersion استخدام الكاميرا. اسمح بالوصول إلى الكاميرا في الإعدادات، أو اختر ملفات بدلًا من ذلك.';
+
+  @override
+  String get media_identify_pickFiles => 'اختيار ملفات';
+
+  @override
+  String get media_identify_takePhoto => 'التقاط صورة';
+
+  @override
+  String get media_identify_record => 'تسجيل';
+
+  @override
+  String get media_identify_stop => 'إيقاف';
+
+  @override
+  String get media_identify_captures => 'الصور والمقاطع الملتقطة';
+
+  @override
+  String media_identify_keepFailed(String name) {
+    return 'تعذّر الاحتفاظ بـ $name';
+  }
 
   @override
   String get media_sources_browseHeader => 'التصفح حسب المصدر';

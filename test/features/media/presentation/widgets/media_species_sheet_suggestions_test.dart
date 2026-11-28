@@ -396,7 +396,7 @@ void main() {
       expect(markerIn('media_suggested_row_1'), findsOneWidget);
       expect(markerIn('media_suggested_row_2'), findsNothing);
       // The photo's dive, and no GPS of its own.
-      expect(nearbyAsked.toSet(), {(diveId: 'd1', photo: null)});
+      expect(nearbyAsked.toSet(), {(diveId: 'd1', photo: null, siteId: null)});
     });
 
     testWidgets('a catalogue species on the list says so, whatever its key', (

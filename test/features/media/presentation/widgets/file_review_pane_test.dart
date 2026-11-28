@@ -11,6 +11,7 @@ import 'package:submersion/features/media/data/repositories/media_repository.dar
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
 import 'package:submersion/features/media/domain/value_objects/extracted_file.dart';
+import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
@@ -86,6 +87,12 @@ class _RecordingFilesTabNotifier extends FilesTabNotifier {
 
   @override
   void assignAllUnmatched(String diveId) => assignedDiveIds.add(diveId);
+
+  final List<MediaAttachTarget?> unmatchedTargets = [];
+
+  @override
+  void setUnmatchedTarget(MediaAttachTarget? target) =>
+      unmatchedTargets.add(target);
 }
 
 void main() {
@@ -245,5 +252,44 @@ void main() {
       reason: 'tapping the action must not collapse the Unmatched group',
     );
     expect(find.text('c.jpg'), findsOneWidget);
+  });
+
+  group('the unmatched files of a session with no owner (issue #5122)', () {
+    final onSite = find.byKey(const ValueKey('files_unmatched_all_on_site'));
+    final unplaced = find.byKey(const ValueKey('files_unmatched_all_unplaced'));
+
+    testWidgets('offers a site or no place, and records the choice', (
+      tester,
+    ) async {
+      final notifier = _RecordingFilesTabNotifier();
+      await _pumpPane(
+        tester,
+        _staged(),
+        overrides: [filesTabNotifierProvider.overrideWith((ref) => notifier)],
+      );
+
+      expect(onSite, findsOneWidget);
+      await tester.tap(unplaced);
+      await tester.pumpAndSettle();
+
+      expect(notifier.unmatchedTargets, [const UnplacedAttachTarget()]);
+    });
+
+    testWidgets('the chosen chip shows as selected', (tester) async {
+      await _pumpPane(
+        tester,
+        _staged().copyWith(unmatchedTarget: const UnplacedAttachTarget()),
+      );
+
+      expect(tester.widget<FilterChip>(unplaced).selected, isTrue);
+      expect(tester.widget<FilterChip>(onSite).selected, isFalse);
+    });
+
+    testWidgets('a dive session offers neither', (tester) async {
+      await _pumpPane(tester, _staged(), assignableDiveId: 'd1');
+
+      expect(onSite, findsNothing);
+      expect(unplaced, findsNothing);
+    });
   });
 }

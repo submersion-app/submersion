@@ -1,10 +1,12 @@
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/nearby/nearby_hello.dart';
 import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
 import 'package:submersion/core/services/nearby/nearby_watermarks.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
+import 'package:submersion/core/services/sync/held_media_releaser.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
@@ -29,21 +31,36 @@ abstract class NearbySyncEngine {
 
   int get maxDeltaBlobBytes;
 
-  Future<SyncPayload> exportDelta(String watermark);
+  /// [holdUnplacedMedia] leaves out media kept with no place, for a peer
+  /// whose build would delete it (issue #5122).
+  Future<SyncPayload> exportDelta(
+    String watermark, {
+    bool holdUnplacedMedia = true,
+  });
 
   /// A full copy, gzipped as it streams so it is never on disk plain as
   /// well (issue #4256). The caller owns and deletes the file.
-  Future<StreamedBase> exportFull();
+  /// [holdUnplacedMedia] as in [exportDelta].
+  Future<StreamedBase> exportFull({bool holdUnplacedMedia = true});
 
+  /// Stamps again the media held back from an older device (issue #5122),
+  /// above every watermark, so a peer that keeps such media is sent it.
+  /// Run before reading [watermarks] for that peer.
+  Future<void> releaseHeldMedia();
+
+  /// Applies a delta the peer sent. [peerSchemaVersion] is the peer's
+  /// build, from its hello (issue #5122).
   Future<NearbyApplyResult> applyPayload(
     SyncPayload payload, {
     required String peerDeviceId,
+    int? peerSchemaVersion,
   });
 
   /// Applies the gzipped full copy at [path] without expanding it on disk.
   Future<NearbyApplyResult> applyBaseFile(
     String path, {
     required String peerDeviceId,
+    int? peerSchemaVersion,
     void Function(double fraction)? onProgress,
   });
 
@@ -68,6 +85,8 @@ abstract class NearbySyncEngine {
   /// The oldest clock held here from [writer], or null when none is.
   Future<String?> lowestClockOf(String writer);
 }
+
+final _log = LoggerService.forClass(DatabaseNearbySyncEngine);
 
 class DatabaseNearbySyncEngine implements NearbySyncEngine {
   DatabaseNearbySyncEngine({
@@ -137,22 +156,40 @@ class DatabaseNearbySyncEngine implements NearbySyncEngine {
       _serializer.pendingSeriesBlobBytes(watermark);
 
   @override
-  Future<SyncPayload> exportDelta(String watermark) async =>
-      _serializer.exportChangeset(
-        deviceId: await _repo.getDeviceId(),
-        hlcWatermark: watermark,
-        deletions: await _repo.getAllDeletions(),
-        epochId: await _epochId(),
-        childrenByOwnClock: true,
-      );
-
-  @override
-  Future<StreamedBase> exportFull() async => _serializer.exportBaseToTempFile(
+  Future<SyncPayload> exportDelta(
+    String watermark, {
+    bool holdUnplacedMedia = true,
+  }) async => _serializer.exportChangeset(
     deviceId: await _repo.getDeviceId(),
+    hlcWatermark: watermark,
     deletions: await _repo.getAllDeletions(),
     epochId: await _epochId(),
-    gzipped: true,
+    childrenByOwnClock: true,
+    holdUnplacedMedia: holdUnplacedMedia,
   );
+
+  // Held media sits below every peer's watermark: without this, a library
+  // synced only nearby would never send it. Housekeeping, as on the cloud
+  // path: a failure leaves the rows held for the next session and sends the
+  // rest.
+  @override
+  Future<void> releaseHeldMedia() async {
+    try {
+      await HeldMediaReleaser(db: _db, sync: _repo).release(holding: false);
+    } on Object catch (e) {
+      _log.warning('Held media release failed (non-fatal): $e');
+    }
+  }
+
+  @override
+  Future<StreamedBase> exportFull({bool holdUnplacedMedia = true}) async =>
+      _serializer.exportBaseToTempFile(
+        deviceId: await _repo.getDeviceId(),
+        deletions: await _repo.getAllDeletions(),
+        epochId: await _epochId(),
+        gzipped: true,
+        holdUnplacedMedia: holdUnplacedMedia,
+      );
 
   Future<DateTime?> _lastSync(String peerDeviceId) async {
     final at = (await _peers.get(peerDeviceId))?.lastSyncedAt;
@@ -163,20 +200,25 @@ class DatabaseNearbySyncEngine implements NearbySyncEngine {
   Future<NearbyApplyResult> applyPayload(
     SyncPayload payload, {
     required String peerDeviceId,
+    int? peerSchemaVersion,
   }) async => _sync().applyNearbyPayload(
     payload,
     lastSync: await _lastSync(peerDeviceId),
+    peerDeviceId: peerDeviceId,
+    peerSchemaVersion: peerSchemaVersion,
   );
 
   @override
   Future<NearbyApplyResult> applyBaseFile(
     String path, {
     required String peerDeviceId,
+    int? peerSchemaVersion,
     void Function(double fraction)? onProgress,
   }) async => _sync().applyNearbyBaseFile(
     path,
     lastSync: await _lastSync(peerDeviceId),
     peerDeviceId: peerDeviceId,
+    peerSchemaVersion: peerSchemaVersion,
     onProgress: onProgress,
   );
 

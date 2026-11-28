@@ -147,6 +147,7 @@ class ChangesetReader {
     List<CloudFileInfo>? preListedFiles,
     BaseDownloadProgress? onBaseDownloadProgress,
     PeerDeviceNameStore? peerNames,
+    void Function(SyncManifest manifest)? onPeerManifest,
   }) async {
     final providerId = provider.providerId;
     // [preListedFiles] lets the caller reuse a listing it just made (the
@@ -212,6 +213,9 @@ class ChangesetReader {
           await provider.downloadFile(manifestFile.id),
         );
         peerManifests.add(manifest);
+        // Before any of this peer's rows are applied: a delete of held media
+        // is weighed by the build of the device that made it (issue #5122).
+        onPeerManifest?.call(manifest);
         peerManifestListedAt[manifest.deviceId] = manifestFile.modifiedTime;
         final manifestName = manifest.deviceName;
         if (manifestName != null && manifestName.isNotEmpty) {

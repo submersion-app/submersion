@@ -6,6 +6,11 @@ part of 'agent_write_coverage_test.dart';
 /// checks each call is still made, so a writer that stops calling it, or
 /// calls another, fails here.
 final reachedThrough = <String, String>{
+  // A move takes the media's species tags along (issue #5122).
+  'lib/features/media/data/repositories/media_repository.dart:reassignMediaToDive':
+      'moveMediaToDive',
+  'lib/features/media/data/repositories/media_species_repository.dart:setTagSighting':
+      'moveMediaToDive',
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkUpdateFields':
       'BulkDiveEditService',
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkSetSite':
@@ -716,6 +721,7 @@ final covered = <String, String>{
     ('media_people_repository.dart', 'removeTag'),
     ('media_species_repository.dart', 'addTag'),
     ('media_species_repository.dart', 'removeTag'),
+    ('media_species_repository.dart', 'setTagSighting'),
     ('media_color_adjustment_repository.dart', 'setColorAdjustment'),
     ('media_color_adjustment_repository.dart', 'applySlidersToDive'),
     ('site_attachment_repository.dart', 'setAttachmentDetails'),

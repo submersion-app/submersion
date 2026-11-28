@@ -27,7 +27,9 @@ sealed class MediaAttachTarget extends Equatable {
   /// target type is a compile error here rather than a silent default.
   bool get ownsEveryFile => switch (this) {
     DiveAttachTarget() => false,
-    SiteAttachTarget() || EquipmentAttachTarget() => true,
+    SiteAttachTarget() ||
+    EquipmentAttachTarget() ||
+    UnplacedAttachTarget() => true,
   };
 
   @override
@@ -57,6 +59,18 @@ final class SiteAttachTarget extends MediaAttachTarget {
 
   @override
   List<Object?> get props => [siteId];
+}
+
+/// Media the diver keeps in the library with no dive, site or gear (issue
+/// #5122): a clip with no logged dive, kept so its species can be
+/// identified. Rows go in with `retain_in_library` set, which keeps them
+/// out of the orphan sweep and through the delete cascades. Nothing is
+/// matched to dives.
+final class UnplacedAttachTarget extends MediaAttachTarget {
+  const UnplacedAttachTarget();
+
+  @override
+  List<Object?> get props => const [];
 }
 
 /// Media picked in this session are photos of one gear item (issue #3355),

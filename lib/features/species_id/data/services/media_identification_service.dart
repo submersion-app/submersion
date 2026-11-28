@@ -56,6 +56,12 @@ class IdentificationImage {
 /// looking at now matters more than the one they swiped past. Never throws:
 /// a photo that cannot be read or analysed simply has no suggestions, and is
 /// tried again the next time it is opened.
+/// What [MediaIdentificationService.liveNaming] gives a camera.
+typedef LiveNaming = ({
+  Future<VisionAnalysis> Function(Uint8List jpeg) analyze,
+  Future<List<String?>> Function(List<VisionDetection> found) name,
+});
+
 class MediaIdentificationService {
   MediaIdentificationService({
     required VisionEngine engine,
@@ -742,6 +748,66 @@ class MediaIdentificationService {
     }
   }
 
+  /// How many live namers hold the models loaded.
+  int _liveHolds = 0;
+
+  /// Names what a camera sees (issue #5122): the frame's animals and, for
+  /// each, the suggestion's common name or null. Nothing is stored. No
+  /// location limits the names: a camera may be pointed at an aquarium.
+  ///
+  /// Holds the models loaded until [releaseLiveNaming]. Null when the
+  /// feature is off, no model can run here, or no pack is installed.
+  Future<LiveNaming?> liveNaming() async {
+    if (!_runEnabled() || _disposed) return null;
+    if (await _engine.availability() != VisionAvailability.available) {
+      return null;
+    }
+    final pack = _pack ??= await _loadPack();
+    if (pack == null) return null;
+    await _ensureLoaded(pack);
+    _liveHolds++;
+    _idleTimer?.cancel();
+    return (
+      // Through the same reload-once as a photo: the models can be unloaded
+      // behind this hold (another service on the engine, a memory warning).
+      analyze: (Uint8List jpeg) =>
+          _analyseImage(pack, IdentificationImage.bytes(jpeg)),
+      name: (List<VisionDetection> found) async {
+        final results = await nameCrops(pack, [
+          for (final f in found)
+            (
+              embedding: f.embedding,
+              shorterSide: math.min(f.pixelWidth, f.pixelHeight),
+            ),
+        ], null);
+        return [
+          for (final r in results)
+            r.suggestable && r.candidates.isNotEmpty
+                ? r.candidates.first.candidate.commonName
+                : null,
+        ];
+      },
+    );
+  }
+
+  /// The installed pack, loaded once and kept while this service keeps it.
+  /// The Identify viewer's own service reads it here rather than load a
+  /// second copy (issue #5122). Null with no pack installed.
+  Future<LoadedPack?> loadedPack() async {
+    final pack = _pack ??= await _loadPack();
+    // Let go of after the usual quiet spell, as a pack used here would be.
+    if (!_disposed) _armIdleUnload();
+    return pack;
+  }
+
+  /// Lets go of a [liveNaming] hold; the models are freed after the usual
+  /// quiet spell once no hold is left.
+  void releaseLiveNaming() {
+    if (_liveHolds == 0) return;
+    _liveHolds--;
+    if (_liveHolds == 0 && !_disposed) _armIdleUnload();
+  }
+
   Future<void> _ensureLoaded(LoadedPack pack) async {
     final key = '${pack.pack.directory}|${pack.pack.manifest.packVersion}';
     if (_loadedModels == key) return;
@@ -762,7 +828,7 @@ class MediaIdentificationService {
     _idleTimer?.cancel();
     _idleTimer = Timer(_idleUnload, () {
       if (_disposed) return;
-      if (_running != null || _waiting.isNotEmpty) {
+      if (_running != null || _waiting.isNotEmpty || _liveHolds > 0) {
         _armIdleUnload();
         return;
       }

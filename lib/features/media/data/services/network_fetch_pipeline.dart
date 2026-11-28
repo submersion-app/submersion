@@ -60,9 +60,11 @@ class NetworkInsertRequest {
     this.equipmentId,
     this.observationId,
     this.id,
+    this.unplaced = false,
   }) : assert(
-         [diveId, siteId, equipmentId].where((id) => id != null).length == 1,
-         'exactly one of diveId / siteId / equipmentId',
+         [diveId, siteId, equipmentId].where((id) => id != null).length ==
+             (unplaced ? 0 : 1),
+         'exactly one of diveId / siteId / equipmentId, or none when unplaced',
        );
 
   final ResolvedNetworkMedia media;
@@ -72,6 +74,10 @@ class NetworkInsertRequest {
   /// A gear photo's item and check-in (issue #3355).
   final String? equipmentId;
   final String? observationId;
+
+  /// Kept in the library with no dive, site or gear (issue #5122): the row
+  /// goes in with `retain_in_library` set.
+  final bool unplaced;
 
   /// The id the row is written under; a fresh one when null. A sitting that
   /// holds the request until Save sets it (issue #4527), so the photo it
@@ -86,6 +92,7 @@ class NetworkInsertRequest {
     equipmentId: equipmentId,
     observationId: observationId,
     id: id,
+    unplaced: unplaced,
   );
 }
 
@@ -161,7 +168,9 @@ class NetworkFetchPipeline {
 
   /// Inserts one row per request, already linked. A failed fetch still
   /// gets its row (orphaned, with a diagnostics record) because the caller
-  /// chose a target for it; nothing here ever inserts an unlinked row.
+  /// chose a target for it. Nothing here inserts an unlinked row unless the
+  /// diver kept it with no place ([NetworkInsertRequest.unplaced]), which
+  /// marks it `retain_in_library`.
   ///
   /// Manifest-supplied fields take precedence over extracted ones: the feed
   /// publisher has more context than EXIF inference does.
@@ -190,6 +199,7 @@ class NetworkFetchPipeline {
               diveId: Value(request.diveId),
               siteId: Value(request.siteId),
               equipmentId: Value(request.equipmentId),
+              retainInLibrary: Value(request.unplaced),
               observationId: Value(request.observationId),
               latitude: Value(entry?.latitude ?? result?.lat),
               longitude: Value(entry?.longitude ?? result?.lon),

@@ -25,6 +25,7 @@ import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/held_reference_schema.dart';
 import 'package:submersion/core/services/sync/held_reference_store.dart';
+import 'package:submersion/core/services/sync/held_media_export.dart';
 import 'package:submersion/core/services/sync/held_references.dart';
 import 'package:submersion/core/services/sync/legacy_wire_keys.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
@@ -1080,6 +1081,11 @@ class SyncDataSerializer {
   /// is above [hlcWatermark]. Nearby sync needs it: it has no changeset log,
   /// so a child edit already published to the cloud has lost the pending
   /// mark that carries it here (issue #3731).
+  ///
+  /// [holdUnplacedMedia] leaves out media kept with no place, and its
+  /// children, for a library with a device that would delete them (issue
+  /// #5122). On by default: only a caller that knows every reader is new
+  /// enough turns it off.
   Future<SyncPayload> exportChangeset({
     required String deviceId,
     required String? hlcWatermark,
@@ -1088,10 +1094,12 @@ class SyncDataSerializer {
     String? uploadNonce,
     String? epochId,
     bool childrenByOwnClock = false,
+    bool holdUnplacedMedia = true,
   }) async {
     final data = await _buildSyncData(
       hlcWatermark,
       childrenByOwnClock: childrenByOwnClock,
+      holdUnplacedMedia: holdUnplacedMedia,
     );
     // A base (null watermark) carries the FULL deletion log so a cold-start
     // reader can never miss a tombstone. An incremental changeset carries only
@@ -1828,6 +1836,8 @@ class SyncDataSerializer {
   /// [gzipped] writes the same document gzipped as it streams (a nearby full
   /// copy, issue #4256), so it is never on disk plain as well as compressed;
   /// the returned `byteLength` is then the compressed size.
+  ///
+  /// [holdUnplacedMedia] as in [exportChangeset] (issue #5122).
   Future<StreamedBase> exportBaseToTempFile({
     required String deviceId,
     required List<DeletionLogData> deletions,
@@ -1839,6 +1849,7 @@ class SyncDataSerializer {
     DateTime Function() now = DateTime.now,
     Future<Directory> Function()? tempDir,
     bool gzipped = false,
+    bool holdUnplacedMedia = true,
   }) async {
     // The sink joins the directory and name itself (never a literal '/':
     // a mixed-separator path broke the Windows publish in #1304). A browser
@@ -1888,6 +1899,13 @@ class SyncDataSerializer {
       final tables = _baseTables;
       // Library sites and their children stay out of the base (issue #2567).
       final librarySites = await librarySiteIds();
+      // So does media kept with no place, while a device in the library
+      // would delete it (issue #5122).
+      final heldMedia = await heldMediaIdsForExport(
+        _db,
+        holding: holdUnplacedMedia,
+        now: now,
+      );
       // A link this device still holds goes out as the value it held (issue
       // #4954), never as the repair's null.
       final heldLinks = await HeldReferenceStore(
@@ -1912,6 +1930,7 @@ class SyncDataSerializer {
         final heldTable = heldLinks.isEmpty ? null : _tableNameFor(spec.key);
 
         Future<void> emit(Map<String, dynamic> row) async {
+          if (isHeldMediaRow(spec.key, row, heldMedia)) return;
           if (librarySites.isNotEmpty) {
             if (spec.key == 'diveSites' && row['sharedLibraryId'] != null) {
               return;
@@ -2590,14 +2609,24 @@ class SyncDataSerializer {
   Future<SyncData> _buildSyncData(
     String? hlcSince, {
     bool childrenByOwnClock = false,
-  }) async => _withHeldLinks(
-    await _withLibrarySiteIdsMemo(
-      () => _buildSyncDataUnmemoised(
-        hlcSince,
-        childrenByOwnClock: childrenByOwnClock,
+    bool holdUnplacedMedia = true,
+  }) async {
+    final heldMedia = await heldMediaIdsForExport(
+      _db,
+      holding: holdUnplacedMedia,
+    );
+    return withoutHeldMedia(
+      await _withHeldLinks(
+        await _withLibrarySiteIdsMemo(
+          () => _buildSyncDataUnmemoised(
+            hlcSince,
+            childrenByOwnClock: childrenByOwnClock,
+          ),
+        ),
       ),
-    ),
-  );
+      heldMedia,
+    );
+  }
 
   /// The wire entity type whose rows live in the SQL table [table], or null
   /// for a table that does not sync. Read by the held references to match

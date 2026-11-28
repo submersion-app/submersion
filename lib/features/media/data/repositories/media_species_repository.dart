@@ -27,8 +27,16 @@ import 'package:submersion/features/media/domain/entities/species_tag_chip.dart'
 /// published nothing, because tagging a photo never edits the photo
 /// (issue #1638).
 class MediaSpeciesRepository {
-  AppDatabase get _db => DatabaseService.instance.database;
-  final SyncRepository _syncRepository = SyncRepository();
+  /// [database] is the open logbook unless given: the Identify viewer gives
+  /// its own in-memory one (issue #5122), and sync bookkeeping goes there
+  /// with the rows.
+  MediaSpeciesRepository({AppDatabase? database})
+    : _database = database,
+      _syncRepository = SyncRepository(database: database);
+
+  final AppDatabase? _database;
+  AppDatabase get _db => _database ?? DatabaseService.instance.database;
+  final SyncRepository _syncRepository;
   static const Uuid _uuid = Uuid();
 
   /// Bound-variable budget per `isIn` chunk, well under SQLite's 999 limit.
@@ -155,6 +163,34 @@ class MediaSpeciesRepository {
         sightingId: sightingId == null
             ? const Value.absent()
             : Value(sightingId),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'mediaSpecies',
+      recordId: existing.id,
+      localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Points the tag linking [mediaId] and [speciesId] at [sightingId], or at
+  /// no sighting when null, for media moved onto another dive (issue #5122).
+  /// The tag's "created the sighting" mark goes with the old link: the app
+  /// created that sighting, not the one the tag points at now. No tag, or a
+  /// tag already pointing there, is left alone.
+  Future<void> setTagSighting({
+    required String mediaId,
+    required String speciesId,
+    required String? sightingId,
+  }) async {
+    final existing = await _findTag(mediaId, speciesId);
+    if (existing == null || existing.sightingId == sightingId) return;
+    await (_db.update(
+      _db.mediaSpecies,
+    )..where((t) => t.id.equals(existing.id))).write(
+      MediaSpeciesCompanion(
+        sightingId: Value(sightingId),
+        createdSighting: const Value(null),
       ),
     );
     await _syncRepository.markRecordPending(

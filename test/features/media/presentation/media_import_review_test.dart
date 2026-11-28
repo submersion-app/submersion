@@ -61,6 +61,7 @@ void main() {
     Map<DateTime, ImportSuggestion> suggestions, {
     List<Override> extraOverrides = const [],
     bool reportResult = true,
+    bool allowUnplaced = false,
   }) {
     confirmed = null;
     return ProviderScope(
@@ -76,6 +77,7 @@ void main() {
         home: MediaImportReviewPage(
           candidates: candidates,
           reportResult: reportResult,
+          allowUnplaced: allowUnplaced,
           onConfirm: (targets) async {
             confirmed = targets;
             return ImportReviewResult(
@@ -228,6 +230,161 @@ void main() {
     await tester.pump();
     expect(confirmed, {'a': const SiteAttachTarget('s1')});
     await tester.pumpAndSettle();
+  });
+
+  group('media with no place (issue #5122)', () {
+    final allOnSite = find.byKey(
+      const ValueKey('media_import_review_all_on_site'),
+    );
+    final allUnplaced = find.byKey(
+      const ValueKey('media_import_review_all_unplaced'),
+    );
+
+    testWidgets('Keep without a place from the row menu keeps it unplaced', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host([candidate('a', t3)], {t3: none}, allowUnplaced: true),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Keep without a place'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Keep in the library, no dive or site'), findsOneWidget);
+      await tester.tap(find.text('Import 1 items'));
+      await tester.pump();
+      expect(confirmed, {'a': const UnplacedAttachTarget()});
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('Keep the rest without a place leaves matched rows alone', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          [candidate('a', t1), candidate('b', t3), candidate('c', t3)],
+          {t1: confident('d7', 7), t3: none},
+          allowUnplaced: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(allUnplaced);
+      await tester.pumpAndSettle();
+
+      expect(allUnplaced, findsNothing, reason: 'nothing is left to place');
+      await tester.tap(find.text('Import 3 items'));
+      await tester.pump();
+      expect(confirmed, {
+        'a': const DiveAttachTarget('d7'),
+        'b': const UnplacedAttachTarget(),
+        'c': const UnplacedAttachTarget(),
+      });
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('Put the rest on a site puts only the rows with no target', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          [candidate('a', t1), candidate('b', t3)],
+          {t1: confident('d7', 7), t3: none},
+          extraOverrides: [
+            sitesProvider.overrideWith(
+              (ref) async => const [DiveSite(id: 's1', name: 'Blue Hole')],
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(allOnSite);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Blue Hole'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Import 2 items'));
+      await tester.pump();
+      expect(confirmed, {
+        'a': const DiveAttachTarget('d7'),
+        'b': const SiteAttachTarget('s1'),
+      });
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a row the diver unchecked is not part of the rest', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          [candidate('a', t1), candidate('b', t3)],
+          {t1: confident('d7', 7), t3: none},
+          allowUnplaced: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+      // Uncheck the confident match: the diver chose to leave it out.
+      await tester.tap(find.byType(Checkbox).first);
+      await tester.pumpAndSettle();
+
+      await tester.tap(allUnplaced);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Import 1 items'));
+      await tester.pump();
+      expect(confirmed, {'b': const UnplacedAttachTarget()});
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a row whose fetch failed is part of the rest', (tester) async {
+      await tester.pumpWidget(
+        host(
+          [candidate('a', t3, error: 'Not found (404)')],
+          {t3: none},
+          allowUnplaced: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(allUnplaced);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Import 1 items'));
+      await tester.pump();
+      expect(confirmed, {'a': const UnplacedAttachTarget()});
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('the bar is hidden when every row has a target', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          [candidate('a', t1)],
+          {t1: confident('d7', 7)},
+          allowUnplaced: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(allOnSite, findsNothing);
+      expect(allUnplaced, findsNothing);
+    });
+
+    testWidgets('a page that does not allow it offers no unplaced choice', (
+      tester,
+    ) async {
+      await tester.pumpWidget(host([candidate('a', t3)], {t3: none}));
+      await tester.pumpAndSettle();
+
+      expect(allOnSite, findsOneWidget);
+      expect(allUnplaced, findsNothing);
+      await tester.tap(find.byType(PopupMenuButton<String>));
+      await tester.pumpAndSettle();
+      expect(find.text('Keep without a place'), findsNothing);
+    });
   });
 
   testWidgets('toggling an ambiguous row opens the candidate sheet', (

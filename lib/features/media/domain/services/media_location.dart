@@ -4,14 +4,17 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 /// Where [item] was taken, for limiting marine life names to the species
 /// recorded there (issues #4668, #4727): its own position, else its dive's
 /// site ([siteLocation]), else where the dive's computer logged its entry
-/// ([entryLocation]).
+/// ([entryLocation]), else the site the media itself is placed on
+/// ([ownSiteLocation], issue #5122), which is all a clip with no GPS and no
+/// dive has.
 GeoPoint? mediaLocation(
   MediaItem item, {
   GeoPoint? siteLocation,
   GeoPoint? entryLocation,
+  GeoPoint? ownSiteLocation,
 }) {
   final lat = item.latitude;
   final lon = item.longitude;
   if (lat != null && lon != null) return GeoPoint(lat, lon);
-  return siteLocation ?? entryLocation;
+  return siteLocation ?? entryLocation ?? ownSiteLocation;
 }

@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/services/sync/held_media_export.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/nearby/nearby_carrier.dart';
 import 'package:submersion/core/services/nearby/nearby_crypto.dart';
@@ -273,9 +274,14 @@ class NearbySyncProtocol {
         result = await _engine.applyPayload(
           decoded.payload,
           peerDeviceId: _peerId,
+          peerSchemaVersion: _channel.peer.schemaVersion,
         );
       } else {
-        result = await _engine.applyBaseFile(gz.path, peerDeviceId: _peerId);
+        result = await _engine.applyBaseFile(
+          gz.path,
+          peerDeviceId: _peerId,
+          peerSchemaVersion: _channel.peer.schemaVersion,
+        );
       }
       _applied += result.recordsApplied;
       // Rows the merge could not take: not a clean session, as on the cloud
@@ -480,6 +486,12 @@ class NearbySyncProtocol {
 
   /// What this direction sends, or null for nothing.
   Future<NearbyOutgoing?> _prepare(NearbyWatermarks theirs) async {
+    // Media kept with no place stays away from a peer whose build would
+    // delete it (issue #5122). A peer that keeps it is sent what was held
+    // back before: stamped again, so the watermarks below show it.
+    final holdUnplacedMedia =
+        _channel.peer.schemaVersion < heldMediaSchemaVersion;
+    if (!holdUnplacedMedia) await _engine.releaseHeldMedia();
     final mine = await _engine.watermarks();
     var kind = NearbyExportPlanner.decide(mine: mine, peers: theirs);
     String? from;
@@ -490,13 +502,17 @@ class NearbySyncProtocol {
         kind = NearbyExportKind.full;
       }
     }
+    // A full copy kept for reuse is this peer's own, and a peer never moves
+    // to an older build, so reusing one is safe.
     switch (kind) {
       case NearbyExportKind.nothing:
         return null;
       case NearbyExportKind.full:
         final reused = await _files.reusableFull(_peerId);
         if (reused != null) return reused;
-        final base = await _engine.exportFull();
+        final base = await _engine.exportFull(
+          holdUnplacedMedia: holdUnplacedMedia,
+        );
         final exported = File(base.path);
         try {
           return await _files.prepareFull(_peerId, const Uuid().v4(), exported);
@@ -508,7 +524,10 @@ class NearbySyncProtocol {
         }
       case NearbyExportKind.delta:
         final payload = await NearbyExportPlanner.filterByWriter(
-          await _engine.exportDelta(from!),
+          await _engine.exportDelta(
+            from!,
+            holdUnplacedMedia: holdUnplacedMedia,
+          ),
           theirs,
         );
         if (_isEmpty(payload)) return null;

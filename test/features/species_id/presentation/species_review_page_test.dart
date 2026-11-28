@@ -138,7 +138,7 @@ void main() {
       expect(markerIn(suggestedRowKey), findsOneWidget);
       expect(markerIn(taggedRowKey), findsNothing);
       // The dive's list: a review row passes no photo position.
-      expect(nearbyAsked.toSet(), {(diveId: 'd1', photo: null)});
+      expect(nearbyAsked.toSet(), {(diveId: 'd1', photo: null, siteId: null)});
     });
 
     testWidgets('a tagged row of a catalogue species on the list says so', (
@@ -227,7 +227,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(nearbyAsked.toSet(), {
-        (diveId: null, photo: const GeoPoint(12.2, -68.3)),
+        (diveId: null, photo: const GeoPoint(12.2, -68.3), siteId: null),
       });
       expect(markerIn('species_review_row_g:1_e'), findsOneWidget);
     });

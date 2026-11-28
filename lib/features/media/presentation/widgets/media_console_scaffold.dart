@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -24,13 +25,18 @@ enum MediaConsoleSection { library, gear }
 /// The buttons at the end of a Media header row: the tab row on a phone, the
 /// switch's row at desktop widths (#4777). Declaration order is display
 /// order.
-enum MediaConsoleAction { importMedia, transfers, sources }
+enum MediaConsoleAction { importMedia, identify, transfers, sources }
 
 /// The buttons a device with [caps] offers: a browser can neither import
 /// files nor watch folders, so it has only Transfers (issue #4121).
+/// Identify (issue #5122) shows only while marine life identification is on.
 List<MediaConsoleAction> mediaConsoleActionsFor(DeviceCapabilities caps) =>
     caps.mediaAttach
-    ? MediaConsoleAction.values
+    ? [
+        for (final action in MediaConsoleAction.values)
+          if (action != MediaConsoleAction.identify || marineLifeIdEnabled)
+            action,
+      ]
     : const [MediaConsoleAction.transfers];
 
 /// The Media section's page chrome: [headerTitle] over the section's tabs
@@ -148,6 +154,10 @@ class _MediaConsoleScaffoldState extends ConsumerState<MediaConsoleScaffold>
       MediaConsoleAction.importMedia => (
         Icons.add_photo_alternate_outlined,
         l10n.media_console_import,
+      ),
+      MediaConsoleAction.identify => (
+        Icons.travel_explore,
+        l10n.media_console_identify,
       ),
       MediaConsoleAction.transfers => (
         Icons.swap_vert,

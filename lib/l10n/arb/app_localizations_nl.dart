@@ -20990,6 +20990,14 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get media_photoPicker_files_allOnSite =>
+      'Alles op een duikstek zetten';
+
+  @override
+  String get media_photoPicker_files_allUnplaced =>
+      'Alles zonder plaats bewaren';
+
+  @override
   String get media_photoPicker_files_addToDiveTooltip =>
       'Aan deze duik toevoegen';
 
@@ -21640,7 +21648,105 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_import_review_chooseDive => 'Duik kiezen';
 
   @override
+  String get media_import_review_keepUnplaced => 'Zonder plaats bewaren';
+
+  @override
+  String get media_import_review_unplaced =>
+      'In de bibliotheek bewaren, zonder duik of duikstek';
+
+  @override
+  String get media_import_review_allOnSite => 'De rest op een duikstek zetten';
+
+  @override
+  String get media_import_review_allUnplaced => 'De rest zonder plaats bewaren';
+
+  @override
   String get media_console_sources => 'Bronnen';
+
+  @override
+  String get media_console_identify => 'Soorten herkennen';
+
+  @override
+  String get media_identify_notKeptBanner =>
+      'Niet in je bibliotheek. Er wordt niets bewaard tenzij je het bewaart.';
+
+  @override
+  String get media_identify_keep => 'Bewaren';
+
+  @override
+  String get media_identify_kept => 'Bewaard in je bibliotheek';
+
+  @override
+  String get media_identify_leaveTitle => 'Verlaten zonder bewaren?';
+
+  @override
+  String get media_identify_leaveBody =>
+      'De soorten die je koos bij bestanden die je niet bewaarde, gaan verloren.';
+
+  @override
+  String get media_identify_leave => 'Verlaten';
+
+  @override
+  String get media_identify_keepTitle => 'Bewaren in je bibliotheek';
+
+  @override
+  String get media_identify_keepOnDive => 'Op een duik zetten';
+
+  @override
+  String get media_identify_keepOnSite => 'Op een duikstek zetten';
+
+  @override
+  String get media_identify_keepUnplaced => 'Zonder plaats bewaren';
+
+  @override
+  String get media_identify_keepThis => 'Dit bestand';
+
+  @override
+  String get media_identify_keepAll => 'Alle nog niet bewaarde bestanden';
+
+  @override
+  String get media_identify_cameraTitle => 'Herkennen';
+
+  @override
+  String get media_identify_photo => 'Foto';
+
+  @override
+  String get media_identify_video => 'Video';
+
+  @override
+  String get media_identify_namesOn => 'Namen';
+
+  @override
+  String get media_identify_noLocation =>
+      'Alleen suggesties, van overal: je locatie wordt niet gebruikt.';
+
+  @override
+  String get media_identify_namesPaused =>
+      'Namen gepauzeerd: het apparaat heeft weinig geheugen.';
+
+  @override
+  String get media_identify_cameraDenied =>
+      'Submersion kan de camera niet gebruiken. Sta cameratoegang toe in Instellingen of kies in plaats daarvan bestanden.';
+
+  @override
+  String get media_identify_pickFiles => 'Bestanden kiezen';
+
+  @override
+  String get media_identify_takePhoto => 'Foto maken';
+
+  @override
+  String get media_identify_record => 'Opnemen';
+
+  @override
+  String get media_identify_stop => 'Stoppen';
+
+  @override
+  String get media_identify_captures => 'Gemaakte foto\'s en clips';
+
+  @override
+  String media_identify_keepFailed(String name) {
+    return '$name kon niet worden bewaard';
+  }
 
   @override
   String get media_sources_browseHeader => 'Bladeren op bron';

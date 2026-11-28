@@ -21161,6 +21161,12 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get media_photoPicker_files_allOnSite => 'Tout placer sur un site';
+
+  @override
+  String get media_photoPicker_files_allUnplaced => 'Tout garder sans lieu';
+
+  @override
   String get media_photoPicker_files_addToDiveTooltip =>
       'Ajouter à cette plongée';
 
@@ -21819,7 +21825,105 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_import_review_chooseDive => 'Choisir la plongée';
 
   @override
+  String get media_import_review_keepUnplaced => 'Garder sans lieu';
+
+  @override
+  String get media_import_review_unplaced =>
+      'Garder dans la bibliothèque, sans plongée ni site';
+
+  @override
+  String get media_import_review_allOnSite => 'Placer le reste sur un site';
+
+  @override
+  String get media_import_review_allUnplaced => 'Garder le reste sans lieu';
+
+  @override
   String get media_console_sources => 'Sources';
+
+  @override
+  String get media_console_identify => 'Identifier les espèces';
+
+  @override
+  String get media_identify_notKeptBanner =>
+      'Pas dans votre bibliothèque. Rien n\'est gardé sauf si vous le gardez.';
+
+  @override
+  String get media_identify_keep => 'Garder';
+
+  @override
+  String get media_identify_kept => 'Gardé dans votre bibliothèque';
+
+  @override
+  String get media_identify_leaveTitle => 'Quitter sans garder ?';
+
+  @override
+  String get media_identify_leaveBody =>
+      'Les espèces choisies sur les fichiers non gardés seront perdues.';
+
+  @override
+  String get media_identify_leave => 'Quitter';
+
+  @override
+  String get media_identify_keepTitle => 'Garder dans votre bibliothèque';
+
+  @override
+  String get media_identify_keepOnDive => 'Placer sur une plongée';
+
+  @override
+  String get media_identify_keepOnSite => 'Placer sur un site';
+
+  @override
+  String get media_identify_keepUnplaced => 'Garder sans lieu';
+
+  @override
+  String get media_identify_keepThis => 'Ce fichier';
+
+  @override
+  String get media_identify_keepAll => 'Tous les fichiers pas encore gardés';
+
+  @override
+  String get media_identify_cameraTitle => 'Identifier';
+
+  @override
+  String get media_identify_photo => 'Photo';
+
+  @override
+  String get media_identify_video => 'Vidéo';
+
+  @override
+  String get media_identify_namesOn => 'Noms';
+
+  @override
+  String get media_identify_noLocation =>
+      'Suggestions uniquement, de partout : votre position n\'est pas utilisée.';
+
+  @override
+  String get media_identify_namesPaused =>
+      'Noms en pause : l\'appareil manque de mémoire.';
+
+  @override
+  String get media_identify_cameraDenied =>
+      'Submersion ne peut pas utiliser l\'appareil photo. Autorisez l\'accès dans les Réglages, ou choisissez plutôt des fichiers.';
+
+  @override
+  String get media_identify_pickFiles => 'Choisir des fichiers';
+
+  @override
+  String get media_identify_takePhoto => 'Prendre une photo';
+
+  @override
+  String get media_identify_record => 'Enregistrer';
+
+  @override
+  String get media_identify_stop => 'Arrêter';
+
+  @override
+  String get media_identify_captures => 'Photos et clips pris';
+
+  @override
+  String media_identify_keepFailed(String name) {
+    return '$name n\'a pas pu être gardé';
+  }
 
   @override
   String get media_sources_browseHeader => 'Parcourir par source';

@@ -318,6 +318,26 @@ void main() {
       expect(row.isOrphaned, isFalse);
     });
 
+    test('an unplaced request writes a retained row with no links '
+        '(issue #5122)', () async {
+      const url = 'https://example.com/clip.mp4';
+      final pipeline = NetworkFetchPipeline(
+        db: db,
+        extractor: _StubExtractor(results: {url: _ok(url)}),
+      );
+      final resolved = await pipeline.resolve([Uri.parse(url)]);
+
+      final ids = await pipeline.insertResolved([
+        NetworkInsertRequest(media: resolved.single, unplaced: true),
+      ], subscriptionId: null);
+
+      final row = await rowOf(ids.single);
+      expect(row.diveId, isNull);
+      expect(row.siteId, isNull);
+      expect(row.equipmentId, isNull);
+      expect(row.retainInLibrary, isTrue);
+    });
+
     test('a manifest entry stores its original file name', () async {
       await insertDiveRow('d1');
       final pipeline = NetworkFetchPipeline(

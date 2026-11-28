@@ -380,5 +380,11 @@ extension RungsFromV340 on AppDatabase {
     // in beforeOpen; the floor does not move.
     if (from < 394) await _assertTankPresetRatedCapacityColumn();
     if (from < 394) await reportProgress();
+
+    // v395 (issue #5122): the device-local held_media table, the media this
+    // device keeps back from older devices. Never synced; the floor does not
+    // move. Re-asserted in beforeOpen.
+    if (from < 395) await _assertHeldMediaSchema();
+    if (from < 395) await reportProgress();
   }
 }

@@ -284,7 +284,7 @@ void main() {
   });
 
   group('Recorded nearby (issue #4668)', () {
-    const request = (diveId: 'd1', photo: null);
+    const request = (diveId: 'd1', photo: null, siteId: null);
     Finder pin(int key) => find.descendant(
       of: find.byKey(ValueKey('media_suggested_chip_$key')),
       matching: find.byKey(const ValueKey('recorded_nearby_pin')),

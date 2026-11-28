@@ -12819,6 +12819,14 @@
       }
     }
   },
+  "media_photoPicker_files_allOnSite": "Put all on a site",
+  "@media_photoPicker_files_allOnSite": {
+    "description": "Unmatched files group action: put every unmatched file on one dive site"
+  },
+  "media_photoPicker_files_allUnplaced": "Keep all without a place",
+  "@media_photoPicker_files_allUnplaced": {
+    "description": "Unmatched files group action: keep every unmatched file in the library with no dive and no site"
+  },
   "media_photoPicker_files_addToDiveTooltip": "Add to this dive",
   "media_photoPicker_files_chooseDiveTooltip": "Choose a dive",
   "media_photoPicker_files_removeTooltip": "Remove from selection",
@@ -13373,9 +13381,134 @@
   "@media_import_review_chooseDive": {
     "description": "Review row menu: pick a dive"
   },
+  "media_import_review_keepUnplaced": "Keep without a place",
+  "@media_import_review_keepUnplaced": {
+    "description": "Review row menu: keep the file in the media library with no dive and no site"
+  },
+  "media_import_review_unplaced": "Keep in the library, no dive or site",
+  "@media_import_review_unplaced": {
+    "description": "Review row subtitle for a file kept with no dive and no site"
+  },
+  "media_import_review_allOnSite": "Put the rest on a site",
+  "@media_import_review_allOnSite": {
+    "description": "Review action: put every file that has no dive or site yet on one dive site"
+  },
+  "media_import_review_allUnplaced": "Keep the rest without a place",
+  "@media_import_review_allUnplaced": {
+    "description": "Review action: keep every file that has no dive or site yet in the library with no place"
+  },
   "media_console_sources": "Sources",
   "@media_console_sources": {
     "description": "Media console label for the sources section"
+  },
+  "media_console_identify": "Identify species",
+  "@media_console_identify": {
+    "description": "Media console button: identify species in photos or videos without keeping them"
+  },
+  "media_identify_notKeptBanner": "Not in your library. Nothing is kept unless you keep it.",
+  "@media_identify_notKeptBanner": {
+    "description": "Identify viewer banner over a file that is not in the media library"
+  },
+  "media_identify_keep": "Keep",
+  "@media_identify_keep": {
+    "description": "Identify viewer button: keep this file in the media library"
+  },
+  "media_identify_kept": "Kept in your library",
+  "@media_identify_kept": {
+    "description": "Identify viewer banner once the file is kept"
+  },
+  "media_identify_leaveTitle": "Leave without keeping?",
+  "@media_identify_leaveTitle": {
+    "description": "Identify viewer: dialog title when leaving with species chosen on files not kept"
+  },
+  "media_identify_leaveBody": "The species you chose on files you have not kept will be lost.",
+  "@media_identify_leaveBody": {
+    "description": "Identify viewer: dialog body when leaving with species chosen on files not kept"
+  },
+  "media_identify_leave": "Leave",
+  "@media_identify_leave": {
+    "description": "Identify viewer: dialog button that leaves without keeping"
+  },
+  "media_identify_keepTitle": "Keep in your library",
+  "@media_identify_keepTitle": {
+    "description": "Keep sheet title"
+  },
+  "media_identify_keepOnDive": "Put on a dive",
+  "@media_identify_keepOnDive": {
+    "description": "Keep sheet choice: keep the file on a dive"
+  },
+  "media_identify_keepOnSite": "Put on a site",
+  "@media_identify_keepOnSite": {
+    "description": "Keep sheet choice: keep the file on a dive site"
+  },
+  "media_identify_keepUnplaced": "Keep without a place",
+  "@media_identify_keepUnplaced": {
+    "description": "Keep sheet choice: keep the file with no dive and no site"
+  },
+  "media_identify_keepThis": "This file",
+  "@media_identify_keepThis": {
+    "description": "Keep sheet scope: only the file on screen"
+  },
+  "media_identify_keepAll": "All files not kept yet",
+  "@media_identify_keepAll": {
+    "description": "Keep sheet scope: every file in the Identify viewer not kept yet"
+  },
+  "media_identify_cameraTitle": "Identify",
+  "@media_identify_cameraTitle": {
+    "description": "Identify camera screen title"
+  },
+  "media_identify_photo": "Photo",
+  "@media_identify_photo": {
+    "description": "Identify camera mode: take photos"
+  },
+  "media_identify_video": "Video",
+  "@media_identify_video": {
+    "description": "Identify camera mode: record clips"
+  },
+  "media_identify_namesOn": "Names",
+  "@media_identify_namesOn": {
+    "description": "Identify camera switch: show species suggestions over the live picture"
+  },
+  "media_identify_noLocation": "Suggestions only, from anywhere: your location is not used.",
+  "@media_identify_noLocation": {
+    "description": "Identify camera line under the picture: names are suggestions and not limited to the diver's location"
+  },
+  "media_identify_namesPaused": "Names paused: the device is low on memory.",
+  "@media_identify_namesPaused": {
+    "description": "Identify camera line when live naming has paused to save memory"
+  },
+  "media_identify_cameraDenied": "Submersion can't use the camera. Allow camera access in Settings, or pick files instead.",
+  "@media_identify_cameraDenied": {
+    "description": "Identify camera when camera access is refused"
+  },
+  "media_identify_pickFiles": "Pick files",
+  "@media_identify_pickFiles": {
+    "description": "Identify camera button: pick photos or videos instead"
+  },
+  "media_identify_takePhoto": "Take photo",
+  "@media_identify_takePhoto": {
+    "description": "Identify camera shutter tooltip in photo mode"
+  },
+  "media_identify_record": "Record",
+  "@media_identify_record": {
+    "description": "Identify camera shutter tooltip in video mode"
+  },
+  "media_identify_stop": "Stop",
+  "@media_identify_stop": {
+    "description": "Identify camera shutter tooltip while recording"
+  },
+  "media_identify_captures": "Photos and clips taken",
+  "@media_identify_captures": {
+    "description": "Identify camera button: open the photos and clips taken in the Identify viewer"
+  },
+  "media_identify_keepFailed": "{name} could not be kept",
+  "@media_identify_keepFailed": {
+    "description": "Snackbar when a file in the Identify viewer could not be kept, usually because it was moved or deleted",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "media_sources_browseHeader": "Browse by source",
   "@media_sources_browseHeader": {

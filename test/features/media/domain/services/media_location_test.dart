@@ -41,6 +41,30 @@ void main() {
     expect(mediaLocation(item(), entryLocation: entry), entry);
   });
 
+  const ownSite = GeoPoint(1, 2);
+
+  test('else its own site, for media on a site or no dive (issue #5122)', () {
+    expect(mediaLocation(item(), ownSiteLocation: ownSite), ownSite);
+  });
+
+  test('the dive\'s site and entry come before its own site', () {
+    expect(
+      mediaLocation(item(), siteLocation: site, ownSiteLocation: ownSite),
+      site,
+    );
+    expect(
+      mediaLocation(item(), entryLocation: entry, ownSiteLocation: ownSite),
+      entry,
+    );
+  });
+
+  test('its own position comes before its own site', () {
+    expect(
+      mediaLocation(item(lat: 12, lon: -68), ownSiteLocation: ownSite),
+      const GeoPoint(12, -68),
+    );
+  });
+
   test('else none', () {
     expect(mediaLocation(item()), isNull);
   });

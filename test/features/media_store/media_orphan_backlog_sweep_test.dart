@@ -73,6 +73,18 @@ void main() {
   // 24h age guard is satisfied by running "two days in the future".
   final sweepTime = DateTime.now().add(const Duration(days: 2));
 
+  test('spares a row the diver kept with no place (issue #5122)', () async {
+    final kept = await repo.createMedia(
+      item('kept.jpg').copyWith(retainInLibrary: true),
+    );
+    final stray = await repo.createMedia(item('stray.jpg'));
+
+    expect(await sweep.run(now: sweepTime), 1);
+
+    expect(await repo.getMediaById(kept.id), isNotNull);
+    expect(await repo.getMediaById(stray.id), isNull);
+  });
+
   test('sweeps every old unlinked row on each run', () async {
     final epoch = DateTime(2026, 1, 1).millisecondsSinceEpoch;
     await db
