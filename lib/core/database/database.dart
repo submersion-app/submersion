@@ -341,7 +341,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 390;
+  static const int currentSchemaVersion = 394;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1837,12 +1837,14 @@ class AppDatabase extends _$AppDatabase {
     // only zoom choice (issue #5069). Nullable, no backfill; the floor does
     // not move. Numbered 389 because open work claims 388.
     389,
-    // v390: the device-local held_media table, for keeping media with no
+    // v393: the built-in BCD/wing inspection kind applies to wings (issue
+    // #5110). Built-in reference data never syncs; the floor does not move.
+    393,
+    // v394: the device-local held_media table, for keeping media with no
     // place away from older devices (issue #5122). Never synced, so the
-    // floor does not move. Numbered 390 because 389
-    // went to #5069 first, and a build at 389 without this deletes such
-    // media.
-    390,
+    // floor does not move. Numbered after main's 389 to 393: a build at any
+    // of those without this deletes such media.
+    394,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

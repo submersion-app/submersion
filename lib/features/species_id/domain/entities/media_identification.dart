@@ -27,16 +27,22 @@ class IdentificationBox extends Equatable {
 
   double get area => width * height;
 
-  /// Intersection over union: 1 for the same box, 0 for disjoint ones.
-  double iou(IdentificationBox other) {
+  /// The area this box and [other] share: 0 for disjoint ones.
+  double intersection(IdentificationBox other) {
     final left = math.max(x, other.x);
     final top = math.max(y, other.y);
     final right = math.min(x + width, other.x + other.width);
     final bottom = math.min(y + height, other.y + other.height);
     if (right <= left || bottom <= top) return 0;
-    final intersection = (right - left) * (bottom - top);
-    final union = area + other.area - intersection;
-    return union <= 0 ? 0 : intersection / union;
+    return (right - left) * (bottom - top);
+  }
+
+  /// Intersection over union: 1 for the same box, 0 for disjoint ones.
+  double iou(IdentificationBox other) {
+    final shared = intersection(other);
+    if (shared <= 0) return 0;
+    final union = area + other.area - shared;
+    return union <= 0 ? 0 : shared / union;
   }
 
   IdentificationBox copyWith({

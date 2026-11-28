@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/sync/held_media_export.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v390: the device-local `held_media` table, the media this device
+/// Schema v394: the device-local `held_media` table, the media this device
 /// keeps back from older devices (issue #5122). Never synced, so the floor
 /// holds.
 void main() {
@@ -22,15 +22,15 @@ void main() {
     return rows.isNotEmpty;
   }
 
-  test('v390 is in the ladder and keeps the floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(390));
-    expect(AppDatabase.migrationVersions, contains(390));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(390));
-    expect(heldMediaSchemaVersion, 390);
+  test('v394 is in the ladder and keeps the floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(394));
+    expect(AppDatabase.migrationVersions, contains(394));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(394));
+    expect(heldMediaSchemaVersion, 394);
   });
 
-  test('upgrading from v389 adds an empty held_media table', () async {
-    final db = AppDatabase(dbAt(389));
+  test('upgrading from v393 adds an empty held_media table', () async {
+    final db = AppDatabase(dbAt(393));
     addTearDown(db.close);
 
     expect(await hasHeldMedia(db), isTrue);
@@ -38,9 +38,9 @@ void main() {
   });
 
   test(
-    'a database already at v390 gets the table back from beforeOpen',
+    'a database already at v394 gets the table back from beforeOpen',
     () async {
-      final db = AppDatabase(dbAt(390));
+      final db = AppDatabase(dbAt(394));
       addTearDown(db.close);
 
       expect(await hasHeldMedia(db), isTrue);

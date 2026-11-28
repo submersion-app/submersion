@@ -364,10 +364,16 @@ extension RungsFromV340 on AppDatabase {
     if (from < 389) await _assertProfileZoomTimeOnlyColumn();
     if (from < 389) await reportProgress();
 
-    // v390 (issue #5122): the device-local held_media table, the media this
+    // v393 (issue #5110): the built-in BCD/wing inspection applies to wings.
+    // A one-time UPDATE of one built-in row; not in the backstop, as the
+    // v239 built-in backfill is not. The floor does not move.
+    if (from < 393) await _backfillWingInspectionServiceKind();
+    if (from < 393) await reportProgress();
+
+    // v394 (issue #5122): the device-local held_media table, the media this
     // device keeps back from older devices. Never synced; the floor does not
     // move. Re-asserted in beforeOpen.
-    if (from < 390) await _assertHeldMediaSchema();
-    if (from < 390) await reportProgress();
+    if (from < 394) await _assertHeldMediaSchema();
+    if (from < 394) await reportProgress();
   }
 }

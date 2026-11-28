@@ -16991,6 +16991,53 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ein verbundener Tauchcomputer oder Sender behält seinen Typ.';
 
   @override
+  String get equipment_suggest_link =>
+      'Nichts Passendes? Kategorie vorschlagen';
+
+  @override
+  String get equipment_suggest_title => 'Kategorie vorschlagen';
+
+  @override
+  String get equipment_suggest_intro =>
+      'Damit öffnet sich eine vorausgefüllte Funktionsanfrage auf GitHub. Du prüfst sie und sendest sie in deinem Browser ab.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'Was schlägst du vor?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'Neue Ausrüstungsart';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'Neue Variante einer Art';
+
+  @override
+  String get equipment_suggest_nameLabel => 'Name';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'Eine Variante von';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => 'Nächstliegende Art';
+
+  @override
+  String get equipment_suggest_parentNone => 'Keine';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'Warum wird sie gebraucht?';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'Was unterscheidet sie von den vorhandenen Arten?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'Dieses Teil als Beispiel angeben ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'Auf GitHub öffnen';
+
+  @override
   String get equipment_edit_useCustomReminders =>
       'Eigene Erinnerungen verwenden';
 
@@ -19651,9 +19698,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get marineLife_suggest_couldNotOpen =>
       'Browser konnte nicht geöffnet werden';
-
-  @override
-  String get marineLife_suggest_copyLink => 'Link kopieren';
 
   @override
   String get marineLife_editCard_photos => 'Fotos';
