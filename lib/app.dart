@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/data/services/derived_metrics_sched
 import 'package:submersion/features/dive_log/presentation/widgets/stale_open_draft_prompt.dart';
 import 'package:submersion/features/documents/presentation/providers/equipment_file_conversion_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_catalogue_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/app/app_exit.dart';
@@ -226,6 +227,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       _republishOwnedMedia();
       _convertGearFiles();
       _importSiteCatalogue();
+      _refreshEquipmentCatalogue();
       unawaited(runIdentificationLaunchSteps(ref.container));
       _fileShareHandler.initialize();
       _passportLinks.start();
@@ -310,6 +312,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         ref.read(appLockNotifierProvider.notifier).noteResumed();
         _runStorageCleanupAfter(_maybeSyncOnResume(), StorageGcTrigger.resume);
         _resumeMediaTransfers();
+        _refreshEquipmentCatalogue();
         unawaited(_staleDrafts.check(ref, rootNavigatorKey.currentContext));
         unawaited(_runHealthImport());
         // NFC may have been turned on in the system settings meanwhile, as
@@ -357,6 +360,13 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   /// argument as [_resumeMediaTransfers].
   void _importSiteCatalogue() {
     unawaited(ref.read(siteCatalogueImportProvider)());
+  }
+
+  /// Downloads a newer equipment catalogue when one is due (at most daily,
+  /// never in a browser or with the diver's switch off) and reloads the
+  /// catalogue when it kept one (issue #5118). Contains its own failures.
+  void _refreshEquipmentCatalogue() {
+    unawaited(ref.read(equipmentCatalogueRefreshProvider)());
   }
 
   /// Runs the storage cleanup coordinator (issue #3396) once [syncs] end:

@@ -1,0 +1,6897 @@
+{
+  "format": 1,
+  "generatedAt": "2026-11-28T04:13:18Z",
+  "records": [
+    {
+      "id": "aeris-500-ai",
+      "manufacturer": "Aeris",
+      "model": "500 AI",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aeris-a300",
+      "manufacturer": "Aeris",
+      "model": "A300",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aeris-a300-ai",
+      "manufacturer": "Aeris",
+      "model": "A300 AI",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aeris-a300cs",
+      "manufacturer": "Aeris",
+      "model": "A300CS",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aeris-atmos-2",
+      "manufacturer": "Aeris",
+      "model": "Atmos 2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aeris-atmos-ai",
+      "manufacturer": "Aeris",
+      "model": "Atmos AI",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aeris-atmos-ai-2",
+      "manufacturer": "Aeris",
+      "model": "Atmos AI 2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aeris-compumask",
+      "manufacturer": "Aeris",
+      "model": "Compumask",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aeris-elite",
+      "manufacturer": "Aeris",
+      "model": "Elite",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aeris-elite-t3",
+      "manufacturer": "Aeris",
+      "model": "Elite T3",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aeris-epic",
+      "manufacturer": "Aeris",
+      "model": "Epic",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aeris-f10",
+      "manufacturer": "Aeris",
+      "model": "F10",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aeris-f11",
+      "manufacturer": "Aeris",
+      "model": "F11",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aeris-manta",
+      "manufacturer": "Aeris",
+      "model": "Manta",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aeris-xr-1-nx",
+      "manufacturer": "Aeris",
+      "model": "XR-1 NX",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aeris-xr-2",
+      "manufacturer": "Aeris",
+      "model": "XR-2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "apeks-dsx",
+      "manufacturer": "Apeks",
+      "model": "DSX",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "apeks-quantum-x",
+      "manufacturer": "Apeks",
+      "model": "Quantum X",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aqua-lung-i100",
+      "manufacturer": "Aqua Lung",
+      "manufacturerAliases": [
+        "Aqualung"
+      ],
+      "model": "i100",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aqua-lung-i200",
+      "manufacturer": "Aqua Lung",
+      "manufacturerAliases": [
+        "Aqualung"
+      ],
+      "model": "i200",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aqua-lung-i200c",
+      "manufacturer": "Aqua Lung",
+      "manufacturerAliases": [
+        "Aqualung"
+      ],
+      "model": "i200C",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aqua-lung-i300",
+      "manufacturer": "Aqua Lung",
+      "manufacturerAliases": [
+        "Aqualung"
+      ],
+      "model": "i300",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aqua-lung-i300c",
+      "manufacturer": "Aqua Lung",
+      "manufacturerAliases": [
+        "Aqualung"
+      ],
+      "model": "i300C",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aqua-lung-i330r",
+      "manufacturer": "Aqua Lung",
+      "manufacturerAliases": [
+        "Aqualung"
+      ],
+      "model": "i330R",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aqua-lung-i330r-console",
+      "manufacturer": "Aqua Lung",
+      "manufacturerAliases": [
+        "Aqualung"
+      ],
+      "model": "i330R Console",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aqua-lung-i450t",
+      "manufacturer": "Aqua Lung",
+      "manufacturerAliases": [
+        "Aqualung"
+      ],
+      "model": "i450T",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aqua-lung-i470tc",
+      "manufacturer": "Aqua Lung",
+      "manufacturerAliases": [
+        "Aqualung"
+      ],
+      "model": "i470TC",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aqua-lung-i550",
+      "manufacturer": "Aqua Lung",
+      "manufacturerAliases": [
+        "Aqualung"
+      ],
+      "model": "i550",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aqua-lung-i550c",
+      "manufacturer": "Aqua Lung",
+      "manufacturerAliases": [
+        "Aqualung"
+      ],
+      "model": "i550C",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aqua-lung-i750tc",
+      "manufacturer": "Aqua Lung",
+      "manufacturerAliases": [
+        "Aqualung"
+      ],
+      "model": "i750TC",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aqua-lung-i770r",
+      "manufacturer": "Aqua Lung",
+      "manufacturerAliases": [
+        "Aqualung"
+      ],
+      "model": "i770R",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "atomic-aquatics-cobalt",
+      "manufacturer": "Atomic Aquatics",
+      "model": "Cobalt",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "usb"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "atomic-aquatics-cobalt-2",
+      "manufacturer": "Atomic Aquatics",
+      "model": "Cobalt 2",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "usb"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "beuchat-mundial-2",
+      "manufacturer": "Beuchat",
+      "model": "Mundial 2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "beuchat-mundial-3",
+      "manufacturer": "Beuchat",
+      "model": "Mundial 3",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "beuchat-voyager-2g",
+      "manufacturer": "Beuchat",
+      "model": "Voyager 2G",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "citizen-hyper-aqualand",
+      "manufacturer": "Citizen",
+      "model": "Hyper Aqualand",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cochran-commander-i",
+      "manufacturer": "Cochran",
+      "model": "Commander I",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cochran-commander-ii",
+      "manufacturer": "Cochran",
+      "model": "Commander II",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cochran-commander-tm",
+      "manufacturer": "Cochran",
+      "model": "Commander TM",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cochran-emc-14",
+      "manufacturer": "Cochran",
+      "model": "EMC-14",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cochran-emc-16",
+      "manufacturer": "Cochran",
+      "model": "EMC-16",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cochran-emc-20h",
+      "manufacturer": "Cochran",
+      "model": "EMC-20H",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cressi-archimede",
+      "manufacturer": "Cressi",
+      "model": "Archimede",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cressi-cartesio",
+      "manufacturer": "Cressi",
+      "model": "Cartesio",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cressi-donatello",
+      "manufacturer": "Cressi",
+      "model": "Donatello",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cressi-drake",
+      "manufacturer": "Cressi",
+      "model": "Drake",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cressi-edy",
+      "manufacturer": "Cressi",
+      "model": "Edy",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cressi-giotto",
+      "manufacturer": "Cressi",
+      "model": "Giotto",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cressi-goa",
+      "manufacturer": "Cressi",
+      "model": "Goa",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cressi-leonardo",
+      "manufacturer": "Cressi",
+      "model": "Leonardo",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cressi-leonardo-2-0",
+      "manufacturer": "Cressi",
+      "model": "Leonardo 2.0",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cressi-michelangelo",
+      "manufacturer": "Cressi",
+      "model": "Michelangelo",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cressi-neon",
+      "manufacturer": "Cressi",
+      "model": "Neon",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cressi-nepto",
+      "manufacturer": "Cressi",
+      "model": "Nepto",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cressi-newton",
+      "manufacturer": "Cressi",
+      "model": "Newton",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cressi-raffaello",
+      "manufacturer": "Cressi",
+      "model": "Raffaello",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "crest-cr-4",
+      "manufacturer": "Crest",
+      "model": "CR-4",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "deep-six-excursion",
+      "manufacturer": "Deep Six",
+      "model": "Excursion",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "deepblu-cosmiq-plus",
+      "manufacturer": "Deepblu",
+      "model": "Cosmiq+",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dive-rite-nitek-q",
+      "manufacturer": "Dive Rite",
+      "model": "NiTek Q",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dive-rite-nitek-trio",
+      "manufacturer": "Dive Rite",
+      "model": "NiTek Trio",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dive-system-idive-dan",
+      "manufacturer": "Dive System",
+      "manufacturerAliases": [
+        "DiveSystem"
+      ],
+      "model": "iDive DAN",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dive-system-idive-deep",
+      "manufacturer": "Dive System",
+      "manufacturerAliases": [
+        "DiveSystem"
+      ],
+      "model": "iDive Deep",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dive-system-idive-easy",
+      "manufacturer": "Dive System",
+      "manufacturerAliases": [
+        "DiveSystem"
+      ],
+      "model": "iDive Easy",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dive-system-idive-free",
+      "manufacturer": "Dive System",
+      "manufacturerAliases": [
+        "DiveSystem"
+      ],
+      "model": "iDive Free",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dive-system-idive-pro",
+      "manufacturer": "Dive System",
+      "manufacturerAliases": [
+        "DiveSystem"
+      ],
+      "model": "iDive Pro",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dive-system-idive-reb",
+      "manufacturer": "Dive System",
+      "manufacturerAliases": [
+        "DiveSystem"
+      ],
+      "model": "iDive Reb",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dive-system-idive-stealth",
+      "manufacturer": "Dive System",
+      "manufacturerAliases": [
+        "DiveSystem"
+      ],
+      "model": "iDive Stealth",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dive-system-idive-tech",
+      "manufacturer": "Dive System",
+      "manufacturerAliases": [
+        "DiveSystem"
+      ],
+      "model": "iDive Tech",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dive-system-idive-x3m",
+      "manufacturer": "Dive System",
+      "manufacturerAliases": [
+        "DiveSystem"
+      ],
+      "model": "iDive X3M",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dive-system-orca",
+      "manufacturer": "Dive System",
+      "manufacturerAliases": [
+        "DiveSystem"
+      ],
+      "model": "Orca",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "divesoft-freedom",
+      "manufacturer": "Divesoft",
+      "model": "Freedom",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "divesoft-liberty",
+      "manufacturer": "Divesoft",
+      "model": "Liberty",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "genesis-centauri",
+      "manufacturer": "Genesis",
+      "model": "Centauri",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "genesis-react-pro",
+      "manufacturer": "Genesis",
+      "model": "React Pro",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "genesis-react-pro-white",
+      "manufacturer": "Genesis",
+      "model": "React Pro White",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "halcyon-symbios-handset",
+      "manufacturer": "Halcyon",
+      "model": "Symbios Handset",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "halcyon-symbios-hud",
+      "manufacturer": "Halcyon",
+      "model": "Symbios HUD",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heinrichs-weikamp-frog",
+      "manufacturer": "Heinrichs Weikamp",
+      "model": "Frog",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heinrichs-weikamp-ostc",
+      "manufacturer": "Heinrichs Weikamp",
+      "model": "OSTC",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heinrichs-weikamp-ostc-2",
+      "manufacturer": "Heinrichs Weikamp",
+      "model": "OSTC 2",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heinrichs-weikamp-ostc-2-tr",
+      "manufacturer": "Heinrichs Weikamp",
+      "model": "OSTC 2 TR",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heinrichs-weikamp-ostc-2c",
+      "manufacturer": "Heinrichs Weikamp",
+      "model": "OSTC 2C",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heinrichs-weikamp-ostc-2n",
+      "manufacturer": "Heinrichs Weikamp",
+      "model": "OSTC 2N",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heinrichs-weikamp-ostc-3",
+      "manufacturer": "Heinrichs Weikamp",
+      "model": "OSTC 3",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heinrichs-weikamp-ostc-4",
+      "manufacturer": "Heinrichs Weikamp",
+      "model": "OSTC 4",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heinrichs-weikamp-ostc-5",
+      "manufacturer": "Heinrichs Weikamp",
+      "model": "OSTC 5",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heinrichs-weikamp-ostc-cr",
+      "manufacturer": "Heinrichs Weikamp",
+      "model": "OSTC cR",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heinrichs-weikamp-ostc-mk2",
+      "manufacturer": "Heinrichs Weikamp",
+      "model": "OSTC Mk2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heinrichs-weikamp-ostc-nano",
+      "manufacturer": "Heinrichs Weikamp",
+      "model": "OSTC Nano",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heinrichs-weikamp-ostc-plus",
+      "manufacturer": "Heinrichs Weikamp",
+      "model": "OSTC Plus",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "heinrichs-weikamp-ostc-sport",
+      "manufacturer": "Heinrichs Weikamp",
+      "model": "OSTC Sport",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hollis-dg02",
+      "manufacturer": "Hollis",
+      "model": "DG02",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hollis-dg03",
+      "manufacturer": "Hollis",
+      "model": "DG03",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hollis-tx1",
+      "manufacturer": "Hollis",
+      "model": "TX1",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "liquivision-kaon",
+      "manufacturer": "Liquivision",
+      "model": "Kaon",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "liquivision-lynx",
+      "manufacturer": "Liquivision",
+      "model": "Lynx",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "liquivision-xen",
+      "manufacturer": "Liquivision",
+      "model": "Xen",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "liquivision-xeo",
+      "manufacturer": "Liquivision",
+      "model": "Xeo",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-airlab",
+      "manufacturer": "Mares",
+      "model": "Airlab",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-darwin",
+      "manufacturer": "Mares",
+      "model": "Darwin",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-darwin-air",
+      "manufacturer": "Mares",
+      "model": "Darwin Air",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-genius",
+      "manufacturer": "Mares",
+      "model": "Genius",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-horizon",
+      "manufacturer": "Mares",
+      "model": "Horizon",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-icon-hd",
+      "manufacturer": "Mares",
+      "model": "Icon HD",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-icon-hd-net-ready",
+      "manufacturer": "Mares",
+      "model": "Icon HD Net Ready",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-m1",
+      "manufacturer": "Mares",
+      "model": "M1",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-m2",
+      "manufacturer": "Mares",
+      "model": "M2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-matrix",
+      "manufacturer": "Mares",
+      "model": "Matrix",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-nemo",
+      "manufacturer": "Mares",
+      "model": "Nemo",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-nemo-air",
+      "manufacturer": "Mares",
+      "model": "Nemo Air",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-nemo-apneist",
+      "manufacturer": "Mares",
+      "model": "Nemo Apneist",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-nemo-excel",
+      "manufacturer": "Mares",
+      "model": "Nemo Excel",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-nemo-steel",
+      "manufacturer": "Mares",
+      "model": "Nemo Steel",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-nemo-titanium",
+      "manufacturer": "Mares",
+      "model": "Nemo Titanium",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-nemo-wide",
+      "manufacturer": "Mares",
+      "model": "Nemo Wide",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-nemo-wide-2",
+      "manufacturer": "Mares",
+      "model": "Nemo Wide 2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-puck",
+      "manufacturer": "Mares",
+      "model": "Puck",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-puck-2",
+      "manufacturer": "Mares",
+      "model": "Puck 2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-puck-4",
+      "manufacturer": "Mares",
+      "model": "Puck 4",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-puck-air",
+      "manufacturer": "Mares",
+      "model": "Puck Air",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-puck-air-2",
+      "manufacturer": "Mares",
+      "model": "Puck Air 2",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-puck-lite",
+      "manufacturer": "Mares",
+      "model": "Puck Lite",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-puck-pro",
+      "manufacturer": "Mares",
+      "model": "Puck Pro",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-puck-pro-plus",
+      "manufacturer": "Mares",
+      "model": "Puck Pro +",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-puck-pro-ez",
+      "manufacturer": "Mares",
+      "model": "Puck Pro EZ",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-puck-pro-ultra",
+      "manufacturer": "Mares",
+      "model": "Puck Pro Ultra",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-quad",
+      "manufacturer": "Mares",
+      "model": "Quad",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-quad-2",
+      "manufacturer": "Mares",
+      "model": "Quad 2",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-quad-air",
+      "manufacturer": "Mares",
+      "model": "Quad Air",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-quad-ci",
+      "manufacturer": "Mares",
+      "model": "Quad Ci",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-sirius",
+      "manufacturer": "Mares",
+      "model": "Sirius",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-sirius-l",
+      "manufacturer": "Mares",
+      "model": "Sirius L",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-smart",
+      "manufacturer": "Mares",
+      "model": "Smart",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-smart-air",
+      "manufacturer": "Mares",
+      "model": "Smart Air",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mares-smart-apnea",
+      "manufacturer": "Mares",
+      "model": "Smart Apnea",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mclean-extreme",
+      "manufacturer": "McLean",
+      "model": "Extreme",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-atom-1-0",
+      "manufacturer": "Oceanic",
+      "model": "Atom 1.0",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-atom-2-0",
+      "manufacturer": "Oceanic",
+      "model": "Atom 2.0",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-atom-3-0",
+      "manufacturer": "Oceanic",
+      "model": "Atom 3.0",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-atom-3-1",
+      "manufacturer": "Oceanic",
+      "model": "Atom 3.1",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-datamask",
+      "manufacturer": "Oceanic",
+      "model": "Datamask",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-f10",
+      "manufacturer": "Oceanic",
+      "model": "F10",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-f11",
+      "manufacturer": "Oceanic",
+      "model": "F11",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-geo",
+      "manufacturer": "Oceanic",
+      "model": "Geo",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-geo-2-0",
+      "manufacturer": "Oceanic",
+      "model": "Geo 2.0",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-geo-4-0",
+      "manufacturer": "Oceanic",
+      "model": "Geo 4.0",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-geo-air",
+      "manufacturer": "Oceanic",
+      "model": "Geo Air",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-oc1",
+      "manufacturer": "Oceanic",
+      "model": "OC1",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-oci",
+      "manufacturer": "Oceanic",
+      "model": "OCi",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-ocs",
+      "manufacturer": "Oceanic",
+      "model": "OCS",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-pro-plus-2",
+      "manufacturer": "Oceanic",
+      "model": "Pro Plus 2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-pro-plus-2-1",
+      "manufacturer": "Oceanic",
+      "model": "Pro Plus 2.1",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-pro-plus-3",
+      "manufacturer": "Oceanic",
+      "model": "Pro Plus 3",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-pro-plus-4",
+      "manufacturer": "Oceanic",
+      "model": "Pro Plus 4",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-pro-plus-x",
+      "manufacturer": "Oceanic",
+      "model": "Pro Plus X",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-veo-1-0",
+      "manufacturer": "Oceanic",
+      "model": "Veo 1.0",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-veo-180",
+      "manufacturer": "Oceanic",
+      "model": "Veo 180",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-veo-2-0",
+      "manufacturer": "Oceanic",
+      "model": "Veo 2.0",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-veo-200",
+      "manufacturer": "Oceanic",
+      "model": "Veo 200",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-veo-250",
+      "manufacturer": "Oceanic",
+      "model": "Veo 250",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-veo-3-0",
+      "manufacturer": "Oceanic",
+      "model": "Veo 3.0",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-veo-4-0",
+      "manufacturer": "Oceanic",
+      "model": "Veo 4.0",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-versa-pro",
+      "manufacturer": "Oceanic",
+      "model": "Versa Pro",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-vt-4-1",
+      "manufacturer": "Oceanic",
+      "model": "VT 4.1",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-vt-pro",
+      "manufacturer": "Oceanic",
+      "model": "VT Pro",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-vt3",
+      "manufacturer": "Oceanic",
+      "model": "VT3",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-vt4",
+      "manufacturer": "Oceanic",
+      "model": "VT4",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceanic-vtx",
+      "manufacturer": "Oceanic",
+      "model": "VTX",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "oceans-s1",
+      "manufacturer": "Oceans",
+      "model": "S1",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-atom",
+      "manufacturer": "Ratio",
+      "model": "ATOM",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-2-deep",
+      "manufacturer": "Ratio",
+      "model": "iDive 2 Deep",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-2-easy",
+      "manufacturer": "Ratio",
+      "model": "iDive 2 Easy",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-2-fancy",
+      "manufacturer": "Ratio",
+      "model": "iDive 2 Fancy",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-2-free",
+      "manufacturer": "Ratio",
+      "model": "iDive 2 Free",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-2-pro",
+      "manufacturer": "Ratio",
+      "model": "iDive 2 Pro",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-2-reb",
+      "manufacturer": "Ratio",
+      "model": "iDive 2 Reb",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-2-tech",
+      "manufacturer": "Ratio",
+      "model": "iDive 2 Tech",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-color-deep",
+      "manufacturer": "Ratio",
+      "model": "iDive Color Deep",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-color-easy",
+      "manufacturer": "Ratio",
+      "model": "iDive Color Easy",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-color-fancy",
+      "manufacturer": "Ratio",
+      "model": "iDive Color Fancy",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-color-free",
+      "manufacturer": "Ratio",
+      "model": "iDive Color Free",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-color-pro",
+      "manufacturer": "Ratio",
+      "model": "iDive Color Pro",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-color-reb",
+      "manufacturer": "Ratio",
+      "model": "iDive Color Reb",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-color-tech-plus",
+      "manufacturer": "Ratio",
+      "model": "iDive Color Tech+",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-deep",
+      "manufacturer": "Ratio",
+      "model": "iDive Deep",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-easy",
+      "manufacturer": "Ratio",
+      "model": "iDive Easy",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-fancy",
+      "manufacturer": "Ratio",
+      "model": "iDive Fancy",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-free",
+      "manufacturer": "Ratio",
+      "model": "iDive Free",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-pro",
+      "manufacturer": "Ratio",
+      "model": "iDive Pro",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-reb",
+      "manufacturer": "Ratio",
+      "model": "iDive Reb",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-idive-tech-plus",
+      "manufacturer": "Ratio",
+      "model": "iDive Tech+",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2-deep",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2 Deep",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2-easy",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2 Easy",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2-gauge",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2 Gauge",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2-gps-deep",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2 GPS Deep",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2-gps-easy",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2 GPS Easy",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2-gps-gauge",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2 GPS Gauge",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2-gps-pro",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2 GPS Pro",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2-gps-reb",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2 GPS Reb",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2-gps-tech",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2 GPS Tech",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2-pro",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2 Pro",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2-tech-plus",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2 Tech+",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2021-gps-deep",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2021 GPS Deep",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2021-gps-easy",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2021 GPS Easy",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2021-gps-fancy",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2021 GPS Fancy",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2021-gps-pro",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2021 GPS Pro",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2021-gps-reb",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2021 GPS Reb",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2021-gps-tech-plus",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2021 GPS Tech+",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2021-pro-deep",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2021 Pro Deep",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2021-pro-easy",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2021 Pro Easy",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2021-pro-fancy",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2021 Pro Fancy",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2021-pro-pro",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2021 Pro Pro",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2021-pro-reb",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2021 Pro Reb",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-2021-pro-tech-plus",
+      "manufacturer": "Ratio",
+      "model": "iX3M 2021 Pro Tech+",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-gps-deep",
+      "manufacturer": "Ratio",
+      "model": "iX3M GPS Deep",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-gps-easy",
+      "manufacturer": "Ratio",
+      "model": "iX3M GPS Easy",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-gps-fancy",
+      "manufacturer": "Ratio",
+      "model": "iX3M GPS Fancy",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-gps-pro",
+      "manufacturer": "Ratio",
+      "model": "iX3M GPS Pro",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-gps-reb",
+      "manufacturer": "Ratio",
+      "model": "iX3M GPS Reb",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-gps-tech-plus",
+      "manufacturer": "Ratio",
+      "model": "iX3M GPS Tech+",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-pro-deep",
+      "manufacturer": "Ratio",
+      "model": "iX3M Pro Deep",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-pro-easy",
+      "manufacturer": "Ratio",
+      "model": "iX3M Pro Easy",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-pro-fancy",
+      "manufacturer": "Ratio",
+      "model": "iX3M Pro Fancy",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-pro-pro",
+      "manufacturer": "Ratio",
+      "model": "iX3M Pro Pro",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-pro-reb",
+      "manufacturer": "Ratio",
+      "model": "iX3M Pro Reb",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ratio-ix3m-pro-tech-plus",
+      "manufacturer": "Ratio",
+      "model": "iX3M Pro Tech+",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reefnet-sensus",
+      "manufacturer": "Reefnet",
+      "model": "Sensus",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reefnet-sensus-pro",
+      "manufacturer": "Reefnet",
+      "model": "Sensus Pro",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reefnet-sensus-ultra",
+      "manufacturer": "Reefnet",
+      "model": "Sensus Ultra",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scorpena-alpha",
+      "manufacturer": "Scorpena",
+      "model": "Alpha",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-aladin-a1",
+      "manufacturer": "Scubapro",
+      "model": "Aladin A1",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-aladin-a2",
+      "manufacturer": "Scubapro",
+      "model": "Aladin A2",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-aladin-h-matrix",
+      "manufacturer": "Scubapro",
+      "model": "Aladin H Matrix",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-aladin-sport-matrix",
+      "manufacturer": "Scubapro",
+      "model": "Aladin Sport Matrix",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-aladin-square",
+      "manufacturer": "Scubapro",
+      "model": "Aladin Square",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "usb"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-chromis",
+      "manufacturer": "Scubapro",
+      "model": "Chromis",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-g2",
+      "manufacturer": "Scubapro",
+      "model": "G2",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-g2-console",
+      "manufacturer": "Scubapro",
+      "model": "G2 Console",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-g2-hud",
+      "manufacturer": "Scubapro",
+      "model": "G2 HUD",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-g2-tek",
+      "manufacturer": "Scubapro",
+      "model": "G2 TEK",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-g3",
+      "manufacturer": "Scubapro",
+      "model": "G3",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-luna-2-0",
+      "manufacturer": "Scubapro",
+      "model": "Luna 2.0",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-luna-2-0-ai",
+      "manufacturer": "Scubapro",
+      "model": "Luna 2.0 AI",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-mantis",
+      "manufacturer": "Scubapro",
+      "model": "Mantis",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-mantis-2",
+      "manufacturer": "Scubapro",
+      "model": "Mantis 2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-meridian",
+      "manufacturer": "Scubapro",
+      "model": "Meridian",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scubapro-xtender-5",
+      "manufacturer": "Scubapro",
+      "model": "XTender 5",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seac-action",
+      "manufacturer": "Seac",
+      "model": "Action",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seac-guru",
+      "manufacturer": "Seac",
+      "model": "Guru",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seac-jack",
+      "manufacturer": "Seac",
+      "model": "Jack",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seac-screen",
+      "manufacturer": "Seac",
+      "model": "Screen",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seac-tablet",
+      "manufacturer": "Seac",
+      "model": "Tablet",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seemann-xp5",
+      "manufacturer": "Seemann",
+      "model": "XP5",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shearwater-nerd",
+      "manufacturer": "Shearwater",
+      "model": "Nerd",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shearwater-nerd-2",
+      "manufacturer": "Shearwater",
+      "model": "Nerd 2",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shearwater-perdix",
+      "manufacturer": "Shearwater",
+      "model": "Perdix",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shearwater-perdix-2",
+      "manufacturer": "Shearwater",
+      "model": "Perdix 2",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shearwater-perdix-3",
+      "manufacturer": "Shearwater",
+      "model": "Perdix 3",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shearwater-perdix-ai",
+      "manufacturer": "Shearwater",
+      "model": "Perdix AI",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shearwater-peregrine",
+      "manufacturer": "Shearwater",
+      "model": "Peregrine",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shearwater-peregrine-tx",
+      "manufacturer": "Shearwater",
+      "model": "Peregrine TX",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shearwater-petrel",
+      "manufacturer": "Shearwater",
+      "model": "Petrel",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shearwater-petrel-2",
+      "manufacturer": "Shearwater",
+      "model": "Petrel 2",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shearwater-petrel-3",
+      "manufacturer": "Shearwater",
+      "model": "Petrel 3",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shearwater-predator",
+      "manufacturer": "Shearwater",
+      "model": "Predator",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shearwater-teric",
+      "manufacturer": "Shearwater",
+      "model": "Teric",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shearwater-tern",
+      "manufacturer": "Shearwater",
+      "model": "Tern",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "shearwater-tern-tx",
+      "manufacturer": "Shearwater",
+      "model": "Tern TX",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sherwood-amphos",
+      "manufacturer": "Sherwood",
+      "model": "Amphos",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sherwood-amphos-2-0",
+      "manufacturer": "Sherwood",
+      "model": "Amphos 2.0",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sherwood-amphos-air",
+      "manufacturer": "Sherwood",
+      "model": "Amphos Air",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sherwood-amphos-air-2-0",
+      "manufacturer": "Sherwood",
+      "model": "Amphos Air 2.0",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sherwood-beacon",
+      "manufacturer": "Sherwood",
+      "model": "Beacon",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sherwood-insight",
+      "manufacturer": "Sherwood",
+      "model": "Insight",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sherwood-insight-2",
+      "manufacturer": "Sherwood",
+      "model": "Insight 2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sherwood-sage",
+      "manufacturer": "Sherwood",
+      "model": "Sage",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sherwood-vision",
+      "manufacturer": "Sherwood",
+      "model": "Vision",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sherwood-wisdom",
+      "manufacturer": "Sherwood",
+      "model": "Wisdom",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sherwood-wisdom-2",
+      "manufacturer": "Sherwood",
+      "model": "Wisdom 2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sherwood-wisdom-3",
+      "manufacturer": "Sherwood",
+      "model": "Wisdom 3",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sherwood-wisdom-4",
+      "manufacturer": "Sherwood",
+      "model": "Wisdom 4",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sporasub-sp2",
+      "manufacturer": "Sporasub",
+      "model": "SP2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "subgear-xp-air",
+      "manufacturer": "Subgear",
+      "model": "XP Air",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "subgear-xp-10",
+      "manufacturer": "Subgear",
+      "model": "XP-10",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "subgear-xp-3g",
+      "manufacturer": "Subgear",
+      "model": "XP-3G",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-cobra",
+      "manufacturer": "Suunto",
+      "model": "Cobra",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-cobra-2",
+      "manufacturer": "Suunto",
+      "model": "Cobra 2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-cobra-3",
+      "manufacturer": "Suunto",
+      "model": "Cobra 3",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-d3",
+      "manufacturer": "Suunto",
+      "model": "D3",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-d4",
+      "manufacturer": "Suunto",
+      "model": "D4",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-d4f",
+      "manufacturer": "Suunto",
+      "model": "D4f",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-d4i",
+      "manufacturer": "Suunto",
+      "model": "D4i",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-d5",
+      "manufacturer": "Suunto",
+      "model": "D5",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-d6",
+      "manufacturer": "Suunto",
+      "model": "D6",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-d6i",
+      "manufacturer": "Suunto",
+      "model": "D6i",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-d9",
+      "manufacturer": "Suunto",
+      "model": "D9",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-d9tx",
+      "manufacturer": "Suunto",
+      "model": "D9tx",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-dx",
+      "manufacturer": "Suunto",
+      "model": "DX",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-eon",
+      "manufacturer": "Suunto",
+      "model": "Eon",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-eon-core",
+      "manufacturer": "Suunto",
+      "model": "EON Core",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-eon-steel",
+      "manufacturer": "Suunto",
+      "model": "EON Steel",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-eon-steel-black",
+      "manufacturer": "Suunto",
+      "model": "EON Steel Black",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "ble"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-gekko",
+      "manufacturer": "Suunto",
+      "model": "Gekko",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-helo2",
+      "manufacturer": "Suunto",
+      "model": "HelO2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-mosquito",
+      "manufacturer": "Suunto",
+      "model": "Mosquito",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-solution",
+      "manufacturer": "Suunto",
+      "model": "Solution",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-solution-alpha",
+      "manufacturer": "Suunto",
+      "model": "Solution Alpha",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-solution-nitrox",
+      "manufacturer": "Suunto",
+      "model": "Solution Nitrox",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-spyder",
+      "manufacturer": "Suunto",
+      "model": "Spyder",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-stinger",
+      "manufacturer": "Suunto",
+      "model": "Stinger",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-vyper",
+      "manufacturer": "Suunto",
+      "model": "Vyper",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-vyper-2",
+      "manufacturer": "Suunto",
+      "model": "Vyper 2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-vyper-air",
+      "manufacturer": "Suunto",
+      "model": "Vyper Air",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-vyper-novo",
+      "manufacturer": "Suunto",
+      "model": "Vyper Novo",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-vytec",
+      "manufacturer": "Suunto",
+      "model": "Vytec",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-zoop",
+      "manufacturer": "Suunto",
+      "model": "Zoop",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "suunto-zoop-novo",
+      "manufacturer": "Suunto",
+      "model": "Zoop Novo",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tecdiving-divecomputer-eu",
+      "manufacturer": "Tecdiving",
+      "model": "DiveComputer.eu",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tusa-element-ii-iq-750",
+      "manufacturer": "Tusa",
+      "model": "Element II (IQ-750)",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tusa-iq-700",
+      "manufacturer": "Tusa",
+      "model": "IQ-700",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tusa-talis",
+      "manufacturer": "Tusa",
+      "model": "Talis",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tusa-zen-iq-900",
+      "manufacturer": "Tusa",
+      "model": "Zen (IQ-900)",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tusa-zen-air-iq-950",
+      "manufacturer": "Tusa",
+      "model": "Zen Air (IQ-950)",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-aladin-2g",
+      "manufacturer": "Uwatec",
+      "model": "Aladin 2G",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-aladin-air-twin",
+      "manufacturer": "Uwatec",
+      "model": "Aladin Air Twin",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-aladin-air-z",
+      "manufacturer": "Uwatec",
+      "model": "Aladin Air Z",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-aladin-air-z-nitrox",
+      "manufacturer": "Uwatec",
+      "model": "Aladin Air Z Nitrox",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-aladin-air-z-o2",
+      "manufacturer": "Uwatec",
+      "model": "Aladin Air Z O2",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-aladin-one",
+      "manufacturer": "Uwatec",
+      "model": "Aladin One",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-aladin-prime",
+      "manufacturer": "Uwatec",
+      "model": "Aladin Prime",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-aladin-pro",
+      "manufacturer": "Uwatec",
+      "model": "Aladin Pro",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-aladin-pro-ultra",
+      "manufacturer": "Uwatec",
+      "model": "Aladin Pro Ultra",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-aladin-sport",
+      "manufacturer": "Uwatec",
+      "model": "Aladin Sport",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-aladin-sport-plus",
+      "manufacturer": "Uwatec",
+      "model": "Aladin Sport Plus",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-aladin-tec",
+      "manufacturer": "Uwatec",
+      "model": "Aladin Tec",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-aladin-tec-2g",
+      "manufacturer": "Uwatec",
+      "model": "Aladin Tec 2G",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-aladin-tec-3g",
+      "manufacturer": "Uwatec",
+      "model": "Aladin Tec 3G",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-galileo-luna",
+      "manufacturer": "Uwatec",
+      "model": "Galileo Luna",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-galileo-sol",
+      "manufacturer": "Uwatec",
+      "model": "Galileo Sol",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-galileo-terra",
+      "manufacturer": "Uwatec",
+      "model": "Galileo Terra",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-galileo-trimix",
+      "manufacturer": "Uwatec",
+      "model": "Galileo Trimix",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-memomouse",
+      "manufacturer": "Uwatec",
+      "model": "Memomouse",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-smart-com",
+      "manufacturer": "Uwatec",
+      "model": "Smart Com",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-smart-pro",
+      "manufacturer": "Uwatec",
+      "model": "Smart Pro",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-smart-tec",
+      "manufacturer": "Uwatec",
+      "model": "Smart Tec",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "uwatec-smart-z",
+      "manufacturer": "Uwatec",
+      "model": "Smart Z",
+      "equipmentType": "computer",
+      "attributes": {
+        "connectivity": "infrared"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType",
+            "attributes.connectivity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "zeagle-n2ition3",
+      "manufacturer": "Zeagle",
+      "model": "N2iTiON3",
+      "equipmentType": "computer",
+      "sources": [
+        {
+          "url": "https://github.com/submersion-app/libdivecomputer",
+          "publisher": "libdivecomputer",
+          "checked": "2026-11-28",
+          "fields": [
+            "manufacturer",
+            "model",
+            "equipmentType"
+          ]
+        }
+      ]
+    }
+  ]
+}

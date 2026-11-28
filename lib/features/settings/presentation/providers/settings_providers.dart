@@ -92,6 +92,10 @@ class SettingsKeys {
   static const String themeMode = 'theme_mode';
   static const String displayZoom = 'display_zoom';
 
+  // Whether this device downloads newer equipment catalogue releases
+  // (issue #5118). Device-local; default on.
+  static const String equipmentCatalogueUpdates = 'equipment_catalogue_updates';
+
   /// Device-local: whether media grids draw a provenance badge on every
   /// thumbnail. Health badges are not covered by it.
   static const String mediaProvenanceBadges = 'media_provenance_badges';
