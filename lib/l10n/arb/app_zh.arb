@@ -16619,6 +16619,7 @@
   "media_species_noDiveHint": "这张照片未关联到潜水记录。搜索物种以添加标签。",
   "media_species_chipsLabel": "物种标签",
   "media_species_suggested": "建议",
+  "media_species_suggestedChipLabel": "建议：{name}",
   "media_species_suggestedCount": "{name}（{count}）",
   "media_species_add": "添加",
   "media_species_addAll": "全部添加",

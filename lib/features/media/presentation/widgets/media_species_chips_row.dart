@@ -190,8 +190,14 @@ List<Widget> speciesChipWidgets(
           mainAxisSize: MainAxisSize.min,
           children: [
             // The name alone: a model score is not how often a name is
-            // right, least of all on video (issue #5121).
-            Text(candidateDisplayName(l10n, s.top.candidate)),
+            // right, least of all on video (issue #5121). With the add icon
+            // kept from semantics, the label is what says it is a guess.
+            Text(
+              candidateDisplayName(l10n, s.top.candidate),
+              semanticsLabel: l10n.media_species_suggestedChipLabel(
+                candidateDisplayName(l10n, s.top.candidate),
+              ),
+            ),
             if (nearbyRequest != null)
               RecordedNearbyPin(
                 request: nearbyRequest,

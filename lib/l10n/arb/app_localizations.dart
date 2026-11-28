@@ -88364,6 +88364,12 @@ abstract class AppLocalizations {
   /// **'Suggested'**
   String get media_species_suggested;
 
+  /// What a screen reader says for a suggested species chip in the viewer: the chip shows the name alone, so this tells it apart from a confirmed tag (issue #5121)
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested: {name}'**
+  String media_species_suggestedChipLabel(String name);
+
   /// No description provided for @media_species_suggestedCount.
   ///
   /// In en, this message translates to:

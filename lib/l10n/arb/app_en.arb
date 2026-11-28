@@ -33783,6 +33783,8 @@
   "media_species_noDiveHint": "This photo is not linked to a dive. Search for a species to tag it.",
   "media_species_chipsLabel": "Species tags",
   "media_species_suggested": "Suggested",
+  "media_species_suggestedChipLabel": "Suggested: {name}",
+  "@media_species_suggestedChipLabel": {"description": "What a screen reader says for a suggested species chip in the viewer: the chip shows the name alone, so this tells it apart from a confirmed tag (issue #5121)", "placeholders": {"name": {"type": "String"}}},
   "media_species_suggestedCount": "{name} ({count})",
   "@media_species_suggestedCount": {"placeholders": {"name": {"type": "String"}, "count": {"type": "int"}}},
   "media_species_add": "Add",

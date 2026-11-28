@@ -56116,6 +56116,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_species_suggested => 'Suggesties';
 
   @override
+  String media_species_suggestedChipLabel(String name) {
+    return 'Suggestie: $name';
+  }
+
+  @override
   String media_species_suggestedCount(String name, int count) {
     return '$name ($count)';
   }

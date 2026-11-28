@@ -94,6 +94,22 @@ void main() {
     }
   }
 
+  testWidgets('a screen reader hears a suggestion as one, not as a tag: '
+      'with no score, only the label tells them apart (issue #5121)', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pump(tester, suggestions: [suggestion(parrotfish, score: 0.92)]);
+    expect(
+      tester
+          .getSemantics(find.byKey(const ValueKey('media_suggested_chip_1')))
+          .label,
+      contains('Suggested: Queen Parrotfish'),
+    );
+    expect(find.text('Queen Parrotfish'), findsOneWidget);
+    semantics.dispose();
+  });
+
   testWidgets('no scan progress is drawn in the row: it is on the scrub bar '
       'and the labels button (issue #4825)', (tester) async {
     await pump(tester, progress: 0.4, settle: false);

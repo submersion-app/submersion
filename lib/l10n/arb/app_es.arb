@@ -16619,6 +16619,7 @@
   "media_species_noDiveHint": "Esta foto no está vinculada a una inmersión. Busca una especie para etiquetarla.",
   "media_species_chipsLabel": "Etiquetas de especies",
   "media_species_suggested": "Sugerencias",
+  "media_species_suggestedChipLabel": "Sugerencia: {name}",
   "media_species_suggestedCount": "{name} ({count})",
   "media_species_add": "Añadir",
   "media_species_addAll": "Añadir todas",

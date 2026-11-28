@@ -52917,6 +52917,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_species_suggested => '建议';
 
   @override
+  String media_species_suggestedChipLabel(String name) {
+    return '建议：$name';
+  }
+
+  @override
   String media_species_suggestedCount(String name, int count) {
     return '$name（$count）';
   }

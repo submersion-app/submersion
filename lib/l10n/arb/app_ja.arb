@@ -16759,6 +16759,7 @@
   "media_species_noDiveHint": "この写真はダイブにリンクされていません。種を検索してタグ付けしてください。",
   "media_species_chipsLabel": "種のタグ",
   "media_species_suggested": "候補",
+  "media_species_suggestedChipLabel": "候補：{name}",
   "media_species_suggestedCount": "{name}（{count}）",
   "media_species_add": "追加",
   "media_species_addAll": "すべて追加",

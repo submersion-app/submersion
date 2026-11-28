@@ -16619,6 +16619,7 @@
   "media_species_noDiveHint": "Ez a fotó nincs merüléshez kapcsolva. Keress egy fajt a címkézéshez.",
   "media_species_chipsLabel": "Fajcímkék",
   "media_species_suggested": "Javaslatok",
+  "media_species_suggestedChipLabel": "Javaslat: {name}",
   "media_species_suggestedCount": "{name} ({count})",
   "media_species_add": "Hozzáadás",
   "media_species_addAll": "Összes hozzáadása",

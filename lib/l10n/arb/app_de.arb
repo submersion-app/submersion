@@ -16771,6 +16771,7 @@
   "media_species_noDiveHint": "Dieses Foto ist keinem Tauchgang zugeordnet. Suche eine Art, um es zu markieren.",
   "media_species_chipsLabel": "Artenmarkierungen",
   "media_species_suggested": "Vorschläge",
+  "media_species_suggestedChipLabel": "Vorschlag: {name}",
   "media_species_suggestedCount": "{name} ({count})",
   "media_species_add": "Hinzufügen",
   "media_species_addAll": "Alle hinzufügen",

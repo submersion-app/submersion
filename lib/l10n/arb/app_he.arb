@@ -16619,6 +16619,7 @@
   "media_species_noDiveHint": "התמונה אינה מקושרת לצלילה. חפשו מין כדי לתייג אותה.",
   "media_species_chipsLabel": "תגיות מינים",
   "media_species_suggested": "הצעות",
+  "media_species_suggestedChipLabel": "הצעה: {name}",
   "media_species_suggestedCount": "{name} ({count})",
   "media_species_add": "הוספה",
   "media_species_addAll": "הוספת הכול",
