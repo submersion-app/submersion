@@ -99278,6 +99278,102 @@ abstract class AppLocalizations {
   /// **'No tags yet'**
   String get media_info_noTags;
 
+  /// No description provided for @media_info_gear.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear'**
+  String get media_info_gear;
+
+  /// No description provided for @media_info_noGear.
+  ///
+  /// In en, this message translates to:
+  /// **'No gear linked'**
+  String get media_info_noGear;
+
+  /// No description provided for @media_info_editGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit gear'**
+  String get media_info_editGear;
+
+  /// Tooltip on a gear chip in the photo info panel; opens that gear item's page.
+  ///
+  /// In en, this message translates to:
+  /// **'Open {name}'**
+  String media_info_openGear(String name);
+
+  /// No description provided for @media_gearSheet_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear in this photo'**
+  String get media_gearSheet_title;
+
+  /// No description provided for @media_gearSheet_onThisDive.
+  ///
+  /// In en, this message translates to:
+  /// **'On this dive'**
+  String get media_gearSheet_onThisDive;
+
+  /// No description provided for @media_gearSheet_yourGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Your gear'**
+  String get media_gearSheet_yourGear;
+
+  /// No description provided for @media_gearSheet_search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search gear'**
+  String get media_gearSheet_search;
+
+  /// No description provided for @media_gearSheet_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No gear in your inventory yet'**
+  String get media_gearSheet_empty;
+
+  /// No description provided for @media_library_linkToGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to gear'**
+  String get media_library_linkToGear;
+
+  /// No description provided for @media_bulkGear_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Gear on 1 media item} other{Gear on {count} media items}}'**
+  String media_bulkGear_title(int count);
+
+  /// No description provided for @media_bulkGear_confirmAdding.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Linking to 1 media item} other{Linking to all {count} media items}}'**
+  String media_bulkGear_confirmAdding(int count);
+
+  /// No description provided for @media_bulkGear_confirmRemoving.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Unlinking from 1 media item} other{Unlinking from all {count} media items}}'**
+  String media_bulkGear_confirmRemoving(int count);
+
+  /// No description provided for @media_bulkGear_applied.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Updated gear on 1 media item} other{Updated gear on {count} media items}}'**
+  String media_bulkGear_applied(int count);
+
+  /// No description provided for @media_bulkGear_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update gear: {error}'**
+  String media_bulkGear_failed(String error);
+
+  /// No description provided for @media_bulkGear_undoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t undo the gear change.'**
+  String get media_bulkGear_undoFailed;
+
   /// No description provided for @media_info_showWithTag.
   ///
   /// In en, this message translates to:
@@ -101640,6 +101736,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Photos'**
   String get equipment_photos_title;
+
+  /// Gear page card listing dive photos and videos linked to the item as showing it (not its own reference photos).
+  ///
+  /// In en, this message translates to:
+  /// **'In dive photos'**
+  String get equipment_divePhotos_title;
+
+  /// No description provided for @equipment_divePhotos_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Link photos from your dives that show this item.'**
+  String get equipment_divePhotos_empty;
+
+  /// No description provided for @equipment_divePhotos_link.
+  ///
+  /// In en, this message translates to:
+  /// **'Link photos'**
+  String get equipment_divePhotos_link;
+
+  /// No description provided for @equipment_divePhotos_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all ({count})'**
+  String equipment_divePhotos_showAll(int count);
+
+  /// No description provided for @equipment_divePhotos_unlink.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlink'**
+  String get equipment_divePhotos_unlink;
+
+  /// No description provided for @equipment_divePhotos_sheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Link photos to {name}'**
+  String equipment_divePhotos_sheetTitle(String name);
+
+  /// No description provided for @equipment_divePhotos_divesWithGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives with this gear'**
+  String get equipment_divePhotos_divesWithGear;
+
+  /// No description provided for @equipment_divePhotos_allPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'All photos'**
+  String get equipment_divePhotos_allPhotos;
+
+  /// No description provided for @equipment_divePhotos_apply.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Apply 1 change} other{Apply {count} changes}}'**
+  String equipment_divePhotos_apply(int count);
+
+  /// No description provided for @equipment_divePhotos_noPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'No photos here yet'**
+  String get equipment_divePhotos_noPhotos;
 
   /// No description provided for @equipment_photos_add.
   ///

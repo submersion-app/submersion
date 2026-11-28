@@ -13,6 +13,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/media/data/repositories/media_gear_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
@@ -29,6 +30,7 @@ class MediaRepository {
   final SyncRepository _syncRepository = SyncRepository();
   final _tagLinks = TagLinkRepository(TagScope.media);
   final _people = MediaPeopleRepository();
+  final _gear = MediaGearRepository();
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(MediaRepository);
 
@@ -577,6 +579,7 @@ class MediaRepository {
         await _dropEnrichmentRows([id]);
         await _tagLinks.deleteLinksFor([id]);
         await _people.deleteForMedia([id]);
+        await _gear.deleteForMedia([id]);
         await (_db.delete(_db.media)..where((t) => t.id.equals(id))).go();
         await _syncRepository.logDeletion(entityType: 'media', recordId: id);
       });
@@ -625,9 +628,11 @@ class MediaRepository {
         // the FK cascade, which removes them without logging anything. See
         // [_dropEnrichmentRows] for why the tombstone matters.
         await _dropEnrichmentRows(targets);
-        // The tag links likewise (issue #1970), and people tags (#1745).
+        // The tag links likewise (issue #1970), people tags (#1745) and
+        // gear links (#5046).
         await _tagLinks.deleteLinksFor(targets);
         await _people.deleteForMedia(targets);
+        await _gear.deleteForMedia(targets);
         for (final id in targets) {
           await (_db.delete(_db.media)..where((t) => t.id.equals(id))).go();
           await _syncRepository.logDeletion(entityType: 'media', recordId: id);
@@ -1568,6 +1573,8 @@ class MediaRepository {
         // People tags (issue #1745) would otherwise go by the cascade with
         // no tombstone, and a peer would keep them.
         await _people.deleteForMedia([for (final item in orphaned) item.id]);
+        // Gear links (issue #5046) likewise.
+        await _gear.deleteForMedia([for (final item in orphaned) item.id]);
 
         // Delete and log each deletion
         for (final item in orphaned) {
@@ -2626,8 +2633,8 @@ class MediaRepository {
   }
 
   /// Of [mediaIds], those carrying metadata a user typed or set that no
-  /// source file holds: a caption, the favorite flag, a species tag, or a
-  /// person tagged on it (issue #1745).
+  /// source file holds: a caption, the favorite flag, a species tag, a
+  /// person tagged on it (issue #1745), or gear linked to it (issue #5046).
   ///
   /// Used to decide whether an unlink needs to warn before it removes the
   /// rows.
@@ -2660,10 +2667,16 @@ class MediaRepository {
                 ..addColumns([_db.mediaPeople.mediaId])
                 ..where(_db.mediaPeople.mediaId.isIn(chunk)))
               .get();
+      final withGear =
+          await (_db.selectOnly(_db.mediaEquipment)
+                ..addColumns([_db.mediaEquipment.mediaId])
+                ..where(_db.mediaEquipment.mediaId.isIn(chunk)))
+              .get();
       out
         ..addAll(rows.map((row) => row.id))
         ..addAll(tagged.map((row) => row.read(_db.mediaSpecies.mediaId)!))
-        ..addAll(withPeople.map((row) => row.read(_db.mediaPeople.mediaId)!));
+        ..addAll(withPeople.map((row) => row.read(_db.mediaPeople.mediaId)!))
+        ..addAll(withGear.map((row) => row.read(_db.mediaEquipment.mediaId)!));
     }
     return out;
   }

@@ -20,6 +20,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/media/presentation/providers/media_health_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_info_gear_section.dart';
 import 'package:submersion/features/media/presentation/providers/media_provenance_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
@@ -131,6 +132,45 @@ void main() {
     addTearDown(sitting.dispose);
     return sitting;
   }
+
+  group('Gear card (issue #5046)', () {
+    testWidgets('shows for a photo', (tester) async {
+      await pump(tester, infoPanelItem());
+      expect(find.byType(MediaInfoGearSection), findsOneWidget);
+    });
+
+    testWidgets('is absent for a document and for a gear photo', (
+      tester,
+    ) async {
+      final photo = infoPanelItem();
+      await pump(
+        tester,
+        MediaItem(
+          id: 'doc',
+          mediaType: MediaType.document,
+          sourceType: MediaSourceType.localFile,
+          takenAt: photo.takenAt,
+          createdAt: photo.createdAt,
+          updatedAt: photo.updatedAt,
+        ),
+      );
+      expect(find.byType(MediaInfoGearSection), findsNothing);
+
+      await pump(
+        tester,
+        MediaItem(
+          id: 'gear-photo',
+          equipmentId: 'e1',
+          mediaType: MediaType.photo,
+          sourceType: MediaSourceType.localFile,
+          takenAt: photo.takenAt,
+          createdAt: photo.createdAt,
+          updatedAt: photo.updatedAt,
+        ),
+      );
+      expect(find.byType(MediaInfoGearSection), findsNothing);
+    });
+  });
 
   group('File block', () {
     testWidgets('renders filename, dimensions, size and taken date', (

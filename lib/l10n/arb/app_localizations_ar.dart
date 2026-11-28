@@ -64445,6 +64445,102 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_info_noTags => 'لا توجد وسوم بعد';
 
   @override
+  String get media_info_gear => 'المعدات';
+
+  @override
+  String get media_info_noGear => 'لا توجد معدات مرتبطة';
+
+  @override
+  String get media_info_editGear => 'تعديل المعدات';
+
+  @override
+  String media_info_openGear(String name) {
+    return 'فتح $name';
+  }
+
+  @override
+  String get media_gearSheet_title => 'المعدات في هذه الصورة';
+
+  @override
+  String get media_gearSheet_onThisDive => 'في هذه الغطسة';
+
+  @override
+  String get media_gearSheet_yourGear => 'معداتك';
+
+  @override
+  String get media_gearSheet_search => 'البحث عن المعدات';
+
+  @override
+  String get media_gearSheet_empty => 'لا توجد معدات في مخزونك بعد';
+
+  @override
+  String get media_library_linkToGear => 'ربط بالمعدات';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'المعدات في $count عنصر وسائط',
+      many: 'المعدات في $count عنصر وسائط',
+      few: 'المعدات في $count عناصر وسائط',
+      two: 'المعدات في عنصري وسائط',
+      one: 'المعدات في عنصر وسائط واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ربط بكل العناصر الـ $count',
+      many: 'ربط بكل العناصر الـ $count',
+      few: 'ربط بكل العناصر الـ $count',
+      two: 'ربط بعنصري الوسائط',
+      one: 'ربط بعنصر وسائط واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إلغاء الربط من كل العناصر الـ $count',
+      many: 'إلغاء الربط من كل العناصر الـ $count',
+      few: 'إلغاء الربط من كل العناصر الـ $count',
+      two: 'إلغاء الربط من عنصري الوسائط',
+      one: 'إلغاء الربط من عنصر وسائط واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تحديث المعدات في $count عنصر',
+      many: 'تم تحديث المعدات في $count عنصرًا',
+      few: 'تم تحديث المعدات في $count عناصر',
+      two: 'تم تحديث المعدات في عنصرين',
+      one: 'تم تحديث المعدات في عنصر وسائط واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return 'تعذر تحديث المعدات: $error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed => 'تعذر التراجع عن تغيير المعدات.';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'عرض الوسائط الموسومة بـ $tagName';
   }
@@ -66100,6 +66196,52 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_photos_title => 'الصور';
+
+  @override
+  String get equipment_divePhotos_title => 'في صور الغطس';
+
+  @override
+  String get equipment_divePhotos_empty =>
+      'اربط صورًا من غطساتك تظهر فيها هذه المعدات.';
+
+  @override
+  String get equipment_divePhotos_link => 'ربط الصور';
+
+  @override
+  String equipment_divePhotos_showAll(int count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get equipment_divePhotos_unlink => 'إلغاء الربط';
+
+  @override
+  String equipment_divePhotos_sheetTitle(String name) {
+    return 'ربط الصور بـ $name';
+  }
+
+  @override
+  String get equipment_divePhotos_divesWithGear => 'الغطسات بهذه المعدات';
+
+  @override
+  String get equipment_divePhotos_allPhotos => 'كل الصور';
+
+  @override
+  String equipment_divePhotos_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تطبيق $count تغيير',
+      many: 'تطبيق $count تغييرًا',
+      few: 'تطبيق $count تغييرات',
+      two: 'تطبيق تغييرين',
+      one: 'تطبيق تغيير واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_divePhotos_noPhotos => 'لا توجد صور هنا بعد';
 
   @override
   String get equipment_photos_add => 'إضافة صور';

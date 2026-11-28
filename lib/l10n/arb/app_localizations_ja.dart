@@ -60864,6 +60864,90 @@ class AppLocalizationsJa extends AppLocalizations {
   String get media_info_noTags => 'タグはまだありません';
 
   @override
+  String get media_info_gear => '器材';
+
+  @override
+  String get media_info_noGear => 'リンクされた器材はありません';
+
+  @override
+  String get media_info_editGear => '器材を編集';
+
+  @override
+  String media_info_openGear(String name) {
+    return '$nameを開く';
+  }
+
+  @override
+  String get media_gearSheet_title => 'この写真の器材';
+
+  @override
+  String get media_gearSheet_onThisDive => 'このダイビング';
+
+  @override
+  String get media_gearSheet_yourGear => 'あなたの器材';
+
+  @override
+  String get media_gearSheet_search => '器材を検索';
+
+  @override
+  String get media_gearSheet_empty => '器材はまだ登録されていません';
+
+  @override
+  String get media_library_linkToGear => '器材にリンク';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件のメディアの器材',
+      one: '1件のメディアの器材',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件のメディアすべてにリンク',
+      one: '1件のメディアにリンク',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件のメディアすべてからリンク解除',
+      one: '1件のメディアからリンク解除',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件のメディアの器材を更新しました',
+      one: '1件のメディアの器材を更新しました',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return '器材を更新できませんでした：$error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed => '器材の変更を元に戻せませんでした。';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'タグ「$tagName」のメディアを表示';
   }
@@ -62429,6 +62513,48 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get equipment_photos_title => '写真';
+
+  @override
+  String get equipment_divePhotos_title => 'ダイビング写真';
+
+  @override
+  String get equipment_divePhotos_empty => 'この器材が写っているダイビングの写真をリンクします。';
+
+  @override
+  String get equipment_divePhotos_link => '写真をリンク';
+
+  @override
+  String equipment_divePhotos_showAll(int count) {
+    return 'すべて表示 ($count)';
+  }
+
+  @override
+  String get equipment_divePhotos_unlink => 'リンク解除';
+
+  @override
+  String equipment_divePhotos_sheetTitle(String name) {
+    return '$nameに写真をリンク';
+  }
+
+  @override
+  String get equipment_divePhotos_divesWithGear => 'この器材を使ったダイビング';
+
+  @override
+  String get equipment_divePhotos_allPhotos => 'すべての写真';
+
+  @override
+  String equipment_divePhotos_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件の変更を適用',
+      one: '1件の変更を適用',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_divePhotos_noPhotos => 'まだ写真はありません';
 
   @override
   String get equipment_photos_add => '写真を追加';

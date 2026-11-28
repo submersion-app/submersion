@@ -207,6 +207,13 @@ void main() {
       );
     });
 
+    test('a photo sitting names its gear (issue #5046)', () {
+      expect(
+        changeLogStoredLabel(l, 'record_edit:media:gear'),
+        'Edited photo: Gear',
+      );
+    });
+
     test('a photo sitting names its file', () {
       expect(
         changeLogStoredLabel(l, 'record_edit:media:file'),

@@ -18,12 +18,16 @@ class MediaRowsSnapshot {
   final List<MediaTag> tags;
   final List<MediaPeopleData> people;
 
+  /// Gear linked to the photos (issue #5046).
+  final List<MediaEquipmentData> gearLinks;
+
   const MediaRowsSnapshot({
     this.rows = const [],
     this.species = const [],
     this.enrichment = const [],
     this.tags = const [],
     this.people = const [],
+    this.gearLinks = const [],
   });
 }
 
@@ -39,6 +43,7 @@ Future<MediaRowsSnapshot> readMediaRows(
   final enrichment = <MediaEnrichmentData>[];
   final tags = <MediaTag>[];
   final people = <MediaPeopleData>[];
+  final gearLinks = <MediaEquipmentData>[];
   for (final chunk in seriesIdChunks(ids)) {
     rows.addAll(
       await (db.select(db.media)..where((t) => t.id.isIn(chunk))).get(),
@@ -63,6 +68,11 @@ Future<MediaRowsSnapshot> readMediaRows(
         db.mediaPeople,
       )..where((t) => t.mediaId.isIn(chunk))).get(),
     );
+    gearLinks.addAll(
+      await (db.select(
+        db.mediaEquipment,
+      )..where((t) => t.mediaId.isIn(chunk))).get(),
+    );
   }
   return MediaRowsSnapshot(
     rows: rows,
@@ -70,6 +80,7 @@ Future<MediaRowsSnapshot> readMediaRows(
     enrichment: enrichment,
     tags: tags,
     people: people,
+    gearLinks: gearLinks,
   );
 }
 
@@ -210,6 +221,33 @@ Future<List<MediaData>> restoreMediaRows(
     );
     await syncRepository.markRecordPending(
       entityType: 'mediaTags',
+      recordId: r.id,
+      localUpdatedAt: now,
+    );
+  }
+  // Gear links (issue #5046), to gear that still exists.
+  final linkedGear = await existingRowIds(db, db.equipment, {
+    for (final r in snapshot.gearLinks) r.equipmentId,
+  });
+  for (final r in snapshot.gearLinks) {
+    if (!back.contains(r.mediaId) || !linkedGear.contains(r.equipmentId)) {
+      continue;
+    }
+    final inserted = await db
+        .into(db.mediaEquipment)
+        .insertReturningOrNull(
+          r,
+          onConflict: DoNothing<$MediaEquipmentTable, MediaEquipmentData>(
+            target: const [],
+          ),
+        );
+    if (inserted == null) continue;
+    await syncRepository.removeDeletion(
+      entityType: 'mediaEquipment',
+      recordId: r.id,
+    );
+    await syncRepository.markRecordPending(
+      entityType: 'mediaEquipment',
       recordId: r.id,
       localUpdatedAt: now,
     );

@@ -184,6 +184,65 @@ void main() {
     expect(await db.select(db.sightings).get(), hasLength(1));
   });
 
+  test('gear is linked to a photo and unlinked (issue #5046)', () async {
+    await db.customStatement(
+      'INSERT INTO equipment (id, name, type, created_at, updated_at, '
+      "diver_id) VALUES ('e1', 'Drysuit', 'drysuit', 0, 0, '$kDiverA')",
+    );
+    final plan = await h.preview([
+      {
+        ...updateOp('media', 'm1', {}),
+        'relations': {
+          'equipment_ids': {
+            'add': ['e1'],
+          },
+        },
+      },
+    ]);
+    expect(plan.items.single.block, isNull);
+    await h.apply(plan);
+    final linked = await db.select(db.mediaEquipment).get();
+    expect(
+      [for (final l in linked) (l.mediaId, l.equipmentId)],
+      [('m1', 'e1')],
+    );
+    final media = await db.select(db.media).get();
+    expect(media.single.equipmentId, isNull, reason: 'not a gear photo');
+
+    await h.run([
+      {
+        ...updateOp('media', 'm1', {}),
+        'relations': {
+          'equipment_ids': {
+            'remove': ['e1'],
+          },
+        },
+      },
+    ]);
+    expect(await db.select(db.mediaEquipment).get(), isEmpty);
+  });
+
+  test('gear is not linked to a document (issue #5046)', () async {
+    await db.customStatement(
+      'INSERT INTO equipment (id, name, type, created_at, updated_at, '
+      "diver_id) VALUES ('e1', 'Drysuit', 'drysuit', 0, 0, '$kDiverA')",
+    );
+    await db.customStatement(
+      "UPDATE media SET file_type = 'document' WHERE id = 'm1'",
+    );
+    final plan = await h.preview([
+      {
+        ...updateOp('media', 'm1', {}),
+        'relations': {
+          'equipment_ids': {
+            'add': ['e1'],
+          },
+        },
+      },
+    ]);
+    expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+  });
+
   test('a colour slider of 2 is refused', () async {
     final plan = await h.preview([
       updateOp('media', 'm1', {

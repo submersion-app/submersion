@@ -6,6 +6,7 @@ import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/media/data/repositories/media_color_adjustment_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_gear_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/site_attachment_repository.dart';
@@ -50,7 +51,9 @@ class PhotoEditSaveService {
     required SiteAttachmentRepository attachments,
     required DiveRepository dives,
     required TagLinkRepository tags,
+    MediaGearRepository? gear,
   }) : _tags = tags,
+       _gear = gear ?? MediaGearRepository(),
        _reader = reader,
        _tagging = tagging,
        _people = people,
@@ -67,6 +70,7 @@ class PhotoEditSaveService {
   final SiteAttachmentRepository _attachments;
   final DiveRepository _dives;
   final TagLinkRepository _tags;
+  final MediaGearRepository _gear;
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -159,6 +163,9 @@ class PhotoEditSaveService {
     final tagIds = [for (final tag in after.tags) tag.id];
     if (!setEquals(tagIds.toSet(), {for (final t in before.tags) t.id})) {
       await _tags.replaceTags(id, tagIds);
+    }
+    if (!setEquals(after.gearIds.toSet(), before.gearIds.toSet())) {
+      await _gear.replaceGear(id, after.gearIds);
     }
     final diveId = after.item.diveId;
     final shift = after.diveShiftSeconds;

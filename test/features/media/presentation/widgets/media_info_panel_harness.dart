@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/media/data/services/dive_media_enricher.dart';
 import 'package:submersion/features/media/data/services/media_serving_recorder.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/domain/entities/photo_record.dart';
 import 'package:submersion/features/media/presentation/helpers/media_time_pinner.dart';
 import 'package:submersion/features/media/presentation/providers/media_provenance_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_gear_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_info_panel.dart';
@@ -166,6 +168,9 @@ Future<void> pumpInfoPanel(
               readRow?.call() ??
               Future.value(liveRow == null ? item : liveRow.first),
         ),
+        // The Gear card (issue #5046): no gear and no links.
+        allEquipmentProvider.overrideWith((ref) async => const []),
+        gearIdsForMediaProvider.overrideWith((ref, id) async => const []),
         ...extra.cast(),
       ],
       child: localizedMaterialApp(

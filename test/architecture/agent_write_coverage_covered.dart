@@ -6,6 +6,10 @@ part of 'agent_write_coverage_test.dart';
 /// checks each call is still made, so a writer that stops calling it, or
 /// calls another, fails here.
 final reachedThrough = <String, String>{
+  // The photo viewer's and gear page's saves make the same link edit the
+  // media writer makes with addGear and removeGear (issue #5046).
+  '$media/media_gear_repository.dart:replaceGear': 'addGear',
+  '$media/media_gear_repository.dart:replaceMedia': 'addGear',
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkUpdateFields':
       'BulkDiveEditService',
   'lib/features/dive_log/data/repositories/dive_repository_impl.dart:bulkSetSite':
@@ -716,6 +720,10 @@ final covered = <String, String>{
     ('media_people_repository.dart', 'removeTag'),
     ('media_species_repository.dart', 'addTag'),
     ('media_species_repository.dart', 'removeTag'),
+    ('media_gear_repository.dart', 'addGear'),
+    ('media_gear_repository.dart', 'removeGear'),
+    ('media_gear_repository.dart', 'replaceGear'),
+    ('media_gear_repository.dart', 'replaceMedia'),
     ('media_color_adjustment_repository.dart', 'setColorAdjustment'),
     ('media_color_adjustment_repository.dart', 'applySlidersToDive'),
     ('site_attachment_repository.dart', 'setAttachmentDetails'),

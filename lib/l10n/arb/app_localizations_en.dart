@@ -62474,6 +62474,90 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_info_noTags => 'No tags yet';
 
   @override
+  String get media_info_gear => 'Gear';
+
+  @override
+  String get media_info_noGear => 'No gear linked';
+
+  @override
+  String get media_info_editGear => 'Edit gear';
+
+  @override
+  String media_info_openGear(String name) {
+    return 'Open $name';
+  }
+
+  @override
+  String get media_gearSheet_title => 'Gear in this photo';
+
+  @override
+  String get media_gearSheet_onThisDive => 'On this dive';
+
+  @override
+  String get media_gearSheet_yourGear => 'Your gear';
+
+  @override
+  String get media_gearSheet_search => 'Search gear';
+
+  @override
+  String get media_gearSheet_empty => 'No gear in your inventory yet';
+
+  @override
+  String get media_library_linkToGear => 'Link to gear';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Gear on $count media items',
+      one: 'Gear on 1 media item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Linking to all $count media items',
+      one: 'Linking to 1 media item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Unlinking from all $count media items',
+      one: 'Unlinking from 1 media item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Updated gear on $count media items',
+      one: 'Updated gear on 1 media item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return 'Could not update gear: $error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed => 'Couldn\'t undo the gear change.';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Show media tagged $tagName';
   }
@@ -64079,6 +64163,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_photos_title => 'Photos';
+
+  @override
+  String get equipment_divePhotos_title => 'In dive photos';
+
+  @override
+  String get equipment_divePhotos_empty =>
+      'Link photos from your dives that show this item.';
+
+  @override
+  String get equipment_divePhotos_link => 'Link photos';
+
+  @override
+  String equipment_divePhotos_showAll(int count) {
+    return 'Show all ($count)';
+  }
+
+  @override
+  String get equipment_divePhotos_unlink => 'Unlink';
+
+  @override
+  String equipment_divePhotos_sheetTitle(String name) {
+    return 'Link photos to $name';
+  }
+
+  @override
+  String get equipment_divePhotos_divesWithGear => 'Dives with this gear';
+
+  @override
+  String get equipment_divePhotos_allPhotos => 'All photos';
+
+  @override
+  String equipment_divePhotos_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Apply $count changes',
+      one: 'Apply 1 change',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_divePhotos_noPhotos => 'No photos here yet';
 
   @override
   String get equipment_photos_add => 'Add photos';

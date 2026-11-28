@@ -13,6 +13,7 @@ import 'package:submersion/features/documents/presentation/editing/record_docume
 import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/equipment_shares_sharing_adapter.dart';
+import 'package:submersion/features/equipment/presentation/editing/gear_item_dive_photos_list.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_check_ins_sitting.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_components_sitting.dart';
@@ -191,6 +192,7 @@ void loadGearItemSitting(
   holdGearItemComponents(session, container.read);
   gearItemTripsList.load(session);
   loadGearItemFills(session);
+  gearItemDivePhotosList.load(session);
 }
 
 /// Reads what a passport's cards hold, for a passport that holds a sitting

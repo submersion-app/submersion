@@ -135,6 +135,7 @@ void main() {
     'site_tags': 'siteTags',
     'equipment_tags': 'equipmentTags',
     'media_tags': 'mediaTags',
+    'media_equipment': 'mediaEquipment',
     'document_tags': 'documentTags',
     'equipment_shares': 'equipmentShares',
     'trip_equipment': 'tripEquipment',

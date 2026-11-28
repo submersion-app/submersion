@@ -68,6 +68,12 @@ const List<_IdChild> _idChildren = [
     unique: ['diver_id'],
   ),
   (
+    table: 'media_equipment',
+    column: 'equipment_id',
+    entity: 'mediaEquipment',
+    unique: ['media_id'],
+  ),
+  (
     table: 'trip_equipment',
     column: 'equipment_id',
     entity: 'tripEquipment',

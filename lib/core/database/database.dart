@@ -24,6 +24,7 @@ import 'package:submersion/core/database/tables/equipment_set_bundle_tables.dart
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 import 'package:submersion/core/database/tables/identification_tables.dart';
 import 'package:submersion/core/database/tables/marine_life_tables.dart';
+import 'package:submersion/core/database/tables/media_equipment_tables.dart';
 import 'package:submersion/core/database/tables/media_people_tables.dart';
 import 'package:submersion/core/database/tables/media_tables.dart';
 import 'package:submersion/core/database/tables/pre_dive_tables.dart';
@@ -66,6 +67,7 @@ export 'package:submersion/core/database/tables/equipment_set_bundle_tables.dart
 export 'package:submersion/core/database/tables/equipment_tables.dart';
 export 'package:submersion/core/database/tables/identification_tables.dart';
 export 'package:submersion/core/database/tables/marine_life_tables.dart';
+export 'package:submersion/core/database/tables/media_equipment_tables.dart';
 export 'package:submersion/core/database/tables/media_people_tables.dart';
 export 'package:submersion/core/database/tables/media_tables.dart';
 export 'package:submersion/core/database/tables/pre_dive_tables.dart';
@@ -138,6 +140,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     MediaTags,
     // People tagged on photos and videos (v326, issue #1745)
     MediaPeople,
+    // Gear linked to photos and videos (v395, issue #5046)
+    MediaEquipment,
     PendingPhotoSuggestions,
     MediaRepairLog,
     MediaIdentificationRuns,
@@ -1843,6 +1847,9 @@ class AppDatabase extends _$AppDatabase {
     // v394: tank_presets.rated_capacity_cuft, the rated capacity a copy of a
     // built-in preset keeps (issue #800). Nullable; the floor does not move.
     394,
+    // v395: media_equipment, gear items linked to photos and videos (issue
+    // #5046). A new synced table; the floor does not move.
+    395,
     // v396: diver_settings.show_dive_country_flags, show_buddy_country_flags
     // and show_trip_country_flags, seeded from show_country_flags (issue
     // #5001). The floor does not move.

@@ -63085,6 +63085,91 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_info_noTags => 'Még nincsenek címkék';
 
   @override
+  String get media_info_gear => 'Felszerelés';
+
+  @override
+  String get media_info_noGear => 'Nincs kapcsolt felszerelés';
+
+  @override
+  String get media_info_editGear => 'Felszerelés szerkesztése';
+
+  @override
+  String media_info_openGear(String name) {
+    return '$name megnyitása';
+  }
+
+  @override
+  String get media_gearSheet_title => 'Felszerelés ezen a fotón';
+
+  @override
+  String get media_gearSheet_onThisDive => 'Ezen a merülésen';
+
+  @override
+  String get media_gearSheet_yourGear => 'Saját felszerelés';
+
+  @override
+  String get media_gearSheet_search => 'Felszerelés keresése';
+
+  @override
+  String get media_gearSheet_empty => 'Még nincs felszerelés a leltárban';
+
+  @override
+  String get media_library_linkToGear => 'Felszereléshez kapcsolás';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Felszerelés $count médiaelemen',
+      one: 'Felszerelés 1 médiaelemen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Kapcsolás mind a(z) $count médiaelemhez',
+      one: 'Kapcsolás 1 médiaelemhez',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Leválasztás mind a(z) $count médiaelemről',
+      one: 'Leválasztás 1 médiaelemről',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Felszerelés frissítve $count médiaelemen',
+      one: 'Felszerelés frissítve 1 médiaelemen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return 'Nem sikerült frissíteni a felszerelést: $error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed =>
+      'A felszerelés módosítását nem sikerült visszavonni.';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return '$tagName címkéjű média megjelenítése';
   }
@@ -64696,6 +64781,50 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_photos_title => 'Fotók';
+
+  @override
+  String get equipment_divePhotos_title => 'Merülési fotókon';
+
+  @override
+  String get equipment_divePhotos_empty =>
+      'Kapcsold hozzá a merüléseid fotóit, amelyeken ez a felszerelés látható.';
+
+  @override
+  String get equipment_divePhotos_link => 'Fotók kapcsolása';
+
+  @override
+  String equipment_divePhotos_showAll(int count) {
+    return 'Összes megjelenítése ($count)';
+  }
+
+  @override
+  String get equipment_divePhotos_unlink => 'Leválasztás';
+
+  @override
+  String equipment_divePhotos_sheetTitle(String name) {
+    return 'Fotók kapcsolása ehhez: $name';
+  }
+
+  @override
+  String get equipment_divePhotos_divesWithGear =>
+      'Merülések ezzel a felszereléssel';
+
+  @override
+  String get equipment_divePhotos_allPhotos => 'Összes fotó';
+
+  @override
+  String equipment_divePhotos_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count módosítás alkalmazása',
+      one: '1 módosítás alkalmazása',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_divePhotos_noPhotos => 'Itt még nincsenek fotók';
 
   @override
   String get equipment_photos_add => 'Fotók hozzáadása';

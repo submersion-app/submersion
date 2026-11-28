@@ -381,6 +381,12 @@ extension RungsFromV340 on AppDatabase {
     if (from < 394) await _assertTankPresetRatedCapacityColumn();
     if (from < 394) await reportProgress();
 
+    // v395 (issue #5046): media_equipment, gear items linked to photos and
+    // videos. A new synced table, re-asserted in beforeOpen; the floor does
+    // not move.
+    if (from < 395) await _assertMediaEquipmentSchema();
+    if (from < 395) await reportProgress();
+
     // v396 (issue #5001): a country flags switch for dives, buddies and
     // trips, each seeded from show_country_flags, which now covers sites
     // only. The copy runs here and never in beforeOpen, which would undo a

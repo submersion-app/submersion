@@ -63073,6 +63073,91 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_info_noTags => 'Nog geen tags';
 
   @override
+  String get media_info_gear => 'Uitrusting';
+
+  @override
+  String get media_info_noGear => 'Geen uitrusting gekoppeld';
+
+  @override
+  String get media_info_editGear => 'Uitrusting bewerken';
+
+  @override
+  String media_info_openGear(String name) {
+    return '$name openen';
+  }
+
+  @override
+  String get media_gearSheet_title => 'Uitrusting op deze foto';
+
+  @override
+  String get media_gearSheet_onThisDive => 'Bij deze duik';
+
+  @override
+  String get media_gearSheet_yourGear => 'Jouw uitrusting';
+
+  @override
+  String get media_gearSheet_search => 'Uitrusting zoeken';
+
+  @override
+  String get media_gearSheet_empty => 'Nog geen uitrusting in je inventaris';
+
+  @override
+  String get media_library_linkToGear => 'Koppelen aan uitrusting';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Uitrusting op $count media-items',
+      one: 'Uitrusting op 1 media-item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Koppelen aan alle $count media-items',
+      one: 'Koppelen aan 1 media-item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ontkoppelen van alle $count media-items',
+      one: 'Ontkoppelen van 1 media-item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Uitrusting bijgewerkt op $count media-items',
+      one: 'Uitrusting bijgewerkt op 1 media-item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return 'Kan uitrusting niet bijwerken: $error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed =>
+      'Kan de uitrustingswijziging niet ongedaan maken.';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Media met tag $tagName tonen';
   }
@@ -64690,6 +64775,49 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_photos_title => 'Foto\'s';
+
+  @override
+  String get equipment_divePhotos_title => 'Op duikfoto\'s';
+
+  @override
+  String get equipment_divePhotos_empty =>
+      'Koppel foto\'s van je duiken waarop dit item te zien is.';
+
+  @override
+  String get equipment_divePhotos_link => 'Foto\'s koppelen';
+
+  @override
+  String equipment_divePhotos_showAll(int count) {
+    return 'Alles tonen ($count)';
+  }
+
+  @override
+  String get equipment_divePhotos_unlink => 'Ontkoppelen';
+
+  @override
+  String equipment_divePhotos_sheetTitle(String name) {
+    return 'Foto\'s koppelen aan $name';
+  }
+
+  @override
+  String get equipment_divePhotos_divesWithGear => 'Duiken met deze uitrusting';
+
+  @override
+  String get equipment_divePhotos_allPhotos => 'Alle foto\'s';
+
+  @override
+  String equipment_divePhotos_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wijzigingen toepassen',
+      one: '1 wijziging toepassen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_divePhotos_noPhotos => 'Hier zijn nog geen foto\'s';
 
   @override
   String get equipment_photos_add => 'Foto\'s toevoegen';

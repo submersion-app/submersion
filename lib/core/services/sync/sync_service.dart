@@ -2244,6 +2244,12 @@ class SyncService {
           (type: 'media', records: data.media, hasUpdatedAt: false),
           // After both parents (media and tags), issue #1970.
           (type: 'mediaTags', records: data.mediaTags, hasUpdatedAt: false),
+          // After both parents (media and equipment), issue #5046.
+          (
+            type: 'mediaEquipment',
+            records: data.mediaEquipment,
+            hasUpdatedAt: false,
+          ),
           (
             type: 'mediaEnrichment',
             records: data.mediaEnrichment,
@@ -3278,6 +3284,7 @@ class SyncService {
     'siteTags': false,
     'equipmentTags': false,
     'mediaTags': false,
+    'mediaEquipment': false,
     'documentTags': false,
     'equipmentShares': false,
     'tripEquipment': false,
@@ -3723,6 +3730,11 @@ class SyncService {
     'mediaTags': [
       (field: 'mediaId', parent: 'media', nullable: false),
       (field: 'tagId', parent: 'tags', nullable: false),
+    ],
+    // v395: gear linked to photos and videos (issue #5046).
+    'mediaEquipment': [
+      (field: 'mediaId', parent: 'media', nullable: false),
+      (field: 'equipmentId', parent: 'equipment', nullable: false),
     ],
     'documentTags': [
       (field: 'documentId', parent: 'documents', nullable: false),

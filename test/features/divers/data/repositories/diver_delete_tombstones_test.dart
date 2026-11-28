@@ -502,6 +502,16 @@ void main() {
               createdAt: stale,
             ),
           );
+      // A photo on no dive survives the delete; its link to the gear goes
+      // (issue #5046).
+      await db.customStatement(
+        'INSERT INTO media (id, file_path, file_type, created_at, updated_at) '
+        "VALUES ('loose-photo', '', 'photo', 1, 1)",
+      );
+      await db.customStatement(
+        'INSERT INTO media_equipment (id, media_id, equipment_id, created_at) '
+        "VALUES ('megear-a', 'loose-photo', 'reg-a', 1)",
+      );
       return [
         ('equipment', 'equipment', 'reg-a'),
         ('equipment', 'equipment', 'hose-a'),
@@ -511,6 +521,7 @@ void main() {
         ('equipment_observations', 'equipmentObservations', 'obs-a'),
         ('equipment_findings', 'equipmentFindings', 'find-a'),
         ('equipment_tags', 'equipmentTags', 'eqtag-a'),
+        ('media_equipment', 'mediaEquipment', 'megear-a'),
         ('tags', 'tags', 'tag-gear'),
       ];
     },

@@ -4,6 +4,7 @@ import 'package:submersion/features/equipment/presentation/widgets/components_ca
 import 'package:submersion/features/equipment/presentation/widgets/condition_findings_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observations_card.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_dive_photos_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_photos_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_documents_section.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -113,6 +114,18 @@ final Map<GearItemCardId, EditCard<EquipmentItem>> gearItemEditCards = {
     isEmpty: (_) => false,
     editorBuilder: (context, session) =>
         EquipmentPhotosSection(equipment: session.working, editing: session),
+  ),
+  // Dive photos that show the item (issue #5046), apart from its own.
+  GearItemCardId.divePhotos: EditCard<EquipmentItem>(
+    id: GearItemCardId.divePhotos.name,
+    title: (context) =>
+        GearItemCardId.divePhotos.localizedDisplayName(context.l10n),
+    // Always on the page: with none, it invites a link.
+    isEmpty: (_) => false,
+    editorBuilder: (context, session) => EquipmentDivePhotosSection(
+      equipment: session.working,
+      editing: session,
+    ),
   ),
   GearItemCardId.observations: EditCard<EquipmentItem>(
     id: GearItemCardId.observations.name,

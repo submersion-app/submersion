@@ -7,6 +7,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/helpers/media_move_to_dive.dart';
 import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/bulk_gear_sheet.dart';
 import 'package:submersion/features/tags/data/services/bulk_tag_service.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_link_providers.dart';
@@ -54,6 +55,13 @@ class MediaSelectionBar extends ConsumerWidget {
   final List<MediaItem> selectedItems;
 
   List<String> get _ids => selectedItems.map((m) => m.id).toList();
+
+  /// The selected photos and videos gear can be linked to: not a document,
+  /// a signature or a gear photo (issue #5046).
+  List<String> get _gearIds => [
+    for (final m in selectedItems)
+      if (!m.isDocument && !m.isSignature && !m.isGearPhoto) m.id,
+  ];
 
   /// The library's one destructive action.
   ///
@@ -192,6 +200,14 @@ class MediaSelectionBar extends ConsumerWidget {
                 empty: l10n.media_bulkTags_empty,
               ),
             ),
+          ),
+        // Gear shown in the photos (issue #5046): photos and videos only.
+        if (canWrite && _gearIds.isNotEmpty)
+          BulkAction(
+            id: 'link_gear',
+            icon: Icons.backpack_outlined,
+            label: l10n.media_library_linkToGear,
+            onInvoke: () => showBulkGearSheet(context, ref, mediaIds: _gearIds),
           ),
         if (canWrite)
           BulkAction(

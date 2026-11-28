@@ -63461,6 +63461,92 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_info_noTags => 'Ancora nessun tag';
 
   @override
+  String get media_info_gear => 'Attrezzatura';
+
+  @override
+  String get media_info_noGear => 'Nessuna attrezzatura collegata';
+
+  @override
+  String get media_info_editGear => 'Modifica attrezzatura';
+
+  @override
+  String media_info_openGear(String name) {
+    return 'Apri $name';
+  }
+
+  @override
+  String get media_gearSheet_title => 'Attrezzatura in questa foto';
+
+  @override
+  String get media_gearSheet_onThisDive => 'In questa immersione';
+
+  @override
+  String get media_gearSheet_yourGear => 'La tua attrezzatura';
+
+  @override
+  String get media_gearSheet_search => 'Cerca attrezzatura';
+
+  @override
+  String get media_gearSheet_empty =>
+      'Ancora nessuna attrezzatura nell\'inventario';
+
+  @override
+  String get media_library_linkToGear => 'Collega all\'attrezzatura';
+
+  @override
+  String media_bulkGear_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Attrezzatura su $count elementi multimediali',
+      one: 'Attrezzatura su 1 elemento multimediale',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmAdding(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Collegamento a tutti i $count elementi multimediali',
+      one: 'Collegamento a 1 elemento multimediale',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_confirmRemoving(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Scollegamento da tutti i $count elementi multimediali',
+      one: 'Scollegamento da 1 elemento multimediale',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_applied(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Attrezzatura aggiornata su $count elementi multimediali',
+      one: 'Attrezzatura aggiornata su 1 elemento multimediale',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_bulkGear_failed(String error) {
+    return 'Impossibile aggiornare l\'attrezzatura: $error';
+  }
+
+  @override
+  String get media_bulkGear_undoFailed =>
+      'Impossibile annullare la modifica dell\'attrezzatura.';
+
+  @override
   String media_info_showWithTag(String tagName) {
     return 'Mostra i media con il tag $tagName';
   }
@@ -65088,6 +65174,50 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_photos_title => 'Foto';
+
+  @override
+  String get equipment_divePhotos_title => 'Nelle foto di immersione';
+
+  @override
+  String get equipment_divePhotos_empty =>
+      'Collega le foto delle tue immersioni in cui compare questa attrezzatura.';
+
+  @override
+  String get equipment_divePhotos_link => 'Collega foto';
+
+  @override
+  String equipment_divePhotos_showAll(int count) {
+    return 'Mostra tutte ($count)';
+  }
+
+  @override
+  String get equipment_divePhotos_unlink => 'Scollega';
+
+  @override
+  String equipment_divePhotos_sheetTitle(String name) {
+    return 'Collega foto a $name';
+  }
+
+  @override
+  String get equipment_divePhotos_divesWithGear =>
+      'Immersioni con questa attrezzatura';
+
+  @override
+  String get equipment_divePhotos_allPhotos => 'Tutte le foto';
+
+  @override
+  String equipment_divePhotos_apply(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Applica $count modifiche',
+      one: 'Applica 1 modifica',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_divePhotos_noPhotos => 'Ancora nessuna foto qui';
 
   @override
   String get equipment_photos_add => 'Aggiungi foto';

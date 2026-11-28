@@ -15,6 +15,7 @@ import 'package:submersion/features/change_log/data/repositories/change_log_repo
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_color_adjustment_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_gear_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
@@ -489,6 +490,45 @@ void main() {
     ];
     expect(labelled, ['record_edit:media:tags']);
   });
+  test('gear links held: written at Save; a link made elsewhere meanwhile '
+      'is kept; the label names gear (issue #5046)', () async {
+    for (final id in ['e1', 'e2', 'e3']) {
+      await db.customStatement(
+        'INSERT INTO equipment (id, name, type, created_at, updated_at, '
+        "diver_id) VALUES ('$id', '$id', 'other', 0, 0, 'me')",
+      );
+    }
+    final gear = MediaGearRepository();
+    await gear.replaceGear('p1', ['e1']);
+    await changeLog.settleAll();
+    await db.customStatement('DELETE FROM change_log_operations');
+    final session = await sitting('p1');
+    expect(session.stored.gearIds, ['e1']);
+    session.set(
+      photoGearField,
+      MediaGearEdits.between(session.stored.gearIds, ['e2']),
+    );
+    await gear.addGear(['p1'], ['e3']);
+
+    await save(session);
+
+    expect((await gear.gearIdsFor('p1')).toSet(), {'e2', 'e3'});
+    final labelled = [
+      for (final op in await operations())
+        if (op['label'] != null) op['label'],
+    ];
+    expect(labelled, ['record_edit:media:gear']);
+  });
+
+  test('saving a sitting with no gear edits writes no link', () async {
+    final session = await sitting('p1');
+    session.set(photoPinField, 60);
+
+    await save(session);
+
+    expect(await db.select(db.mediaEquipment).get(), isEmpty);
+  });
+
   group('Locate held (Task 13)', () {
     late LocalCacheDatabase cacheDb;
     late MediaTransferQueueRepository queue;

@@ -1,0 +1,89 @@
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/media/data/repositories/media_gear_repository.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+
+/// Gear linked to photos and videos (issue #5046).
+final mediaGearRepositoryProvider = Provider<MediaGearRepository>(
+  (ref) => MediaGearRepository(),
+);
+
+/// Every gear id linked to one photo. Unscoped: the card hides gear the
+/// diver cannot see.
+final gearIdsForMediaProvider = FutureProvider.family<List<String>, String>((
+  ref,
+  mediaId,
+) async {
+  final repository = ref.watch(mediaGearRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchChanges());
+  return repository.gearIdsFor(mediaId);
+});
+
+/// The ids of the photos linked to one gear item that the active diver can
+/// see, newest first. Ids only: [mediaInOrderProvider] reads the rows of the
+/// few a page draws.
+final linkedMediaIdsForEquipmentProvider =
+    FutureProvider.family<List<String>, String>((ref, equipmentId) async {
+      final repository = ref.watch(mediaGearRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchChanges());
+      ref.invalidateSelfWhen(
+        ref.read(mediaRepositoryProvider).watchMediaChanges(),
+      );
+      // Which photos the diver sees follows whose dive each is on.
+      ref.invalidateSelfWhen(
+        ref.read(diveRepositoryProvider).watchTables(const {'dives'}),
+      );
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      return repository.linkedMediaIdsFor(equipmentId, diverId: diverId);
+    });
+
+/// The key [mediaInOrderProvider] takes for [ids]: a family argument must
+/// compare by value, which a list does not.
+String mediaPageKey(List<String> ids) => ids.join('\n');
+
+/// The photos whose ids [key] lists ([mediaPageKey]), in that order; an id
+/// with no row is left out. One page of a gear item's In dive photos.
+final mediaInOrderProvider = FutureProvider.autoDispose
+    .family<List<MediaItem>, String>((ref, key) async {
+      final repository = ref.watch(mediaRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchMediaChanges());
+      if (key.isEmpty) return const [];
+      final ids = key.split('\n');
+      final byId = {
+        for (final m in await repository.getMediaByIds(ids)) m.id: m,
+      };
+      return [for (final id in ids) ?byId[id]];
+    });
+
+/// The gear used on one dive, every way gear reaches a dive.
+final gearOnDiveProvider = FutureProvider.family<Set<String>, String>((
+  ref,
+  diveId,
+) async {
+  ref.invalidateSelfWhen(
+    ref.read(diveRepositoryProvider).watchTables(_gearUsageTables),
+  );
+  return ref.watch(mediaGearRepositoryProvider).gearOnDive(diveId);
+});
+
+/// The ids of the dives the item page's Dives row counts, newest first.
+final equipmentDiveIdsProvider = FutureProvider.family<List<String>, String>((
+  ref,
+  equipmentId,
+) async {
+  final repository = ref.watch(equipmentRepositoryProvider);
+  ref.invalidateSelfWhen(
+    ref.read(diveRepositoryProvider).watchTables(_diveGearTables),
+  );
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getDiveIdsForEquipment(equipmentId, diverId: diverId);
+});
+
+const _diveGearTables = {'dives', 'dive_equipment', 'dive_tanks'};
+
+/// What `gearUsageForDives` reads: [_diveGearTables] plus `transmitters`,
+/// which resolves a tank's transmitter serial to its item.
+const _gearUsageTables = {..._diveGearTables, 'transmitters'};

@@ -21,6 +21,7 @@ class PhotoRecord extends Equatable {
     required this.people,
     this.diveShiftSeconds,
     this.tags = const [],
+    this.gearIds = const [],
   });
 
   final MediaItem item;
@@ -37,20 +38,33 @@ class PhotoRecord extends Equatable {
   /// The photo's own tags (#1970).
   final List<Tag> tags;
 
+  /// The gear linked to the photo (#5046), by equipment id: every link,
+  /// shown or not; the card hides gear the diver cannot see.
+  final List<String> gearIds;
+
   PhotoRecord copyWith({
     MediaItem? item,
     List<SpeciesTagChip>? species,
     List<MediaPersonChip>? people,
     int? diveShiftSeconds,
     List<Tag>? tags,
+    List<String>? gearIds,
   }) => PhotoRecord(
     item: item ?? this.item,
     species: species ?? this.species,
     people: people ?? this.people,
     diveShiftSeconds: diveShiftSeconds ?? this.diveShiftSeconds,
     tags: tags ?? this.tags,
+    gearIds: gearIds ?? this.gearIds,
   );
 
   @override
-  List<Object?> get props => [item, species, people, diveShiftSeconds, tags];
+  List<Object?> get props => [
+    item,
+    species,
+    people,
+    diveShiftSeconds,
+    tags,
+    gearIds,
+  ];
 }

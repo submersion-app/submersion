@@ -69,6 +69,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_doc
 import 'package:submersion/features/equipment/presentation/widgets/equipment_header_status.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_history_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_card.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_dive_photos_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_photos_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_sharing_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_tag_chips.dart';
@@ -445,6 +446,13 @@ class _EquipmentDetailContent extends ConsumerWidget {
           _framed(
             GearItemCardId.photos,
             EquipmentPhotosSection(equipment: equipment, shown: _session),
+          ),
+          const SizedBox(height: 24),
+          // Dive photos that show the item (issue #5046), apart from its
+          // reference photos above.
+          _framed(
+            GearItemCardId.divePhotos,
+            EquipmentDivePhotosSection(equipment: equipment, shown: _session),
           ),
           const SizedBox(height: 24),
           _framed(

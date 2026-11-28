@@ -11,6 +11,7 @@ import 'package:submersion/features/agent_access/data/writes/writable_entity.dar
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/media/data/repositories/media_color_adjustment_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_gear_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_species_repository.dart';
 import 'package:submersion/features/media/data/repositories/site_attachment_repository.dart';
 import 'package:submersion/features/media/data/services/species_tagging_service.dart';
@@ -51,6 +52,7 @@ class MediaWrites extends WritableEntry {
   final MediaTransferQueueRepository Function()? _transferQueue;
   final _people = MediaPeopleRepository();
   final _speciesTags = MediaSpeciesRepository();
+  final _gear = MediaGearRepository();
   final _colors = MediaColorAdjustmentRepository();
   final _attachments = SiteAttachmentRepository();
 
@@ -78,8 +80,9 @@ class MediaWrites extends WritableEntry {
       'end. people is the whole list, each a buddy_id or a diver_id with an '
       'optional box (x, y, width, height, 0 to 1) and, on a video, '
       'video_position_ms; a person once per photo. A new species tag on a '
-      'dive photo logs the dive\'s sighting when it has none. A delete holds '
-      'the cloud copy\'s delete.';
+      'dive photo logs the dive\'s sighting when it has none. equipment_ids '
+      'are the gear items shown in a photo or video; linking one leaves it '
+      'an ordinary photo. A delete holds the cloud copy\'s delete.';
 
   @override
   late final Map<String, FieldCodec> fields = {
@@ -118,15 +121,20 @@ class MediaWrites extends WritableEntry {
   @override
   final Map<String, RelationSpec> relations = const {
     'species_ids': RelationSpec(refEntity: 'species'),
+    'equipment_ids': RelationSpec(refEntity: 'equipment'),
   };
 
   @override
   Set<String> get requiredOnCreate => const {};
 
   @override
-  Future<Set<String>> currentRelation(String id, String relation) async => {
-    for (final t in await _speciesTags.getTagsForMedia(id)) t.speciesId,
-  };
+  Future<Set<String>> currentRelation(String id, String relation) async =>
+      switch (relation) {
+        'equipment_ids' => (await _gear.gearIdsFor(id)).toSet(),
+        _ => {
+          for (final t in await _speciesTags.getTagsForMedia(id)) t.speciesId,
+        },
+      };
 
   /// What a read leaves out that a write takes: the people, as a list a
   /// write sends back unchanged.
@@ -176,6 +184,17 @@ class MediaWrites extends WritableEntry {
         );
       }
     }
+    // Gear shows in photos and videos only (issue #5046): a document, a
+    // signature or a gear photo takes none.
+    if ((check.relations['equipment_ids']?.add ?? const <String>{})
+            .isNotEmpty &&
+        !await _gearLinkable(check.id!)) {
+      return const PlanBlock(
+        BlockReason.invalidValue,
+        'equipment_ids: gear is linked to photos and videos only, not to a '
+        'document, a signature or a gear photo.',
+      );
+    }
     if ((v.containsKey('attachment_category') ||
             v.containsKey('attachment_display_size')) &&
         check.document?['site_id'] == null) {
@@ -194,6 +213,9 @@ class MediaWrites extends WritableEntry {
     }
     return null;
   }
+
+  /// Whether media [id] is a photo or video gear can be linked to.
+  Future<bool> _gearLinkable(String id) => _gear.isLinkable(id);
 
   @override
   Future<SideEffects> sideEffects(
@@ -240,6 +262,7 @@ class MediaWrites extends WritableEntry {
         'media_people': 'media_id',
         'media_species': 'media_id',
         'media_tags': 'media_id',
+        'media_equipment': 'media_id',
         'media_enrichment': 'media_id',
       }, id),
     );
@@ -274,6 +297,10 @@ class MediaWrites extends WritableEntry {
       for (final s in species.remove) {
         await _tagging.untagPhoto(mediaId: id, speciesId: s);
       }
+    }
+    if (update.relations['equipment_ids'] case final gear?) {
+      await _gear.addGear([id], gear.add.toList(), notify: false);
+      await _gear.removeGear([id], gear.remove.toList(), notify: false);
     }
     if (v.containsKey('color_adjustment')) {
       await _colors.setColorAdjustment(

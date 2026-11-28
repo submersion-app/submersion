@@ -24,6 +24,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_visibi
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/dive_gear_usage_sql.dart';
 import 'package:submersion/features/equipment/data/repositories/tank_regulator_sql.dart';
+import 'package:submersion/features/media/data/repositories/media_gear_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
@@ -817,6 +818,9 @@ class EquipmentRepository {
         await TripEquipmentRepository().deleteForEquipment(id);
         // Location history (v268), tombstoned like the shares.
         await EquipmentLocationMoveRepository().deleteForEquipment(id);
+        // Photos it is linked to (issue #5046): the links go, tombstoned;
+        // the photos stay.
+        await MediaGearRepository().deleteForEquipment(id);
         await (_db.delete(_db.equipment)..where((t) => t.id.equals(id))).go();
         for (final s in schedules) {
           await _syncRepository.logDeletion(
@@ -1273,6 +1277,31 @@ class EquipmentRepository {
       );
       rethrow;
     }
+  }
+
+  /// The ids of the dives [getDiveCountForEquipment] counts, newest first:
+  /// the dives a photo picker opens on for the item (issue #5046), so it
+  /// agrees with the Dives row.
+  // stats-scope-exempt: gear wear is physical, not descriptive
+  Future<List<String>> getDiveIdsForEquipment(
+    String equipmentId, {
+    String? diverId,
+  }) async {
+    final rows = await _db
+        .customSelect(
+          '''
+        SELECT d.id AS id
+        FROM dives d
+        WHERE $_diveOnItemSql
+        ORDER BY d.dive_date_time DESC, d.id
+      ''',
+          variables: [
+            Variable.withString(equipmentId),
+            Variable<String>(diverId),
+          ],
+        )
+        .get();
+    return [for (final r in rows) r.read<String>('id')];
   }
 
   /// Total seconds of the dives [getDiveCountForEquipment] counts, for the
