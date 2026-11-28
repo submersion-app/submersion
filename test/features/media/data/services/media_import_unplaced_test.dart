@@ -3,6 +3,7 @@ import 'package:submersion/features/media/data/repositories/media_repository.dar
 import 'package:submersion/features/media/data/services/enrichment_service.dart';
 import 'package:submersion/features/media/data/services/media_import_service.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -53,5 +54,27 @@ void main() {
     );
 
     expect(again.imported.map((m) => m.platformAssetId), ['gopro-2']);
+  });
+
+  test('a stray unlinked row is not a keep: the pick is still kept', () async {
+    // A row with no links and no retain flag, which the sweep has not
+    // reached yet.
+    await repo.createMedia(
+      MediaItem(
+        id: '',
+        mediaType: MediaType.video,
+        platformAssetId: 'gopro-1',
+        takenAt: DateTime.utc(2024),
+        createdAt: DateTime.utc(2024),
+        updatedAt: DateTime.utc(2024),
+      ),
+    );
+
+    final result = await service.importPhotosUnplaced(
+      selectedAssets: [_asset('gopro-1')],
+    );
+
+    expect(result.imported, hasLength(1));
+    expect(result.imported.single.retainInLibrary, isTrue);
   });
 }

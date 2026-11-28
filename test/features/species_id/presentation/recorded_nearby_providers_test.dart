@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
@@ -107,7 +108,11 @@ void main() {
     final c = await container();
 
     final list = await c.read(
-      recordedNearbyListProvider((diveId: 'd1', photo: photo)).future,
+      recordedNearbyListProvider((
+        diveId: 'd1',
+        photo: photo,
+        siteId: null,
+      )).future,
     );
 
     expect(list, listAtSite);
@@ -119,11 +124,51 @@ void main() {
     final c = await container();
 
     final list = await c.read(
-      recordedNearbyListProvider((diveId: 'd1', photo: photo)).future,
+      recordedNearbyListProvider((
+        diveId: 'd1',
+        photo: photo,
+        siteId: null,
+      )).future,
     );
 
     expect(list, listAtPhoto);
     expect(asked, [photo]);
+  });
+
+  test('media on a site and no dive reads that site\'s list '
+      '(issue #5122)', () async {
+    await db.customStatement(
+      "INSERT INTO dive_sites (id, name, latitude, longitude, created_at, "
+      "updated_at) VALUES ('s1', 'Reef', ${site.latitude}, "
+      "${site.longitude}, 0, 0)",
+    );
+    final c = await container();
+
+    final list = await c.read(
+      recordedNearbyListProvider((
+        diveId: null,
+        photo: null,
+        siteId: 's1',
+      )).future,
+    );
+
+    expect(list, listAtSite);
+    expect(asked, [site]);
+  });
+
+  test('a request for media carries its own site only when on no dive', () {
+    MediaItem item({String? diveId}) => MediaItem(
+      id: 'm1',
+      mediaType: MediaType.video,
+      diveId: diveId,
+      siteId: 's1',
+      takenAt: DateTime.utc(2026),
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+    );
+
+    expect(nearbyRequestForMedia(item()).siteId, 's1');
+    expect(nearbyRequestForMedia(item(diveId: 'd1')).siteId, isNull);
   });
 
   test('with no place it asks for nothing', () async {
@@ -131,7 +176,11 @@ void main() {
     final c = await container();
 
     final list = await c.read(
-      recordedNearbyListProvider((diveId: 'd1', photo: null)).future,
+      recordedNearbyListProvider((
+        diveId: 'd1',
+        photo: null,
+        siteId: null,
+      )).future,
     );
 
     expect(list, isNull);
@@ -142,7 +191,11 @@ void main() {
     final c = await container();
 
     final list = await c.read(
-      recordedNearbyListProvider((diveId: 'gone', photo: null)).future,
+      recordedNearbyListProvider((
+        diveId: 'gone',
+        photo: null,
+        siteId: null,
+      )).future,
     );
 
     expect(list, isNull);
@@ -158,13 +211,21 @@ void main() {
 
     expect(
       await c.read(
-        recordedNearbyListProvider((diveId: 'd1', photo: null)).future,
+        recordedNearbyListProvider((
+          diveId: 'd1',
+          photo: null,
+          siteId: null,
+        )).future,
       ),
       isNull,
     );
     expect(
       await c.read(
-        recordedNearbyListProvider((diveId: 'd2', photo: null)).future,
+        recordedNearbyListProvider((
+          diveId: 'd2',
+          photo: null,
+          siteId: null,
+        )).future,
       ),
       isNull,
     );
@@ -174,8 +235,8 @@ void main() {
     places.places['d1'] = (site: site, entry: null);
     places.places['d2'] = (site: site, entry: entry);
     final c = await container();
-    const first = (diveId: 'd1', photo: null);
-    const second = (diveId: 'd2', photo: photo);
+    const first = (diveId: 'd1', photo: null, siteId: null);
+    const second = (diveId: 'd2', photo: photo, siteId: null);
 
     // Two rows on screen hold both requests at once, so the shared list
     // stays alive between them.
@@ -194,8 +255,8 @@ void main() {
     places.places['d1'] = (site: site, entry: null);
     places.places['d2'] = (site: site, entry: null);
     final c = await container();
-    const first = (diveId: 'd1', photo: null);
-    const second = (diveId: 'd2', photo: null);
+    const first = (diveId: 'd1', photo: null, siteId: null);
+    const second = (diveId: 'd2', photo: null, siteId: null);
 
     // The first row is on screen and has its list before the second row
     // scrolls into view.
@@ -226,7 +287,11 @@ void main() {
       final rows = {
         for (var i = 1; i <= sites.length; i++)
           'd$i': c.listen(
-            recordedNearbyListProvider((diveId: 'd$i', photo: null)),
+            recordedNearbyListProvider((
+              diveId: 'd$i',
+              photo: null,
+              siteId: null,
+            )),
             (_, _) {},
           ),
       };
@@ -269,7 +334,7 @@ void main() {
       // A fifth dive at the first site, whose list d1 is fetching now,
       // while d3 and d4 wait their turns.
       places.places['d5'] = (site: site, entry: null);
-      const fifth = (diveId: 'd5', photo: null);
+      const fifth = (diveId: 'd5', photo: null, siteId: null);
       c.listen(recordedNearbyListProvider(fifth), (_, _) {});
       await pumpEventQueue();
 
@@ -302,7 +367,7 @@ void main() {
     final c = await container();
     for (final dive in ['d1', 'd2', 'd5', 'd6', 'd3']) {
       c.listen(
-        recordedNearbyListProvider((diveId: dive, photo: null)),
+        recordedNearbyListProvider((diveId: dive, photo: null, siteId: null)),
         (_, _) {},
       );
       await pumpEventQueue();
@@ -326,8 +391,20 @@ void main() {
     const nearer = GeoPoint(12.20018, -68.30016);
 
     await Future.wait([
-      c.read(recordedNearbyListProvider((diveId: null, photo: near)).future),
-      c.read(recordedNearbyListProvider((diveId: null, photo: nearer)).future),
+      c.read(
+        recordedNearbyListProvider((
+          diveId: null,
+          photo: near,
+          siteId: null,
+        )).future,
+      ),
+      c.read(
+        recordedNearbyListProvider((
+          diveId: null,
+          photo: nearer,
+          siteId: null,
+        )).future,
+      ),
     ]);
 
     expect(asked, [photo]);
@@ -337,7 +414,11 @@ void main() {
     final c = await container();
 
     final list = await c.read(
-      recordedNearbyListProvider((diveId: null, photo: photo)).future,
+      recordedNearbyListProvider((
+        diveId: null,
+        photo: photo,
+        siteId: null,
+      )).future,
     );
 
     expect(list, listAtPhoto);
@@ -358,7 +439,11 @@ void main() {
     );
 
     final list = await c.read(
-      recordedNearbyListProvider((diveId: null, photo: photo)).future,
+      recordedNearbyListProvider((
+        diveId: null,
+        photo: photo,
+        siteId: null,
+      )).future,
     );
 
     expect(list, listAtPhoto);
@@ -368,7 +453,7 @@ void main() {
   test('a list that cannot be read is not asked for again', () async {
     places.failure = Exception('database closed');
     final c = await container();
-    const request = (diveId: 'd1', photo: null);
+    const request = (diveId: 'd1', photo: null, siteId: null);
     c.listen(recordedNearbyListProvider(request), (_, _) {});
 
     await expectLater(
@@ -385,7 +470,7 @@ void main() {
   test('a dive moved to another site reads that site\'s list', () async {
     places.places['d1'] = (site: site, entry: null);
     final c = await container();
-    const request = (diveId: 'd1', photo: null);
+    const request = (diveId: 'd1', photo: null, siteId: null);
     c.listen(recordedNearbyListProvider(request), (_, _) {});
     expect(
       await c.read(recordedNearbyListProvider(request).future),
@@ -402,7 +487,7 @@ void main() {
   test('a site moved on the map reads the new point\'s list', () async {
     places.places['d1'] = (site: site, entry: null);
     final c = await container();
-    const request = (diveId: 'd1', photo: null);
+    const request = (diveId: 'd1', photo: null, siteId: null);
     c.listen(recordedNearbyListProvider(request), (_, _) {});
     expect(
       await c.read(recordedNearbyListProvider(request).future),
@@ -422,12 +507,20 @@ void main() {
         id: 'p1',
         diveId: 'd1',
       ).copyWith(latitude: 12.2, longitude: -68.3);
-      expect(nearbyRequestForMedia(item), (diveId: 'd1', photo: photo));
+      expect(nearbyRequestForMedia(item), (
+        diveId: 'd1',
+        photo: photo,
+        siteId: null,
+      ));
     });
 
     test('a photo without both coordinates carries none', () {
       final item = testMediaItem(id: 'p1').copyWith(latitude: 12.2);
-      expect(nearbyRequestForMedia(item), (diveId: null, photo: null));
+      expect(nearbyRequestForMedia(item), (
+        diveId: null,
+        photo: null,
+        siteId: null,
+      ));
     });
   });
 }

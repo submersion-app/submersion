@@ -187,4 +187,9 @@ void main() {
     expect(find.text('Clownfish?'), findsOneWidget);
     expect(find.byKey(const ValueKey('live_box_1')), findsOneWidget);
   });
+
+  test('only Android keeps frames coming while recording', () {
+    expect(recordingKeepsFrames(TargetPlatform.android), isTrue);
+    expect(recordingKeepsFrames(TargetPlatform.iOS), isFalse);
+  });
 }

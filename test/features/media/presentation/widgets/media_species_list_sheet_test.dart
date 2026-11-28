@@ -182,6 +182,6 @@ void main() {
       ),
       findsOneWidget,
     );
-    expect(nearbyAsked.toSet(), {(diveId: 'd1', photo: null)});
+    expect(nearbyAsked.toSet(), {(diveId: 'd1', photo: null, siteId: null)});
   });
 }

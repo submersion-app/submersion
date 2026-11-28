@@ -19,6 +19,11 @@ import 'package:submersion/features/species_id/domain/services/live_naming_contr
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Whether the camera plugin sends image frames during a recording on
+/// [platform]: only Android does (`startVideoRecording`'s `onAvailable`).
+bool recordingKeepsFrames(TargetPlatform platform) =>
+    platform == TargetPlatform.android;
+
 /// The Identify camera (issue #5122): suggestions over the live picture,
 /// and photos and clips that open in the Identify viewer. Phones and
 /// tablets only.
@@ -150,12 +155,19 @@ class _IdentifyCameraPageState extends ConsumerState<IdentifyCameraPage> {
         });
         if (_naming != null) await _camera.startFrames(_onFrame);
       } else {
-        // Frames keep coming through the recording for the names.
         if (_naming != null) await _camera.stopFrames();
+        // Frames keep coming through a recording for the names only where
+        // the camera plugin sends them (Android): elsewhere the labels go
+        // rather than freeze on the last frame before recording.
+        final framesWhileRecording =
+            _naming != null && recordingKeepsFrames(defaultTargetPlatform);
         await _camera.startRecording(
-          onFrame: _naming == null ? null : _onFrame,
+          onFrame: framesWhileRecording ? _onFrame : null,
         );
-        setState(() => _recording = true);
+        setState(() {
+          _recording = true;
+          if (!framesWhileRecording) _labels = null;
+        });
       }
       return;
     }

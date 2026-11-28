@@ -1770,9 +1770,12 @@ class MediaRepository {
       _getGalleryLinks(_db.media.siteId.equals(siteId), 'site: $siteId');
 
   /// Gallery links of the rows kept with no dive, site or gear (issue
-  /// #5122), for skipping picks already kept that way.
-  Future<List<domain.MediaItem>> getGalleryLinksUnplaced() =>
-      _getGalleryLinks(isLinkedToLogbook(_db.media).not(), 'no place');
+  /// #5122), for skipping picks already kept that way. A stray unlinked row
+  /// (one the sweep has not reached) is not a keep, so it does not count.
+  Future<List<domain.MediaItem>> getGalleryLinksUnplaced() => _getGalleryLinks(
+    isLinkedToLogbook(_db.media).not() & _db.media.retainInLibrary.equals(true),
+    'no place',
+  );
 
   Future<List<domain.MediaItem>> _getGalleryLinks(
     Expression<bool> scope,
@@ -1852,7 +1855,8 @@ class MediaRepository {
           .customSelect(
             'SELECT local_path FROM media '
             'WHERE dive_id IS NULL AND site_id IS NULL '
-            'AND equipment_id IS NULL AND local_path IS NOT NULL',
+            'AND equipment_id IS NULL AND retain_in_library = 1 '
+            'AND local_path IS NOT NULL',
           )
           .get();
       return result.map((row) => row.data['local_path'] as String).toSet();

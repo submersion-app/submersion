@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/species_id/data/camera/camera_frame_jpeg.dart';
 
-/// The camera has been refused to the app.
+/// The camera has been refused to the app, or the device has none.
 class IdentifyCameraDenied implements Exception {
   const IdentifyCameraDenied();
 }
@@ -58,6 +58,9 @@ class CameraPluginCamera implements IdentifyCamera {
   Future<void> initialize() async {
     try {
       final cameras = await availableCameras();
+      // No camera at all (an emulator, a tablet without one): the screen
+      // offers files instead, as it does when the camera is refused.
+      if (cameras.isEmpty) throw const IdentifyCameraDenied();
       final back = cameras.firstWhere(
         (c) => c.lensDirection == CameraLensDirection.back,
         orElse: () => cameras.first,

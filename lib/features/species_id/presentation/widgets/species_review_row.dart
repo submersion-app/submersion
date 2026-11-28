@@ -176,7 +176,7 @@ class SpeciesReviewRowTile extends StatelessWidget {
   /// row of a dive; photos in no dive read the shown photo's own position.
   static NearbyListRequest _nearbyRequest(ReviewItem best) =>
       best.media.diveId != null
-      ? (diveId: best.media.diveId, photo: null)
+      ? (diveId: best.media.diveId, photo: null, siteId: null)
       : nearbyRequestForMedia(best.media);
 
   /// A score as the locale writes a percentage, as the species sheet does.
