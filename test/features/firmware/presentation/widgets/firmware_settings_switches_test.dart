@@ -85,6 +85,8 @@ void main() {
     await pump(tester, const {}, true, false);
     expect(find.text(checks), findsNothing);
     expect(find.text(notices), findsNothing);
+    // Nor the gap above them.
+    expect(tester.getSize(find.byType(FirmwareSettingsSwitches)).height, 0);
   });
 
   testWidgets('the saved values come back', (tester) async {

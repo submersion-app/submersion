@@ -23,6 +23,7 @@ class FirmwareSettingsSwitches extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        const SizedBox(height: 16),
         Card(
           child: SwitchListTile(
             secondary: const Icon(Icons.system_update_alt),

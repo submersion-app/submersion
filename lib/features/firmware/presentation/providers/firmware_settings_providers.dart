@@ -17,10 +17,13 @@ class FirmwareSwitchNotifier extends StateNotifier<bool> {
 
   /// Writes queue behind each other, so a quick off-then-on can never leave
   /// the stored value behind the state shown.
-  Future<void> set(bool on) => _writes = _writes.then((_) async {
-    await _prefs.setBool(_key, on);
-    state = on;
-  });
+  /// A write that fails costs only itself: the queue recovers before the
+  /// next one is added.
+  Future<void> set(bool on) =>
+      _writes = _writes.catchError((Object _) {}).then((_) async {
+        await _prefs.setBool(_key, on);
+        state = on;
+      });
 }
 
 /// "Check for firmware updates": whether this device reads the public
