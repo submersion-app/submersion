@@ -768,7 +768,10 @@ class MediaIdentificationService {
     _liveHolds++;
     _idleTimer?.cancel();
     return (
-      analyze: (Uint8List jpeg) => _engine.analyze(bytes: jpeg),
+      // Through the same reload-once as a photo: the models can be unloaded
+      // behind this hold (another service on the engine, a memory warning).
+      analyze: (Uint8List jpeg) =>
+          _analyseImage(pack, IdentificationImage.bytes(jpeg)),
       name: (List<VisionDetection> found) async {
         final results = await nameCrops(pack, [
           for (final f in found)
@@ -785,6 +788,16 @@ class MediaIdentificationService {
         ];
       },
     );
+  }
+
+  /// The installed pack, loaded once and kept while this service keeps it.
+  /// The Identify viewer's own service reads it here rather than load a
+  /// second copy (issue #5122). Null with no pack installed.
+  Future<LoadedPack?> loadedPack() async {
+    final pack = _pack ??= await _loadPack();
+    // Let go of after the usual quiet spell, as a pack used here would be.
+    if (!_disposed) _armIdleUnload();
+    return pack;
   }
 
   /// Lets go of a [liveNaming] hold; the models are freed after the usual

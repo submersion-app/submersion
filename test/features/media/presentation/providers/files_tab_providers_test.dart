@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -1301,8 +1302,8 @@ void main() {
     });
 
     void stage(FilesTabNotifier notifier) {
-      final matched = _ef('/matched.jpg');
-      final loose = _ef('/loose.mp4');
+      final matched = _ef(p.join(Directory.systemTemp.path, 'matched.jpg'));
+      final loose = _ef(p.join(Directory.systemTemp.path, 'loose.mp4'));
       notifier.setFiles(
         [matched, loose],
         match: MatchedSelection(
@@ -1342,6 +1343,16 @@ void main() {
       final placed = captured.singleWhere((m) => m.diveId == null);
       expect(placed.siteId, 'site-1');
       expect(placed.retainInLibrary, isFalse);
+    });
+
+    test('a new import starts with no choice for unmatched files', () {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      stage(notifier);
+      notifier.setUnmatchedTarget(const UnplacedAttachTarget());
+
+      notifier.clearStagedFiles();
+
+      expect(container.read(filesTabNotifierProvider).unmatchedTarget, isNull);
     });
 
     test('clearing the choice leaves them out again', () async {

@@ -128,18 +128,18 @@ class ScratchSession {
     if (!_disposed) _changes.add(null);
   }
 
-  final Set<String> _kept = {};
+  Set<String> _kept = const {};
 
   /// Whether [id] has been kept: keeping it again would make a second row.
   bool isKept(String id) => _kept.contains(id);
 
   /// Every id kept in this session.
-  Set<String> get keptIds => Set.unmodifiable(_kept);
+  Set<String> get keptIds => _kept;
 
   /// Records [id] as kept. It stays in the session, and on screen, with
   /// what was found on it.
   void markKept(String id) {
-    _kept.add(id);
+    _kept = Set.unmodifiable({..._kept, id});
     if (!_disposed) _changes.add(null);
   }
 

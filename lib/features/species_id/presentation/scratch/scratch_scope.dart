@@ -13,6 +13,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_crop_repository.dart';
 import 'package:submersion/features/species_id/data/repositories/identification_embedding_repository.dart';
+import 'package:submersion/features/species_id/data/pack/species_pack_store.dart';
 import 'package:submersion/features/species_id/data/repositories/media_identification_repository.dart';
 import 'package:submersion/features/species_id/data/services/auto_applier.dart';
 import 'package:submersion/features/species_id/data/services/identification_crop_store.dart';
@@ -33,7 +34,14 @@ import 'package:submersion/features/species_id/presentation/providers/species_id
 /// would make every provider across the app that reads them throw.)
 /// Nothing applies automatically: a file not kept carries only what the
 /// diver chose.
-List<Override> scratchOverrides(ScratchSession session) => [
+///
+/// [sharedPack] is the logbook service's loaded pack: the session's
+/// service reads it rather than load a second copy of the catalogue and
+/// its tables. Left out, the session loads its own.
+List<Override> scratchOverrides(
+  ScratchSession session, {
+  Future<LoadedPack?> Function()? sharedPack,
+}) => [
   mediaIdentificationRepositoryProvider.overrideWith(
     (ref) => MediaIdentificationRepository(database: session.logbook),
   ),
@@ -97,6 +105,8 @@ List<Override> scratchOverrides(ScratchSession session) => [
   mediaTagChipsProvider.overrideWith(readMediaTagChips),
   allSpeciesProvider.overrideWith(readAllSpecies),
   speciesProvider.overrideWith(readSpecies),
+  speciesSearchProvider.overrideWith(readSpeciesSearch),
+  speciesByCategoryProvider.overrideWith(readSpeciesByCategory),
   mediaIdentificationServiceProvider.overrideWith((ref) {
     final store = ref.watch(speciesPackStoreProvider);
     final identifications = ref.watch(mediaIdentificationRepositoryProvider);
@@ -104,10 +114,12 @@ List<Override> scratchOverrides(ScratchSession session) => [
     final service = MediaIdentificationService(
       engine: engine,
       memoryReadout: MemoryReadout(engine: engine),
-      loadPack: () async {
-        final pack = await store.installed();
-        return pack == null ? null : store.load(pack);
-      },
+      loadPack:
+          sharedPack ??
+          () async {
+            final pack = await store.installed();
+            return pack == null ? null : store.load(pack);
+          },
       identifications: identifications,
       embeddings: ref.watch(identificationEmbeddingRepositoryProvider),
       crops: ref.watch(identificationCropStoreProvider),

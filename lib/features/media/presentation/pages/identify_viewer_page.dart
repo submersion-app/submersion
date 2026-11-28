@@ -9,11 +9,13 @@ import 'package:photo_manager/photo_manager.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/data/scratch/scratch_session.dart';
 import 'package:submersion/features/media/presentation/camera/identify_camera_page.dart';
+import 'package:submersion/features/media/data/services/exif_extractor.dart';
 import 'package:submersion/features/media/data/services/local_file_handle_factory.dart';
 import 'package:submersion/features/media/data/services/scratch_keeper.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -30,6 +32,14 @@ import 'package:submersion/features/species_id/presentation/providers/species_id
 import 'package:submersion/features/species_id/presentation/scratch/scratch_scope.dart';
 import 'package:submersion/features/species_id/presentation/widgets/species_download_prompt.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+final _log = LoggerService.forClass(IdentifyViewerPage);
+
+/// The diver refused the app access to add a camera capture to the photo
+/// library, where a kept capture lives.
+class _PhotoAccessDenied implements Exception {
+  const _PhotoAccessDenied();
+}
 
 /// A file picked for identifying, as the session shows it (issue #5122).
 /// [metadata] is what the file says of itself; [modified] stands in for a
@@ -80,14 +90,32 @@ Future<List<MediaItem>> pickIdentifyItems(WidgetRef ref) async {
   return [
     for (final file in picked)
       if (file.path case final path?)
-        scratchItemFromFile(
-          path,
-          await extractor.extract(File(path)) ??
-              const MediaSourceMetadata(mimeType: 'application/octet-stream'),
-          modified: await File(path).lastModified(),
-        ),
+        await identifyItemFromPick(extractor, path),
   ];
   // coverage:ignore-end
+}
+
+/// The file at [path] as a scratch item. A file whose metadata or date
+/// cannot be read opens without them, rather than stopping the whole pick.
+Future<MediaItem> identifyItemFromPick(
+  ExifExtractor extractor,
+  String path,
+) async {
+  const unread = MediaSourceMetadata(mimeType: 'application/octet-stream');
+  MediaSourceMetadata metadata;
+  try {
+    metadata = await extractor.extract(File(path)) ?? unread;
+  } on Object catch (error) {
+    _log.warning('Could not read the metadata of a picked file', error: error);
+    metadata = unread;
+  }
+  DateTime modified;
+  try {
+    modified = await File(path).lastModified();
+  } on Object {
+    modified = DateTime.now();
+  }
+  return scratchItemFromFile(path, metadata, modified: modified);
 }
 
 /// The Media section's Identify (issue #5122): with no species pack
@@ -171,6 +199,17 @@ class IdentifyViewerPage extends ConsumerStatefulWidget {
 }
 
 class _IdentifyViewerPageState extends ConsumerState<IdentifyViewerPage> {
+  /// Each capture saved to the photo library, as linked there: a keep
+  /// retried after a later step failed links it again, never saves twice.
+  Map<String, MediaItem> _savedCaptures = const {};
+
+  /// The overrides over the session, built once: its service shares the
+  /// logbook service's loaded pack rather than load a second copy.
+  late final _overrides = scratchOverrides(
+    widget.session,
+    sharedPack: ref.read(mediaIdentificationServiceProvider).loadedPack,
+  );
+
   @override
   void dispose() {
     // The viewer below, and the scope over the session, are gone first.
@@ -213,17 +252,21 @@ class _IdentifyViewerPageState extends ConsumerState<IdentifyViewerPage> {
       throw ScratchFileGone(item.originalFilename ?? item.id);
     }
     if (widget.captures.contains(item.id)) {
+      if (_savedCaptures[item.id] case final saved?) return saved;
       // coverage:ignore-start
       // Saving to the photo library needs a device.
-      final saved = item.isVideo
+      await _ensureCanSaveCaptures();
+      final asset = item.isVideo
           ? await PhotoManager.editor.saveVideo(File(path))
           : await PhotoManager.editor.saveImageWithPath(path);
-      return item.copyWith(
-        platformAssetId: saved.id,
+      final saved = item.copyWith(
+        platformAssetId: asset.id,
         sourceType: MediaSourceType.platformGallery,
         localPath: null,
         filePath: '',
       );
+      _savedCaptures = {..._savedCaptures, item.id: saved};
+      return saved;
       // coverage:ignore-end
     }
     final handle = await LocalFileHandleFactory(
@@ -235,6 +278,20 @@ class _IdentifyViewerPageState extends ConsumerState<IdentifyViewerPage> {
       bookmarkRef: handle.bookmarkRef,
     );
   }
+
+  /// Access to add to the photo library, asked for where the system needs
+  /// it to save: iOS. Android saves without asking from Android 10.
+  // coverage:ignore-start
+  Future<void> _ensureCanSaveCaptures() async {
+    if (defaultTargetPlatform != TargetPlatform.iOS) return;
+    final state = await PhotoManager.requestPermissionExtend(
+      requestOption: const PermissionRequestOption(
+        iosAccessLevel: IosAccessLevel.addOnly,
+      ),
+    );
+    if (!state.hasAccess) throw const _PhotoAccessDenied();
+  }
+  // coverage:ignore-end
 
   Future<Set<String>> _keep(
     BuildContext context,
@@ -255,7 +312,14 @@ class _IdentifyViewerPageState extends ConsumerState<IdentifyViewerPage> {
       choice.target,
       tags,
     );
-    for (final id in result.failures.keys) {
+    // Refused photo access is said once, with where to allow it.
+    if (result.failures.values.any((e) => e is _PhotoAccessDenied)) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.media_photoPicker_permissionDeniedMessage)),
+      );
+    }
+    for (final MapEntry(key: id, value: error) in result.failures.entries) {
+      if (error is _PhotoAccessDenied) continue;
       final name = session.items
           .where((i) => i.id == id)
           .map((i) => i.originalFilename ?? '')
@@ -271,7 +335,7 @@ class _IdentifyViewerPageState extends ConsumerState<IdentifyViewerPage> {
   Widget build(BuildContext context) {
     final items = widget.session.items;
     return ProviderScope(
-      overrides: scratchOverrides(widget.session),
+      overrides: _overrides,
       child: MediaViewerPage(
         mediaList: items,
         initialMediaId: items.first.id,

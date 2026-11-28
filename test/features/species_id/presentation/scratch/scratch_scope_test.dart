@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/database/database.dart';
@@ -69,7 +71,7 @@ void main() {
           id: id,
           mediaType: MediaType.photo,
           sourceType: MediaSourceType.localFile,
-          localPath: '/clips/GX010245.JPG',
+          localPath: p.join(Directory.systemTemp.path, 'clips', 'GX010245.JPG'),
           takenAt: DateTime.utc(2026, 11, 1),
           createdAt: DateTime.utc(2026, 11, 1),
           updatedAt: DateTime.utc(2026, 11, 1),
@@ -105,6 +107,20 @@ void main() {
     final species = await scratch.read(allSpeciesProvider.future);
 
     expect(species.map((s) => s.id), contains('sp_queen_parrotfish'));
+  });
+
+  test('the species picker finds a species created in the session', () async {
+    final created = await scratch
+        .read(suggestionAcceptorProvider)
+        .resolve(unknown);
+
+    final found = await scratch.read(speciesSearchProvider('Stoplight').future);
+    final fish = await scratch.read(
+      speciesByCategoryProvider(SpeciesCategory.fish).future,
+    );
+
+    expect(found.map((s) => s.id), contains(created.id));
+    expect(fish.map((s) => s.id), contains(created.id));
   });
 
   test('no scratch action writes to the logbook', () async {

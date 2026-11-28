@@ -206,6 +206,8 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
       totalToExtract: 0,
       captureTimeOffset: Duration.zero,
       folderPaths: const {},
+      // Where the unmatched files went belongs to the session that chose it.
+      unmatchedTarget: null,
     );
   }
 

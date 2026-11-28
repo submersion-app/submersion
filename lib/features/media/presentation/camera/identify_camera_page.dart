@@ -38,12 +38,17 @@ enum _CameraState { opening, ready, denied }
 
 class _IdentifyCameraPageState extends ConsumerState<IdentifyCameraPage> {
   late final IdentifyCamera _camera = ref.read(identifyCameraFactoryProvider)();
+
+  /// Read in [initState]: `ref` cannot be used in [dispose], where the
+  /// live naming hold is let go.
+  late final MediaIdentificationService _service;
   _CameraState _state = _CameraState.opening;
   bool _video = false;
   bool _recording = false;
   bool _namesOn = true;
   bool _encoding = false;
   bool _startingNaming = false;
+  bool _shuttering = false;
   List<MediaItem> _captures = const [];
   LiveNamingController? _naming;
   LiveLabels? _labels;
@@ -51,6 +56,7 @@ class _IdentifyCameraPageState extends ConsumerState<IdentifyCameraPage> {
   @override
   void initState() {
     super.initState();
+    _service = ref.read(mediaIdentificationServiceProvider);
     // The preview, the frames and the boxes over them are laid out upright
     // for a portrait screen.
     unawaited(
@@ -64,7 +70,8 @@ class _IdentifyCameraPageState extends ConsumerState<IdentifyCameraPage> {
   Future<void> _open() async {
     try {
       await _camera.initialize();
-    } on IdentifyCameraDenied {
+    } on Object {
+      // Refused, absent, or held by another app: the screen offers files.
       if (mounted) setState(() => _state = _CameraState.denied);
       return;
     }
@@ -77,16 +84,15 @@ class _IdentifyCameraPageState extends ConsumerState<IdentifyCameraPage> {
   Future<void> _startNaming() async {
     if (!_namesOn || _naming != null || _startingNaming) return;
     _startingNaming = true;
-    final service = ref.read(mediaIdentificationServiceProvider);
     final LiveNaming? live;
     try {
-      live = await service.liveNaming();
+      live = await _service.liveNaming();
     } finally {
       _startingNaming = false;
     }
     // Turned off, or the page gone, while the models loaded.
     if (live == null || !mounted || !_namesOn) {
-      if (live != null) service.releaseLiveNaming();
+      if (live != null) _service.releaseLiveNaming();
       return;
     }
     final engine = ref.read(visionEngineProvider);
@@ -111,6 +117,8 @@ class _IdentifyCameraPageState extends ConsumerState<IdentifyCameraPage> {
     unawaited(
       compute(cameraFrameToJpeg, frame)
           .then((jpeg) => naming.offer(LiveFrame(jpeg)))
+          // A frame that fails is dropped: the next one tries again.
+          .catchError((Object _) {})
           .whenComplete(() => _encoding = false),
     );
   }
@@ -121,7 +129,7 @@ class _IdentifyCameraPageState extends ConsumerState<IdentifyCameraPage> {
     _naming = null;
     if (!_recording) await _camera.stopFrames();
     await naming.dispose();
-    ref.read(mediaIdentificationServiceProvider).releaseLiveNaming();
+    _service.releaseLiveNaming();
     if (mounted) setState(() => _labels = null);
   }
 
@@ -145,10 +153,23 @@ class _IdentifyCameraPageState extends ConsumerState<IdentifyCameraPage> {
     );
   }
 
+  /// One camera operation at a time: a second tap while a photo is taken,
+  /// or a recording starts or stops, is ignored.
   Future<void> _shutter() async {
+    if (_shuttering) return;
+    _shuttering = true;
+    try {
+      await _shutterOnce();
+    } finally {
+      _shuttering = false;
+    }
+  }
+
+  Future<void> _shutterOnce() async {
     if (_video) {
       if (_recording) {
         final path = await _camera.stopRecording();
+        if (!mounted) return;
         setState(() {
           _recording = false;
           _captures = [..._captures, _capture(path, MediaType.video)];
@@ -164,6 +185,7 @@ class _IdentifyCameraPageState extends ConsumerState<IdentifyCameraPage> {
         await _camera.startRecording(
           onFrame: framesWhileRecording ? _onFrame : null,
         );
+        if (!mounted) return;
         setState(() {
           _recording = true;
           if (!framesWhileRecording) _labels = null;
@@ -174,6 +196,7 @@ class _IdentifyCameraPageState extends ConsumerState<IdentifyCameraPage> {
     // A camera that streams cannot always take a photo at the same time.
     if (_naming != null) await _camera.stopFrames();
     final path = await _camera.takePhoto();
+    if (!mounted) return;
     if (_naming != null) await _camera.startFrames(_onFrame);
     if (mounted) {
       setState(
@@ -218,7 +241,7 @@ class _IdentifyCameraPageState extends ConsumerState<IdentifyCameraPage> {
     final naming = _naming;
     if (naming != null) {
       unawaited(naming.dispose());
-      ref.read(mediaIdentificationServiceProvider).releaseLiveNaming();
+      _service.releaseLiveNaming();
     }
     unawaited(_camera.dispose());
     // Captures not kept go with the camera; a kept one is in the photo

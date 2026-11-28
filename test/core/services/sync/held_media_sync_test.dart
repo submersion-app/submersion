@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/sync/held_media_export.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -57,8 +60,8 @@ void main() {
         id: id,
         mediaType: MediaType.video,
         sourceType: MediaSourceType.localFile,
-        filePath: '/clips/$id.mp4',
-        localPath: '/clips/$id.mp4',
+        filePath: p.join(Directory.systemTemp.path, 'clips', '$id.mp4'),
+        localPath: p.join(Directory.systemTemp.path, 'clips', '$id.mp4'),
         siteId: siteId,
         retainInLibrary: retain,
         takenAt: DateTime.utc(2026, 11, 1),

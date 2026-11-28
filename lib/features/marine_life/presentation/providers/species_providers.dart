@@ -24,7 +24,6 @@ Future<List<Species>> readAllSpecies(Ref ref) async {
   return repository.getAllSpecies();
 }
 
-/// Species by category provider
 /// Sighting counts per species, so a list can tell which species the
 /// repository will refuse to delete without running one query per row.
 final speciesSightingCountsProvider = FutureProvider<Map<String, int>>((
@@ -35,28 +34,38 @@ final speciesSightingCountsProvider = FutureProvider<Map<String, int>>((
   return repository.sightingCountsBySpecies();
 });
 
+/// Species by category provider
 final speciesByCategoryProvider =
-    FutureProvider.family<List<Species>, SpeciesCategory>((
-      ref,
-      category,
-    ) async {
-      final repository = ref.watch(speciesRepositoryProvider);
-      ref.invalidateSelfWhen(repository.watchSpeciesChanges());
-      return repository.getSpeciesByCategory(category);
-    });
+    FutureProvider.family<List<Species>, SpeciesCategory>(
+      readSpeciesByCategory,
+    );
+
+/// The body of [speciesByCategoryProvider], also read by the Identify
+/// viewer's scope (issue #5122), where it reads that session's stores.
+Future<List<Species>> readSpeciesByCategory(
+  Ref ref,
+  SpeciesCategory category,
+) async {
+  final repository = ref.watch(speciesRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchSpeciesChanges());
+  return repository.getSpeciesByCategory(category);
+}
 
 /// Species search provider
-final speciesSearchProvider = FutureProvider.family<List<Species>, String>((
-  ref,
-  query,
-) async {
+final speciesSearchProvider = FutureProvider.family<List<Species>, String>(
+  readSpeciesSearch,
+);
+
+/// The body of [speciesSearchProvider], also read by the Identify viewer's
+/// scope (issue #5122), where it reads that session's stores.
+Future<List<Species>> readSpeciesSearch(Ref ref, String query) async {
   if (query.isEmpty) {
     return ref.watch(allSpeciesProvider).value ?? [];
   }
   final repository = ref.watch(speciesRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchSpeciesChanges());
   return repository.searchSpecies(query);
-});
+}
 
 /// Single species provider
 final speciesProvider = FutureProvider.family<Species?, String>(readSpecies);

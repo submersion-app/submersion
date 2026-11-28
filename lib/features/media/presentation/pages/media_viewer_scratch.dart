@@ -17,6 +17,12 @@ extension _ViewerScratchMode on _MediaViewerPageState {
     );
   }
 
+  /// Whether [item]'s species can be named and tagged here. In the
+  /// Identify viewer, only until it is kept: the kept file's tags live in
+  /// the logbook from then on, and a change here would be lost.
+  bool _namesEditable(MediaItem item) =>
+      widget.scratch == null ? !photoLocked : !_scratchKept.contains(item.id);
+
   /// The species tagged on each file not kept yet.
   ScratchTags _heldScratchTags() => {
     for (final MapEntry(:key, :value) in _scratchSittings.entries)
@@ -69,14 +75,22 @@ extension _ViewerScratchMode on _MediaViewerPageState {
     );
   }
 
+  /// One keep at a time: a file a keep is still copying is not kept yet,
+  /// and a second keep would copy it again.
   Future<void> _keepFromBanner(MediaItem current) async {
-    final kept = await widget.scratch!.onKeep(
-      context,
-      current,
-      _heldScratchTags(),
-    );
-    if (!mounted || kept.isEmpty) return;
-    _markScratchKept(kept);
+    if (_scratchKeeping) return;
+    _scratchKeeping = true;
+    try {
+      final kept = await widget.scratch!.onKeep(
+        context,
+        current,
+        _heldScratchTags(),
+      );
+      if (!mounted || kept.isEmpty) return;
+      _markScratchKept(kept);
+    } finally {
+      _scratchKeeping = false;
+    }
   }
 
   /// "Not in your library", with Keep, over a file not kept; a line saying

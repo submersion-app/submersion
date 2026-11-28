@@ -80,7 +80,7 @@ extension _ViewerChrome on _MediaViewerPageState {
               ? () => unlockPhoto(storedPhoto!)
               : null,
           // A file not kept offers its species, and nothing else.
-          writeControls: scratch || !photoLocked,
+          writeControls: _namesEditable(currentItem),
           editBar: photoUnlocked
               ? MediaViewerEditBar(
                   title: currentItem.isVideo

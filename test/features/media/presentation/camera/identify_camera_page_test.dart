@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,20 +10,48 @@ import 'package:submersion/features/media/presentation/camera/identify_camera.da
 import 'package:submersion/features/media/presentation/camera/identify_camera_page.dart';
 import 'package:submersion/features/media/presentation/camera/live_label_overlay.dart';
 import 'package:submersion/features/species_id/data/camera/camera_frame_jpeg.dart';
+import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/domain/entities/media_identification.dart';
+import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
 import 'package:submersion/features/species_id/domain/services/live_naming_controller.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../species_id/presentation/species_id_fakes.dart';
 
+/// A service that names live, and counts the holds let go.
+class _LiveService extends RecordingIdentificationService {
+  int holds = 0;
+  int releases = 0;
+
+  @override
+  Future<LiveNaming?> liveNaming() async {
+    holds++;
+    return (
+      analyze: (Uint8List _) async =>
+          const VisionAnalysis(imageWidth: 1, imageHeight: 1, detections: []),
+      name: (List<VisionDetection> _) async => const <String?>[],
+    );
+  }
+
+  @override
+  void releaseLiveNaming() => releases++;
+}
+
 class _FakeCamera implements IdentifyCamera {
-  _FakeCamera(this.dir, {this.denied = false});
+  _FakeCamera(this.dir, {this.denied = false, this.initFailure});
 
   final Directory dir;
   final bool denied;
+
+  /// Thrown by [initialize] other than a refusal: a camera held by
+  /// another app, say.
+  final Object? initFailure;
   int _taken = 0;
   bool recording = false;
+
+  /// Holds [takePhoto] until completed: a photo still being taken.
+  Completer<void>? photoGate;
 
   String _file(String ext) {
     final path = p.join(dir.path, 'capture_${_taken++}.$ext');
@@ -32,6 +62,7 @@ class _FakeCamera implements IdentifyCamera {
   @override
   Future<void> initialize() async {
     if (denied) throw const IdentifyCameraDenied();
+    if (initFailure case final failure?) throw failure;
   }
 
   @override
@@ -41,7 +72,10 @@ class _FakeCamera implements IdentifyCamera {
   double get aspectRatio => 3 / 4;
 
   @override
-  Future<String> takePhoto() async => _file('jpg');
+  Future<String> takePhoto() async {
+    await photoGate?.future;
+    return _file('jpg');
+  }
 
   @override
   Future<void> startRecording({
@@ -75,8 +109,13 @@ void main() {
     });
   });
 
-  Future<_FakeCamera> pump(WidgetTester tester, {bool denied = false}) async {
-    final camera = _FakeCamera(dir, denied: denied);
+  Future<_FakeCamera> pump(
+    WidgetTester tester, {
+    bool denied = false,
+    Object? initFailure,
+    MediaIdentificationService? service,
+  }) async {
+    final camera = _FakeCamera(dir, denied: denied, initFailure: initFailure);
     tester.view.physicalSize = const Size(400, 860);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -85,7 +124,7 @@ void main() {
         overrides: [
           identifyCameraFactoryProvider.overrideWithValue(() => camera),
           mediaIdentificationServiceProvider.overrideWithValue(
-            RecordingIdentificationService(),
+            service ?? RecordingIdentificationService(),
           ),
         ],
         child: const MaterialApp(
@@ -158,6 +197,43 @@ void main() {
       findsOneWidget,
     );
     expect(shutter, findsNothing);
+  });
+
+  testWidgets('a camera that fails to open offers files', (tester) async {
+    await pump(tester, initFailure: StateError('camera in use'));
+
+    expect(find.textContaining("can't use the camera"), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('identify_camera_pick_files')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a second shutter tap while a photo is taken is ignored', (
+    tester,
+  ) async {
+    final camera = await pump(tester);
+    camera.photoGate = Completer<void>();
+
+    await tester.tap(shutter);
+    await tester.pump();
+    await tester.tap(shutter);
+    await tester.pump();
+    camera.photoGate!.complete();
+    await tester.pumpAndSettle();
+
+    expect(captureCount(tester), 1);
+  });
+
+  testWidgets('leaving lets go of the live naming hold', (tester) async {
+    final service = _LiveService();
+    await pump(tester, service: service);
+    expect(service.holds, 1);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpAndSettle();
+
+    expect(service.releases, 1);
   });
 
   testWidgets('labels name an animal as a suggestion', (tester) async {

@@ -172,13 +172,14 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   Future<bool> leaveGuarded() =>
       widget.scratch == null ? super.leaveGuarded() : _scratchLeave();
 
-  /// Each scratch file's sitting by id, and the scratch files kept.
+  /// Each scratch file's sitting by id, the files kept, and a keep running.
   final Map<String, EditSession<PhotoRecord>> _scratchSittings = {};
-  final Set<String> _scratchKept = {};
+  Set<String> _scratchKept = const {};
+  bool _scratchKeeping = false;
 
   /// Records [ids] as kept: their banner says so.
   void _markScratchKept(Set<String> ids) =>
-      setState(() => _scratchKept.addAll(ids));
+      setState(() => _scratchKept = {..._scratchKept, ...ids});
 
   /// Tag mode holds its changes in the photo's sitting.
   @override
@@ -520,8 +521,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                           currentIndex: currentIndex,
                           people: peopleSession,
                           // A file not kept is the diver's to name.
-                          identificationsEditable:
-                              widget.scratch != null || !photoLocked,
+                          identificationsEditable: _namesEditable(currentItem),
                           hideIdentifications: pickingWhite,
                           videoControlsInset: panelShown
                               ? _bottomPanelHeight

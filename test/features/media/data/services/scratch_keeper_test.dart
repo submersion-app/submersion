@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
@@ -40,7 +41,7 @@ void main() {
     id: id,
     mediaType: MediaType.photo,
     sourceType: MediaSourceType.localFile,
-    localPath: '/clips/$id.jpg',
+    localPath: p.join(Directory.systemTemp.path, 'clips', '$id.jpg'),
     originalFilename: 'GX0102.JPG',
     takenAt: DateTime.utc(2026, 11, 1),
     createdAt: DateTime.utc(2026, 11, 1),
@@ -55,6 +56,30 @@ void main() {
     commonName: 'Stoplight Parrotfish',
     category: SpeciesCategory.fish,
   );
+
+  ScratchKeeper makeKeeper({Future<void> Function(MediaItem)? afterKeep}) =>
+      ScratchKeeper(
+        session: session,
+        media: MediaRepository(),
+        identifications: MediaIdentificationRepository(),
+        embeddings: IdentificationEmbeddingRepository(),
+        crops: realCrops,
+        species: SpeciesRepository(),
+        tagging: SpeciesTaggingService(
+          tags: MediaSpeciesRepository(),
+          media: MediaRepository(),
+          species: SpeciesRepository(),
+        ),
+        onMediaCreated: enqueued.add,
+        afterKeep: afterKeep,
+        linkFile: (item) async {
+          if (gone.contains(item.id)) {
+            throw ScratchFileGone(item.originalFilename!);
+          }
+          linked.add(item.id);
+          return item;
+        },
+      );
 
   setUp(() async {
     logbook = await setUpTestDatabase();
@@ -75,27 +100,7 @@ void main() {
     linked.clear();
     enqueued.clear();
     gone.clear();
-    keeper = ScratchKeeper(
-      session: session,
-      media: MediaRepository(),
-      identifications: MediaIdentificationRepository(),
-      embeddings: IdentificationEmbeddingRepository(),
-      crops: realCrops,
-      species: SpeciesRepository(),
-      tagging: SpeciesTaggingService(
-        tags: MediaSpeciesRepository(),
-        media: MediaRepository(),
-        species: SpeciesRepository(),
-      ),
-      onMediaCreated: enqueued.add,
-      linkFile: (item) async {
-        if (gone.contains(item.id)) {
-          throw ScratchFileGone(item.originalFilename!);
-        }
-        linked.add(item.id);
-        return item;
-      },
-    );
+    keeper = makeKeeper();
   });
 
   tearDown(() async {
@@ -225,22 +230,46 @@ void main() {
     expect(linked, [a]);
   });
 
-  test('a keep that fails part way leaves no row behind', () async {
-    // A tag of a species neither logbook has fails after the row is in.
+  Future<int> count(String table) async =>
+      (await logbook
+              .customSelect('SELECT COUNT(*) AS n FROM $table')
+              .getSingle())
+          .read<int>('n');
+
+  test('a keep that fails part way leaves nothing behind', () async {
+    final speciesId = await analyse(a);
+
+    // A tag of a species neither logbook has fails after the row, the
+    // results, the crop and the new species are in.
     final result = await keeper.keep(
       [a],
       const UnplacedAttachTarget(),
       {
-        a: [chip('sp_nowhere')],
+        a: [chip(speciesId), chip('sp_nowhere')],
       },
     );
 
     expect(result.failures.keys, [a]);
-    final rows = await logbook
-        .customSelect('SELECT COUNT(*) AS n FROM media')
-        .getSingle();
-    expect(rows.read<int>('n'), 0);
+    expect(await count('media'), 0);
+    expect(await count('media_identifications'), 0);
+    expect(await count('media_identification_runs'), 0);
+    expect(await count('media_species'), 0);
+    expect(await SpeciesRepository().getSpeciesById(speciesId), isNull);
+    expect(await realCrops.mediaWithFiles(), isEmpty);
     expect(session.isKept(a), isFalse);
+  });
+
+  test('an auto-apply error leaves the keep in place', () async {
+    final failing = makeKeeper(
+      afterKeep: (_) async => throw StateError('auto-apply broke'),
+    );
+
+    final result = await failing.keep([a], const UnplacedAttachTarget(), {});
+
+    expect(result.failures, isEmpty);
+    expect(result.keptIds.keys, [a]);
+    expect(await count('media'), 1);
+    expect(session.isKept(a), isTrue);
   });
 
   test('a file gone from disk fails alone', () async {

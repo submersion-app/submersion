@@ -1,3 +1,6 @@
+import 'package:uuid/uuid.dart';
+
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -119,38 +122,65 @@ class ScratchKeeper {
     List<SpeciesTagChip> tags,
   ) async {
     final linked = await _linkFile(item);
-    final saved = await _media.createMedia(
-      linked.copyWith(
-        id: '',
-        diveId: switch (target) {
-          DiveAttachTarget(:final diveId) => diveId,
-          _ => null,
-        },
-        siteId: switch (target) {
-          SiteAttachTarget(:final siteId) => siteId,
-          _ => null,
-        },
-        retainInLibrary: target is UnplacedAttachTarget,
-      ),
-    );
+    final id = const Uuid().v4();
+    final MediaItem saved;
     try {
-      await _copyFindings(item, saved, tags);
-    } catch (_) {
-      // Half a keep is worse than none: the diver is told it failed, and a
-      // retry must not make a second row.
-      try {
-        await _media.deleteMedia(saved.id);
-      } catch (error, stackTrace) {
-        _log.error(
-          'Could not undo a failed keep of ${item.id}',
-          error: error,
-          stackTrace: stackTrace,
+      // One logbook transaction: half a keep is worse than none, so a keep
+      // that fails part way leaves no row, result, species or tag, nothing
+      // marked for sync, and a retry makes a single row.
+      saved = await DatabaseService.instance.database.transaction(() async {
+        final row = await _media.createMedia(
+          linked.copyWith(
+            id: id,
+            diveId: switch (target) {
+              DiveAttachTarget(:final diveId) => diveId,
+              _ => null,
+            },
+            siteId: switch (target) {
+              SiteAttachTarget(:final siteId) => siteId,
+              _ => null,
+            },
+            retainInLibrary: target is UnplacedAttachTarget,
+          ),
         );
-      }
+        await _copyFindings(item, row, tags);
+        return row;
+      });
+    } catch (_) {
+      await _undoOutsideLogbook(item, id);
       rethrow;
     }
     _onMediaCreated?.call(saved.id);
+    // The file is kept: an error from what follows a keep (auto-apply) is
+    // logged, never turned into a failed keep.
+    try {
+      await _afterKeep?.call(saved);
+    } catch (error, stackTrace) {
+      _log.error(
+        'Could not finish keeping ${item.id}',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
     return saved.id;
+  }
+
+  /// What a failed keep of [item] as [id] left outside the logbook, which
+  /// its transaction cannot roll back: crop files and embeddings.
+  Future<void> _undoOutsideLogbook(MediaItem item, String id) async {
+    try {
+      await _crops.deleteMedia([id], publish: false);
+      final rows = await _scratchIdentifications.forMedia(item.id);
+      if (rows.isNotEmpty) {
+        await _embeddings.delete([for (final row in rows) row.id]);
+      }
+    } catch (error, stackTrace) {
+      _log.error(
+        'Could not undo a failed keep of ${item.id}',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   /// What the session found on [item], and the species tagged, onto
@@ -192,7 +222,6 @@ class ScratchKeeper {
     for (final chip in tags) {
       await _tagging.tagPhoto(mediaId: saved.id, speciesId: chip.speciesId);
     }
-    await _afterKeep?.call(saved);
   }
 
   /// Creates in the logbook each of [ids] that only the session has: a
