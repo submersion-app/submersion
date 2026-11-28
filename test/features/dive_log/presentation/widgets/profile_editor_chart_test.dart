@@ -482,5 +482,49 @@ void main() {
         expect(taps, isEmpty);
       });
     });
+
+    group('axis labels (issue #5056)', () {
+      // An hour-long dive to 37.3 m. The depth axis runs 10% past the deepest
+      // sample (41.03 m), the time axis 5% past each end (-3:00 to 63:00).
+      final profile = [
+        for (var minute = 0; minute <= 60; minute += 10)
+          DiveProfilePoint(
+            timestamp: minute * 60,
+            depth: minute == 0 || minute == 60 ? 0.0 : 37.3,
+          ),
+      ];
+
+      Iterable<String> labels(WidgetTester tester) => tester
+          .widgetList<Text>(
+            find.descendant(
+              of: find.byType(LineChart),
+              matching: find.byType(Text),
+            ),
+          )
+          .map((t) => t.data ?? '');
+
+      testWidgets('the depth axis does not label its padded bottom', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildChart(profile: profile));
+        await tester.pumpAndSettle();
+
+        final shown = labels(tester);
+        expect(shown, isNot(contains('41')));
+        expect(shown, containsAll(['0', '10', '20', '30', '40']));
+      });
+
+      testWidgets('the time axis does not label its padded ends', (
+        tester,
+      ) async {
+        await tester.pumpWidget(_buildChart(profile: profile));
+        await tester.pumpAndSettle();
+
+        final shown = labels(tester);
+        expect(shown.where((label) => label.startsWith('-')), isEmpty);
+        expect(shown, isNot(contains('63:00')));
+        expect(shown, contains('0:00'));
+      });
+    });
   });
 }

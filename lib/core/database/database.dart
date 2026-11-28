@@ -1839,9 +1839,13 @@ class AppDatabase extends _$AppDatabase {
     // depth and a plan's no-switch flag (issue #3793). Additive and
     // defaulted; the floor does not move.
     387,
+    // v389: diver_settings.profile_zoom_time_only, the profile chart's Time
+    // only zoom choice (issue #5069). Nullable, no backfill; the floor does
+    // not move. Numbered 389 because open work claims 388.
+    389,
     // v390: sightings.seen_at_seconds, when in the dive a species was seen
     // (issue #5092). Nullable, no backfill; the floor rises to 390.
-    // Numbered 390: main holds 387, open PRs claim 388 and 389.
+    // Numbered 390: main holds 389, and open work claims 388.
     390,
   ];
 
