@@ -10,6 +10,7 @@ import 'package:submersion/features/marine_life/presentation/widgets/species_act
 import 'package:submersion/features/marine_life/presentation/widgets/species_lookup_sheet.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
+import 'package:submersion/features/marine_life/presentation/utils/reveal_collapsed_toggle.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
@@ -35,11 +36,18 @@ class NearbySpeciesTier extends ConsumerStatefulWidget {
   /// shown without an action.
   final ValueChanged<String>? onSpeciesTap;
 
+  /// Draws the tier's title from the number of species it lists, in place
+  /// of the plain title and count. Built only when the tier shows, so a
+  /// host can put what separates the tier from the sections above in it
+  /// (the site page's Marine life card, issue #5128).
+  final Widget Function(BuildContext context, int count)? headerBuilder;
+
   const NearbySpeciesTier({
     super.key,
     required this.siteId,
     required this.location,
     this.onSpeciesTap,
+    this.headerBuilder,
   });
 
   @override
@@ -52,6 +60,21 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
   static const int _collapsedLimit = 12;
 
   bool _expanded = false;
+
+  /// The Show all / Show fewer button, brought back into view on Show fewer.
+  final GlobalKey _toggleKey = GlobalKey();
+
+  @override
+  void didUpdateWidget(NearbySpeciesTier oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The desktop site pane and the species map's site card keep this tier
+    // as the diver moves between sites: the next site opens collapsed, as
+    // Spotted and Expected above it do.
+    if (widget.siteId != oldWidget.siteId ||
+        widget.location != oldWidget.location) {
+      _expanded = false;
+    }
+  }
 
   /// GBIF names with a lookup in flight. The lookup is a network call, so a
   /// second tap on the same chip lands long before the first has created
@@ -69,7 +92,7 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
         );
 
     if (part.status != ReefDataStatus.ok || part.value!.isEmpty) {
-      return const SizedBox.shrink();
+      return _nothingToShow();
     }
 
     // Sourced from the species provider rather than the bundled asset. A
@@ -79,9 +102,16 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
     final catalog = ref
         .watch(allSpeciesProvider)
         .maybeWhen(data: (species) => species, orElse: () => const <Species>[]);
-    if (catalog.isEmpty) return const SizedBox.shrink();
+    if (catalog.isEmpty) return _nothingToShow();
 
     return _buildTier(context, part.value!, {for (final s in catalog) s.id: s});
+  }
+
+  /// The tier draws nothing, and like a list that fits it drops its
+  /// expanded state, so records that empty and come back open collapsed.
+  Widget _nothingToShow() {
+    _expanded = false;
+    return const SizedBox.shrink();
   }
 
   Widget _buildTier(
@@ -99,37 +129,48 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
           _matchedChip(context, s),
       for (final name in species.unmatchedNames) _unmatchedChip(context, name),
     ];
-    if (chips.isEmpty) return const SizedBox.shrink();
+    if (chips.isEmpty) return _nothingToShow();
 
     final hidden = chips.length - _collapsedLimit;
+    // A list that fits has no toggle and drops its expanded state with it,
+    // so records that shrink under one site (a refresh, a species leaving
+    // the catalog) and grow again open collapsed, as Spotted and Expected
+    // do. Only a field: this build already draws the collapsed list.
+    if (hidden <= 0) _expanded = false;
     final visible = _expanded ? chips : chips.take(_collapsedLimit).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                context.l10n.reef_species_recordedNearby,
-                style: theme.textTheme.labelLarge,
-              ),
+        widget.headerBuilder?.call(context, chips.length) ??
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    context.l10n.reef_species_recordedNearby,
+                    style: theme.textTheme.labelLarge,
+                  ),
+                ),
+                Text(
+                  '${chips.length}',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
-            Text(
-              '${chips.length}',
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
         const SizedBox(height: 8),
         Wrap(spacing: 8, runSpacing: 4, children: visible),
         if (hidden > 0)
           Align(
-            alignment: Alignment.centerRight,
+            alignment: AlignmentDirectional.centerEnd,
             child: TextButton(
-              onPressed: () => setState(() => _expanded = !_expanded),
+              key: _toggleKey,
+              onPressed: () {
+                final collapsing = _expanded;
+                setState(() => _expanded = !_expanded);
+                if (collapsing) revealCollapsedToggle(_toggleKey);
+              },
               child: Text(
                 _expanded
                     ? context.l10n.reef_species_showFewer

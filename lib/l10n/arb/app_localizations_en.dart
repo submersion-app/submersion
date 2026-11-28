@@ -19389,7 +19389,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Error loading sightings';
 
   @override
-  String get marineLife_siteSection_expectedSpecies => 'Expected Species';
+  String get marineLife_siteSection_expectedSpecies => 'Expected species';
 
   @override
   String get marineLife_siteSection_noExpected => 'No expected species added';
@@ -19406,7 +19406,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get marineLife_siteSection_spottedHere => 'Spotted Here';
+  String get marineLife_siteSection_spottedHere => 'Spotted here';
 
   @override
   String get marineLife_siteSection_title => 'Species';

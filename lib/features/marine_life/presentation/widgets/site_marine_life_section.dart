@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
-import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/site_species_chip_groups.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_tier_header.dart';
 import 'package:submersion/features/reef/presentation/widgets/nearby_species_tier.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -49,23 +49,37 @@ class SiteMarineLifeSection extends ConsumerWidget {
             _buildHeader(context),
             const SizedBox(height: 16),
             _buildSpottedSection(context, ref, spottedAsync),
-            const SizedBox(height: 16),
+            _sectionDivider,
             _buildExpectedSection(context, ref, expectedAsync),
-            if (location != null) ...[
-              const SizedBox(height: 16),
+            if (location != null)
               // Shown only, as on the species map: a species opens its
-              // page, and adding one is the unlocked card's (plan 7).
+              // page, and adding one is the unlocked card's (plan 7). The
+              // divider comes with the tier's header, since the tier alone
+              // knows whether it draws anything.
               NearbySpeciesTier(
                 siteId: siteId,
                 location: location!,
                 onSpeciesTap: (id) => context.push('/species/$id'),
+                headerBuilder: (context, count) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _sectionDivider,
+                    SpeciesTierHeader(
+                      icon: Icons.travel_explore,
+                      title: context.l10n.reef_species_recordedNearby,
+                      count: count,
+                    ),
+                  ],
+                ),
               ),
-            ],
           ],
         ),
       ),
     );
   }
+
+  /// What separates one section of the card from the next.
+  static const Widget _sectionDivider = Divider(height: 32);
 
   Widget _buildHeader(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -86,21 +100,11 @@ class SiteMarineLifeSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(
-              Icons.visibility,
-              size: 16,
-              color: colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              context.l10n.marineLife_siteSection_spottedHere,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
+        SpeciesTierHeader(
+          icon: Icons.visibility,
+          title: context.l10n.marineLife_siteSection_spottedHere,
+          // None over an error, though the value keeps the last list.
+          count: spottedAsync.hasError ? null : spottedAsync.value?.length,
         ),
         const SizedBox(height: 8),
         spottedAsync.when(
@@ -114,12 +118,12 @@ class SiteMarineLifeSection extends ConsumerWidget {
                 ),
               );
             }
-            return _buildSpeciesChips(
-              context,
-              spotted
+            return SiteSpeciesChipGroups(
+              // Another site opens collapsed.
+              key: ValueKey(('spotted', siteId)),
+              species: spotted
                   .map(
-                    (s) => _SpeciesChipData(
-                      id: s.speciesId,
+                    (s) => SiteSpeciesChipData(
                       name: localizedSpeciesName(
                         context.l10n,
                         s.speciesId,
@@ -130,7 +134,6 @@ class SiteMarineLifeSection extends ConsumerWidget {
                     ),
                   )
                   .toList(),
-              showCount: true,
             );
           },
           loading: () => const SizedBox(
@@ -158,23 +161,11 @@ class SiteMarineLifeSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(
-              Icons.auto_awesome,
-              size: 16,
-              color: colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                context.l10n.marineLife_siteSection_expectedSpecies,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          ],
+        SpeciesTierHeader(
+          icon: Icons.auto_awesome,
+          title: context.l10n.marineLife_siteSection_expectedSpecies,
+          // None over an error, though the value keeps the last list.
+          count: expectedAsync.hasError ? null : expectedAsync.value?.length,
         ),
         const SizedBox(height: 8),
         expectedAsync.when(
@@ -188,12 +179,11 @@ class SiteMarineLifeSection extends ConsumerWidget {
                 ),
               );
             }
-            return _buildSpeciesChips(
-              context,
-              expected
+            return SiteSpeciesChipGroups(
+              key: ValueKey(('expected', siteId)),
+              species: expected
                   .map(
-                    (s) => _SpeciesChipData(
-                      id: s.speciesId,
+                    (s) => SiteSpeciesChipData(
                       name: localizedSpeciesName(
                         context.l10n,
                         s.speciesId,
@@ -203,7 +193,6 @@ class SiteMarineLifeSection extends ConsumerWidget {
                     ),
                   )
                   .toList(),
-              showCount: false,
             );
           },
           loading: () => const SizedBox(
@@ -220,110 +209,4 @@ class SiteMarineLifeSection extends ConsumerWidget {
       ],
     );
   }
-
-  Widget _buildSpeciesChips(
-    BuildContext context,
-    List<_SpeciesChipData> species, {
-    required bool showCount,
-  }) {
-    // Group by category
-    final grouped = <SpeciesCategory, List<_SpeciesChipData>>{};
-    for (final s in species) {
-      grouped.putIfAbsent(s.category, () => []).add(s);
-    }
-
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: grouped.entries.map((entry) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                entry.key.localizedName(context.l10n),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: entry.value.map((s) {
-                  final chipLabel = showCount && s.count != null
-                      ? context.l10n
-                            .marineLife_siteSection_spottedCountSemantics(
-                              s.name,
-                              s.count!,
-                            )
-                      : s.name;
-                  return Semantics(
-                    label: chipLabel,
-                    child: Chip(
-                      avatar: ExcludeSemantics(
-                        child: Icon(
-                          iconForSpeciesCategory(s.category),
-                          size: 16,
-                          color: _getCategoryColor(s.category),
-                        ),
-                      ),
-                      label: Text(
-                        showCount && s.count != null
-                            ? '${s.name} (${s.count})'
-                            : s.name,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Color _getCategoryColor(SpeciesCategory category) {
-    switch (category) {
-      case SpeciesCategory.fish:
-        return Colors.blue;
-      case SpeciesCategory.shark:
-        return Colors.blueGrey;
-      case SpeciesCategory.ray:
-        return Colors.indigo;
-      case SpeciesCategory.mammal:
-        return Colors.teal;
-      case SpeciesCategory.turtle:
-        return Colors.green;
-      case SpeciesCategory.invertebrate:
-        return Colors.orange;
-      case SpeciesCategory.coral:
-        return Colors.pink;
-      case SpeciesCategory.plant:
-        return Colors.lightGreen;
-      case SpeciesCategory.other:
-        return Colors.grey;
-    }
-  }
-}
-
-class _SpeciesChipData {
-  final String id;
-  final String name;
-  final SpeciesCategory category;
-  final int? count;
-
-  _SpeciesChipData({
-    required this.id,
-    required this.name,
-    required this.category,
-    this.count,
-  });
 }
