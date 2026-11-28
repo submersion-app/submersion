@@ -1,11 +1,11 @@
 # Weight Planner
 
 Most weighting advice is a table: so many kilos for a 5 mm wetsuit, add some for
-an aluminium tank, add a bit more for salt water. It gets you in the water, and
+an aluminium cylinder, add a bit more for salt water. It gets you in the water, and
 then you spend the first ten minutes of the dive fixing it.
 
 Submersion's weight planner starts from that table and then learns. Compose the
-rig you plan to dive (gear, tanks, water type) and it predicts how much lead you
+rig you plan to dive (gear, cylinders, water type) and it predicts how much lead you
 will need and where to put it, based on what you have actually carried on your
 own dives.
 
@@ -21,7 +21,7 @@ The rig composer is the top half of the tool:
 - **Equipment:** tap **Add gear** for individual items, or **Use set** to pull
   in a whole [equipment set](equipment.md#equipment-sets) at once. Your exposure suit is the
   single biggest term, so start there.
-- **Tanks:** tap **Add tank** for one or more tanks from your presets. Material
+- **Cylinders:** tap **Add cylinder** for one or more cylinders from your presets. Material
   and size matter: an aluminium cylinder is noticeably buoyant when it is nearly
   empty, and that is exactly when you need to hold a stop.
 - **Water Type:** salt, fresh or brackish.
@@ -76,7 +76,7 @@ from:
 | **measured from your dives** | Learned from your own weighting history |
 | **from your gear specs** | The buoyancy you entered on that equipment item |
 | **default estimate** | A type-based default, because nothing better is known yet |
-| **physics** | Computed: tank buoyancy when nearly empty, and the salt or fresh water shift |
+| **physics** | Computed: cylinder buoyancy when nearly empty, and the salt or fresh water shift |
 | **estimated from BMI** | From your body weight and height |
 
 This breakdown is the honest part of the feature: it shows exactly which numbers
@@ -86,7 +86,7 @@ are yours and which are guesses.
 
 The engine is a hybrid, neither a lookup table nor pure statistics:
 
-1. **Physics is computed, not learned.** Tank buoyancy when nearly empty and the
+1. **Physics is computed, not learned.** Cylinder buoyancy when nearly empty and the
    water-density shift are calculated from cylinder specs and displaced mass.
 2. **Those physics terms are subtracted from your history first.** What remains
    is what physics cannot explain: your body, your suit's real buoyancy, your
@@ -144,7 +144,7 @@ holdable?
 
 | Readout | Tells you |
 |---------|-----------|
-| Verdict | Whether you would be buoyant, heavy or neutral at the final stop, the moment that matters, with a nearly empty tank |
+| Verdict | Whether you would be buoyant, heavy or neutral at the final stop, the moment that matters, with a nearly empty cylinder |
 | **Start of dive** / **End of dive** | Net buoyancy at both ends |
 | **Buoyancy swing** | How much you change across the dive as gas leaves the cylinder |
 | **Peak lift needed** | The most your BCD has to hold, flagged if it exceeds your wing's rated lift |
@@ -158,7 +158,7 @@ holdable?
 ## In the Dive Planner
 
 The **Gear & Weights** card in a dive plan runs the same prediction against the
-gear and tanks attached to that plan, and shows the same through-the-dive
+gear and cylinders attached to that plan, and shows the same through-the-dive
 summary. **Use as planned weight** copies the predicted figure onto the plan, so
 the plan carries its weighting alongside its depths and gases.
 

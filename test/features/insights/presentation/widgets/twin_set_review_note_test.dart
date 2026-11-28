@@ -249,6 +249,9 @@ void main() {
     expect(find.text('dive list'), findsOneWidget);
     final filter = container.read(diveFilterProvider);
     expect(filter.diveIds, candidates.diveIds);
-    expect(filter.diveIdsLabel, 'Tank configuration: Looks like a twin set');
+    expect(
+      filter.diveIdsLabel,
+      'Cylinder configuration: Looks like a twin set',
+    );
   });
 }

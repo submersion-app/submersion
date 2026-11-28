@@ -81,10 +81,14 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v385: trip_equipment.bag_equipment_id and bag_hlc (issue #4945).
     await _assertTripEquipmentBagColumn();
 
-    // v388: dive_weights.side and weight_preset_entries.side (issue #5028).
+    // v395: dive_weights.side and weight_preset_entries.side (issue #5028).
     // Every weight and preset entry read selects the whole row, for the same
     // reason.
     await _assertWeightSideColumns();
+
+    // v394: tank_presets.rated_capacity_cuft (issue #800). Every preset read
+    // selects the whole row, for the same reason as the tank columns.
+    await _assertTankPresetRatedCapacityColumn();
 
     // v350: sightings.abundance (issue #4337). Every sighting read selects
     // the whole row, for the same reason as the tank columns.
@@ -113,6 +117,10 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v369: dive_sites.catalogue_answers and the catalogue columns of
     // library_site_notes. Every read of either table selects the whole row.
     await _assertSiteCatalogueAnswersColumns();
+
+    // v388: a dive site's address, contact details and opening hours
+    // (issue #5073). Every site read selects the whole row.
+    await _assertSiteContactHoursColumns();
 
     // v372: buddies.country and buddies.country_code (issue #4457). Every
     // buddy read selects the whole row.

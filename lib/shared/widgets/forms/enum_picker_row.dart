@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
+import 'package:submersion/shared/widgets/forms/form_style.dart';
 
 /// A [FormRow.picker] over a fixed list of enum-like values, opening a
 /// modal bottom sheet of radio options. Replaces the outlined
@@ -48,7 +50,12 @@ class EnumPickerRow<T> extends StatelessWidget {
             shrinkWrap: true,
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+                padding: const EdgeInsets.fromLTRB(
+                  Spacing.s16,
+                  FormStyle.rowInset,
+                  Spacing.s16,
+                  Spacing.s6,
+                ),
                 child: Text(label, style: theme.textTheme.titleMedium),
               ),
               if (allowClear)

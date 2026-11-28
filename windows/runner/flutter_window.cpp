@@ -18,6 +18,10 @@
 
 #include "flutter/generated_plugin_registrant.h"
 
+#include <desktop_multi_window/desktop_multi_window_plugin.h>
+#include <screen_retriever_windows/screen_retriever_windows_plugin_c_api.h>
+#include <window_manager/window_manager_plugin.h>
+
 namespace {
 using Microsoft::WRL::ComPtr;
 
@@ -184,6 +188,18 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
   RegisterPlugins(flutter_controller_->engine());
+  // Pop-out windows (issue #5078) get only the plugins they use. Registering
+  // every plugin again would let some take process-wide hooks away from the
+  // main window.
+  DesktopMultiWindowSetWindowCreatedCallback([](void* controller) {
+    auto* view_controller =
+        reinterpret_cast<flutter::FlutterViewController*>(controller);
+    auto* registry = view_controller->engine();
+    WindowManagerPluginRegisterWithRegistrar(
+        registry->GetRegistrarForPlugin("WindowManagerPlugin"));
+    ScreenRetrieverWindowsPluginCApiRegisterWithRegistrar(
+        registry->GetRegistrarForPlugin("ScreenRetrieverWindowsPluginCApi"));
+  });
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
   thumb_bridge_ = std::make_shared<ThumbnailBridge>();

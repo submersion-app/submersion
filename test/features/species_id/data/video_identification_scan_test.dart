@@ -321,6 +321,28 @@ void main() {
     );
   });
 
+  test('a fish out of sight for 2 s is one row (issue #5120)', () async {
+    engine.videoFrames = {..._fish(1000, 4000), ..._fish(6000, 9000)};
+    await runAll(scan());
+    final found = (await identifications.forMedia('v1')).single;
+    expect((found.startMs, found.endMs), (1000, 8750));
+  });
+
+  test('a fish out of sight when a scan stopped is one track after it '
+      'resumes, if it comes back within 3 s (issue #5120)', () async {
+    // Last seen 1.25 s before the stop, back 1 s after it.
+    engine.videoFrames = {..._fish(1000, 9000), ..._fish(11000, 15000)};
+    final first = scan();
+    expect(await first.runChunk(), isTrue);
+    await first.finish();
+    final cut = (await identifications.forMedia('v1')).single;
+    expect(cut.endMs, 8750);
+    await runAll(scan(resumeFrom: await identifications.runFor('v1')));
+    final found = (await identifications.forMedia('v1')).single;
+    expect(found.id, cut.id);
+    expect((found.startMs, found.endMs), (1000, 14750));
+  });
+
   test('a track that ended well before the stop is not continued', () async {
     engine.videoFrames = {..._fish(1000, 4000), ..._fish(12000, 15000)};
     final first = scan();
@@ -889,6 +911,18 @@ void main() {
       expect(found.single.path.first.ms, 15000);
       expect(found.single.path.last.ms, 34750);
       expect((await identifications.runFor('v1'))!.detectionCount, 1);
+    });
+
+    test('a fish out of sight where two stretches meet is one row '
+        '(issue #5120)', () async {
+      engine.videoDurationMs = 60000;
+      // Last seen 2.25 s before the seam, back at it.
+      engine.videoFrames = {..._fish(15000, 28000), ..._fish(30000, 35000)};
+      seekTo(30000);
+      await runAll(scan());
+      final found = await identifications.forMedia('v1');
+      expect(found, hasLength(1));
+      expect((found.single.startMs, found.single.endMs), (15000, 34750));
     });
 
     test('a decision on the later part carries over the seam', () async {

@@ -121,6 +121,9 @@ dependencies:
 
   # Storage
   shared_preferences: ^2.3.2
+  # The pop-out window's in-memory prefs (#5078): it never writes the main
+  # window's store.
+  shared_preferences_platform_interface: ^2.4.1
   # v11 removed the legacy Android ciphers (RSA_ECB_PKCS1Padding,
   # AES_CBC_PKCS7Padding). v10 rewrites existing entries to the new ciphers on
   # first access (migrateOnAlgorithmChange defaults to true, and we pass no
@@ -202,6 +205,13 @@ dependencies:
   nfc_manager_ndef: ^1.1.0
   ndef_record: ^1.4.2
   window_manager: ^0.5.2
+  # Pop-out windows on desktop (#5078). Vendored so the macOS runner can hand
+  # each new window's engine the app's renderer choice (#3531); see
+  # packages/desktop_multi_window/PATCHES.md.
+  desktop_multi_window:
+    path: packages/desktop_multi_window
+  # Where a pop-out window may open: the connected displays (#5078).
+  screen_retriever: ^0.2.2
   markdown: ^7.3.1  # Markdown formatting in notes (#3683)
   country_flags: ^4.1.2  # Flags beside site locations and trips (#4426)
   jovial_svg: ^1.1.31  # Draws country_flags' assets with a cache (#4426)
@@ -221,7 +231,6 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   build_runner: ^2.10.4
   drift_dev: ^2.35.2
-  json_serializable: ^6.11.2
   # 4.0.8 is the generator that matches riverpod_annotation 4.0.6, and the
   # reason the analyzer floor below is ^13.
   riverpod_generator: ^4.0.8
@@ -289,8 +298,8 @@ flutter:
         - asset: assets/fonts/materialdesignicons-webfont.ttf
     # Dive-gear glyphs that no icon font has (wetsuit, drysuit, BCD,
     # rebreather, hood, gloves, bootie, reel, DPV, regulator). Drawn in
-    # tool/equipment_glyphs.py and compiled by
-    # tool/build_equipment_icon_font.py; referenced via
+    # scripts/artwork/equipment_glyphs.py and compiled by
+    # scripts/artwork/build_equipment_icon_font.py; referenced via
     # lib/core/icons/submersion_icons.dart.
     - family: Submersion Equipment
       fonts:
@@ -302,3 +311,29 @@ flutter:
       fonts:
         - asset: assets/fonts/InterDisplay-ExtraBold.ttf
           weight: 800
+
+flutter_launcher_icons:
+  image_path: "assets/icon/icon.png"
+
+  ios: true
+  remove_alpha_ios: true
+
+  android: true
+  adaptive_icon_background: "assets/icon/icon_adaptive_background.png"
+  adaptive_icon_foreground: "assets/icon/icon_adaptive_foreground.png"
+  min_sdk_android: 21
+
+  web:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    background_color: "#002D50"
+    theme_color: "#006994"
+
+  windows:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    icon_size: 256
+
+  macos:
+    generate: true
+    image_path: "assets/icon/icon_macos.png"

@@ -94,6 +94,22 @@ void main() {
     }
   }
 
+  testWidgets('a screen reader hears a suggestion as one, not as a tag: '
+      'with no score, only the label tells them apart (issue #5121)', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await pump(tester, suggestions: [suggestion(parrotfish, score: 0.92)]);
+    expect(
+      tester
+          .getSemantics(find.byKey(const ValueKey('media_suggested_chip_1')))
+          .label,
+      contains('Suggested: Queen Parrotfish'),
+    );
+    expect(find.text('Queen Parrotfish'), findsOneWidget);
+    semantics.dispose();
+  });
+
   testWidgets('no scan progress is drawn in the row: it is on the scrub bar '
       'and the labels button (issue #4825)', (tester) async {
     await pump(tester, progress: 0.4, settle: false);
@@ -112,7 +128,8 @@ void main() {
     expect(find.text('Blue Tang'), findsOneWidget);
   });
 
-  testWidgets('suggestions follow the tags, with their scores', (tester) async {
+  testWidgets('suggestions follow the tags, by name with no score: a model '
+      'score is not how often a name is right (issue #5121)', (tester) async {
     // Wide enough for all three on the one line, in the tests' square font.
     tester.view.physicalSize = const Size(1600, 800);
     tester.view.devicePixelRatio = 1;
@@ -124,8 +141,9 @@ void main() {
         suggestion(chromis, score: 0.71, cropId: 'i2'),
       ],
     );
-    expect(find.text('Queen Parrotfish 92%'), findsOneWidget);
-    expect(find.text('Brown Chromis 71%'), findsOneWidget);
+    expect(find.text('Queen Parrotfish'), findsOneWidget);
+    expect(find.text('Brown Chromis'), findsOneWidget);
+    expect(find.textContaining('%'), findsNothing);
     final first = tester.widgetList<ActionChip>(find.byType(ActionChip)).first;
     expect((first.label as Text).data, 'Blue Tang');
     expect(
@@ -339,7 +357,7 @@ void main() {
       final pending = Completer<NearbySpecies?>();
       await pumpBoth(tester, pending: pending);
       expect(pin(1), findsNothing);
-      expect(find.text('Queen Parrotfish 92%'), findsOneWidget);
+      expect(find.text('Queen Parrotfish'), findsOneWidget);
       pending.complete(const NearbySpecies(speciesKeys: {1}));
       await tester.pumpAndSettle();
       expect(pin(1), findsOneWidget);

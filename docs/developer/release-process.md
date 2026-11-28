@@ -221,7 +221,7 @@ re-entrant.
 Each platform pins fastlane in a committed `Gemfile.lock` (`ios/`, `macos/`,
 `android/`), and the workflows install exactly that, on Ruby 3.4. Dependabot's
 monthly bundler update covers all three directories, and
-`scripts/check_dependabot_gemfiles.py` fails CI if a Gemfile it cannot parse
+`scripts/checks/check_dependabot_gemfiles.py` fails CI if a Gemfile it cannot parse
 or one outside those directories appears.
 
 `ios/Gemfile` and `macos/Gemfile` also set a floor of activesupport 7.2.3.1,
@@ -237,7 +237,7 @@ upload lanes use (macos-15 for iOS and macOS, ubuntu-latest for Android), and
 loads its Fastfile with `fastlane lanes`. That catches a lockfile that will not
 install and a Fastfile the locked fastlane cannot parse. It does not run a
 lane, so an option the new fastlane rejects at run time still first surfaces in
-a beta. `scripts/check_ruby_versions.py` fails CI when the workflows' setup-ruby
+a beta. `scripts/checks/check_ruby_versions.py` fails CI when the workflows' setup-ruby
 steps disagree on the Ruby version, so the check and the lanes cannot drift
 apart.
 

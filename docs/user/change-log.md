@@ -33,7 +33,7 @@ Open an entry to see what changed.
 
 - **Revert** beside a field puts that one field back.
 - **Revert all** puts back every field in the entry.
-- **Restore** brings back a deleted record with everything that belonged to it, such as a dive's tanks, gear and profile. Photos and videos come back as links, because Submersion never stores the files themselves.
+- **Restore** brings back a deleted record with everything that belonged to it, such as a dive's cylinders, gear and profile. Photos and videos come back as links, because Submersion never stores the files themselves.
 - **Undo this import** removes what the import added and reverses its other changes.
 
 If a value has changed since the entry, Submersion shows you the value in the entry, the value now and the value after the revert, and asks before going ahead. For a bulk action it tells you how many records have changed since, and offers to revert the rest or revert all of them.

@@ -228,7 +228,7 @@ void main() {
         .rows
         .map((r) => r.label)
         .toList();
-    expect(labels.where((l) => l.contains('Tank')), hasLength(2));
+    expect(labels.where((l) => l.contains('Cylinder')), hasLength(2));
     expect(labels, contains('Depth'));
     expect(labels.where((l) => l.contains('Temp')), isEmpty);
   });

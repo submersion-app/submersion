@@ -421,19 +421,19 @@ void main() {
     await pumpPlan(tester, const Size(1400, 900));
     final c = containerOf(tester);
     final full = c.read(divePlanNotifierProvider).tanks.first.startPressure;
-    expect(find.text('Fill all tanks'), findsNothing);
+    expect(find.text('Fill all cylinders'), findsNothing);
 
     await addDive(tester);
     expect(
       c.read(divePlanNotifierProvider).tanks.first.startPressure,
       lessThan(full!),
     );
-    expect(find.text('Fill all tanks'), findsOneWidget);
+    expect(find.text('Fill all cylinders'), findsOneWidget);
 
-    await tester.tap(find.text('Fill all tanks'));
+    await tester.tap(find.text('Fill all cylinders'));
     await tester.pumpAndSettle();
     expect(c.read(divePlanNotifierProvider).tanks.first.startPressure, full);
-    expect(find.text('Fill all tanks'), findsNothing);
+    expect(find.text('Fill all cylinders'), findsNothing);
   });
 
   testWidgets('a single tank fills from its own Fill button', (tester) async {

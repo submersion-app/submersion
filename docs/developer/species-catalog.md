@@ -23,9 +23,12 @@ described in the user guide's
 
 ## Suggestions from divers
 
-The in-app **Suggest for the catalog** action opens a pre-filled GitHub issue
-(`lib/features/marine_life/domain/services/species_suggestion_url.dart`). The
-URL asks for the `species-suggestion` label; GitHub applies a label from the
-URL only when it exists on the repository and the reporter may set labels, so
-find suggestions by their title, which starts with `Species suggestion:`.
+The in-app **Suggest for the catalog** action opens the
+`.github/ISSUE_TEMPLATE/species-suggestion.yml` issue form with its fields
+filled in (`lib/features/marine_life/domain/services/species_suggestion_url.dart`).
+The form applies the `species-suggestion` label for every reporter, so filter
+by that label. A field id renamed in the form must be renamed in the builder
+too; `species_suggestion_url_test.dart` fails when they disagree. Suggestions
+filed before the form (such as #4330 and #4334) carry no label: their titles
+start with `Species suggestion:`.
 Accepted species go into the seed the same way as above.

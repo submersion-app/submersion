@@ -7,6 +7,7 @@ import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/router/back_navigation.dart';
 import 'package:submersion/core/theme/feature_accent_colors.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/features/auto_update/presentation/widgets/update_banner.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/download_exit_dialog.dart';
@@ -196,7 +197,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(Spacing.s16),
               child: Row(
                 children: [
                   Text(
@@ -240,7 +241,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                         context.goGuarded(destination.route);
                       },
                     ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: Spacing.s8),
                 ],
               ),
             ),

@@ -1,0 +1,1379 @@
+#!/bin/bash
+#
+# Tests for hooks/pre-push.
+#
+# Both regressions covered here caused the same user-visible symptom -- a push
+# rejected for reasons that had nothing to do with the change being pushed --
+# and both are invisible to `bash -n`, so they need an executable test.
+#
+# No Flutter or Dart toolchain is required: `dart` and `flutter` are stubbed on
+# PATH, and DRY_RUN=1 stops the hook before it would run a test suite. That
+# keeps this runnable in the CI script-tests job, which has no Flutter.
+#
+# Usage: bash scripts/testing/pre_push_hook_test.sh
+
+set -u
+
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+HOOK_SRC="$REPO_ROOT/hooks/pre-push"
+ZERO="0000000000000000000000000000000000000000"
+
+failures=0
+
+pass() { printf 'ok   - %s\n' "$1"; }
+fail() {
+    printf 'FAIL - %s\n' "$1"
+    if [ -n "${2:-}" ]; then
+        printf '       %s\n' "$2"
+    fi
+    failures=$((failures + 1))
+}
+
+# Stub the toolchain so no Flutter or Dart install is needed.
+#   flutter: records the directory it was called from -- the assertion target
+#            for the wrong-tree regression (test 1).
+#   dart:    records its argument list, so the format-scoping test can prove the
+#            hook stopped passing '.' and started passing explicit paths.
+write_stubs() {
+    stub_tmp="$1"
+    mkdir -p "$stub_tmp/bin"
+
+    # flutter test also records its arguments and how many bundles existed
+    # while it ran, and with FLUTTER_TEST_FAIL=1 fails the way a real run
+    # prints it: the entrypoint as an absolute path, then the test's name. In
+    # a bundle that name starts with the file's path relative to test/; a file
+    # that ran on its own is the entrypoint itself.
+    cat > "$stub_tmp/bin/flutter" <<'STUB'
+#!/bin/bash
+pwd -P >> "$CWD_LOG"
+if [ "${1:-}" = "test" ] && [ -n "${FLUTTER_TEST_LOG:-}" ]; then
+    printf '%s\n' "$*" >> "$FLUTTER_TEST_LOG"
+    find test/.bundles -name 'bundle_*.dart' 2>/dev/null | wc -l | tr -d ' ' \
+        >> "$FLUTTER_TEST_LOG.bundles"
+    if [ "${FLUTTER_TEST_FAIL:-0}" = "1" ]; then
+        root="$(pwd -P)"
+        echo "00:01 +1 -1: $root/test/.bundles/bundle_000_root.dart: b_test.dart fails on purpose [E]"
+        echo "00:02 +1 -2: $root/test/a_test.dart: fails while running alone [E]"
+        echo "00:02 +1 -2: $root/test/.bundles/bundle_000_root.dart: b_test.dart (tearDownAll)"
+        echo "00:02 +1 -2: Some tests failed."
+        exit 1
+    fi
+fi
+exit 0
+STUB
+
+    cat > "$stub_tmp/bin/dart" <<'STUB'
+#!/bin/bash
+printf '%s\n' "$*" >> "$DART_LOG"
+exit 0
+STUB
+
+    chmod +x "$stub_tmp/bin/flutter" "$stub_tmp/bin/dart"
+}
+
+# Build a repo whose layout mirrors the real one: a main checkout that owns
+# hooks/, plus a linked worktree on its own branch. Echoes the temp dir.
+#
+# $1 is a lib file added on the worktree branch but with NO mirrored test, used
+# by the silent-abort case; pass an empty string to skip it. Its name must sort
+# AFTER 'sample' -- see the ordering note on test 2.
+make_fixture() {
+    orphan_lib="$1"
+
+    tmp="$(mktemp -d)"
+    main_tree="$tmp/main"
+
+    mkdir -p "$main_tree"
+    cd "$main_tree" || exit 1
+
+    git init -q -b main .
+    git config user.email 'test@example.com'
+    git config user.name 'Test'
+    git config commit.gpgsign false
+
+    mkdir -p lib test hooks
+    printf '// lib\n' > lib/sample.dart
+    printf "import 'package:submersion/sample.dart';\n" > test/sample_test.dart
+    git add -A
+    git commit -q -m 'initial'
+
+    # The hook lives in the MAIN checkout only. core.hooksPath is an absolute
+    # path in the real repo, so every worktree executes this exact file.
+    cp "$HOOK_SRC" "$main_tree/hooks/pre-push"
+    chmod +x "$main_tree/hooks/pre-push"
+    # The hook sources its concurrency helper from beside itself.
+    mkdir -p "$main_tree/scripts/testing"
+    cp "$REPO_ROOT/scripts/testing/test_concurrency.sh" "$main_tree/scripts/testing/test_concurrency.sh"
+
+    git worktree add -q "$tmp/wt" -b feature
+    cd "$tmp/wt" || exit 1
+    printf '// changed on the branch\n' >> lib/sample.dart
+    if [ -n "$orphan_lib" ]; then
+        printf '// no mirrored test exists for this file\n' > "lib/$orphan_lib.dart"
+    fi
+    git add -A
+    git commit -q -m 'change on feature'
+
+    write_stubs "$tmp"
+
+    printf '%s\n' "$tmp"
+}
+
+# Run the main checkout's hook with the worktree as the working directory,
+# feeding it a ref line the way git does for a brand-new branch (all-zero
+# remote sha). Sets: hook_status, hook_output, analyze_cwd.
+# Extra NAME=VALUE arguments after $1 are exported into the hook's environment,
+# which is how the escape-hatch tests drive RUN_ALL_AFFECTED.
+run_hook() {
+    tmp="$1"
+    shift
+
+    cd "$tmp/wt" || exit 1
+    : > "$tmp/cwd.log"
+    : > "$tmp/dart.log"
+    : > "$tmp/flutter_test.log"
+    : > "$tmp/flutter_test.log.bundles"
+
+    printf 'refs/heads/feature %s refs/heads/feature %s\n' \
+        "$(git rev-parse HEAD)" "$ZERO" > "$tmp/refline"
+
+    hook_output="$(env "$@" PATH="$tmp/bin:$PATH" CWD_LOG="$tmp/cwd.log" \
+        DART_LOG="$tmp/dart.log" FLUTTER_TEST_LOG="$tmp/flutter_test.log" \
+        DRY_RUN=1 \
+        /bin/bash "$tmp/main/hooks/pre-push" < "$tmp/refline" 2>&1)"
+    hook_status=$?
+
+    analyze_cwd="$(head -1 "$tmp/cwd.log" 2>/dev/null || true)"
+    dart_args="$(cat "$tmp/dart.log" 2>/dev/null || true)"
+    flutter_test_args="$(cat "$tmp/flutter_test.log" 2>/dev/null || true)"
+    bundles_during_run="$(head -1 "$tmp/flutter_test.log.bundles" 2>/dev/null || true)"
+}
+
+# As run_hook, but the caller supplies the whole ref line. Used to simulate a
+# push range git cannot resolve.
+run_hook_refline() {
+    tmp="$1"
+    refline="$2"
+    shift 2
+
+    cd "$tmp/wt" || exit 1
+    : > "$tmp/cwd.log"
+    : > "$tmp/dart.log"
+
+    printf '%s\n' "$refline" > "$tmp/refline"
+
+    hook_output="$(env "$@" PATH="$tmp/bin:$PATH" CWD_LOG="$tmp/cwd.log" \
+        DART_LOG="$tmp/dart.log" DRY_RUN=1 \
+        /bin/bash "$tmp/main/hooks/pre-push" < "$tmp/refline" 2>&1)"
+    hook_status=$?
+
+    dart_args="$(cat "$tmp/dart.log" 2>/dev/null || true)"
+}
+
+# As run_hook, but WITHOUT DRY_RUN, so the hook runs its selected tests
+# through the stubbed flutter. Sets the same variables as run_hook.
+run_hook_live() {
+    tmp="$1"
+    shift
+
+    cd "$tmp/wt" || exit 1
+    : > "$tmp/cwd.log"
+    : > "$tmp/dart.log"
+    : > "$tmp/flutter_test.log"
+    : > "$tmp/flutter_test.log.bundles"
+
+    printf 'refs/heads/feature %s refs/heads/feature %s\n' \
+        "$(git rev-parse HEAD)" "$ZERO" > "$tmp/refline"
+
+    hook_output="$(env "$@" PATH="$tmp/bin:$PATH" CWD_LOG="$tmp/cwd.log" \
+        DART_LOG="$tmp/dart.log" FLUTTER_TEST_LOG="$tmp/flutter_test.log" \
+        /bin/bash "$tmp/main/hooks/pre-push" < "$tmp/refline" 2>&1)"
+    hook_status=$?
+
+    dart_args="$(cat "$tmp/dart.log" 2>/dev/null || true)"
+    flutter_test_args="$(cat "$tmp/flutter_test.log" 2>/dev/null || true)"
+    bundles_during_run="$(head -1 "$tmp/flutter_test.log.bundles" 2>/dev/null || true)"
+}
+
+# Assert that the DRY_RUN test list does (or does not) contain a path.
+# $1 = 'has' | 'lacks', $2 = path, $3 = test name
+assert_selected() {
+    case "$hook_output" in
+        *"$2"*) got=has ;;
+        *)      got=lacks ;;
+    esac
+    if [ "$got" = "$1" ]; then
+        pass "$3"
+    else
+        fail "$3" "expected to $1 '$2'; selection was:
+$hook_output"
+    fi
+}
+
+# --- Test 1: the checks must run against the tree being pushed --------------
+#
+# Regression: PROJECT_ROOT was derived from "$0", which with an absolute
+# core.hooksPath always resolves into the main checkout. Every worktree push
+# therefore formatted, analyzed and tested the main checkout instead.
+
+tmp="$(make_fixture '')"
+run_hook "$tmp"
+
+want="$(cd "$tmp/wt" && pwd -P)"
+notwant="$(cd "$tmp/main" && pwd -P)"
+
+if [ "$analyze_cwd" = "$want" ]; then
+    pass 'runs the checks in the worktree being pushed'
+elif [ "$analyze_cwd" = "$notwant" ]; then
+    fail 'runs the checks in the worktree being pushed' \
+        "ran in the main checkout ($analyze_cwd) instead of the worktree"
+else
+    fail 'runs the checks in the worktree being pushed' \
+        "expected '$want', flutter ran in '$analyze_cwd'"
+fi
+
+if [ "$hook_status" -eq 0 ]; then
+    pass 'exits 0 for a clean push'
+else
+    fail 'exits 0 for a clean push' "exit $hook_status: $hook_output"
+fi
+
+rm -rf "$tmp"
+
+# --- Test 2: a missing mirrored test path must not abort the hook -----------
+#
+# Regression: the resolver ended with `[ -f "$t" ] && printf ...` as the last
+# statement of a while loop inside $(...). A false test on the final iteration
+# propagated 1 out through the substitution to the assignment, and set -e then
+# killed the hook with no message -- git reported only "failed to push some
+# refs". lib/X.dart -> test/X_test.dart is a guess, so missing paths are normal.
+#
+# ORDERING MATTERS. Candidates are piped through `sort -u`, and only the LAST
+# iteration's exit status escapes the loop. The missing path must therefore sort
+# after every existing one, hence the 'zzz_' prefix: named so it sorted before
+# 'sample', the loop would end on the existing test/sample_test.dart, return 0,
+# and this test would pass against the buggy hook while proving nothing.
+
+tmp="$(make_fixture 'zzz_orphan')"
+run_hook "$tmp"
+
+if [ "$hook_status" -eq 0 ]; then
+    pass 'survives a changed lib file whose mirrored test does not exist'
+else
+    fail 'survives a changed lib file whose mirrored test does not exist' \
+        "hook exited $hook_status; output: $hook_output"
+fi
+
+case "$hook_output" in
+    *DRY_RUN*)
+        pass 'reaches the test-resolution stage instead of aborting early'
+        ;;
+    *)
+        fail 'reaches the test-resolution stage instead of aborting early' \
+            "output did not mention DRY_RUN: $hook_output"
+        ;;
+esac
+
+rm -rf "$tmp"
+
+# Build a repo with enough structure to exercise proximity ranking: two feature
+# areas, a domain file in a third directory, and a generated l10n file with a
+# large importer set. Echoes the temp dir. $1 is a space-separated list of lib
+# paths to modify on the feature branch.
+make_proximity_fixture() {
+    to_change="$1"
+
+    tmp="$(mktemp -d)"
+    main_tree="$tmp/main"
+
+    mkdir -p "$main_tree"
+    cd "$main_tree" || exit 1
+
+    git init -q -b main .
+    git config user.email 'test@example.com'
+    git config user.name 'Test'
+    git config commit.gpgsign false
+
+    mkdir -p lib/features/alpha/presentation/pages lib/features/alpha/domain \
+             lib/features/beta/presentation/pages lib/l10n/arb hooks \
+             test/features/alpha/presentation/pages \
+             test/features/beta/presentation/pages test/features/gamma
+
+    mkdir -p test/features/delta
+    printf '// entrypoint\n' > lib/main.dart
+    printf "import 'package:submersion/main.dart';\n" \
+        > test/features/delta/main_importer_test.dart
+
+    printf '// alpha page\n' > lib/features/alpha/presentation/pages/alpha_page.dart
+    printf '// alpha entity\n' > lib/features/alpha/domain/alpha_entity.dart
+    printf '// beta page\n'  > lib/features/beta/presentation/pages/beta_page.dart
+    printf '// generated\n'  > lib/l10n/arb/app_localizations.dart
+
+    # NEAR: shares features/alpha/presentation with the changed page, and is
+    # also its mirrored unit test.
+    printf "import 'package:submersion/features/alpha/presentation/pages/alpha_page.dart';\n" \
+        > test/features/alpha/presentation/pages/alpha_page_test.dart
+
+    # FAR + single hit: imports one changed file from another feature area.
+    printf "import 'package:submersion/features/alpha/presentation/pages/alpha_page.dart';\n" \
+        > test/features/beta/presentation/pages/beta_only_far_test.dart
+
+    # FAR + multi hit: imports TWO changed files, so the orthogonal signal
+    # should rescue it even though proximity would drop it.
+    {
+        printf "import 'package:submersion/features/alpha/presentation/pages/alpha_page.dart';\n"
+        printf "import 'package:submersion/features/alpha/domain/alpha_entity.dart';\n"
+    } > test/features/beta/presentation/pages/beta_multi_hit_test.dart
+
+    # Repo-wide guards. Each imports nothing the branch changes and lives in no
+    # feature area, so only the guard tier can select it:
+    #   - test/architecture/ is implicitly "scans lib/";
+    #   - a marked scanner elsewhere declares the path prefixes it reads;
+    #   - a prefix can be narrow (the ARBs) or list several trees;
+    #   - a CRLF file's marker still matches (the repo has CRLF Dart files).
+    mkdir -p test/architecture test/l10n
+    printf '// scans every file under lib/\n' \
+        > test/architecture/sample_guard_test.dart
+    printf '// pre-push: scans lib/\n' > test/l10n/arb_scan_test.dart
+    printf '// pre-push: scans lib/l10n/arb/\n' > test/l10n/arb_only_scan_test.dart
+    printf '// pre-push: scans lib/l10n/arb/\r\n' > test/l10n/crlf_scan_test.dart
+    printf '// pre-push: scans lib/l10n/arb/ test/\n' \
+        > test/architecture/test_scan_guard_test.dart
+    printf '{}\n' > lib/l10n/arb/app_en.arb
+
+    # 60 importers of the generated l10n file, so a 40-file sample is a strict
+    # subset and "sampled" is distinguishable from "all".
+    for i in $(seq 1 60); do
+        printf "import 'package:submersion/l10n/arb/app_localizations.dart';\n" \
+            > "test/features/gamma/l10n_${i}_test.dart"
+    done
+
+    git add -A
+    git commit -q -m 'initial'
+
+    cp "$HOOK_SRC" "$main_tree/hooks/pre-push"
+    chmod +x "$main_tree/hooks/pre-push"
+    # The hook sources its concurrency helper from beside itself.
+    mkdir -p "$main_tree/scripts/testing"
+    cp "$REPO_ROOT/scripts/testing/test_concurrency.sh" "$main_tree/scripts/testing/test_concurrency.sh"
+
+    git worktree add -q "$tmp/wt" -b feature
+    cd "$tmp/wt" || exit 1
+    for f in $to_change; do
+        printf '// changed on the branch\n' >> "$f"
+    done
+    git add -A
+    git commit -q -m 'change on feature'
+
+    write_stubs "$tmp"
+
+    printf '%s\n' "$tmp"
+}
+
+# --- Test 3: proximity ranking ---------------------------------------------
+#
+# A fan-out of every test importing a changed lib file makes half of all pushes
+# run 378+ files, dominated by generated-l10n importers. Selection is now tiered:
+# changed tests and mirrored tests always run, plus importers in the same feature
+# area, plus importers hit by two or more changed files. Distant single-hit
+# importers are left to CI.
+
+tmp="$(make_proximity_fixture \
+    'lib/features/alpha/presentation/pages/alpha_page.dart lib/features/alpha/domain/alpha_entity.dart')"
+run_hook "$tmp"
+
+assert_selected has 'test/features/alpha/presentation/pages/alpha_page_test.dart' \
+    'keeps the mirrored test for a changed lib file'
+assert_selected has 'test/features/beta/presentation/pages/beta_multi_hit_test.dart' \
+    'keeps a distant test that imports two or more changed files'
+assert_selected lacks 'test/features/beta/presentation/pages/beta_only_far_test.dart' \
+    'drops a distant test that imports only one changed file'
+
+# --- Test 3b: repo-wide architecture guards run for any lib change ----------
+#
+# test/architecture/ scans every file under lib/ (and some of test/), so a new
+# file anywhere can break a guard that imports none of it. Neither the import
+# tiers nor proximity can see that dependency, which let a push go green
+# locally and turn main red (issue #2611).
+
+assert_selected has 'test/architecture/sample_guard_test.dart' \
+    'runs the architecture guards when a lib file changes'
+assert_selected has 'test/l10n/arb_scan_test.dart' \
+    'runs a marked lib scanner outside test/architecture when lib changes'
+assert_selected lacks 'test/l10n/arb_only_scan_test.dart' \
+    'skips an ARB-scoped guard when no ARB changed'
+
+# --- Test 4: the format check is scoped to the changed files ----------------
+#
+# `dart format --set-exit-if-changed .` walks the whole repo for 20s on every
+# push. The hook already knows which files changed; formatting only those is
+# effectively free, and CI still formats everything.
+
+case "$dart_args" in
+    *'lib/features/alpha/presentation/pages/alpha_page.dart'*)
+        pass 'passes the changed dart files to the format check'
+        ;;
+    *)
+        fail 'passes the changed dart files to the format check' \
+            "dart was invoked as: $dart_args"
+        ;;
+esac
+
+case "$dart_args" in
+    *'--set-exit-if-changed .'|*'--set-exit-if-changed .'*)
+        fail 'does not format the entire repository' \
+            "dart was invoked as: $dart_args"
+        ;;
+    *)
+        pass 'does not format the entire repository'
+        ;;
+esac
+
+# --- Test 5: RUN_ALL_AFFECTED restores the full fan-out ---------------------
+
+run_hook "$tmp" RUN_ALL_AFFECTED=1
+assert_selected has 'test/features/beta/presentation/pages/beta_only_far_test.dart' \
+    'RUN_ALL_AFFECTED=1 restores distant single-hit importers'
+
+rm -rf "$tmp"
+
+# --- Test 6: an l10n-only change runs a bounded sample ----------------------
+#
+# lib/l10n/arb/app_localizations.dart is generated and imported by 378 real test
+# files, so regenerating it used to trigger a 378-file run for what is usually a
+# string edit. A removed key is a compile error `flutter analyze` already
+# catches; a changed string VALUE can still break a find.text assertion, so keep
+# a bounded, deterministic sample rather than dropping the tier entirely.
+
+tmp="$(make_proximity_fixture 'lib/l10n/arb/app_localizations.dart')"
+run_hook "$tmp"
+
+selected_l10n="$(printf '%s\n' "$hook_output" | grep -c 'test/features/gamma/l10n_' || true)"
+if [ "$selected_l10n" -eq 40 ]; then
+    pass 'samples exactly 40 l10n importers instead of all 60'
+else
+    fail 'samples exactly 40 l10n importers instead of all 60' \
+        "selected $selected_l10n of 60"
+fi
+
+# The sample must be stable for a given commit, or a re-push would silently
+# test a different set and a flake would be impossible to reproduce.
+first_sample="$(printf '%s\n' "$hook_output" | grep 'test/features/gamma/l10n_' | sort)"
+run_hook "$tmp"
+second_sample="$(printf '%s\n' "$hook_output" | grep 'test/features/gamma/l10n_' | sort)"
+if [ "$first_sample" = "$second_sample" ]; then
+    pass 'the l10n sample is deterministic for a given commit'
+else
+    fail 'the l10n sample is deterministic for a given commit' 'sample changed between runs'
+fi
+
+rm -rf "$tmp"
+
+# --- Test 7: a top-level lib file has no feature area -----------------------
+#
+# Proximity compares the first 3 path segments of a changed file's DIRECTORY.
+# lib/main.dart has none, so `dirname` yields "." and the comparison can never
+# match, which would silently drop every importer of the app entrypoint.
+# Depth-0 changes therefore keep the whole importer set.
+
+tmp="$(make_proximity_fixture 'lib/main.dart')"
+run_hook "$tmp"
+
+assert_selected has 'test/features/delta/main_importer_test.dart' \
+    'keeps importers of a changed top-level lib file'
+
+rm -rf "$tmp"
+
+# --- Test 7b: a push with no Dart change skips the architecture guards ------
+#
+# The guards cost tens of seconds of isolate startup, so a docs-only push must
+# not pay for them. "lacks" alone would also pass if the hook died before
+# printing its selection, so first prove it reached the DRY_RUN listing.
+
+tmp="$(make_proximity_fixture 'NOTES.md')"
+run_hook "$tmp"
+
+if [ "$hook_status" -eq 0 ] && [[ "$hook_output" == *DRY_RUN* ]]; then
+    pass 'reaches the test selection for a push with no Dart change'
+else
+    fail 'reaches the test selection for a push with no Dart change' \
+        "exit $hook_status: $hook_output"
+fi
+
+assert_selected lacks 'test/architecture/sample_guard_test.dart' \
+    'skips the architecture guards for a push with no Dart change'
+assert_selected lacks 'test/l10n/arb_scan_test.dart' \
+    'skips marked scanners for a push outside lib/ and test/'
+
+rm -rf "$tmp"
+
+# --- Test 7c: a non-Dart lib change still runs the lib scanners -------------
+#
+# An ARB edit changes no Dart file, but the l10n parity guards read the ARBs.
+
+tmp="$(make_proximity_fixture 'lib/l10n/arb/app_en.arb')"
+run_hook "$tmp"
+
+assert_selected has 'test/l10n/arb_scan_test.dart' \
+    'runs the lib scanners for an ARB-only change'
+assert_selected has 'test/architecture/sample_guard_test.dart' \
+    'runs the architecture guards for an ARB-only change'
+assert_selected has 'test/l10n/arb_only_scan_test.dart' \
+    'runs an ARB-scoped guard for an ARB change'
+assert_selected has 'test/l10n/crlf_scan_test.dart' \
+    'reads the marker of a CRLF file'
+assert_selected has 'test/architecture/test_scan_guard_test.dart' \
+    'matches the first of several prefixes'
+
+rm -rf "$tmp"
+
+# --- Test 7d: a test-only change runs only the guards that read test/ -------
+#
+# Most guards read lib/ alone, and a push that only edits a test cannot break
+# them; running them all would cost tens of seconds for nothing.
+
+tmp="$(make_proximity_fixture 'test/features/gamma/l10n_1_test.dart')"
+run_hook "$tmp"
+
+assert_selected has 'test/architecture/test_scan_guard_test.dart' \
+    'runs a guard marked as reading test/ for a test-only change (a later prefix)'
+assert_selected lacks 'test/architecture/sample_guard_test.dart' \
+    'skips lib-only architecture guards for a test-only change'
+assert_selected lacks 'test/l10n/arb_scan_test.dart' \
+    'skips marked lib scanners for a test-only change'
+assert_selected lacks 'test/l10n/arb_only_scan_test.dart' \
+    'skips ARB-scoped guards for a test-only change'
+
+rm -rf "$tmp"
+
+# --- Test 8: an unresolvable push range formats the whole project -----------
+#
+# Scoping the format check to the changed files is only safe when we actually
+# KNOW what changed. A remote sha git cannot resolve (force-pushed away, partial
+# clone, corrupt object) makes the diff fail; if the hook still treated the range
+# as resolved it would format an empty list and report a pass having checked
+# nothing. Reported by review on PR #1058.
+
+tmp="$(make_proximity_fixture 'lib/features/alpha/presentation/pages/alpha_page.dart')"
+cd "$tmp/wt" || exit 1
+missing='deadbeefdeadbeefdeadbeefdeadbeefdeadbeef'
+run_hook_refline "$tmp" \
+    "refs/heads/feature $(git rev-parse HEAD) refs/heads/feature $missing"
+
+case "$dart_args" in
+    *'--set-exit-if-changed .')
+        pass 'formats the whole project when the push range cannot be resolved'
+        ;;
+    *)
+        fail 'formats the whole project when the push range cannot be resolved' \
+            "dart was invoked as: $dart_args"
+        ;;
+esac
+
+rm -rf "$tmp"
+
+# --- Test 9: bad env overrides warn instead of aborting the push ------------
+#
+# TEST_CONCURRENCY and L10N_SAMPLE are interpolated into `flutter test
+# --concurrency=` and `head -n`. Under set -e a non-numeric value made those
+# commands fail and killed the push with a cryptic error. Reported by review on
+# PR #1058.
+
+tmp="$(make_proximity_fixture 'lib/l10n/arb/app_localizations.dart')"
+run_hook "$tmp" TEST_CONCURRENCY=abc L10N_SAMPLE=notanumber
+
+if [ "$hook_status" -eq 0 ]; then
+    pass 'survives non-numeric TEST_CONCURRENCY and L10N_SAMPLE'
+else
+    fail 'survives non-numeric TEST_CONCURRENCY and L10N_SAMPLE' \
+        "hook exited $hook_status: $hook_output"
+fi
+
+case "$hook_output" in
+    *'invalid TEST_CONCURRENCY'*)
+        pass 'warns about an invalid TEST_CONCURRENCY'
+        ;;
+    *)
+        fail 'warns about an invalid TEST_CONCURRENCY' "output: $hook_output"
+        ;;
+esac
+
+case "$hook_output" in
+    *'invalid L10N_SAMPLE'*)
+        pass 'warns about an invalid L10N_SAMPLE'
+        ;;
+    *)
+        fail 'warns about an invalid L10N_SAMPLE' "output: $hook_output"
+        ;;
+esac
+
+# The bad sample size must fall back to the default, not to "everything".
+selected_l10n="$(printf '%s\n' "$hook_output" | grep -c 'test/features/gamma/l10n_' || true)"
+if [ "$selected_l10n" -eq 40 ]; then
+    pass 'falls back to the default sample size of 40'
+else
+    fail 'falls back to the default sample size of 40' "selected $selected_l10n of 60"
+fi
+
+# Zero in another spelling is still zero: `head -n 000` would select nothing.
+run_hook "$tmp" TEST_CONCURRENCY=00 L10N_SAMPLE=000
+
+case "$hook_output" in
+    *"invalid TEST_CONCURRENCY='00'"*"invalid L10N_SAMPLE='000'"*)
+        pass 'refuses zero spelled 00 or 000'
+        ;;
+    *)
+        fail 'refuses zero spelled 00 or 000' "output: $hook_output"
+        ;;
+esac
+
+selected_l10n="$(printf '%s\n' "$hook_output" | grep -c 'test/features/gamma/l10n_' || true)"
+if [ "$selected_l10n" -eq 40 ]; then
+    pass 'a zero sample size falls back to 40 instead of selecting nothing'
+else
+    fail 'a zero sample size falls back to 40 instead of selecting nothing' \
+        "selected $selected_l10n of 60"
+fi
+
+# BSD head rejected most line counts from 2^31 up and set -e ended the push
+# silently. An oversized sample now means every importer.
+run_hook "$tmp" L10N_SAMPLE=3000000000
+selected_l10n="$(printf '%s\n' "$hook_output" | grep -c 'test/features/gamma/l10n_' || true)"
+if [ "$hook_status" -eq 0 ] && [ "$selected_l10n" -eq 60 ]; then
+    pass 'an oversized L10N_SAMPLE runs every l10n importer'
+else
+    fail 'an oversized L10N_SAMPLE runs every l10n importer' \
+        "exit $hook_status; selected $selected_l10n of 60: $hook_output"
+fi
+
+rm -rf "$tmp"
+
+# Build a repo for the full-suite path: runnable test files, the real
+# scripts/testing/run_all_tests.sh and the bundler it calls, both of which the hook
+# runs from the tree being pushed. Echoes the temp dir.
+make_full_run_fixture() {
+    tmp="$(mktemp -d)"
+    main_tree="$tmp/main"
+
+    mkdir -p "$main_tree"
+    cd "$main_tree" || exit 1
+
+    git init -q -b main .
+    git config user.email 'test@example.com'
+    git config user.name 'Test'
+    git config commit.gpgsign false
+
+    mkdir -p lib test hooks scripts/testing
+    printf '// lib\n' > lib/sample.dart
+    for name in a b; do
+        printf "import 'package:flutter_test/flutter_test.dart';\n\nvoid main() {\n  test('%s', () {});\n}\n" \
+            "$name" > "test/${name}_test.dart"
+    done
+    # The mirrored test for lib/sample.dart, so the branch change selects it.
+    printf "import 'package:flutter_test/flutter_test.dart';\nimport 'package:submersion/sample.dart';\n\nvoid main() {\n  test('sample', () {});\n}\n" \
+        > test/sample_test.dart
+    cp "$REPO_ROOT/scripts/testing/bundle_tests.py" scripts/testing/bundle_tests.py
+    cp "$REPO_ROOT/scripts/testing/run_all_tests.sh" scripts/testing/run_all_tests.sh
+    cp "$REPO_ROOT/scripts/testing/test_concurrency.sh" scripts/testing/test_concurrency.sh
+    git add -A
+    git commit -q -m 'initial'
+
+    cp "$HOOK_SRC" "$main_tree/hooks/pre-push"
+    chmod +x "$main_tree/hooks/pre-push"
+    # The hook sources its concurrency helper from beside itself.
+    mkdir -p "$main_tree/scripts/testing"
+    cp "$REPO_ROOT/scripts/testing/test_concurrency.sh" "$main_tree/scripts/testing/test_concurrency.sh"
+
+    git worktree add -q "$tmp/wt" -b feature
+    cd "$tmp/wt" || exit 1
+    printf '// changed on the branch\n' >> lib/sample.dart
+    git add -A
+    git commit -q -m 'change on feature'
+
+    write_stubs "$tmp"
+
+    printf '%s\n' "$tmp"
+}
+
+# --- Test 10: RUN_ALL_TESTS=1 runs the suite as bundles ---------------------
+#
+# A full local run as separate files took 10m11s at -j 16; as bundles of up to
+# 40 files it took 2m52s (issue #2512). The hook runs scripts/testing/run_all_tests.sh,
+# which bundles the suite and removes the bundles afterwards; that script's own
+# cases are in scripts/testing/run_all_tests_test.sh.
+
+tmp="$(make_full_run_fixture)"
+run_hook "$tmp" RUN_ALL_TESTS=1
+
+case "$flutter_test_args" in
+    *'test/.bundles/'*'/bundle_'*)
+        pass 'RUN_ALL_TESTS=1 hands flutter test the generated bundles'
+        ;;
+    *)
+        fail 'RUN_ALL_TESTS=1 hands flutter test the generated bundles' \
+            "flutter was invoked as: $flutter_test_args"
+        ;;
+esac
+
+# The hook's default depends on the machine's core count, so compare with the
+# value it announced rather than a fixed number.
+hook_concurrency="$(printf '%s\n' "$hook_output" \
+    | sed -n 's/.*RUN_ALL_TESTS=1, concurrency \([0-9]*\).*/\1/p' | head -1)"
+case "$flutter_test_args" in
+    *"--exclude-tags performance --concurrency=${hook_concurrency:-none} "*)
+        pass 'the bundled run keeps the tag filter and the hook concurrency'
+        ;;
+    *)
+        fail 'the bundled run keeps the tag filter and the hook concurrency' \
+            "hook announced '${hook_concurrency}'; flutter was invoked as: $flutter_test_args"
+        ;;
+esac
+
+run_hook "$tmp" RUN_ALL_TESTS=1 TEST_CONCURRENCY=5
+case "$flutter_test_args" in
+    *'--concurrency=5 '*)
+        pass 'RUN_ALL_TESTS=1 passes TEST_CONCURRENCY through'
+        ;;
+    *)
+        fail 'RUN_ALL_TESTS=1 passes TEST_CONCURRENCY through' \
+            "flutter was invoked as: $flutter_test_args"
+        ;;
+esac
+run_hook "$tmp" RUN_ALL_TESTS=1
+
+if [ "${bundles_during_run:-0}" -gt 0 ] && [ ! -e "$tmp/wt/test/.bundles" ]; then
+    pass 'the bundles exist during the run and are removed after it'
+else
+    fail 'the bundles exist during the run and are removed after it' \
+        "bundles during the run: '${bundles_during_run}'; left behind: $(ls "$tmp/wt/test/.bundles" 2>&1)"
+fi
+
+if [ "$hook_status" -eq 0 ]; then
+    pass 'a passing bundled run lets the push through'
+else
+    fail 'a passing bundled run lets the push through' "exit $hook_status: $hook_output"
+fi
+
+# --- Test 11: a failing bundled run names the failing test files ------------
+
+run_hook "$tmp" RUN_ALL_TESTS=1 FLUTTER_TEST_FAIL=1
+
+if [ "$hook_status" -ne 0 ]; then
+    pass 'a failing bundled run blocks the push'
+else
+    fail 'a failing bundled run blocks the push' "exit 0: $hook_output"
+fi
+
+failing_list="$(printf '%s\n' "$hook_output" | sed -n '/Failing test files/,$p' \
+    | grep -E '^ +test/' | sed 's/^ *//' | sort | tr '\n' ' ')"
+if [ "$failing_list" = 'test/a_test.dart test/b_test.dart ' ]; then
+    pass 'a failing run lists each failing test file once, relative to the repo'
+else
+    fail 'a failing run lists each failing test file once, relative to the repo' \
+        "listed: '$failing_list'; output: $hook_output"
+fi
+
+if [ ! -e "$tmp/wt/test/.bundles" ]; then
+    pass 'the bundles are removed after a failing run too'
+else
+    fail 'the bundles are removed after a failing run too' \
+        "left behind: $(ls "$tmp/wt/test/.bundles" 2>&1)"
+fi
+
+# --- Test 12: a branch without scripts/testing/run_all_tests.sh runs plain ----------
+#
+# Every worktree runs the main checkout's hook, so an up-to-date hook meets
+# branches cut before the script existed. Those still get a full run.
+
+rm "$tmp/wt/scripts/testing/run_all_tests.sh"
+run_hook "$tmp" RUN_ALL_TESTS=1
+
+if [ "$hook_status" -eq 0 ] && [ -n "$flutter_test_args" ]; then
+    pass 'RUN_ALL_TESTS=1 still runs on a branch without run_all_tests.sh'
+else
+    fail 'RUN_ALL_TESTS=1 still runs on a branch without run_all_tests.sh' \
+        "exit $hook_status; flutter test args: '$flutter_test_args'"
+fi
+
+case "$flutter_test_args" in
+    *'bundle_'*)
+        fail 'runs the test files one by one there' "flutter was invoked as: $flutter_test_args"
+        ;;
+    *)
+        pass 'runs the test files one by one there'
+        ;;
+esac
+
+rm -rf "$tmp"
+
+# Build a repo whose changed files include HUBS: files imported by more test
+# files than HUB_THRESHOLD (default 100). Mirrors the shape of issue #3129, where
+# a migration rung plus a mock_providers.dart edit selected 1,192 of 4,598
+# files. Echoes the temp dir.
+#
+#   lib/core/database/database.dart      170 importers: 60 near (test/core/
+#                                        database/) and 110 far
+#   lib/features/alpha/providers/hub.dart  the same 110 far importers, so each
+#                                        of those imports TWO changed hubs
+#   test/helpers/mock_providers.dart     110 importers
+#   test/helpers/small_helper.dart       1 importer (not a hub)
+#   two non-hub lib files, both imported by one distant test
+#
+# The branch changes a table file (which the hook treats as database.dart), the
+# hub provider, both helpers and both non-hub files.
+make_hub_fixture() {
+    tmp="$(mktemp -d)"
+    main_tree="$tmp/main"
+
+    mkdir -p "$main_tree"
+    cd "$main_tree" || exit 1
+
+    git init -q -b main .
+    git config user.email 'test@example.com'
+    git config user.name 'Test'
+    git config commit.gpgsign false
+
+    mkdir -p lib/core/database/tables lib/features/alpha/providers \
+             lib/features/alpha/domain hooks test/helpers test/core/database \
+             test/features/omega test/features/zeta test/features/beta/x
+
+    printf '// database\n' > lib/core/database/database.dart
+    printf '// table\n' > lib/core/database/tables/dive_tables.dart
+    printf '// hub provider\n' > lib/features/alpha/providers/hub.dart
+    printf '// entity e\n' > lib/features/alpha/domain/e.dart
+    printf '// entity f\n' > lib/features/alpha/domain/f.dart
+    printf '// mocks\n' > test/helpers/mock_providers.dart
+    printf '// small\n' > test/helpers/small_helper.dart
+
+    for i in $(seq 1 60); do
+        printf "import 'package:submersion/core/database/database.dart';\n" \
+            > "test/core/database/db_${i}_test.dart"
+    done
+    for i in $(seq 1 110); do
+        {
+            printf "import 'package:submersion/core/database/database.dart';\n"
+            printf "import 'package:submersion/features/alpha/providers/hub.dart';\n"
+        } > "test/features/omega/far_db_${i}_test.dart"
+        printf "import '../../helpers/mock_providers.dart';\n" \
+            > "test/features/zeta/mock_${i}_test.dart"
+    done
+    printf "import '../../helpers/small_helper.dart';\n" \
+        > test/features/zeta/small_helper_user_test.dart
+    {
+        printf "import 'package:submersion/features/alpha/domain/e.dart';\n"
+        printf "import 'package:submersion/features/alpha/domain/f.dart';\n"
+    } > test/features/beta/x/two_non_hub_test.dart
+
+    git add -A
+    git commit -q -m 'initial'
+
+    cp "$HOOK_SRC" "$main_tree/hooks/pre-push"
+    chmod +x "$main_tree/hooks/pre-push"
+    # The hook sources its concurrency helper from beside itself.
+    mkdir -p "$main_tree/scripts/testing"
+    cp "$REPO_ROOT/scripts/testing/test_concurrency.sh" "$main_tree/scripts/testing/test_concurrency.sh"
+
+    git worktree add -q "$tmp/wt" -b feature
+    cd "$tmp/wt" || exit 1
+    for f in lib/core/database/tables/dive_tables.dart \
+             lib/features/alpha/providers/hub.dart \
+             lib/features/alpha/domain/e.dart lib/features/alpha/domain/f.dart \
+             test/helpers/mock_providers.dart test/helpers/small_helper.dart; do
+        printf '// changed on the branch\n' >> "$f"
+    done
+    git add -A
+    git commit -q -m 'change on feature'
+
+    write_stubs "$tmp"
+
+    printf '%s\n' "$tmp"
+}
+
+# Count the selected files whose path matches the extended regex $1.
+count_selected() {
+    printf '%s\n' "$hook_output" | grep -cE "$1" || true
+}
+
+hub_importers='test/core/database/db_|test/features/omega/far_db_|test/features/zeta/mock_'
+
+# --- Test 13: hub importers are sampled, not expanded -----------------------
+#
+# Issue #3129: database.dart, settings_providers.dart and mock_providers.dart
+# each have 740-952 test importers. The helper tier kept every importer of a
+# changed helper, the migration change put all of test/core/database/ in
+# proximity, and a test importing two hubs counted as a two-hit dependent.
+# Together that selected 26% of the suite. Importers of a hub now share one
+# seeded sample, drawn near the change first.
+
+tmp="$(make_hub_fixture)"
+run_hook "$tmp"
+
+selected_hub="$(count_selected "$hub_importers")"
+if [ "$selected_hub" -eq 40 ]; then
+    pass 'samples 40 hub importers instead of all 280'
+else
+    fail 'samples 40 hub importers instead of all 280' "selected $selected_hub of 280"
+fi
+
+selected_near="$(count_selected 'test/core/database/db_')"
+if [ "$selected_near" -eq 40 ]; then
+    pass 'draws the hub sample from importers near the change first'
+else
+    fail 'draws the hub sample from importers near the change first' \
+        "selected $selected_near of 60 near importers"
+fi
+
+assert_selected has 'test/features/zeta/small_helper_user_test.dart' \
+    'still keeps every importer of a changed non-hub helper'
+assert_selected has 'test/features/beta/x/two_non_hub_test.dart' \
+    'still keeps a distant test importing two changed non-hub files'
+
+first_sample="$(printf '%s\n' "$hook_output" | grep -E "$hub_importers" | sort)"
+run_hook "$tmp"
+second_sample="$(printf '%s\n' "$hook_output" | grep -E "$hub_importers" | sort)"
+if [ "$first_sample" = "$second_sample" ]; then
+    pass 'the hub sample is deterministic for a given commit'
+else
+    fail 'the hub sample is deterministic for a given commit' 'sample changed between runs'
+fi
+
+# --- Test 14: the hub knobs --------------------------------------------------
+
+run_hook "$tmp" HUB_SAMPLE=10
+selected_hub="$(count_selected "$hub_importers")"
+if [ "$selected_hub" -eq 10 ]; then
+    pass 'HUB_SAMPLE sets the hub sample size'
+else
+    fail 'HUB_SAMPLE sets the hub sample size' "selected $selected_hub with HUB_SAMPLE=10"
+fi
+
+run_hook "$tmp" HUB_SAMPLE=lots
+case "$hook_output" in
+    *"invalid HUB_SAMPLE='lots'"*)
+        pass 'warns about an invalid HUB_SAMPLE'
+        ;;
+    *)
+        fail 'warns about an invalid HUB_SAMPLE' "output: $hook_output"
+        ;;
+esac
+selected_hub="$(count_selected "$hub_importers")"
+if [ "$selected_hub" -eq 40 ]; then
+    pass 'an invalid HUB_SAMPLE falls back to 40'
+else
+    fail 'an invalid HUB_SAMPLE falls back to 40' "selected $selected_hub"
+fi
+
+# Raising the threshold above every importer count turns the hubs back into
+# ordinary files: all 110 helper importers are kept again.
+run_hook "$tmp" HUB_THRESHOLD=1000
+selected_mock="$(count_selected 'test/features/zeta/mock_')"
+if [ "$selected_mock" -eq 110 ]; then
+    pass 'HUB_THRESHOLD above every importer count restores the old tiers'
+else
+    fail 'HUB_THRESHOLD above every importer count restores the old tiers' \
+        "selected $selected_mock of 110 helper importers"
+fi
+
+# A hub is counted in FILES. small_helper_user_test.dart names its helper
+# twice, so counting matches would make a one-importer helper a hub at a
+# threshold of 1 and push its only importer into the sample.
+#
+# The extra mention is deliberately left UNCOMMITTED. Hub counting greps the
+# working tree, so it sees the edit; committing it would make the file a changed
+# test, which tier 1 always selects, and the assertion would pass whichever way
+# importers were counted. (Verified: restoring per-match counting fails this.)
+printf '// see ../../helpers/small_helper.dart\n' \
+    >> "$tmp/wt/test/features/zeta/small_helper_user_test.dart"
+run_hook "$tmp" HUB_THRESHOLD=1 HUB_SAMPLE=1
+assert_selected has 'test/features/zeta/small_helper_user_test.dart' \
+    'counts hub importers per file, not per mention'
+git -C "$tmp/wt" checkout -q -- test/features/zeta/small_helper_user_test.dart
+
+# An oversized knob means "more than any pool": run every importer. BSD head
+# rejects most line counts from 2^31 up, and inside the hook's $(...) under set -e
+# that killed the push with no message; past 2^63 bash arithmetic wrapped the
+# value instead. Both are clamped before they reach head.
+for big in 3000000000 99999999999999999999; do
+    run_hook "$tmp" HUB_SAMPLE="$big"
+    selected_hub="$(count_selected "$hub_importers")"
+    if [ "$hook_status" -eq 0 ] && [ "$selected_hub" -eq 280 ]; then
+        pass "HUB_SAMPLE=$big runs every hub importer"
+    else
+        fail "HUB_SAMPLE=$big runs every hub importer" \
+            "exit $hook_status; selected $selected_hub of 280: $hook_output"
+    fi
+done
+
+run_hook "$tmp" HUB_THRESHOLD=99999999999999999999
+selected_mock="$(count_selected 'test/features/zeta/mock_')"
+if [ "$hook_status" -eq 0 ] && [ "$selected_mock" -eq 110 ]; then
+    pass 'an oversized HUB_THRESHOLD means no hubs'
+else
+    fail 'an oversized HUB_THRESHOLD means no hubs' \
+        "exit $hook_status; selected $selected_mock of 110 helper importers"
+fi
+
+run_hook "$tmp" RUN_ALL_AFFECTED=1
+selected_hub="$(count_selected "$hub_importers")"
+if [ "$selected_hub" -eq 280 ]; then
+    pass 'RUN_ALL_AFFECTED=1 runs every hub importer'
+else
+    fail 'RUN_ALL_AFFECTED=1 runs every hub importer' "selected $selected_hub of 280"
+fi
+
+# --- Test 15: the time budget trims the lowest-signal tiers first ----------
+#
+# Issue #4117: the scoped run had no ceiling, so after a merge from main or a
+# hub change it ran for over an hour and the only remedy was SKIP_TESTS=1.
+# The hook now estimates the bundled run (files x TEST_FILE_SECONDS /
+# concurrency) and, over TEST_BUDGET seconds, drops tiers from the lowest
+# signal up: hub sample, l10n sample, multi-hit importers, same-area
+# importers. Changed tests, mirrored tests and repo-wide guards always run.
+
+tmp="$(make_proximity_fixture \
+    'lib/features/alpha/presentation/pages/alpha_page.dart lib/features/alpha/domain/alpha_entity.dart lib/l10n/arb/app_localizations.dart')"
+run_hook "$tmp" TEST_BUDGET=1 TEST_FILE_SECONDS=100000
+
+assert_selected has 'test/features/alpha/presentation/pages/alpha_page_test.dart' \
+    'over budget, still runs the mirrored test (tier 2)'
+assert_selected has 'test/architecture/sample_guard_test.dart' \
+    'over budget, still runs the repo-wide guards (tier 5)'
+assert_selected lacks 'test/features/beta/presentation/pages/beta_multi_hit_test.dart' \
+    'over budget, drops the tests importing two or more changed files (tier 4)'
+if [ "$(count_selected 'test/features/gamma/l10n_')" -eq 0 ]; then
+    pass 'over budget, drops the generated-l10n sample'
+else
+    fail 'over budget, drops the generated-l10n sample' "$hook_output"
+fi
+assert_selected has 'TEST_BUDGET' 'says the selection was trimmed to the budget'
+assert_selected has 'two or more changed files' 'names each tier it dropped'
+
+run_hook "$tmp" TEST_BUDGET=0 TEST_FILE_SECONDS=100000
+assert_selected has 'test/features/beta/presentation/pages/beta_multi_hit_test.dart' \
+    'TEST_BUDGET=0 turns the budget off'
+
+run_hook "$tmp" TEST_BUDGET=1 TEST_FILE_SECONDS=100000 RUN_ALL_AFFECTED=1
+assert_selected has 'test/features/beta/presentation/pages/beta_only_far_test.dart' \
+    'RUN_ALL_AFFECTED=1 runs every importer regardless of the budget'
+
+# A tier is only dropped while the estimate is still over budget: with a
+# budget that one dropped tier satisfies, the next tier stays. Each file
+# costs 1 second at concurrency 1, so the budget is a file count. The
+# selection here is 3 fixed files (mirrored, 2 architecture guards), 3 marked
+# guards, 1 multi-hit and 40 l10n files: 47 in all, 7 without the l10n sample.
+run_hook "$tmp" TEST_BUDGET=10 TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected has 'test/features/beta/presentation/pages/beta_multi_hit_test.dart' \
+    'stops dropping tiers once the estimate fits the budget'
+if [ "$(count_selected 'test/features/gamma/l10n_')" -eq 0 ]; then
+    pass 'drops the l10n sample before the multi-hit importers'
+else
+    fail 'drops the l10n sample before the multi-hit importers' "$hook_output"
+fi
+
+run_hook "$tmp" TEST_BUDGET=600 TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected has 'test/features/beta/presentation/pages/beta_multi_hit_test.dart' \
+    'within budget nothing is dropped'
+assert_selected lacks 'dropped' 'within budget nothing is reported dropped'
+
+# TEST_BUDGET=2^64+1 wraps to 1 in shell arithmetic, which would trim this
+# selection. It must clamp as the other knobs do.
+run_hook "$tmp" TEST_BUDGET=18446744073709551617 TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected lacks 'dropped' 'an oversized TEST_BUDGET is clamped, not wrapped'
+
+# 2^63 wraps negative, which read as "no cap" and turned the budget off.
+run_hook "$tmp" TEST_BUDGET=9223372036854775808 TEST_FILE_SECONDS=100000 TEST_CONCURRENCY=1
+assert_selected has 'dropped' 'a TEST_BUDGET past 2^63 still caps the run'
+
+run_hook "$tmp" TEST_BUDGET=000 TEST_FILE_SECONDS=100000
+assert_selected has 'test/features/beta/presentation/pages/beta_multi_hit_test.dart' \
+    'TEST_BUDGET turns the budget off when zero in any spelling'
+
+run_hook "$tmp" TEST_BUDGET=soon TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected has "Ignoring invalid TEST_BUDGET='soon'" \
+    'an invalid TEST_BUDGET is reported and ignored'
+
+# The pass summary must not claim tiers the budget dropped.
+run_hook_live "$tmp" TEST_BUDGET=1 TEST_FILE_SECONDS=100000
+assert_selected has 'did not run locally' \
+    'a trimmed run says the dropped tiers did not run'
+assert_selected lacks 'Ranked selection' \
+    'a trimmed run does not claim the ranked selection ran'
+
+run_hook_live "$tmp" TEST_BUDGET=600 TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected has 'Ranked selection' 'an untrimmed run reports the ranked selection'
+
+# RUN_ALL_AFFECTED and TEST_BUDGET=0 are not capped, so the closing hint must
+# not say that the budget capped them.
+run_hook_live "$tmp" RUN_ALL_AFFECTED=1
+assert_selected lacks 'caps the run' 'an uncapped run does not claim a cap'
+assert_selected has 'ignoring TEST_BUDGET' 'the hint says RUN_ALL_AFFECTED ignores the budget'
+
+# --- Test 16: a selection that is most of the suite runs the whole suite ----
+#
+# The whole suite bundled costs about the same as a selection covering most
+# of it, and covers everything, so the hook runs the suite instead when the
+# selection reaches half of the test files and the suite fits the budget.
+# This fixture has 69 test files; the l10n sample plus the guards is 45.
+# The whole suite runs through scripts/testing/run_all_tests.sh, so the pushed tree
+# must have it.
+
+mkdir -p "$tmp/wt/scripts/testing"
+cp "$REPO_ROOT/scripts/testing/run_all_tests.sh" "$tmp/wt/scripts/testing/run_all_tests.sh"
+run_hook "$tmp" TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected has 'whole suite' \
+    'announces the whole suite when the selection is most of it'
+
+run_hook "$tmp" TEST_BUDGET=20 TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected lacks 'whole suite' \
+    'does not run the whole suite when it would not fit the budget'
+
+rm -rf "$tmp"
+
+tmp="$(make_proximity_fixture \
+    'lib/features/alpha/presentation/pages/alpha_page.dart lib/features/alpha/domain/alpha_entity.dart')"
+mkdir -p "$tmp/wt/scripts/testing"
+cp "$REPO_ROOT/scripts/testing/run_all_tests.sh" "$tmp/wt/scripts/testing/run_all_tests.sh"
+run_hook "$tmp" TEST_FILE_SECONDS=1 TEST_CONCURRENCY=1
+assert_selected lacks 'whole suite' \
+    'a small selection runs on its own, not as the whole suite'
+rm -rf "$tmp"
+
+# --- Test 17: a large selection runs bundled, a small one does not ----------
+#
+# Measured at -j 16 (issue #4117): 86 files tied, while 424 to 522 files gained
+# 9% to 3x depending on the mix, so bundling starts at 100 files. The fixture's
+# selection is one file, so TEST_BUNDLE_MIN brings the threshold down.
+
+tmp="$(make_full_run_fixture)"
+run_hook_live "$tmp"
+
+case "$flutter_test_args" in
+    *bundle_*)
+        fail 'a selection under the threshold runs as separate files' \
+            "flutter was invoked as: $flutter_test_args"
+        ;;
+    *'test/sample_test.dart'*)
+        pass 'a selection under the threshold runs as separate files'
+        ;;
+    *)
+        fail 'a selection under the threshold runs as separate files' \
+            "flutter was invoked as: $flutter_test_args"
+        ;;
+esac
+
+run_hook_live "$tmp" TEST_BUNDLE_MIN=1
+
+case "$flutter_test_args" in
+    *'test/.bundles/'*'/bundle_'*)
+        pass 'the scoped selection runs as generated bundles'
+        ;;
+    *)
+        fail 'the scoped selection runs as generated bundles' \
+            "flutter was invoked as: $flutter_test_args"
+        ;;
+esac
+# Issue #4117: at load 35-55 a migration test reached the 2m limit in a bundle,
+# twice, and never as separate files, which blocked a push over nothing.
+case "$flutter_test_args" in
+    *'--timeout=5m'*)
+        pass 'a bundled selection gets the longer test limit'
+        ;;
+    *)
+        fail 'a bundled selection gets the longer test limit' \
+            "flutter was invoked as: $flutter_test_args"
+        ;;
+esac
+if [ "$hook_status" -eq 0 ]; then
+    pass 'a passing bundled selection lets the push through'
+else
+    fail 'a passing bundled selection lets the push through' "exit $hook_status: $hook_output"
+fi
+if [ ! -e "$tmp/wt/test/.bundles" ]; then
+    pass 'the selection bundles are removed after the run'
+else
+    fail 'the selection bundles are removed after the run' \
+        "left behind: $(ls "$tmp/wt/test/.bundles" 2>&1)"
+fi
+
+run_hook_live "$tmp" FLUTTER_TEST_FAIL=1 TEST_BUNDLE_MIN=1
+if [ "$hook_status" -ne 0 ]; then
+    pass 'a failing bundled selection blocks the push'
+else
+    fail 'a failing bundled selection blocks the push' "exit 0: $hook_output"
+fi
+assert_selected has 'Failing test files' 'a failing selection names the failing files'
+
+# A branch cut before run_all_tests.sh learned TEST_FILES_FROM gets the
+# per-file run it always had.
+sed -i.bak '/TEST_FILES_FROM/d' "$tmp/wt/scripts/testing/run_all_tests.sh" && rm -f "$tmp/wt/scripts/testing/run_all_tests.sh.bak"
+run_hook_live "$tmp" TEST_BUNDLE_MIN=1
+if [ "$hook_status" -eq 0 ] && [ -n "$flutter_test_args" ]; then
+    case "$flutter_test_args" in
+        *bundle_*)
+            fail 'a branch whose script cannot take a selection runs the files plainly' \
+                "flutter was invoked as: $flutter_test_args"
+            ;;
+        *'test/sample_test.dart'*)
+            pass 'a branch whose script cannot take a selection runs the files plainly'
+            ;;
+        *)
+            fail 'a branch whose script cannot take a selection runs the files plainly' \
+                "flutter was invoked as: $flutter_test_args"
+            ;;
+    esac
+else
+    fail 'a branch whose script cannot take a selection runs the files plainly' \
+        "exit $hook_status; flutter test args: '$flutter_test_args'"
+fi
+
+rm -rf "$tmp"
+
+# --- Test 17b: either scripts layout bundles the selection ------------------
+#
+# Issue #5100 moved run_all_tests.sh into scripts/testing/. Every worktree runs
+# the main checkout's hook, so the hook meets branches cut before the move
+# (scripts/run_all_tests.sh) and after it (scripts/testing/run_all_tests.sh),
+# and must bundle through whichever the pushed tree has. A stub stands in for
+# the script so the case shows only which path the hook chose.
+
+write_run_all_stub() {
+    rm -f "$tmp/wt/scripts/run_all_tests.sh" "$tmp/wt/scripts/testing/run_all_tests.sh"
+    mkdir -p "$(dirname "$tmp/wt/$1")"
+    cat > "$tmp/wt/$1" <<'STUB'
+#!/bin/bash
+# Stub that accepts a TEST_FILES_FROM selection.
+printf 'stub run_all_tests ran as %s with %s\n' "$0" "${TEST_FILES_FROM:+a selection}"
+STUB
+}
+
+for layout in scripts/run_all_tests.sh scripts/testing/run_all_tests.sh; do
+    tmp="$(make_full_run_fixture)"
+    write_run_all_stub "$layout"
+    run_hook_live "$tmp" TEST_BUNDLE_MIN=1
+    assert_selected has "stub run_all_tests ran as $layout with a selection" \
+        "a selection bundles through $layout"
+    rm -rf "$tmp"
+done
+
+# --- Test 18: a budget that drops every selected test says so ---------------
+#
+# A hub helper selects only its sample, the one change with no tier that always
+# runs, so a tight budget can leave nothing. The hook must report the budget,
+# not claim that no test imports the change.
+
+tmp="$(make_hub_fixture)"
+cd "$tmp/wt" || exit 1
+git reset -q --hard main
+printf '// changed on the branch\n' >> test/helpers/mock_providers.dart
+git add -A
+git commit -q -m 'change a hub helper'
+
+run_hook_live "$tmp" TEST_BUDGET=1 TEST_FILE_SECONDS=100000
+if [ "$hook_status" -eq 0 ] && [ -z "$flutter_test_args" ]; then
+    pass 'a budget that drops every test runs nothing and lets the push through'
+else
+    fail 'a budget that drops every test runs nothing and lets the push through' \
+        "exit $hook_status; flutter test args: '$flutter_test_args'"
+fi
+assert_selected has 'sampled importers of hub files' \
+    'a budget that drops every test still says what it dropped'
+assert_selected has 'dropped every selected test' \
+    'a budget that drops every test gives that as the reason'
+assert_selected lacks 'directly import' \
+    'a budget that drops every test does not blame the imports'
+
+rm -rf "$tmp"
+
+# --- Test 19: separate files stay within the command line ------------------
+#
+# run_tests_batched closed a batch at 100 files, but paths here run to 107
+# characters, so 100 of them can reach 10,700 and overflow the 8,191 allowed on
+# Windows before any test runs. A batch now also closes at 8,000 characters.
+
+# Prints "<calls> <files> <most files in a call> <longest path list in a call>"
+# from the flutter test arguments on stdin.
+batch_shape() {
+    awk '
+        NF {
+            calls++
+            files_here = 0
+            chars_here = 0
+            for (i = 1; i <= NF; i++) {
+                if ($i ~ /_test\.dart$/) {
+                    files_here++
+                    chars_here += length($i) + 1
+                }
+            }
+            files += files_here
+            if (files_here > most) most = files_here
+            if (chars_here > longest) longest = chars_here
+        }
+        END { print calls + 0, files + 0, most + 0, longest + 0 }'
+}
+
+tmp="$(make_proximity_fixture \
+    'lib/features/alpha/presentation/pages/alpha_page.dart lib/features/alpha/domain/alpha_entity.dart')"
+
+run_hook_live "$tmp"
+read -r plain_calls plain_files _ _ <<< "$(printf '%s\n' "$flutter_test_args" | batch_shape)"
+if [ "$hook_status" -eq 0 ] && [ "$plain_calls" -eq 1 ] && [ "$plain_files" -gt 3 ]; then
+    pass 'a short selection is one flutter test call'
+else
+    fail 'a short selection is one flutter test call' \
+        "exit $hook_status, $plain_calls calls, $plain_files files"
+fi
+
+run_hook_live "$tmp" RUN_ALL_TESTS_ARG_LIMIT=120
+read -r split_calls split_files _ split_longest <<< "$(printf '%s\n' "$flutter_test_args" | batch_shape)"
+if [ "$hook_status" -eq 0 ] && [ "$split_calls" -gt 1 ] \
+    && [ "$split_files" -eq "$plain_files" ] && [ "$split_longest" -le 120 ]; then
+    pass 'a batch closes before its paths pass the character limit'
+else
+    fail 'a batch closes before its paths pass the character limit' \
+        "exit $hook_status, $split_calls calls, $split_files of $plain_files files, longest $split_longest"
+fi
+
+run_hook_live "$tmp" RUN_ALL_TESTS_ARG_LIMIT=120 FLUTTER_TEST_FAIL=1
+read -r failing_calls _ _ _ <<< "$(printf '%s\n' "$flutter_test_args" | batch_shape)"
+if [ "$hook_status" -ne 0 ] && [ "$failing_calls" -eq "$split_calls" ]; then
+    pass 'a failing batch blocks the push after the later batches ran'
+else
+    fail 'a failing batch blocks the push after the later batches ran' \
+        "exit $hook_status, $failing_calls calls of $split_calls"
+fi
+
+# A single path over the limit still runs, alone, rather than looping or being
+# dropped.
+run_hook_live "$tmp" RUN_ALL_TESTS_ARG_LIMIT=1
+read -r lone_calls lone_files lone_most _ <<< "$(printf '%s\n' "$flutter_test_args" | batch_shape)"
+if [ "$lone_files" -eq "$plain_files" ] && [ "$lone_calls" -eq "$plain_files" ] \
+    && [ "$lone_most" -eq 1 ]; then
+    pass 'a path longer than the limit runs on its own'
+else
+    fail 'a path longer than the limit runs on its own' \
+        "$lone_calls calls, $lone_files of $plain_files files, at most $lone_most"
+fi
+rm -rf "$tmp"
+
+# The file cap stays. Every importer of the hub is well over 100 files, and the
+# fixture has no run_all_tests.sh, so they run as separate files.
+tmp="$(make_hub_fixture)"
+run_hook_live "$tmp" RUN_ALL_AFFECTED=1
+read -r hub_calls hub_files hub_most _ <<< "$(printf '%s\n' "$flutter_test_args" | batch_shape)"
+if [ "$hub_calls" -gt 1 ] && [ "$hub_files" -gt 100 ] && [ "$hub_most" -le 100 ]; then
+    pass 'a batch still closes at 100 files'
+else
+    fail 'a batch still closes at 100 files' \
+        "$hub_calls calls, $hub_files files, at most $hub_most"
+fi
+rm -rf "$tmp"
+
+# --- Summary ---------------------------------------------------------------
+
+if [ "$failures" -eq 0 ]; then
+    printf '\nAll pre-push hook tests passed.\n'
+    exit 0
+fi
+
+printf '\n%d pre-push hook test(s) failed.\n' "$failures"
+exit 1

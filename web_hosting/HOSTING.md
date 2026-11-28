@@ -85,7 +85,7 @@ Push the folder to a Pages branch or folder. GitHub Pages cannot send custom
 headers, so the app runs on the slower storage path described above; it is
 otherwise complete. Project sites live under a sub-path
 (`https://you.github.io/repo/`): build with
-`--base-href /repo/` (see `scripts/build_web.sh` in the repository) or use a
+`--base-href /repo/` (see `scripts/web/build_web.sh` in the repository) or use a
 user site at the root.
 
 ### An S3 website bucket

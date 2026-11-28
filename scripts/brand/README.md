@@ -19,7 +19,8 @@ that message rather than drawing un-kerned text.
 ## App icon
 
 `generate_icon.py` draws the app icon and writes it into `assets/icon/`,
-which `flutter_launcher_icons.yaml` then fans out to every platform.
+which the `flutter_launcher_icons` section of `pubspec.yaml` then fans out to
+every platform.
 
 ```bash
 scripts/.venv/bin/python scripts/brand/generate_icon.py

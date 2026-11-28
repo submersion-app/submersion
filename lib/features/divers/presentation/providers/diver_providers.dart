@@ -142,6 +142,18 @@ class CurrentDiverIdNotifier extends StateNotifier<String?> {
   final DiverRepository _repository;
   StreamSubscription<void>? _diversChangeSub;
 
+  /// The stored active diver, read and never written or repaired: a
+  /// desktop pop-out window's view of the main window's (issue #5078). The
+  /// main window validates and syncs the id; the pop-out reloads when the
+  /// main window's prefs change.
+  CurrentDiverIdNotifier.readOnly(this._prefs, this._repository)
+    : super(_storedId(_prefs));
+
+  static String? _storedId(SharedPreferences prefs) {
+    final id = prefs.getString(currentDiverIdKey);
+    return id == null || id.isEmpty ? null : id;
+  }
+
   CurrentDiverIdNotifier(this._prefs, this._repository) : super(null) {
     _loadCurrentDiverId();
     _validateAndSync();

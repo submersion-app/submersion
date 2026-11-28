@@ -11170,6 +11170,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'ضغط البداية';
 
   @override
+  String get diveLog_tank_managePresets => 'إدارة الإعدادات المسبقة';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'إعداد الأسطوانة المسبق';
 
   @override
@@ -12223,6 +12226,145 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_detail_section_access => 'الوصول والخدمات اللوجستية';
 
   @override
+  String get diveSites_detail_section_contact => 'معلومات الاتصال';
+
+  @override
+  String get diveSites_detail_section_openingHours => 'ساعات العمل';
+
+  @override
+  String get diveSites_contact_mapsFailed => 'تعذّر فتح الخرائط';
+
+  @override
+  String get diveSites_contact_linkFailed => 'تعذّر فتح الرابط';
+
+  @override
+  String get diveSites_contact_directions => 'الاتجاهات';
+
+  @override
+  String get diveSites_contact_address => 'العنوان';
+
+  @override
+  String get diveSites_contact_phone => 'الهاتف';
+
+  @override
+  String get diveSites_contact_email => 'البريد الإلكتروني';
+
+  @override
+  String get diveSites_contact_website => 'الموقع الإلكتروني';
+
+  @override
+  String get diveSites_hours_alwaysOpen => 'مفتوح على مدار الساعة طوال الأسبوع';
+
+  @override
+  String get diveSites_hours_addSchedule => 'إضافة جدول';
+
+  @override
+  String get diveSites_hours_scheduleName => 'الاسم';
+
+  @override
+  String get diveSites_hours_scheduleName_hint => 'الصيف';
+
+  @override
+  String get diveSites_hours_seasonal => 'موسمي';
+
+  @override
+  String get diveSites_hours_seasonFrom => 'من';
+
+  @override
+  String get diveSites_hours_seasonTo => 'إلى';
+
+  @override
+  String get diveSites_hours_deleteSchedule => 'حذف الجدول';
+
+  @override
+  String get diveSites_hours_closed => 'مغلق';
+
+  @override
+  String get diveSites_hours_open24h => 'مفتوح 24 ساعة';
+
+  @override
+  String get diveSites_hours_kindHours => 'الساعات';
+
+  @override
+  String get diveSites_hours_addRange => 'إضافة ساعات';
+
+  @override
+  String get diveSites_hours_removeRange => 'إزالة ساعات';
+
+  @override
+  String get diveSites_hours_copyDay => 'النسخ إلى أيام أخرى';
+
+  @override
+  String diveSites_hours_copyTitle(String day) {
+    return 'نسخ $day إلى';
+  }
+
+  @override
+  String get diveSites_hours_selectAll => 'تحديد الكل';
+
+  @override
+  String get diveSites_hours_copy => 'نسخ';
+
+  @override
+  String get diveSites_hours_note => 'ملاحظة';
+
+  @override
+  String get diveSites_hours_note_hint =>
+      'احجز المواعيد بالهاتف، مغلق في العطل الرسمية';
+
+  @override
+  String get diveSites_hours_invalid =>
+      'بعض الساعات متداخلة أو تنتهي قبل أن تبدأ';
+
+  @override
+  String get diveSites_hours_noSchedule => 'لا توجد ساعات أسبوعية بعد';
+
+  @override
+  String diveSites_hours_openUntil(String time) {
+    return 'مفتوح الآن، يغلق $time';
+  }
+
+  @override
+  String get diveSites_hours_openNoClose => 'مفتوح الآن';
+
+  @override
+  String diveSites_hours_closedOpensAt(String when) {
+    return 'مغلق، يفتح $when';
+  }
+
+  @override
+  String diveSites_hours_closedForSeason(String date) {
+    return 'مغلق لانتهاء الموسم، يفتح $date';
+  }
+
+  @override
+  String get diveSites_hours_closedNow => 'مغلق';
+
+  @override
+  String diveSites_hours_span(String from, String to) {
+    return '$from إلى $to';
+  }
+
+  @override
+  String diveSites_hours_namedSeason(String name, String season) {
+    return '$name، $season';
+  }
+
+  @override
+  String diveSites_merge_hoursSchedules(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count جدول',
+      many: '$count جدولًا',
+      few: '$count جداول',
+      two: 'جدولان',
+      one: 'جدول واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_detail_section_altitude => 'الارتفاع';
 
   @override
@@ -12338,6 +12480,39 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveSites_edit_access_parkingInfo_hint =>
       'توفر مواقف السيارات، الرسوم، النصائح';
+
+  @override
+  String get diveSites_edit_contact_address_label => 'العنوان';
+
+  @override
+  String get diveSites_edit_contact_address_hint =>
+      'الشارع والمدينة والرمز البريدي';
+
+  @override
+  String get diveSites_edit_contact_phone_label => 'الهاتف';
+
+  @override
+  String get diveSites_edit_contact_phone_hint => 'رقم الحجز أو المالك';
+
+  @override
+  String get diveSites_edit_contact_email_label => 'البريد الإلكتروني';
+
+  @override
+  String get diveSites_edit_contact_email_hint => 'name@example.com';
+
+  @override
+  String get diveSites_edit_contact_website_label => 'الموقع الإلكتروني';
+
+  @override
+  String get diveSites_edit_contact_website_hint => 'example.com';
+
+  @override
+  String get diveSites_edit_contact_emailInvalid =>
+      'أدخل بريدًا إلكترونيًا مثل name@example.com';
+
+  @override
+  String get diveSites_edit_contact_websiteInvalid =>
+      'أدخل عنوان ويب مثل example.com';
 
   @override
   String get diveSites_edit_access_parkingInfo_label => 'معلومات موقف السيارات';
@@ -14638,6 +14813,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_equipmentType_harness => 'حزام';
+
+  @override
+  String get equipment_searchWords_cylinder => 'خزان, قارورة, ستيج, بوني';
+
+  @override
+  String get equipment_searchWords_tankBand => 'حزام الخزان, cam band';
 
   @override
   String get enum_equipmentType_tankBand => 'حزام الأسطوانة';
@@ -17277,6 +17458,52 @@ class AppLocalizationsAr extends AppLocalizations {
       'يحتفظ حاسوب الغوص أو جهاز الإرسال المتصل بنوعه.';
 
   @override
+  String get equipment_suggest_link => 'لا يوجد نوع مناسب؟ اقترح فئة';
+
+  @override
+  String get equipment_suggest_title => 'اقتراح فئة';
+
+  @override
+  String get equipment_suggest_intro =>
+      'يفتح هذا طلب ميزة معبأً مسبقاً على GitHub. تراجعه وتنشره من متصفحك.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'ماذا تقترح؟';
+
+  @override
+  String get equipment_suggest_kindCategory => 'نوع معدات جديد';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'صنف جديد من نوع موجود';
+
+  @override
+  String get equipment_suggest_nameLabel => 'الاسم';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'صنف من';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => 'أقرب نوع موجود';
+
+  @override
+  String get equipment_suggest_parentNone => 'لا شيء';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'لماذا هو مطلوب؟';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'ما الذي يميزه عن الأنواع الموجودة؟';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'تضمين هذه القطعة كمثال ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'فتح في GitHub';
+
+  @override
   String get equipment_edit_useCustomReminders => 'استخدام تذكيرات مخصصة';
 
   @override
@@ -17720,6 +17947,26 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'طي الكل';
 
   @override
+  String get equipment_list_showParts => 'إظهار الأجزاء';
+
+  @override
+  String get equipment_list_hideParts => 'إخفاء الأجزاء';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count جزء',
+      many: '$count جزءًا',
+      few: '$count أجزاء',
+      two: 'جزآن',
+      one: 'جزء واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'الموقع';
 
   @override
@@ -17736,6 +17983,12 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'عنوان لكل مكان، في هذه الصفحة فقط';
+
+  @override
+  String get equipment_arrange_nestParts => 'إظهار الأجزاء تحت تجميعتها';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle => 'طيّ أجزاء كل تجميعة تحتها';
 
   @override
   String get equipment_locations_title => 'المواقع';
@@ -18733,6 +18986,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gasCalculators_consumption_diveTime => 'وقت الغوص';
+
+  @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. تحذير: يتجاوز سعة الأسطوانة',
+      'other': '',
+    });
+    return 'استهلاك الغاز: $volume $volumeSymbol، $pressure $pressureSymbol$_temp0';
+  }
 
   @override
   String gasCalculators_consumption_exceedsTank(
@@ -19965,9 +20233,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => 'تعذر فتح المتصفح';
-
-  @override
-  String get marineLife_suggest_copyLink => 'نسخ الرابط';
 
   @override
   String get marineLife_editCard_photos => 'الصور';
@@ -24548,6 +24813,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'الدخول والخروج، مواقف السيارات، الرسو، ملاحظات الوصول';
 
   @override
+  String get siteDetailSection_contact_description =>
+      'العنوان والهاتف والبريد الإلكتروني والموقع الإلكتروني';
+
+  @override
+  String get siteDetailSection_openingHours_description =>
+      'أيام وساعات العمل حسب الموسم';
+
+  @override
   String get siteDetailSection_notes_description => 'ملاحظاتك عن الموقع';
 
   @override
@@ -27836,6 +28109,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_parkingInfo => 'موقف السيارات';
 
   @override
+  String get settings_conflict_field_address => 'العنوان';
+
+  @override
+  String get settings_conflict_field_openingHours => 'ساعات العمل';
+
+  @override
   String get settings_conflict_field_passportId => 'جواز الأسطوانة';
 
   @override
@@ -28706,6 +28985,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_volumeL => 'الحجم';
+
+  @override
+  String get settings_conflict_field_ratedCapacityCuft => 'السعة الاسمية';
 
   @override
   String get settings_conflict_field_volumeLiters => 'الحجم';
@@ -30198,7 +30480,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'أسماء أقل. نحو $percent% صحيحة';
+    return 'أسماء أقل. نحو $percent% صحيحة في الصور';
   }
 
   @override
@@ -30207,12 +30489,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'أسماء أكثر. نحو $percent% صحيحة';
+    return 'أسماء أكثر. نحو $percent% صحيحة في الصور';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'أكبر عدد من الأسماء. نحو $percent% صحيحة';
+    return 'أكبر عدد من الأسماء. نحو $percent% صحيحة في الصور';
   }
 
   @override
@@ -40616,15 +40898,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tankPresets_customPresets => 'الإعدادات المخصصة';
 
   @override
-  String get tankPresets_defaultSettings => 'الخزان الافتراضي';
+  String get tankPresets_defaultSettings => 'الأسطوانة الافتراضية';
 
   @override
   String get tankPresets_defaultSettings_description =>
-      'يُستخدم الإعداد المميز بنجمة كخزان افتراضي عند تسجيل غطسات جديدة.';
+      'يُستخدم الإعداد المميز بنجمة كأسطوانة افتراضية عند تسجيل غطسات جديدة.';
 
   @override
   String tankPresets_deleteDefaultMessage(String name) {
-    return 'هل أنت متأكد من حذف \"$name\"؟ هذا هو إعداد الخزان الافتراضي الحالي وسيتم إعادته إلى AL80.';
+    return 'هل أنت متأكد من حذف \"$name\"؟ هذا هو إعداد الأسطوانة الافتراضي الحالي وسيتم إعادته إلى AL80.';
   }
 
   @override
@@ -40641,6 +40923,19 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String tankPresets_deleted(Object name) {
     return 'تم حذف \"$name\"';
+  }
+
+  @override
+  String get tankPresets_duplicatePreset => 'تكرار';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (نسخة)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (نسخة $number)';
   }
 
   @override
@@ -40751,14 +41046,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tankPresets_applyToImports_subtitle =>
-      'ملء بيانات الخزان المفقودة في الغطسات المستوردة باستخدام الإعداد الافتراضي';
+      'ملء بيانات الأسطوانة المفقودة في الغطسات المستوردة باستخدام الإعداد الافتراضي';
 
   @override
   String get tankPresets_defaultStartPressure => 'ضغط البداية الافتراضي';
 
   @override
   String get tankPresets_defaultStartPressure_subtitle =>
-      'يُملأ في الخزانات الجديدة، وفي الخزانات المستوردة التي ليس لها ضغط بداية عند تطبيق الخزان الافتراضي على الاستيراد';
+      'يُملأ في الأسطوانات الجديدة، وفي الأسطوانات المستوردة التي ليس لها ضغط بداية عند تطبيق الأسطوانة الافتراضية على الاستيراد';
 
   @override
   String tankPresets_defaultStartPressure_range(String max, String min) {
@@ -48206,6 +48501,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_siteField_mooringNumber => 'رقم المرسى';
 
   @override
+  String get enum_siteField_address => 'العنوان';
+
+  @override
+  String get enum_siteField_phone => 'الهاتف';
+
+  @override
+  String get enum_siteField_email => 'البريد الإلكتروني';
+
+  @override
+  String get enum_siteField_website => 'الموقع الإلكتروني';
+
+  @override
   String get enum_siteField_hazards => 'المخاطر';
 
   @override
@@ -48279,6 +48586,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_siteField_mooringNumber_short => 'المرسى';
+
+  @override
+  String get enum_siteField_address_short => 'العنوان';
+
+  @override
+  String get enum_siteField_phone_short => 'الهاتف';
+
+  @override
+  String get enum_siteField_email_short => 'البريد';
+
+  @override
+  String get enum_siteField_website_short => 'الموقع';
 
   @override
   String get enum_siteField_hazards_short => 'المخاطر';
@@ -57749,8 +58068,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_species_suggested => 'مقترحة';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent٪';
+  String media_species_suggestedChipLabel(String name) {
+    return 'اقتراح: $name';
   }
 
   @override
@@ -68352,4 +68671,29 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'المضغوط شريط رفيع مع مؤشرات الحالة. اللافتة هي لافتة الترحيب مع إجماليات غوصك. يُحفظ على هذا الجهاز.';
+
+  @override
+  String get popOut_openProfileWindow => 'فتح في نافذة جديدة';
+
+  @override
+  String get popOut_pin => 'التثبيت على هذه الغطسة';
+
+  @override
+  String get popOut_unpin => 'متابعة النافذة الرئيسية';
+
+  @override
+  String get popOut_selectDivePlaceholder => 'اختر غطسة في النافذة الرئيسية';
+
+  @override
+  String get popOut_lockedPlaceholder =>
+      'افتح قفل Submersion في النافذة الرئيسية';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'المقطع: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'تعذر على هذه النافذة الوصول إلى السجل. أغلقها وحاول مرة أخرى.';
 }

@@ -201,7 +201,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Remove the duplicate cylinder?'), findsOneWidget);
-    expect(find.textContaining('Tank 1 · AL80 stays'), findsOneWidget);
+    expect(find.textContaining('Cylinder 1 · AL80 stays'), findsOneWidget);
     expect(find.byType(RadioListTile<_Mix>), findsNothing);
 
     await tester.tap(find.text('Remove'));

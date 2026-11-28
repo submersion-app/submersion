@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/router/web_unavailable_routes.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Shown in place of a screen a browser cannot serve: the feature exists in
@@ -34,7 +35,7 @@ class WebUnavailablePage extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
             child: Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(Spacing.s24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -43,19 +44,19 @@ class WebUnavailablePage extends StatelessWidget {
                     size: 48,
                     color: theme.colorScheme.primary,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: Spacing.s16),
                   Text(
                     l10n.web_unavailable_title,
                     style: theme.textTheme.titleLarge,
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: Spacing.s8),
                   Text(
                     reason,
                     style: theme.textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: Spacing.s24),
                   FilledButton.icon(
                     icon: const Icon(Icons.arrow_back),
                     label: Text(

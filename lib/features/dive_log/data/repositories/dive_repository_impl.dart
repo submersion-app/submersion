@@ -6467,7 +6467,7 @@ class DiveRepository {
         createdAt: DateTime.fromMillisecondsSinceEpoch(gs.createdAt),
         computerId: gs.computerId,
       ),
-      tankName: tank.tankName ?? 'Tank ${tank.tankOrder + 1}',
+      tankName: tank.tankName ?? 'Cylinder ${tank.tankOrder + 1}',
       gasMix: _formatGasMixName(tank.o2Percent, tank.hePercent),
       o2Fraction: tank.o2Percent / 100.0,
       heFraction: tank.hePercent / 100.0,

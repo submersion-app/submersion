@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_a
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_sort_sheet_layout.dart';
 import 'package:submersion/features/equipment/presentation/widgets/group_by_location_switch.dart';
+import 'package:submersion/features/equipment/presentation/widgets/nest_parts_switch.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -94,7 +95,12 @@ class EquipmentListSortSheet extends ConsumerWidget {
       fieldIcon: (field) => field.icon,
       onFieldSelected: (field) => updateSort(field: field),
       showGrouping: showGrouping,
-      pageGrouping: const GroupByLocationSwitch(),
+      // Page-only switches: where gear is kept, and parts under their
+      // assembly (issue #5071).
+      pageGrouping: const Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [GroupByLocationSwitch(), NestPartsSwitch()],
+      ),
     );
   }
 }

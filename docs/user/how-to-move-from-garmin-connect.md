@@ -1,6 +1,6 @@
 # Moving from Garmin Connect to Submersion
 
-When you finish this guide, the dives from your Garmin dive watch will be in Submersion, with their full profiles, heart rate, tanks and GPS positions, straight from your Garmin Connect account.
+When you finish this guide, the dives from your Garmin dive watch will be in Submersion, with their full profiles, heart rate, cylinders and GPS positions, straight from your Garmin Connect account.
 
 You can come back and run the same import whenever you have new dives; Submersion brings in only the ones it does not have yet.
 
@@ -10,7 +10,7 @@ You can come back and run the same import whenever you have new dives; Submersio
 |---|---|
 | Dives, including freedives, with their full profiles | The activity name you gave in Connect |
 | Heart rate, temperature, NDL, ceiling and CNS through the dive | Event and alarm markers |
-| Tanks, gases, pressures and gas switches | Dive sites: dives carry GPS, and Submersion can match them to sites |
+| Cylinders, gases, pressures and gas switches | Dive sites: dives carry GPS, and Submersion can match them to sites |
 | Entry and exit GPS positions | Gear, buddies, certifications and photos |
 | Deco model, gradient factors and tissue loading | |
 | Notes and weight you added in Connect | |

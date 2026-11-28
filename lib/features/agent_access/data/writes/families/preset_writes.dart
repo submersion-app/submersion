@@ -8,6 +8,7 @@ import 'package:submersion/features/agent_access/data/writes/writable_entity.dar
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/dive_log/domain/entities/weight_label.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/tank_presets/domain/services/tank_preset_size_match.dart';
 import 'package:submersion/features/weight_presets/domain/entities/weight_preset.dart';
 
 /// The diver's own tank presets, through the repository the tank presets
@@ -80,6 +81,19 @@ class TankPresetWrites extends WritableEntry {
         _gone('Tank preset $id no longer exists.', id);
     final v = update.values;
     final displayName = v['display_name'] as String? ?? current.displayName;
+    final volumeLiters = v['volume_l'] as double? ?? current.volumeLiters;
+    final workingPressureBar =
+        v['working_pressure_bar'] as double? ?? current.workingPressureBar;
+    // A manufacturer's rating belongs to one volume at one pressure: a new
+    // size is a different cylinder, so the rating goes (issue #800).
+    // A size a hair off the stored one is the same cylinder sent back through
+    // a unit conversion.
+    final sameCylinder = isSameCylinderSize(
+      volumeLiters,
+      workingPressureBar,
+      current.volumeLiters,
+      current.workingPressureBar,
+    );
     await _r.tankPresets.updatePreset(
       TankPresetEntity(
         id: id,
@@ -88,9 +102,8 @@ class TankPresetWrites extends WritableEntry {
             ? TankPresetEntity.generateSlug(displayName)
             : current.name,
         displayName: displayName,
-        volumeLiters: v['volume_l'] as double? ?? current.volumeLiters,
-        workingPressureBar:
-            v['working_pressure_bar'] as double? ?? current.workingPressureBar,
+        volumeLiters: volumeLiters,
+        workingPressureBar: workingPressureBar,
         material: v['material'] == null
             ? current.material
             : TankMaterial.values.byName(v['material']! as String),
@@ -98,7 +111,7 @@ class TankPresetWrites extends WritableEntry {
         sortOrder: v['sort_order'] as int? ?? current.sortOrder,
         createdAt: current.createdAt,
         updatedAt: current.updatedAt,
-        ratedCapacityCuft: current.ratedCapacityCuft,
+        ratedCapacityCuft: sameCylinder ? current.ratedCapacityCuft : null,
       ),
     );
   }

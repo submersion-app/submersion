@@ -404,7 +404,7 @@ class DiveWeights extends Table {
   /// Empty when unnamed; the placement stays in [weightType].
   TextColumn get label => text().withDefault(const Constant(''))();
 
-  /// v388: the side this weight is carried on, 'left' or 'right' (issue
+  /// v395: the side this weight is carried on, 'left' or 'right' (issue
   /// #5028); null means both sides, split evenly.
   TextColumn get side => text().nullable()();
   IntColumn get createdAt => integer()();

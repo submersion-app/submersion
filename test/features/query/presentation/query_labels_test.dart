@@ -44,7 +44,7 @@ void main() {
         isNot(key),
         reason:
             '$key is missing from query_label_lookup.dart; '
-            'run python3 scripts/gen_query_label_lookup.py',
+            'run python3 scripts/codegen/gen_query_label_lookup.py',
       );
     }
   });

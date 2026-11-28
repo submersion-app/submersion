@@ -124,7 +124,12 @@ TrackLabelKind? _unnamedKind(
   if (mode == LabelMode.allLife) return TrackLabelKind.dot;
   if (!found.specific) return null;
   if (!found.isTrack) return TrackLabelKind.dot;
-  return !playing && found.durationMs >= minDotMs ? TrackLabelKind.dot : null;
+  // Time in view, not the span: a track joined across a moment out of
+  // sight is not seen for longer (issue #5120).
+  final inView = found.path.isEmpty
+      ? found.durationMs
+      : seenMs([for (final s in found.path) s.ms]);
+  return !playing && inView >= minDotMs ? TrackLabelKind.dot : null;
 }
 
 /// Where [track] is at [ms]: its box between the two samples around [ms],

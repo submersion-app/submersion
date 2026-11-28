@@ -102,6 +102,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   _MockSettingsNotifier([AppSettings? initial])
     : super(initial ?? const AppSettings());
 
+  @override
+  Future<void> reload() async {}
+
   /// Already "loaded": the mock's state is supplied up front.
   @override
   Future<void> get initialLoad async {}
@@ -1146,7 +1149,7 @@ void main() {
       );
       expect(find.text('Manage'), findsOneWidget);
       // The subtitle describes what's in the Manage section
-      expect(find.text('Dive types & tank presets'), findsOneWidget);
+      expect(find.text('Dive types & cylinder presets'), findsOneWidget);
     });
 
     testWidgets('should display Data section for backup/restore/storage', (
@@ -2333,7 +2336,7 @@ void main() {
         (
           'Equipment',
           [
-            'Tank Presets',
+            'Cylinder Presets',
             'Transmitters',
             'Weight Presets',
             'Service types',

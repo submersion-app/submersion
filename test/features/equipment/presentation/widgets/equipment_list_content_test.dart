@@ -27,6 +27,7 @@ import 'package:submersion/features/equipment/domain/models/equipment_arrangemen
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
@@ -35,6 +36,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_a
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_query_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/assembly_row_frame.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_type_fold_header.dart';
 import 'package:submersion/features/settings/domain/list_arrangements.dart';
@@ -62,6 +64,7 @@ import '../../../../helpers/bulk_delete_contract.dart';
 import '../../../../helpers/keyboard_navigation_contract.dart';
 import '../../../../helpers/selection_contract.dart';
 
+part 'equipment_list_content_assembly.dart';
 part 'equipment_list_content_folds.dart';
 
 // ---------------------------------------------------------------------------
@@ -2681,6 +2684,7 @@ void main() {
   });
 
   _foldableGroupTests();
+  _assemblyViewTests();
 
   group('filter panel (#1274, PR #1435 review)', () {
     final items = [

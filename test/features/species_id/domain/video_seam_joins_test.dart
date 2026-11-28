@@ -81,22 +81,38 @@ void main() {
         seamJoins(
           open: [openUntil(29750)],
           openRows: const {},
-          stored: [later(startMs: 31000)],
+          stored: [later(startMs: 33500)],
           seamMs: 30000,
         ),
         isEmpty,
       );
     });
 
+    test('a stored track starting up to 3 s after the open fish was last '
+        'seen is paired, as a lost track (issue #5120)', () {
+      for (final start in [30750, 31000, 33000]) {
+        expect(
+          seamJoins(
+            open: [openUntil(29750)],
+            openRows: const {},
+            stored: [later(startMs: start)],
+            seamMs: 30000,
+          ),
+          hasLength(1),
+          reason: 'starting at $start',
+        );
+      }
+    });
+
     test('a stored track starting longer after the open fish was last seen '
-        'than the tracker bridges is not', () {
-      // Last seen 750 ms before the seam: the tracker links it no later
-      // than the seam itself.
+        'than a lost track reaches is not', () {
+      // Last seen 750 ms before the seam: 12 empty samples later, 3 s out
+      // of sight, it is still in reach; 13 later it is not.
       expect(
         seamJoins(
           open: [openUntil(29250)],
           openRows: const {},
-          stored: [later()],
+          stored: [later(startMs: 32500)],
           seamMs: 30000,
         ),
         hasLength(1),
@@ -105,7 +121,54 @@ void main() {
         seamJoins(
           open: [openUntil(29250)],
           openRows: const {},
-          stored: [later(startMs: 30500)],
+          stored: [later(startMs: 32750)],
+          seamMs: 30000,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('a lost fish never takes a stored track a fish in view '
+        'continues', () {
+      final inView = openUntil(29750);
+      final lost = openUntil(28500);
+      final pairs = seamJoins(
+        open: [lost, inView],
+        openRows: const {},
+        stored: [later()],
+        seamMs: 30000,
+      );
+      expect(pairs, hasLength(1));
+      expect(identical(pairs.single.open, inView), isTrue);
+    });
+
+    test('a stored track two lost fish could continue is paired with '
+        'neither', () {
+      final other = VideoTracker();
+      for (var ms = 27500; ms <= 28500; ms += 250) {
+        other.add(
+          FrameDetections(
+            ms: ms,
+            boxes: const [
+              DetectedBox(
+                box: IdentificationBox(x: 0.4, y: 0.4, width: 0.2, height: 0.1),
+                score: 0.9,
+              ),
+            ],
+          ),
+        );
+      }
+      final between = later(startMs: 30500).copyWith(
+        path: [
+          for (final s in later(startMs: 30500).path)
+            s.copyWith(box: s.box.copyWith(x: 0.25)),
+        ],
+      );
+      expect(
+        seamJoins(
+          open: [openUntil(28500), other.openTracks.single],
+          openRows: const {},
+          stored: [between],
           seamMs: 30000,
         ),
         isEmpty,

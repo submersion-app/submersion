@@ -11,7 +11,7 @@ import '../../integration_test/helpers/color_encode_cases.dart';
 export '../../integration_test/helpers/color_encode_cases.dart';
 
 /// Host side of the colour-encode integration check (issue #3521), run by
-/// scripts/run_color_encode_it.sh: synthesizes input clips with ffmpeg for
+/// scripts/testing/run_color_encode_it.sh: synthesizes input clips with ffmpeg for
 /// the in-app encode, and reads its output back with ffprobe and ffmpeg.
 /// Kept out of the app because the sandboxed macOS app may not run ffmpeg.
 

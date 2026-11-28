@@ -95,7 +95,7 @@ void main() {
     expect(
       find.descendant(
         of: find.byKey(const Key('trip-gear-tank-tk')),
-        matching: find.text('Tank'),
+        matching: find.text('Cylinder'),
       ),
       findsOneWidget,
     );
