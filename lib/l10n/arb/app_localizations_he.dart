@@ -65537,5 +65537,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_currencies_reset => 'איפוס לברירות המחדל';
 
   @override
+  String get settings_currencies_resetDone => 'המטבעות המופעלים אופסו';
+
+  @override
+  String get settings_currencies_undo => 'ביטול';
+
+  @override
   String get settings_conflict_field_preferredCurrencyCodes => 'מטבעות מופעלים';
 }

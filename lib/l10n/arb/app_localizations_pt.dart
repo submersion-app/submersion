@@ -66873,6 +66873,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_currencies_reset => 'Restaurar padrões';
 
   @override
+  String get settings_currencies_resetDone => 'Moedas ativadas redefinidas';
+
+  @override
+  String get settings_currencies_undo => 'Desfazer';
+
+  @override
   String get settings_conflict_field_preferredCurrencyCodes =>
       'Moedas ativadas';
 }

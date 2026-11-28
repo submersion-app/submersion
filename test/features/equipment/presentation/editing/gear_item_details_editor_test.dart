@@ -433,6 +433,64 @@ void main() {
     expect(session.working.purchaseCurrency, 'NOK');
   });
 
+  testWidgets('a currency name typed is saved as its code', (tester) async {
+    final session = await pumpEditor(
+      tester,
+      regulator.copyWith(purchasePrice: 150, purchaseCurrency: 'EUR'),
+    );
+
+    await tester.enterText(
+      find.descendant(of: currencyMenu, matching: find.byType(TextField)),
+      'real',
+    );
+    await tester.pumpAndSettle();
+
+    expect(session.working.purchaseCurrency, 'BRL');
+  });
+
+  testWidgets('a name matching several currencies keeps the stored code', (
+    tester,
+  ) async {
+    final session = await pumpEditor(
+      tester,
+      regulator.copyWith(purchasePrice: 150, purchaseCurrency: 'EUR'),
+    );
+
+    await tester.enterText(
+      find.descendant(of: currencyMenu, matching: find.byType(TextField)),
+      'pound',
+    );
+    await tester.pumpAndSettle();
+
+    expect(session.working.purchaseCurrency, 'EUR');
+  });
+
+  testWidgets('Enter after a currency name picks that currency', (
+    tester,
+  ) async {
+    final session = await pumpEditor(
+      tester,
+      regulator.copyWith(purchasePrice: 150, purchaseCurrency: 'EUR'),
+    );
+    final field = find.descendant(
+      of: currencyMenu,
+      matching: find.byType(TextField),
+    );
+
+    await tester.tap(field);
+    await tester.pumpAndSettle();
+    await tester.enterText(field, 'real');
+    await tester.pumpAndSettle();
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<DropdownMenu<String>>(currencyMenu).controller?.text,
+      'BRL',
+    );
+    expect(session.working.purchaseCurrency, 'BRL');
+  });
+
   testWidgets('a purchase date is picked, and cleared', (tester) async {
     final session = await pumpEditor(tester, regulator);
 

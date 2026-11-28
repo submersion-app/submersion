@@ -65879,6 +65879,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_currencies_reset => 'Reset to defaults';
 
   @override
+  String get settings_currencies_resetDone => 'Enabled currencies reset';
+
+  @override
+  String get settings_currencies_undo => 'Undo';
+
+  @override
   String get settings_conflict_field_preferredCurrencyCodes =>
       'Enabled currencies';
 }

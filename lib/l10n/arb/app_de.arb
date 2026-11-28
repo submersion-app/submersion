@@ -19585,5 +19585,7 @@
   "settings_currencies_default": "Standard",
   "settings_currencies_setDefault": "Als Standardwährung festlegen",
   "settings_currencies_reset": "Auf Standard zurücksetzen",
+  "settings_currencies_resetDone": "Aktivierte Währungen zurückgesetzt",
+  "settings_currencies_undo": "Rückgängig",
   "settings_conflict_field_preferredCurrencyCodes": "Aktivierte Währungen"
 }

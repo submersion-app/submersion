@@ -189,8 +189,8 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
       _initialCurrencyCode,
       preferred: ref.watch(preferredCurrencyCodesProvider),
     );
-    final live = _currencyController.text.trim().toUpperCase();
-    if (live.isEmpty || codes.contains(live)) return codes;
+    final live = resolveTypedCurrency(_currencyController.text);
+    if (live == null || codes.contains(live)) return codes;
     return [live, ...codes];
   }
 
@@ -470,6 +470,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                         requestFocusOnTap: true,
                         enableFilter: true,
                         filterCallback: filterCurrencyMenuEntries,
+                        searchCallback: searchCurrencyMenuEntries,
                         label: Text(
                           context.l10n.equipment_serviceDialog_currencyLabel,
                         ),
@@ -615,9 +616,14 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
           NumberValue(:final value) => value,
           NumberBlank() || NumberInvalid() => null,
         },
+        // A name is never stored as a code: text naming several currencies
+        // or none keeps the code the dialog opened with.
         currency: _currencyController.text.trim().isEmpty
             ? _fallbackCurrencyCode()
-            : _currencyController.text.trim().toUpperCase(),
+            : resolveTypedCurrency(_currencyController.text) ??
+                  (_initialCurrencyCode.trim().isEmpty
+                      ? _fallbackCurrencyCode()
+                      : _initialCurrencyCode.trim().toUpperCase()),
         nextServiceDue: _nextServiceDue,
         notes: _notesController.text.trim(),
         createdAt: widget.existingRecord?.createdAt ?? now,

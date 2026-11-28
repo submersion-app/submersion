@@ -116,6 +116,16 @@ void main() {
     );
   });
 
+  testWidgets('a current code outside the preferred ones is listed above '
+      'them, not under Preferred', (tester) async {
+    await open(tester, current: 'HRK');
+    final hrk = tester.getTopLeft(find.byKey(const Key('currency-picker-HRK')));
+    final header = tester.getTopLeft(find.text('Preferred'));
+    final eur = tester.getTopLeft(find.byKey(const Key('currency-picker-EUR')));
+    expect(hrk.dy, lessThan(header.dy));
+    expect(header.dy, lessThan(eur.dy));
+  });
+
   testWidgets('the inherit entry picks null', (tester) async {
     final results = await open(
       tester,
@@ -226,6 +236,14 @@ void main() {
         'USD',
       ]);
       expect(filterCurrencyMenuEntries(entries, ''), hasLength(3));
+    });
+
+    test('search highlights an exact code first, else the first match', () {
+      final entries = currencyMenuEntries(const ['USD', 'BRL', 'EUR']);
+      expect(searchCurrencyMenuEntries(entries, 'real'), 1);
+      expect(searchCurrencyMenuEntries(entries, 'eur'), 2);
+      expect(searchCurrencyMenuEntries(entries, 'qqqq'), isNull);
+      expect(searchCurrencyMenuEntries(entries, ' '), isNull);
     });
   });
 }

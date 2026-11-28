@@ -67929,6 +67929,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_currencies_reset => 'استعادة الإعدادات الافتراضية';
 
   @override
+  String get settings_currencies_resetDone =>
+      'تمت إعادة تعيين العملات المفعّلة';
+
+  @override
+  String get settings_currencies_undo => 'تراجع';
+
+  @override
   String get settings_conflict_field_preferredCurrencyCodes =>
       'العملات المفعّلة';
 }

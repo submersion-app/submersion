@@ -19460,5 +19460,7 @@
   "settings_currencies_default": "Standaard",
   "settings_currencies_setDefault": "Als standaardvaluta instellen",
   "settings_currencies_reset": "Standaardwaarden herstellen",
+  "settings_currencies_resetDone": "Ingeschakelde valuta hersteld",
+  "settings_currencies_undo": "Ongedaan maken",
   "settings_conflict_field_preferredCurrencyCodes": "Ingeschakelde valuta's"
 }

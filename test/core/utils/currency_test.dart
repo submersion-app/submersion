@@ -327,4 +327,28 @@ void main() {
       }
     },
   );
+
+  group('resolveTypedCurrency', () {
+    test('a code, in any case, is itself', () {
+      expect(resolveTypedCurrency(' brl '), 'BRL');
+      expect(resolveTypedCurrency('XAU'), 'XAU');
+    });
+
+    test('a name matching one currency is its code', () {
+      expect(resolveTypedCurrency('real'), 'BRL');
+      expect(resolveTypedCurrency('yen'), 'JPY');
+      expect(resolveTypedCurrency('Zloty'), 'PLN');
+    });
+
+    test('a name matching several currencies, or none, is no code', () {
+      expect(resolveTypedCurrency('pound'), isNull);
+      expect(resolveTypedCurrency('dollar'), isNull);
+      expect(resolveTypedCurrency('qqqq'), isNull);
+      expect(resolveTypedCurrency('  '), isNull);
+    });
+
+    test('three letters naming several currencies are no code', () {
+      expect(resolveTypedCurrency('won'), isNull);
+    });
+  });
 }

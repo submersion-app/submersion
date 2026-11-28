@@ -19460,5 +19460,7 @@
   "settings_currencies_default": "افتراضية",
   "settings_currencies_setDefault": "تعيين كعملة افتراضية",
   "settings_currencies_reset": "استعادة الإعدادات الافتراضية",
+  "settings_currencies_resetDone": "تمت إعادة تعيين العملات المفعّلة",
+  "settings_currencies_undo": "تراجع",
   "settings_conflict_field_preferredCurrencyCodes": "العملات المفعّلة"
 }

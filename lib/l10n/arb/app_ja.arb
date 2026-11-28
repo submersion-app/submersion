@@ -19459,5 +19459,7 @@
   "settings_currencies_default": "既定",
   "settings_currencies_setDefault": "既定の通貨に設定",
   "settings_currencies_reset": "デフォルトに戻す",
+  "settings_currencies_resetDone": "有効な通貨をリセットしました",
+  "settings_currencies_undo": "元に戻す",
   "settings_conflict_field_preferredCurrencyCodes": "有効な通貨"
 }

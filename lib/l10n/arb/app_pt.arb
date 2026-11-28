@@ -19460,5 +19460,7 @@
   "settings_currencies_default": "Padrão",
   "settings_currencies_setDefault": "Definir como moeda padrão",
   "settings_currencies_reset": "Restaurar padrões",
+  "settings_currencies_resetDone": "Moedas ativadas redefinidas",
+  "settings_currencies_undo": "Desfazer",
   "settings_conflict_field_preferredCurrencyCodes": "Moedas ativadas"
 }

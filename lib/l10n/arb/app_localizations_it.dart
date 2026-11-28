@@ -66905,6 +66905,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_currencies_reset => 'Ripristina predefinite';
 
   @override
+  String get settings_currencies_resetDone => 'Valute attivate ripristinate';
+
+  @override
+  String get settings_currencies_undo => 'Annulla';
+
+  @override
   String get settings_conflict_field_preferredCurrencyCodes =>
       'Valute attivate';
 }

@@ -19460,5 +19460,7 @@
   "settings_currencies_default": "默认",
   "settings_currencies_setDefault": "设为默认货币",
   "settings_currencies_reset": "恢复默认",
+  "settings_currencies_resetDone": "已重置启用的货币",
+  "settings_currencies_undo": "撤销",
   "settings_conflict_field_preferredCurrencyCodes": "已启用的货币"
 }

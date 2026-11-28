@@ -66500,6 +66500,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_currencies_reset => 'Standaardwaarden herstellen';
 
   @override
+  String get settings_currencies_resetDone => 'Ingeschakelde valuta hersteld';
+
+  @override
+  String get settings_currencies_undo => 'Ongedaan maken';
+
+  @override
   String get settings_conflict_field_preferredCurrencyCodes =>
       'Ingeschakelde valuta\'s';
 }

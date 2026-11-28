@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -33,6 +34,33 @@ class _CurrenciesPageState extends ConsumerState<CurrenciesPage> {
 
   void _setEnabled(List<String> codes) =>
       _notifier.setPreferredCurrencyCodes(codes);
+
+  /// Makes [code] the default. A default shown enabled only because it is
+  /// the default is stored first, so moving the star does not drop it.
+  void _setDefault(String code, List<String> enabled) {
+    if (!listEquals(enabled, ref.read(preferredCurrencyCodesProvider))) {
+      _setEnabled(enabled);
+    }
+    _notifier.setDefaultCurrency(code);
+  }
+
+  void _reset(String defaultCode, List<String> enabled) {
+    _setEnabled(
+      currencyCodesWith(defaultCode, preferred: kDefaultPreferredCurrencyCodes),
+    );
+    final l10n = context.l10n;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(l10n.settings_currencies_resetDone),
+          action: SnackBarAction(
+            label: l10n.settings_currencies_undo,
+            onPressed: () => _setEnabled(enabled),
+          ),
+        ),
+      );
+  }
 
   void _reorder(List<String> enabled, int oldIndex, int newIndex) {
     final updated = [...enabled];
@@ -77,7 +105,7 @@ class _CurrenciesPageState extends ConsumerState<CurrenciesPage> {
             key: const Key('currencies-reset'),
             icon: const Icon(Icons.restart_alt),
             tooltip: l10n.settings_currencies_reset,
-            onPressed: () => _setEnabled(kDefaultPreferredCurrencyCodes),
+            onPressed: () => _reset(defaultCode, enabled),
           ),
         ],
       ),
@@ -106,7 +134,7 @@ class _CurrenciesPageState extends ConsumerState<CurrenciesPage> {
                 code: code,
                 index: index,
                 isDefault: code == defaultCode,
-                onSetDefault: () => _notifier.setDefaultCurrency(code),
+                onSetDefault: () => _setDefault(code, enabled),
                 onDisable: () => _setEnabled([
                   for (final c in enabled)
                     if (c != code) c,

@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show listEquals;
+import 'package:flutter/material.dart';
+
 import 'package:drift/drift.dart';
 import 'package:submersion/features/insights/domain/trend_gap_threshold.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
@@ -11,8 +14,6 @@ import 'package:submersion/features/settings/data/repositories/profile_metric_co
 import 'package:submersion/core/built_ins/hidden_built_ins_codec.dart';
 import 'package:submersion/core/constants/place_name_language.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
-import 'package:flutter/foundation.dart' show listEquals;
-import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/gas_consumption_display.dart';
@@ -1404,9 +1405,13 @@ List<String> decodePreferredCurrencyCodes(String? raw) {
   try {
     final decoded = jsonDecode(raw);
     if (decoded is! List) return kDefaultPreferredCurrencyCodes;
-    return List.unmodifiable(
-      normalizePreferredCurrencyCodes(decoded.whereType<String>()),
-    );
+    final codes = normalizePreferredCurrencyCodes(decoded.whereType<String>());
+    // Only a stored `[]` means "none"; a list whose every entry is invalid
+    // is malformed.
+    if (codes.isEmpty && decoded.isNotEmpty) {
+      return kDefaultPreferredCurrencyCodes;
+    }
+    return List.unmodifiable(codes);
   } on FormatException {
     return kDefaultPreferredCurrencyCodes;
   }

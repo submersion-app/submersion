@@ -67036,6 +67036,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_currencies_reset => 'Rétablir les valeurs par défaut';
 
   @override
+  String get settings_currencies_resetDone => 'Devises activées réinitialisées';
+
+  @override
+  String get settings_currencies_undo => 'Annuler';
+
+  @override
   String get settings_conflict_field_preferredCurrencyCodes =>
       'Devises activées';
 }

@@ -66942,6 +66942,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_currencies_reset => 'Restablecer valores predeterminados';
 
   @override
+  String get settings_currencies_resetDone => 'Monedas activadas restablecidas';
+
+  @override
+  String get settings_currencies_undo => 'Deshacer';
+
+  @override
   String get settings_conflict_field_preferredCurrencyCodes =>
       'Monedas activadas';
 }

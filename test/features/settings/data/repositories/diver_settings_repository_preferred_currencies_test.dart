@@ -121,4 +121,12 @@ void main() {
     );
     expect(decodePreferredCurrencyCodes(encodePreferredCurrencyCodes([])), []);
   });
+
+  test('a non-empty list with no valid code reads as the defaults', () {
+    expect(decodePreferredCurrencyCodes('[3]'), kDefaultPreferredCurrencyCodes);
+    expect(
+      decodePreferredCurrencyCodes('["EU"]'),
+      kDefaultPreferredCurrencyCodes,
+    );
+  });
 }

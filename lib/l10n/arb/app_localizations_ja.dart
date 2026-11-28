@@ -64193,5 +64193,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_currencies_reset => 'デフォルトに戻す';
 
   @override
+  String get settings_currencies_resetDone => '有効な通貨をリセットしました';
+
+  @override
+  String get settings_currencies_undo => '元に戻す';
+
+  @override
   String get settings_conflict_field_preferredCurrencyCodes => '有効な通貨';
 }

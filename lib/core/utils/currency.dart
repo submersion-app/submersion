@@ -81,6 +81,25 @@ bool currencyMatchesQuery(String code, String query) {
   return name != null && _foldCurrencySearch(name).contains(needle);
 }
 
+/// The currency code that [typed] text in a currency field stands for: a
+/// catalog code in any case is itself, a name matching one catalog currency
+/// is its code ("real" is BRL), and other three letters matching no name are
+/// taken as a code outside the catalog. Null for blank text and for text
+/// matching several currencies ("pound") or nothing a code could be.
+String? resolveTypedCurrency(String typed) {
+  final text = typed.trim();
+  if (text.isEmpty) return null;
+  final upper = text.toUpperCase();
+  if (isoCurrencyName(upper) != null) return upper;
+  final matches = [
+    for (final currency in kIsoCurrencies)
+      if (currencyMatchesQuery(currency.code, text)) currency.code,
+  ];
+  if (matches.length == 1) return matches.single;
+  if (matches.isEmpty && _currencyCodePattern.hasMatch(upper)) return upper;
+  return null;
+}
+
 /// [text] folded by [foldForSearch], without apostrophes or the ʻokina, so
 /// "paanga" finds the Tongan paʻanga.
 String _foldCurrencySearch(String text) =>

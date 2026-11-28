@@ -18,8 +18,9 @@ class CurrencyChoice {
 
 /// Opens a searchable picker over every ISO 4217 currency (issue #4997).
 ///
-/// With no search, the diver's [preferred] currencies come first (and
-/// [current], when it is outside them), then the rest of the catalog. A
+/// With no search, [current] leads when it is outside the diver's
+/// [preferred] currencies, then those come under their heading, then the rest
+/// of the catalog. A
 /// search matches codes and English names across all of them. When
 /// [inheritLabel] is given, an entry with that label leads the list and picks
 /// null. Returns null when the picker is dismissed.
@@ -149,11 +150,16 @@ class _CurrencyPickerDialogState extends State<_CurrencyPickerDialog> {
           if (currencyMatchesQuery(code, _query)) _CodeRow(code),
       ];
     }
+    // A current code the diver never enabled leads the list on its own,
+    // above the Preferred heading rather than under it.
+    final preferred = currencyCodesWith(null, preferred: widget.preferred);
     return [
       if (widget.inheritLabel != null) const _InheritRow(),
-      if (leading.isNotEmpty) ...[
+      for (final code in leading)
+        if (!preferred.contains(code)) _CodeRow(code),
+      if (preferred.isNotEmpty) ...[
         _HeaderRow(l10n.currencyPicker_section_preferred),
-        for (final code in leading) _CodeRow(code),
+        for (final code in preferred) _CodeRow(code),
       ],
       _HeaderRow(l10n.currencyPicker_section_all),
       for (final code in all.skip(leading.length)) _CodeRow(code),
@@ -307,3 +313,18 @@ List<DropdownMenuEntry<String>> filterCurrencyMenuEntries(
   for (final entry in entries)
     if (currencyMatchesQuery(entry.value, filter)) entry,
 ];
+
+/// A [DropdownMenu.searchCallback] for [currencyMenuEntries]: the entry whose
+/// code is [query], else the first that [filterCurrencyMenuEntries] keeps, so
+/// Enter after typing "real" picks BRL. Null for a blank query or no match.
+int? searchCurrencyMenuEntries(
+  List<DropdownMenuEntry<String>> entries,
+  String query,
+) {
+  final text = query.trim();
+  if (text.isEmpty) return null;
+  final exact = entries.indexWhere((e) => e.value == text.toUpperCase());
+  if (exact != -1) return exact;
+  final first = entries.indexWhere((e) => currencyMatchesQuery(e.value, text));
+  return first == -1 ? null : first;
+}

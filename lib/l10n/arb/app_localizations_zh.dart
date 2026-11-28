@@ -62682,5 +62682,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_currencies_reset => '恢复默认';
 
   @override
+  String get settings_currencies_resetDone => '已重置启用的货币';
+
+  @override
+  String get settings_currencies_undo => '撤销';
+
+  @override
   String get settings_conflict_field_preferredCurrencyCodes => '已启用的货币';
 }

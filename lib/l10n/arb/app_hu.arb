@@ -19460,5 +19460,7 @@
   "settings_currencies_default": "Alapértelmezett",
   "settings_currencies_setDefault": "Beállítás alapértelmezett pénznemként",
   "settings_currencies_reset": "Alapértelmezések visszaállítása",
+  "settings_currencies_resetDone": "Engedélyezett pénznemek visszaállítva",
+  "settings_currencies_undo": "Visszavonás",
   "settings_conflict_field_preferredCurrencyCodes": "Engedélyezett pénznemek"
 }

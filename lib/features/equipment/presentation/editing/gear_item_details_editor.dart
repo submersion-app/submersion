@@ -127,7 +127,13 @@ class _GearItemDetailsEditorState extends ConsumerState<GearItemDetailsEditor> {
     final now = _session.valueOf(gearPriceField);
     _session.set(gearPriceField, (
       price: now.price,
-      currency: gearCurrencyOrDefault(_currency.text, _fallbackCurrency),
+      currency: gearCurrencyOrDefault(
+        _currency.text,
+        _fallbackCurrency,
+        unresolved: _initialCurrency.trim().isEmpty
+            ? _fallbackCurrency
+            : _initialCurrency,
+      ),
     ));
   }
 
@@ -312,6 +318,7 @@ class _GearItemDetailsEditorState extends ConsumerState<GearItemDetailsEditor> {
                     requestFocusOnTap: true,
                     enableFilter: true,
                     filterCallback: filterCurrencyMenuEntries,
+                    searchCallback: searchCurrencyMenuEntries,
                     label: Text(l10n.equipment_edit_currencyLabel),
                     dropdownMenuEntries: currencyMenuEntries(
                       allCurrencyCodesWith(

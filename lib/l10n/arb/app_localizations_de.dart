@@ -66762,6 +66762,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_currencies_reset => 'Auf Standard zurücksetzen';
 
   @override
+  String get settings_currencies_resetDone =>
+      'Aktivierte Währungen zurückgesetzt';
+
+  @override
+  String get settings_currencies_undo => 'Rückgängig';
+
+  @override
   String get settings_conflict_field_preferredCurrencyCodes =>
       'Aktivierte Währungen';
 }

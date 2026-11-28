@@ -86,6 +86,24 @@ void main() {
     expect(switchOf(tester, 'USD').onChanged, isNotNull);
   });
 
+  testWidgets('starring another currency keeps an unstored default '
+      'enabled', (tester) async {
+    await pump(
+      tester,
+      const AppSettings(
+        defaultCurrency: 'BRL',
+        preferredCurrencyCodes: ['USD', 'EUR'],
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('currency-default-USD')));
+    await tester.pumpAndSettle();
+
+    expect(notifier.state.defaultCurrency, 'USD');
+    expect(notifier.state.preferredCurrencyCodes, ['BRL', 'USD', 'EUR']);
+    expect(enabledRow('BRL'), findsOneWidget);
+  });
+
   testWidgets('switching a currency off moves it to the others', (
     tester,
   ) async {
@@ -208,6 +226,45 @@ void main() {
       notifier.state.preferredCurrencyCodes,
       kDefaultPreferredCurrencyCodes,
     );
+  });
+
+  testWidgets('reset can be undone', (tester) async {
+    await pump(
+      tester,
+      const AppSettings(
+        defaultCurrency: 'USD',
+        preferredCurrencyCodes: ['GBP', 'USD', 'BRL'],
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('currencies-reset')));
+    await tester.pumpAndSettle();
+    expect(find.text('Enabled currencies reset'), findsOneWidget);
+
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+
+    expect(notifier.state.preferredCurrencyCodes, ['GBP', 'USD', 'BRL']);
+  });
+
+  testWidgets('reset keeps a default outside the built-in list enabled', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      const AppSettings(
+        defaultCurrency: 'BRL',
+        preferredCurrencyCodes: ['BRL', 'USD'],
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('currencies-reset')));
+    await tester.pumpAndSettle();
+
+    expect(notifier.state.preferredCurrencyCodes, [
+      'BRL',
+      ...kDefaultPreferredCurrencyCodes,
+    ]);
   });
 
   testWidgets('a default outside the stored list is shown enabled and kept '

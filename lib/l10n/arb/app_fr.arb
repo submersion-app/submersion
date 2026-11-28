@@ -19460,5 +19460,7 @@
   "settings_currencies_default": "Par défaut",
   "settings_currencies_setDefault": "Définir comme devise par défaut",
   "settings_currencies_reset": "Rétablir les valeurs par défaut",
+  "settings_currencies_resetDone": "Devises activées réinitialisées",
+  "settings_currencies_undo": "Annuler",
   "settings_conflict_field_preferredCurrencyCodes": "Devises activées"
 }

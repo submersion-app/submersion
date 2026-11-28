@@ -38796,6 +38796,10 @@
   "@settings_currencies_setDefault": {"description": "Currencies page: tooltip of the star that makes a currency the default"},
   "settings_currencies_reset": "Reset to defaults",
   "@settings_currencies_reset": {"description": "Currencies page: app bar button that restores the built-in enabled currencies"},
+  "settings_currencies_resetDone": "Enabled currencies reset",
+  "@settings_currencies_resetDone": {"description": "Currencies page: snack bar shown after Reset restores the built-in enabled currencies"},
+  "settings_currencies_undo": "Undo",
+  "@settings_currencies_undo": {"description": "Currencies page: snack bar action that restores the enabled currencies from before Reset"},
   "settings_conflict_field_preferredCurrencyCodes": "Enabled currencies",
   "@settings_conflict_field_preferredCurrencyCodes": {"description": "Sync conflict dialog label for the enabled currencies a diver lists first in the currency pickers"}
 }

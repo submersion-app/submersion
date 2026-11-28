@@ -19460,5 +19460,7 @@
   "settings_currencies_default": "ברירת מחדל",
   "settings_currencies_setDefault": "הגדרה כמטבע ברירת המחדל",
   "settings_currencies_reset": "איפוס לברירות המחדל",
+  "settings_currencies_resetDone": "המטבעות המופעלים אופסו",
+  "settings_currencies_undo": "ביטול",
   "settings_conflict_field_preferredCurrencyCodes": "מטבעות מופעלים"
 }

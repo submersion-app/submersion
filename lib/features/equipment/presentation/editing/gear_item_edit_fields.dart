@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_fitting.dart';
@@ -380,8 +381,15 @@ List<int> gearReminderDaysToggled(List<int> days, int day) {
   ]..sort();
 }
 
-/// The currency typed, or [fallback] when it is blank, as the form saved it.
-String gearCurrencyOrDefault(String typed, String fallback) {
-  final code = typed.trim();
-  return code.isEmpty ? fallback : code;
+/// The code the currency field saves: [fallback] when it is blank, the code
+/// the typed text stands for ([resolveTypedCurrency]), and [unresolved] when
+/// the text names several currencies or none, so a name is never saved as a
+/// code.
+String gearCurrencyOrDefault(
+  String typed,
+  String fallback, {
+  required String unresolved,
+}) {
+  if (typed.trim().isEmpty) return fallback;
+  return resolveTypedCurrency(typed) ?? unresolved;
 }

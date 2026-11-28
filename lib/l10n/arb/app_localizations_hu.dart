@@ -66508,6 +66508,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_currencies_reset => 'Alapértelmezések visszaállítása';
 
   @override
+  String get settings_currencies_resetDone =>
+      'Engedélyezett pénznemek visszaállítva';
+
+  @override
+  String get settings_currencies_undo => 'Visszavonás';
+
+  @override
   String get settings_conflict_field_preferredCurrencyCodes =>
       'Engedélyezett pénznemek';
 }

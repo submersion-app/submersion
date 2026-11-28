@@ -104511,6 +104511,18 @@ abstract class AppLocalizations {
   /// **'Reset to defaults'**
   String get settings_currencies_reset;
 
+  /// Currencies page: snack bar shown after Reset restores the built-in enabled currencies
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled currencies reset'**
+  String get settings_currencies_resetDone;
+
+  /// Currencies page: snack bar action that restores the enabled currencies from before Reset
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get settings_currencies_undo;
+
   /// Sync conflict dialog label for the enabled currencies a diver lists first in the currency pickers
   ///
   /// In en, this message translates to:
