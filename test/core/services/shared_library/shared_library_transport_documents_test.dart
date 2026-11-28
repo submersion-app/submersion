@@ -136,7 +136,7 @@ void main() {
 
   test('a new library cannot start with documents or pages, an existing '
       'one there still opens', () async {
-    expect(SharedLibraryTransport.startsReserved('documents/club'), isTrue);
+    expect(SharedLibraryTransport.startsReserved('documents/survey'), isTrue);
     expect(SharedLibraryTransport.startsReserved('pages'), isTrue);
     final existing = SharedLibraryTransport(cloud, prefix: 'documents');
     await existing.writeManifest({'id': 'L', 'formatVersion': 2});

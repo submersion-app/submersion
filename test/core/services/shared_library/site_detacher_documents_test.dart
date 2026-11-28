@@ -36,7 +36,7 @@ void main() {
       ),
     );
     await SiteRepository().createSite(
-      const DiveSite(id: 'lib', name: 'Club site', sharedLibraryId: 'L'),
+      const DiveSite(id: 'lib', name: 'Survey site', sharedLibraryId: 'L'),
     );
     await SharedLibraryStore().putSiteState(
       const SharedSiteState(siteId: 'lib', libraryId: 'L'),
@@ -72,11 +72,11 @@ void main() {
   Future<void> sharedDoc() async {
     await LibraryDocumentBridge().apply(
       LibraryDocumentRecord(
-        id: 'club',
+        id: 'survey',
         siteId: 'lib',
         fields: {
           'type': 'map',
-          'title': 'Club map',
+          'title': 'Survey map',
           'pages': [
             {
               'id': 'p1',
@@ -99,7 +99,7 @@ void main() {
     );
     await SharedLibraryStore().putDocumentState(
       const SharedDocumentState(
-        documentId: 'club',
+        documentId: 'survey',
         libraryId: 'L',
         siteId: 'lib',
       ),
@@ -144,16 +144,16 @@ void main() {
         siteId: 'lib',
         ownerDiverId: 'd1',
       );
-      expect(await DocumentRepository().getById('club'), isNull);
+      expect(await DocumentRepository().getById('survey'), isNull);
       final copy = (await DocumentRepository().getById(
-        detachedDocumentId('club'),
+        detachedDocumentId('survey'),
       ))!;
       expect(copy.diverId, 'd1');
       expect(copy.sharedLibraryId, isNull);
-      expect(copy.title, 'Club map');
+      expect(copy.title, 'Survey map');
       expect(copy.owner, DocumentOwner(DocumentOwnerKind.site, newId!));
       expect((await DocumentRepository().getPages(copy.id)).single.bytes, [5]);
-      expect(await tombstones('documents', 'club'), 0);
+      expect(await tombstones('documents', 'survey'), 0);
     },
   );
 
@@ -166,12 +166,12 @@ void main() {
         ownerDiverId: 'd1',
       );
       expect(newId, isNull);
-      expect(await DocumentRepository().getById('club'), isNull);
+      expect(await DocumentRepository().getById('survey'), isNull);
       expect(
-        await DocumentRepository().getById(detachedDocumentId('club')),
+        await DocumentRepository().getById(detachedDocumentId('survey')),
         isNull,
       );
-      expect(await tombstones('documents', 'club'), 0);
+      expect(await tombstones('documents', 'survey'), 0);
       expect(await tombstones('documentPages', 'p1'), 0);
     },
   );
@@ -185,7 +185,7 @@ void main() {
         siteId: 'lib',
         ownerDiverId: 'd1',
       );
-      expect(detachedDocumentId('club'), detachedDocumentId('club'));
+      expect(detachedDocumentId('survey'), detachedDocumentId('survey'));
       expect(first, detachedSiteId('lib'));
     },
   );
@@ -195,18 +195,18 @@ void main() {
     await SharedLibraryStore().upsertLibrary(
       const SharedLibrary(
         id: 'L',
-        name: 'Reef Club',
+        name: 'Reef Survey',
         connectedAccountId: 'acc',
         prefix: 'site-sync',
       ),
     );
     await SharedLibraryStore().deleteLibrary('L');
-    expect(await SharedLibraryStore().getDocumentState('club'), isNull);
+    expect(await SharedLibraryStore().getDocumentState('survey'), isNull);
   });
 
   test('a private copy has the same page ids on every device', () async {
     await sharedDoc();
-    final copyId = await LibraryDocumentStamper().keepAsPrivate('club', 'd1');
+    final copyId = await LibraryDocumentStamper().keepAsPrivate('survey', 'd1');
     final pages = await DocumentRepository().getPages(copyId);
     expect(pages.single.id, privateCopyPageId(copyId, 'p1'));
   });
@@ -215,18 +215,21 @@ void main() {
     'a copy that already arrived by personal sync is kept, not doubled',
     () async {
       await sharedDoc();
-      final copyId = await LibraryDocumentStamper().keepAsPrivate('club', 'd1');
+      final copyId = await LibraryDocumentStamper().keepAsPrivate(
+        'survey',
+        'd1',
+      );
       final first = (await DocumentRepository().getPages(copyId)).single;
       // Another device's detach, with the library rows back on this one.
       await sharedDoc();
-      await LibraryDocumentStamper().keepAsPrivate('club', 'd1');
+      await LibraryDocumentStamper().keepAsPrivate('survey', 'd1');
       final pages = await DocumentRepository().getPages(copyId);
       expect(pages, hasLength(1));
       // Kept as it arrived: not saved again, so personal sync re-sends
       // nothing.
       expect(pages.single.id, first.id);
       expect(pages.single.hlc, first.hlc);
-      expect(await DocumentRepository().getById('club'), isNull);
+      expect(await DocumentRepository().getById('survey'), isNull);
     },
   );
 }

@@ -29,7 +29,7 @@ import '../../../../helpers/test_database.dart';
 /// library sync tests (issues #2567 and #4713).
 const testLibrary = SharedLibrary(
   id: 'L',
-  name: 'Reef Club',
+  name: 'Reef Survey',
   connectedAccountId: 'acc',
   prefix: 'site-sync',
 );
@@ -73,7 +73,7 @@ Future<SharedLibraryService> libraryDevice(
         libraryId: 'L',
         memberId: member,
         displayName: member,
-        libraryName: 'Reef Club',
+        libraryName: 'Reef Survey',
         backendKind: 's3',
         signingKey: await testMemberKey(member),
       ),
@@ -102,7 +102,7 @@ Future<void> seedTestLibrary(
   Set<String> editors = const {},
 }) async {
   final t = SharedLibraryTransport(cloud, prefix: 'site-sync');
-  await t.writeManifest({'id': 'L', 'name': 'Reef Club', 'formatVersion': 2});
+  await t.writeManifest({'id': 'L', 'name': 'Reef Survey', 'formatVersion': 2});
   await t.writeRoles(
     await signedTestRoles(
       owners: owners,

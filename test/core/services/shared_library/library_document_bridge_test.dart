@@ -63,7 +63,7 @@ void main() {
           owner: const DocumentOwner(DocumentOwnerKind.site, 's1'),
           type: DocumentType.map,
           title: 'Access',
-          issuer: 'Club',
+          issuer: 'Dive centre',
           notes: 'Park at the lighthouse',
           expiryDate: DateTime.utc(2027),
           createdAt: DateTime(2026),
@@ -100,7 +100,7 @@ void main() {
     expect(record.clocks, {'title': c(3)});
     expect(record.fields['type'], 'map');
     expect(record.fields['title'], 'Access');
-    expect(record.fields['issuer'], 'Club');
+    expect(record.fields['issuer'], 'Dive centre');
     expect(record.fields['notes'], 'Park at the lighthouse');
     expect(
       record.fields['expiryDate'],

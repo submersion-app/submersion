@@ -39,7 +39,7 @@ void main() {
   final account = ConnectedAccount(
     id: 'acc',
     kind: AccountKind.s3,
-    label: 'Club bucket',
+    label: 'Survey bucket',
     createdAt: DateTime.utc(2026),
     updatedAt: DateTime.utc(2026),
   );
@@ -119,7 +119,7 @@ void main() {
     lib = await memberships.create(
       account: account,
       prefix: 'site-sync',
-      name: 'Reef Club',
+      name: 'Reef Survey',
       diverId: 'd1',
       displayName: 'Ann',
     );

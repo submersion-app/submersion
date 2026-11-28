@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/documents/presentation/providers/document_library_providers.dart';
@@ -76,9 +77,10 @@ class DocumentLibraryCard extends ConsumerWidget {
     final name =
         names[memberId] ??
         (memberId.length > 8 ? memberId.substring(0, 8) : memberId);
-    final date = MaterialLocalizations.of(
-      context,
-    ).formatMediumDate(DateTime.fromMillisecondsSinceEpoch(at));
+    // In the diver's own date format (issue #1512).
+    final date = ref
+        .watch(unitFormatterProvider)
+        .formatDate(DateTime.fromMillisecondsSinceEpoch(at));
     return context.l10n.documents_libraryShare_lastEdited(name, date);
   }
 

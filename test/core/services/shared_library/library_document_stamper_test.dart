@@ -27,7 +27,7 @@ void main() {
       SharedLibraryStore().upsertLibrary(
         SharedLibrary(
           id: 'L',
-          name: 'Reef Club',
+          name: 'Reef Survey',
           connectedAccountId: 'acc',
           prefix: 'site-sync',
           roles: SharedLibraryRoles(
@@ -54,7 +54,7 @@ void main() {
         libraryId: 'L',
         memberId: 'm1',
         displayName: 'Ann',
-        libraryName: 'Reef Club',
+        libraryName: 'Reef Survey',
         backendKind: 's3',
       ),
     );

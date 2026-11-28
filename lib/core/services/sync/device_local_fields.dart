@@ -12,10 +12,9 @@ const Map<String, Set<String>> deviceLocalSyncColumns = {
   // v294 clears the copies (issue #3502). Kept off the wire so an older
   // peer's leftover bytes never land here again.
   'certifications': {'photoFront', 'photoBack'},
-  // A shared site library's document (issue #4713) is the library's, and
-  // which library file holds a page's bytes is this device's to know: both
-  // stay off the wire.
-  'documents': {'sharedLibraryId'},
+  // Which shared site library file holds a page's bytes (issue #4713) is
+  // this device's to know. A library document itself never reaches the
+  // wire: the export guards drop it.
   'documentPages': {'libraryFileId'},
   // A host's BLE identifier for a computer; another host's never applies.
   'diveComputers': {'bluetoothAddress'},

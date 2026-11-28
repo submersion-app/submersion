@@ -15,7 +15,7 @@ import 'package:submersion/features/documents/data/repositories/document_reposit
 import 'package:submersion/features/documents/domain/entities/document.dart';
 
 /// The document types that start private even on a library site (issue
-/// #4713): a diver's own papers rather than the club's.
+/// #4713): a diver's own papers rather than the library's.
 const Set<DocumentType> _privateByDefault = {
   DocumentType.receipt,
   DocumentType.insurance,
