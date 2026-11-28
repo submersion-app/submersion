@@ -2327,6 +2327,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       if (DiverSettingsRepository.storesSameSettings(stored, base)) return;
       _replaceBase(stored);
       state = _withDeviceLocalPrefs(stored);
+      // A read-only notifier (a desktop pop-out, issue #5078) only shows the
+      // change: the cached theme and the notifications are the main window's.
+      if (_readOnly) return;
       await _writeCachedTheme(_ref.read(sharedPreferencesProvider));
       _scheduleNotificationsIfNeeded();
       return;

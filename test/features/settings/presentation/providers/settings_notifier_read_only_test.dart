@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -144,6 +145,33 @@ void main() {
       // Give a full notifier's validation and sync time to have run.
       await Future<void>.delayed(const Duration(milliseconds: 50));
       expect(container.read(currentDiverIdProvider), diverId);
+      expect(snapshot(prefs), prefsBefore);
+    },
+  );
+
+  test(
+    "the main window's settings change is taken in without writing",
+    () async {
+      final notifier = container.read(settingsProvider.notifier);
+      await notifier.initialLoad;
+
+      // The main window saves the diver's row; the shared worker tells this
+      // connection the table changed.
+      final repo = DiverSettingsRepository();
+      DatabaseService.instance.setTestDatabase(writer);
+      final stored = await repo.getSettingsForDiver(diverId);
+      await repo.updateSettingsForDiver(
+        diverId,
+        stored!.copyWith(themeMode: ThemeMode.dark),
+        previous: stored,
+      );
+      DatabaseService.instance.setTestDatabase(readOnly);
+      readOnly.notifyUpdates({TableUpdate.onTable(readOnly.diverSettings)});
+      await pumpEventQueue();
+
+      expect(container.read(settingsProvider).themeMode, ThemeMode.dark);
+      // No cached theme written, and so no notifications scheduled either:
+      // both belong to the main window.
       expect(snapshot(prefs), prefsBefore);
     },
   );

@@ -2,7 +2,7 @@
 
 Vendored from pub.dev (`desktop_multi_window` 0.3.1, MIT, see `LICENSE`) for
 Submersion's desktop pop-out windows (issue #5078). The `example/` app is left
-out. Everything else is the published package plus the patch below.
+out. Everything else is the published package plus the patches below.
 
 ## macOS: the runner supplies each new window's engine project
 
@@ -27,6 +27,13 @@ registration, which also blocked a reopened window from pairing on the
 channel. On `willClose` the observer now shuts the engine down and clears the
 window's content view controller, on the next main-queue turn so the close
 itself completes first.
+
+## pubspec: no workspace resolution
+
+The published pubspec says `resolution: workspace`, a leftover from the
+upstream repository's pub workspace. Submersion has no workspace and uses the
+package as a path dependency, so the line is removed: the package resolves as
+an ordinary package, standalone included.
 
 When updating the package, re-apply these patches and keep the RunnerTests case
 `PopOutWindowTests.testPopOutWindowsUseTheRendererProject` passing.
