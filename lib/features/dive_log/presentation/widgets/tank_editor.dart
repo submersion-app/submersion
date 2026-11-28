@@ -419,6 +419,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       volumeLiters: volumeLiters,
       workingPressureBar: workingPressureBar,
       material: _material ?? TankMaterial.aluminum,
+      // Still on a preset, the fields show its specs (an edit clears it), so
+      // its maker's rating holds for the copy (issue #800).
+      ratedCapacityCuft: _selectedPreset?.ratedCapacityCuft,
     );
     try {
       final saved = await ref

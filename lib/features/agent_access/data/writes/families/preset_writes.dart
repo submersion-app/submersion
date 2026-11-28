@@ -80,6 +80,14 @@ class TankPresetWrites extends WritableEntry {
         _gone('Tank preset $id no longer exists.', id);
     final v = update.values;
     final displayName = v['display_name'] as String? ?? current.displayName;
+    final volumeLiters = v['volume_l'] as double? ?? current.volumeLiters;
+    final workingPressureBar =
+        v['working_pressure_bar'] as double? ?? current.workingPressureBar;
+    // A manufacturer's rating belongs to one volume at one pressure: a new
+    // size is a different cylinder, so the rating goes (issue #800).
+    final sameCylinder =
+        volumeLiters == current.volumeLiters &&
+        workingPressureBar == current.workingPressureBar;
     await _r.tankPresets.updatePreset(
       TankPresetEntity(
         id: id,
@@ -88,9 +96,8 @@ class TankPresetWrites extends WritableEntry {
             ? TankPresetEntity.generateSlug(displayName)
             : current.name,
         displayName: displayName,
-        volumeLiters: v['volume_l'] as double? ?? current.volumeLiters,
-        workingPressureBar:
-            v['working_pressure_bar'] as double? ?? current.workingPressureBar,
+        volumeLiters: volumeLiters,
+        workingPressureBar: workingPressureBar,
         material: v['material'] == null
             ? current.material
             : TankMaterial.values.byName(v['material']! as String),
@@ -98,7 +105,7 @@ class TankPresetWrites extends WritableEntry {
         sortOrder: v['sort_order'] as int? ?? current.sortOrder,
         createdAt: current.createdAt,
         updatedAt: current.updatedAt,
-        ratedCapacityCuft: current.ratedCapacityCuft,
+        ratedCapacityCuft: sameCylinder ? current.ratedCapacityCuft : null,
       ),
     );
   }

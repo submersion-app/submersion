@@ -47,6 +47,29 @@ void main() {
     expect(await h.one('tank_presets', id), isNull);
   });
 
+  // A manufacturer's rating belongs to one volume at one pressure (#800).
+  test('a tank preset keeps its rating until its size changes', () async {
+    final id = await created('tank_presets', {
+      'display_name': 'AL80 copy',
+      'volume_l': 11.1,
+      'working_pressure_bar': 206.843,
+      'material': 'aluminum',
+    });
+    await db.customStatement(
+      "UPDATE tank_presets SET rated_capacity_cuft = 77.4 WHERE id = '$id'",
+    );
+
+    await h.run([
+      updateOp('tank_presets', id, {'display_name': 'AL80 rental'}),
+    ]);
+    expect((await h.one('tank_presets', id))!['rated_capacity_cuft'], 77.4);
+
+    await h.run([
+      updateOp('tank_presets', id, {'volume_l': 12.0}),
+    ]);
+    expect((await h.one('tank_presets', id))!['rated_capacity_cuft'], isNull);
+  });
+
   // An imperial diver reads a cylinder's size by what it holds at its
   // working pressure, so the dialog needs that pressure even when it stays.
   test('a tank preset change carries its working pressure', () async {
