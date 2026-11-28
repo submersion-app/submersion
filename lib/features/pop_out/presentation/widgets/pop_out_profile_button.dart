@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/pop_out/presentation/providers/pop_out_host.dart';
 import 'package:submersion/features/pop_out/presentation/providers/pop_out_providers.dart';
@@ -19,8 +20,13 @@ class PopOutProfileButton extends ConsumerWidget {
       icon: const Icon(Icons.open_in_new),
       tooltip: context.l10n.popOut_openProfileWindow,
       visualDensity: VisualDensity.compact,
-      onPressed: () =>
-          ref.read(popOutHostProvider.notifier).openOrFocus(diveId: diveId),
+      // A window that fails to open is rolled back by the host; the failure
+      // is logged here rather than left to the zone.
+      onPressed: () => logFailure(
+        ref.read(popOutHostProvider.notifier).openOrFocus(diveId: diveId),
+        PopOutProfileButton,
+        'open the profile pop-out',
+      ),
     );
   }
 }

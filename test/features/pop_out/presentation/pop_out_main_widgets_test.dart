@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -59,6 +61,26 @@ void main() {
       await tester.tap(find.byType(IconButton));
       await tester.pumpAndSettle();
       expect(windows.opened.single.diveId, 'dive-1');
+    });
+
+    testWidgets('a window that fails to open is logged, not left uncaught', (
+      tester,
+    ) async {
+      final errors = <Object>[];
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides(),
+          child: const PopOutProfileButton(diveId: 'dive-1'),
+        ),
+      );
+      windows.failNextOpen = true;
+      // An error no one listens to goes to the zone, which fails the test.
+      await runZonedGuarded(() async {
+        await tester.tap(find.byType(IconButton));
+        await tester.pumpAndSettle();
+      }, (error, _) => errors.add(error));
+      expect(errors, isEmpty);
+      expect(windows.opened, isEmpty);
     });
   });
 

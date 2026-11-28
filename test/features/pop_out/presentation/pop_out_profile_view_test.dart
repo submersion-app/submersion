@@ -142,6 +142,17 @@ void main() {
     expect(find.text('Select a dive in the main window'), findsOneWidget);
   });
 
+  testWidgets('a deleted dive takes its name off the window', (tester) async {
+    await pump(tester, launchOn('a'), dives: {'a': _dive('a'), 'gone': null});
+    expect(control.calls, contains('title:Profile: #142 Salt Pier'));
+
+    channel.deliver(const ShowDiveMessage('gone'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Select a dive in the main window'), findsOneWidget);
+    expect(control.calls.last, 'title:Submersion');
+  });
+
   testWidgets("another diver's dive is not shown", (tester) async {
     // The main window switched diver; the pop-out still followed a dive of
     // the previous one, which would be drawn in the new diver's settings.

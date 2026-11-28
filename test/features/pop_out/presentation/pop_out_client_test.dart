@@ -216,6 +216,18 @@ void main() {
     expect(prefs.getStringList('a_list'), ['x', 'y']);
   });
 
+  test('before the viewer runs, a close request still closes the window', () {
+    // A window that could not reach the database runs no client; the
+    // main window's close (quit, restore) must not wait on it.
+    var closes = 0;
+    final handler = startupMessageHandler(() async => closes++);
+    handler(const LockMessage(true));
+    handler(const ShowDiveMessage('a'));
+    expect(closes, 0);
+    handler(const CloseMessage());
+    expect(closes, 1);
+  });
+
   test('lock message sets locked', () async {
     final c = await build(launchOn('a'));
     channel.deliver(const LockMessage(true));

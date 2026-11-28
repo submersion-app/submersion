@@ -25,6 +25,7 @@ import 'package:submersion/features/pop_out/domain/pop_out_frame.dart';
 import 'package:submersion/features/pop_out/domain/pop_out_messages.dart';
 import 'package:submersion/features/pop_out/presentation/pop_out_app.dart';
 import 'package:submersion/features/pop_out/presentation/pop_out_overrides.dart';
+import 'package:submersion/features/pop_out/presentation/providers/pop_out_client.dart';
 
 // Startup wiring that only runs in a real second window's engine; the parts
 // it puts together are tested on their own.
@@ -58,8 +59,9 @@ Future<void> runPopOutApp(PopOutLaunch launch) async {
   // Registered before anything reports: the plugin drops calls from an
   // engine that has not registered on the channel, which would lose the
   // first focus report and, when the database cannot be reached, the
-  // close. The viewer's client takes the handler over once it runs.
-  channel.setHandler((_) {});
+  // close. The viewer's client takes the handler over once it runs. The
+  // close is held (below), so this runs the window's own close sequence.
+  channel.setHandler(startupMessageHandler(windowManager.close));
   await windowManager.ensureInitialized();
 
   final connected = await _joinDatabases(channel);

@@ -74,6 +74,16 @@ class PopOutClientState extends Equatable {
   List<Object?> get props => [follow, locked];
 }
 
+/// The pop-out's channel handler until [PopOutClient] takes over, and for
+/// good in a window that could not reach the database (no client runs
+/// there): it answers the main window's close, so a quit or a restore does
+/// not wait on a window that never replies.
+void Function(PopOutMessage message) startupMessageHandler(
+  Future<void> Function() close,
+) => (message) {
+  if (message is CloseMessage) unawaited(close());
+};
+
 /// The pop-out window's side of the profile pop-out (issue #5078).
 final popOutClientProvider = NotifierProvider<PopOutClient, PopOutClientState>(
   PopOutClient.new,

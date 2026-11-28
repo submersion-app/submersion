@@ -18,12 +18,14 @@ class PopOutProfileView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final client = ref.watch(popOutClientProvider);
+    // With no dive shown, the window names no dive: the title shows in the
+    // Dock, the taskbar and the window switcher.
+    void neutralTitle() => WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+      ref.read(popOutWindowControlProvider).setTitle('Submersion');
+    });
     if (client.locked) {
-      // The title shows in the Dock, the taskbar and the window switcher.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!context.mounted) return;
-        ref.read(popOutWindowControlProvider).setTitle('Submersion');
-      });
+      neutralTitle();
       return _Message(
         icon: Icons.lock_outline,
         text: context.l10n.popOut_lockedPlaceholder,
@@ -31,6 +33,7 @@ class PopOutProfileView extends ConsumerWidget {
     }
     final diveId = client.follow.shownDiveId;
     if (diveId == null) {
+      neutralTitle();
       return _Message(
         icon: Icons.show_chart,
         text: context.l10n.popOut_selectDivePlaceholder,
