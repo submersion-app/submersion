@@ -165,4 +165,12 @@ void main() {
     expect(viewerUnlinkHeld(session), isFalse);
     expect(viewerUnlinkDrain(session), isNull);
   });
+
+  test('the library writers refuse a relink', () {
+    final writers = viewerUnlinkWriters(
+      ViewerUnlinkScope.library,
+      <T>(_) => throw StateError('nothing is read'),
+    );
+    expect(() => writers.replace(const [], [], []), throwsUnsupportedError);
+  });
 }

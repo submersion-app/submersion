@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
+import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/presentation/editing/record_media_sitting.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
@@ -105,6 +107,22 @@ void main() {
 
     expect(find.text('Photos'), findsOneWidget);
     expect(find.byType(MediaThumbnailTile), findsNWidgets(2));
+  });
+
+  testWidgets('a photo opens the viewer unlinking from its gear (#5126)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(await host(photos: [photo('m1'), photo('m2')]));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(MediaThumbnailTile).first);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(
+      tester.widget<MediaViewerPage>(find.byType(MediaViewerPage)).unlinkScope,
+      ViewerUnlinkScope.gear,
+    );
   });
 
   testWidgets('a failed read says so', (tester) async {
