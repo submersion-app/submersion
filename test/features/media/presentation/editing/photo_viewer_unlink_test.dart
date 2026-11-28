@@ -126,6 +126,17 @@ void main() {
     expect(session.changedCardIds, isNot(contains(photoUnlinkCardId)));
   });
 
+  test('undo during a save changes nothing, the drain included', () {
+    final session = _session();
+    holdViewerUnlink(session, _writers().writers);
+    session.freeze();
+
+    undoViewerUnlink(session);
+
+    expect(viewerUnlinkHeld(session), isTrue);
+    expect(viewerUnlinkDrain(session), isNotNull);
+  });
+
   test('the held write unlinks the sitting photo', () async {
     final session = _session();
     final built = _writers();

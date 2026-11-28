@@ -410,17 +410,20 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                         onPrevious: () => _step(-1, mediaList.length),
                         onNext: () => _step(1, mediaList.length),
                       ),
-                      _BottomMetadataOverlay(item: currentItem),
-                    ],
-
-                    if (photoUnlinkHeld)
-                      PositionedUnlinkStrip(
-                        bottom: 112,
-                        message: unlinkScope == ViewerUnlinkScope.site
-                            ? context.l10n.media_viewer_unlinkHeldSite
-                            : context.l10n.media_viewer_unlinkHeldDive,
-                        onUndo: undoPhotoUnlink,
+                      _BottomMetadataOverlay(
+                        item: currentItem,
+                        // Above the caption and date, so it never covers
+                        // them however tall they grow (issue #5126).
+                        above: photoUnlinkHeld
+                            ? MediaViewerUnlinkStrip(
+                                message: unlinkScope == ViewerUnlinkScope.site
+                                    ? context.l10n.media_viewer_unlinkHeldSite
+                                    : context.l10n.media_viewer_unlinkHeldDive,
+                                onUndo: undoPhotoUnlink,
+                              )
+                            : null,
                       ),
+                    ],
 
                     if (isFullscreen && fullscreenControlsVisible)
                       MediaFullscreenExitButton(onExit: exitFullscreen),
@@ -734,7 +737,10 @@ class _TopOverlay extends StatelessWidget {
 class _BottomMetadataOverlay extends ConsumerWidget {
   final MediaItem item;
 
-  const _BottomMetadataOverlay({required this.item});
+  /// Drawn above the caption and date: the held Unlink's strip.
+  final Widget? above;
+
+  const _BottomMetadataOverlay({required this.item, this.above});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -760,6 +766,10 @@ class _BottomMetadataOverlay extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (above case final strip?) ...[
+                  strip,
+                  const SizedBox(height: 12),
+                ],
                 if (item.caption != null && item.caption!.isNotEmpty) ...[
                   Text(
                     item.caption!,

@@ -86,7 +86,9 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   Future<void> unlinkPhotoHeld(MediaItem item) async {
     final scope = unlinkScope;
     if (scope == null || !canUnlinkPhoto(item)) return;
-    final read = ref.read;
+    // The container's read, not this page's: the write runs in a save that
+    // can finish after the page has gone.
+    final read = ProviderScope.containerOf(context, listen: false).read;
     if (!await confirmViewerUnlink(context, ref, scope, item.id)) return;
     // The sitting may have ended, or moved on, while the dialog was up.
     final session = photoSitting;

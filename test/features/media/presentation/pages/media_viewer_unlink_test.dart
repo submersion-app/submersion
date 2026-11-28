@@ -5,6 +5,7 @@ import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
+import 'package:submersion/features/media/presentation/widgets/media_info_panel.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
@@ -141,6 +142,20 @@ void main() {
     expect(unlinkAction(), findsNothing, reason: 'the strip has Undo');
     expect(canSave(tester), isTrue);
     expect(await stored(tester, 'p2'), isTrue, reason: 'held until Save');
+  });
+
+  testWidgets('a held unlink opens the info sheet read-only', (tester) async {
+    await open(tester);
+    await tapUnlock(tester);
+    await holdUnlink(tester);
+
+    await tester.tap(find.byKey(const ValueKey('viewer_info')));
+    await settleViewer(tester);
+
+    expect(
+      tester.widget<MediaInfoPanel>(find.byType(MediaInfoPanel)).readOnly,
+      isTrue,
+    );
   });
 
   testWidgets('Undo drops the hold', (tester) async {

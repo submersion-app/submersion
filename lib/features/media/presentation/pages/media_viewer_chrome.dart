@@ -48,7 +48,8 @@ extension _ViewerChrome on _MediaViewerPageState {
           onShowInfo: () => showMediaInfoSheet(
             context,
             currentItem,
-            readOnly: photoLocked,
+            // Read-only too while an Unlink is held: the item is going.
+            readOnly: !photoEditable,
             sitting: photoSitting,
           ),
           // A photo held only in a dive's sitting has no row for the store to

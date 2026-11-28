@@ -78,7 +78,9 @@ bool viewerUnlinkHeld(EditSession<PhotoRecord>? session) =>
 
 /// Drops the held Unlink, and nothing else the sitting holds.
 void undoViewerUnlink(EditSession<PhotoRecord> session) {
-  if (session.isDisposed) return;
+  // A save running now holds the session: it keeps the unlink, and the
+  // drain it may still need if it fails and is tried again.
+  if (session.isDisposed || session.isFrozen) return;
   session
     ..releaseWrite(photoUnlinkKey)
     ..remember(_drainKey, null);
