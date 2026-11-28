@@ -491,4 +491,147 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  group('a long section collapses', () {
+    List<SiteSpeciesEntry> expectedFish(int n) => [
+      for (var i = 0; i < n; i++)
+        _expected('f$i', 'Fish $i', SpeciesCategory.fish),
+    ];
+
+    testWidgets('to 12 species, with Show all and Show fewer', (tester) async {
+      await pump(tester, expected: expectedFish(20));
+
+      expect(find.text('Fish 11'), findsOneWidget);
+      expect(find.text('Fish 12'), findsNothing);
+      final showAll = find.text(l.marineLife_speciesDetail_showAll(20));
+      expect(showAll, findsOneWidget);
+
+      await tester.ensureVisible(showAll);
+      await tester.tap(showAll);
+      await tester.pumpAndSettle();
+      expect(find.text('Fish 19'), findsOneWidget);
+
+      final showFewer = find.text(l.marineLife_speciesDetail_showFewer);
+      await tester.ensureVisible(showFewer);
+      await tester.tap(showFewer);
+      await tester.pumpAndSettle();
+      expect(find.text('Fish 12'), findsNothing);
+      expect(find.text(l.marineLife_speciesDetail_showAll(20)), findsOneWidget);
+    });
+
+    testWidgets('not at all when it holds 12 or fewer', (tester) async {
+      await pump(tester, expected: expectedFish(12));
+
+      expect(find.text('Fish 11'), findsOneWidget);
+      expect(find.text(l.marineLife_speciesDetail_showAll(12)), findsNothing);
+    });
+
+    testWidgets('Spotted and Expected each on their own', (tester) async {
+      await pump(
+        tester,
+        spotted: [
+          for (var i = 0; i < 14; i++)
+            _spotted('s$i', 'Seen $i', SpeciesCategory.fish),
+        ],
+        expected: expectedFish(16),
+      );
+
+      expect(find.text(l.marineLife_speciesDetail_showAll(14)), findsOneWidget);
+      expect(find.text(l.marineLife_speciesDetail_showAll(16)), findsOneWidget);
+
+      final showAll = find.text(l.marineLife_speciesDetail_showAll(14));
+      await tester.ensureVisible(showAll);
+      await tester.tap(showAll);
+      await tester.pumpAndSettle();
+      expect(find.text('Seen 13 (1)'), findsOneWidget);
+      expect(find.text('Fish 15'), findsNothing);
+    });
+
+    testWidgets('dropping a category the limit leaves out entirely', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        expected: [
+          ...expectedFish(12),
+          _expected('t1', 'Hawksbill Turtle', SpeciesCategory.turtle),
+        ],
+      );
+
+      expect(find.text(SpeciesCategory.turtle.localizedName(l)), findsNothing);
+      final showAll = find.text(l.marineLife_speciesDetail_showAll(13));
+      await tester.ensureVisible(showAll);
+      await tester.tap(showAll);
+      await tester.pumpAndSettle();
+      expect(
+        find.text(SpeciesCategory.turtle.localizedName(l)),
+        findsOneWidget,
+      );
+      expect(find.text('Hawksbill Turtle'), findsOneWidget);
+    });
+
+    testWidgets('in the order the chips are drawn, grouped', (tester) async {
+      // Listed fish, turtle, fish: drawn as all the fish, then the turtle.
+      // The first 12 drawn are fish, so Show all adds the turtle after
+      // them rather than slotting it in among those already shown.
+      await pump(
+        tester,
+        expected: [
+          ...expectedFish(11),
+          _expected('t1', 'Hawksbill Turtle', SpeciesCategory.turtle),
+          _expected('f11', 'Fish 11', SpeciesCategory.fish),
+          _expected('f12', 'Fish 12', SpeciesCategory.fish),
+        ],
+      );
+
+      expect(find.text('Fish 11'), findsOneWidget);
+      expect(find.text('Hawksbill Turtle'), findsNothing);
+    });
+
+    testWidgets('again when another site opens in the same card', (
+      tester,
+    ) async {
+      final siteId = ValueNotifier('site-1');
+      addTearDown(siteId.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+            for (final id in ['site-1', 'site-2'])
+              siteSpottedSpeciesProvider(
+                id,
+              ).overrideWith((ref) async => const []),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: ValueListenableBuilder<String>(
+                  valueListenable: siteId,
+                  builder: (_, id, _) => SiteMarineLifeSection(
+                    siteId: id,
+                    species: expectedFish(20),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final showAll = find.text(l.marineLife_speciesDetail_showAll(20));
+      await tester.ensureVisible(showAll);
+      await tester.tap(showAll);
+      await tester.pumpAndSettle();
+      expect(find.text('Fish 19'), findsOneWidget);
+
+      siteId.value = 'site-2';
+      await tester.pumpAndSettle();
+      expect(find.text('Fish 19'), findsNothing);
+      expect(find.text(l.marineLife_speciesDetail_showAll(20)), findsOneWidget);
+    });
+  });
 }
