@@ -36,7 +36,7 @@ DiveSite _site({GeoPoint? location, double? altitude}) => DiveSite(
 
 void main() {
   group('AltitudeResolver', () {
-    test('prefers the dive entry location lookup', () async {
+    test('uses the dive entry location lookup when there is no site', () async {
       final requests = <Uri>[];
       final resolver = AltitudeResolver(
         elevationService: _service(elevation: 740.0, requests: requests),
@@ -44,12 +44,63 @@ void main() {
 
       final result = await resolver.resolve(
         entryLocation: const GeoPoint(46.4, 8.0),
-        site: _site(altitude: 300.0),
       );
 
       expect(result.altitudeMeters, 740.0);
+      expect(result.source, AltitudeSource.diveLocation);
+      expect(result.isDiveOwn, isTrue);
       expect(result.siteAltitudeWriteBack, isNull);
       expect(requests.single.queryParameters['latitude'], '46.4');
+    });
+
+    // Issue #5040: a dive reads its site's altitude, so the site answers
+    // first and the dive's GPS is not looked up to make one of its own.
+    test("prefers the site's altitude over the dive GPS", () async {
+      final requests = <Uri>[];
+      final resolver = AltitudeResolver(
+        elevationService: _service(requests: requests),
+      );
+
+      final result = await resolver.resolve(
+        entryLocation: const GeoPoint(46.4, 8.0),
+        site: _site(altitude: 300.0),
+      );
+
+      expect(result.altitudeMeters, 300.0);
+      expect(result.source, AltitudeSource.siteStored);
+      expect(requests, isEmpty);
+    });
+
+    test(
+      "prefers a lookup of the site's coordinates over the dive GPS",
+      () async {
+        final requests = <Uri>[];
+        final resolver = AltitudeResolver(
+          elevationService: _service(requests: requests),
+        );
+
+        final result = await resolver.resolve(
+          entryLocation: const GeoPoint(46.4, 8.0),
+          site: _site(location: const GeoPoint(47.0, 9.0)),
+        );
+
+        expect(result.source, AltitudeSource.siteLookup);
+        expect(result.siteAltitudeWriteBack?.siteId, 'site-1');
+        expect(requests.single.queryParameters['latitude'], '47.0');
+      },
+    );
+
+    test('uses the dive GPS for a site with neither altitude nor '
+        'coordinates', () async {
+      final resolver = AltitudeResolver(elevationService: _service());
+
+      final result = await resolver.resolve(
+        entryLocation: const GeoPoint(46.4, 8.0),
+        site: _site(),
+      );
+
+      expect(result.altitudeMeters, 740.0);
+      expect(result.source, AltitudeSource.diveLocation);
     });
 
     test('uses exit location when entry is missing', () async {
@@ -60,18 +111,6 @@ void main() {
       );
 
       expect(result.altitudeMeters, 740.0);
-    });
-
-    test('falls back to site altitude when dive lookup fails', () async {
-      final resolver = AltitudeResolver(elevationService: _service(fail: true));
-
-      final result = await resolver.resolve(
-        entryLocation: const GeoPoint(46.4, 8.0),
-        site: _site(altitude: 300.0),
-      );
-
-      expect(result.altitudeMeters, 300.0);
-      expect(result.siteAltitudeWriteBack, isNull);
     });
 
     test('uses site altitude when the dive has no GPS', () async {

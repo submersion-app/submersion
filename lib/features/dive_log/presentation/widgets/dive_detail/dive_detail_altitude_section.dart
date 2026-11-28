@@ -42,17 +42,19 @@ class DiveAltitudeSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (dive.altitude == null || dive.altitude! <= 0) {
+    // Its own altitude, else its site's (issue #5040).
+    final altitude = dive.effectiveAltitude;
+    if (altitude == null || altitude <= 0) {
       return const SizedBox.shrink();
     }
 
     final colorScheme = Theme.of(context).colorScheme;
     final units = ref.watch(unitFormatterProvider);
 
-    final altitudeGroup = AltitudeGroup.fromAltitude(dive.altitude);
+    final altitudeGroup = AltitudeGroup.fromAltitude(altitude);
     final pressure =
         dive.surfacePressure ??
-        AltitudeCalculator.calculateBarometricPressure(dive.altitude!);
+        AltitudeCalculator.calculateBarometricPressure(altitude);
 
     return Card(
       child: Padding(
@@ -87,7 +89,7 @@ class DiveAltitudeSection extends ConsumerWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        units.formatAltitude(dive.altitude),
+                        units.formatAltitude(altitude),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: colorScheme.primary,

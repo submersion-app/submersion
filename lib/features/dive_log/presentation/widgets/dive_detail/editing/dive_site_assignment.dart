@@ -94,6 +94,7 @@ void assignDiveSite(
     session
       ..releaseWrite(siteAltitudeWriteKey(previous.id))
       ..releaseWrite(siteLocationChangeKey(previous.id));
+    forgetSiteAltitudeLookup(session, previous.id);
   }
   session.set(diveSiteField, site);
 

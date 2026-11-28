@@ -2169,7 +2169,14 @@ class UddfEntityImporter {
         ),
       );
 
-      if (uddfId != null) idMapping[uddfId] = overwrittenSite;
+      // With the water type written apart above, so a dive linked to it
+      // can tell the site's from its own (issue #5040).
+      if (uddfId != null) {
+        idMapping[uddfId] = overwrittenSite.copyWith(
+          waterType:
+              WaterType.values.asNameMap()[waterType] ?? existing.waterType,
+        );
+      }
       if (_hasSiteChildData(siteData)) {
         await restoreSiteChildren?.call(siteData, overwrittenSite.id);
       }
@@ -2283,7 +2290,13 @@ class UddfEntityImporter {
         );
       }
 
-      if (uddfId != null) idMapping[uddfId] = createdSite;
+      // With the water type written apart above, so a dive linked to it
+      // can tell the site's from its own (issue #5040).
+      if (uddfId != null) {
+        idMapping[uddfId] = createdSite.copyWith(
+          waterType: WaterType.values.asNameMap()[waterType],
+        );
+      }
       if (_hasSiteChildData(siteData)) {
         await restoreSiteChildren?.call(siteData, createdSite.id);
       }
@@ -2966,6 +2979,15 @@ class UddfEntityImporter {
         if (directSiteId != null) linkedSite = siteIdMapping[directSiteId];
       }
 
+      // A dive reads its site's altitude and water type (issue #5040), and
+      // an export writes them on the dive. A value equal to the linked
+      // site's is that one coming back, not the dive's own.
+      final importedAltitude = asDoubleOrNull(diveData['altitude']);
+      final importedWaterType = _parseEnum(
+        diveData['waterType'],
+        WaterType.values,
+      );
+
       // Link to the imported or pre-resolved trip
       String? linkedTripId;
       final tripRef = diveData['tripRef'] as String?;
@@ -3219,8 +3241,12 @@ class UddfEntityImporter {
         swellHeight: asDoubleOrNull(diveData['swellHeight']),
         entryMethod: _parseEnum(diveData['entryMethod'], EntryMethod.values),
         exitMethod: _parseEnum(diveData['exitMethod'], EntryMethod.values),
-        waterType: _parseEnum(diveData['waterType'], WaterType.values),
-        altitude: asDoubleOrNull(diveData['altitude']),
+        waterType: importedWaterType == linkedSite?.waterType
+            ? null
+            : importedWaterType,
+        altitude: importedAltitude == linkedSite?.altitude
+            ? null
+            : importedAltitude,
         // Weather as the source recorded it. weatherSource stays null, as
         // for weather typed in by hand: it marks an Open-Meteo fetch.
         windSpeed: asDoubleOrNull(diveData['windSpeed']),

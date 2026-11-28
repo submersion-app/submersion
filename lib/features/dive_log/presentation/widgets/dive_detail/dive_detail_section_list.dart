@@ -33,6 +33,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_tide_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_health_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_card_presence.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_profile_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_route_links_sitting.dart';

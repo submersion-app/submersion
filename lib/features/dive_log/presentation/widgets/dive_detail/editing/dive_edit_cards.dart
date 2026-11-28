@@ -173,8 +173,9 @@ final Map<DiveDetailSectionId, EditCard<Dive>> diveEditCards = {
       size: 20,
       color: Theme.of(context).colorScheme.primary,
     ),
-    // The card is on the page only for a dive above sea level.
-    isEmpty: (dive) => (dive.altitude ?? 0) <= 0,
+    // The card is on the page only for a dive above sea level, its own
+    // altitude or its site's (issue #5040).
+    isEmpty: (dive) => (dive.effectiveAltitude ?? 0) <= 0,
     editorBuilder: (context, session) =>
         DiveAltitudeCardEditor(session: session),
   ),

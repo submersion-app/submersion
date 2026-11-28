@@ -490,6 +490,19 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     );
   }
 
+  /// The Conditions section's rows as (label, value) pairs, as
+  /// [equipmentFieldsForTest] exposes the Equipment section's.
+  @visibleForTesting
+  List<({String label, String value})> conditionFieldsForTest(
+    Dive dive, {
+    required UnitFormatter units,
+    AppLocalizations? l10n,
+  }) => _conditionFields(
+    dive,
+    units: units,
+    l10n: l10n ?? PdfLocalization.english().l10n,
+  ).map((f) => (label: f.label, value: f.value)).toList();
+
   List<_Field> _conditionFields(
     Dive dive, {
     required UnitFormatter units,
@@ -527,8 +540,8 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
         _Field(l10n.pdf_entry, dive.effectiveEntryMethod!.localizedName(l10n)),
       if (dive.exitMethod != null)
         _Field(l10n.pdf_exit, dive.exitMethod!.localizedName(l10n)),
-      if (dive.altitude != null)
-        _Field(l10n.pdf_altitude, units.formatAltitude(dive.altitude)),
+      if (dive.effectiveAltitude != null)
+        _Field(l10n.pdf_altitude, units.formatAltitude(dive.effectiveAltitude)),
     ];
   }
 

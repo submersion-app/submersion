@@ -22,12 +22,13 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<void> insertSite(String id) => db
+  Future<void> insertSite(String id, {double? altitude}) => db
       .into(db.diveSites)
       .insert(
         DiveSitesCompanion.insert(
           id: id,
           name: 'Site $id',
+          altitude: Value(altitude),
           createdAt: 0,
           updatedAt: 0,
         ),
@@ -177,5 +178,23 @@ void main() {
     );
 
     expect(rows.map((r) => r.diveId), ['mine-reef']);
+  });
+
+  // Issue #5040: a site's altitude is read through, not copied, so a dive
+  // with none of its own counts at its site's.
+  test("a dive with no altitude of its own reads its site's", () async {
+    await insertSite('lake', altitude: 450);
+    await insertSite('reef');
+    await insertDive('at-lake', day: 1, siteId: 'lake');
+    await insertDive('own', day: 2, siteId: 'lake', altitude: 1200);
+    await insertDive('at-reef', day: 3, siteId: 'reef');
+    await insertDive('no-site', day: 4);
+
+    final rows = await repository.getConditionsRows();
+
+    expect(
+      {for (final r in rows) r.diveId: r.altitude},
+      {'at-lake': 450, 'own': 1200, 'at-reef': null, 'no-site': null},
+    );
   });
 }

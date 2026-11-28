@@ -548,34 +548,40 @@ class DiveRepository {
       )
       .debounce(changeTickDebounce);
 
-  /// Emits when the water type of [diveId]'s site changes, the deco fallback
-  /// [getDiveForAnalysis] reads for a dive with none of its own (issue
-  /// #3196). Deliberately not part of [watchAnalysisInputChanges]: that tick
-  /// fans out to every analysis input provider, and `dive_sites` is written
-  /// in bulk (a sync, the altitude backfill after site matching). This query
-  /// re-reads one value on such a write and emits only when it changed.
+  /// Emits when the water type or altitude of [diveId]'s site changes, the
+  /// values the dive reads through for its deco environment when it has none
+  /// of its own (issues #3196, #5040). Deliberately not part of
+  /// [watchAnalysisInputChanges]: that tick fans out to every analysis input
+  /// provider, and `dive_sites` is written in bulk (a sync, the altitude
+  /// backfill after site matching). This query re-reads the two values on
+  /// such a write and emits only when one changed.
   ///
   /// Built on table updates, not a query stream, which would emit on
   /// subscribe (see test/architecture/query_stream_tick_test.dart). A change
   /// of the dive's own site link already ticks through `dives`.
-  Stream<void> watchSiteWaterTypeChanges(String diveId) => whenValueChanges(
+  Stream<void> watchSiteAnalysisValueChanges(String diveId) => whenValueChanges(
     _db
         .tableUpdates(TableUpdateQuery.onTable(_db.diveSites))
         .debounce(changeTickDebounce),
-    () => _siteWaterTypeOf(diveId),
+    () => _siteAnalysisValuesOf(diveId),
   );
 
-  // stats-scope-exempt: reads one dive's site water type for its analysis
-  Future<String?> _siteWaterTypeOf(String diveId) async {
+  // stats-scope-exempt: reads one dive's site values for its analysis
+  Future<({String? waterType, double? altitude})> _siteAnalysisValuesOf(
+    String diveId,
+  ) async {
     final row = await _db
         .customSelect(
-          'SELECT s.water_type AS water_type FROM dives d '
-          'JOIN dive_sites s ON s.id = d.site_id WHERE d.id = ?',
+          'SELECT s.water_type AS water_type, s.altitude AS altitude '
+          'FROM dives d JOIN dive_sites s ON s.id = d.site_id WHERE d.id = ?',
           variables: [Variable.withString(diveId)],
           readsFrom: {_db.dives, _db.diveSites},
         )
         .getSingleOrNull();
-    return row?.readNullable<String>('water_type');
+    return (
+      waterType: row?.readNullable<String>('water_type'),
+      altitude: row?.readNullable<double>('altitude'),
+    );
   }
 
   /// Get all dives, ordered by date (newest first)

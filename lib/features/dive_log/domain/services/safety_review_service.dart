@@ -48,7 +48,9 @@ class SafetyReviewService {
   /// which changes what is graded on a dive in a shared logbook (#3923).
   /// v12: isobaric counterdiffusion, from the tissue model and from gas
   /// switches that break the rule of fifths (#4530).
-  static const int engineVersion = 12;
+  /// v13: a dive with no altitude of its own reads its site's, which changes
+  /// the deco and oxygen findings of a dive at an altitude site (#5040).
+  static const int engineVersion = 13;
 
   const SafetyReviewService();
 

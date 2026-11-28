@@ -6,9 +6,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_sitting_follow_up.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_altitude_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_hero_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_header_fields.dart';
@@ -313,17 +315,21 @@ void main() {
       tester.element(find.byType(DiveDetailHeroSection)),
     );
 
-    // Each of the two others sets its own values, and its looked-up
-    // altitude is held for its site.
+    // Each of the two others is read for its water and altitude, not
+    // copied (issue #5040): its looked-up altitude is held for its site and
+    // shown as the site's. Its entry method is set on the dive.
     assign(session, wreck);
     await settle(tester);
-    expect(session.working.waterType, WaterType.salt);
-    expect(session.working.altitude, 512);
+    expect(session.working.waterType, isNull);
+    expect(session.working.effectiveWaterType, WaterType.salt);
+    expect(session.working.altitude, isNull);
+    expect(siteAltitudeOf(session), 512);
     assign(session, quarry);
     await settle(tester);
-    expect(session.working.waterType, WaterType.brackish);
+    expect(session.working.effectiveWaterType, WaterType.brackish);
     expect(session.working.entryMethod, EntryMethod.giantStride);
-    expect(session.working.altitude, 1300);
+    expect(session.working.altitude, isNull);
+    expect(siteAltitudeOf(session), 1300);
     expect(session.heldKeys, contains(siteAltitudeWriteKey('quarry')));
     expect(session.isDirty, isTrue);
 
@@ -342,6 +348,38 @@ void main() {
     expect(session.isDirty, isFalse);
     expect(action(tester, 'Save').onPressed, isNull);
     expect(page.save.calls, isEmpty);
+  });
+
+  // Issue #5040: an altitude looked up for a picked site is held for the
+  // site, not set on the dive, and the Altitude card still shows it at once.
+  testWidgets("a site's looked-up altitude brings the Altitude card before "
+      'Save', (tester) async {
+    serveFakeHost('tile.openstreetmap.org', const FakeResponse(404));
+    const lake = DiveSite(
+      id: 'lake',
+      name: 'High Lake',
+      location: GeoPoint(46, 8),
+    );
+    await pumpPage(
+      tester,
+      size: const Size(700, 2400),
+      visible: const {DiveDetailSectionId.altitude, DiveDetailSectionId.notes},
+      extra: [
+        elevationServiceProvider.overrideWithValue(_Elevation({46: 512})),
+      ],
+    );
+    await unlock(tester);
+    final session = controllerOf(tester).session!;
+    final assign = readDiveSiteAssigner(
+      tester.element(find.byType(DiveDetailHeroSection)),
+    );
+
+    assign(session, lake);
+    await settle(tester);
+
+    expect(session.working.altitude, isNull);
+    expect(find.byType(DiveAltitudeSection), findsOneWidget);
+    expect(find.text('512 m'), findsOneWidget);
   });
 }
 

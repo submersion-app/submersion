@@ -100,7 +100,10 @@ class DerivedMetricsRepository {
     final waterTypes = WaterType.values.asNameMap();
     final ownWaterType = waterTypes[dive.waterType];
     final siteId = dive.siteId;
-    final site = ownWaterType != null || siteId == null
+    // The site fills in what the dive lacks: its water type and its altitude
+    // (issue #5040).
+    final site =
+        (ownWaterType != null && dive.altitude != null) || siteId == null
         ? null
         : await (_db.select(
             _db.diveSites,
@@ -141,7 +144,7 @@ class DerivedMetricsRepository {
         sourceUpdatedAt: stamp,
         computedAtMs: DateTime.now().millisecondsSinceEpoch,
         environment: DiveEnvironment.forConditions(
-          altitudeMeters: dive.altitude,
+          altitudeMeters: dive.altitude ?? site?.altitude,
           surfacePressureBar: dive.surfacePressure,
           waterType: ownWaterType ?? waterTypes[site?.waterType],
         ),

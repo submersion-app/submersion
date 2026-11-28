@@ -40,9 +40,12 @@ List<DiveEditorColumn> diveEditorColumns({
   toggleColumn(DiveField.isFavorite, (d) => d.isFavorite),
   toggleColumn(DiveField.excludedFromStats, (d) => d.excludedFromStats),
   toggleColumn(DiveField.excludedFromGasStats, (d) => d.excludedFromGasStats),
+  // Shown as every other reader of the dive reads them: its own, else its
+  // site's (issues #1427, #5040). Only a cell the diver edits is written,
+  // so the site's value is never stored on the dive by being shown.
   choiceColumn(
     DiveField.waterType,
-    (d) => d.waterType,
+    (d) => d.effectiveWaterType,
     WaterType.values,
     (v, l) => v.localizedName(l),
   ),
@@ -75,7 +78,7 @@ List<DiveEditorColumn> diveEditorColumns({
   ),
   numberColumn(
     DiveField.altitude,
-    (d) => d.altitude,
+    (d) => d.effectiveAltitude,
     toDisplay: (u, v) => u.convertAltitude(v),
     toStored: (u, v) => u.altitudeToMeters(v),
     symbol: (u) => u.altitudeSymbol,

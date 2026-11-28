@@ -127,7 +127,7 @@ class DiveToPlanConverter {
       // replanned deco is judged by the same rule the dive was run on.
       gfLow: dive.gradientFactorLow ?? defaults.gfLow,
       gfHigh: dive.gradientFactorHigh ?? defaults.gfHigh,
-      altitude: dive.altitude ?? defaults.altitude,
+      altitude: dive.effectiveAltitude ?? defaults.altitude,
       waterType: diveWater ?? defaults.waterType,
       salinityPpt: diveWater != null ? null : defaults.salinityPpt,
       sacRate: defaults.sacRate,

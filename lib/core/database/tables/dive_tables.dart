@@ -84,9 +84,10 @@ class Dives extends Table {
   RealColumn get swellHeight => real().nullable()(); // meters
   TextColumn get entryMethod => text().nullable()();
   TextColumn get exitMethod => text().nullable()();
+  // The dive's own water type; null reads dive_sites.water_type
   TextColumn get waterType => text().nullable()();
-  // Altitude for altitude diving
-  RealColumn get altitude => real().nullable()(); // meters above sea level
+  // The dive's own altitude in meters; null reads dive_sites.altitude
+  RealColumn get altitude => real().nullable()();
   // Surface pressure for altitude/weather corrections
   RealColumn get surfacePressure => real().nullable()(); // bar (default ~1.013)
   // Surface interval before this dive as the computer or diver gave it, NULL

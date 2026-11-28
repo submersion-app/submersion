@@ -242,8 +242,13 @@ class UddfExportBuilders {
                 nest: (dive.airTemp! + 273.15).toString(),
               );
             }
-            if (dive.altitude != null) {
-              builder.element('altitude', nest: dive.altitude.toString());
+            // The effective altitude, as the water type below: a reader
+            // of the file has no site fallback (issue #5040).
+            if (dive.effectiveAltitude != null) {
+              builder.element(
+                'altitude',
+                nest: dive.effectiveAltitude.toString(),
+              );
             }
             if (dive.surfacePressure != null) {
               // UDDF stores pressure in Pascal (bar * 100000)

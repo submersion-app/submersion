@@ -7,21 +7,23 @@ void main() {
   DiveSite site({WaterType? waterType}) =>
       DiveSite(id: 's', name: 'S', waterType: waterType);
 
+  // Issue #5040: the site's water type is read through, never copied, so a
+  // site that has one leaves the dive's own empty.
   group('waterTypeAfterSiteAssign', () {
-    test('snaps to the site water type when the site has one', () {
+    test('leaves the dive empty when the site has a water type', () {
       expect(
         waterTypeAfterSiteAssign(null, site(waterType: WaterType.salt)),
-        WaterType.salt,
+        isNull,
       );
     });
 
-    test('overwrites the current value when the new site has a water type', () {
+    test('drops the current value when the new site has a water type', () {
       expect(
         waterTypeAfterSiteAssign(
           WaterType.fresh,
           site(waterType: WaterType.salt),
         ),
-        WaterType.salt,
+        isNull,
       );
     });
 

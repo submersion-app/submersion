@@ -108,8 +108,10 @@ void main() {
     expect(action(tester, 'Save').onPressed, isNull);
   });
 
-  testWidgets('a site picked in the header gives Details, Environment and '
-      'Altitude their dots, and Save names all four', (tester) async {
+  // Issue #5040: the site's water type and altitude are read through, not
+  // copied, so only the entry and exit the site fills mark a card.
+  testWidgets('a site picked in the header gives Environment its dot, and '
+      'Save names it with the header', (tester) async {
     final page = await pumpPage(tester, stored: headed);
     await unlock(tester);
     await openHeader(tester);
@@ -120,16 +122,13 @@ void main() {
     await save(tester);
 
     final call = page.save.calls.single;
-    expect(call.cards.toSet(), {
-      diveHeaderCardId,
-      'details',
-      'environment',
-      'altitude',
-    });
+    expect(call.cards.toSet(), {diveHeaderCardId, 'environment'});
     expect(call.merged.site?.id, 'reef');
-    expect(call.merged.waterType, WaterType.salt);
+    expect(call.merged.waterType, isNull);
+    expect(call.merged.effectiveWaterType, WaterType.salt);
     expect(call.merged.entryMethod, EntryMethod.shore);
-    expect(call.merged.altitude, 900);
+    expect(call.merged.altitude, isNull);
+    expect(call.merged.effectiveAltitude, 900);
   });
 
   testWidgets('the Altitude card a site brings waits for the header to '

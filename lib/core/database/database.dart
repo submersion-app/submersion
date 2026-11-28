@@ -338,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 394;
+  static const int currentSchemaVersion = 395;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -536,7 +536,15 @@ class AppDatabase extends _$AppDatabase {
   /// the new kinds as manually credited dives and discard the conditions.
   /// Holding those readers also prevents them from publishing explicit nulls
   /// for the discarded conditions after they upgrade.
-  static const int minimumCompatibleSchemaVersion = 386;
+  ///
+  /// Raised 386 -> 395 by site-derived dive values (#5040): from v395 a
+  /// dive's altitude reads through to its site, so linking a site stores
+  /// none on the dive and the rung clears the copies older builds made. A
+  /// peer below 395 reads only the dive's own altitude, so it would show a
+  /// dive linked here with no altitude and replay its deco at sea level.
+  /// Held below the floor until it updates. Its own payloads still arrive
+  /// here, and the copies they carry are cleared after the apply.
+  static const int minimumCompatibleSchemaVersion = 395;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1843,6 +1851,12 @@ class AppDatabase extends _$AppDatabase {
     // v394: tank_presets.rated_capacity_cuft, the rated capacity a copy of a
     // built-in preset keeps (issue #800). Nullable; the floor does not move.
     394,
+    // v395 (issue #5040): a dive reads its site's altitude and water type;
+    // the copies linking a site made are cleared and an empty entry or exit
+    // method is filled from a site listing one. The floor rises to 395 (see
+    // minimumCompatibleSchemaVersion). Numbered 395 because main and open
+    // work hold 388 to 394.
+    395,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -46,10 +46,12 @@ extension InsightsRepositoryFocusSeries on InsightsRepository {
     DiveFilterState filter = const DiveFilterState(),
   }) => _columnSeries('d.visibility_meters', 'visibility', diverId, filter);
 
+  /// The dive's own altitude, else its site's (issue #5040).
   Future<List<TrendDataPoint>> getAltitudePerDive({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
-  }) => _columnSeries('d.altitude', 'altitude', diverId, filter);
+  }) =>
+      _columnSeries(diveEffectiveAltitudeSql('d'), 'altitude', diverId, filter);
 
   Future<List<TrendDataPoint>> getCnsPerDive({
     String? diverId,

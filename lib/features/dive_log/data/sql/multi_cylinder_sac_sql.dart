@@ -107,12 +107,19 @@ String diveEffectiveWaterTypeSql(String dive) =>
     "(SELECT NULLIF(dws.water_type, '') FROM dive_sites dws "
     'WHERE dws.id = $dive.site_id))';
 
+/// The effective altitude in metres of the `dives` row aliased [dive]: its
+/// own, else its site's (issue #5040). The SQL twin of
+/// `Dive.effectiveAltitude`.
+String diveEffectiveAltitudeSql(String dive) =>
+    'COALESCE($dive.altitude, '
+    '(SELECT dsa.altitude FROM dive_sites dsa WHERE dsa.id = $dive.site_id))';
+
 /// The absolute pressure in bar at [depth] meters in the water of the `dives`
 /// row aliased [dive], as `Dive.environment` reads it. [depth] is a SQL
 /// expression.
 String diveAmbientBarSql(String dive, String depth) =>
-    '$kDiveAmbientBarFunction($depth, $dive.altitude, $dive.surface_pressure, '
-    '${diveEffectiveWaterTypeSql(dive)})';
+    '$kDiveAmbientBarFunction($depth, ${diveEffectiveAltitudeSql(dive)}, '
+    '$dive.surface_pressure, ${diveEffectiveWaterTypeSql(dive)})';
 
 /// SAC in bar per minute at the surface of the `dives` row aliased [dive]:
 /// the reference cylinder's drop (the first backmount gas, back gas or twin
