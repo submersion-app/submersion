@@ -189,12 +189,9 @@ List<Widget> speciesChipWidgets(
         label: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              l10n.media_species_suggestedChip(
-                candidateDisplayName(l10n, s.top.candidate),
-                (s.score * 100).round(),
-              ),
-            ),
+            // The name alone: a model score is not how often a name is
+            // right, least of all on video (issue #5121).
+            Text(candidateDisplayName(l10n, s.top.candidate)),
             if (nearbyRequest != null)
               RecordedNearbyPin(
                 request: nearbyRequest,

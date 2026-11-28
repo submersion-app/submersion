@@ -418,6 +418,13 @@ precisions with and without a location (`levels.shown_precision`), so the
 settings line never overstates for photos named without a location, where
 a level's lower no-location bar can make it less often right
 ([design](../design/specs/2026-11-19-marine-life-level-accuracy-without-location-design.md)).
+The figures are measured on held-out still photos only, so the settings
+line says "on photos" (issue #5121): video frames (motion blur,
+compression, backscatter, small and partly hidden animals) name more
+animals wrongly at the same bars, and no video figure has been measured.
+For the same reason no screen shows a suggestion's classifier score: it
+is a softmax score, not how often a name is right, and divers read "78%"
+as a hit rate.
 The report's "Naming levels" table gives Surer's and each level's
 held-out precision and coverage both ways, the shown figure and junk
 named, and warns when a shown figure is set by a side naming fewer than

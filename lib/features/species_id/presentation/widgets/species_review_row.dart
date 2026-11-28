@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -54,7 +53,6 @@ class SpeciesReviewRowTile extends StatelessWidget {
     final name = reviewRowName(l10n, row);
     final settled = edits.isRowSettled(row);
     final best = row.best;
-    final score = row.bestScore;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -81,7 +79,6 @@ class SpeciesReviewRowTile extends StatelessWidget {
                       row.taggedCount,
                       row.suggestedCount,
                     ),
-                  if (score != null) _percent(context, score),
                 ].join(' '),
               ),
               // Once per row: its photos' lines below would only repeat it.
@@ -119,7 +116,6 @@ class SpeciesReviewRowTile extends StatelessWidget {
   Widget _itemLine(BuildContext context, ReviewItem item) {
     final l10n = context.l10n;
     final decision = edits.decisionFor(row.key, item.media.id);
-    final score = item.score;
     return Padding(
       padding: const EdgeInsetsDirectional.only(start: 32),
       child: ListTile(
@@ -135,7 +131,6 @@ class SpeciesReviewRowTile extends StatelessWidget {
               ? l10n.speciesReview_itemTagged
               : l10n.speciesReview_itemSuggested,
         ),
-        subtitle: score == null ? null : Text(_percent(context, score)),
         trailing: decision != null
             ? _Settled(
                 label: _decisionLabel(l10n, decision),
@@ -178,12 +173,6 @@ class SpeciesReviewRowTile extends StatelessWidget {
       best.media.diveId != null
       ? (diveId: best.media.diveId, photo: null)
       : nearbyRequestForMedia(best.media);
-
-  /// A score as the locale writes a percentage, as the species sheet does.
-  static String _percent(BuildContext context, double score) =>
-      NumberFormat.percentPattern(
-        Localizations.localeOf(context).toString(),
-      ).format(score);
 
   static String _counts(AppLocalizations l10n, ReviewRow row) {
     final videos = row.items
