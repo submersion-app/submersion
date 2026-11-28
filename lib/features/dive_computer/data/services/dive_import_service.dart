@@ -271,6 +271,13 @@ typedef ImportTransmitterMatcherLoader =
 /// #3668), read at import time so a switch flipped a moment ago applies.
 typedef OmitUnusedOcGasesLoader = Future<bool> Function(String? diverId);
 
+/// Whether the diver a dive is imported for (null for the active diver)
+/// reads cylinder end pressures at surfacing (the "Tank pressure at
+/// surfacing" setting, issue #5000), read at import time so a switch flipped
+/// a moment ago applies.
+typedef TrimTankPressureAtSurfacingLoader =
+    Future<bool> Function(String? diverId);
+
 /// The id of the trip whose dates cover a dive starting at [diveStart], among
 /// the trips the diver it is imported for (null or empty for the active
 /// diver) can see, or null when none does (issue #3022). Read per dive at
@@ -286,6 +293,7 @@ class DiveImportService {
   final DefaultTankPresetLoader? _defaultTankPresetForImports;
   final ImportTransmitterMatcherLoader? _transmitterMatcherForImports;
   final OmitUnusedOcGasesLoader? _omitUnusedOcGasesForImports;
+  final TrimTankPressureAtSurfacingLoader? _trimAtSurfacingForImports;
   final ImportTripResolver? _tripForImports;
   final Set<String> _unmatchedSerials = {};
   static final _log = LoggerService.forClass(DiveImportService);
@@ -297,6 +305,7 @@ class DiveImportService {
     DefaultTankPresetLoader? defaultTankPresetForImports,
     ImportTransmitterMatcherLoader? transmitterMatcherForImports,
     OmitUnusedOcGasesLoader? omitUnusedOcGasesForImports,
+    TrimTankPressureAtSurfacingLoader? trimTankPressureAtSurfacingForImports,
     ImportTripResolver? tripForImports,
   }) : _repository = repository,
        _diveRepository = diveRepository,
@@ -304,6 +313,7 @@ class DiveImportService {
        _defaultTankPresetForImports = defaultTankPresetForImports,
        _transmitterMatcherForImports = transmitterMatcherForImports,
        _omitUnusedOcGasesForImports = omitUnusedOcGasesForImports,
+       _trimAtSurfacingForImports = trimTankPressureAtSurfacingForImports,
        _tripForImports = tripForImports;
 
   /// Serials seen on tanks imported through this service that matched no
@@ -351,6 +361,28 @@ class DiveImportService {
         stackTrace: st,
       );
       return false;
+    }
+  }
+
+  /// Whether [diverId]'s cylinder end pressures are read at surfacing (the
+  /// "Tank pressure at surfacing" setting, issue #5000): a reported one the
+  /// setting decides, and one derived from a pressure series. On when no
+  /// loader is configured or the load fails, the setting's own default: a
+  /// download must never fail because a setting could not be read. Public
+  /// for the planned-dive fill, which writes its tanks itself.
+  Future<bool> loadTrimTankPressureAtSurfacing(String? diverId) async {
+    final loader = _trimAtSurfacingForImports;
+    if (loader == null) return true;
+    try {
+      return await loader(diverId);
+    } catch (e, st) {
+      _log.warning(
+        'Surfacing-pressure setting unavailable, reading end pressures at '
+        'surfacing',
+        error: e,
+        stackTrace: st,
+      );
+      return true;
     }
   }
 
@@ -459,6 +491,9 @@ class DiveImportService {
     final defaultTankPreset = await _loadDefaultTankPreset(diverId);
     final transmitterMatcher = await _loadTransmitterMatcher(diverId);
     final omitUnusedOcGases = await _loadOmitUnusedOcGases(diverId);
+    final trimTankPressureAtSurfacing = await loadTrimTankPressureAtSurfacing(
+      diverId,
+    );
     resetUnmatchedTransmitterSerials();
 
     for (final dive in sortedDives) {
@@ -502,6 +537,7 @@ class DiveImportService {
                 duplicateResult.matchingDiveId!,
                 computer.id,
                 omitUnusedOcGases: omitUnusedOcGases,
+                trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
                 transmitterMatcher: transmitterMatcher,
                 descriptorVendor: descriptorVendor,
                 descriptorProduct: descriptorProduct,
@@ -522,6 +558,7 @@ class DiveImportService {
                 defaultTankPreset: defaultTankPreset,
                 transmitterMatcher: transmitterMatcher,
                 omitUnusedOcGases: omitUnusedOcGases,
+                trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
                 descriptorVendor: descriptorVendor,
                 descriptorProduct: descriptorProduct,
                 descriptorModel: descriptorModel,
@@ -538,6 +575,7 @@ class DiveImportService {
               duplicateResult.matchingDiveId!,
               computer.id,
               omitUnusedOcGases: omitUnusedOcGases,
+              trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
               transmitterMatcher: transmitterMatcher,
               descriptorVendor: descriptorVendor,
               descriptorProduct: descriptorProduct,
@@ -557,6 +595,7 @@ class DiveImportService {
               defaultTankPreset: defaultTankPreset,
               transmitterMatcher: transmitterMatcher,
               omitUnusedOcGases: omitUnusedOcGases,
+              trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
               descriptorVendor: descriptorVendor,
               descriptorProduct: descriptorProduct,
               descriptorModel: descriptorModel,
@@ -575,6 +614,7 @@ class DiveImportService {
             defaultTankPreset: defaultTankPreset,
             transmitterMatcher: transmitterMatcher,
             omitUnusedOcGases: omitUnusedOcGases,
+            trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
             descriptorVendor: descriptorVendor,
             descriptorProduct: descriptorProduct,
             descriptorModel: descriptorModel,
@@ -793,6 +833,7 @@ class DiveImportService {
     TankPresetEntity? defaultTankPreset,
     TransmitterMatcher? transmitterMatcher,
     bool omitUnusedOcGases = false,
+    bool trimTankPressureAtSurfacing = true,
     String? descriptorVendor,
     String? descriptorProduct,
     int? descriptorModel,
@@ -813,7 +854,10 @@ class DiveImportService {
     // preset when the diver opted in (computers report pressure, not size).
     // Registry first so a matched entry claims its tank; the default preset
     // then fills only the back-gas tanks nobody claimed.
-    final parsedTanks = _parser.parseTanks(dive);
+    final parsedTanks = _parser.parseTanks(
+      dive,
+      trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
+    );
     final matchedTanks = transmitterMatcher == null
         ? parsedTanks
         : applyTransmitterRegistry(
@@ -913,6 +957,7 @@ class DiveImportService {
       tripId: dive.startTimeReported
           ? await _resolveTrip(dive.startTime, diverId)
           : null,
+      trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
     );
 
     return diveId;
@@ -942,6 +987,9 @@ class DiveImportService {
       defaultTankPreset: await _loadDefaultTankPreset(diverId),
       transmitterMatcher: await _loadTransmitterMatcher(diverId),
       omitUnusedOcGases: await _loadOmitUnusedOcGases(diverId),
+      trimTankPressureAtSurfacing: await loadTrimTankPressureAtSurfacing(
+        diverId,
+      ),
       descriptorVendor: descriptorVendor,
       descriptorProduct: descriptorProduct,
       descriptorModel: descriptorModel,
@@ -981,6 +1029,7 @@ class DiveImportService {
     String existingDiveId,
     String computerId, {
     bool omitUnusedOcGases = false,
+    bool trimTankPressureAtSurfacing = true,
     TransmitterMatcher? transmitterMatcher,
     String? descriptorVendor,
     String? descriptorProduct,
@@ -1002,7 +1051,10 @@ class DiveImportService {
     // importProfile keeps the stored cylinders, which may be the diver's
     // edits, and adds only those this parse reports at an index none of them
     // holds, such as a sidemount pair's second transmitter (#2517).
-    var tanks = _parser.parseTanks(dive);
+    var tanks = _parser.parseTanks(
+      dive,
+      trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
+    );
     // With the unused-gas switch on, a gas the diver never carried is not
     // re-added (issue #3668). A bailout transmitter this download adds as a
     // new cylinder takes its gas first, as on a new dive; a stored cylinder
@@ -1076,6 +1128,7 @@ class DiveImportService {
       cnsEnd: dive.cnsEnd,
       otu: dive.otu,
       addMissingTanks: true,
+      trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
     );
   }
 
@@ -1105,11 +1158,20 @@ class DiveImportService {
     String? descriptorProduct,
     int? descriptorModel,
     String? libdivecomputerVersion,
+    // The diver the planned dive belongs to, whose surfacing setting reads
+    // its end pressures (issue #5000); null for the active diver.
+    String? diverId,
   }) async {
     final profilePoints = _parser.parseProfile(dive);
     final events = _convertEvents(dive.events);
     final gasSwitches = _parser.parseGasSwitches(dive);
-    final tanks = _parser.parseTanks(dive);
+    final trimTankPressureAtSurfacing = await loadTrimTankPressureAtSurfacing(
+      diverId,
+    );
+    final tanks = _parser.parseTanks(
+      dive,
+      trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
+    );
     final attachedTo = await _repository.importProfile(
       computerId: computerId,
       profileStartTime: dive.startTime,
@@ -1146,6 +1208,7 @@ class DiveImportService {
       cnsEnd: dive.cnsEnd,
       otu: dive.otu,
       targetDiveId: targetDiveId,
+      trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
     );
     if (attachedTo != targetDiveId) {
       throw StateError(
@@ -1175,11 +1238,14 @@ class DiveImportService {
         // The registry only feeds the unused-gas claim, so it is read only
         // when the switch is on.
         final omitUnusedOcGases = await _loadOmitUnusedOcGases(diverId);
+        final trimTankPressureAtSurfacing =
+            await loadTrimTankPressureAtSurfacing(diverId);
         await _updateExistingDive(
           conflict.downloaded,
           conflict.existingDiveId,
           computerId,
           omitUnusedOcGases: omitUnusedOcGases,
+          trimTankPressureAtSurfacing: trimTankPressureAtSurfacing,
           transmitterMatcher: omitUnusedOcGases
               ? await _loadTransmitterMatcher(diverId)
               : null,
@@ -1199,6 +1265,9 @@ class DiveImportService {
           defaultTankPreset: await _loadDefaultTankPreset(diverId),
           transmitterMatcher: await _loadTransmitterMatcher(diverId),
           omitUnusedOcGases: await _loadOmitUnusedOcGases(diverId),
+          trimTankPressureAtSurfacing: await loadTrimTankPressureAtSurfacing(
+            diverId,
+          ),
           descriptorVendor: descriptorVendor,
           descriptorProduct: descriptorProduct,
           descriptorModel: descriptorModel,

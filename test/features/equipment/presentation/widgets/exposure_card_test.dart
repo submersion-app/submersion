@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_exposure_totals.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_usage_history.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_exposure_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/exposure_card.dart';
@@ -13,10 +14,14 @@ import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/info_sheets.dart';
 
-Widget host(EquipmentExposureTotals totals) => ProviderScope(
+Widget host(
+  EquipmentExposureTotals totals, {
+  EquipmentUsageHistory usage = EquipmentUsageHistory.empty,
+}) => ProviderScope(
   overrides: [
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     equipmentExposureTotalsProvider('reg').overrideWith((ref) async => totals),
+    equipmentUsageHistoryProvider('reg').overrideWith((ref) async => usage),
   ],
   child: const MaterialApp(
     locale: Locale('en'),
@@ -58,9 +63,8 @@ void main() {
     expect(await openEveryInfoSheet(tester), greaterThan(0));
   });
 
-  testWidgets('shows one chip per non-zero unit and the dive footer', (
-    tester,
-  ) async {
+  testWidgets('dives and hours read as tiles, the other units as chips, '
+      'with the dive footer', (tester) async {
     await tester.pumpWidget(
       host(
         EquipmentExposureTotals(
@@ -77,8 +81,13 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Exposure'), findsOneWidget);
-    expect(find.text('3 dives'), findsOneWidget);
-    expect(find.text('3.3 hours'), findsOneWidget);
+    expect(find.text('3 dives'), findsNothing);
+    expect(find.text('3.3 hours'), findsNothing);
+    expect(find.text('Dives'), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
+    expect(find.text('Hours'), findsOneWidget);
+    expect(find.text('3.3'), findsOneWidget);
+    expect(find.byType(Chip), findsOneWidget);
     expect(find.text('1 cold dive'), findsOneWidget);
     expect(find.textContaining('Deep'), findsNothing);
     expect(find.text('3 dives, Jan 10 - Mar 10, 2026'), findsOneWidget);
@@ -89,6 +98,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('No dives with this item yet'), findsOneWidget);
     expect(find.byType(Chip), findsNothing);
+    expect(find.text('Last dived'), findsNothing);
   });
   testWidgets('a days total never renders as a blank chip', (tester) async {
     // Days are a date trigger with no usage total, so the totals should
@@ -96,7 +106,11 @@ void main() {
     await tester.pumpWidget(
       host(
         EquipmentExposureTotals(
-          byUnit: const {ExposureUnit.days: 40, ExposureUnit.dives: 3},
+          byUnit: const {
+            ExposureUnit.days: 40,
+            ExposureUnit.dives: 3,
+            ExposureUnit.deepCycles: 2,
+          },
           diveCount: 3,
           firstDive: DateTime(2026, 1, 10),
           lastDive: DateTime(2026, 3, 10),
@@ -105,7 +119,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byType(Chip), findsOneWidget);
-    expect(find.text('3 dives'), findsOneWidget);
+    expect(find.text('2 deep dives'), findsOneWidget);
   });
 
   testWidgets('hours use the locale decimal separator', (tester) async {
@@ -132,6 +146,9 @@ void main() {
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           equipmentExposureTotalsProvider(
+            'reg',
+          ).overrideWith((ref) async => throw StateError('db closed')),
+          equipmentUsageHistoryProvider(
             'reg',
           ).overrideWith((ref) async => throw StateError('db closed')),
         ],

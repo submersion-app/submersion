@@ -10,6 +10,8 @@ import 'package:submersion/features/settings/presentation/widgets/card_photo_ove
 import 'package:submersion/features/settings/presentation/widgets/dive_details_appearance_tiles.dart';
 import 'package:submersion/features/settings/presentation/widgets/gradient_preset_picker.dart';
 import 'package:submersion/features/settings/presentation/widgets/viewer_fullscreen_mode_tile.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/chart_options_display_rows.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_zoom_mode_labels.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/providers/table_details_pane_provider.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
@@ -586,18 +588,31 @@ class SectionAppearancePage extends ConsumerWidget {
           context.l10n.settings_appearance_rightYAxisMetric_subtitle,
         ),
       ),
-      SwitchListTile(
-        title: Text(context.l10n.settings_appearance_metricsFollowViewport),
-        subtitle: Text(
-          context.l10n.settings_appearance_metricsFollowViewport_subtitle,
+      // The Zoom choice (issue #5069): what zooming the profile scales,
+      // stored as the viewport flag and the Time only flag together. The
+      // value is the subtitle, not a dropdown, so a long choice wraps at
+      // phone width instead of overflowing.
+      Builder(
+        builder: (rowContext) => ListTile(
+          key: const ValueKey('settings-profile-zoom'),
+          leading: const Icon(Icons.height),
+          title: Text(context.l10n.settings_appearance_profileZoom),
+          subtitle: Text(
+            profileZoomModeLabel(context.l10n, settings.profileZoomMode),
+          ),
+          trailing: const Icon(Icons.arrow_drop_down),
+          onTap: () async {
+            final picked = await showProfileZoomModeMenu(
+              rowContext,
+              current: settings.profileZoomMode,
+            );
+            if (picked != null) {
+              await ref
+                  .read(settingsProvider.notifier)
+                  .setProfileZoomMode(picked);
+            }
+          },
         ),
-        secondary: const Icon(Icons.height),
-        value: settings.profileMetricsFollowViewport,
-        onChanged: (value) {
-          ref
-              .read(settingsProvider.notifier)
-              .setProfileMetricsFollowViewport(value);
-        },
       ),
       SwitchListTile(
         title: Text(context.l10n.settings_appearance_maxDepthMarker),

@@ -24,6 +24,7 @@ void main() {
         child: SingleChildScrollView(
           child: IdentitySection(
             allSites: const [],
+            placeNameLanguage: 'en',
             nameController: controllers[0],
             descriptionController: controllers[1],
             countryController: controllers[2],

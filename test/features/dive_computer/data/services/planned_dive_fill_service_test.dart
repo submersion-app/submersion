@@ -4,8 +4,10 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
     hide Dive, DiveTank, Diver;
+import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/data/services/planned_dive_fill_service.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
@@ -411,6 +413,46 @@ void main() {
     expect(filled?.tanks.single.startPressure, 200);
     expect(filled?.tanks.single.endPressure, 60);
     expect(filled?.tanks.single.volume, 12);
+  });
+
+  test('end pressures follow the switch of the diver the plan belongs '
+      'to', () async {
+    // A live download is parsed with the active diver's "Tank pressure at
+    // surfacing" switch; the plan's own diver decides (issue #5000).
+    final asked = <String?>[];
+    final owned = PlannedDiveFillService(
+      importService: DiveImportService(
+        repository: DiveComputerRepository(),
+        diveRepository: dives,
+        trimTankPressureAtSurfacingForImports: (diverId) async {
+          asked.add(diverId);
+          return false;
+        },
+      ),
+    );
+    final planned = await plannedDive();
+
+    await owned.fill(
+      targetDiveId: planned.id,
+      dive: download(
+        tanks: const [
+          DownloadedTank(
+            index: 0,
+            o2Percent: 32,
+            startPressure: 200,
+            endPressure: 61,
+            volumeLiters: 12,
+            surfacingEnd: SurfacingEndPressure(asLogged: 4, atSurfacing: 61),
+          ),
+        ],
+      ),
+      computerId: computerId,
+    );
+
+    final filled = await dives.getDiveById(planned.id);
+    expect(filled?.tanks.single.endPressure, 4);
+    expect(asked, isNotEmpty);
+    expect(asked.toSet(), {eric});
   });
 
   test('an unmatched downloaded tank is added', () async {

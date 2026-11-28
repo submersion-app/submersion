@@ -342,7 +342,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 388;
+  static const int currentSchemaVersion = 389;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1837,6 +1837,10 @@ class AppDatabase extends _$AppDatabase {
     // v388: media_equipment, gear items linked to photos and videos (issue
     // #5046). A new synced table; the floor does not move.
     388,
+    // v389: diver_settings.profile_zoom_time_only, the profile chart's Time
+    // only zoom choice (issue #5069). Nullable, no backfill; the floor does
+    // not move. Numbered 389 because open work claims 388.
+    389,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
