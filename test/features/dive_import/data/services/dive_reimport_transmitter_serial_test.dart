@@ -70,10 +70,11 @@ void main() {
   });
 
   test(
-    'a cylinder paired only by position must agree on start pressure',
+    'a removed cylinder\'s serial never lands on the one after it',
     () async {
-      // The diver removed a cylinder, so the file's first tank now pairs by
-      // position with what was its second.
+      // The diver removed a cylinder, so by position the file's first tank
+      // would pair with what was its second; its start pressure pairs it
+      // with its own tank instead (issue #4665), and only that serial fits.
       await db
           .into(db.diveTanks)
           .insert(
@@ -90,7 +91,7 @@ void main() {
         {'startPressure': 150.0, 'transmitterSerial': '76290'},
       ]);
 
-      expect((await row('tank-b')).transmitterSerial, isNull);
+      expect((await row('tank-b')).transmitterSerial, '76290');
     },
   );
 

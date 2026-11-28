@@ -32,6 +32,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart'
     show TankPressureSample;
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
+import 'package:submersion/features/dive_log/domain/services/hydrotank_role_upgrade.dart';
 import 'package:submersion/features/dive_log/domain/services/source_ownership.dart';
 import 'package:submersion/features/dive_log/domain/services/series_source_owner.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
@@ -1169,22 +1170,14 @@ class ReparseService {
     // has been registered since.
     //
     // An Avelo Hydrotank (issue #4657) the computer tagged replaces a stored
-    // back gas: before the Hydrotank role every Avelo import stored its
-    // Hydrotank as back gas, and nothing tells that default from a diver's
-    // choice. Any other stored role is the diver's and stays. A diver who
-    // sets the Hydrotank back to back gas sees it turned again by the next
-    // re-parse, a limit the design accepts: in Avelo mode the T1 cylinder is
-    // the Hydrotank.
+    // back gas, by the rule resync shares (see [upgradesToHydrotank]).
     //
     // A stored role that is only the importer's O2 guess for a gas this parse
     // corrects follows the corrected gas (issue #5057): an older import gave
     // a back-gas transmitter the deco gas, and its roles with it. A
     // registered transmitter is left out: its stored role came from the
     // diver's registry, even when it agrees with the O2 guess.
-    final hydrotanks = {
-      for (final t in resolvedTanks)
-        if (t.role == TankRole.hydrotank.name) t.index,
-    };
+    final computerRoles = {for (final t in resolvedTanks) t.index: t.role};
     final parsedByIndex = {
       for (final t in parsedTanks)
         if (matcher.match(
@@ -1200,9 +1193,11 @@ class ReparseService {
             TankRoleSource.transmitterName ||
         (existing.roleSource == null &&
             existing.tankRole == nameDerivedRoles[index]) ||
-        (existing.roleSource == null &&
-            existing.tankRole == TankRole.backGas.name &&
-            hydrotanks.contains(index)) ||
+        upgradesToHydrotank(
+          storedRole: existing.tankRole,
+          storedRoleSource: existing.roleSource,
+          parsedRole: computerRoles[index],
+        ) ||
         (parsedByIndex[index] != null &&
             roleGuessedForCorrectedGas(existing, parsedByIndex[index]!));
 
