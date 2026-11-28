@@ -364,10 +364,16 @@ extension RungsFromV340 on AppDatabase {
     if (from < 389) await _assertProfileZoomTimeOnlyColumn();
     if (from < 389) await reportProgress();
 
-    // v390 (issue #5092): sightings.seen_at_seconds, when in the dive the
+    // v393 (issue #5110): the built-in BCD/wing inspection applies to wings.
+    // A one-time UPDATE of one built-in row; not in the backstop, as the
+    // v239 built-in backfill is not. The floor does not move.
+    if (from < 393) await _backfillWingInspectionServiceKind();
+    if (from < 393) await reportProgress();
+
+    // v396 (issue #5092): sightings.seen_at_seconds, when in the dive the
     // diver saw the species. Nullable, no backfill, re-asserted in
-    // beforeOpen. The floor rises to 390 (see minimumCompatibleSchemaVersion).
-    if (from < 390) await _assertSightingSeenAtColumn();
-    if (from < 390) await reportProgress();
+    // beforeOpen. The floor rises to 396 (see minimumCompatibleSchemaVersion).
+    if (from < 396) await _assertSightingSeenAtColumn();
+    if (from < 396) await reportProgress();
   }
 }

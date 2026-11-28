@@ -12,7 +12,7 @@
 /// test/core/database/performance_indexes_test.dart fails if the DDL
 /// references a table missing from the current schema).
 ///
-/// This file must stay Flutter-free: it is imported by tools/db_bench.dart,
+/// This file must stay Flutter-free: it is imported by tool/perf/db_bench.dart,
 /// which runs on the plain Dart VM.
 library;
 

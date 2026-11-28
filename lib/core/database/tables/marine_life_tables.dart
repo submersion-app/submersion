@@ -42,9 +42,9 @@ class Sightings extends Table {
   /// gives no number, and the four REEF groups give a range.
   TextColumn get abundance => text().nullable()();
 
-  /// v390 (issue #5092): when in the dive the diver saw the species, in
+  /// v396 (issue #5092): when in the dive the diver saw the species, in
   /// seconds from the dive start (the profile's time axis). Null means no
-  /// time, which every sighting from before v390 has. Its depth is read
+  /// time, which every sighting from before v396 has. Its depth is read
   /// from the profile, never stored.
   IntColumn get seenAtSeconds => integer().nullable()();
 

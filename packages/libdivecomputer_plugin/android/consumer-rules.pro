@@ -21,7 +21,7 @@
 # (UsbSerialIoStream, BleIoStream, and any future handler) and also pins
 # their class names. Strictly only the METHOD names need to survive (JNI
 # resolves the class via GetObjectClass, never FindClass, so a renamed class
-# would be harmless) -- the CI guard in scripts/check_proguard_serial_keep.py
+# would be harmless) -- the CI guard in scripts/checks/check_proguard_serial_keep.py
 # enforces exactly that minimal contract against the release mapping.txt,
 # while these rules are deliberately broader for safety. DO NOT REMOVE.
 -keep interface com.submersion.libdivecomputer.IoHandler { *; }

@@ -338,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 390;
+  static const int currentSchemaVersion = 396;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -537,15 +537,15 @@ class AppDatabase extends _$AppDatabase {
   /// Holding those readers also prevents them from publishing explicit nulls
   /// for the discarded conditions after they upgrade.
   ///
-  /// Raised 386 -> 390 by the time on a sighting (#5092): v390 adds the
+  /// Raised 386 -> 396 by the time on a sighting (#5092): v396 adds the
   /// synced column sightings.seen_at_seconds, where null is no time. A peer
-  /// below 390 drops the time. Once that peer upgrades, the column is null
+  /// below 396 drops the time. Once that peer upgrades, the column is null
   /// there, and its next edit of the sighting publishes an explicit null,
   /// which the merge applies as a real value (only an omitted key is
   /// refilled from the local row), erasing the diver's time on every
-  /// device. Peers below 390 are held until they update. Their own payloads
+  /// device. Peers below 396 are held until they update. Their own payloads
   /// still arrive here and decode cleanly: a missing time is null.
-  static const int minimumCompatibleSchemaVersion = 390;
+  static const int minimumCompatibleSchemaVersion = 396;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1843,10 +1843,13 @@ class AppDatabase extends _$AppDatabase {
     // only zoom choice (issue #5069). Nullable, no backfill; the floor does
     // not move. Numbered 389 because open work claims 388.
     389,
-    // v390: sightings.seen_at_seconds, when in the dive a species was seen
-    // (issue #5092). Nullable, no backfill; the floor rises to 390.
-    // Numbered 390: main holds 389, and open work claims 388.
-    390,
+    // v393: the built-in BCD/wing inspection kind applies to wings (issue
+    // #5110). Built-in reference data never syncs; the floor does not move.
+    393,
+    // v396: sightings.seen_at_seconds, when in the dive a species was seen
+    // (issue #5092). Nullable, no backfill; the floor rises to 396.
+    // Numbered 396: main holds 393, and open work claims 388 and 390 to 395.
+    396,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

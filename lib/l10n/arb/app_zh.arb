@@ -16680,6 +16680,7 @@
   "media_species_seenAt": "出现时间",
   "media_species_seenStretch": "{start} 至 {end}",
   "media_species_playFrom": "从 {time} 开始播放",
+  "media_species_nextSighting": "下一次目击",
   "media_species_openSpeciesPage": "物种页面",
   "media_species_cropThumb": "图片 {index}/{count}",
   "media_species_taggedOnPhoto": "此照片中已标记",

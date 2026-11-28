@@ -9,7 +9,7 @@ class FigurePathData {
   final String d;
 }
 
-/// One piece of artwork, generated from `tool/figure/<id>.svg`.
+/// One piece of artwork, generated from `scripts/artwork/figure/<id>.svg`.
 ///
 /// Pieces are authored in absolute figure space. A piece placed in a
 /// mirrored zone is flipped about the figure's centre line by the painter.

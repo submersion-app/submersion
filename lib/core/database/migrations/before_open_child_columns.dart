@@ -85,7 +85,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // the whole row, for the same reason as the tank columns.
     await _assertSightingAbundanceColumn();
 
-    // v390: sightings.seen_at_seconds (issue #5092), for the same reason.
+    // v396: sightings.seen_at_seconds (issue #5092), for the same reason.
     await _assertSightingSeenAtColumn();
 
     // v357: dive_profile_series.is_edit (issue #4386). Every series read

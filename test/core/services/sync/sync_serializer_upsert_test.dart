@@ -255,7 +255,7 @@ void main() {
   });
 
   test('a sighting time survives fetch and upsert', () async {
-    // Issue #5092: the v390 column rides the generated toJson/fromJson.
+    // Issue #5092: the v396 column rides the generated toJson/fromJson.
     await db.customStatement('PRAGMA foreign_keys = OFF');
     await db
         .into(db.sightings)
