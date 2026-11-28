@@ -153,6 +153,23 @@ In the full-screen photo viewer, tap the info panel (or swipe up on mobile) to:
 
 You can link a species sighting directly to a photo by tagging it in the image. Tags store a bounding box on the photo so the species region is marked. Tap the tag icon in the photo viewer and draw a box around the creature, then select the species from the picker. The tag is linked to the corresponding sighting if one exists for that dive.
 
+### Identifying species in media that is not on a dive
+
+You do not need a logged dive to find out what is in a photo or a clip. With marine life identification turned on, **Media** has an **Identify species** button.
+
+- **On a phone or tablet** it opens a camera. Point it at an aquarium, or at a photo on a screen, and boxes appear over the animals it sees, with a suggestion's name where it has one. Names over the live picture are suggestions only, and they are not limited to the species recorded near you, since the camera may be looking at an aquarium. If the device runs low on memory, the names pause and the camera keeps working. Take a photo or record a clip and it opens in the Identify viewer; **Pick files** opens photos and videos already on the device instead.
+- **On a computer** it asks for photos and videos and opens them in the Identify viewer.
+
+The Identify viewer works like the photo viewer: suggestions, boxes and the **Species** sheet. Nothing you do there is saved. To keep a file, tap **Keep** and choose **Put on a dive**, **Put on a site** or **Keep without a place**; with several files open you can keep just the one on screen or all of them. The species you tagged become tags on the kept file and, on a dive, sightings of that dive. A camera capture you keep is saved to your photo library first. Leaving with species chosen on files you did not keep asks before they are lost.
+
+### Media with no dive or site
+
+When you import media and a file matches no dive, the import review lets you keep it anyway: **Keep without a place** on one file, or **Put the rest on a site** and **Keep the rest without a place** for every file still unmatched (the **Files** tab offers **Put all on a site** and **Keep all without a place** for its **Unmatched** group). Media kept this way shows in **Media** under **By dive**, after the dives and sites, and stays when the dive, site or gear it was later placed on is deleted.
+
+A photo or clip on a site and no dive is named against that site's position. Moving tagged media onto a dive gives its tags that dive's sightings.
+
+With [Multi-Device Sync](multi-device-sync.md), media kept with no place stays on this device until every device in the library runs a version that keeps it; older versions would delete it.
+
 ### Tagging people in photos and videos
 
 Mark who is in a photo or video, yourself included. People tags are what make a "Photos of me" album possible (see [Smart albums](#smart-albums)).
