@@ -275,4 +275,28 @@ void main() {
     ).sync(lib.id, diverId: 'd1');
     expect(await transport().listPageFiles(), hasLength(1));
   });
+
+  test('GC keeps a page file a backup needs after an older owner app '
+      'rewrote the index without page lists', () async {
+    final id = await sharedDoc('Access');
+    await syncer().sync(lib.id, diverId: 'd1');
+    await backups.backUp(libraryId: lib.id, diverId: 'd1');
+    // An older owner app pins a backup: it writes back only the keys it
+    // knows.
+    final t = transport();
+    final index = (await t.readBackupIndex())!;
+    await t.writeBackupIndex({
+      ...index,
+      'entries': [
+        for (final e in index['entries'] as List)
+          {...(e as Map<String, dynamic>)}..remove('pageFileIds'),
+      ],
+    });
+    await LibraryDocumentStamper().removeFromLibrary(id, actingDiverId: 'd1');
+    await syncer().sync(lib.id, diverId: 'd1');
+    await syncer(
+      now: () => DateTime.now().add(const Duration(days: 31)),
+    ).sync(lib.id, diverId: 'd1');
+    expect(await transport().listPageFiles(), hasLength(1));
+  });
 }

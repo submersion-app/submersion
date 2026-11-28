@@ -157,6 +157,9 @@ class LibraryBackupService {
     try {
       await t.writeBackup(name, zip);
       uploaded = true;
+      // Before the index lists it, so garbage collection never sees the
+      // backup without the page files it needs.
+      await t.writeBackupPages(header.backupId, record.pageFileIds);
       final listed = record.copyWith(inStorage: true);
       await _updateIndex(
         t,
@@ -408,6 +411,7 @@ class LibraryBackupService {
         diverId,
         (index) => {...index}..remove(backupId),
         alsoDeleteFile: record.fileName,
+        alsoDeletePagesOf: backupId,
       );
     }
   }
@@ -485,9 +489,11 @@ class LibraryBackupService {
     )
     change, {
     String? alsoDeleteFile,
+    String? alsoDeletePagesOf,
   }) async {
     final (library, t, me, key, roles) = await _asOwner(libraryId, diverId);
     if (alsoDeleteFile != null) await t.deleteBackup(alsoDeleteFile);
+    if (alsoDeletePagesOf != null) await t.deleteBackupPages(alsoDeletePagesOf);
     await _updateIndex(t, me, key, roles, change, library: library);
   }
 

@@ -42,12 +42,30 @@ extension _DocumentSync on SharedLibraryService {
       };
     }
     final entries = json?['entries'];
-    return {
-      for (final e in entries is List ? entries : const [])
-        if (e is Map && e['pageFileIds'] is List)
-          for (final f in e['pageFileIds'] as List)
-            if (f is String) f,
-    };
+    final out = <String>{};
+    for (final e in entries is List ? entries : const []) {
+      if (e is! Map) continue;
+      if (e['pageFileIds'] case final List ids) {
+        out.addAll(ids.whereType<String>());
+      }
+      // The backup's own list, which an older owner app's rewrite of the
+      // index leaves alone.
+      final backupId = e['backupId'];
+      if (backupId is String &&
+          SharedLibraryLayout.isValidLibraryId(backupId)) {
+        try {
+          out.addAll(await t.readBackupPages(backupId) ?? const []);
+        } catch (err) {
+          if (!SharedLibraryTransport.isUnreadable(err)) rethrow;
+          // Unreadable: it may name any file, so keep every one this time.
+          return {
+            for (final f in await t.listPageFiles())
+              SharedLibraryTransport.pageFileIdOf(f),
+          };
+        }
+      }
+    }
+    return out;
   }
 
   /// Page files no document refers to are collected after this long: a

@@ -128,4 +128,36 @@ extension SharedLibraryTransportDocuments on SharedLibraryTransport {
   /// Removes the page file whose storage id is [storageFileId].
   Future<void> deletePageFile(String storageFileId) =>
       _provider.deleteFile(storageFileId);
+
+  /// The page files backup [backupId] refers to (issue #4713), in a file
+  /// of its own beside the backup: an older owner app rewrites the backup
+  /// index with only the keys it knows, but never touches this.
+  static String backupPagesFile(String backupId) =>
+      '${SharedLibraryLayout.backupsDir}/$backupId.pages.json';
+
+  Future<void> writeBackupPages(String backupId, List<String> fileIds) =>
+      writeOpened(
+        backupPagesFile(backupId),
+        Uint8List.fromList(utf8.encode(jsonEncode({'pageFileIds': fileIds}))),
+      );
+
+  /// Null when backup [backupId] has no such file (an older app made it).
+  Future<List<String>?> readBackupPages(String backupId) async {
+    final path = backupPagesFile(backupId);
+    final (folder, name) = await _place(path);
+    final f = await _find(folder, name);
+    if (f == null) return null;
+    final decoded = jsonDecode(
+      utf8.decode(await _open(path, f.id, await _provider.downloadFile(f.id))),
+    );
+    final ids = decoded is Map ? decoded['pageFileIds'] : null;
+    return [
+      if (ids is List)
+        for (final id in ids)
+          if (id is String && SharedLibraryTransport.isSafeFileId(id)) id,
+    ];
+  }
+
+  Future<void> deleteBackupPages(String backupId) =>
+      deleteRaw(backupPagesFile(backupId));
 }
