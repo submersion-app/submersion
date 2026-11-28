@@ -41795,17 +41795,17 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'ピーク$rate（$range）';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return '平均$rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => '平均';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return '平均 $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => 'ピーク';

@@ -43359,17 +43359,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'Piek $rate bij $range';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Gemiddeld $rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => 'Gemiddeld';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return 'gem. $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => 'Piek';

@@ -43382,17 +43382,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'Csúcs $rate, $range';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Átlag $rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => 'Átlag';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return 'átl. $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => 'Csúcs';

@@ -42590,17 +42590,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'שיא $rate ב-$range';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'ממוצע $rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => 'ממוצע';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return 'ממוצע $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => 'שיא';
