@@ -233,8 +233,10 @@ void main() {
 
     container.read(contingencySelectionProvider.notifier).toggleLonger();
 
+    // The plan's bailout stands in, dimmed, until this deviation's lands.
+    final base = planResultView(container.read(planBailoutProvider), 'figures');
     final shown = container.read(planShownBailoutProvider);
-    expect(shown.value, isNull);
-    expect(shown.status, PlanResultStatus.calculating);
+    expect(shown.value, same(base.value));
+    expect(shown.status, PlanResultStatus.updating);
   });
 }

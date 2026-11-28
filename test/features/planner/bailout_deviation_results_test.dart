@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -6,7 +8,10 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_worst_case_provider.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -139,4 +144,50 @@ void main() {
     expect(find.textContaining('· ${deeper}m'), findsOneWidget);
     expect(find.textContaining('· 40m'), findsNothing);
   });
+
+  testWidgets(
+    "while the deviated bailout is worked out, Results keeps the plan's",
+    (tester) async {
+      final pending = Completer<PlanBackgroundResult<BailoutOutcome?>>();
+      final container = await _mount(
+        tester,
+        _plan(),
+        overrides: [
+          planPreviewBailoutProvider.overrideWith((ref) => pending.future),
+        ],
+      );
+
+      container.read(contingencySelectionProvider.notifier).toggleDeeper();
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('· 40m'), findsOneWidget);
+      expect(
+        container.read(planShownBailoutProvider).status,
+        PlanResultStatus.updating,
+      );
+    },
+  );
+
+  testWidgets(
+    "while the deviated bailout is worked out, the plan's worst case is not "
+    "marked on the deviated line",
+    (tester) async {
+      final pending = Completer<PlanBackgroundResult<BailoutOutcome?>>();
+      final container = await _mount(
+        tester,
+        _plan(),
+        overrides: [
+          planPreviewBailoutProvider.overrideWith((ref) => pending.future),
+        ],
+      );
+      final base = container.read(planChartWorstCaseProvider)!;
+
+      container.read(contingencySelectionProvider.notifier).toggleDeeper();
+      await tester.pumpAndSettle();
+
+      final marker = container.read(planChartWorstCaseProvider)!;
+      expect(marker.depthMeters, base.depthMeters);
+      expect(marker.onDeviation, isFalse);
+    },
+  );
 }

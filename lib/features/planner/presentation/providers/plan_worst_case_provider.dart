@@ -115,10 +115,10 @@ final planChartWorstCaseProvider = Provider<PlanChartWorstCase?>((ref) {
       ref.watch(divePlanNotifierProvider.select((s) => s.id)),
     ),
   );
-  final previewing = ref.watch(
-    planBailoutDeviationProvider.select((plan) => plan != null),
-  );
-  if (!previewing) return base;
+  // The deviation's own result: the shown bailout stands the plan's in for
+  // it while it computes, and that is no worst case of the deviated dive.
+  final preview = ref.watch(planPreviewBailoutViewProvider);
+  if (preview == null) return base;
   // A previewed deviation's worst case (#5020) belongs on the deviated dive's
   // line, so it is marked only while that line is drawn and its bailout has
   // a worst case to mark. Otherwise (still computing, a gas gap, or no
@@ -127,6 +127,6 @@ final planChartWorstCaseProvider = Provider<PlanChartWorstCase?>((ref) {
     contingencyGhostSeriesProvider.select((ghost) => ghost != null),
   );
   if (!lineDrawn) return base;
-  final deviated = chartWorstCaseFrom(ref.watch(planShownBailoutProvider));
+  final deviated = chartWorstCaseFrom(preview);
   return deviated?.copyWith(onDeviation: true) ?? base;
 });

@@ -229,21 +229,36 @@ final planPreviewBailoutProvider =
       return _settledOn(ref, computeBailout, deviated);
     }, retry: (_, _) => null);
 
+/// The previewed deviation's own bailout result, read for that deviation
+/// alone, or null while no deviation is previewed on a loop plan.
+final planPreviewBailoutViewProvider =
+    Provider<PlanResultView<BailoutOutcome?>?>((ref) {
+      final previewId = ref.watch(
+        planBailoutDeviationProvider.select((plan) => plan?.id),
+      );
+      if (previewId == null) return null;
+      return planResultView(ref.watch(planPreviewBailoutProvider), previewId);
+    });
+
 /// The bailout of the dive on screen: the previewed deviation's while one is
-/// previewed on a loop plan, else the plan's.
+/// previewed on a loop plan, else the plan's. Until a deviation's own result
+/// is in, the plan's stands in, marked as on its way, as the headline figures
+/// keep it; another deviation's result is never shown.
 final planShownBailoutProvider = Provider<PlanResultView<BailoutOutcome?>>((
   ref,
 ) {
-  final previewId = ref.watch(
-    planBailoutDeviationProvider.select((plan) => plan?.id),
-  );
-  if (previewId != null) {
-    return planResultView(ref.watch(planPreviewBailoutProvider), previewId);
-  }
-  return planResultView(
+  final base = planResultView(
     ref.watch(planBailoutProvider),
     ref.watch(divePlanNotifierProvider.select((s) => s.id)),
   );
+  final preview = ref.watch(planPreviewBailoutViewProvider);
+  if (preview == null) return base;
+  if (preview.status != PlanResultStatus.calculating ||
+      base.status == PlanResultStatus.failed ||
+      base.value == null) {
+    return preview;
+  }
+  return PlanResultView(value: base.value, status: PlanResultStatus.updating);
 });
 
 /// Whether the chart is in Bailout view: the Bailout chip is on and still
@@ -303,13 +318,8 @@ final planChartBailoutPreviewProvider =
       })
     >((ref) {
       if (!ref.watch(planBailoutViewProvider)) return _noChartBailout;
-      final previewId = ref.watch(
-        planBailoutDeviationProvider.select((plan) => plan?.id),
-      );
-      if (previewId == null) return _noChartBailout;
-      return _chartBailoutOf(
-        planResultView(ref.watch(planPreviewBailoutProvider), previewId),
-      );
+      final preview = ref.watch(planPreviewBailoutViewProvider);
+      return preview == null ? _noChartBailout : _chartBailoutOf(preview);
     });
 
 const _noChartBailout = (picture: null, status: null, gasGap: null);
