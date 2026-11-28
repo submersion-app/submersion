@@ -47,8 +47,8 @@ abstract final class UddfAveloSamples {
         p.trim != null,
   );
 
-  /// Writes [dive]'s Avelo and trim elements into the `<dive>` entry being built;
-  /// writes nothing for a value no sample carries.
+  /// Writes [dive]'s Avelo and trim elements into the `<dive>` entry being
+  /// built; writes nothing for a value no sample carries.
   static void writeChildren(XmlBuilder builder, Dive dive) {
     void pairs(String element, Object? Function(DiveProfilePoint) valueOf) {
       final text = [
@@ -108,6 +108,8 @@ abstract final class UddfAveloSamples {
       if (parts.length != 2) continue;
       final time = int.tryParse(parts[0]);
       final value = parse(parts[1]);
+      // double.tryParse accepts "NaN" and "Infinity"; neither is a reading.
+      if (value is double && !value.isFinite) continue;
       if (time != null && value != null) values[time] = value;
     }
     return values;

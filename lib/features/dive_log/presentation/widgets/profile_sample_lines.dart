@@ -40,7 +40,11 @@ List<double?> sampleLineCurve(
       ProfileRightAxisMetric.aveloGasRemaining =>
         p.aveloGasRemaining?.toDouble(),
       ProfileRightAxisMetric.computerRmv => p.computerRmv,
-      ProfileRightAxisMetric.trim => p.trim,
+      // A non-finite angle is no reading (it would break the axis range).
+      ProfileRightAxisMetric.trim => switch (p.trim) {
+        final t? when t.isFinite => t,
+        _ => null,
+      },
       _ => throw ArgumentError.value(
         metric,
         'metric',
@@ -58,8 +62,8 @@ List<double?> sampleLineCurve(
   List<DiveProfilePoint> profile,
 ) => sampleLineCurveRange(metric, sampleLineCurve(metric, profile));
 
-/// [sampleLineRange] for a [curve] already read by [sampleLineCurve], so a caller
-/// that draws the line too reads the samples once.
+/// [sampleLineRange] for a [curve] already read by [sampleLineCurve], so a
+/// caller that draws the line too reads the samples once.
 ({double min, double max})? sampleLineCurveRange(
   ProfileRightAxisMetric metric,
   List<double?> curve,

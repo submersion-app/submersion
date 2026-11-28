@@ -121,4 +121,17 @@ void main() {
       throwsArgumentError,
     );
   });
+
+  test('a non-finite angle is no reading, never a crash', () {
+    expect(trimAxisHalfRange([double.nan, 5.0, double.infinity]), 10.0);
+    expect(formatTrimDegrees(double.nan), '-');
+    expect(formatTrimDegrees(double.negativeInfinity), '-');
+    expect(
+      sampleLineCurve(ProfileRightAxisMetric.trim, const [
+        DiveProfilePoint(timestamp: 0, depth: 1.0, trim: double.nan),
+        DiveProfilePoint(timestamp: 30, depth: 2.0, trim: -13.0),
+      ]),
+      [null, -13.0],
+    );
+  });
 }

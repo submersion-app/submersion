@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/export/uddf/uddf_avelo_samples.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
@@ -165,4 +166,19 @@ void main() {
       });
     });
   }
+
+  // A damaged or hand-edited backup can carry "NaN" or "Infinity", which
+  // double.tryParse accepts; such a pair is no reading (#5098).
+  test('drops non-finite values when reading the private block', () {
+    final block = XmlDocument.parse(
+      '<computertissue><dive ref="dive_a">'
+      '<trim>0:NaN 60:5.0 120:Infinity 180:-Infinity</trim>'
+      '<computerrmv>0:NaN 60:12.5</computerrmv>'
+      '</dive></computertissue>',
+    ).rootElement;
+
+    final samples = UddfAveloSamples.parse(block)['dive_a']!;
+    expect(samples.trimByTime, {60: 5.0});
+    expect(samples.computerRmvByTime, {60: 12.5});
+  });
 }

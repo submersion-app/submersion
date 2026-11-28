@@ -6,8 +6,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/profile_sample_lines.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_sample_lines.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Every sample with a temperature the chart can draw: the active source's and
