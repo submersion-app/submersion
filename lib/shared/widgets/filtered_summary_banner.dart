@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
+
 /// The line a section summary shows under its title while the list beside
 /// it is filtered, so the totals below are never read as lifetime ones:
 /// "Filtered: summarizing 34 of 812 dives", plus a button that clears the
@@ -24,10 +26,15 @@ class FilteredSummaryBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 8, 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(
+        Spacing.s16,
+        Spacing.s8,
+        Spacing.s8,
+        Spacing.s8,
+      ),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(Radii.r12),
       ),
       child: Row(
         children: [
@@ -38,7 +45,7 @@ class FilteredSummaryBanner extends StatelessWidget {
               color: colorScheme.primary,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: Spacing.s12),
           Expanded(
             child: Text(
               message ?? '',
@@ -47,7 +54,7 @@ class FilteredSummaryBanner extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: Spacing.s8),
           TextButton(onPressed: onClear, child: Text(clearLabel)),
         ],
       ),

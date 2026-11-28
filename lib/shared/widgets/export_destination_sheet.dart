@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -82,18 +83,18 @@ Future<ExportChoice?> showExportDestinationSheetWithOptions(
     builder: (sheetContext) => StatefulBuilder(
       builder: (builderContext, setSheetState) => SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: Spacing.s16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: Spacing.s16),
                 child: Text(
                   title,
                   style: Theme.of(sheetContext).textTheme.titleMedium,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: Spacing.s16),
               if (showRawDataToggle) ...[
                 CheckboxListTile(
                   value: options.includeRawData,
@@ -140,7 +141,12 @@ Future<ExportChoice?> showExportDestinationSheetWithOptions(
               ],
               if (showCsvUnitsToggle) ...[
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  padding: const EdgeInsets.fromLTRB(
+                    Spacing.s16,
+                    0,
+                    Spacing.s16,
+                    Spacing.s16,
+                  ),
                   child: CsvUnitModeSelector(
                     value: csvUnitMode,
                     onChanged: (mode) =>

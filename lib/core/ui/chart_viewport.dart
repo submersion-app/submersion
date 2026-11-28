@@ -6,13 +6,18 @@ import 'package:flutter/widgets.dart';
 /// data-independent, so the anchor math is unit-testable with plain numbers.
 ///
 /// `offsetX`/`offsetY` are the normalized left/top edges of the visible window
-/// (`offsetY == 0` is the surface). The window spans `1/zoom` of each axis, so
-/// both offsets are valid in `[0, 1 - 1/zoom]`.
+/// (`offsetY == 0` is the surface). The window spans `1/zoom` of the x axis
+/// and `1/zoomY` of the y axis, so the offsets are valid in `[0, 1 - 1/zoom]`
+/// and `[0, 1 - 1/zoomY]`. [zoomY] defaults to [zoom]: a chart that never
+/// asks for a time-only zoom (#5069) keeps both axes at one factor.
 @immutable
 class ChartViewport {
-  final double zoom; // >= 1.0
+  final double zoom; // >= 1.0, the x (time) zoom
   final double offsetX;
   final double offsetY;
+
+  /// The y (depth) zoom, or null for "the same as [zoom]".
+  final double? _zoomY;
 
   /// The deepest zoom this viewport allows. Defaults to [maxZoom]; a date
   /// chart over a long logbook raises it so a few weeks can fill the plot.
@@ -20,10 +25,11 @@ class ChartViewport {
 
   const ChartViewport({
     this.zoom = 1,
+    double? zoomY,
     this.offsetX = 0,
     this.offsetY = 0,
     this.zoomLimit = maxZoom,
-  });
+  }) : _zoomY = zoomY;
 
   /// A viewport showing [start]..[end] of the x range (fractions, 0..1).
   ///
@@ -47,9 +53,12 @@ class ChartViewport {
   static const double maxZoom = 10.0;
   static const ChartViewport reset = ChartViewport();
 
-  bool get isZoomed => zoom > 1.0;
+  /// The y (depth) zoom: its own factor when one was given, else [zoom].
+  double get zoomY => _zoomY ?? zoom;
+
+  bool get isZoomed => zoom > 1.0 || zoomY > 1.0;
   double get visibleWidth => 1.0 / zoom;
-  double get visibleHeight => 1.0 / zoom;
+  double get visibleHeight => 1.0 / zoomY;
 
   /// Left edge of the visible x window, as a fraction of the full range.
   double get windowStart => offsetX;
@@ -60,30 +69,54 @@ class ChartViewport {
   /// Whether [other] shows the same window, whatever its zoom limit.
   bool sameWindowAs(ChartViewport other) =>
       zoom == other.zoom &&
+      zoomY == other.zoomY &&
       offsetX == other.offsetX &&
       offsetY == other.offsetY;
 
   /// This viewport under a different [limit], zoomed out to it if needed.
   ChartViewport withZoomLimit(double limit) => ChartViewport(
     zoom: zoom.clamp(minZoom, limit),
+    zoomY: zoomY.clamp(minZoom, limit),
     offsetX: offsetX,
     offsetY: offsetY,
     zoomLimit: limit,
   )._clamped();
 
+  /// This viewport with the same x window and the whole y range: what a
+  /// time-only zoom shows.
+  ChartViewport withFullDepth() => ChartViewport(
+    zoom: zoom,
+    zoomY: 1,
+    offsetX: offsetX,
+    zoomLimit: zoomLimit,
+  )._clamped();
+
   /// Zoom by [factor] (>1 = in, <1 = out) keeping the data point under the
   /// focal point fixed. [focalX]/[focalY] are fractions (0..1) of the visible
   /// plot area under the cursor/pinch (0 = left/top edge).
-  ChartViewport zoomedAt(double focalX, double focalY, double factor) {
+  ///
+  /// Each axis scales by [factor] on its own and clamps to
+  /// [minZoom]..[zoomLimit] on its own. With [timeOnly] the y axis is left
+  /// exactly as it is.
+  ChartViewport zoomedAt(
+    double focalX,
+    double focalY,
+    double factor, {
+    bool timeOnly = false,
+  }) {
     final newZoom = (zoom * factor).clamp(minZoom, zoomLimit);
-    if (newZoom == zoom) return this;
+    final newZoomY = timeOnly
+        ? zoomY
+        : (zoomY * factor).clamp(minZoom, zoomLimit);
+    if (newZoom == zoom && newZoomY == zoomY) return this;
     final anchorX =
         offsetX + focalX / zoom; // data fraction under focus, before
-    final anchorY = offsetY + focalY / zoom;
+    final anchorY = offsetY + focalY / zoomY;
     return ChartViewport(
       zoom: newZoom,
+      zoomY: newZoomY,
       offsetX: anchorX - focalX / newZoom, // keep it under focus, after
-      offsetY: anchorY - focalY / newZoom,
+      offsetY: anchorY - focalY / newZoomY,
       zoomLimit: zoomLimit,
     )._clamped();
   }
@@ -91,6 +124,7 @@ class ChartViewport {
   /// Pan by a normalized delta (fractions of the total range).
   ChartViewport pannedBy(double dx, double dy) => ChartViewport(
     zoom: zoom,
+    zoomY: zoomY,
     offsetX: offsetX + dx,
     offsetY: offsetY + dy,
     zoomLimit: zoomLimit,
@@ -100,6 +134,7 @@ class ChartViewport {
   /// the full range mid-window, or as near as the range allows.
   ChartViewport centredOn(double x, double y) => ChartViewport(
     zoom: zoom,
+    zoomY: zoomY,
     offsetX: x - visibleWidth / 2,
     offsetY: y - visibleHeight / 2,
     zoomLimit: zoomLimit,
@@ -116,20 +151,28 @@ class ChartViewport {
     double mix(double x, double y) => x + (y - x) * t;
     final start = mix(a.windowStart, b.windowStart);
     final end = mix(a.windowEnd, b.windowEnd);
+    final top = mix(a.offsetY, b.offsetY);
+    final bottom = mix(
+      a.offsetY + a.visibleHeight,
+      b.offsetY + b.visibleHeight,
+    );
     return ChartViewport(
       zoom: 1.0 / (end - start),
+      zoomY: 1.0 / (bottom - top),
       offsetX: start,
-      offsetY: mix(a.offsetY, b.offsetY),
+      offsetY: top,
       zoomLimit: a.zoomLimit,
     )._clamped();
   }
 
   ChartViewport _clamped() {
-    final maxOff = 1.0 - 1.0 / zoom;
+    final zoomX = zoom.clamp(minZoom, zoomLimit);
+    final zoomYClamped = zoomY.clamp(minZoom, zoomLimit);
     return ChartViewport(
-      zoom: zoom,
-      offsetX: offsetX.clamp(0.0, maxOff),
-      offsetY: offsetY.clamp(0.0, maxOff),
+      zoom: zoomX,
+      zoomY: zoomYClamped,
+      offsetX: offsetX.clamp(0.0, 1.0 - 1.0 / zoomX),
+      offsetY: offsetY.clamp(0.0, 1.0 - 1.0 / zoomYClamped),
       zoomLimit: zoomLimit,
     );
   }

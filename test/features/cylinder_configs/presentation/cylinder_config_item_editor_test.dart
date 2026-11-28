@@ -232,7 +232,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final label = tester.widget<TextField>(field('Label'));
-      expect(label.decoration?.hintText, 'Tank 3');
+      expect(label.decoration?.hintText, 'Cylinder 3');
       expect(label.controller!.text, isEmpty);
     });
   });

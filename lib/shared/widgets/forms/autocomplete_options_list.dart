@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
+
 /// Dropdown list for a [RawAutocomplete] options overlay that honours the
 /// keyboard.
 ///
@@ -108,7 +110,7 @@ class _AutocompleteOptionsListState<T extends Object>
       alignment: AlignmentDirectional.topStart,
       child: Material(
         elevation: 4,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(Radii.r8),
         // Without a clip the rows' ink splashes paint past the rounded
         // corners of the overlay.
         clipBehavior: Clip.antiAlias,

@@ -7,7 +7,7 @@ import 'package:submersion_transcoder/submersion_transcoder.dart';
 
 import 'harness.dart';
 
-/// Phase 3 of scripts/run_color_encode_it.sh (issue #3521): checks what the
+/// Phase 3 of scripts/testing/run_color_encode_it.sh (issue #3521): checks what the
 /// in-app encode wrote against its input and [correctPixel].
 void main() {
   late String ffmpeg;

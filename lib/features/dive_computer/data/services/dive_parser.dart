@@ -68,9 +68,22 @@ class DiveParser {
 
   /// Convert a downloaded dive's tank data to TankData.
   ///
-  /// This extracts tank information including gas mix and pressures.
-  List<TankData> parseTanks(DownloadedDive dive) =>
-      dive.tanks.map(tankDataFrom).toList();
+  /// This extracts tank information including gas mix and pressures. With
+  /// [trimTankPressureAtSurfacing], the "Tank pressure at surfacing" setting
+  /// of the diver the dive is filed under, each end pressure the setting
+  /// decides is read again with it, since a live download was parsed before
+  /// that diver was known (issue #5000); null keeps the parsed end pressure.
+  List<TankData> parseTanks(
+    DownloadedDive dive, {
+    bool? trimTankPressureAtSurfacing,
+  }) => [
+    for (final tank in dive.tanks)
+      tankDataFrom(
+        trimTankPressureAtSurfacing == null
+            ? tank
+            : tank.endPressureFor(atSurfacing: trimTankPressureAtSurfacing),
+      ),
+  ];
 
   /// One [DownloadedTank] as the repository's [TankData]. Shared with the
   /// re-parse path so both apply the transmitter registry to the same shape.

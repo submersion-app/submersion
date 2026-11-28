@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
@@ -11,6 +12,8 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/video_playback_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
+import 'package:submersion/features/species_id/presentation/providers/video_sighting_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
@@ -79,8 +82,12 @@ class _FakeVideoPlatform extends VideoPlayerPlatform {
   int? gatedSeekPlayer;
   bool seekHeld = false;
 
+  /// Every seek, with the player it went to, oldest first.
+  final List<(int, Duration)> seeks = [];
+
   @override
   Future<void> seekTo(int playerId, Duration position) async {
+    seeks.add((playerId, position));
     final gate = seekGate;
     if (gate != null && playerId == gatedSeekPlayer) {
       seekHeld = true;
@@ -126,6 +133,8 @@ void main() {
     WidgetTester tester,
     VideoPlayback playback, {
     bool browser = false,
+    String? focusSpeciesId,
+    List<Override> overrides = const [],
   }) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(
@@ -139,12 +148,17 @@ void main() {
             videoPlaybackProvider.overrideWith(
               (ref, MediaItem arg) async => playback,
             ),
+            ...overrides,
           ],
           child: MaterialApp(
             locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: MediaViewerPage(mediaList: [_video], initialMediaId: 'v1'),
+            home: MediaViewerPage(
+              mediaList: [_video],
+              initialMediaId: 'v1',
+              focusSpeciesId: focusSpeciesId,
+            ),
           ),
         ),
       );
@@ -256,6 +270,44 @@ void main() {
       expect(find.text('Failed to load video'), findsNothing);
     },
   );
+
+  // Issue #5084: the diver took a followed species' video back to its
+  // start by hand; a reopen after the link expires keeps it there, rather
+  // than treating the fresh player as a new open and jumping to the sighting.
+  testWidgets('a reopened player keeps the place the diver chose', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      freshLinks(),
+      focusSpeciesId: 's1',
+      overrides: [
+        videoSpeciesSightingsProvider((
+          mediaId: 'v1',
+          speciesId: 's1',
+        )).overrideWith((ref) async => const [(startMs: 4200, endMs: 9000)]),
+      ],
+    );
+    expect(platform.seeks, contains((1, const Duration(milliseconds: 4200))));
+
+    final track = tester.getRect(find.byKey(VideoControlsBar.trackKey));
+    await tester.tapAt(Offset(track.left + 1, track.center.dy));
+    await tester.pump();
+
+    await tester.runAsync(() async {
+      platform.failAfterStart(1);
+      for (var i = 0; i < 3; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await tester.pump();
+      }
+    });
+
+    expect(find.byKey(const ValueKey('player-2')), findsOneWidget);
+    expect(
+      platform.seeks.where((s) => s.$1 == 2).map((s) => s.$2),
+      isNot(contains(const Duration(milliseconds: 4200))),
+    );
+  });
 
   // Issue #4817: a mute toggled while a reopened player is still being
   // readied (after it took the viewer's volume, before the handover) reaches

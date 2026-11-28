@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -71,7 +72,12 @@ class ItemSharingField extends ConsumerWidget {
         // Only the owner changes sharing (#2594).
         if (mayShare == false)
           Padding(
-            padding: const EdgeInsets.fromLTRB(48, 0, 16, 8),
+            padding: const EdgeInsets.fromLTRB(
+              Spacing.s48,
+              0,
+              Spacing.s16,
+              Spacing.s8,
+            ),
             child: Text(
               l10n.sharedItems_shareOwnerOnly(
                 sharedItemOwnerName(divers, ownerId, l10n),
@@ -174,9 +180,12 @@ class SharingTile extends StatelessWidget {
     final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(Radii.r8),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(
+          horizontal: Spacing.s16,
+          vertical: Spacing.s12,
+        ),
         child: DetailRow(
           icon: Icons.people_outline,
           iconColor: theme.colorScheme.onSurfaceVariant,
@@ -193,7 +202,7 @@ class SharingTile extends StatelessWidget {
                 ),
               ),
               if (onTap != null) ...[
-                const SizedBox(width: 4),
+                const SizedBox(width: Spacing.s4),
                 Icon(
                   Icons.chevron_right,
                   size: 18,

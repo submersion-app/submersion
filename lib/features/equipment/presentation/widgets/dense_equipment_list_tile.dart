@@ -25,6 +25,14 @@ class DenseEquipmentListTile extends ConsumerWidget {
   final bool isChecked;
   final ValueChanged<bool>? onCheckChanged;
 
+  /// In the Equipment list's assembly view (issue #5071): the parts listed
+  /// under the row by either link, in place of the component count.
+  final int? partCount;
+
+  /// In the assembly view, the badge also rolls up the parts installed in
+  /// the item, which fold under its row there.
+  final bool rollupInstalledParts;
+
   const DenseEquipmentListTile({
     super.key,
     required this.item,
@@ -33,12 +41,20 @@ class DenseEquipmentListTile extends ConsumerWidget {
     this.isSelectionMode = false,
     this.isChecked = false,
     this.onCheckChanged,
+    this.partCount,
+    this.rollupInstalledParts = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // The rollup (issue #1487): a due part lights its assembly.
-    final rollup = ref.watch(equipmentRollupClockProvider).value?[item.id];
+    final rollup = ref
+        .watch(
+          rollupInstalledParts
+              ? equipmentAssemblyRollupClockProvider
+              : equipmentRollupClockProvider,
+        )
+        .value?[item.id];
     final worstClock =
         rollup == null || rollup.status.severity == ServiceClockSeverity.ok
         ? null
@@ -51,11 +67,13 @@ class DenseEquipmentListTile extends ConsumerWidget {
       finding: finding,
     );
     final isAssembly =
-        ref
-            .watch(equipmentComponentsIndexProvider)
-            .value
-            ?.isAssembly(item.id) ??
-        false;
+        (partCount ??
+            ref
+                .watch(equipmentComponentsIndexProvider)
+                .value
+                ?.componentCount(item.id) ??
+            0) >
+        0;
     final colorScheme = Theme.of(context).colorScheme;
     final rowColor = isSelected
         ? colorScheme.primaryContainer.withValues(alpha: 0.5)

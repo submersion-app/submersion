@@ -98,7 +98,7 @@ class GoogleDriveClientConfig {
   /// Drive app folder the installed apps sync through. Build-time, with the
   /// addresses Google authorises it for: `GOOGLE_WEB_CLIENT_ID` and
   /// `GOOGLE_WEB_CLIENT_ORIGINS` (comma-separated), which
-  /// `scripts/build_web.sh` passes on from the environment. Empty in every
+  /// `scripts/web/build_web.sh` passes on from the environment. Empty in every
   /// other build.
   static const String _builtInWebClientId = String.fromEnvironment(
     'GOOGLE_WEB_CLIENT_ID',

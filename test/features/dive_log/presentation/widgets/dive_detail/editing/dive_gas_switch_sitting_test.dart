@@ -92,6 +92,14 @@ void main() {
     expect(s.isDirty, isFalse);
   });
 
+  test('an unnamed cylinder is named by its number (#5106)', () async {
+    final s = await loaded(dive);
+    expect(
+      [for (final g in sittingGasSwitchesWithTanks(s)!) g.tankName],
+      ['Cylinder 1', 'Cylinder 2'],
+    );
+  });
+
   test('an edit holds a change of the tanks card; editing it back releases '
       'it', () async {
     final s = await loaded(dive);

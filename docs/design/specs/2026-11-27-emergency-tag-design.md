@@ -44,7 +44,7 @@ An A4 page with a 105 x 148 mm (A6) card outlined with a dashed cut line: "EMERG
 
 ## Storage
 
-`divers.emergency_tag_share`, nullable `TEXT` holding JSON (schema v388): the first-record choice, the call target, whether a link tag carries the text, and a switch per field. Null means the defaults. It syncs with the diver row, appears in the sync conflict catalogue and in the diver profile document agents read, as `buddy_card_share` does.
+`divers.emergency_tag_share`, nullable `TEXT` holding JSON (schema v395): the first-record choice, the call target, whether a link tag carries the text, and a switch per field. Null means the defaults. It syncs with the diver row, appears in the sync conflict catalogue and in the diver profile document agents read, as `buddy_card_share` does.
 
 ## Not in scope
 

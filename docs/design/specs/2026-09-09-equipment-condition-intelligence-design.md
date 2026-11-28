@@ -422,7 +422,7 @@ emits nothing.
 | `transmitterDropoutRising` | transmitter | mean gap fraction over the last 5 dives at least double the mean over the previous 10 and at least 0.05; n at least 15 | recent mean |
 | `transmitterDropoutHigh` | transmitter | gap fraction at least 0.10 in 3 of the last 5 dives | recent mean |
 | `issueRecurring` | any | the same tag on at least 3 observations whose dives fall within the item's last 20 dives | count |
-| `issueColdCorrelated` | regulator, bcd, drysuit, light | share of cold dives with at least one issue observation is at least three times the share of warm dives; at least 3 cold issue dives and at least 5 dives on each side | ratio |
+| `issueColdCorrelated` | regulator, bcd, wing, drysuit, light | share of cold dives with at least one issue observation is at least three times the share of warm dives; at least 3 cold issue dives and at least 5 dives on each side | ratio |
 | `issueDeepCorrelated` | same | the same shape using the deep line | ratio |
 | `incidentLinked` | any | an incident of severity moderate or serious names this item | count |
 
@@ -492,8 +492,8 @@ Below the service clocks card:
 - Trend chart, using `dive_trend_chart.dart`: cell gain per dive (one line
   per slot) for cells and rebreathers; gap fraction per dive for
   transmitters; consumed scrubber minutes per dive for rebreathers; minimum
-  temperature per dive with issue markers for regulators, BCDs, drysuits and
-  lights.
+  temperature per dive with issue markers for regulators, BCDs, wings,
+  drysuits and lights.
 - Children card on rebreathers, computers, transmitters, lights and DPVs:
   each slot with its installed child, age since install, clock badge, and a
   replace action that retires the child and creates a new one in the slot.

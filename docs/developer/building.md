@@ -62,8 +62,18 @@ flutter run
 Submersion uses code generation for:
 
 - **Drift** - Database schema and queries
-- **Freezed** - Immutable data classes
 - **Riverpod Generator** - Provider generation
+- **Mockito** - Test mocks (`*.mocks.dart`)
+
+`build.yaml` limits each generator to the files that use it, which makes a
+cold build about 4x faster: `drift_dev` runs only on `lib/core/database/**`
+and `riverpod_generator` only on the files listed under it. A new `@riverpod`
+file, or a `@DriftDatabase` or `@DriftAccessor` file outside
+`lib/core/database/`, has to be added to `build.yaml`, or its `.g.dart` part
+is never generated and the build fails with an undefined `_$...` name. A
+table needs no entry: the database that imports it covers it.
+`test/architecture/build_yaml_generate_for_test.dart` names the file and the
+builder to list it under.
 
 ### Run Once
 
@@ -83,8 +93,9 @@ Regenerate code after:
 
 - Changing database schema (`database.dart` or a library under
   `lib/core/database/tables/`)
-- Modifying Freezed classes
-- Updating Riverpod providers with annotations
+- Updating Riverpod providers with annotations (and listing any new
+  `@riverpod` file in `build.yaml`)
+- Changing a class that a test generates mocks for
 - Pulling changes that modify generated files
 
 ## Running the App
@@ -248,7 +259,7 @@ dart run build_runner build --delete-conflicting-outputs
 | flutter_lints | ^4.0.0 | Linting rules |
 | build_runner | ^2.4.12 | Code generation |
 | drift_dev | ^2.20.1 | Drift codegen |
-| freezed | ^2.5.7 | Immutable classes |
+| riverpod_generator | ^4.0.8 | Riverpod codegen |
 | mockito | ^5.4.4 | Test mocking |
 
 ## Project Structure

@@ -69,6 +69,7 @@ import 'package:submersion/features/settings/presentation/widgets/appearance_set
 import 'package:submersion/features/settings/presentation/widgets/nav_customization_tile.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
+import 'package:submersion/core/constants/profile_zoom_mode.dart';
 
 import '../../../../support/fake_app_settings_repository.dart';
 
@@ -100,6 +101,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _MockSettingsNotifier([AppSettings? initial])
     : super(initial ?? const AppSettings());
+
+  @override
+  Future<void> reload() async {}
 
   /// Already "loaded": the mock's state is supplied up front.
   @override
@@ -941,6 +945,15 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(profileMetricsFollowViewport: value);
 
   @override
+  Future<void> setProfileZoomMode(ProfileZoomMode mode) async =>
+      state = state.copyWith(
+        profileZoomTimeOnly: mode == ProfileZoomMode.timeOnly,
+        profileMetricsFollowViewport: mode == ProfileZoomMode.timeOnly
+            ? state.profileMetricsFollowViewport
+            : mode == ProfileZoomMode.keepOverlaysInView,
+      );
+
+  @override
   Future<void> setPerdixOverlayEnabled(bool value) async =>
       state = state.copyWith(perdixOverlayEnabled: value);
 
@@ -1136,7 +1149,7 @@ void main() {
       );
       expect(find.text('Manage'), findsOneWidget);
       // The subtitle describes what's in the Manage section
-      expect(find.text('Dive types & tank presets'), findsOneWidget);
+      expect(find.text('Dive types & cylinder presets'), findsOneWidget);
     });
 
     testWidgets('should display Data section for backup/restore/storage', (
@@ -2323,7 +2336,7 @@ void main() {
         (
           'Equipment',
           [
-            'Tank Presets',
+            'Cylinder Presets',
             'Transmitters',
             'Weight Presets',
             'Service types',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// An animated collapsible container for the list pane in map-list layouts.
@@ -51,7 +52,7 @@ class CollapsibleListPane extends StatelessWidget {
             child: Material(
               color: colorScheme.surfaceContainerHighest,
               borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(20),
+                left: Radius.circular(Radii.r20),
               ),
               elevation: 2,
               child: Semantics(
@@ -60,12 +61,12 @@ class CollapsibleListPane extends StatelessWidget {
                 child: InkWell(
                   onTap: onToggle,
                   borderRadius: const BorderRadius.horizontal(
-                    left: Radius.circular(20),
+                    left: Radius.circular(Radii.r20),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 8,
+                      horizontal: Spacing.s4,
+                      vertical: Spacing.s8,
                     ),
                     child: Icon(
                       Icons.chevron_left,

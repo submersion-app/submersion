@@ -8795,10 +8795,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => '气瓶压力';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport => '保持叠加层在视图内';
+  String get diveLog_chartOption_tooltipFollowsCursor => '提示框跟随光标';
 
   @override
-  String get diveLog_chartOption_tooltipFollowsCursor => '提示框跟随光标';
+  String get diveLog_chartOption_zoom => '缩放';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify => '双轴，放大叠加层';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView => '双轴，保持叠加层在视图内';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => '仅时间';
+
+  @override
+  String get diveLog_chartOption_rightAxis => '右轴';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(估算)';
@@ -10437,6 +10449,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_label_startPressure => '起始压力';
 
   @override
+  String get diveLog_tank_managePresets => '管理预设';
+
+  @override
   String get diveLog_tank_label_tankPreset => '气瓶预设';
 
   @override
@@ -11440,6 +11455,139 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_detail_section_access => '到达与后勤';
 
   @override
+  String get diveSites_detail_section_contact => '联系方式';
+
+  @override
+  String get diveSites_detail_section_openingHours => '营业时间';
+
+  @override
+  String get diveSites_contact_mapsFailed => '无法打开地图';
+
+  @override
+  String get diveSites_contact_linkFailed => '无法打开链接';
+
+  @override
+  String get diveSites_contact_directions => '路线';
+
+  @override
+  String get diveSites_contact_address => '地址';
+
+  @override
+  String get diveSites_contact_phone => '电话';
+
+  @override
+  String get diveSites_contact_email => '电子邮件';
+
+  @override
+  String get diveSites_contact_website => '网站';
+
+  @override
+  String get diveSites_hours_alwaysOpen => '全天候营业';
+
+  @override
+  String get diveSites_hours_addSchedule => '添加时间表';
+
+  @override
+  String get diveSites_hours_scheduleName => '名称';
+
+  @override
+  String get diveSites_hours_scheduleName_hint => '夏季';
+
+  @override
+  String get diveSites_hours_seasonal => '季节性';
+
+  @override
+  String get diveSites_hours_seasonFrom => '从';
+
+  @override
+  String get diveSites_hours_seasonTo => '到';
+
+  @override
+  String get diveSites_hours_deleteSchedule => '删除时间表';
+
+  @override
+  String get diveSites_hours_closed => '关闭';
+
+  @override
+  String get diveSites_hours_open24h => '24 小时营业';
+
+  @override
+  String get diveSites_hours_kindHours => '时段';
+
+  @override
+  String get diveSites_hours_addRange => '添加时段';
+
+  @override
+  String get diveSites_hours_removeRange => '移除时段';
+
+  @override
+  String get diveSites_hours_copyDay => '复制到其他日期';
+
+  @override
+  String diveSites_hours_copyTitle(String day) {
+    return '将$day复制到';
+  }
+
+  @override
+  String get diveSites_hours_selectAll => '全选';
+
+  @override
+  String get diveSites_hours_copy => '复制';
+
+  @override
+  String get diveSites_hours_note => '备注';
+
+  @override
+  String get diveSites_hours_note_hint => '请电话预约时段，法定节假日休息';
+
+  @override
+  String get diveSites_hours_invalid => '部分时段重叠，或在开始前就结束';
+
+  @override
+  String get diveSites_hours_noSchedule => '尚无每周营业时间';
+
+  @override
+  String diveSites_hours_openUntil(String time) {
+    return '营业中，$time关闭';
+  }
+
+  @override
+  String get diveSites_hours_openNoClose => '营业中';
+
+  @override
+  String diveSites_hours_closedOpensAt(String when) {
+    return '已关闭，$when开放';
+  }
+
+  @override
+  String diveSites_hours_closedForSeason(String date) {
+    return '季节性关闭，$date开放';
+  }
+
+  @override
+  String get diveSites_hours_closedNow => '已关闭';
+
+  @override
+  String diveSites_hours_span(String from, String to) {
+    return '$from至$to';
+  }
+
+  @override
+  String diveSites_hours_namedSeason(String name, String season) {
+    return '$name，$season';
+  }
+
+  @override
+  String diveSites_merge_hoursSchedules(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个时间表',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_detail_section_altitude => '高海拔';
 
   @override
@@ -11549,6 +11697,37 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_edit_access_parkingInfo_hint => '停车位、费用、提示';
+
+  @override
+  String get diveSites_edit_contact_address_label => '地址';
+
+  @override
+  String get diveSites_edit_contact_address_hint => '街道、城镇和邮政编码';
+
+  @override
+  String get diveSites_edit_contact_phone_label => '电话';
+
+  @override
+  String get diveSites_edit_contact_phone_hint => '预订或业主电话';
+
+  @override
+  String get diveSites_edit_contact_email_label => '电子邮件';
+
+  @override
+  String get diveSites_edit_contact_email_hint => 'name@example.com';
+
+  @override
+  String get diveSites_edit_contact_website_label => '网站';
+
+  @override
+  String get diveSites_edit_contact_website_hint => 'example.com';
+
+  @override
+  String get diveSites_edit_contact_emailInvalid =>
+      '请输入电子邮件地址，例如 name@example.com';
+
+  @override
+  String get diveSites_edit_contact_websiteInvalid => '请输入网址，例如 example.com';
 
   @override
   String get diveSites_edit_access_parkingInfo_label => '停车信息';
@@ -13686,6 +13865,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_equipmentType_harness => '背带';
+
+  @override
+  String get equipment_searchWords_cylinder => '罐, 钢瓶, 气罐, 备用瓶';
+
+  @override
+  String get equipment_searchWords_tankBand => '瓶带, cam band';
 
   @override
   String get enum_equipmentType_tankBand => '气瓶绑带';
@@ -16197,6 +16382,51 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_typeLockedHelper => '已连接的潜水电脑或发射器会保留其类型。';
 
   @override
+  String get equipment_suggest_link => '找不到合适的类型？建议一个类别';
+
+  @override
+  String get equipment_suggest_title => '建议类别';
+
+  @override
+  String get equipment_suggest_intro =>
+      '这会在 GitHub 上打开一个预填好的功能请求。你可以检查后从浏览器提交。';
+
+  @override
+  String get equipment_suggest_kindQuestion => '你要建议什么？';
+
+  @override
+  String get equipment_suggest_kindCategory => '新的装备类型';
+
+  @override
+  String get equipment_suggest_kindSubcategory => '现有类型的新款式';
+
+  @override
+  String get equipment_suggest_nameLabel => '名称';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => '所属类型';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => '最接近的现有类型';
+
+  @override
+  String get equipment_suggest_parentNone => '无';
+
+  @override
+  String get equipment_suggest_reasonLabel => '为什么需要它？';
+
+  @override
+  String get equipment_suggest_reasonHint => '它与现有类型有何不同？';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return '将此装备作为示例（$example）';
+  }
+
+  @override
+  String get equipment_suggest_open => '在 GitHub 中打开';
+
+  @override
   String get equipment_edit_useCustomReminders => '使用自定义提醒';
 
   @override
@@ -16581,6 +16811,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_list_collapseAllGroups => '全部折叠';
 
   @override
+  String get equipment_list_showParts => '显示部件';
+
+  @override
+  String get equipment_list_hideParts => '隐藏部件';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个部件',
+      one: '1 个部件',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => '位置';
 
   @override
@@ -16596,6 +16843,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_arrange_groupByLocationSubtitle => '每个地点一个标题，仅限此页';
+
+  @override
+  String get equipment_arrange_nestParts => '在所属组合下显示部件';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle => '将每个组合的部件折叠在其下';
 
   @override
   String get equipment_locations_title => '位置';
@@ -17521,6 +17774,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_consumption_diveTime => '潜水时间';
+
+  @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '。警告：超出气瓶容量',
+      'other': '',
+    });
+    return '气体消耗：$volume $volumeSymbol，$pressure $pressureSymbol$_temp0';
+  }
 
   @override
   String gasCalculators_consumption_exceedsTank(
@@ -18692,9 +18960,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => '无法打开浏览器';
-
-  @override
-  String get marineLife_suggest_copyLink => '复制链接';
 
   @override
   String get marineLife_editCard_photos => '照片';
@@ -22562,6 +22827,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get siteDetailSection_access_description => '入水与出水、停车、系泊、到达说明';
 
   @override
+  String get siteDetailSection_contact_description => '地址、电话、电子邮件和网站';
+
+  @override
+  String get siteDetailSection_openingHours_description => '按季节的营业日和营业时间';
+
+  @override
   String get siteDetailSection_notes_description => '你对潜水点的备注';
 
   @override
@@ -22729,8 +23000,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_metricsFollowViewport => '缩放时保持叠加层在视图内';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      '将 NDL、ppO2 等叠加层适配到可见区域，而不是随深度轴一起放大';
+  String get settings_appearance_profileZoom => '缩放';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict => '剖面缩放：仅时间';
 
   @override
   String get settings_appearance_rightYAxisMetric => '右Y轴指标';
@@ -25587,6 +25860,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_parkingInfo => '停车';
 
   @override
+  String get settings_conflict_field_address => '地址';
+
+  @override
+  String get settings_conflict_field_openingHours => '营业时间';
+
+  @override
   String get settings_conflict_field_passportId => '气瓶护照';
 
   @override
@@ -26389,6 +26668,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_volumeL => '容积';
+
+  @override
+  String get settings_conflict_field_ratedCapacityCuft => '额定容量';
 
   @override
   String get settings_conflict_field_volumeLiters => '容积';
@@ -27807,7 +28089,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return '名称最少。约 $percent% 正确';
+    return '名称最少。照片上约 $percent% 正确';
   }
 
   @override
@@ -27815,12 +28097,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return '名称更多。约 $percent% 正确';
+    return '名称更多。照片上约 $percent% 正确';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return '名称最多。约 $percent% 正确';
+    return '名称最多。照片上约 $percent% 正确';
   }
 
   @override
@@ -37340,6 +37622,19 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_duplicatePreset => '复制';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name（副本）';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name（副本 $number）';
+  }
+
+  @override
   String get tankPresets_editPreset => '编辑预设';
 
   @override
@@ -41035,17 +41330,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return '峰值 $rate（$range）';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return '平均 $rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => '平均';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return '平均 $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => '峰值';
@@ -41945,6 +42240,82 @@ class AppLocalizationsZh extends AppLocalizations {
       one: '1 次电池循环',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_exposure_lastDivedLabel => '上次潜水';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => '潜水次数';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => '小时';
+
+  @override
+  String get equipmentCondition_exposure_today => '今天';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 天前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个月前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 年前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return '上次潜水：$ago，$date';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12 个月';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => '全部年份';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '过去 12 个月 $count 次潜水',
+      zero: '过去 12 个月没有潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives，$hours';
   }
 
   @override
@@ -44448,6 +44819,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_siteField_mooringNumber => '系泊编号';
 
   @override
+  String get enum_siteField_address => '地址';
+
+  @override
+  String get enum_siteField_phone => '电话';
+
+  @override
+  String get enum_siteField_email => '电子邮件';
+
+  @override
+  String get enum_siteField_website => '网站';
+
+  @override
   String get enum_siteField_hazards => '危险';
 
   @override
@@ -44521,6 +44904,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_siteField_mooringNumber_short => '系泊';
+
+  @override
+  String get enum_siteField_address_short => '地址';
+
+  @override
+  String get enum_siteField_phone_short => '电话';
+
+  @override
+  String get enum_siteField_email_short => '邮件';
+
+  @override
+  String get enum_siteField_website_short => '网站';
 
   @override
   String get enum_siteField_hazards_short => '危险';
@@ -53073,8 +53468,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_species_suggested => '建议';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
+  String media_species_suggestedChipLabel(String name) {
+    return '建议：$name';
   }
 
   @override
@@ -53251,6 +53646,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String media_species_playFrom(String time) {
     return '从 $time 开始播放';
   }
+
+  @override
+  String get media_species_nextSighting => '下一次目击';
 
   @override
   String get media_species_openSpeciesPage => '物种页面';
@@ -62159,7 +62557,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get info_equipment_findings_summary => '状态规则在该装备的潜水和已报告问题中标记出的规律。';
 
   @override
-  String get info_equipment_exposure_summary => '该装备的使用量，按其保养计时使用的各种单位统计。';
+  String get info_equipment_exposure_summary =>
+      '该装备的使用量，按其保养计时使用的各种单位统计。图表按月或按年统计其潜水次数，截至今天。';
 
   @override
   String get info_site_altitude_summary => '潜点的海拔高度及当地气压，减压模型以此为起点。';
@@ -62805,4 +63204,27 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       '紧凑是带状态灯的窄栏。横幅是显示潜水总计的欢迎横幅。保存在此设备上。';
+
+  @override
+  String get popOut_openProfileWindow => '在新窗口中打开';
+
+  @override
+  String get popOut_pin => '固定到此潜水';
+
+  @override
+  String get popOut_unpin => '跟随主窗口';
+
+  @override
+  String get popOut_selectDivePlaceholder => '请在主窗口中选择一次潜水';
+
+  @override
+  String get popOut_lockedPlaceholder => '请在主窗口中解锁 Submersion';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return '剖面图：$dive';
+  }
+
+  @override
+  String get popOut_connectFailed => '此窗口无法访问日志。请关闭后重试。';
 }

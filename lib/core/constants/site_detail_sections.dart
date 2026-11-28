@@ -34,6 +34,13 @@ enum SiteDetailSectionId {
   hazards,
   access,
   location,
+
+  /// Address, phone, email and website (issue #5073), after the location
+  /// they belong to.
+  contact,
+
+  /// Opening days and hours by season, with whether it is open now.
+  openingHours,
   tide,
 
   /// The site's underwater terrain in 3D, inline.
@@ -71,6 +78,8 @@ enum SiteDetailSectionId {
       rating => Icons.star_outline,
       hazards => Icons.warning_amber,
       access => Icons.directions,
+      contact => Icons.contact_phone_outlined,
+      openingHours => Icons.schedule,
       notes => Icons.notes,
       documents => Icons.folder_copy_outlined,
     };
@@ -96,6 +105,8 @@ enum SiteDetailSectionId {
       rating => l10n.diveSites_detail_section_rating,
       hazards => l10n.diveSites_detail_section_hazards,
       access => l10n.diveSites_detail_section_access,
+      contact => l10n.diveSites_detail_section_contact,
+      openingHours => l10n.diveSites_detail_section_openingHours,
       notes => l10n.diveSites_detail_section_notes,
       documents => l10n.documents_section_title,
     };
@@ -121,6 +132,8 @@ enum SiteDetailSectionId {
       rating => l10n.siteDetailSection_rating_description,
       hazards => l10n.siteDetailSection_hazards_description,
       access => l10n.siteDetailSection_access_description,
+      contact => l10n.siteDetailSection_contact_description,
+      openingHours => l10n.siteDetailSection_openingHours_description,
       notes => l10n.siteDetailSection_notes_description,
       documents => l10n.siteDetailSection_documents_description,
     };
@@ -189,6 +202,11 @@ class SiteDetailSectionConfig {
     SiteDetailSectionConfig(id: SiteDetailSectionId.hazards, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.access, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.location, visible: true),
+    SiteDetailSectionConfig(id: SiteDetailSectionId.contact, visible: true),
+    SiteDetailSectionConfig(
+      id: SiteDetailSectionId.openingHours,
+      visible: true,
+    ),
     SiteDetailSectionConfig(id: SiteDetailSectionId.tide, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.seascape, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.features, visible: true),

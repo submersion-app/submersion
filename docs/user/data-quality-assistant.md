@@ -78,7 +78,7 @@ at 12:31", not "profile problem".
 | Check | Flags |
 |-------|-------|
 | **Temperature anomaly** | Water temperature outside &minus;2&nbsp;°C to 40&nbsp;°C, a jump of more than 5&nbsp;°C between adjacent samples, or values whose pattern indicates a unit conversion bug |
-| **Pressure anomaly** | End pressure above start pressure, a tank record that disagrees with the sensor series by more than 10 bar, pressure rising mid-dive with no gas switch, or an implied surface consumption rate that is not physically plausible |
+| **Pressure anomaly** | End pressure above start pressure, a cylinder record that disagrees with the sensor series by more than 10 bar, pressure rising mid-dive with no gas switch, or an implied surface consumption rate that is not physically plausible |
 
 ### Gas and cylinders
 
@@ -109,7 +109,7 @@ at 12:31", not "profile problem".
 ## Working Through the Inbox
 
 Findings are grouped under the dive they belong to and can be narrowed with the
-filter chips along the top: **All**, **Time**, **Profile**, **Gas**, **Tanks**,
+filter chips along the top: **All**, **Time**, **Profile**, **Gas**, **Cylinders**,
 **Duplicates**, **Sources**.
 
 Each card shows a severity icon, a plain-language description of what was found,
@@ -143,8 +143,8 @@ way.
 | Depth spike | **Remove spike**, **Clamp above-surface depths** for negative depths, or **Recalculate from profile** when only the stored max depth is wrong |
 | Impossible rate | **Smooth impossible rates** |
 | Temperature anomaly | **Smooth temperature**, or **Convert temperature** when a unit bug is the likely cause |
-| Pressure anomaly | **Swap start/end pressure**, or **Use sensor values** for the tank record |
-| Wrong cylinder | **Swap tank series** or **Move series to another tank** |
+| Pressure anomaly | **Swap start/end pressure**, or **Use sensor values** for the cylinder record |
+| Wrong cylinder | **Swap cylinder series** or **Move series to another cylinder** |
 | Missing gas switch | **Add gas switch** (or **Add N gas switches**), written as if you had typed them in the dive editor. A change deeper than its gas's MOD, or a cylinder breathed again on a dive with more than two cylinders, gets navigation only |
 | Conflicting sources | **Make this source primary**, **Split into separate dives**, or **Compare profiles** |
 | Shared gear on overlapping dives | **Remove from** one diver's dive |

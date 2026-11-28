@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:package_info_plus/package_info_plus.dart';
+
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -12,8 +14,10 @@ import 'package:submersion/features/equipment/data/repositories/equipment_tag_re
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_edit_fields.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_header_editor.dart';
+import 'package:submersion/features/equipment/presentation/helpers/equipment_web_link_launcher.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/scoped_tags_field.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
@@ -65,6 +69,7 @@ void main() {
     Locale locale = const Locale('en'),
     List<EquipmentItem> active = const [],
     Future<List<EquipmentItem>> Function(Ref ref)? readActive,
+    List<dynamic> extra = const [],
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 1600);
@@ -82,6 +87,7 @@ void main() {
           activeEquipmentProvider.overrideWith(
             (ref) => readActive?.call(ref) ?? Future.value(active),
           ),
+          ...extra,
         ].cast(),
         child: MaterialApp(
           locale: locale,
@@ -364,6 +370,172 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(session.working.purchaseDate, DateTime(2025, 2, 3));
+  });
+
+  group('Suggest a category (issue #5103)', () {
+    const suggestLink = ValueKey('gear-edit-suggest-category');
+
+    /// Overrides that record each launched URL and answer [opens].
+    List<dynamic> launchOverrides(
+      List<Uri> launched, {
+      bool opens = true,
+      bool versionFails = false,
+    }) => [
+      equipmentWebLinkLaunchProvider.overrideWithValue((uri) async {
+        launched.add(uri);
+        return opens;
+      }),
+      packageInfoProvider.overrideWith(
+        (ref) async => versionFails
+            ? throw StateError('no version.json')
+            : PackageInfo(
+                appName: 'Submersion',
+                packageName: 'app.submersion',
+                version: '1.8.7',
+                buildNumber: '8001',
+              ),
+      ),
+      // The stored setting, not the language on screen.
+      localeProvider.overrideWithValue('system'),
+    ];
+
+    Future<void> suggest(WidgetTester tester) async {
+      await tester.tap(find.byKey(suggestLink));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const ValueKey('equipment-suggest-name')),
+        'Octopus holder',
+      );
+      await tester.enterText(
+        find.byKey(const ValueKey('equipment-suggest-reason')),
+        'Not a hose and not a second stage.',
+      );
+      await tester.pump();
+    }
+
+    testWidgets('shows the suggest link under the type field', (tester) async {
+      await pumpEditor(tester);
+
+      expect(find.text("Can't find a fit? Suggest a category"), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.byKey(suggestLink)).dy,
+        greaterThanOrEqualTo(
+          tester.getBottomLeft(find.byKey(const ValueKey('gear-edit-type'))).dy,
+        ),
+      );
+    });
+
+    testWidgets('shows the link while the type is locked', (tester) async {
+      await pumpEditor(tester, hasDevice: () async => true);
+
+      expect(typeDropdown(tester).onChanged, isNull);
+      expect(find.byKey(suggestLink), findsOneWidget);
+    });
+
+    testWidgets('the link opens the dialog and launches the form URL', (
+      tester,
+    ) async {
+      final launched = <Uri>[];
+      await pumpEditor(tester, extra: launchOverrides(launched));
+
+      await suggest(tester);
+      await tester.tap(find.byKey(const ValueKey('equipment-suggest-open')));
+      await tester.pumpAndSettle();
+
+      expect(launched, hasLength(1));
+      final query = launched.single.queryParameters;
+      expect(query['template'], 'equipment-suggestion.yml');
+      expect(query['name'], 'Octopus holder');
+      expect(query['kind'], 'Subcategory');
+      expect(query['parent'], 'Regulator (regulator)');
+      expect(query['app_version'], '1.8.7.8001');
+      expect(query['locale'], 'en');
+      expect(query.containsKey('example'), isFalse);
+    });
+
+    testWidgets('an unreadable app version still opens the issue', (
+      tester,
+    ) async {
+      final launched = <Uri>[];
+      await pumpEditor(
+        tester,
+        extra: launchOverrides(launched, versionFails: true),
+      );
+
+      await suggest(tester);
+      await tester.tap(find.byKey(const ValueKey('equipment-suggest-open')));
+      await tester.pumpAndSettle();
+
+      expect(launched, hasLength(1));
+      expect(launched.single.queryParameters['app_version'], 'unknown');
+      expect(launched.single.queryParameters['name'], 'Octopus holder');
+    });
+
+    testWidgets('offers the working brand and model as the example', (
+      tester,
+    ) async {
+      final launched = <Uri>[];
+      final session = await pumpEditor(
+        tester,
+        item: apex.copyWith(brand: 'Apeks', model: 'XTX50'),
+        extra: launchOverrides(launched),
+      );
+      session.set(gearTypeField, EquipmentType.secondStage);
+      await tester.pumpAndSettle();
+
+      await suggest(tester);
+      expect(
+        find.text('Include this item as an example (Apeks XTX50)'),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const ValueKey('equipment-suggest-example')));
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('equipment-suggest-open')));
+      await tester.pumpAndSettle();
+
+      final query = launched.single.queryParameters;
+      expect(query['example'], 'Apeks XTX50');
+      expect(query['parent'], 'Second Stage (secondStage)');
+    });
+
+    testWidgets('a brand alone is the whole example', (tester) async {
+      await pumpEditor(
+        tester,
+        item: apex.copyWith(brand: 'Apeks'),
+        extra: launchOverrides(<Uri>[]),
+      );
+
+      await suggest(tester);
+
+      expect(
+        find.text('Include this item as an example (Apeks)'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Cancel launches nothing', (tester) async {
+      final launched = <Uri>[];
+      await pumpEditor(tester, extra: launchOverrides(launched));
+
+      await suggest(tester);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(launched, isEmpty);
+    });
+
+    testWidgets('a failed launch offers Copy link', (tester) async {
+      final launched = <Uri>[];
+      await pumpEditor(tester, extra: launchOverrides(launched, opens: false));
+
+      await suggest(tester);
+      await tester.tap(find.byKey(const ValueKey('equipment-suggest-open')));
+      await tester.pumpAndSettle();
+
+      expect(launched, hasLength(1));
+      expect(find.text('Could not open the link'), findsOneWidget);
+      expect(find.text('Copy link'), findsOneWidget);
+    });
   });
 
   testWidgets('a blank name shows its error', (tester) async {

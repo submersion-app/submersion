@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/opening_hours/opening_hours.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/features/shared_library/presentation/providers/librar
 import 'package:submersion/features/dive_sites/presentation/editing/site_location_rules.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/access_safety_section.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/contact_hours_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/dive_info_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/identity_section.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/life_notes_section.dart';
@@ -144,6 +146,7 @@ class _SiteMergePageState extends ConsumerState<SiteMergePage>
         children: [
           IdentitySection(
             allSites: otherSites,
+            placeNameLanguage: ref.watch(placeNameLanguageProvider),
             nameController: _nameController,
             descriptionController: _descriptionController,
             countryController: _countryController,
@@ -226,6 +229,15 @@ class _SiteMergePageState extends ConsumerState<SiteMergePage>
             }),
             entryMethodExtras: _entryMethodExtras(),
             exitMethodExtras: _exitMethodExtras(),
+          ),
+          ContactHoursSection(
+            addressController: _addressController,
+            phoneController: _phoneController,
+            emailController: _emailController,
+            websiteController: _websiteController,
+            openingHours: _openingHours,
+            mergeExtras: _mergeExtras,
+            openingHoursExtras: _openingHoursExtras(),
           ),
           LifeNotesSection(
             species: _expectedSpecies,

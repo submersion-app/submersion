@@ -90,6 +90,33 @@ void main() {
     });
   }
 
+  // v389 (issue #5069): the Time only zoom choice uses the same null rule.
+  for (final batch in [false, true]) {
+    test('an incoming null never clears a local Time only choice '
+        '(${batch ? 'batch' : 'single'})', () async {
+      await insertRow('ds-389');
+      await db.customStatement(
+        "UPDATE diver_settings SET profile_zoom_time_only = 1 "
+        "WHERE id = 'ds-389'",
+      );
+      final exported = await serializer.fetchRecord('diverSettings', 'ds-389');
+      expect(exported!['profileZoomTimeOnly'], true);
+      final peer = Map<String, dynamic>.from(exported)
+        ..['profileZoomTimeOnly'] = null
+        ..['gfHigh'] = 70;
+
+      if (batch) {
+        await serializer.upsertRecords('diverSettings', [peer]);
+      } else {
+        await serializer.upsertRecord('diverSettings', peer);
+      }
+
+      final row = await readRow('ds-389');
+      expect(row.gfHigh, 70);
+      expect(row.profileZoomTimeOnly, isTrue);
+    });
+  }
+
   test('a pre-v262 payload without the columns still applies', () async {
     await insertRow('ds-260');
     final exported = await serializer.fetchRecord('diverSettings', 'ds-260');

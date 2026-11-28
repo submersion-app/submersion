@@ -3,6 +3,9 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/pop_out/presentation/providers/pop_out_providers.dart';
+import 'package:submersion/features/pop_out/presentation/widgets/pop_out_profile_button.dart';
+import 'package:submersion/features/pop_out/presentation/widgets/pop_out_review_bridge.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/spatial_site_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -188,6 +191,10 @@ class DiveDetailProfileSection extends ConsumerWidget {
   }) {
     final scope = RecordEditScope.maybeOf<Dive>(context);
     final session = editing ?? scope?.session;
+    // The full toolbar needs room for the pop-out button where it shows.
+    final fullToolbarMinWidth =
+        _fullToolbarMinWidth +
+        (ref.watch(popOutAvailableProvider) ? _popOutButtonWidth : 0);
     // The profile is changed in the open card only (issue #4527), and its
     // annotations only once the sitting holds them: until then (or after a
     // failed read) a pin, a move or a removal would go nowhere.
@@ -253,6 +260,9 @@ class DiveDetailProfileSection extends ConsumerWidget {
             scope: scope,
             onPressed: onEditOutliers,
           ),
+        // A card too narrow for every button has no room for it either; the
+        // fullscreen button stays.
+        if (!narrow) PopOutProfileButton(diveId: diveId),
         IconButton(
           icon: const Icon(Icons.fullscreen),
           tooltip: context.l10n.diveLog_detail_tooltip_viewFullscreen,
@@ -288,7 +298,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
             LayoutBuilder(
               builder: (context, constraints) {
                 final bar = toolbar(
-                  narrow: constraints.maxWidth < _fullToolbarMinWidth,
+                  narrow: constraints.maxWidth < fullToolbarMinWidth,
                 );
                 return editing != null
                     ? Align(
@@ -361,10 +371,14 @@ class DiveDetailProfileSection extends ConsumerWidget {
     // otherwise reads (issue #4527).
     Navigator.of(context, rootNavigator: true).push(
       MaterialPageRoute(
-        builder: (context) => FullscreenProfilePage(
+        // Its cursor is shared with the profile pop-out too (issue #5078).
+        builder: (context) => PopOutReviewBridge(
           diveId: diveId,
-          onOpenInNotes: onOpenInNotes,
-          session: editing,
+          child: FullscreenProfilePage(
+            diveId: diveId,
+            onOpenInNotes: onOpenInNotes,
+            session: editing,
+          ),
         ),
       ),
     );
@@ -624,6 +638,10 @@ class _OutliersButton extends ConsumerWidget {
 /// phone's 311 px row overflowed with the outliers button showing, a 393 px
 /// phone's 329 px row did not.
 const double _fullToolbarMinWidth = 328;
+
+/// What the desktop pop-out button (issue #5078) adds to the full toolbar:
+/// one compact icon button. Phones never show it.
+const double _popOutButtonWidth = 40;
 
 /// The Profile card's two 3D scenes.
 enum _ProfileScene { dive, site }

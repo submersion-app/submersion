@@ -53,9 +53,9 @@ for method in deb rpm; do
 done
 
 echo "==> Deriving runtime dependencies"
-python3 "$REPO_ROOT/scripts/linux_package_deps.py" \
+python3 "$REPO_ROOT/scripts/release/linux_package_deps.py" \
   "$BUNDLE" --format deb > "$STAGING_ROOT/deps-deb.txt"
-python3 "$REPO_ROOT/scripts/linux_package_deps.py" \
+python3 "$REPO_ROOT/scripts/release/linux_package_deps.py" \
   "$BUNDLE" --format rpm > "$STAGING_ROOT/deps-rpm.txt"
 echo "--- deb dependencies ---"; cat "$STAGING_ROOT/deps-deb.txt"
 echo "--- rpm dependencies ---"; cat "$STAGING_ROOT/deps-rpm.txt"

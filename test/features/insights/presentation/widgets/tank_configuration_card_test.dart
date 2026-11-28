@@ -73,7 +73,7 @@ void main() {
     await pumpCard(tester, tenDives);
 
     expect(find.text('Rebreather'), findsNothing);
-    expect(find.text('No tanks logged'), findsNothing);
+    expect(find.text('No cylinders logged'), findsNothing);
   });
 
   testWidgets('hides the extras group when no dive has an extra', (
@@ -204,7 +204,7 @@ void main() {
     await pumpWith(tester, () async => throw StateError('query failed'));
     await tester.pump();
 
-    expect(find.text('Unable to load tank configuration'), findsOneWidget);
+    expect(find.text('Unable to load cylinder configuration'), findsOneWidget);
   });
 
   testWidgets('the twin set note shows even when the filter leaves no dives', (
@@ -326,7 +326,7 @@ void main() {
       );
       expect(
         container.read(diveFilterProvider).diveIdsLabel,
-        'Tank configuration: Single backmount',
+        'Cylinder configuration: Single backmount',
       );
     });
 

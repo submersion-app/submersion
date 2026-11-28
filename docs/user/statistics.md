@@ -41,7 +41,7 @@ Two things ignore the filter:
 When a number looks odd, you can open the dives that make it up. Most charts
 that count dives by category work this way: depth ranges, dive types, days,
 months and years, water type, the weather and water movement cards, gas mixes,
-tank configurations, solo and buddy dives, and more.
+cylinder configurations, solo and buddy dives, and more.
 
 - **Bars and pie slices** show their number first. Tap one to mark it, and a
   strip under the chart gives its count and **View dives**. Tap the mark again

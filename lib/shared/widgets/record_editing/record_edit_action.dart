@@ -76,7 +76,6 @@ class RecordEditAction extends StatelessWidget {
           )
         : Text(label);
 
-    const padding = EdgeInsets.symmetric(horizontal: 14);
     if (filled) {
       return FilledButton(
         onPressed: onPressed,
@@ -86,7 +85,7 @@ class RecordEditAction extends StatelessWidget {
           disabledBackgroundColor: busy ? colors.fill : faded(colors.fill),
           disabledForegroundColor: busy ? colors.onFill : faded(colors.onFill),
           visualDensity: VisualDensity.compact,
-          padding: padding,
+          padding: _buttonPadding,
         ).copyWith(side: side),
         child: child,
       );
@@ -98,9 +97,14 @@ class RecordEditAction extends StatelessWidget {
         foregroundColor: colors.outline,
         disabledForegroundColor: faded(colors.outline),
         visualDensity: VisualDensity.compact,
-        padding: padding,
+        padding: _buttonPadding,
       ).copyWith(side: side),
       child: child,
     );
   }
 }
+
+/// Horizontal padding of Cancel and Save on the unlocked record's bar:
+/// tighter than a button's default 24, so the pair stays compact beside the
+/// record's title.
+const EdgeInsets _buttonPadding = EdgeInsets.symmetric(horizontal: 14);

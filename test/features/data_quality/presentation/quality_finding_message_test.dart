@@ -150,7 +150,7 @@ void main() {
       'ocDropBar': 60.0,
       'role': 'oxygenSupply',
     });
-    expect(detail, contains('Tank 2'));
+    expect(detail, contains('Cylinder 2'));
     expect(detail, contains(l10n.enum_tankRole_oxygenSupply));
     expect(detail, contains('P60.0'));
   });

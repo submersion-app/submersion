@@ -71,6 +71,10 @@ class ListScrubberPanel extends StatefulWidget {
   static const _startPadding = 4.0;
   static const _thumbReserve = 14.0;
   static const _labelGap = 4.0;
+
+  /// Thickness of the current-position marker line; its ends are rounded
+  /// by half of it.
+  static const _currentMarkerThickness = 2.0;
   static const _minLine = 12.0;
   static const _labelPadding = 6.0;
   static const _markerPadding = 2.0;
@@ -572,10 +576,12 @@ class _ListScrubberPanelState extends State<ListScrubberPanel> {
               Expanded(
                 child: Container(
                   key: ListScrubberPanel.currentMarkerKey,
-                  height: 2,
+                  height: ListScrubberPanel._currentMarkerThickness,
                   decoration: BoxDecoration(
                     color: colors.onSurfaceVariant,
-                    borderRadius: BorderRadius.circular(1),
+                    borderRadius: BorderRadius.circular(
+                      ListScrubberPanel._currentMarkerThickness / 2,
+                    ),
                   ),
                 ),
               ),

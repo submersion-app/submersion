@@ -9,10 +9,42 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// (issue #1487). Reads the shared adjacency index by id, the same way the
 /// service badge reads the worst-clock map, so a list of a thousand items
 /// costs no per-row query. Renders nothing for an item that is neither.
+///
+/// In the Equipment list's assembly view (issue #5071) the list hands in
+/// [partCount], the parts listed under the row by either link, in place of
+/// the component count, and [hideParentId], the assembly the row sits
+/// under, whose "Part of" chip would repeat the row above.
 class AssemblyChips extends ConsumerWidget {
   final String itemId;
+  final int? partCount;
+  final String? hideParentId;
 
-  const AssemblyChips({super.key, required this.itemId});
+  const AssemblyChips({
+    super.key,
+    required this.itemId,
+    this.partCount,
+    this.hideParentId,
+  });
+
+  /// Whether [AssemblyChips] would draw anything for [itemId], so a tile
+  /// leaves out an empty subtitle line.
+  static bool showsAny(
+    ComponentsIndex index,
+    String itemId, {
+    int? partCount,
+    String? hideParentId,
+  }) =>
+      (partCount ?? index.componentCount(itemId)) > 0 ||
+      _parentsShown(index, itemId, hideParentId).isNotEmpty;
+
+  static List<String> _parentsShown(
+    ComponentsIndex index,
+    String itemId,
+    String? hideParentId,
+  ) => [
+    for (final parent in index.parentIdsOf(itemId))
+      if (parent != hideParentId) parent,
+  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,17 +53,24 @@ class AssemblyChips extends ConsumerWidget {
     final l10n = context.l10n;
     final labels = <String>[];
 
-    final count = index.componentCount(itemId);
-    if (count > 0) labels.add(l10n.equipment_components_count(count));
+    // The assembly view's count spans components and installed parts, so
+    // it says "parts" rather than "components".
+    final parts = partCount;
+    if (parts != null) {
+      if (parts > 0) labels.add(l10n.equipment_list_partCount(parts));
+    } else {
+      final count = index.componentCount(itemId);
+      if (count > 0) labels.add(l10n.equipment_components_count(count));
+    }
 
-    final parents = index.parentIdsOf(itemId);
-    if (parents.length == 1) {
+    final shownParents = _parentsShown(index, itemId, hideParentId);
+    if (shownParents.length == 1) {
       // Active gear is what the list already holds; a retired parent falls
       // back to the count form rather than costing a query.
       final active = ref.watch(activeEquipmentProvider).value ?? const [];
       String? name;
       for (final item in active) {
-        if (item.id == parents.single) {
+        if (item.id == shownParents.single) {
           name = item.name;
           break;
         }
@@ -41,8 +80,8 @@ class AssemblyChips extends ConsumerWidget {
             ? l10n.equipment_components_partOf(name)
             : l10n.equipment_components_partOfCount(1),
       );
-    } else if (parents.length > 1) {
-      labels.add(l10n.equipment_components_partOfCount(parents.length));
+    } else if (shownParents.length > 1) {
+      labels.add(l10n.equipment_components_partOfCount(shownParents.length));
     }
 
     if (labels.isEmpty) return const SizedBox.shrink();

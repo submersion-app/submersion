@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/shared/widgets/forms/form_style.dart';
 
 /// A trailing action docked to a [FormOverline]: plain accent text button.
@@ -100,7 +101,12 @@ class FormOverline extends StatelessWidget {
       context,
     ).textTheme.labelMedium!.copyWith(fontWeight: FontWeight.w600);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 10, 6, 0),
+      padding: const EdgeInsets.fromLTRB(
+        FormStyle.rowInset,
+        FormStyle.overlineTopGap,
+        Spacing.s6,
+        0,
+      ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final compact =
@@ -118,7 +124,7 @@ class FormOverline extends StatelessWidget {
               ),
               if (trailingText != null)
                 Padding(
-                  padding: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.only(right: Spacing.s8),
                   child: Text(trailingText!, style: actionStyle),
                 ),
               for (final action in actions)
@@ -135,7 +141,9 @@ class FormOverline extends StatelessWidget {
                     onPressed: action.busy ? null : action.onPressed,
                     style: TextButton.styleFrom(
                       visualDensity: VisualDensity.compact,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: Spacing.s8,
+                      ),
                       textStyle: actionStyle,
                     ),
                     icon: _icon(action),

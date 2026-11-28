@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
+
 /// Confirms an action that cannot be undone by having the diver type a word
 /// (issue #3482): the confirm button stays disabled until the field holds
 /// [word], surrounding spaces forgiven. [word] is localized by the caller,
@@ -82,7 +84,7 @@ class _TypedWordConfirmDialogState extends State<TypedWordConfirmDialog> {
           ? Row(
               children: [
                 Icon(Icons.warning_amber_rounded, color: scheme.error),
-                const SizedBox(width: 8),
+                const SizedBox(width: Spacing.s8),
                 Expanded(child: Text(widget.title)),
               ],
             )
@@ -94,9 +96,9 @@ class _TypedWordConfirmDialogState extends State<TypedWordConfirmDialog> {
           children: [
             for (final paragraph in widget.paragraphs) ...[
               Text(paragraph, style: theme.textTheme.bodyMedium),
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.s12),
             ],
-            const SizedBox(height: 4),
+            const SizedBox(height: Spacing.s4),
             TextField(
               controller: _controller,
               autofocus: true,

@@ -87,10 +87,11 @@ void main() {
         .map((h) => h.type)
         .toList();
 
+    // Alphabetical by English label: BCD, Cylinder, Regulator (#5106).
     expect(headers, [
       EquipmentType.bcd,
-      EquipmentType.regulator,
       EquipmentType.tank,
+      EquipmentType.regulator,
     ]);
   });
 

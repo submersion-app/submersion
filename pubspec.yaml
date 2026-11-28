@@ -4,7 +4,11 @@ publish_to: 'none'
 version: 1.8.7+135
 
 environment:
+  # The language version stays at 3.10: raising this floor moves every file
+  # to 3.13 and its lints. The toolchain floor is set by the flutter line.
   sdk: ^3.10.0
+  # pdfrx 2.13.1 and its pdfium packages need Flutter 3.47 (Dart 3.13).
+  flutter: ">=3.47.0"
 
 dependencies:
   flutter:
@@ -117,6 +121,9 @@ dependencies:
 
   # Storage
   shared_preferences: ^2.3.2
+  # The pop-out window's in-memory prefs (#5078): it never writes the main
+  # window's store.
+  shared_preferences_platform_interface: ^2.4.1
   # v11 removed the legacy Android ciphers (RSA_ECB_PKCS1Padding,
   # AES_CBC_PKCS7Padding). v10 rewrites existing entries to the new ciphers on
   # first access (migrateOnAlgorithmChange defaults to true, and we pass no
@@ -177,7 +184,13 @@ dependencies:
   universal_ble: ^3.1.0
   flutter_web_auth_2: ^5.0.3
   local_auth: ^3.0.2
-  pdfrx: ^2.4.7
+  # 2.6.0 (pdfrx_engine 0.6.0) fixed a lost wake-up in pdfium's on-demand
+  # reads on Windows that hung the PDF worker for good (issue #4785). The app
+  # also loads PDF bytes up to 64 MB in memory through the
+  # maxSizeToCacheOnMemory option of PdfDocumentRefData and
+  # PdfDocument.openData, which 2.4.7 lacked; 2.13.1 is the release that
+  # change was tested against.
+  pdfrx: ^2.13.1
   # Keeps the screen awake while a blocking sync-maintenance dialog is up: a
   # phone that locks mid-wipe suspends the work behind it (issue #1194).
   wakelock_plus: ^1.7.0
@@ -192,6 +205,13 @@ dependencies:
   nfc_manager_ndef: ^1.1.0
   ndef_record: ^1.4.2
   window_manager: ^0.5.2
+  # Pop-out windows on desktop (#5078). Vendored so the macOS runner can hand
+  # each new window's engine the app's renderer choice (#3531); see
+  # packages/desktop_multi_window/PATCHES.md.
+  desktop_multi_window:
+    path: packages/desktop_multi_window
+  # Where a pop-out window may open: the connected displays (#5078).
+  screen_retriever: ^0.2.2
   markdown: ^7.3.1  # Markdown formatting in notes (#3683)
   country_flags: ^4.1.2  # Flags beside site locations and trips (#4426)
   jovial_svg: ^1.1.31  # Draws country_flags' assets with a cache (#4426)
@@ -211,7 +231,6 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   build_runner: ^2.10.4
   drift_dev: ^2.35.2
-  json_serializable: ^6.11.2
   # 4.0.8 is the generator that matches riverpod_annotation 4.0.6, and the
   # reason the analyzer floor below is ^13.
   riverpod_generator: ^4.0.8
@@ -279,8 +298,8 @@ flutter:
         - asset: assets/fonts/materialdesignicons-webfont.ttf
     # Dive-gear glyphs that no icon font has (wetsuit, drysuit, BCD,
     # rebreather, hood, gloves, bootie, reel, DPV, regulator). Drawn in
-    # tool/equipment_glyphs.py and compiled by
-    # tool/build_equipment_icon_font.py; referenced via
+    # scripts/artwork/equipment_glyphs.py and compiled by
+    # scripts/artwork/build_equipment_icon_font.py; referenced via
     # lib/core/icons/submersion_icons.dart.
     - family: Submersion Equipment
       fonts:
@@ -292,3 +311,29 @@ flutter:
       fonts:
         - asset: assets/fonts/InterDisplay-ExtraBold.ttf
           weight: 800
+
+flutter_launcher_icons:
+  image_path: "assets/icon/icon.png"
+
+  ios: true
+  remove_alpha_ios: true
+
+  android: true
+  adaptive_icon_background: "assets/icon/icon_adaptive_background.png"
+  adaptive_icon_foreground: "assets/icon/icon_adaptive_foreground.png"
+  min_sdk_android: 21
+
+  web:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    background_color: "#002D50"
+    theme_color: "#006994"
+
+  windows:
+    generate: true
+    image_path: "assets/icon/icon.png"
+    icon_size: 256
+
+  macos:
+    generate: true
+    image_path: "assets/icon/icon_macos.png"

@@ -6,7 +6,7 @@ name: Dependabot failure alert
 # were only found by reading the Actions list (#2766). This job checks the
 # recent runs once a day, opens one rolling issue when an update stream's
 # newest run failed, comments on it for each new failure, and closes it once
-# every stream is green again; scripts/dependabot_failure_alert.py has the
+# every stream is green again; scripts/bots/dependabot_failure_alert.py has the
 # details.
 #
 # A schedule, not a workflow_run trigger on Dependabot Updates: that workflow
@@ -54,4 +54,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           DEPENDABOT_ALERT_ASSIGNEE: ${{ vars.DEPENDABOT_ALERT_ASSIGNEE }}
-        run: python3 scripts/dependabot_failure_alert.py
+        run: python3 scripts/bots/dependabot_failure_alert.py

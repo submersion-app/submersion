@@ -79,7 +79,7 @@ class Divers extends Table {
   TextColumn get socialHandle => text().nullable()();
   TextColumn get buddyCardShare => text().nullable()();
 
-  /// v388 emergency tag (issue #5060): what the diver puts on their
+  /// v395 emergency tag (issue #5060): what the diver puts on their
   /// emergency tag, as JSON (null = defaults).
   TextColumn get emergencyTagShare => text().nullable()();
 
@@ -461,6 +461,13 @@ class DiverSettings extends Table {
   /// SettingsNotifier). Null reads as off and 100.
   BoolColumn get profileMetricsFollowViewport => boolean().nullable()();
   RealColumn get pscrRatio => real().nullable()();
+
+  /// v389 (issue #5069): the profile chart zooms time alone. Pairs with
+  /// [profileMetricsFollowViewport] as one Zoom choice, so it has the same
+  /// shape: nullable ON PURPOSE, null marking a row that has never held a
+  /// value, adopted from this device's pref like the pair above. Null reads
+  /// as off.
+  BoolColumn get profileZoomTimeOnly => boolean().nullable()();
   // Map style (v67)
   TextColumn get mapStyle =>
       text().withDefault(const Constant('openStreetMap'))();

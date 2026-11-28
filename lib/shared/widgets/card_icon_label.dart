@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
+
 /// A small icon followed by a one-line secondary label, for a card's stat line.
 ///
 /// Built to sit in a [Wrap] with its siblings: the pair stays together and
@@ -29,7 +31,7 @@ class CardIconLabel extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: 14, color: color),
-        const SizedBox(width: 4),
+        const SizedBox(width: Spacing.s4),
         Flexible(
           child: Text(
             text,

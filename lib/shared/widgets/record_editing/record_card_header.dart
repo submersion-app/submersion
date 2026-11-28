@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/theme/record_pencil_colors.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_pencil.dart';
 
@@ -91,6 +92,10 @@ class RecordCardHeader extends StatelessWidget {
   final Widget? leading;
 
   /// What the card shows at the right while reading, such as a count.
+  ///
+  /// It is placed directly in the header's row in every state, so it may be
+  /// a [Flexible] to keep a long value within the row (the training
+  /// signature's course chips do).
   final Widget? trailing;
 
   @override
@@ -101,7 +106,7 @@ class RecordCardHeader extends StatelessWidget {
     final leading = this.leading;
     final trailing = this.trailing;
     final beforeTitle = <Widget>[
-      if (leading != null) ...[leading, const SizedBox(width: 8)],
+      if (leading != null) ...[leading, const SizedBox(width: Spacing.s8)],
     ];
 
     if (frame == null) {
@@ -126,7 +131,7 @@ class RecordCardHeader extends StatelessWidget {
         child: Row(
           children: [
             Flexible(child: titleText),
-            const SizedBox(width: 8),
+            const SizedBox(width: Spacing.s8),
             // The dot's place is kept while there is none, so that its
             // arrival on the first keystroke cannot wrap the title and
             // push the open editor down a line.
@@ -165,7 +170,7 @@ class RecordCardHeader extends StatelessWidget {
           children: [
             ...titleAndDot,
             ?trailing,
-            const SizedBox(width: 8),
+            const SizedBox(width: Spacing.s8),
             RecordPencilIcon(cardTitle: title),
           ],
         ),
