@@ -473,4 +473,31 @@ void main() {
     expect(fieldOf('thickness_mm'), findsOneWidget);
     expect(fieldOf('connection'), findsNothing);
   });
+
+  testWidgets('the purchase record names a seller, not a retailer field', (
+    tester,
+  ) async {
+    // Issue #5140: Retailer became Seller, which can link a buddy or a
+    // dive centre, so the plain attribute field is not drawn.
+    final session = await pumpEditor(tester, regulator);
+    final seller = find.byKey(const ValueKey('gear-edit-seller'));
+    expect(find.byKey(const ValueKey('attr-field-retailer')), findsNothing);
+    expect(find.byKey(const ValueKey('attr-field-sku')), findsOneWidget);
+    expect(seller, findsOneWidget);
+
+    await tester.enterText(seller, 'Dive Shop Ltd');
+    await tester.pumpAndSettle();
+
+    expect(session.working.retailer, 'Dive Shop Ltd');
+    expect(session.working.sellerBuddyId, isNull);
+    expect(session.changedCardIds, {'details'});
+  });
+
+  testWidgets('a wishlist item keeps the seller field', (tester) async {
+    await pumpEditor(
+      tester,
+      regulator.copyWith(status: EquipmentStatus.wanted, isActive: false),
+    );
+    expect(find.byKey(const ValueKey('gear-edit-seller')), findsOneWidget);
+  });
 }

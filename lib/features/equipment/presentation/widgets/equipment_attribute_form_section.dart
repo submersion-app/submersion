@@ -30,6 +30,10 @@ class EquipmentAttributeFormSection extends StatelessWidget {
   /// Which catalog group to render. Defaults to the physical specification.
   final AttributeGroup group;
 
+  /// Widgets drawn in place of the plain field for these keys, such as the
+  /// Seller field for `retailer` (issue #5140), so the order holds.
+  final Map<String, Widget> fieldOverrides;
+
   const EquipmentAttributeFormSection({
     super.key,
     required this.type,
@@ -38,6 +42,7 @@ class EquipmentAttributeFormSection extends StatelessWidget {
     required this.onChanged,
     required this.onCleared,
     this.group = AttributeGroup.spec,
+    this.fieldOverrides = const {},
   });
 
   EquipmentAttribute _base(String key) =>
@@ -59,7 +64,7 @@ class EquipmentAttributeFormSection extends StatelessWidget {
       children: [
         for (final def in defs)
           if (def.key != EquipmentAttrKeys.figurePosition) ...[
-            _buildField(context, def),
+            fieldOverrides[def.key] ?? _buildField(context, def),
             const SizedBox(height: 16),
           ] else if (positions.isNotEmpty) ...[
             _buildFigurePositionField(context, def, positions),

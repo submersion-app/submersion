@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_owned_for.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_attribute_form_section.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_seller_field.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_custom_fields_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_dive_time_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_sharing_row.dart';
@@ -174,6 +175,14 @@ class _GearItemDetailsEditorState extends ConsumerState<GearItemDetailsEditor> {
               units: units,
               onChanged: _attributeChanged,
               onCleared: _attributeCleared,
+              fieldOverrides: {
+                // Who sold it: a buddy, a dive centre or a typed name
+                // (issue #5140).
+                EquipmentAttrKeys.retailer: EquipmentSellerField(
+                  value: _session.valueOf(gearSellerField),
+                  onChanged: (v) => _session.set(gearSellerField, v),
+                ),
+              },
             );
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
