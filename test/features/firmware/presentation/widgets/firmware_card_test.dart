@@ -247,4 +247,49 @@ void main() {
     await tester.pumpAndSettle();
     expect(opened, 'https://my.example.org/fw');
   });
+  testWidgets('show all can be folded back', (tester) async {
+    final many = List.generate(
+      5,
+      (i) => FirmwareRelease(version: 'V${100 - i}'),
+    );
+    final model = FirmwareModel(
+      id: 'm',
+      manufacturer: 'Shearwater',
+      model: 'Perdix 2',
+      equipmentTypes: const {EquipmentType.computer},
+      releases: [
+        ...many,
+        const FirmwareRelease(version: 'V90'),
+      ],
+    );
+    await pump(
+      tester,
+      computer(firmware: 'V90'),
+      FirmwareUpdateAvailable(model, many),
+    );
+    await tester.tap(find.text('Show all releases (5)'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Show fewer'));
+    await tester.pumpAndSettle();
+    expect(find.text('V96'), findsNothing);
+  });
+
+  testWidgets('log firmware update opens with the latest suggested', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      computer(firmware: 'V92'),
+      FirmwareUpdateAvailable(perdix, perdix.releases.sublist(0, 2)),
+    );
+    await tester.tap(find.byKey(const ValueKey('firmware-log-update')));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const ValueKey('firmware-log-version')))
+          .controller!
+          .text,
+      'V95',
+    );
+  });
 }

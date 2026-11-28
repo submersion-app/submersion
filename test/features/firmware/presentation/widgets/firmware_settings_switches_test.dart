@@ -108,4 +108,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(checks), findsOneWidget);
   });
+  testWidgets('turning notifications off saves it', (tester) async {
+    final prefs = await pump(tester);
+    await tester.tap(find.widgetWithText(SwitchListTile, notices));
+    await tester.pumpAndSettle();
+    expect(prefs.getBool(SettingsKeys.firmwareNotificationsEnabled), isFalse);
+  });
 }

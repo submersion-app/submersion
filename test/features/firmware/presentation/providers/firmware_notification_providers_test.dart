@@ -159,4 +159,26 @@ void main() {
     await second;
     expect(sends, 1);
   });
+  test('a send that fails is logged and not retried', () async {
+    SharedPreferences.setMockInitialValues({});
+    final p = await SharedPreferences.getInstance();
+    var sends = 0;
+    final c = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(p),
+        firmwareUpdatesProvider.overrideWith(
+          (ref) async => [update('a', 'V95')],
+        ),
+        firmwareNoticeSenderProvider.overrideWithValue((notice) async {
+          sends++;
+          throw StateError('no permission');
+        }),
+        firmwareNoticeL10nProvider.overrideWithValue(AppLocalizationsEn()),
+      ],
+    );
+    addTearDown(c.dispose);
+    await c.read(firmwareNotificationSyncProvider.future);
+    expect(sends, 1);
+    expect(p.getStringList(SettingsKeys.firmwareNotifiedPairs), ['a|V95']);
+  });
 }

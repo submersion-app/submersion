@@ -102,6 +102,42 @@ void main() {
     expect(find.text("Couldn't save the update. Try again."), findsOneWidget);
     expect(find.text('Log firmware update'), findsOneWidget);
   });
+  testWidgets('cancel closes without logging', (tester) async {
+    final recorder = await open(tester, suggested: 'V95');
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(recorder.calls, isEmpty);
+    expect(find.text('Log firmware update'), findsNothing);
+  });
+
+  testWidgets('the date picker sets the date logged', (tester) async {
+    final recorder = await open(tester, suggested: 'V95');
+    await tester.tap(find.byKey(const ValueKey('firmware-log-date')));
+    await tester.pumpAndSettle();
+    // The 1st is never in the future, which the picker would refuse.
+    const day = 1;
+    await tester.tap(find.text('1').last);
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(recorder.calls.single.date.day, day);
+  });
+
+  testWidgets('typing a version clears the missing-version error', (
+    tester,
+  ) async {
+    await open(tester);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('Enter the version'), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const ValueKey('firmware-log-version')),
+      'V9',
+    );
+    await tester.pump();
+    expect(find.text('Enter the version'), findsNothing);
+  });
 }
 
 typedef _Call = ({
