@@ -24,6 +24,7 @@ import 'package:submersion/core/services/pdf_templates/pdf_profile_series.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/pop_out/presentation/widgets/shown_dive_reporter.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -438,7 +439,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => ShownDiveReporter(
+    // The profile pop-out follows the dive shown here (issue #5078).
+    diveId: widget.newDiveRequest != null ? '' : widget.diveId,
+    child: _buildPage(context),
+  );
+
+  Widget _buildPage(BuildContext context) {
     // A new dive has no stored row to read, review or redirect for.
     if (widget.newDiveRequest != null) return buildNewDive(context);
     final embeddedSiteId = widget.embeddedSiteId;

@@ -1718,6 +1718,17 @@ final navAlwaysHideLabelsDesktopProvider = FutureProvider<bool>((ref) async {
   return repo.getNavAlwaysHideLabelsDesktop();
 });
 
+/// The device-local settings the dive profile draws with, as the prefs that
+/// store them. The one encoding: [SettingsNotifier] saves them through it,
+/// and a desktop pop-out (issue #5078) is sent them through it.
+Map<String, Object> profileDevicePrefs(AppSettings s) => {
+  SettingsKeys.o2CellUnit: s.o2CellUnit.name,
+  SettingsKeys.counterdiffusionShowAll: s.counterdiffusionShowAll,
+  SettingsKeys.perdixOverlayEnabled: s.perdixOverlayEnabled,
+  SettingsKeys.perdixOverlayX: ?s.perdixOverlayX,
+  SettingsKeys.perdixOverlayY: ?s.perdixOverlayY,
+};
+
 /// Settings notifier that persists to database per-diver
 class SettingsNotifier extends StateNotifier<AppSettings> {
   final DiverSettingsRepository _repository;
@@ -1831,14 +1842,43 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     this._ref, {
     required AppSettings settings,
     required String? diverId,
-  }) : super(settings) {
+  }) : _readOnly = false,
+       super(settings) {
     _validatedDiverId = diverId;
     _persisted = diverId == null ? null : settings;
     _initialLoad = Future<void>.value();
     _currentLoad = _initialLoad;
   }
 
-  SettingsNotifier(this._repository, this._ref) : super(const AppSettings()) {
+  SettingsNotifier(this._repository, this._ref)
+    : _readOnly = false,
+      super(const AppSettings()) {
+    _start();
+  }
+
+  /// Settings that are read and never written: a desktop pop-out window's
+  /// view of the main window's (issue #5078). It loads the diver's row and
+  /// this device's prefs as [SettingsNotifier] does, but creates no row,
+  /// adopts nothing into one, writes no prefs, schedules no notifications,
+  /// and its setters change [state] without saving it.
+  SettingsNotifier.readOnly(this._repository, this._ref)
+    : _readOnly = true,
+      super(const AppSettings()) {
+    _start();
+  }
+
+  final bool _readOnly;
+
+  /// Reads the diver's row and this device's prefs again, keeping [state]
+  /// until the fresh load lands. For a desktop pop-out window (issue #5078)
+  /// whose in-memory prefs the main window just replaced: a new notifier
+  /// would start from the defaults and flash them.
+  Future<void> reload() {
+    assert(_readOnly, 'Only a read-only notifier reloads on request');
+    return _startLoad();
+  }
+
+  void _start() {
     logFailure(_startLoad(), SettingsNotifier, 'load diver settings');
     // Not the first load itself: a diver-id change while it is out (the
     // active id realigned after a restore, say) supersedes it, and it then
@@ -2046,7 +2086,31 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       );
       _prefsAreStore = true;
       _landedGeneration = generation;
-      await _writeCachedTheme(prefs);
+      if (!_readOnly) await _writeCachedTheme(prefs);
+      return;
+    }
+
+    if (_readOnly) {
+      // Read the row as it is: no adoption, no creation, no pref retired.
+      final settings =
+          await _repository.getSettingsForDiver(diverId) ?? const AppSettings();
+      if (!_isCurrentLoad(generation)) return;
+      _replaceBase(settings);
+      state = settings.copyWith(
+        hiddenHomeChips: hiddenHomeChips,
+        hiddenHomeCards: hiddenHomeCards,
+        homePanelOrder: homePanelOrder,
+        hiddenHomePanels: hiddenHomePanels,
+        hiddenHomeKeyNumbers: hiddenHomeKeyNumbers,
+        homeHeaderStylePhone: homeHeaderStylePhone,
+        homeHeaderStyleWide: homeHeaderStyleWide,
+        o2CellUnit: o2CellUnit,
+        counterdiffusionShowAll: counterdiffusionShowAll,
+        perdixOverlayEnabled: perdixOverlayEnabled,
+        perdixOverlayX: perdixOverlayX,
+        perdixOverlayY: perdixOverlayY,
+      );
+      _landedGeneration = generation;
       return;
     }
 
@@ -2185,6 +2249,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// [devicePrefs] false skips the preferences for a change that has none,
   /// such as how a list was left (issue #3748), saved on most list taps.
   Future<void> _saveSettings({bool devicePrefs = true}) async {
+    if (_readOnly) return;
     // Taken before the first await: [state] can move on, and a diver switch
     // can start, while the writes below are out. The row write carries
     // exactly this change, to the diver it was made for.
@@ -2232,22 +2297,17 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         if (headerWide != null) {
           await prefs.setString(SettingsKeys.homeHeaderStyleWide, headerWide);
         }
-        await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
-        await prefs.setBool(
-          SettingsKeys.counterdiffusionShowAll,
-          state.counterdiffusionShowAll,
-        );
-        await prefs.setBool(
-          SettingsKeys.perdixOverlayEnabled,
-          state.perdixOverlayEnabled,
-        );
-        final perdixX = state.perdixOverlayX;
-        if (perdixX != null) {
-          await prefs.setDouble(SettingsKeys.perdixOverlayX, perdixX);
-        }
-        final perdixY = state.perdixOverlayY;
-        if (perdixY != null) {
-          await prefs.setDouble(SettingsKeys.perdixOverlayY, perdixY);
+        for (final MapEntry(:key, :value) in profileDevicePrefs(
+          state,
+        ).entries) {
+          switch (value) {
+            case final String v:
+              await prefs.setString(key, v);
+            case final bool v:
+              await prefs.setBool(key, v);
+            case final double v:
+              await prefs.setDouble(key, v);
+          }
         }
         await _writeCachedTheme(prefs);
       }
@@ -2331,6 +2391,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       if (DiverSettingsRepository.storesSameSettings(stored, base)) return;
       _replaceBase(stored);
       state = _withDeviceLocalPrefs(stored);
+      // A read-only notifier (a desktop pop-out, issue #5078) only shows the
+      // change: the cached theme and the notifications are the main window's.
+      if (_readOnly) return;
       await _writeCachedTheme(_ref.read(sharedPreferencesProvider));
       _scheduleNotificationsIfNeeded();
       return;

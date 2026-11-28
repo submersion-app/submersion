@@ -66346,4 +66346,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String equipment_manufacturer_checked(String date) {
     return 'Checked $date';
   }
+
+  @override
+  String get popOut_openProfileWindow => 'Open in a new window';
+
+  @override
+  String get popOut_pin => 'Pin to this dive';
+
+  @override
+  String get popOut_unpin => 'Follow the main window';
+
+  @override
+  String get popOut_selectDivePlaceholder => 'Select a dive in the main window';
+
+  @override
+  String get popOut_lockedPlaceholder => 'Unlock Submersion in the main window';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Profile: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'This window could not reach the logbook. Close it and try again.';
 }

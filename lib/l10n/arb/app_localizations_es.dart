@@ -67408,4 +67408,30 @@ class AppLocalizationsEs extends AppLocalizations {
   String equipment_manufacturer_checked(String date) {
     return 'Comprobado el $date';
   }
+
+  @override
+  String get popOut_openProfileWindow => 'Abrir en una ventana nueva';
+
+  @override
+  String get popOut_pin => 'Fijar a esta inmersión';
+
+  @override
+  String get popOut_unpin => 'Seguir la ventana principal';
+
+  @override
+  String get popOut_selectDivePlaceholder =>
+      'Selecciona una inmersión en la ventana principal';
+
+  @override
+  String get popOut_lockedPlaceholder =>
+      'Desbloquea Submersion en la ventana principal';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Perfil: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'Esta ventana no pudo acceder al registro. Ciérrala e inténtalo de nuevo.';
 }

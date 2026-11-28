@@ -105210,6 +105210,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Checked {date}'**
   String equipment_manufacturer_checked(String date);
+
+  /// Dive profile card: button opening the profile in its own desktop window
+  ///
+  /// In en, this message translates to:
+  /// **'Open in a new window'**
+  String get popOut_openProfileWindow;
+
+  /// Pop-out profile window: tooltip of the button that holds the window on the dive it shows
+  ///
+  /// In en, this message translates to:
+  /// **'Pin to this dive'**
+  String get popOut_pin;
+
+  /// Pop-out profile window: tooltip of the pinned button, which goes back to showing the main window's dive
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the main window'**
+  String get popOut_unpin;
+
+  /// Pop-out profile window: shown when the main window has not shown a dive yet
+  ///
+  /// In en, this message translates to:
+  /// **'Select a dive in the main window'**
+  String get popOut_selectDivePlaceholder;
+
+  /// Pop-out profile window: shown while App Lock has locked the app
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Submersion in the main window'**
+  String get popOut_lockedPlaceholder;
+
+  /// Pop-out profile window: the OS window title; dive is the dive's number and site, like #142 Salt Pier
+  ///
+  /// In en, this message translates to:
+  /// **'Profile: {dive}'**
+  String popOut_windowTitle(String dive);
+
+  /// Pop-out profile window: shown when the window could not connect to the main window's database
+  ///
+  /// In en, this message translates to:
+  /// **'This window could not reach the logbook. Close it and try again.'**
+  String get popOut_connectFailed;
 }
 
 class _AppLocalizationsDelegate

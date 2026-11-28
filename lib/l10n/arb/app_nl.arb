@@ -19574,5 +19574,12 @@
   "equipment_manufacturer_unlink": "Ontkoppelen van catalogus",
   "settings_equipmentCatalogue_title": "Updates van de uitrustingscatalogus downloaden",
   "settings_equipmentCatalogue_subtitle": "Controleert GitHub hooguit eenmaal per dag. Er wordt niets over jou of je uitrusting verzonden.",
-  "equipment_manufacturer_checked": "Gecontroleerd op {date}"
+  "equipment_manufacturer_checked": "Gecontroleerd op {date}",
+  "popOut_openProfileWindow": "Openen in een nieuw venster",
+  "popOut_pin": "Vastzetten op deze duik",
+  "popOut_unpin": "Het hoofdvenster volgen",
+  "popOut_selectDivePlaceholder": "Selecteer een duik in het hoofdvenster",
+  "popOut_lockedPlaceholder": "Ontgrendel Submersion in het hoofdvenster",
+  "popOut_windowTitle": "Profiel: {dive}",
+  "popOut_connectFailed": "Dit venster kon het logboek niet bereiken. Sluit het en probeer het opnieuw."
 }

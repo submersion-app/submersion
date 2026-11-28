@@ -64637,4 +64637,28 @@ class AppLocalizationsJa extends AppLocalizations {
   String equipment_manufacturer_checked(String date) {
     return '$dateに確認';
   }
+
+  @override
+  String get popOut_openProfileWindow => '新しいウィンドウで開く';
+
+  @override
+  String get popOut_pin => 'このダイブに固定';
+
+  @override
+  String get popOut_unpin => 'メインウィンドウに従う';
+
+  @override
+  String get popOut_selectDivePlaceholder => 'メインウィンドウでダイブを選択してください';
+
+  @override
+  String get popOut_lockedPlaceholder => 'メインウィンドウで Submersion のロックを解除してください';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'プロファイル: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'このウィンドウからログブックにアクセスできませんでした。閉じてからもう一度お試しください。';
 }

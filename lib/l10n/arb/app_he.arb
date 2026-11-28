@@ -19574,5 +19574,12 @@
   "equipment_manufacturer_unlink": "ביטול הקישור לקטלוג",
   "settings_equipmentCatalogue_title": "הורדת עדכונים של קטלוג הציוד",
   "settings_equipmentCatalogue_subtitle": "בודק ב-GitHub לכל היותר פעם ביום. שום מידע עליך או על הציוד שלך לא נשלח.",
-  "equipment_manufacturer_checked": "נבדק ב-{date}"
+  "equipment_manufacturer_checked": "נבדק ב-{date}",
+  "popOut_openProfileWindow": "פתיחה בחלון חדש",
+  "popOut_pin": "הצמדה לצלילה זו",
+  "popOut_unpin": "מעקב אחר החלון הראשי",
+  "popOut_selectDivePlaceholder": "בחרו צלילה בחלון הראשי",
+  "popOut_lockedPlaceholder": "בטלו את נעילת Submersion בחלון הראשי",
+  "popOut_windowTitle": "פרופיל: {dive}",
+  "popOut_connectFailed": "החלון הזה לא הצליח לגשת ליומן. סגרו אותו ונסו שוב."
 }

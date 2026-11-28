@@ -68409,4 +68409,29 @@ class AppLocalizationsAr extends AppLocalizations {
   String equipment_manufacturer_checked(String date) {
     return 'تم التحقق في $date';
   }
+
+  @override
+  String get popOut_openProfileWindow => 'فتح في نافذة جديدة';
+
+  @override
+  String get popOut_pin => 'التثبيت على هذه الغطسة';
+
+  @override
+  String get popOut_unpin => 'متابعة النافذة الرئيسية';
+
+  @override
+  String get popOut_selectDivePlaceholder => 'اختر غطسة في النافذة الرئيسية';
+
+  @override
+  String get popOut_lockedPlaceholder =>
+      'افتح قفل Submersion في النافذة الرئيسية';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'المقطع: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'تعذر على هذه النافذة الوصول إلى السجل. أغلقها وحاول مرة أخرى.';
 }

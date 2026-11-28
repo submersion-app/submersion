@@ -65997,4 +65997,28 @@ class AppLocalizationsHe extends AppLocalizations {
   String equipment_manufacturer_checked(String date) {
     return 'נבדק ב-$date';
   }
+
+  @override
+  String get popOut_openProfileWindow => 'פתיחה בחלון חדש';
+
+  @override
+  String get popOut_pin => 'הצמדה לצלילה זו';
+
+  @override
+  String get popOut_unpin => 'מעקב אחר החלון הראשי';
+
+  @override
+  String get popOut_selectDivePlaceholder => 'בחרו צלילה בחלון הראשי';
+
+  @override
+  String get popOut_lockedPlaceholder => 'בטלו את נעילת Submersion בחלון הראשי';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'פרופיל: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'החלון הזה לא הצליח לגשת ליומן. סגרו אותו ונסו שוב.';
 }

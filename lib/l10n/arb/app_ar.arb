@@ -19574,5 +19574,12 @@
   "equipment_manufacturer_unlink": "إلغاء الربط بالكتالوج",
   "settings_equipmentCatalogue_title": "تنزيل تحديثات كتالوج المعدات",
   "settings_equipmentCatalogue_subtitle": "يتحقق من GitHub مرة واحدة يوميًا على الأكثر. لا يُرسل أي شيء عنك أو عن معداتك.",
-  "equipment_manufacturer_checked": "تم التحقق في {date}"
+  "equipment_manufacturer_checked": "تم التحقق في {date}",
+  "popOut_openProfileWindow": "فتح في نافذة جديدة",
+  "popOut_pin": "التثبيت على هذه الغطسة",
+  "popOut_unpin": "متابعة النافذة الرئيسية",
+  "popOut_selectDivePlaceholder": "اختر غطسة في النافذة الرئيسية",
+  "popOut_lockedPlaceholder": "افتح قفل Submersion في النافذة الرئيسية",
+  "popOut_windowTitle": "المقطع: {dive}",
+  "popOut_connectFailed": "تعذر على هذه النافذة الوصول إلى السجل. أغلقها وحاول مرة أخرى."
 }

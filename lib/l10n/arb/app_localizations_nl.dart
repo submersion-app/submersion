@@ -66964,4 +66964,30 @@ class AppLocalizationsNl extends AppLocalizations {
   String equipment_manufacturer_checked(String date) {
     return 'Gecontroleerd op $date';
   }
+
+  @override
+  String get popOut_openProfileWindow => 'Openen in een nieuw venster';
+
+  @override
+  String get popOut_pin => 'Vastzetten op deze duik';
+
+  @override
+  String get popOut_unpin => 'Het hoofdvenster volgen';
+
+  @override
+  String get popOut_selectDivePlaceholder =>
+      'Selecteer een duik in het hoofdvenster';
+
+  @override
+  String get popOut_lockedPlaceholder =>
+      'Ontgrendel Submersion in het hoofdvenster';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Profiel: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'Dit venster kon het logboek niet bereiken. Sluit het en probeer het opnieuw.';
 }

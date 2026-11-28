@@ -19574,5 +19574,12 @@
   "equipment_manufacturer_unlink": "Desligar do catálogo",
   "settings_equipmentCatalogue_title": "Transferir atualizações do catálogo de equipamento",
   "settings_equipmentCatalogue_subtitle": "Consulta o GitHub no máximo uma vez por dia. Nada sobre ti ou o teu equipamento é enviado.",
-  "equipment_manufacturer_checked": "Verificado em {date}"
+  "equipment_manufacturer_checked": "Verificado em {date}",
+  "popOut_openProfileWindow": "Abrir em uma nova janela",
+  "popOut_pin": "Fixar neste mergulho",
+  "popOut_unpin": "Seguir a janela principal",
+  "popOut_selectDivePlaceholder": "Selecione um mergulho na janela principal",
+  "popOut_lockedPlaceholder": "Desbloqueie o Submersion na janela principal",
+  "popOut_windowTitle": "Perfil: {dive}",
+  "popOut_connectFailed": "Esta janela não conseguiu acessar o logbook. Feche-a e tente novamente."
 }

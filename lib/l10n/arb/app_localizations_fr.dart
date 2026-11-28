@@ -67497,4 +67497,30 @@ class AppLocalizationsFr extends AppLocalizations {
   String equipment_manufacturer_checked(String date) {
     return 'Vérifié le $date';
   }
+
+  @override
+  String get popOut_openProfileWindow => 'Ouvrir dans une nouvelle fenêtre';
+
+  @override
+  String get popOut_pin => 'Épingler à cette plongée';
+
+  @override
+  String get popOut_unpin => 'Suivre la fenêtre principale';
+
+  @override
+  String get popOut_selectDivePlaceholder =>
+      'Sélectionnez une plongée dans la fenêtre principale';
+
+  @override
+  String get popOut_lockedPlaceholder =>
+      'Déverrouillez Submersion dans la fenêtre principale';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Profil : $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'Cette fenêtre n\'a pas pu accéder au carnet de plongée. Fermez-la et réessayez.';
 }

@@ -19574,5 +19574,12 @@
   "equipment_manufacturer_unlink": "取消与目录的关联",
   "settings_equipmentCatalogue_title": "下载装备目录更新",
   "settings_equipmentCatalogue_subtitle": "每天最多检查一次 GitHub。不会发送任何关于你或你的装备的信息。",
-  "equipment_manufacturer_checked": "核实于{date}"
+  "equipment_manufacturer_checked": "核实于{date}",
+  "popOut_openProfileWindow": "在新窗口中打开",
+  "popOut_pin": "固定到此潜水",
+  "popOut_unpin": "跟随主窗口",
+  "popOut_selectDivePlaceholder": "请在主窗口中选择一次潜水",
+  "popOut_lockedPlaceholder": "请在主窗口中解锁 Submersion",
+  "popOut_windowTitle": "剖面图：{dive}",
+  "popOut_connectFailed": "此窗口无法访问日志。请关闭后重试。"
 }

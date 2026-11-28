@@ -19574,5 +19574,12 @@
   "equipment_manufacturer_unlink": "Desvincular del catálogo",
   "settings_equipmentCatalogue_title": "Descargar actualizaciones del catálogo de equipo",
   "settings_equipmentCatalogue_subtitle": "Consulta GitHub como mucho una vez al día. No se envía nada sobre ti ni sobre tu equipo.",
-  "equipment_manufacturer_checked": "Comprobado el {date}"
+  "equipment_manufacturer_checked": "Comprobado el {date}",
+  "popOut_openProfileWindow": "Abrir en una ventana nueva",
+  "popOut_pin": "Fijar a esta inmersión",
+  "popOut_unpin": "Seguir la ventana principal",
+  "popOut_selectDivePlaceholder": "Selecciona una inmersión en la ventana principal",
+  "popOut_lockedPlaceholder": "Desbloquea Submersion en la ventana principal",
+  "popOut_windowTitle": "Perfil: {dive}",
+  "popOut_connectFailed": "Esta ventana no pudo acceder al registro. Ciérrala e inténtalo de nuevo."
 }

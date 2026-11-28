@@ -19573,5 +19573,12 @@
   "equipment_manufacturer_unlink": "カタログとのリンクを解除",
   "settings_equipmentCatalogue_title": "器材カタログの更新をダウンロード",
   "settings_equipmentCatalogue_subtitle": "GitHubの確認は1日1回まで。あなたや器材に関する情報は送信されません。",
-  "equipment_manufacturer_checked": "{date}に確認"
+  "equipment_manufacturer_checked": "{date}に確認",
+  "popOut_openProfileWindow": "新しいウィンドウで開く",
+  "popOut_pin": "このダイブに固定",
+  "popOut_unpin": "メインウィンドウに従う",
+  "popOut_selectDivePlaceholder": "メインウィンドウでダイブを選択してください",
+  "popOut_lockedPlaceholder": "メインウィンドウで Submersion のロックを解除してください",
+  "popOut_windowTitle": "プロファイル: {dive}",
+  "popOut_connectFailed": "このウィンドウからログブックにアクセスできませんでした。閉じてからもう一度お試しください。"
 }

@@ -19574,5 +19574,12 @@
   "equipment_manufacturer_unlink": "Scollega dal catalogo",
   "settings_equipmentCatalogue_title": "Scarica gli aggiornamenti del catalogo attrezzatura",
   "settings_equipmentCatalogue_subtitle": "Controlla GitHub al massimo una volta al giorno. Non viene inviato nulla su di te o sulla tua attrezzatura.",
-  "equipment_manufacturer_checked": "Verificato il {date}"
+  "equipment_manufacturer_checked": "Verificato il {date}",
+  "popOut_openProfileWindow": "Apri in una nuova finestra",
+  "popOut_pin": "Fissa a questa immersione",
+  "popOut_unpin": "Segui la finestra principale",
+  "popOut_selectDivePlaceholder": "Seleziona un'immersione nella finestra principale",
+  "popOut_lockedPlaceholder": "Sblocca Submersion nella finestra principale",
+  "popOut_windowTitle": "Profilo: {dive}",
+  "popOut_connectFailed": "Questa finestra non ha potuto raggiungere il logbook. Chiudila e riprova."
 }

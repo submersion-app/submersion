@@ -19574,5 +19574,12 @@
   "equipment_manufacturer_unlink": "Délier du catalogue",
   "settings_equipmentCatalogue_title": "Télécharger les mises à jour du catalogue d'équipement",
   "settings_equipmentCatalogue_subtitle": "Consulte GitHub au plus une fois par jour. Rien sur vous ni sur votre équipement n'est envoyé.",
-  "equipment_manufacturer_checked": "Vérifié le {date}"
+  "equipment_manufacturer_checked": "Vérifié le {date}",
+  "popOut_openProfileWindow": "Ouvrir dans une nouvelle fenêtre",
+  "popOut_pin": "Épingler à cette plongée",
+  "popOut_unpin": "Suivre la fenêtre principale",
+  "popOut_selectDivePlaceholder": "Sélectionnez une plongée dans la fenêtre principale",
+  "popOut_lockedPlaceholder": "Déverrouillez Submersion dans la fenêtre principale",
+  "popOut_windowTitle": "Profil : {dive}",
+  "popOut_connectFailed": "Cette fenêtre n'a pas pu accéder au carnet de plongée. Fermez-la et réessayez."
 }

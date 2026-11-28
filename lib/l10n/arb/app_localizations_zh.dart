@@ -63126,4 +63126,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String equipment_manufacturer_checked(String date) {
     return '核实于$date';
   }
+
+  @override
+  String get popOut_openProfileWindow => '在新窗口中打开';
+
+  @override
+  String get popOut_pin => '固定到此潜水';
+
+  @override
+  String get popOut_unpin => '跟随主窗口';
+
+  @override
+  String get popOut_selectDivePlaceholder => '请在主窗口中选择一次潜水';
+
+  @override
+  String get popOut_lockedPlaceholder => '请在主窗口中解锁 Submersion';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return '剖面图：$dive';
+  }
+
+  @override
+  String get popOut_connectFailed => '此窗口无法访问日志。请关闭后重试。';
 }

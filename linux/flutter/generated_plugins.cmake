@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
+  desktop_multi_window
   desktop_webview_window
   file_selector_linux
   flutter_secure_storage_linux

@@ -19574,5 +19574,12 @@
   "equipment_manufacturer_unlink": "Leválasztás a katalógusról",
   "settings_equipmentCatalogue_title": "A felszereléskatalógus frissítéseinek letöltése",
   "settings_equipmentCatalogue_subtitle": "Legfeljebb naponta egyszer ellenőrzi a GitHubot. Rólad vagy a felszerelésedről semmit nem küld.",
-  "equipment_manufacturer_checked": "Ellenőrizve: {date}"
+  "equipment_manufacturer_checked": "Ellenőrizve: {date}",
+  "popOut_openProfileWindow": "Megnyitás új ablakban",
+  "popOut_pin": "Rögzítés ehhez a merüléshez",
+  "popOut_unpin": "A főablak követése",
+  "popOut_selectDivePlaceholder": "Válassz egy merülést a főablakban",
+  "popOut_lockedPlaceholder": "Oldd fel a Submersiont a főablakban",
+  "popOut_windowTitle": "Profil: {dive}",
+  "popOut_connectFailed": "Ez az ablak nem érte el a merülési naplót. Zárd be, és próbáld újra."
 }
