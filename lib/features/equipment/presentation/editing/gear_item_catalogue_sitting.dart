@@ -36,7 +36,8 @@ bool _blank(String? value) => value == null || value.trim().isEmpty;
 /// fields left unticked as declined for the record. A ticked empty field
 /// is set only while it is still empty: a value the diver typed after the
 /// sheet opened stays. A ticked differing field is set: the diver chose it
-/// beside their own. Not this model records only that answer.
+/// beside their own. Not this model records that answer, and unlinks an
+/// item linked to the record.
 void holdGearCatalogueReview(
   EditSession<EquipmentItem> session,
   CatalogueOffer offer,
@@ -48,6 +49,10 @@ void holdGearCatalogueReview(
   switch (result) {
     case GearCatalogueNotThisModel():
       session.set(gearCatalogueAnswersField, answers.withNotSame(record.id));
+      // An item linked to the record is not that model after all.
+      if (session.valueOf(gearCatalogueIdField) == record.id) {
+        session.set(gearCatalogueIdField, null);
+      }
     case GearCatalogueApply(:final ticked):
       for (final row in offer.rows) {
         if (!ticked.contains(row.fieldName)) continue;

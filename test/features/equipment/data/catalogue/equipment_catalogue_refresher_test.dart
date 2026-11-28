@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -5,8 +6,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/equipment/data/catalogue/equipment_catalogue_refresher.dart';
 import 'package:submersion/features/equipment/domain/catalogue/equipment_catalogue_record.dart';
 
-String _file(String generatedAt, {int format = 1}) =>
-    jsonEncode({'format': format, 'generatedAt': generatedAt, 'records': []});
+String _file(String generatedAt, {int format = 1, bool empty = false}) =>
+    jsonEncode({
+      'format': format,
+      'generatedAt': generatedAt,
+      'records': [
+        if (!empty)
+          {
+            'id': 'maker-thing',
+            'manufacturer': 'Maker',
+            'model': 'Thing',
+            'equipmentType': 'computer',
+            'sources': [],
+          },
+      ],
+    });
 
 EquipmentCatalogueFile _parsed(DateTime at) =>
     EquipmentCatalogueFile(format: 1, generatedAt: at, records: const []);
@@ -117,6 +131,41 @@ void main() {
       final body = _file('2026-11-27T00:00:00Z', format: 2);
       expect(await refresher(body: body).refreshIfDue(), isFalse);
       expect(written, isEmpty);
+    });
+
+    test('keeps the cache when the file has no usable record', () async {
+      final body = _file('2026-11-27T00:00:00Z', empty: true);
+      expect(await refresher(body: body).refreshIfDue(), isFalse);
+      expect(written, isEmpty);
+    });
+
+    test('keeps the cache when the file is dated in the future', () async {
+      // A copy dated ahead would beat every later bundled copy.
+      final body = _file('2026-12-05T00:00:00Z');
+      expect(await refresher(body: body).refreshIfDue(), isFalse);
+      expect(written, isEmpty);
+    });
+
+    test('a refresh asked for while one runs joins it', () async {
+      final gate = Completer<void>();
+      final r = EquipmentCatalogueRefresher(
+        fetch: () async {
+          fetches++;
+          await gate.future;
+          return _file('2026-11-27T00:00:00Z');
+        },
+        writeCache: (json) async => written.add(json),
+        prefs: prefs,
+        enabled: () => true,
+        isBrowser: false,
+        now: () => now,
+      );
+      final first = r.refreshIfDue();
+      final second = r.refreshIfDue();
+      gate.complete();
+      expect(await Future.wait([first, second]), [true, true]);
+      expect(fetches, 1);
+      expect(written, hasLength(1));
     });
 
     test('keeps the cache when nothing is published', () async {

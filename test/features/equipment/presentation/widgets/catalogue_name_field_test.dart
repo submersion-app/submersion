@@ -22,7 +22,13 @@ final _catalogue = EquipmentCatalogue(
     format: 1,
     generatedAt: DateTime.utc(2026, 11, 27),
     records: [
-      _r('sw-perdix-2', 'Shearwater', 'Perdix 2'),
+      const EquipmentCatalogueRecord(
+        id: 'sw-perdix-2',
+        manufacturer: 'Shearwater',
+        manufacturerAliases: ['Shearwater Research'],
+        model: 'Perdix 2',
+        type: EquipmentType.computer,
+      ),
       _r('sw-perdix', 'Shearwater', 'Perdix'),
       _r('sw-teric', 'Shearwater', 'Teric'),
       _r('hw-ostc-4', 'Heinrichs Weikamp', 'OSTC 4 hwOS Sport Edition Long'),
@@ -56,6 +62,18 @@ void main() {
           'shearwater',
         ], 'shear'),
         ['shearwater'],
+      );
+    });
+
+    test("a maker's other name finds its own spelling", () {
+      expect(
+        brandSuggestions(
+          _catalogue,
+          EquipmentType.computer,
+          const [],
+          'research',
+        ),
+        ['Shearwater'],
       );
     });
 

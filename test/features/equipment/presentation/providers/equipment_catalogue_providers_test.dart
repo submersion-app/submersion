@@ -74,6 +74,23 @@ void main() {
     expect(catalogue.isEmpty, isTrue);
   });
 
+  test('a cache that cannot be read leaves the bundled copy', () async {
+    final c = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        equipmentCatalogueBundledTextProvider.overrideWith(
+          (ref) async => _file('2026-11-01T00:00:00Z', 'Bundled'),
+        ),
+        equipmentCatalogueCachedTextProvider.overrideWith(
+          (ref) async => throw StateError('no support directory'),
+        ),
+      ],
+    );
+    addTearDown(c.dispose);
+    final catalogue = await c.read(equipmentCatalogueProvider.future);
+    expect(catalogue.byId('maker-Bundled'), isNotNull);
+  });
+
   test('the download switch defaults on and persists per device', () async {
     final c = container();
     expect(c.read(equipmentCatalogueUpdatesEnabledProvider), isTrue);

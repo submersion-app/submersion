@@ -26,7 +26,8 @@ List<String> _matching(Iterable<String> names, String typed) {
 
 /// Brand names for the brand field of an item of [type]: the diver's own
 /// brands ([diverBrands], their spelling) first, then the makers the
-/// [catalogue] has a [type] record of (issue #5118).
+/// [catalogue] has a [type] record of, found by their own name or any other
+/// name they go by and offered by their own spelling (issue #5118).
 List<String> brandSuggestions(
   EquipmentCatalogue catalogue,
   EquipmentType type,
@@ -36,12 +37,20 @@ List<String> brandSuggestions(
   final query = catalogueNameKey(typed);
   if (query.isEmpty) return const [];
   final mine = _matching(diverBrands, typed);
-  final mineKeys = mine.map(catalogueNameKey).toSet();
-  return [
-    ...mine,
-    for (final name in _matching(catalogue.manufacturers(type), typed))
-      if (!mineKeys.contains(catalogueNameKey(name))) name,
-  ];
+  final taken = {query, ...mine.map(catalogueNameKey)};
+  final starts = <String>[];
+  final contains = <String>[];
+  final makers = catalogue.manufacturerKeys(type);
+  for (final name
+      in makers.keys.toList()
+        ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()))) {
+    final keys = makers[name]!;
+    if (keys.any(taken.contains) || !keys.any((k) => k.contains(query))) {
+      continue;
+    }
+    (keys.any((k) => k.startsWith(query)) ? starts : contains).add(name);
+  }
+  return [...mine, ...starts, ...contains];
 }
 
 /// Model names for the model field: the [catalogue]'s [type] models of the

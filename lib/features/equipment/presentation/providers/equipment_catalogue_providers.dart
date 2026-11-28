@@ -46,22 +46,34 @@ EquipmentCatalogueFile? _parse(String? text) =>
 final equipmentCatalogueProvider = FutureProvider<EquipmentCatalogue>((
   ref,
 ) async {
-  try {
-    final bundled = await ref.watch(
-      equipmentCatalogueBundledTextProvider.future,
-    );
-    final cached = await ref.watch(equipmentCatalogueCachedTextProvider.future);
-    final chosen = chooseEquipmentCatalogue(
-      await compute(_parse, bundled),
-      await compute(_parse, cached),
-    );
-    return chosen == null
-        ? EquipmentCatalogue.empty
-        : EquipmentCatalogue(chosen);
-  } on Object catch (e) {
-    _log.warning('Equipment catalogue could not be loaded: $e');
-    return EquipmentCatalogue.empty;
+  // Each copy is read on its own: one that cannot be read must not cost
+  // the other.
+  Future<EquipmentCatalogueFile?> read(
+    Future<String?> Function() text,
+    String which,
+  ) async {
+    try {
+      return await compute<String?, EquipmentCatalogueFile?>(
+        _parse,
+        await text(),
+      );
+    } on Object catch (e) {
+      _log.warning('The $which equipment catalogue could not be read: $e');
+      return null;
+    }
   }
+
+  final chosen = chooseEquipmentCatalogue(
+    await read(
+      () => ref.watch(equipmentCatalogueBundledTextProvider.future),
+      'bundled',
+    ),
+    await read(
+      () => ref.watch(equipmentCatalogueCachedTextProvider.future),
+      'downloaded',
+    ),
+  );
+  return chosen == null ? EquipmentCatalogue.empty : EquipmentCatalogue(chosen);
 });
 
 /// Whether this device downloads newer catalogue releases. Per device,
@@ -97,16 +109,18 @@ final equipmentCatalogueHttpClientProvider = Provider<http.Client>((ref) {
 final equipmentCatalogueRefreshProvider = Provider<Future<void> Function()>((
   ref,
 ) {
+  // One refresher for the app's life, so a refresh asked for while one
+  // runs joins it.
+  final refresher = EquipmentCatalogueRefresher(
+    fetch: EquipmentCatalogueClient(
+      client: ref.read(equipmentCatalogueHttpClientProvider),
+    ).fetch,
+    writeCache: writeEquipmentCatalogueCache,
+    prefs: ref.read(sharedPreferencesProvider),
+    enabled: () => ref.read(equipmentCatalogueUpdatesEnabledProvider),
+    isBrowser: ref.read(deviceCapabilitiesProvider).isBrowser,
+  );
   return () async {
-    final refresher = EquipmentCatalogueRefresher(
-      fetch: EquipmentCatalogueClient(
-        client: ref.read(equipmentCatalogueHttpClientProvider),
-      ).fetch,
-      writeCache: writeEquipmentCatalogueCache,
-      prefs: ref.read(sharedPreferencesProvider),
-      enabled: () => ref.read(equipmentCatalogueUpdatesEnabledProvider),
-      isBrowser: ref.read(deviceCapabilitiesProvider).isBrowser,
-    );
     if (await refresher.refreshIfDue()) {
       ref.invalidate(equipmentCatalogueCachedTextProvider);
     }

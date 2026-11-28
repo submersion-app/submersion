@@ -140,4 +140,17 @@ void main() {
     expect(session.valueOf(gearCatalogueIdField), isNull);
     expect(_text(session, 'connectivity'), isNull);
   });
+
+  test('Not this model on a linked item also unlinks it', () {
+    session = EditSession(_item().copyWith(catalogueId: 'shearwater-perdix-2'));
+    holdGearCatalogueReview(
+      session,
+      offerFor(session.working, _perdix),
+      const GearCatalogueNotThisModel(),
+    );
+    expect(session.valueOf(gearCatalogueIdField), isNull);
+    expect(session.valueOf(gearCatalogueAnswersField).notSame, {
+      'shearwater-perdix-2',
+    });
+  });
 }

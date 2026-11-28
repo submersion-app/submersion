@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/data/services/gear_item_edit_save_service.dart';
+import 'package:submersion/features/equipment/domain/catalogue/equipment_catalogue_offer.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/editing/gear_item_card_ids.dart';
@@ -17,7 +18,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// pages, read live from the equipment catalogue record (issue #5118).
 /// Nothing is copied into the item, so a corrected link arrives with the
 /// next catalogue copy. Hidden when the item is unlinked, its record is not
-/// in the catalogue this device holds, or the record has no links. Brings
+/// in the catalogue this device holds, the record has no links, or the
+/// item's brand and model no longer name it. Brings
 /// its own bottom gap, so it takes no room when hidden.
 class GearManufacturerCard extends ConsumerWidget {
   const GearManufacturerCard({super.key, required this.item});
@@ -30,6 +32,11 @@ class GearManufacturerCard extends ConsumerWidget {
     final catalogue = ref.watch(equipmentCatalogueProvider).value;
     final record = id == null ? null : catalogue?.byId(id);
     if (record == null || record.links.isEmpty) return const SizedBox.shrink();
+    // A rename outside the editor (an agent write, an import merge) keeps
+    // the link; the pages are shown only while the name still names it.
+    if (catalogueIdAfterRename(item, catalogue!) != id) {
+      return const SizedBox.shrink();
+    }
 
     final l10n = context.l10n;
     final theme = Theme.of(context);

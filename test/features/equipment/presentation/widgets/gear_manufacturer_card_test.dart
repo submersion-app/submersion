@@ -146,6 +146,15 @@ void main() {
     expect(find.text('From the manufacturer'), findsNothing);
   });
 
+  testWidgets('nothing once a rename elsewhere names another model', (
+    tester,
+  ) async {
+    // A rename outside the editor (an agent write, an import merge) leaves
+    // the link: the card must not show another model's pages.
+    await pump(tester, _linked.copyWith(model: 'Teric'));
+    expect(find.text('From the manufacturer'), findsNothing);
+  });
+
   testWidgets('nothing for a record this catalogue lacks', (tester) async {
     await pump(tester, _linked.copyWith(catalogueId: 'gone'));
     expect(find.text('From the manufacturer'), findsNothing);

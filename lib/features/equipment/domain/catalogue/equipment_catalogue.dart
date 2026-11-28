@@ -12,14 +12,31 @@ String catalogueNameKey(String value) => value
     .replaceAll('+', 'plus')
     .replaceAll(RegExp(r'[^\p{L}\p{N}]', unicode: true), '');
 
+/// A record with its names normalised once, when the copy is indexed.
+class _Entry {
+  _Entry(this.record)
+    : makerKeys = {
+        catalogueNameKey(record.manufacturer),
+        for (final alias in record.manufacturerAliases) catalogueNameKey(alias),
+      },
+      modelKeys = {
+        catalogueNameKey(record.model),
+        for (final alias in record.aliases) catalogueNameKey(alias),
+      };
+
+  final EquipmentCatalogueRecord record;
+  final Set<String> makerKeys;
+  final Set<String> modelKeys;
+}
+
 /// The records of one catalogue copy, indexed for the gear editor: by
-/// type, then by normalised maker name and alias, then by model name and
-/// alias (issue #5118).
+/// type, with every maker and model name and alias normalised once, so a
+/// lookup on each keystroke compares keys and builds none (issue #5118).
 class EquipmentCatalogue {
   EquipmentCatalogue(EquipmentCatalogueFile file)
     : generatedAt = file.generatedAt,
       _byId = {for (final r in file.records) r.id: r},
-      _byType = groupBy(file.records, (r) => r.type);
+      _byType = groupBy(file.records.map(_Entry.new), (e) => e.record.type);
 
   EquipmentCatalogue._empty()
     : generatedAt = null,
@@ -31,24 +48,33 @@ class EquipmentCatalogue {
 
   final DateTime? generatedAt;
   final Map<String, EquipmentCatalogueRecord> _byId;
-  final Map<EquipmentType, List<EquipmentCatalogueRecord>> _byType;
+  final Map<EquipmentType, List<_Entry>> _byType;
 
   bool get isEmpty => _byId.isEmpty;
 
   EquipmentCatalogueRecord? byId(String id) => _byId[id];
 
+  List<_Entry> _of(EquipmentType type) => _byType[type] ?? const [];
+
   /// The makers with a record of [type], each once by its own spelling,
   /// sorted.
-  List<String> manufacturers(EquipmentType type) {
-    final byKey = <String, String>{};
-    for (final record in _byType[type] ?? const <EquipmentCatalogueRecord>[]) {
-      byKey.putIfAbsent(
-        catalogueNameKey(record.manufacturer),
-        () => record.manufacturer,
+  List<String> manufacturers(EquipmentType type) =>
+      manufacturerKeys(type).keys.toList()
+        ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+
+  /// Each maker with a record of [type], by its own spelling, with the
+  /// normalised keys of that spelling and every alias it goes by.
+  Map<String, Set<String>> manufacturerKeys(EquipmentType type) {
+    final byMain = <String, String>{};
+    final keys = <String, Set<String>>{};
+    for (final entry in _of(type)) {
+      final main = byMain.putIfAbsent(
+        catalogueNameKey(entry.record.manufacturer),
+        () => entry.record.manufacturer,
       );
+      (keys[main] ??= <String>{}).addAll(entry.makerKeys);
     }
-    return byKey.values.toList()
-      ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+    return keys;
   }
 
   /// The records of [type] whose maker is [brand] (by name or alias),
@@ -57,8 +83,8 @@ class EquipmentCatalogue {
     final key = catalogueNameKey(brand);
     if (key.isEmpty) return const [];
     return [
-      for (final record in _byType[type] ?? const <EquipmentCatalogueRecord>[])
-        if (_makerKeys(record).contains(key)) record,
+      for (final entry in _of(type))
+        if (entry.makerKeys.contains(key)) entry.record,
     ]..sort((a, b) => a.model.toLowerCase().compareTo(b.model.toLowerCase()));
   }
 
@@ -70,22 +96,18 @@ class EquipmentCatalogue {
     String? brand,
     String? model,
   ) {
+    final makerKey = catalogueNameKey(brand ?? '');
     final modelKey = catalogueNameKey(model ?? '');
-    if (modelKey.isEmpty) return null;
-    final matches = [
-      for (final record in models(type, brand ?? ''))
-        if (_modelKeys(record).contains(modelKey)) record,
-    ];
-    return matches.length == 1 ? matches.single : null;
+    if (makerKey.isEmpty || modelKey.isEmpty) return null;
+    EquipmentCatalogueRecord? found;
+    for (final entry in _of(type)) {
+      if (!entry.makerKeys.contains(makerKey) ||
+          !entry.modelKeys.contains(modelKey)) {
+        continue;
+      }
+      if (found != null) return null;
+      found = entry.record;
+    }
+    return found;
   }
-
-  static Set<String> _makerKeys(EquipmentCatalogueRecord r) => {
-    catalogueNameKey(r.manufacturer),
-    for (final alias in r.manufacturerAliases) catalogueNameKey(alias),
-  };
-
-  static Set<String> _modelKeys(EquipmentCatalogueRecord r) => {
-    catalogueNameKey(r.model),
-    for (final alias in r.aliases) catalogueNameKey(alias),
-  };
 }

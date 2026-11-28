@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show compute;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
@@ -8,6 +9,10 @@ const _log = LoggerService('EquipmentCatalogueRefresher');
 
 /// When the last good download happened, in Unix milliseconds. Per device.
 const String kEquipmentCatalogueFetchedAtKey = 'equipment_catalogue_fetched_at';
+
+/// How far ahead of this device's clock a catalogue's `generatedAt` may be
+/// (time zones and clock drift); a copy dated further ahead is refused.
+const Duration kEquipmentCatalogueClockSlack = Duration(days: 2);
 
 /// How long a good download stays fresh.
 const Duration kEquipmentCatalogueRefreshInterval = Duration(hours: 24);
@@ -52,8 +57,14 @@ class EquipmentCatalogueRefresher {
   final bool _isBrowser;
   final DateTime Function() _now;
 
-  /// Whether a new copy was kept.
-  Future<bool> refreshIfDue() async {
+  Future<bool>? _running;
+
+  /// Whether a new copy was kept. A call made while one runs (a launch,
+  /// then a quick resume) joins it rather than downloading again.
+  Future<bool> refreshIfDue() =>
+      _running ??= _refreshIfDue().whenComplete(() => _running = null);
+
+  Future<bool> _refreshIfDue() async {
     if (_isBrowser || !_enabled()) return false;
     final last = _prefs.getInt(kEquipmentCatalogueFetchedAtKey);
     final now = _now();
@@ -68,8 +79,19 @@ class EquipmentCatalogueRefresher {
         _log.info('No equipment catalogue release is published');
         return false;
       }
-      if (parseEquipmentCatalogue(body) == null) {
+      // Parsed off the UI thread: a later catalogue holds thousands of
+      // records, and this runs at launch and on resume.
+      final parsed = await compute(parseEquipmentCatalogue, body);
+      if (parsed == null) {
         _log.warning('Ignored a downloaded equipment catalogue it cannot read');
+        return false;
+      }
+      // A broken release must not replace a working copy: an empty one
+      // would hide every suggestion, and one dated ahead would beat every
+      // later bundled copy.
+      if (parsed.records.isEmpty ||
+          parsed.generatedAt.isAfter(now.add(kEquipmentCatalogueClockSlack))) {
+        _log.warning('Ignored an empty or future-dated equipment catalogue');
         return false;
       }
       await _writeCache(body);
