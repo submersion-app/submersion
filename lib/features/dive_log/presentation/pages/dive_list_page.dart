@@ -290,7 +290,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
                 );
               } else if (value == 'find_species') {
                 logFailure(
-                  findSpeciesInLogbook(context, ref),
+                  findSpeciesInLogbook(context),
                   _DiveListPageState,
                   'find species in all dives',
                 );

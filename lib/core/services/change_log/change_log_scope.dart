@@ -99,11 +99,14 @@ abstract final class ChangeLogScope {
     required Future<T> Function() body,
   }) async {
     if (db == null) return body();
-    final operationId = reopenId ?? const Uuid().v4();
+    // An operation the diver undid is never added to: that would file new
+    // changes under an entry shown as undone, out of reach of its undo.
+    final reopen = reopenId != null && !await _isReverted(db, reopenId);
+    final operationId = reopen ? reopenId : const Uuid().v4();
     final previous = await _open(
       db,
       operationId: operationId,
-      reopen: reopenId != null,
+      reopen: reopen,
       source: source,
       label: label,
       deviceId: deviceId,
@@ -190,6 +193,23 @@ abstract final class ChangeLogScope {
       count: summaryCount?.call(result),
     );
     return result;
+  }
+
+  /// Whether [operationId] was undone; false when it cannot be read.
+  static Future<bool> _isReverted(AppDatabase db, String operationId) async {
+    try {
+      final row = await (db.select(
+        db.changeLogOperations,
+      )..where((o) => o.id.equals(operationId))).getSingleOrNull();
+      return row?.revertedById != null;
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Could not read a change log operation',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      return false;
+    }
   }
 
   static int _now() => DateTime.now().millisecondsSinceEpoch;

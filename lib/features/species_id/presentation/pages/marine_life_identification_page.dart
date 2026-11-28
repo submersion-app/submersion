@@ -111,7 +111,7 @@ class _MarineLifeIdentificationPageState
                 title: Text(l10n.speciesBatch_findInLogbook),
                 subtitle: Text(l10n.speciesBatch_findInLogbookSubtitle),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => findSpeciesInLogbook(context, ref),
+                onTap: () => findSpeciesInLogbook(context),
               )
             else
               const SpeciesBatchProgressCard(

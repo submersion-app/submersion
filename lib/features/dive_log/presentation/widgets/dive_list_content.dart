@@ -1670,7 +1670,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             } else if (value == 'data_quality') {
               context.push('/dives/quality');
             } else if (value == 'find_species') {
-              unawaited(findSpeciesInLogbook(context, ref));
+              unawaited(findSpeciesInLogbook(context));
             } else if (value == 'group_trips') {
               ref.read(settingsProvider.notifier).toggleGroupTripsInDiveList();
             } else if (value == 'expand_all_trips') {
@@ -1869,7 +1869,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   } else if (value == 'data_quality') {
                     context.push('/dives/quality');
                   } else if (value == 'find_species') {
-                    unawaited(findSpeciesInLogbook(context, ref));
+                    unawaited(findSpeciesInLogbook(context));
                   } else if (value == 'group_trips') {
                     ref
                         .read(settingsProvider.notifier)
@@ -2108,11 +2108,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
       // Find species in the checked dives' photos and videos (#5127), where
       // this device can run the models and a pack is installed.
       if (ref.watch(speciesBatchAvailableProvider))
-        findSpeciesBulkAction(
-          context,
-          ref,
-          selected: () => _selectedIds.toSet(),
-        ),
+        findSpeciesBulkAction(context, selected: () => _selectedIds.toSet()),
       // Logbook rules on the checked dives, previewed first (#3513). Last,
       // so the existing inline actions keep their places.
       rulesBulkAction(

@@ -12,10 +12,13 @@ import 'package:submersion/features/species_id/domain/entities/species_batch.dar
 void main() {
   late Map<String, List<MediaItem>> media;
   late List<String> asked;
+  late List<String> cancelled;
   late List<({String diveId, String operationId})> applied;
+  late Map<String, Set<String>> speciesOf;
   late Set<String> reverted;
   late int generation;
   late int ids;
+  void Function()? afterApply;
   Completer<void>? gate;
   late DiveSpeciesRun runs;
   late SpeciesBatchRun batch;
@@ -47,10 +50,16 @@ void main() {
       'd3': [item('c1', 'd3'), item('c2', 'd3'), item('c3', 'd3')],
     };
     asked = [];
+    cancelled = [];
     applied = [];
+    speciesOf = {
+      'a1': {'grouper'},
+      'b1': {'grouper', 'moray'},
+    };
     reverted = {};
     generation = 0;
     ids = 0;
+    afterApply = null;
     gate = null;
     runs = DiveSpeciesRun(
       mediaForDive: (diveId) async => media[diveId] ?? const [],
@@ -60,11 +69,12 @@ void main() {
         await gate?.future;
         return RunItemOutcome.done;
       },
-      cancel: (_) {},
+      cancel: (mediaId) => cancelled.add(mediaId),
       applyAll: (_, _) async => 0,
       applyAllInto: (items, _, operationId) async {
         applied.add((diveId: items.first.mediaId, operationId: operationId));
-        return 1;
+        afterApply?.call();
+        return {for (final i in items) ...?speciesOf[i.mediaId]};
       },
       databaseGeneration: () => generation,
     );
@@ -91,7 +101,14 @@ void main() {
     expect(s.divesDone, 3);
     expect(s.itemsDone, 6);
     expect(s.summary.photos, 6);
-    expect(s.summary.speciesTagged, 3);
+  });
+
+  test('a species tagged on several dives counts once', () async {
+    batch.start(plan(['d1', 'd2']));
+    await batch.done;
+
+    expect(batch.state!.summary.speciesTagged, 2);
+    expect(batch.state!.summary.taggedSpeciesIds, {'grouper', 'moray'});
   });
 
   test('only one dive is ever queued in the dive runs', () async {
@@ -144,6 +161,7 @@ void main() {
     await batch.done;
 
     expect(asked, ['a1']);
+    expect(cancelled, ['a1']);
     expect(batch.state!.phase, SpeciesBatchPhase.cancelled);
     expect(batch.isPending('d2'), isFalse);
     // What it looked at is kept, in the batch's entry.
@@ -164,30 +182,62 @@ void main() {
     expect(batch.state!.phase, SpeciesBatchPhase.cancelled);
   });
 
-  test('an entry the diver reverted is not added to', () async {
+  test('an entry the diver undid is not added to', () async {
+    // Undone right after the first dive applied into it.
+    afterApply = () => reverted = {'op0'};
+
     batch.start(plan(['d1', 'd2']));
-    // Reverted once the first dive applied.
-    reverted = {'op0'};
     await batch.done;
 
     expect(applied.map((a) => a.operationId).toList(), ['op0', 'op1']);
   });
 
   test(
-    'a dive whose card run is queued is waited for, not run twice',
+    'undone while a dive runs: that dive applies into a new entry',
     () async {
       gate = Completer<void>();
-      final card = runs.start('d2');
-      batch.start(plan(['d2', 'd3']));
+      batch.start(plan(['d1']));
       await pumpEventQueue();
+
+      reverted = {'op0'};
       gate!.complete();
-      await card;
       await batch.done;
 
-      expect(asked, ['b1', 'c1', 'c2', 'c3']);
-      expect(batch.state!.divesDone, 2);
+      expect(applied.single.operationId, 'op1');
     },
   );
+
+  test('a dive whose card run is queued is waited for, not run twice, and '
+      'keeps its result', () async {
+    gate = Completer<void>();
+    final card = runs.start('d2');
+    batch.start(plan(['d2', 'd3']));
+    await pumpEventQueue();
+    gate!.complete();
+    await card;
+    await batch.done;
+
+    expect(asked, ['b1', 'c1', 'c2', 'c3']);
+    expect(batch.state!.divesDone, 2);
+    expect(runs.stateOf('d2'), isNotNull);
+    expect(runs.stateOf('d3'), isNull);
+  });
+
+  test('cancelling the batch leaves a card run going', () async {
+    gate = Completer<void>();
+    final card = runs.start('d2');
+    batch.start(plan(['d2', 'd3']));
+    await pumpEventQueue();
+
+    batch.cancel();
+    gate!.complete();
+    await card;
+    await batch.done;
+
+    expect(cancelled, isEmpty);
+    expect(asked, ['b1']);
+    expect(batch.state!.phase, SpeciesBatchPhase.cancelled);
+  });
 
   test('progress folds in the dive in progress', () async {
     gate = Completer<void>();

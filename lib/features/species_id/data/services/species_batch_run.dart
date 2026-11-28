@@ -42,6 +42,13 @@ class SpeciesBatchRun extends StateNotifier<SpeciesBatchRunState?> {
   var _disposed = false;
   Future<void> _done = Future.value();
 
+  /// The History operation the batch files under, chosen at its start.
+  String _operationId = '';
+
+  /// Whether the batch started the dive in progress itself, rather than
+  /// waiting for a run the diver started from that dive's card.
+  var _startedCurrent = false;
+
   /// Completes when the batch running now ends; at once with none.
   Future<void> get done => _done;
 
@@ -71,14 +78,15 @@ class SpeciesBatchRun extends StateNotifier<SpeciesBatchRunState?> {
   }
 
   /// Stops after the item in progress; the dives not reached are dropped.
-  /// What was tagged so far stays, in the batch's entry.
+  /// What was tagged so far stays, in the batch's entry. A run the diver
+  /// started from a dive's card is theirs: it is not stopped.
   void cancel() {
     if (!(state?.isActive ?? false)) return;
     _cancelled = true;
     _pending.clear();
     _pendingIds.clear();
     final current = state?.currentDiveId;
-    if (current != null) _runs().cancel(current);
+    if (current != null && _startedCurrent) _runs().cancel(current);
   }
 
   /// Carries on after the device cooled down or a background pause.
@@ -95,9 +103,19 @@ class SpeciesBatchRun extends StateNotifier<SpeciesBatchRunState?> {
     super.dispose();
   }
 
+  /// The operation to file a dive's tags under, asked right before they are
+  /// applied: never one the diver has undone meanwhile.
+  Future<String> _operationForApply() async {
+    try {
+      if (await _isReverted(_operationId)) _operationId = _newOperationId();
+    } on Object catch (e) {
+      _log.debug('Could not read whether the run was undone', error: e);
+    }
+    return _operationId;
+  }
+
   Future<void> _drain(int generation) async {
-    var operationId = _newOperationId();
-    var first = true;
+    _operationId = _newOperationId();
     var stopped = false;
     while (_pending.isNotEmpty && !_cancelled && !_disposed) {
       if (_generation() != generation) {
@@ -106,16 +124,6 @@ class SpeciesBatchRun extends StateNotifier<SpeciesBatchRunState?> {
       }
       final dive = _pending.removeFirst();
       _pendingIds.remove(dive.diveId);
-      try {
-        // Never added to an entry the diver has undone meanwhile.
-        if (!first && await _isReverted(operationId)) {
-          operationId = _newOperationId();
-        }
-      } on Object catch (e) {
-        _log.debug('Could not read whether the run was undone', error: e);
-      }
-      first = false;
-      if (_disposed) return;
       _set(
         state!.copyWith(
           currentDiveId: () => dive.diveId,
@@ -124,15 +132,18 @@ class SpeciesBatchRun extends StateNotifier<SpeciesBatchRunState?> {
       );
       final runs = _runs();
       // A dive whose card run is queued or going keeps that run, which
-      // applies by itself; it is waited for, never run twice.
+      // applies by itself; it is waited for, never run twice, and its
+      // result stays on the card.
+      _startedCurrent = !runs.isQueuedOrRunning(dive.diveId);
       await runs.start(
         dive.diveId,
         onDeviceOnly: _onDeviceOnly,
-        operationId: operationId,
+        operationId: _operationForApply,
       );
       if (_disposed) return;
       final ended = runs.stateOf(dive.diveId);
-      runs.forget(dive.diveId);
+      if (_startedCurrent) runs.forget(dive.diveId);
+      _startedCurrent = false;
       final s = state!;
       final total = ended?.total ?? 0;
       _set(

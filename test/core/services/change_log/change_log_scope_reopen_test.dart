@@ -108,6 +108,34 @@ void main() {
     expect(operation.label, 'outer');
   });
 
+  test('an operation the diver undid is not reopened: the write files under '
+      'a new one', () async {
+    await ChangeLogScope.automatic(
+      db,
+      label: ChangeLogLabels.marineLifeId,
+      operationId: 'batch',
+      body: () => _edit(db, 'First'),
+    );
+    await db.customStatement(
+      "UPDATE change_log_operations SET reverted_by_id = 'undo' "
+      "WHERE id = 'batch'",
+    );
+
+    await ChangeLogScope.automatic(
+      db,
+      label: ChangeLogLabels.marineLifeId,
+      operationId: 'batch',
+      body: () => _edit(db, 'Second'),
+    );
+
+    final events = await logEvents(db);
+    expect(events.first['operation_id'], 'batch');
+    expect(events.last['operation_id'], isNot('batch'));
+    expect(events.last['operation_id'], isNotNull);
+    final undone = (await _operations(db)).firstWhere((o) => o.id == 'batch');
+    expect(undone.closed, isTrue);
+  });
+
   test('without a database the body still runs', () async {
     var ran = false;
     await ChangeLogScope.automatic(

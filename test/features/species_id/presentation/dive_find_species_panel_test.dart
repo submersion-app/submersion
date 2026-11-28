@@ -52,7 +52,7 @@ class _RecordingRun extends _FixedRun {
     String diveId, {
     bool fresh = false,
     bool onDeviceOnly = false,
-    String? operationId,
+    Future<String> Function()? operationId,
   }) async {
     started.add(diveId);
     this.fresh.add(fresh);

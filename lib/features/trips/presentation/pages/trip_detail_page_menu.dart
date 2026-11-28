@@ -54,7 +54,7 @@ extension _TripDetailMenu on _TripDetailContent {
           // Every dive of the trip, its side trips' included.
           final ids = await ref.read(diveIdsForTripProvider(trip.id).future);
           if (!context.mounted) return;
-          await findSpeciesInDives(context, ref, ids);
+          await findSpeciesInDives(context, ids);
         }
       },
       itemBuilder: (context) => [

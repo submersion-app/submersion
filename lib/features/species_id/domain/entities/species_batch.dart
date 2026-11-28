@@ -19,6 +19,13 @@ class PlannedDive extends Equatable {
   /// Those not looked at with the installed model yet.
   final int toLookAt;
 
+  PlannedDive copyWith({String? diveId, int? items, int? toLookAt}) =>
+      PlannedDive(
+        diveId: diveId ?? this.diveId,
+        items: items ?? this.items,
+        toLookAt: toLookAt ?? this.toLookAt,
+      );
+
   @override
   List<Object?> get props => [diveId, items, toLookAt];
 }
@@ -43,6 +50,16 @@ class SpeciesBatchPlan extends Equatable {
   int get toLookAt => dives.fold(0, (sum, d) => sum + d.toLookAt);
   int get items => dives.fold(0, (sum, d) => sum + d.items);
   bool get isEmpty => dives.isEmpty;
+
+  SpeciesBatchPlan copyWith({
+    List<PlannedDive>? dives,
+    int? notOnDevice,
+    int? divesAsked,
+  }) => SpeciesBatchPlan(
+    dives: dives ?? this.dives,
+    notOnDevice: notOnDevice ?? this.notOnDevice,
+    divesAsked: divesAsked ?? this.divesAsked,
+  );
 
   @override
   List<Object?> get props => [dives, notOnDevice, divesAsked];
@@ -141,6 +158,22 @@ class SpeciesBatchProgress extends Equatable {
   double get fraction =>
       itemsTotal == 0 ? 0 : (itemsDone / itemsTotal).clamp(0.0, 1.0);
 
+  SpeciesBatchProgress copyWith({
+    int? diveNumber,
+    int? diveCount,
+    int? itemsDone,
+    int? itemsTotal,
+    bool? paused,
+    DiveRunPause? Function()? pauseReason,
+  }) => SpeciesBatchProgress(
+    diveNumber: diveNumber ?? this.diveNumber,
+    diveCount: diveCount ?? this.diveCount,
+    itemsDone: itemsDone ?? this.itemsDone,
+    itemsTotal: itemsTotal ?? this.itemsTotal,
+    paused: paused ?? this.paused,
+    pauseReason: pauseReason == null ? this.pauseReason : pauseReason(),
+  );
+
   /// Folds the dive in progress ([current]) into [batch].
   factory SpeciesBatchProgress.of(
     SpeciesBatchRunState batch,
@@ -176,12 +209,18 @@ class SpeciesBatchProgress extends Equatable {
   ];
 }
 
-/// Adds [b] to [a], for the batch's summary.
-DiveRunSummary addSummaries(DiveRunSummary a, DiveRunSummary b) =>
-    DiveRunSummary(
-      photos: a.photos + b.photos,
-      videos: a.videos + b.videos,
-      speciesTagged: a.speciesTagged + b.speciesTagged,
-      unreadable: a.unreadable + b.unreadable,
-      notOnDevice: a.notOnDevice + b.notOnDevice,
-    );
+/// Adds [b] to [a], for the batch's summary. A species tagged on several
+/// dives counts once; a dive's run that did not name its species (one the
+/// diver started from its card) adds its count as it is.
+DiveRunSummary addSummaries(DiveRunSummary a, DiveRunSummary b) {
+  int unnamed(DiveRunSummary s) => s.speciesTagged - s.taggedSpeciesIds.length;
+  final ids = {...a.taggedSpeciesIds, ...b.taggedSpeciesIds};
+  return DiveRunSummary(
+    photos: a.photos + b.photos,
+    videos: a.videos + b.videos,
+    speciesTagged: ids.length + unnamed(a) + unnamed(b),
+    unreadable: a.unreadable + b.unreadable,
+    notOnDevice: a.notOnDevice + b.notOnDevice,
+    taggedSpeciesIds: ids,
+  );
+}

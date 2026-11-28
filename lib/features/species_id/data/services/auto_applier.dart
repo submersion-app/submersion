@@ -132,9 +132,21 @@ class AutoApplier {
     List<RunAppliedItem> items, {
     required int generation,
     String? operationId,
+  }) async => (await applyAllInScopeSpecies(
+    items,
+    generation: generation,
+    operationId: operationId,
+  )).length;
+
+  /// [applyAllInScope], returning the species it tagged rather than how
+  /// many, so a run over many dives counts each species once (issue #5127).
+  Future<Set<String>> applyAllInScopeSpecies(
+    List<RunAppliedItem> items, {
+    required int generation,
+    String? operationId,
   }) {
     if (!isOn || items.isEmpty || _generation() != generation) {
-      return Future.value(0);
+      return Future.value(const <String>{});
     }
     return ChangeLogScope.automatic(
       DatabaseService.instance.databaseOrNull,
@@ -151,7 +163,7 @@ class AutoApplier {
             ),
           );
         }
-        return species.length;
+        return species;
       },
     );
   }

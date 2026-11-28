@@ -23,6 +23,7 @@ class DiveRunSummary extends Equatable {
     this.speciesTagged = 0,
     this.unreadable = 0,
     this.notOnDevice = 0,
+    this.taggedSpeciesIds = const {},
   });
 
   /// Photos and videos looked at.
@@ -39,18 +40,24 @@ class DiveRunSummary extends Equatable {
   /// chose to look only at what is (issue #5127).
   final int notOnDevice;
 
+  /// The species tagged, where the run named them (a run over many dives,
+  /// issue #5127), so a species tagged on several dives counts once.
+  final Set<String> taggedSpeciesIds;
+
   DiveRunSummary copyWith({
     int? photos,
     int? videos,
     int? speciesTagged,
     int? unreadable,
     int? notOnDevice,
+    Set<String>? taggedSpeciesIds,
   }) => DiveRunSummary(
     photos: photos ?? this.photos,
     videos: videos ?? this.videos,
     speciesTagged: speciesTagged ?? this.speciesTagged,
     unreadable: unreadable ?? this.unreadable,
     notOnDevice: notOnDevice ?? this.notOnDevice,
+    taggedSpeciesIds: taggedSpeciesIds ?? this.taggedSpeciesIds,
   );
 
   @override
@@ -60,6 +67,7 @@ class DiveRunSummary extends Equatable {
     speciesTagged,
     unreadable,
     notOnDevice,
+    taggedSpeciesIds,
   ];
 }
 

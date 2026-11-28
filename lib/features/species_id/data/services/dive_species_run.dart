@@ -33,13 +33,15 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
     required void Function(String mediaId) cancel,
     required Future<int> Function(List<RunAppliedItem> items, int generation)
     applyAll,
-    Future<int> Function(
+    Future<Set<String>> Function(
       List<RunAppliedItem> items,
       int generation,
       String operationId,
     )?
     applyAllInto,
     Future<bool> Function(MediaItem item)? onDevice,
+    Future<Set<String>> Function(List<MediaItem> items, DiveLocation where)?
+    upToDate,
     required int Function() databaseGeneration,
     bool Function()? inForeground,
   }) : _mediaForDive = mediaForDive,
@@ -48,8 +50,16 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
        _requestFresh = requestFresh ?? request,
        _cancelItem = cancel,
        _applyAll = applyAll,
-       _applyAllInto = applyAllInto ?? ((items, g, _) => applyAll(items, g)),
+       // Without one, the items are still applied, into an entry of their
+       // own, and no species are named.
+       _applyAllInto =
+           applyAllInto ??
+           ((items, g, _) async {
+             await applyAll(items, g);
+             return const <String>{};
+           }),
        _onDevice = onDevice ?? ((_) async => true),
+       _upToDate = upToDate ?? ((_, _) async => const <String>{}),
        _generation = databaseGeneration,
        _inForeground = inForeground ?? (() => true),
        super(const {});
@@ -64,12 +74,19 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   final Future<int> Function(List<RunAppliedItem>, int) _applyAll;
 
   /// Applies as [_applyAll] does, filed under a given History operation: a
-  /// run over many dives makes one entry (issue #5127).
-  final Future<int> Function(List<RunAppliedItem>, int, String) _applyAllInto;
+  /// run over many dives makes one entry (issue #5127). Returns the species
+  /// it tagged, so the batch counts each species once over all its dives.
+  final Future<Set<String>> Function(List<RunAppliedItem>, int, String)
+  _applyAllInto;
 
   /// Whether an item's original is on this device, for a run that looks
   /// only at those (issue #5127).
   final Future<bool> Function(MediaItem) _onDevice;
+
+  /// The items the installed models have nothing left to do on: a run that
+  /// looks only at what is on this device keeps them, since asking them
+  /// downloads nothing and their open suggestions can still be tagged.
+  final Future<Set<String>> Function(List<MediaItem>, DiveLocation) _upToDate;
   final int Function() _generation;
 
   /// Whether the app is in the foreground now: a refusal for being in the
@@ -86,7 +103,7 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   /// The queued or running dives whose run looks only at media on this
   /// device, and those whose apply files under a given operation.
   final _onDeviceOnly = <String>{};
-  final _operationOf = <String, String>{};
+  final _operationOf = <String, Future<String> Function()>{};
   final _finished = <String, Completer<void>>{};
   String? _current;
   String? _currentItem;
@@ -104,13 +121,15 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   /// #4825); a dive whose run is already queued or going keeps that run.
   ///
   /// [onDeviceOnly] leaves out media whose original is not on this device,
-  /// and [operationId] files what the run tags under that History
-  /// operation, for a run over many dives (issue #5127).
+  /// and [operationId] names the History operation what the run tags is
+  /// filed under, for a run over many dives (issue #5127). It is asked
+  /// right before applying, so an entry undone during the run is not
+  /// added to.
   Future<void> start(
     String diveId, {
     bool fresh = false,
     bool onDeviceOnly = false,
-    String? operationId,
+    Future<String> Function()? operationId,
   }) {
     final existing = _finished[diveId];
     if (existing != null && !existing.isCompleted) return existing.future;
@@ -234,11 +253,15 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
     ];
     // Asked now, not when the run was planned: media added since, or an
     // original the system moved to the cloud meanwhile, follow the
-    // diver's choice too.
+    // diver's choice too. Media up to date stay: asking them downloads
+    // nothing, and their open suggestions can still be tagged.
+    final current = onDeviceOnly
+        ? await _upToDateOrNone(ordered, where)
+        : const <String>{};
     final items = onDeviceOnly
         ? [
             for (final m in ordered)
-              if (await _onDevice(m)) m,
+              if (current.contains(m.id) || await _onDeviceOrNot(m)) m,
           ]
         : ordered;
     final notOnDevice = ordered.length - items.length;
@@ -344,6 +367,7 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
     // The place read after the last item may have seen another logbook open.
     if (_generation() != generation) stoppedFor = _Stop.logbook;
     var tagged = 0;
+    var taggedIds = const <String>{};
     // Another logbook, or a dive that is gone, has nothing left to tag; a
     // fresh run tags nothing (issue #4825).
     if (!fresh &&
@@ -351,9 +375,17 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
         stoppedFor != _Stop.logbook &&
         stoppedFor != _Stop.diveGone &&
         !_disposed) {
-      tagged = operationId == null
-          ? await _applyAll(looked, generation)
-          : await _applyAllInto(looked, generation, operationId);
+      if (operationId == null) {
+        tagged = await _applyAll(looked, generation);
+      } else {
+        // Asked only now: the entry may have been undone during the run.
+        taggedIds = await _applyAllInto(
+          looked,
+          generation,
+          await operationId(),
+        );
+        tagged = taggedIds.length;
+      }
     }
     if (_disposed) return;
     _set(
@@ -362,9 +394,37 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
             ? DiveRunPhase.finished
             : DiveRunPhase.cancelled,
         pauseReason: () => null,
-        summary: s.summary.copyWith(speciesTagged: tagged),
+        summary: s.summary.copyWith(
+          speciesTagged: tagged,
+          taggedSpeciesIds: taggedIds,
+        ),
       ),
     );
+  }
+
+  /// [_upToDate], or none when it cannot be read: then every item counts as
+  /// one to look at, and only those on this device are.
+  Future<Set<String>> _upToDateOrNone(
+    List<MediaItem> items,
+    DiveLocation where,
+  ) async {
+    try {
+      return await _upToDate(items, where);
+    } on Object catch (e) {
+      _log.debug('Could not read what is up to date', error: e);
+      return const {};
+    }
+  }
+
+  /// [_onDevice], counting an item it cannot answer for as not here: one
+  /// failed library lookup costs that item, not the dive.
+  Future<bool> _onDeviceOrNot(MediaItem item) async {
+    try {
+      return await _onDevice(item);
+    } on Object catch (e) {
+      _log.debug('Could not tell whether ${item.id} is here', error: e);
+      return false;
+    }
   }
 
   /// Waits while paused; says why the run must stop instead, if it must.
