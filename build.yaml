@@ -1,6 +1,7 @@
 # Limits each generator to the files that use it; a cold build runs about 4x
 # faster. A new @riverpod file or a Drift table outside lib/core/database/
-# must be listed here, or its part file is not generated.
+# must be listed here, or its part file is not generated;
+# test/architecture/build_yaml_generate_for_test.dart fails until it is.
 targets:
   $default:
     builders:
@@ -10,5 +11,3 @@ targets:
       riverpod_generator:
         generate_for:
           - lib/features/dive_log/presentation/providers/profile_legend_provider.dart
-      json_serializable:
-        enabled: false
