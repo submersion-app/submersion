@@ -22,7 +22,7 @@ Tap the **+** button (or **Add Buddy** on desktop). The new buddy opens on its o
 | **Name** | Required. |
 | **Email** | Optional. Tapping it on the detail page opens your mail app. |
 | **Phone** | Optional. Tapping it on the detail page opens your phone dialer. |
-| **Country** | Optional. Where the buddy is from, typed freely; it suggests countries you have already used on buddies and sites, then every country. The detail page shows its flag beside it (unless country flags are turned off in **Settings > Appearance**). You can also add Country to the buddy list's rows and table, sort by it, and search for it. |
+| **Country** | Optional. Where the buddy is from, typed freely; it suggests countries you have already used on buddies and sites, then every country. The buddy list shows its flag as a small badge on the buddy's photo, and the detail page shows it beside the country; **Settings > Appearance > Buddies > Country flags** turns both off. You can also add Country to the buddy list's rows and table, sort by it, and search for it. |
 | **Leave out of buddy rankings** | Optional. See [Leaving a buddy out of the rankings](#leaving-a-buddy-out-of-the-rankings). |
 | **Certifications** | Tap **Add certification** for each card the buddy holds, with its agency and level. A buddy with an instructor-level certification is offered first when you pick an instructor. |
 | **Notes** | Free text. |

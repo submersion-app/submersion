@@ -3698,6 +3698,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddies_linkedProfile_chip => 'Profil';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name, $country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => 'Verknüpfen';
 
   @override
@@ -27860,7 +27865,20 @@ class AppLocalizationsDe extends AppLocalizations {
       'Karte hinter Tauchplatzkarten';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Länderflaggen';
+  String get settings_conflict_field_showCountryFlags =>
+      'Länderflaggen (Tauchplätze)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Länderflaggen (Tauchgänge)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Länderflaggen (Tauchpartner)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Länderflaggen (Reisen)';
 
   @override
   String get settings_conflict_field_countryCode => 'Ländercode';
@@ -40526,8 +40544,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'Länderflaggen';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'Zeigt eine kleine Flagge neben dem Ort von Tauchplätzen und Reisen';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'Zeigt eine kleine Flagge neben dem Ort jedes Tauchplatzes';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'Zeigt eine kleine Flagge neben dem Tauchplatz jedes Tauchgangs';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'Zeigt eine kleine Flagge auf dem Foto jedes Tauchpartners';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'Zeigt die Flaggen der Länder jeder Reise';
 
   @override
   String get settings_appearance_mapStyle => 'Kartenstil';
@@ -53696,6 +53726,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Tauchgang $diveNumber bei $siteName';
+  }
+
+  @override
+  String diveLog_listPage_siteWithCountry(String siteName, String country) {
+    return '$siteName, $country';
   }
 
   @override

@@ -3677,6 +3677,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_linkedProfile_chip => 'Profiel';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name, $country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => 'Koppelen';
 
   @override
@@ -27741,7 +27746,20 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kaart achter stekkaarten';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Landvlaggen';
+  String get settings_conflict_field_showCountryFlags =>
+      'Landvlaggen (duikstekken)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Landvlaggen (duiken)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Landvlaggen (buddies)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Landvlaggen (reizen)';
 
   @override
   String get settings_conflict_field_countryCode => 'Landcode';
@@ -40340,8 +40358,20 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'Landvlaggen';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'Toon een kleine vlag naast de locatie van duikstekken en reizen';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'Toon een kleine vlag naast de locatie van elke duikstek';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'Toon een kleine vlag naast de duikstek van elke duik';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'Toon een kleine vlag op de foto van elke buddy';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'Toon de vlaggen van de landen van elke reis';
 
   @override
   String get settings_appearance_mapStyle => 'Kaartstijl';
@@ -53473,6 +53503,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Duik $diveNumber bij $siteName';
+  }
+
+  @override
+  String diveLog_listPage_siteWithCountry(String siteName, String country) {
+    return '$siteName, $country';
   }
 
   @override

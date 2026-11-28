@@ -605,8 +605,18 @@ class AppSettings implements UnitFormatterSettings {
   /// Show dive site map as background on site cards in the site list
   final bool showMapBackgroundOnSiteCards;
 
-  /// A small flag beside site locations and trips (issue #4426).
+  /// A small flag beside site locations (issue #4426): the Sites switch
+  /// since issue #5001, which gave dives, buddies and trips their own.
   final bool showCountryFlags;
+
+  /// A flag beside each dive's site location (issue #5001).
+  final bool showDiveCountryFlags;
+
+  /// A flag badge on each buddy's photo (issue #5001).
+  final bool showBuddyCountryFlags;
+
+  /// The flags of each trip's countries (issue #5001).
+  final bool showTripCountryFlags;
 
   // Dive profile marker settings
   /// Show max depth marker on dive profile chart
@@ -1006,6 +1016,9 @@ class AppSettings implements UnitFormatterSettings {
     this.cardPhotoOverlayLight = 0.6,
     this.showMapBackgroundOnSiteCards = false,
     this.showCountryFlags = true,
+    this.showDiveCountryFlags = true,
+    this.showBuddyCountryFlags = true,
+    this.showTripCountryFlags = true,
     // Dive profile marker defaults
     this.showMaxDepthMarker = true,
     this.showPressureThresholdMarkers = false,
@@ -1258,6 +1271,9 @@ class AppSettings implements UnitFormatterSettings {
     double? cardPhotoOverlayLight,
     bool? showMapBackgroundOnSiteCards,
     bool? showCountryFlags,
+    bool? showDiveCountryFlags,
+    bool? showBuddyCountryFlags,
+    bool? showTripCountryFlags,
     bool? showMaxDepthMarker,
     bool? showPressureThresholdMarkers,
     bool? pinProfileOnScroll,
@@ -1506,6 +1522,10 @@ class AppSettings implements UnitFormatterSettings {
       showMapBackgroundOnSiteCards:
           showMapBackgroundOnSiteCards ?? this.showMapBackgroundOnSiteCards,
       showCountryFlags: showCountryFlags ?? this.showCountryFlags,
+      showDiveCountryFlags: showDiveCountryFlags ?? this.showDiveCountryFlags,
+      showBuddyCountryFlags:
+          showBuddyCountryFlags ?? this.showBuddyCountryFlags,
+      showTripCountryFlags: showTripCountryFlags ?? this.showTripCountryFlags,
       showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
       showPressureThresholdMarkers:
           showPressureThresholdMarkers ?? this.showPressureThresholdMarkers,
@@ -3424,6 +3444,15 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setShowCountryFlags(bool value) =>
       _update((s) => s.copyWith(showCountryFlags: value));
 
+  Future<void> setShowDiveCountryFlags(bool value) =>
+      _update((s) => s.copyWith(showDiveCountryFlags: value));
+
+  Future<void> setShowBuddyCountryFlags(bool value) =>
+      _update((s) => s.copyWith(showBuddyCountryFlags: value));
+
+  Future<void> setShowTripCountryFlags(bool value) =>
+      _update((s) => s.copyWith(showTripCountryFlags: value));
+
   Future<void> setShowMaxDepthMarker(bool value) =>
       _update((s) => s.copyWith(showMaxDepthMarker: value));
 
@@ -4125,9 +4154,25 @@ final showMapBackgroundOnSiteCardsProvider = Provider<bool>((ref) {
   );
 });
 
-/// Whether flags show beside site locations and trips (issue #4426).
+/// Whether flags show beside site locations (issue #4426): the Sites switch
+/// since issue #5001.
 final showCountryFlagsProvider = Provider<bool>((ref) {
   return ref.watch(settingsProvider.select((s) => s.showCountryFlags));
+});
+
+/// Whether flags show on dive cards and the dive header (issue #5001).
+final showDiveCountryFlagsProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.showDiveCountryFlags));
+});
+
+/// Whether flags show on buddy rows and the buddy page (issue #5001).
+final showBuddyCountryFlagsProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.showBuddyCountryFlags));
+});
+
+/// Whether flags show on trip rows and trip pages (issue #5001).
+final showTripCountryFlagsProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.showTripCountryFlags));
 });
 
 final showMaxDepthMarkerProvider = Provider<bool>((ref) {

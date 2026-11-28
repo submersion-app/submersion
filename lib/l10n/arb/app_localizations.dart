@@ -5622,6 +5622,12 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get buddies_linkedProfile_chip;
 
+  /// Screen-reader label for a buddy row whose country shows only as a flag on the photo (issue #5001).
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, {country}'**
+  String buddies_listTile_semanticsWithCountry(String name, String country);
+
   /// No description provided for @buddies_linkedProfile_link.
   ///
   /// In en, this message translates to:
@@ -44055,8 +44061,26 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_field_showCountryFlags.
   ///
   /// In en, this message translates to:
-  /// **'Country flags'**
+  /// **'Country flags (sites)'**
   String get settings_conflict_field_showCountryFlags;
+
+  /// No description provided for @settings_conflict_field_showDiveCountryFlags.
+  ///
+  /// In en, this message translates to:
+  /// **'Country flags (dives)'**
+  String get settings_conflict_field_showDiveCountryFlags;
+
+  /// No description provided for @settings_conflict_field_showBuddyCountryFlags.
+  ///
+  /// In en, this message translates to:
+  /// **'Country flags (buddies)'**
+  String get settings_conflict_field_showBuddyCountryFlags;
+
+  /// No description provided for @settings_conflict_field_showTripCountryFlags.
+  ///
+  /// In en, this message translates to:
+  /// **'Country flags (trips)'**
+  String get settings_conflict_field_showTripCountryFlags;
 
   /// No description provided for @settings_conflict_field_countryCode.
   ///
@@ -63520,11 +63544,29 @@ abstract class AppLocalizations {
   /// **'Country flags'**
   String get settings_appearance_countryFlags_title;
 
-  /// No description provided for @settings_appearance_countryFlags_subtitle.
+  /// No description provided for @settings_appearance_countryFlags_subtitle_sites.
   ///
   /// In en, this message translates to:
-  /// **'Show a small flag beside site locations and trips'**
-  String get settings_appearance_countryFlags_subtitle;
+  /// **'Show a small flag beside each site\'s location'**
+  String get settings_appearance_countryFlags_subtitle_sites;
+
+  /// No description provided for @settings_appearance_countryFlags_subtitle_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a small flag beside each dive\'s site location'**
+  String get settings_appearance_countryFlags_subtitle_dives;
+
+  /// No description provided for @settings_appearance_countryFlags_subtitle_buddies.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a small flag on each buddy\'s photo'**
+  String get settings_appearance_countryFlags_subtitle_buddies;
+
+  /// No description provided for @settings_appearance_countryFlags_subtitle_trips.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the flags of each trip\'s countries'**
+  String get settings_appearance_countryFlags_subtitle_trips;
 
   /// No description provided for @settings_appearance_mapStyle.
   ///
@@ -84653,6 +84695,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive {diveNumber} at {siteName}'**
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName);
+
+  /// A dive row's site with its country, for the screen-reader label when the row shows the country only as a flag (issue #5001).
+  ///
+  /// In en, this message translates to:
+  /// **'{siteName}, {country}'**
+  String diveLog_listPage_siteWithCountry(String siteName, String country);
 
   /// No description provided for @diveLog_listPage_semanticsDraftDiveAtSite.
   ///

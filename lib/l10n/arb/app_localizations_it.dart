@@ -3703,6 +3703,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buddies_linkedProfile_chip => 'Profilo';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name, $country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => 'Collega';
 
   @override
@@ -27924,7 +27929,20 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mappa dietro le schede sito';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Bandiere dei paesi';
+  String get settings_conflict_field_showCountryFlags =>
+      'Bandiere dei paesi (siti)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Bandiere dei paesi (immersioni)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Bandiere dei paesi (compagni)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Bandiere dei paesi (viaggi)';
 
   @override
   String get settings_conflict_field_countryCode => 'Codice paese';
@@ -40621,8 +40639,20 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'Bandiere dei paesi';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'Mostra una piccola bandiera accanto alla posizione dei siti e ai viaggi';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'Mostra una piccola bandiera accanto alla posizione di ogni sito';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'Mostra una piccola bandiera accanto alla posizione del sito di ogni immersione';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'Mostra una piccola bandiera sulla foto di ogni compagno';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'Mostra le bandiere dei paesi di ogni viaggio';
 
   @override
   String get settings_appearance_mapStyle => 'Stile della mappa';
@@ -53820,6 +53850,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Immersione $diveNumber presso $siteName';
+  }
+
+  @override
+  String diveLog_listPage_siteWithCountry(String siteName, String country) {
+    return '$siteName, $country';
   }
 
   @override

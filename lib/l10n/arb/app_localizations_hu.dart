@@ -3689,6 +3689,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_linkedProfile_chip => 'Profil';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name, $country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => 'Kapcsolás';
 
   @override
@@ -27768,7 +27773,20 @@ class AppLocalizationsHu extends AppLocalizations {
       'Térkép a merülőhely-kártyák mögött';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Országzászlók';
+  String get settings_conflict_field_showCountryFlags =>
+      'Országzászlók (merülőhelyek)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Országzászlók (merülések)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Országzászlók (búvártársak)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Országzászlók (utazások)';
 
   @override
   String get settings_conflict_field_countryCode => 'Országkód';
@@ -40379,8 +40397,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'Országzászlók';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'Kis zászló a merülőhelyek helye és az utak mellett';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'Kis zászló minden merülőhely helye mellett';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'Kis zászló minden merülés merülőhelyének helye mellett';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'Kis zászló minden búvártárs fényképén';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'Minden utazás országainak zászlói';
 
   @override
   String get settings_appearance_mapStyle => 'Térképstílus';
@@ -53503,6 +53533,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return '$diveNumber. merülés itt: $siteName';
+  }
+
+  @override
+  String diveLog_listPage_siteWithCountry(String siteName, String country) {
+    return '$siteName, $country';
   }
 
   @override

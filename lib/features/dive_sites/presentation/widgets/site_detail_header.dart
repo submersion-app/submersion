@@ -132,6 +132,7 @@ class SiteDetailHeader extends ConsumerWidget {
             // The flag takes the pin's place; the pin returns when there is
             // no flag (issue #4426).
             LocationWithFlag(
+              section: FlagSection.sites,
               country: site.country,
               countryCode: site.countryCode,
               flagHeight: 14,

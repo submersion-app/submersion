@@ -3653,6 +3653,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddies_linkedProfile_chip => 'Profile';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name, $country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => 'Link';
 
   @override
@@ -27454,7 +27459,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Map behind site cards';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Country flags';
+  String get settings_conflict_field_showCountryFlags =>
+      'Country flags (sites)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Country flags (dives)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Country flags (buddies)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Country flags (trips)';
 
   @override
   String get settings_conflict_field_countryCode => 'Country code';
@@ -39944,8 +39962,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'Country flags';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'Show a small flag beside site locations and trips';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'Show a small flag beside each site\'s location';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'Show a small flag beside each dive\'s site location';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'Show a small flag on each buddy\'s photo';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'Show the flags of each trip\'s countries';
 
   @override
   String get settings_appearance_mapStyle => 'Map Style';
@@ -53018,6 +53048,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Dive $diveNumber at $siteName';
+  }
+
+  @override
+  String diveLog_listPage_siteWithCountry(String siteName, String country) {
+    return '$siteName, $country';
   }
 
   @override

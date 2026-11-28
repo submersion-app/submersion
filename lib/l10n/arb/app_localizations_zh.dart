@@ -3496,6 +3496,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_linkedProfile_chip => '个人资料';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name、$country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => '关联';
 
   @override
@@ -26301,7 +26306,16 @@ class AppLocalizationsZh extends AppLocalizations {
       '潜水点卡片背景地图';
 
   @override
-  String get settings_conflict_field_showCountryFlags => '国家/地区旗帜';
+  String get settings_conflict_field_showCountryFlags => '国家/地区旗帜（潜水点）';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags => '国家/地区旗帜（潜水）';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags => '国家/地区旗帜（潜伴）';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags => '国家/地区旗帜（旅行）';
 
   @override
   String get settings_conflict_field_countryCode => '国家/地区代码';
@@ -38171,7 +38185,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_countryFlags_title => '国家/地区旗帜';
 
   @override
-  String get settings_appearance_countryFlags_subtitle => '在潜点位置和旅行旁显示小旗帜';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      '在每个潜水点的位置旁显示小旗帜';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      '在每次潜水的潜水点位置旁显示小旗帜';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      '在每位潜伴的照片上显示小旗帜';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      '显示每次旅行所到国家/地区的旗帜';
 
   @override
   String get settings_appearance_mapStyle => '地图样式';
@@ -50525,6 +50552,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return '第 $diveNumber 次潜水，地点 $siteName';
+  }
+
+  @override
+  String diveLog_listPage_siteWithCountry(String siteName, String country) {
+    return '$siteName、$country';
   }
 
   @override

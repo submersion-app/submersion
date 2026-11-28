@@ -3711,6 +3711,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buddies_linkedProfile_chip => 'Profil';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name, $country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => 'Lier';
 
   @override
@@ -27975,7 +27980,20 @@ class AppLocalizationsFr extends AppLocalizations {
       'Carte derrière les cartes de site';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Drapeaux des pays';
+  String get settings_conflict_field_showCountryFlags =>
+      'Drapeaux des pays (sites)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Drapeaux des pays (plongées)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Drapeaux des pays (binômes)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Drapeaux des pays (voyages)';
 
   @override
   String get settings_conflict_field_countryCode => 'Code pays';
@@ -40712,8 +40730,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'Drapeaux des pays';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'Affiche un petit drapeau à côté de l\'emplacement des sites et des voyages';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'Affiche un petit drapeau à côté de l\'emplacement de chaque site';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'Affiche un petit drapeau à côté de l\'emplacement du site de chaque plongée';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'Affiche un petit drapeau sur la photo de chaque binôme';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'Affiche les drapeaux des pays de chaque voyage';
 
   @override
   String get settings_appearance_mapStyle => 'Style de carte';
@@ -53915,6 +53945,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Plongée $diveNumber sur $siteName';
+  }
+
+  @override
+  String diveLog_listPage_siteWithCountry(String siteName, String country) {
+    return '$siteName, $country';
   }
 
   @override

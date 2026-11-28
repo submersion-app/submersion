@@ -3566,6 +3566,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get buddies_linkedProfile_chip => 'プロフィール';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name、$country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => 'リンク';
 
   @override
@@ -26715,7 +26720,16 @@ class AppLocalizationsJa extends AppLocalizations {
       'サイトカードの背景に地図';
 
   @override
-  String get settings_conflict_field_showCountryFlags => '国旗';
+  String get settings_conflict_field_showCountryFlags => '国旗（サイト）';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags => '国旗（ダイブ）';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags => '国旗（バディ）';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags => '国旗（トリップ）';
 
   @override
   String get settings_conflict_field_countryCode => '国コード';
@@ -38863,8 +38877,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_appearance_countryFlags_title => '国旗';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'サイトの場所とトリップの横に小さな国旗を表示';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      '各サイトの場所の横に小さな国旗を表示';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      '各ダイブのサイトの場所の横に小さな国旗を表示';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      '各バディの写真に小さな国旗を表示';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips => '各トリップの国の国旗を表示';
 
   @override
   String get settings_appearance_mapStyle => '地図のスタイル';
@@ -51669,6 +51694,11 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return '$siteNameでのダイブ$diveNumber';
+  }
+
+  @override
+  String diveLog_listPage_siteWithCountry(String siteName, String country) {
+    return '$siteName、$country';
   }
 
   @override

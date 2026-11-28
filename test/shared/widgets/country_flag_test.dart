@@ -99,6 +99,7 @@ void main() {
       await _pump(
         tester,
         const LocationWithFlag(
+          section: FlagSection.sites,
           country: 'Mexico',
           fallbackLeading: _pin,
           text: Text('Cozumel, Mexico'),
@@ -115,6 +116,7 @@ void main() {
       await _pump(
         tester,
         const LocationWithFlag(
+          section: FlagSection.sites,
           country: 'Korea',
           countryCode: 'KR',
           fallbackLeading: _pin,
@@ -129,6 +131,7 @@ void main() {
       await _pump(
         tester,
         const LocationWithFlag(
+          section: FlagSection.sites,
           country: 'Mexico',
           fallbackLeading: _pin,
           text: Text('Cozumel, Mexico'),
@@ -143,6 +146,7 @@ void main() {
       await _pump(
         tester,
         const LocationWithFlag(
+          section: FlagSection.sites,
           country: 'Atlantis',
           fallbackLeading: _pin,
           text: Text('Atlantis'),
@@ -155,7 +159,11 @@ void main() {
     testWidgets('no fallback and no flag shows just the text', (tester) async {
       await _pump(
         tester,
-        const LocationWithFlag(country: null, text: Text('Somewhere')),
+        const LocationWithFlag(
+          section: FlagSection.sites,
+          country: null,
+          text: Text('Somewhere'),
+        ),
       );
       expect(find.byType(CountryFlag), findsNothing);
       expect(find.text('Somewhere'), findsOneWidget);
@@ -168,6 +176,7 @@ void main() {
       await _pump(
         tester,
         LocationWithFlag(
+          section: FlagSection.sites,
           country: 'Mexico',
           text: Text(long, maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
@@ -192,9 +201,21 @@ void main() {
         tester,
         const Column(
           children: [
-            LocationWithFlag(country: 'Mexico', text: Text('Cozumel')),
-            LocationWithFlag(country: 'Belize', text: Text('Lighthouse')),
-            LocationWithFlag(country: 'Egypt', text: Text('Dahab')),
+            LocationWithFlag(
+              section: FlagSection.sites,
+              country: 'Mexico',
+              text: Text('Cozumel'),
+            ),
+            LocationWithFlag(
+              section: FlagSection.sites,
+              country: 'Belize',
+              text: Text('Lighthouse'),
+            ),
+            LocationWithFlag(
+              section: FlagSection.sites,
+              country: 'Egypt',
+              text: Text('Dahab'),
+            ),
           ],
         ),
       );
@@ -207,6 +228,7 @@ void main() {
       await _pump(
         tester,
         const LocationWithFlag(
+          section: FlagSection.sites,
           country: 'United States',
           text: Text('New Jersey, United States of a long wrapping name'),
         ),
@@ -220,5 +242,55 @@ void main() {
       // Centred on the first line: within one line height of the top.
       expect(flagRect.top - textRect.top, lessThan(textRect.height / 2));
     });
+  });
+
+  group('sections (issue #5001)', () {
+    for (final off in FlagSection.values) {
+      testWidgets('${off.name} off hides only its own flags', (tester) async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              showCountryFlagsProvider.overrideWithValue(
+                off != FlagSection.sites,
+              ),
+              showDiveCountryFlagsProvider.overrideWithValue(
+                off != FlagSection.dives,
+              ),
+              showBuddyCountryFlagsProvider.overrideWithValue(
+                off != FlagSection.buddies,
+              ),
+              showTripCountryFlagsProvider.overrideWithValue(
+                off != FlagSection.trips,
+              ),
+            ],
+            child: MaterialApp(
+              home: Scaffold(
+                body: Column(
+                  children: [
+                    for (final section in FlagSection.values)
+                      LocationWithFlag(
+                        key: ValueKey(section),
+                        section: section,
+                        country: 'Mexico',
+                        text: Text(section.name),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+        for (final section in FlagSection.values) {
+          expect(
+            find.descendant(
+              of: find.byKey(ValueKey(section)),
+              matching: find.byType(CountryFlag),
+            ),
+            section == off ? findsNothing : findsOneWidget,
+            reason: section.name,
+          );
+        }
+      });
+    }
   });
 }

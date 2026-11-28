@@ -39,7 +39,7 @@ void main() {
           diveTypesProvider.overrideWith(
             (ref) async => const <DiveTypeEntity>[],
           ),
-          showCountryFlagsProvider.overrideWithValue(flags),
+          showDiveCountryFlagsProvider.overrideWithValue(flags),
         ],
         child: localizedMaterialApp(
           locale: const Locale('en'),

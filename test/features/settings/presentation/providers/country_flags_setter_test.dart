@@ -83,4 +83,27 @@ void main() {
     final stored = await DiverSettingsRepository().getSettingsForDiver(diverId);
     expect(stored!.showCountryFlags, isFalse);
   });
+
+  test('each section switch persists on its own (issue #5001)', () async {
+    gate.complete();
+    final notifier = container.read(settingsProvider.notifier);
+    await notifier.initialLoad;
+
+    await notifier.setShowDiveCountryFlags(false);
+    await notifier.setShowBuddyCountryFlags(false);
+    await notifier.setShowTripCountryFlags(false);
+
+    final state = container.read(settingsProvider);
+    expect(state.showDiveCountryFlags, isFalse);
+    expect(state.showBuddyCountryFlags, isFalse);
+    expect(state.showTripCountryFlags, isFalse);
+    expect(state.showCountryFlags, isTrue);
+    expect(container.read(showDiveCountryFlagsProvider), isFalse);
+    expect(container.read(showBuddyCountryFlagsProvider), isFalse);
+    expect(container.read(showTripCountryFlagsProvider), isFalse);
+    final stored = await DiverSettingsRepository().getSettingsForDiver(diverId);
+    expect(stored!.showDiveCountryFlags, isFalse);
+    expect(stored.showBuddyCountryFlags, isFalse);
+    expect(stored.showTripCountryFlags, isFalse);
+  });
 }

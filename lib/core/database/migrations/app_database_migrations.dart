@@ -101,6 +101,7 @@ part 'helpers/counterdiffusion_migrations.dart';
 part 'helpers/buoyancy_line_migrations.dart';
 part 'helpers/avelo_line_migrations.dart';
 part 'helpers/ccr_setpoint_switch_migrations.dart';
+part 'helpers/country_flag_switches_migrations.dart';
 part 'helpers/tank_preset_rated_capacity_migrations.dart';
 part 'helpers/course_requirement_migrations.dart';
 part 'helpers/dive_center_logo_migrations.dart';

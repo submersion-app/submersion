@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/profile_colors/profile
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/section_country_flags_tile.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -434,11 +435,14 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(400, 4000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      // Use buddies which has only 1 SwitchListTile (details pane only)
+      // Buddies has the details pane switch and its country flags switch.
       await tester.pumpWidget(_buildTestWidget('buddies'));
       await tester.pumpAndSettle();
 
-      final switchFinder = find.byType(SwitchListTile);
+      final switchFinder = find.widgetWithText(
+        SwitchListTile,
+        'Show Details Pane',
+      );
       expect(switchFinder, findsOneWidget);
 
       var switchWidget = tester.widget<SwitchListTile>(switchFinder);
@@ -1387,6 +1391,36 @@ void main() {
 
       switchWidget = tester.widget<SwitchListTile>(gasTimelineSwitch);
       expect(switchWidget.value, isTrue);
+    });
+  });
+
+  group('SectionAppearancePage - Country flags switch (issue #5001)', () {
+    for (final key in ['sites', 'dives', 'buddies', 'trips']) {
+      testWidgets('the $key page has its own switch under List View', (
+        tester,
+      ) async {
+        await tester.binding.setSurfaceSize(const Size(400, 4000));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        await tester.pumpWidget(_buildTestWidget(key));
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(ValueKey('section-country-flags-$key')),
+          findsOneWidget,
+        );
+        expect(find.byType(SectionCountryFlagsTile), findsOneWidget);
+        expect(
+          tester.getTopLeft(find.byType(SectionCountryFlagsTile)).dy,
+          lessThan(tester.getTopLeft(find.text('Table Mode')).dy),
+        );
+      });
+    }
+
+    testWidgets('the equipment page has none', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(_buildTestWidget('equipment'));
+      await tester.pumpAndSettle();
+      expect(find.byType(SectionCountryFlagsTile), findsNothing);
     });
   });
 }

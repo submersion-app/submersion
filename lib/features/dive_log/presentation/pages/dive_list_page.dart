@@ -59,6 +59,7 @@ import 'package:submersion/shared/selection/selection_inset.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/table_selection_owner.dart';
 import 'package:submersion/shared/utils/ink_centered_text_style.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/remembered_selection.dart';
@@ -514,6 +515,11 @@ class DiveListTile extends ConsumerWidget {
   final DateTime dateTime;
   final String? siteName;
   final String? siteLocation;
+
+  /// The site's country text and stored ISO code, for the flag beside
+  /// [siteLocation] (issue #5001).
+  final String? siteCountry;
+  final String? siteCountryCode;
   final double? maxDepth;
   final Duration? duration;
   final double? waterTemp;
@@ -589,6 +595,8 @@ class DiveListTile extends ConsumerWidget {
     required this.dateTime,
     this.siteName,
     this.siteLocation,
+    this.siteCountry,
+    this.siteCountryCode,
     this.maxDepth,
     this.duration,
     this.waterTemp,
@@ -947,11 +955,16 @@ class DiveListTile extends ConsumerWidget {
                             if (siteLocation != null &&
                                 siteLocation!.isNotEmpty) ...[
                               const SizedBox(height: 2),
-                              Text(
-                                siteLocation!,
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: secondaryTextColor),
-                                overflow: TextOverflow.ellipsis,
+                              LocationWithFlag(
+                                section: FlagSection.dives,
+                                country: siteCountry,
+                                countryCode: siteCountryCode,
+                                text: Text(
+                                  siteLocation!,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(color: secondaryTextColor),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ],
                             const SizedBox(height: 4),

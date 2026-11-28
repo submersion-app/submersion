@@ -87,23 +87,42 @@ class CountryFlag extends StatelessWidget {
   }
 }
 
+/// The part of the app a flag belongs to. Each has its own switch on its
+/// appearance page (issue #5001): a flag follows the switch of the record
+/// it stands for, wherever it is drawn.
+enum FlagSection {
+  sites,
+  dives,
+  buddies,
+  trips;
+
+  /// Whether the diver shows this section's flags.
+  Provider<bool> get switchProvider => switch (this) {
+    FlagSection.sites => showCountryFlagsProvider,
+    FlagSection.dives => showDiveCountryFlagsProvider,
+    FlagSection.buddies => showBuddyCountryFlagsProvider,
+    FlagSection.trips => showTripCountryFlagsProvider,
+  };
+}
+
 /// The flag to draw for a record's [country] text and stored [code]: null
-/// when the diver hides flags, the record names no country, or no flag
-/// exists for it, so the caller shows its own fallback. Watches the flags
-/// setting, so the caller rebuilds when it changes.
+/// when the diver hides [section]'s flags, the record names no country, or
+/// no flag exists for it, so the caller shows its own fallback. Watches
+/// that section's switch, so the caller rebuilds when it changes.
 String? shownFlagCode(
   WidgetRef ref, {
+  required FlagSection section,
   required String? country,
   required String? code,
 }) {
-  if (!ref.watch(showCountryFlagsProvider)) return null;
+  if (!ref.watch(section.switchProvider)) return null;
   final resolved = siteFlagCode(country: country, code: code);
   return resolved != null && CountryFlag.canDraw(resolved) ? resolved : null;
 }
 
 /// A location line with the flag of [country] before it, when the diver
-/// shows flags and the country is recognised; otherwise [fallbackLeading]
-/// (or nothing) before it.
+/// shows [section]'s flags and the country is recognised; otherwise
+/// [fallbackLeading] (or nothing) before it.
 ///
 /// The leading widget is centred on the text's first line, so a location
 /// that wraps (the dive header on a phone) keeps its flag beside the first
@@ -111,6 +130,7 @@ String? shownFlagCode(
 class LocationWithFlag extends ConsumerWidget {
   const LocationWithFlag({
     super.key,
+    required this.section,
     required this.country,
     this.countryCode,
     required this.text,
@@ -118,6 +138,9 @@ class LocationWithFlag extends ConsumerWidget {
     this.flagHeight = 11,
     this.gap = 4,
   });
+
+  /// Whose switch decides whether the flag shows.
+  final FlagSection section;
 
   /// The site's stored country, free text.
   final String? country;
@@ -138,7 +161,12 @@ class LocationWithFlag extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final code = shownFlagCode(ref, country: country, code: countryCode);
+    final code = shownFlagCode(
+      ref,
+      section: section,
+      country: country,
+      code: countryCode,
+    );
     final leading = code != null
         ? CountryFlag(code: code, height: flagHeight)
         : fallbackLeading;
