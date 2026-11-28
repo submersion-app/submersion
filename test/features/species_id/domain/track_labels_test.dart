@@ -105,6 +105,21 @@ void main() {
       );
       expect(kind(bridged, playing: false), TrackLabelKind.dot);
     });
+
+    test('a track with no path samples goes by its span', () {
+      final t = track('a', endMs: 2000, suggestable: false, confident: false);
+      expect(
+        kind(t.copyWith(path: const []), playing: false),
+        TrackLabelKind.dot,
+      );
+      final short = track(
+        'a',
+        endMs: 1750,
+        suggestable: false,
+        confident: false,
+      );
+      expect(kind(short.copyWith(path: const []), playing: false), isNull);
+    });
   });
 
   group('boxAt', () {
