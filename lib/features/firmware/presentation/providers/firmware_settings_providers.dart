@@ -48,3 +48,10 @@ final firmwareNotificationsEnabledProvider =
 final firmwareNotificationsSupportedProvider = Provider<bool>(
   (ref) => HostPlatform.isMobile,
 );
+
+/// Whether this build can read the firmware catalogue: not the web build,
+/// where the release assets carry no CORS header (issue #5104). A provider
+/// so tests can pin it.
+final firmwareChecksSupportedProvider = Provider<bool>(
+  (ref) => !HostPlatform.isWeb,
+);

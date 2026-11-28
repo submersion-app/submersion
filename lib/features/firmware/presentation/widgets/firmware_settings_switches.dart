@@ -13,6 +13,10 @@ class FirmwareSettingsSwitches extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // A build that cannot read the catalogue offers nothing to switch.
+    if (!ref.watch(firmwareChecksSupportedProvider)) {
+      return const SizedBox.shrink();
+    }
     final l10n = context.l10n;
     final checks = ref.watch(firmwareChecksEnabledProvider);
     return Column(

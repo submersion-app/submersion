@@ -22,6 +22,7 @@ void main() {
     WidgetTester tester, [
     Map<String, Object> values = const {},
     bool notificationsSupported = true,
+    bool checksSupported = true,
   ]) async {
     SharedPreferences.setMockInitialValues(values);
     final prefs = await SharedPreferences.getInstance();
@@ -33,6 +34,7 @@ void main() {
           firmwareNotificationsSupportedProvider.overrideWithValue(
             notificationsSupported,
           ),
+          firmwareChecksSupportedProvider.overrideWithValue(checksSupported),
         ],
         child: const SingleChildScrollView(child: FirmwareSettingsSwitches()),
       ),
@@ -74,6 +76,14 @@ void main() {
   ) async {
     await pump(tester, const {}, false);
     expect(find.text(checks), findsOneWidget);
+    expect(find.text(notices), findsNothing);
+  });
+
+  // The web build never fetches the catalogue (its release assets carry no
+  // CORS header), so it offers no switch that would do nothing.
+  testWidgets('a browser shows neither switch', (tester) async {
+    await pump(tester, const {}, true, false);
+    expect(find.text(checks), findsNothing);
     expect(find.text(notices), findsNothing);
   });
 
