@@ -659,9 +659,9 @@ class DiveReimportService {
   };
 
   /// Each file tank's start pressure as the import stored it while it took
-  /// every tank for back gas: the import deglitched the pressures
-  /// (`deglitchDiveTankPressures`), which resync does not, and before the
-  /// Hydrotank role an Avelo pump-in at the start read as a lead-in glitch.
+  /// every tank for back gas: resync deglitches with the file's Hydrotank
+  /// role, which spares a pump-in at the start, while before the Hydrotank
+  /// role the import's deglitch read that pump-in as a lead-in glitch.
   static List<double?> _backGasImportStarts(
     Map<String, dynamic> diveData,
     List<Map<String, dynamic>> tanksData,
