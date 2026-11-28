@@ -321,40 +321,61 @@ MediaIdentification _decided(
 
 /// Where two scanned stretches meet at [seamMs] (issue #4709): which of
 /// the [open] tracks reaching the seam are the same animal as a [stored]
-/// track of the later stretch. A stored track pairs when it starts within
-/// [maxGapMs] after the seam and after the open track was last seen (the
-/// tracker links across no longer gap), and its first box continues the
-/// open track's last box by [link], as the tracker links boxes
-/// ([matchLinks]), each track used once. Two parts on which the diver said
-/// different things (a decision, its species, or a claim) stay apart; an
-/// open track's say is on its stored row in [openRows], by id.
+/// track of the later stretch. A stored track pairs when it starts after
+/// the seam and its first box continues the open track's last box as the
+/// tracker links boxes ([matchLinksLiveFirst]), each track used once: by
+/// [link] when it starts within [maxGapMs] of when the open track was last
+/// seen, or else by [lostLink] within [lostGapMs] (issue #5120), the gaps
+/// the tracker links across. Two parts on which the diver said different
+/// things (a decision, its species, or a claim) stay apart; an open
+/// track's say is on its stored row in [openRows], by id.
 List<({TrackedAnimal open, MediaIdentification later})> seamJoins({
   required List<TrackedAnimal> open,
   required Map<String, MediaIdentification> openRows,
   required List<MediaIdentification> stored,
   required int seamMs,
   int maxGapMs = 750,
+  int lostGapMs = 3250,
   TrackLink link = const TrackLink(),
+  LostTrackLink lostLink = const LostTrackLink(),
 }) {
+  final reach = math.max(maxGapMs, lostGapMs);
   final later = [
     for (final s in stored)
       if (s.isTrack && s.path.isNotEmpty)
         if (s.startMs case final start?
-            when start >= seamMs && start <= seamMs + maxGapMs)
+            when start >= seamMs && start <= seamMs + reach)
           (row: s, start: start),
   ];
   final said = [
     for (final o in open) o.storedId == null ? null : openRows[o.storedId],
   ];
-  final pairs = matchLinks(open.length, later.length, (o, l) {
-    final track = open[o];
+  // The gap from where open track o was last seen to where stored track
+  // l starts, or null when they cannot be joined at all.
+  int? gap(int o, int l) {
     final next = later[l];
-    if (next.start - track.endMs > maxGapMs) return null;
+    final ms = next.start - open[o].endMs;
+    if (ms > reach) return null;
     if (said[o] case final row? when saidDifferently(row, next.row)) {
       return null;
     }
-    return link.score(track.points.last.detection.box, next.row.path.first.box);
-  });
+    return ms;
+  }
+
+  IdentificationBox last(int o) => open[o].points.last.detection.box;
+  IdentificationBox first(int l) => later[l].row.path.first.box;
+  final pairs = matchLinksLiveFirst(
+    open.length,
+    later.length,
+    live: (o, l) => switch (gap(o, l)) {
+      final ms? when ms <= maxGapMs => link.score(last(o), first(l)),
+      _ => null,
+    },
+    lost: (o, l) => switch (gap(o, l)) {
+      final ms? when ms > maxGapMs => lostLink.score(last(o), first(l)),
+      _ => null,
+    },
+  );
   return [for (final p in pairs) (open: open[p.from], later: later[p.to].row)];
 }
 
