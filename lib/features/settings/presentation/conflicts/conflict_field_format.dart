@@ -1,3 +1,5 @@
+import 'package:submersion/features/dive_sites/presentation/opening_hours_summary.dart';
+import 'package:submersion/core/opening_hours/opening_hours_codec.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/core/utils/number_display.dart';
@@ -69,6 +71,11 @@ String _format(
       final day = _wallClock(value);
       if (day == null) return value.toString();
       return units.formatDate(day);
+    case FieldKind.openingHours:
+      final hours = value is String ? decodeOpeningHours(value) : null;
+      return hours == null || hours.isEmpty
+          ? l10n.settings_conflict_changed
+          : openingHoursSummary(l10n, hours);
     case FieldKind.timeOfDay:
       if (value is int) return units.formatMinutesOfDay(value);
       return value.toString();

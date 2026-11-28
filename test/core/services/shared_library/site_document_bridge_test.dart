@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/opening_hours/opening_hours.dart';
+import 'package:submersion/core/opening_hours/opening_hours_codec.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
 import 'package:submersion/core/services/shared_library/shared_library_store.dart';
@@ -325,6 +327,53 @@ void main() {
 
     test('a document without a code reads its country text', () async {
       expect(await applyAndRead({'country': 'Mexico'}), 'MX');
+    });
+  });
+
+  group('contact details and opening hours (issue #5073)', () {
+    final hours = OpeningHours(alwaysOpen: true, note: 'Gate code 1234');
+
+    test('a site reads them into its document', () {
+      final site = DiveSite(
+        id: 's1',
+        name: 'Stoney Cove',
+        address: 'LE9 4DW',
+        phone: '123',
+        email: 'a@b.co',
+        website: 'b.co',
+        openingHours: hours,
+      );
+      expect(SiteDocumentBridge.fieldValue(site, 'address'), 'LE9 4DW');
+      expect(SiteDocumentBridge.fieldValue(site, 'phone'), '123');
+      expect(SiteDocumentBridge.fieldValue(site, 'email'), 'a@b.co');
+      expect(SiteDocumentBridge.fieldValue(site, 'website'), 'b.co');
+      expect(
+        SiteDocumentBridge.fieldValue(site, 'openingHours'),
+        encodeOpeningHours(hours),
+      );
+    });
+
+    test('a document writes them into the library row', () async {
+      final doc = SiteDocument(
+        id: 's9',
+        fields: {
+          'name': 'Stoney Cove',
+          'address': 'LE9 4DW',
+          'phone': '123',
+          'email': 'a@b.co',
+          'website': 'b.co',
+          'openingHours': encodeOpeningHours(hours),
+        },
+        clocks: allClocks(),
+      );
+      await bridge.apply(doc, libraryId: 'L', vocabularyDiverId: 'd1');
+
+      final site = (await SiteRepository().getSiteById('s9'))!;
+      expect(site.address, 'LE9 4DW');
+      expect(site.phone, '123');
+      expect(site.email, 'a@b.co');
+      expect(site.website, 'b.co');
+      expect(site.openingHours, hours);
     });
   });
 }

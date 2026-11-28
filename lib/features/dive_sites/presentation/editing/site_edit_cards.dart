@@ -4,6 +4,8 @@ import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_attachment_card_editors.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_classification_sitting.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_contact_card_editor.dart';
+import 'package:submersion/features/dive_sites/presentation/editing/site_opening_hours_card_editor.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_collection_card_editors.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_edit_fields.dart';
 import 'package:submersion/features/dive_sites/presentation/editing/site_access_card_editors.dart';
@@ -128,6 +130,34 @@ final Map<SiteDetailSectionId, EditCard<DiveSite>> siteEditCards = {
     // As the page decides whether to show the card.
     isEmpty: (site) => !site.hasAccessInfo,
     editorBuilder: (context, session) => SiteAccessCardEditor(session: session),
+  ),
+  SiteDetailSectionId.contact: EditCard<DiveSite>(
+    id: SiteDetailSectionId.contact.name,
+    title: (context) => context.l10n.diveSites_detail_section_contact,
+    leading: (context) => Icon(
+      Icons.contact_phone_outlined,
+      size: 20,
+      color: Theme.of(context).colorScheme.primary,
+    ),
+    // As the page decides whether to show the card (issue #5073).
+    isEmpty: (site) => !site.hasContactInfo,
+    isValid: siteContactIsValid,
+    editorBuilder: (context, session) =>
+        SiteContactCardEditor(session: session),
+  ),
+  SiteDetailSectionId.openingHours: EditCard<DiveSite>(
+    id: SiteDetailSectionId.openingHours.name,
+    title: (context) => context.l10n.diveSites_detail_section_openingHours,
+    leading: (context) => Icon(
+      Icons.schedule,
+      size: 20,
+      color: Theme.of(context).colorScheme.primary,
+    ),
+    // Hours from a newer version can hold nothing this one shows.
+    isEmpty: (site) => site.openingHours?.isEmpty ?? true,
+    isValid: siteOpeningHoursIsValid,
+    editorBuilder: (context, session) =>
+        SiteOpeningHoursCardEditor(session: session),
   ),
   SiteDetailSectionId.features: EditCard<DiveSite>(
     id: SiteDetailSectionId.features.name,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
+
 /// The fill a list card takes while its record is open in the detail pane,
 /// was opened last, or is checked in a bulk selection.
 Color recordCardSelectionFill(ColorScheme scheme) =>
@@ -71,7 +73,12 @@ class RecordListCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin:
+          margin ??
+          const EdgeInsets.symmetric(
+            horizontal: Spacing.s16,
+            vertical: Spacing.s4,
+          ),
       child: Card(
         margin: EdgeInsets.zero,
         color: color,
@@ -89,7 +96,9 @@ class RecordListCard extends StatelessWidget {
             // falling back to Material's default card corners.
             customBorder:
                 Theme.of(context).cardTheme.shape ??
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(Radii.r12),
+                ),
             child: child,
           ),
         ),

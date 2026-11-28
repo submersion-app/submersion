@@ -44,6 +44,7 @@ mixin _SiteMergeCandidates on _SiteMergeFields {
   /// site's country brings that site's code with it.
   final Map<String, KnownCountryCode> _mergeCountryCodes = {};
   List<_MergeFieldCandidate<SiteDifficulty?>> _difficultyCandidates = [];
+  List<_MergeFieldCandidate<OpeningHours?>> _openingHoursCandidates = [];
   List<_MergeFieldCandidate<WaterType?>> _waterTypeCandidates = [];
   List<_MergeFieldCandidate<List<EntryMethod>>> _entryMethodCandidates = [];
   List<_MergeFieldCandidate<List<EntryMethod>>> _exitMethodCandidates = [];
@@ -134,6 +135,10 @@ mixin _SiteMergeCandidates on _SiteMergeFields {
       (site) => site.mooringNumber ?? '',
     );
     text('parkingInfo', _parkingInfoController, (s) => s.parkingInfo ?? '');
+    text('address', _addressController, (s) => s.address ?? '');
+    text('phone', _phoneController, (s) => s.phone ?? '');
+    text('email', _emailController, (s) => s.email ?? '');
+    text('website', _websiteController, (s) => s.website ?? '');
     text(
       'altitude',
       _altitudeController,
@@ -155,6 +160,17 @@ mixin _SiteMergeCandidates on _SiteMergeFields {
       equals: (a, b) => a == b,
     );
     _waterType = _pick('waterType', _waterTypeCandidates, (v) => v != null);
+
+    _openingHoursCandidates = _buildDistinctCandidates<OpeningHours?>(
+      data.sites,
+      (site) => site.openingHours,
+      equals: (a, b) => a == b,
+    );
+    _openingHours = _pick(
+      'openingHours',
+      _openingHoursCandidates,
+      (v) => v != null && !v.isEmpty,
+    );
 
     // Each site's whole list is one candidate (issue #2054); lists are
     // compared by content, not identity.
@@ -302,6 +318,10 @@ mixin _SiteMergeCandidates on _SiteMergeFields {
     'accessNotes' => _accessNotesController,
     'mooringNumber' => _mooringNumberController,
     'parkingInfo' => _parkingInfoController,
+    'address' => _addressController,
+    'phone' => _phoneController,
+    'email' => _emailController,
+    'website' => _websiteController,
     'altitude' => _altitudeController,
     _ => null,
   };
@@ -375,6 +395,16 @@ mixin _SiteMergeCandidates on _SiteMergeFields {
     'difficulty',
     _difficultyCandidates,
     () => _cycle('difficulty', _difficultyCandidates, (v) => _difficulty = v),
+  );
+
+  MergeFieldExtras? _openingHoursExtras() => _extras(
+    'openingHours',
+    _openingHoursCandidates,
+    () => _cycle(
+      'openingHours',
+      _openingHoursCandidates,
+      (v) => _openingHours = v,
+    ),
   );
 
   MergeFieldExtras? _waterTypeExtras() => _extras(

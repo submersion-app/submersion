@@ -357,6 +357,11 @@ extension RungsFromV340 on AppDatabase {
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
 
+    // v388 (issue #5073): a dive site's address, phone, email, website and
+    // opening hours. Nullable, no backfill, re-asserted in beforeOpen; the
+    // floor does not move.
+    if (from < 388) await _assertSiteContactHoursColumns();
+    if (from < 388) await reportProgress();
     // v389 (issue #5069): diver_settings.profile_zoom_time_only, the profile
     // chart's Time only zoom choice. Nullable, no backfill, re-asserted in
     // beforeOpen; the floor does not move. Numbered 389 because open work

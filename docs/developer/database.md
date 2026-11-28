@@ -405,6 +405,11 @@ CREATE TABLE dive_sites (
   access_notes TEXT,
   mooring_number TEXT,
   parking_info TEXT,
+  address TEXT,           -- free text street address (v388)
+  phone TEXT,
+  email TEXT,
+  website TEXT,
+  opening_hours TEXT,     -- OpeningHours as versioned JSON
   altitude REAL,
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL

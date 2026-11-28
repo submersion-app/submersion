@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_sites/domain/services/site_contact_rules.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
@@ -243,6 +244,12 @@ class SiteTableEditorEntity
       accessNotes: s.accessNotes,
       mooringNumber: pick<String?>(SiteField.mooringNumber, s.mooringNumber),
       parkingInfo: s.parkingInfo,
+      address: pick<String?>(SiteField.address, s.address),
+      phone: pick<String?>(SiteField.phone, s.phone),
+      email: pick<String?>(SiteField.email, s.email),
+      website: pick<String?>(SiteField.website, s.website),
+      // Not a column: kept as it is (issue #5073).
+      openingHours: s.openingHours,
       altitude: pick<double?>(SiteField.altitude, s.altitude),
       entryMethods: methods(SiteField.entryType, s.entryMethods),
       exitMethods: methods(SiteField.exitMethod, s.exitMethods),
@@ -258,13 +265,17 @@ List<SiteEditorColumn> _columns(Map<String, bool> editableLibrarySites) {
   String? reason(SiteWithCount e, AppLocalizations l) =>
       mayEdit(e) ? null : l.tableEditor_libraryReadOnly;
 
-  SiteEditorColumn text(SiteField f, String? Function(DiveSite) get) =>
-      textColumn(
-        f,
-        (e) => get(e.site),
-        isEditable: mayEdit,
-        readOnlyReason: reason,
-      );
+  SiteEditorColumn text(
+    SiteField f,
+    String? Function(DiveSite) get, {
+    bool Function(String text)? accept,
+  }) => textColumn(
+    f,
+    (e) => get(e.site),
+    accept: accept,
+    isEditable: mayEdit,
+    readOnlyReason: reason,
+  );
   SiteEditorColumn depth(SiteField f, double? Function(DiveSite) get) =>
       numberColumn(
         f,
@@ -348,6 +359,11 @@ List<SiteEditorColumn> _columns(Map<String, bool> editableLibrarySites) {
       readOnlyReason: reason,
     ),
     text(SiteField.mooringNumber, (s) => s.mooringNumber),
+    text(SiteField.address, (s) => s.address),
+    text(SiteField.phone, (s) => s.phone),
+    // As the Contact card refuses them (issue #5073).
+    text(SiteField.email, (s) => s.email, accept: isValidSiteEmail),
+    text(SiteField.website, (s) => s.website, accept: isValidSiteWebsite),
     text(SiteField.hazards, (s) => s.hazards),
     // Private to the profile, so a library site keeps them editable.
     plainNumberColumn(SiteField.rating, (e) => e.site.rating, min: 0, max: 5),

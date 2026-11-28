@@ -343,4 +343,39 @@ void main() {
     expect(fmt(metric, FieldKind.unknown, true), 'Yes');
     expect(fmt(metric, FieldKind.unknown, 12), '12');
   });
+
+  // Issue #5073: a site's opening hours are compared as a summary, never as
+  // their stored JSON.
+  group('opening hours', () {
+    const units = UnitFormatter(AppSettings());
+
+    test('24/7 reads as such', () {
+      expect(
+        fmt(units, FieldKind.openingHours, '{"v":1,"alwaysOpen":true}'),
+        'Open 24/7',
+      );
+    });
+
+    test('schedules read by name, or by count when unnamed', () {
+      expect(
+        fmt(
+          units,
+          FieldKind.openingHours,
+          '{"v":1,"schedules":[{"name":"Summer"},{"name":"Winter"}]}',
+        ),
+        'Summer, Winter',
+      );
+      expect(
+        fmt(units, FieldKind.openingHours, '{"v":1,"schedules":[{},{}]}'),
+        '2 schedules',
+      );
+    });
+
+    test('a value that cannot be read says it changed', () {
+      expect(
+        fmt(units, FieldKind.openingHours, 'not json'),
+        l10n.settings_conflict_changed,
+      );
+    });
+  });
 }

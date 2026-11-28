@@ -62,4 +62,42 @@ void main() {
       expect(next.last, 'new');
     });
   });
+
+  group('assembly folds (#5071)', () {
+    test('an assembly key names the item', () {
+      expect(assemblyFoldKey('x'), 'asm:x');
+      expect(isAssemblyFoldKey('asm:x'), isTrue);
+      expect(isAssemblyFoldKey('type:bcd'), isFalse);
+      expect(isAssemblyFoldKey('loc:none/type:bcd'), isFalse);
+    });
+
+    test('a stored assembly key means opened outside a filter', () {
+      expect(
+        resolveCollapsedKeys(
+          ['type:bcd', 'asm:a'],
+          ['a', 'b'],
+          assembliesStartOpen: false,
+        ),
+        {'type:bcd', 'asm:b'},
+      );
+    });
+
+    test('a stored assembly key means folded during a filter', () {
+      expect(
+        resolveCollapsedKeys(
+          ['type:bcd', 'asm:a'],
+          ['a', 'b'],
+          assembliesStartOpen: true,
+        ),
+        {'type:bcd', 'asm:a'},
+      );
+    });
+
+    test('a stored key for an assembly not on the list folds nothing', () {
+      expect(
+        resolveCollapsedKeys(['asm:gone'], ['a'], assembliesStartOpen: true),
+        isEmpty,
+      );
+    });
+  });
 }

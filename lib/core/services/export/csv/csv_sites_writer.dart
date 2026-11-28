@@ -1,5 +1,6 @@
 import 'package:csv/csv.dart';
 
+import 'package:submersion/core/opening_hours/opening_hours_codec.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_column.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
@@ -68,6 +69,12 @@ class CsvSitesWriter {
         'Site Types',
         'Site Tags',
         'Site Features',
+        // Issue #5073; appended so existing consumers keep their offsets.
+        'Address',
+        'Phone',
+        'Email',
+        'Website',
+        'Opening Hours',
       ],
     ];
 
@@ -107,6 +114,13 @@ class CsvSitesWriter {
         sanitizeCsvField(
           encodeSiteFeatures(featuresBySite[site.id] ?? const []),
         ),
+        // Line breaks kept, as the description's are: Submersion reads the
+        // address back.
+        sanitizeCsvField(site.address),
+        sanitizeCsvField(site.phone),
+        sanitizeCsvField(site.email),
+        sanitizeCsvField(site.website),
+        sanitizeCsvField(encodeOpeningHours(site.openingHours)),
       ]);
     }
 

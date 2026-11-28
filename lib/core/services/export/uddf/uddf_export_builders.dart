@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:xml/xml.dart';
 
+import 'package:submersion/core/opening_hours/opening_hours_codec.dart';
 import 'package:submersion/core/constants/enums.dart' hide Visibility;
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/export/models/currency_backup_data.dart';
@@ -121,6 +122,30 @@ class UddfExportBuilders {
         }
         if (site.parkingInfo != null && site.parkingInfo!.isNotEmpty) {
           builder.element('parkinginfo', nest: site.parkingInfo);
+        }
+        // Contact details and opening hours (issue #5073), in Submersion's
+        // own elements; UDDF's <address> belongs to people, not sites.
+        // The pretty-printed file reflows text, so the address's lines are
+        // joined to stay readable as one.
+        for (final (element, value) in [
+          (
+            'siteaddress',
+            site.address
+                ?.split(RegExp(r'\s*\n\s*'))
+                .where((line) => line.trim().isNotEmpty)
+                .join(', '),
+          ),
+          ('sitephone', site.phone),
+          ('siteemail', site.email),
+          ('sitewebsite', site.website),
+        ]) {
+          if (value != null && value.trim().isNotEmpty) {
+            builder.element(element, nest: value);
+          }
+        }
+        final openingHours = encodeOpeningHours(site.openingHours);
+        if (openingHours != null) {
+          builder.element('openinghours', nest: openingHours);
         }
         // The built-in catalogue record the site was adopted from. Nothing
         // else in the file can rebuild it.

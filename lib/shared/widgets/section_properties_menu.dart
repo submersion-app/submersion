@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/dive_detail_layout.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Width of the section list, and so of the menu: wide enough for the longest
@@ -216,7 +217,7 @@ class _SectionRow extends StatelessWidget {
         ReorderableDragStartListener(
           index: index,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: Spacing.s12),
             child: Icon(Icons.drag_handle, color: colorScheme.onSurfaceVariant),
           ),
         ),
@@ -235,7 +236,12 @@ class _MenuHeading extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      padding: const EdgeInsets.fromLTRB(
+        Spacing.s12,
+        Spacing.s8,
+        Spacing.s12,
+        Spacing.s4,
+      ),
       child: Text(
         text.toUpperCase(),
         style: theme.textTheme.labelSmall?.copyWith(

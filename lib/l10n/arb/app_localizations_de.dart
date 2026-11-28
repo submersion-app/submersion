@@ -12055,6 +12055,144 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_detail_section_access => 'Zugang & Logistik';
 
   @override
+  String get diveSites_detail_section_contact => 'Kontakt';
+
+  @override
+  String get diveSites_detail_section_openingHours => 'Öffnungszeiten';
+
+  @override
+  String get diveSites_contact_mapsFailed =>
+      'Karten konnten nicht geöffnet werden';
+
+  @override
+  String get diveSites_contact_linkFailed =>
+      'Der Link konnte nicht geöffnet werden';
+
+  @override
+  String get diveSites_contact_directions => 'Route';
+
+  @override
+  String get diveSites_contact_address => 'Adresse';
+
+  @override
+  String get diveSites_contact_phone => 'Telefon';
+
+  @override
+  String get diveSites_contact_email => 'E-Mail';
+
+  @override
+  String get diveSites_contact_website => 'Webseite';
+
+  @override
+  String get diveSites_hours_alwaysOpen => 'Rund um die Uhr geöffnet';
+
+  @override
+  String get diveSites_hours_addSchedule => 'Zeitplan hinzufügen';
+
+  @override
+  String get diveSites_hours_scheduleName => 'Bezeichnung';
+
+  @override
+  String get diveSites_hours_scheduleName_hint => 'Sommer';
+
+  @override
+  String get diveSites_hours_seasonal => 'Saisonal';
+
+  @override
+  String get diveSites_hours_seasonFrom => 'Von';
+
+  @override
+  String get diveSites_hours_seasonTo => 'Bis';
+
+  @override
+  String get diveSites_hours_deleteSchedule => 'Zeitplan löschen';
+
+  @override
+  String get diveSites_hours_closed => 'Geschlossen';
+
+  @override
+  String get diveSites_hours_open24h => '24 Stunden geöffnet';
+
+  @override
+  String get diveSites_hours_kindHours => 'Zeiten';
+
+  @override
+  String get diveSites_hours_addRange => 'Zeiten hinzufügen';
+
+  @override
+  String get diveSites_hours_removeRange => 'Zeiten entfernen';
+
+  @override
+  String get diveSites_hours_copyDay => 'Auf andere Tage kopieren';
+
+  @override
+  String diveSites_hours_copyTitle(String day) {
+    return '$day kopieren nach';
+  }
+
+  @override
+  String get diveSites_hours_selectAll => 'Alle auswählen';
+
+  @override
+  String get diveSites_hours_copy => 'Kopieren';
+
+  @override
+  String get diveSites_hours_note => 'Hinweis';
+
+  @override
+  String get diveSites_hours_note_hint =>
+      'Slots telefonisch buchen, an Feiertagen geschlossen';
+
+  @override
+  String get diveSites_hours_invalid =>
+      'Einige Zeiten überschneiden sich oder enden vor dem Beginn';
+
+  @override
+  String get diveSites_hours_noSchedule => 'Noch keine Wochenzeiten';
+
+  @override
+  String diveSites_hours_openUntil(String time) {
+    return 'Jetzt geöffnet, schließt um $time';
+  }
+
+  @override
+  String get diveSites_hours_openNoClose => 'Jetzt geöffnet';
+
+  @override
+  String diveSites_hours_closedOpensAt(String when) {
+    return 'Geschlossen, öffnet $when';
+  }
+
+  @override
+  String diveSites_hours_closedForSeason(String date) {
+    return 'Saisonpause, öffnet am $date';
+  }
+
+  @override
+  String get diveSites_hours_closedNow => 'Geschlossen';
+
+  @override
+  String diveSites_hours_span(String from, String to) {
+    return '$from bis $to';
+  }
+
+  @override
+  String diveSites_hours_namedSeason(String name, String season) {
+    return '$name, $season';
+  }
+
+  @override
+  String diveSites_merge_hoursSchedules(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zeitpläne',
+      one: '$count Zeitplan',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_detail_section_altitude => 'Höhenlage';
 
   @override
@@ -12170,6 +12308,40 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveSites_edit_access_parkingInfo_hint =>
       'Parkverfügbarkeit, Gebühren, Tipps';
+
+  @override
+  String get diveSites_edit_contact_address_label => 'Adresse';
+
+  @override
+  String get diveSites_edit_contact_address_hint =>
+      'Straße, Ort und Postleitzahl';
+
+  @override
+  String get diveSites_edit_contact_phone_label => 'Telefon';
+
+  @override
+  String get diveSites_edit_contact_phone_hint =>
+      'Buchungs- oder Betreibernummer';
+
+  @override
+  String get diveSites_edit_contact_email_label => 'E-Mail';
+
+  @override
+  String get diveSites_edit_contact_email_hint => 'name@example.com';
+
+  @override
+  String get diveSites_edit_contact_website_label => 'Webseite';
+
+  @override
+  String get diveSites_edit_contact_website_hint => 'example.com';
+
+  @override
+  String get diveSites_edit_contact_emailInvalid =>
+      'Gib eine E-Mail-Adresse wie name@example.com ein';
+
+  @override
+  String get diveSites_edit_contact_websiteInvalid =>
+      'Gib eine Webadresse wie example.com ein';
 
   @override
   String get diveSites_edit_access_parkingInfo_label => 'Parkinformationen';
@@ -17481,6 +17653,23 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Alle einklappen';
 
   @override
+  String get equipment_list_showParts => 'Teile anzeigen';
+
+  @override
+  String get equipment_list_hideParts => 'Teile ausblenden';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Teile',
+      one: '1 Teil',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Standort';
 
   @override
@@ -17497,6 +17686,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'Eine Überschrift pro Ort, nur auf dieser Seite';
+
+  @override
+  String get equipment_arrange_nestParts =>
+      'Teile unter ihrer Baugruppe zeigen';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Die Teile jeder Baugruppe darunter einklappen';
 
   @override
   String get equipment_locations_title => 'Standorte';
@@ -23854,6 +24051,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ein- und Ausstieg, Parken, Boje, Zugangshinweise';
 
   @override
+  String get siteDetailSection_contact_description =>
+      'Adresse, Telefon, E-Mail und Webseite';
+
+  @override
+  String get siteDetailSection_openingHours_description =>
+      'Öffnungstage und -zeiten, nach Saison';
+
+  @override
   String get siteDetailSection_notes_description => 'Notizen zum Tauchplatz';
 
   @override
@@ -27181,6 +27386,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_parkingInfo => 'Parken';
+
+  @override
+  String get settings_conflict_field_address => 'Adresse';
+
+  @override
+  String get settings_conflict_field_openingHours => 'Öffnungszeiten';
 
   @override
   String get settings_conflict_field_passportId => 'Flaschenpass';
@@ -47160,6 +47371,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_siteField_mooringNumber => 'Bojen-Nummer';
 
   @override
+  String get enum_siteField_address => 'Adresse';
+
+  @override
+  String get enum_siteField_phone => 'Telefon';
+
+  @override
+  String get enum_siteField_email => 'E-Mail';
+
+  @override
+  String get enum_siteField_website => 'Webseite';
+
+  @override
   String get enum_siteField_hazards => 'Gefahren';
 
   @override
@@ -47233,6 +47456,18 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_siteField_mooringNumber_short => 'Boje';
+
+  @override
+  String get enum_siteField_address_short => 'Adresse';
+
+  @override
+  String get enum_siteField_phone_short => 'Telefon';
+
+  @override
+  String get enum_siteField_email_short => 'E-Mail';
+
+  @override
+  String get enum_siteField_website_short => 'Webseite';
 
   @override
   String get enum_siteField_hazards_short => 'Gefahren';
@@ -66933,4 +67168,29 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Kompakt ist eine schmale Leiste mit Statusanzeigen. Banner ist das Begrüßungsbanner mit deinen Tauchsummen. Wird auf diesem Gerät gespeichert.';
+
+  @override
+  String get popOut_openProfileWindow => 'In neuem Fenster öffnen';
+
+  @override
+  String get popOut_pin => 'An diesen Tauchgang anheften';
+
+  @override
+  String get popOut_unpin => 'Dem Hauptfenster folgen';
+
+  @override
+  String get popOut_selectDivePlaceholder =>
+      'Wähle einen Tauchgang im Hauptfenster';
+
+  @override
+  String get popOut_lockedPlaceholder => 'Entsperre Submersion im Hauptfenster';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Profil: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'Dieses Fenster konnte das Logbuch nicht erreichen. Schließe es und versuche es erneut.';
 }

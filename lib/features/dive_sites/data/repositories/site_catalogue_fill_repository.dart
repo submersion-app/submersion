@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/features/dive_sites/domain/services/catalogue_site_mapping.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/geography/country_code.dart';
@@ -325,6 +326,10 @@ class SiteCatalogueFillRepository {
       ),
       difficulty: when(CatalogueGapField.difficulty, record.difficulty?.name),
       hazards: when(CatalogueGapField.hazards, record.hazards?.trim()),
+      website: when(
+        CatalogueGapField.website,
+        catalogueWebsiteText(record.website),
+      ),
       description: filled.contains(CatalogueGapField.description)
           ? Value(record.description!.trim())
           : const Value.absent(),

@@ -11627,6 +11627,139 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveSites_detail_section_access => 'アクセスと手配';
 
   @override
+  String get diveSites_detail_section_contact => '連絡先';
+
+  @override
+  String get diveSites_detail_section_openingHours => '営業時間';
+
+  @override
+  String get diveSites_contact_mapsFailed => '地図を開けませんでした';
+
+  @override
+  String get diveSites_contact_linkFailed => 'リンクを開けませんでした';
+
+  @override
+  String get diveSites_contact_directions => '経路';
+
+  @override
+  String get diveSites_contact_address => '住所';
+
+  @override
+  String get diveSites_contact_phone => '電話';
+
+  @override
+  String get diveSites_contact_email => 'メール';
+
+  @override
+  String get diveSites_contact_website => 'ウェブサイト';
+
+  @override
+  String get diveSites_hours_alwaysOpen => '年中無休・24時間営業';
+
+  @override
+  String get diveSites_hours_addSchedule => 'スケジュールを追加';
+
+  @override
+  String get diveSites_hours_scheduleName => '名前';
+
+  @override
+  String get diveSites_hours_scheduleName_hint => '夏季';
+
+  @override
+  String get diveSites_hours_seasonal => '季節限定';
+
+  @override
+  String get diveSites_hours_seasonFrom => '開始';
+
+  @override
+  String get diveSites_hours_seasonTo => '終了';
+
+  @override
+  String get diveSites_hours_deleteSchedule => 'スケジュールを削除';
+
+  @override
+  String get diveSites_hours_closed => '休業';
+
+  @override
+  String get diveSites_hours_open24h => '24時間営業';
+
+  @override
+  String get diveSites_hours_kindHours => '時間';
+
+  @override
+  String get diveSites_hours_addRange => '時間帯を追加';
+
+  @override
+  String get diveSites_hours_removeRange => '時間帯を削除';
+
+  @override
+  String get diveSites_hours_copyDay => '他の曜日にコピー';
+
+  @override
+  String diveSites_hours_copyTitle(String day) {
+    return '$dayのコピー先';
+  }
+
+  @override
+  String get diveSites_hours_selectAll => 'すべて選択';
+
+  @override
+  String get diveSites_hours_copy => 'コピー';
+
+  @override
+  String get diveSites_hours_note => 'メモ';
+
+  @override
+  String get diveSites_hours_note_hint => '枠の予約は電話で、祝日は休業';
+
+  @override
+  String get diveSites_hours_invalid => '重なっている時間帯、または開始前に終わる時間帯があります';
+
+  @override
+  String get diveSites_hours_noSchedule => '週の営業時間はまだありません';
+
+  @override
+  String diveSites_hours_openUntil(String time) {
+    return '営業中、$timeに終了';
+  }
+
+  @override
+  String get diveSites_hours_openNoClose => '営業中';
+
+  @override
+  String diveSites_hours_closedOpensAt(String when) {
+    return '休業中、$whenに開始';
+  }
+
+  @override
+  String diveSites_hours_closedForSeason(String date) {
+    return 'シーズンオフ、$dateに開始';
+  }
+
+  @override
+  String get diveSites_hours_closedNow => '休業中';
+
+  @override
+  String diveSites_hours_span(String from, String to) {
+    return '$from〜$to';
+  }
+
+  @override
+  String diveSites_hours_namedSeason(String name, String season) {
+    return '$name、$season';
+  }
+
+  @override
+  String diveSites_merge_hoursSchedules(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count件のスケジュール',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_detail_section_altitude => '標高';
 
   @override
@@ -11737,6 +11870,38 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get diveSites_edit_access_parkingInfo_hint => '駐車場の有無、料金、ヒント';
+
+  @override
+  String get diveSites_edit_contact_address_label => '住所';
+
+  @override
+  String get diveSites_edit_contact_address_hint => '番地、市区町村、郵便番号';
+
+  @override
+  String get diveSites_edit_contact_phone_label => '電話';
+
+  @override
+  String get diveSites_edit_contact_phone_hint => '予約または所有者の番号';
+
+  @override
+  String get diveSites_edit_contact_email_label => 'メール';
+
+  @override
+  String get diveSites_edit_contact_email_hint => 'name@example.com';
+
+  @override
+  String get diveSites_edit_contact_website_label => 'ウェブサイト';
+
+  @override
+  String get diveSites_edit_contact_website_hint => 'example.com';
+
+  @override
+  String get diveSites_edit_contact_emailInvalid =>
+      'name@example.com のようなメールアドレスを入力してください';
+
+  @override
+  String get diveSites_edit_contact_websiteInvalid =>
+      'example.com のようなウェブアドレスを入力してください';
 
   @override
   String get diveSites_edit_access_parkingInfo_label => '駐車場情報';
@@ -16896,6 +17061,23 @@ class AppLocalizationsJa extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'すべて折りたたむ';
 
   @override
+  String get equipment_list_showParts => 'パーツを表示';
+
+  @override
+  String get equipment_list_hideParts => 'パーツを隠す';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'パーツ$count個',
+      one: 'パーツ1個',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => '場所';
 
   @override
@@ -16912,6 +17094,12 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       '場所ごとに見出しを表示（このページのみ）';
+
+  @override
+  String get equipment_arrange_nestParts => 'パーツを組み合わせの下に表示';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle => '各組み合わせのパーツをその下に折りたたむ';
 
   @override
   String get equipment_locations_title => '場所';
@@ -23002,6 +23190,12 @@ class AppLocalizationsJa extends AppLocalizations {
       'エントリーとエキジット、駐車場、係留、アクセスに関するメモ';
 
   @override
+  String get siteDetailSection_contact_description => '住所、電話、メール、ウェブサイト';
+
+  @override
+  String get siteDetailSection_openingHours_description => '季節ごとの営業日と営業時間';
+
+  @override
   String get siteDetailSection_notes_description => 'サイトについてのあなたのメモ';
 
   @override
@@ -26091,6 +26285,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settings_conflict_field_parkingInfo => '駐車場';
+
+  @override
+  String get settings_conflict_field_address => '住所';
+
+  @override
+  String get settings_conflict_field_openingHours => '営業時間';
 
   @override
   String get settings_conflict_field_passportId => 'タンクパスポート';
@@ -45273,6 +45473,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get enum_siteField_mooringNumber => '係留ブイ番号';
 
   @override
+  String get enum_siteField_address => '住所';
+
+  @override
+  String get enum_siteField_phone => '電話';
+
+  @override
+  String get enum_siteField_email => 'メール';
+
+  @override
+  String get enum_siteField_website => 'ウェブサイト';
+
+  @override
   String get enum_siteField_hazards => '危険要素';
 
   @override
@@ -45346,6 +45558,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get enum_siteField_mooringNumber_short => '係留ブイ';
+
+  @override
+  String get enum_siteField_address_short => '住所';
+
+  @override
+  String get enum_siteField_phone_short => '電話';
+
+  @override
+  String get enum_siteField_email_short => 'メール';
+
+  @override
+  String get enum_siteField_website_short => 'ウェブ';
 
   @override
   String get enum_siteField_hazards_short => '危険要素';
@@ -64356,4 +64580,28 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'コンパクトはステータスランプ付きの細いバーです。バナーはダイブの合計を表示するウェルカムバナーです。この端末に保存されます。';
+
+  @override
+  String get popOut_openProfileWindow => '新しいウィンドウで開く';
+
+  @override
+  String get popOut_pin => 'このダイブに固定';
+
+  @override
+  String get popOut_unpin => 'メインウィンドウに従う';
+
+  @override
+  String get popOut_selectDivePlaceholder => 'メインウィンドウでダイブを選択してください';
+
+  @override
+  String get popOut_lockedPlaceholder => 'メインウィンドウで Submersion のロックを解除してください';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'プロファイル: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'このウィンドウからログブックにアクセスできませんでした。閉じてからもう一度お試しください。';
 }

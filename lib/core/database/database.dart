@@ -1839,6 +1839,9 @@ class AppDatabase extends _$AppDatabase {
     // depth and a plan's no-switch flag (issue #3793). Additive and
     // defaulted; the floor does not move.
     387,
+    // v388: a dive site's address, contact details and opening hours
+    // (issue #5073). Nullable, no backfill; the floor does not move.
+    388,
     // v389: diver_settings.profile_zoom_time_only, the profile chart's Time
     // only zoom choice (issue #5069). Nullable, no backfill; the floor does
     // not move. Numbered 389 because open work claims 388.

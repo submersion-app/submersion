@@ -13,11 +13,14 @@ typedef Editable<T> = bool Function(T entity);
 typedef ReadOnlyReason<T> = String? Function(T entity, AppLocalizations l10n);
 
 /// A free-text column. With [required], a blank cell is rejected instead of
-/// clearing the field (a site or center cannot lose its name).
+/// clearing the field (a site or center cannot lose its name). With
+/// [accept], a non-blank value it refuses is rejected (a website that would
+/// not open).
 TableEditorColumn<T, F> textColumn<T, F extends EntityField>(
   F field,
   String? Function(T entity) get, {
   bool required = false,
+  bool Function(String text)? accept,
   Editable<T>? isEditable,
   ReadOnlyReason<T>? readOnlyReason,
 }) => TableEditorColumn<T, F>(
@@ -29,6 +32,8 @@ TableEditorColumn<T, F> textColumn<T, F extends EntityField>(
     CellParsed(value: null) when required => const CellRejected(
       TableDraftFlag.unparsable,
     ),
+    CellParsed(value: final String text) when accept != null && !accept(text) =>
+      const CellRejected(TableDraftFlag.unparsable),
     final r => r,
   },
   isEditable: isEditable,

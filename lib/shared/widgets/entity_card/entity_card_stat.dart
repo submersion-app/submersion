@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 
@@ -72,7 +73,7 @@ class EntityCardStat<T, F extends EntityField> extends StatelessWidget {
       children: [
         if (icon != null) ...[
           ExcludeSemantics(child: Icon(icon, size: 14, color: color)),
-          const SizedBox(width: 4),
+          const SizedBox(width: Spacing.s4),
         ],
         Flexible(
           child: Text(
