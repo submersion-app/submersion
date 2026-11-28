@@ -1,6 +1,6 @@
 part of '../app_database_migrations.dart';
 
-/// Documents shared through a shared site library (issue #4713, v388).
+/// Documents shared through a shared site library (issue #4713, v395).
 /// Idempotent, so it serves as the rung and the beforeOpen backstop.
 extension SharedDocumentMigrations on AppDatabase {
   Future<void> _assertSharedDocumentSchema() async {

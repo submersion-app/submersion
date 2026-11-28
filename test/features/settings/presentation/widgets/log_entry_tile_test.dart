@@ -1,9 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/log_entry_tile.dart';
 
 void main() {
+  // The stamp's month names are formatted by intl against the process-global
+  // Intl.defaultLocale. Pin it so the expected text does not depend on test
+  // order, and restore it so the global stays contained. Setting the global
+  // makes intl demand real symbol data, so load it first.
+  late String? previousLocale;
+  setUpAll(() => initializeDateFormatting('en'));
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+  });
+  tearDown(() => Intl.defaultLocale = previousLocale);
+
   LogEntry makeEntry({
     DateTime? timestamp,
     LogCategory category = LogCategory.app,
@@ -18,10 +36,25 @@ void main() {
     );
   }
 
-  Widget buildTestWidget(LogEntry entry) {
-    return MaterialApp(
-      home: Scaffold(body: LogEntryTile(entry: entry)),
+  const ddmmyyyy = AppSettings(dateFormat: DateFormatPreference.ddmmyyyy);
+
+  Widget buildTiles(List<LogEntry> entries, {AppSettings settings = ddmmyyyy}) {
+    return ProviderScope(
+      overrides: [
+        unitFormatterProvider.overrideWithValue(UnitFormatter(settings)),
+      ],
+      child: MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [for (final e in entries) LogEntryTile(entry: e)],
+          ),
+        ),
+      ),
     );
+  }
+
+  Widget buildTestWidget(LogEntry entry, {AppSettings settings = ddmmyyyy}) {
+    return buildTiles([entry], settings: settings);
   }
 
   group('LogEntryTile', () {
@@ -35,10 +68,56 @@ void main() {
       expect(find.text('APP'), findsOneWidget);
     });
 
-    testWidgets('renders timestamp in HH:MM:SS.mmm format', (tester) async {
+    testWidgets('shows the date in the diver format before the time', (
+      tester,
+    ) async {
       final ts = DateTime(2026, 3, 27, 14, 32, 1, 123);
       await tester.pumpWidget(buildTestWidget(makeEntry(timestamp: ts)));
-      expect(find.text('14:32:01.123'), findsOneWidget);
+      expect(find.text('27/03/2026 14:32:01.123'), findsOneWidget);
+    });
+
+    testWidgets('uses a month-name date format when the diver picks one', (
+      tester,
+    ) async {
+      final ts = DateTime(2026, 3, 27, 14, 32, 1, 123);
+      await tester.pumpWidget(
+        buildTestWidget(
+          makeEntry(timestamp: ts),
+          settings: const AppSettings(
+            dateFormat: DateFormatPreference.mmmDYYYY,
+          ),
+        ),
+      );
+      expect(find.text('Mar 27, 2026 14:32:01.123'), findsOneWidget);
+    });
+
+    testWidgets('keeps the 24-hour millisecond time under a 12-hour setting', (
+      tester,
+    ) async {
+      final ts = DateTime(2026, 3, 27, 14, 32, 1, 123);
+      await tester.pumpWidget(
+        buildTestWidget(
+          makeEntry(timestamp: ts),
+          settings: const AppSettings(
+            dateFormat: DateFormatPreference.ddmmyyyy,
+            timeFormat: TimeFormat.twelveHour,
+          ),
+        ),
+      );
+      expect(find.text('27/03/2026 14:32:01.123'), findsOneWidget);
+    });
+
+    testWidgets('entries either side of midnight show different dates', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildTiles([
+          makeEntry(timestamp: DateTime(2026, 11, 23, 23, 59, 59, 999)),
+          makeEntry(timestamp: DateTime(2026, 11, 24, 0, 0, 0, 1)),
+        ]),
+      );
+      expect(find.text('23/11/2026 23:59:59.999'), findsOneWidget);
+      expect(find.text('24/11/2026 00:00:00.001'), findsOneWidget);
     });
 
     testWidgets('pads single-digit hours, minutes, and seconds', (
@@ -46,7 +125,7 @@ void main() {
     ) async {
       final ts = DateTime(2026, 3, 27, 9, 5, 7, 45);
       await tester.pumpWidget(buildTestWidget(makeEntry(timestamp: ts)));
-      expect(find.text('09:05:07.045'), findsOneWidget);
+      expect(find.text('27/03/2026 09:05:07.045'), findsOneWidget);
     });
 
     testWidgets('renders message text', (tester) async {
@@ -144,7 +223,7 @@ void main() {
 
         expect(find.byIcon(Icons.warning_amber), findsOneWidget);
         expect(find.text('BLE'), findsOneWidget);
-        expect(find.text('08:00:00.000'), findsOneWidget);
+        expect(find.text('27/03/2026 08:00:00.000'), findsOneWidget);
         expect(find.text('Signal lost'), findsOneWidget);
       });
     });

@@ -56,7 +56,7 @@ final Map<String, String> _aliases = {
 };
 
 /// Punctuation people type in more than one way, mirrored by _PUNCTUATION in
-/// scripts/geography/generate_country_names.py: a typed straight apostrophe
+/// scripts/datasets/geography/generate_country_names.py: a typed straight apostrophe
 /// finds CLDR's curly one ("Cote d'Ivoire"), and a hyphen or dash reads as a
 /// space ("Guinea Bissau", "Timor Leste").
 const Map<String, String> _punctuation = {
@@ -75,7 +75,7 @@ final RegExp _whitespace = RegExp(r'\s+');
 /// ("Trinidad & Tobago"), runs of whitespace collapsed, and a leading
 /// "the " dropped ("The Bahamas").
 ///
-/// scripts/geography/generate_country_names.py folds the generated table's
+/// scripts/datasets/geography/generate_country_names.py folds the generated table's
 /// names the same way.
 String countryLookupKey(String text) {
   final folded = StringBuffer();

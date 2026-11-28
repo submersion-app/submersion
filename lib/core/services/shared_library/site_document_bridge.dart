@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/opening_hours/opening_hours_codec.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -121,6 +122,11 @@ class SiteDocumentBridge {
         'accessNotes' => site.accessNotes,
         'mooringNumber' => site.mooringNumber,
         'parkingInfo' => site.parkingInfo,
+        'address' => site.address,
+        'phone' => site.phone,
+        'email' => site.email,
+        'website' => site.website,
+        'openingHours' => encodeOpeningHours(site.openingHours),
         'altitude' => site.altitude,
         'entryMethod' => encodeEntryMethods(site.entryMethods),
         'exitMethod' => encodeEntryMethods(site.exitMethods),
@@ -201,6 +207,16 @@ class SiteDocumentBridge {
         accessNotes: pick('accessNotes', strOrNull),
         mooringNumber: pick('mooringNumber', strOrNull),
         parkingInfo: pick('parkingInfo', strOrNull),
+        address: pick('address', strOrNull),
+        phone: pick('phone', strOrNull),
+        email: pick('email', strOrNull),
+        website: pick('website', strOrNull),
+        // Normalised through the codec, so a malformed value from another
+        // member is stored as none rather than as text nothing can read.
+        openingHours: pick(
+          'openingHours',
+          (raw) => encodeOpeningHours(decodeOpeningHours(strOrNull(raw))),
+        ),
         altitude: pick('altitude', dbl),
         entryMethod: pick('entryMethod', strOrNull),
         exitMethod: pick('exitMethod', strOrNull),

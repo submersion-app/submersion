@@ -39,12 +39,12 @@
 /// ## Data Sources
 ///
 /// Constituent data can come from:
-/// - The bundled FES2022 ocean tide grid (scripts/tide/extract_fes_grid.py)
+/// - The bundled FES2022 ocean tide grid (scripts/datasets/tide/extract_fes_grid.py)
 /// - NOAA harmonic constants database
 /// - UK Hydrographic Office data
 /// - Australian BOM tide data
 ///
-/// See `scripts/tide/` for extraction tools.
+/// See `scripts/datasets/tide/` for extraction tools.
 library;
 
 // Constants

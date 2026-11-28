@@ -5,7 +5,7 @@ import 'package:path/path.dart' as p;
 
 import 'harness.dart';
 
-/// Phase 1 of scripts/run_color_encode_it.sh (issue #3521): synthesizes the
+/// Phase 1 of scripts/testing/run_color_encode_it.sh (issue #3521): synthesizes the
 /// input clips into the folder the in-app encode test reads.
 void main() {
   test('synthesize colour-encode inputs', () async {

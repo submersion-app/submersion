@@ -1,0 +1,41 @@
+name: Species suggestion
+description: Suggest a species for the bundled marine life catalog.
+title: "Species suggestion: "
+labels: ["species-suggestion"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion. The app fills this in from a custom species' "Suggest for the catalog" action. This page is public, so please leave out personal details such as dive locations.
+  - type: input
+    id: common_name
+    attributes:
+      label: Common name
+    validations:
+      required: true
+  - type: input
+    id: scientific_name
+    attributes:
+      label: Scientific name
+      description: Genus and species, if known.
+  - type: input
+    id: category
+    attributes:
+      label: Category
+      description: Fish, shark, ray, mammal, turtle, invertebrate, coral, plant or other.
+  - type: input
+    id: taxonomy_class
+    attributes:
+      label: Taxonomy class
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+  - type: input
+    id: app_version
+    attributes:
+      label: App version
+  - type: input
+    id: locale
+    attributes:
+      label: App language

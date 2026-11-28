@@ -26,7 +26,7 @@ extension _Naming on VideoIdentificationScan {
     final left = <_Stored>[];
     if (stopping) {
       bool named(TrackedAnimal t) => !(rows[t.storedId]?.isPending ?? true);
-      int length(TrackedAnimal t) => t.endMs - t.startMs;
+      int length(TrackedAnimal t) => t.inViewMs(maxGapMs: _liveGapMs);
       final order = [for (var k = 0; k < all.length; k++) k]
         ..sort((a, b) {
           if (named(all[a]) != named(all[b])) return named(all[a]) ? 1 : -1;

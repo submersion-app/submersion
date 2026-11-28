@@ -83,7 +83,7 @@ void main() {
       expect(find.text('Gas consumption display'), findsOneWidget);
       expect(
         find.text(
-          'Tank pressure drop per minute (bar/min). Works with any logged '
+          'Cylinder pressure drop per minute (bar/min). Works with any logged '
           'pressures.',
         ),
         findsOneWidget,
@@ -91,7 +91,7 @@ void main() {
       expect(
         find.text(
           'Gas volume breathed per minute at the surface (L/min). Needs a '
-          'tank volume.',
+          'cylinder volume.',
         ),
         findsOneWidget,
       );

@@ -357,12 +357,10 @@ extension RungsFromV340 on AppDatabase {
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
 
-    // v388 (issue #4713): documents shared through a shared site library.
-    // documents.diver_id becomes nullable by a table rebuild, plus
-    // documents.shared_library_id, document_pages.library_file_id and
-    // shared_document_states; re-asserted in beforeOpen. The floor does not
-    // move.
-    if (from < 388) await _assertSharedDocumentSchema();
+    // v388 (issue #5073): a dive site's address, phone, email, website and
+    // opening hours. Nullable, no backfill, re-asserted in beforeOpen; the
+    // floor does not move.
+    if (from < 388) await _assertSiteContactHoursColumns();
     if (from < 388) await reportProgress();
 
     // v389 (issue #5069): diver_settings.profile_zoom_time_only, the profile
@@ -371,5 +369,25 @@ extension RungsFromV340 on AppDatabase {
     // claims 388.
     if (from < 389) await _assertProfileZoomTimeOnlyColumn();
     if (from < 389) await reportProgress();
+
+    // v393 (issue #5110): the built-in BCD/wing inspection applies to wings.
+    // A one-time UPDATE of one built-in row; not in the backstop, as the
+    // v239 built-in backfill is not. The floor does not move.
+    if (from < 393) await _backfillWingInspectionServiceKind();
+    if (from < 393) await reportProgress();
+
+    // v394 (issue #800): tank_presets.rated_capacity_cuft, the rated capacity
+    // a copy of a built-in preset keeps. Nullable, no backfill, re-asserted
+    // in beforeOpen; the floor does not move.
+    if (from < 394) await _assertTankPresetRatedCapacityColumn();
+    if (from < 394) await reportProgress();
+
+    // v395 (issue #4713): documents shared through a shared site library.
+    // documents.diver_id becomes nullable by a table rebuild, plus
+    // documents.shared_library_id, document_pages.library_file_id and
+    // shared_document_states; re-asserted in beforeOpen. The floor does not
+    // move.
+    if (from < 395) await _assertSharedDocumentSchema();
+    if (from < 395) await reportProgress();
   }
 }

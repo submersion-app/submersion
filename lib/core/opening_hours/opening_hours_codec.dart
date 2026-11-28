@@ -1,0 +1,235 @@
+import 'dart:convert';
+import 'dart:developer' as developer;
+
+import 'package:submersion/core/opening_hours/opening_hours.dart';
+
+/// Stored form of [OpeningHours] (issue #5073): one JSON object in a text
+/// column, versioned so later fields need no schema rung.
+///
+/// ```json
+/// {"v": 1, "alwaysOpen": false, "note": "...",
+///  "schedules": [{"name": "Summer",
+///                 "season": {"start": "04-01", "end": "10-31"},
+///                 "days": {"sat": [[480, 720], [780, 1020]], "sun": "24h"}}]}
+/// ```
+///
+/// A missing day is closed. Decoding never throws: the value can arrive
+/// from another device, a CSV or UDDF file or an agent, so a bad part or a
+/// key this version does not know is left out (and logged), and a value
+/// that is not an object reads as null. A caller that must refuse such a
+/// value instead (an agent's write) hears of each one through `onDrop`.
+///
+/// A later version only adds to this one, so a newer value is read by the
+/// fields this version knows, its other keys being its own. Every site save
+/// writes the hours again, so until they are edited such a value is written
+/// back as it was stored, keeping what this version cannot read, even when
+/// this version reads nothing in it.
+
+const int _version = 1;
+const String _open24h = '24h';
+
+const List<String> _dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+String _dayKey(int weekday) => _dayKeys[weekday - DateTime.monday];
+
+/// The stored text of hours decoded from a newer version, by the decoded
+/// value; an edit makes a new value, which this version then writes.
+final Expando<String> _newerStoredText = Expando('newerOpeningHoursText');
+
+/// The stored text for [hours]; null when there is nothing to store.
+String? encodeOpeningHours(OpeningHours? hours) {
+  if (hours == null) return null;
+  final kept = _newerStoredText[hours];
+  if (kept != null) return kept;
+  if (hours.isEmpty) return null;
+  final note = hours.note?.trim();
+  return jsonEncode({
+    'v': _version,
+    'alwaysOpen': hours.alwaysOpen,
+    if (note != null && note.isNotEmpty) 'note': note,
+    'schedules': [for (final s in hours.schedules) _encodeSchedule(s)],
+  });
+}
+
+Map<String, Object?> _encodeSchedule(OpeningSchedule schedule) {
+  final name = schedule.name?.trim();
+  final season = schedule.season;
+  return {
+    if (name != null && name.isNotEmpty) 'name': name,
+    if (season != null)
+      'season': {
+        'start': _encodeMonthDay(season.start),
+        'end': _encodeMonthDay(season.end),
+      },
+    'days': {
+      for (var d = DateTime.monday; d <= DateTime.sunday; d++)
+        if (!schedule.dayHours(d).isClosed)
+          _dayKey(d): _encodeDay(schedule.dayHours(d)),
+    },
+  };
+}
+
+Object _encodeDay(DayHours day) => switch (day.kind) {
+  DayHoursKind.open24h => _open24h,
+  _ => [
+    for (final r in day.ranges) [r.opensAt, r.closesAt],
+  ],
+};
+
+String _encodeMonthDay(MonthDay d) =>
+    '${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+/// The hours stored as [text]; null when there are none or they cannot be
+/// read. [onDrop] hears of each part left out.
+OpeningHours? decodeOpeningHours(
+  String? text, {
+  void Function(String what)? onDrop,
+}) {
+  if (text == null || text.trim().isEmpty) return null;
+  final reader = _Reader(onDrop);
+  final Object? json;
+  try {
+    json = jsonDecode(text);
+  } on FormatException catch (e) {
+    reader.drop('a value that is not JSON: ${e.message}');
+    return null;
+  }
+  if (json is! Map) {
+    reader.drop('a value that is not an object');
+    return null;
+  }
+  final version = json['v'];
+  final newer = version is num && version > _version;
+  // A newer version's other keys are its own; this one's would be a slip.
+  reader.knownKeysOnly = !newer;
+  reader.checkKeys(json, const {'v', 'alwaysOpen', 'note', 'schedules'});
+  final rawNote = json['note'];
+  final note = rawNote is String && rawNote.trim().isNotEmpty
+      ? rawNote.trim()
+      : null;
+  final rawSchedules = json['schedules'];
+  final schedules = <OpeningSchedule>[
+    if (rawSchedules is List)
+      for (final raw in rawSchedules)
+        if (raw is Map) reader.schedule(raw) else ?reader.dropped('a schedule'),
+  ];
+  final hours = OpeningHours(
+    alwaysOpen: json['alwaysOpen'] == true,
+    schedules: schedules,
+    note: note,
+  );
+  if (newer) {
+    developer.log(
+      'Read version $version by its version $_version fields; kept as '
+      'stored until edited',
+      name: 'OpeningHoursCodec',
+    );
+    _newerStoredText[hours] = text;
+    return hours;
+  }
+  return hours.isEmpty ? null : hours;
+}
+
+/// Reads the parts of one stored value, telling [onDrop] (and the log) of
+/// each it leaves out.
+class _Reader {
+  _Reader(this.onDrop);
+
+  final void Function(String what)? onDrop;
+
+  /// Whether a key this version does not know is left out, not ignored.
+  bool knownKeysOnly = true;
+
+  void drop(String what) {
+    developer.log('Dropped $what', name: 'OpeningHoursCodec');
+    onDrop?.call(what);
+  }
+
+  /// Null, after dropping [what]: for a collection element left out.
+  OpeningSchedule? dropped(String what) {
+    drop(what);
+    return null;
+  }
+
+  void checkKeys(Map raw, Set<String> known) {
+    if (!knownKeysOnly) return;
+    for (final key in raw.keys) {
+      if (!known.contains(key)) drop('an unknown key "$key"');
+    }
+  }
+
+  OpeningSchedule schedule(Map raw) {
+    checkKeys(raw, const {'name', 'season', 'days'});
+    final name = raw['name'];
+    final days = <int, DayHours>{};
+    final rawDays = raw['days'];
+    if (rawDays is Map) {
+      checkKeys(rawDays, _dayKeys.toSet());
+      for (var d = DateTime.monday; d <= DateTime.sunday; d++) {
+        final value = rawDays[_dayKey(d)];
+        if (value == null) continue;
+        final day = this.day(value);
+        if (!day.isClosed) days[d] = day;
+      }
+    } else if (rawDays != null) {
+      drop('days that are not an object');
+    }
+    return OpeningSchedule(
+      name: name is String && name.trim().isNotEmpty ? name.trim() : null,
+      season: season(raw['season']),
+      days: days,
+    );
+  }
+
+  DayHours day(Object value) {
+    if (value == _open24h) return const DayHours.open24h();
+    if (value is! List) {
+      drop('a day that is neither "24h" nor a list: $value');
+      return const DayHours.closed();
+    }
+    // A whole number written as a decimal (540.0, from an agent or a
+    // hand-edited cell) is still a minute; a fraction is not.
+    int? minute(Object? v) => switch (v) {
+      final int i => i,
+      final double d when d == d.roundToDouble() => d.toInt(),
+      _ => null,
+    };
+    final ranges = <TimeRange>[];
+    for (final r in value) {
+      final opens = r is List && r.length == 2 ? minute(r[0]) : null;
+      final closes = r is List && r.length == 2 ? minute(r[1]) : null;
+      if (opens != null && closes != null) {
+        final range = TimeRange(opens, closes);
+        if (range.isValid) {
+          ranges.add(range);
+          continue;
+        }
+      }
+      drop('a time range $r');
+    }
+    return DayHours.ranges(ranges);
+  }
+
+  /// A season read whole, or none: the schedule then applies all year.
+  YearlyDateRange? season(Object? raw) {
+    if (raw == null) return null;
+    if (raw is Map) {
+      checkKeys(raw, const {'start', 'end'});
+      final start = _decodeMonthDay(raw['start']);
+      final end = _decodeMonthDay(raw['end']);
+      if (start != null && end != null) {
+        return YearlyDateRange(start: start, end: end);
+      }
+    }
+    drop('a season $raw');
+    return null;
+  }
+}
+
+MonthDay? _decodeMonthDay(Object? raw) {
+  if (raw is! String) return null;
+  final match = RegExp(r'^(\d{2})-(\d{2})$').firstMatch(raw);
+  if (match == null) return null;
+  final day = MonthDay(int.parse(match[1]!), int.parse(match[2]!));
+  return day.isValid ? day : null;
+}

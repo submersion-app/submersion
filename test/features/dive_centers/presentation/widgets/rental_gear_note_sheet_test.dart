@@ -159,7 +159,7 @@ void main() {
   ) async {
     await pumpAndOpen(tester);
     // Tank sorts after the default Other, below where the menu opens.
-    await pickGearType(tester, 'Tank', below: true);
+    await pickGearType(tester, 'Cylinder', below: true);
     expect(find.text('Actual capacity (L)'), findsOneWidget);
     await tester.enterText(fieldLabelled('Label or number'), 'AL80');
     await tester.enterText(fieldLabelled('Actual capacity (L)'), '11.1');

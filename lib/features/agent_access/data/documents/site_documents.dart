@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:submersion/core/opening_hours/opening_hours_codec.dart';
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center_gear_note.dart';
@@ -29,6 +31,14 @@ Map<String, Object?> siteDocument(DiveSite s) => {
   'access_notes': s.accessNotes,
   'mooring_number': s.mooringNumber,
   'parking_info': s.parkingInfo,
+  'street_address': s.address,
+  'phone': s.phone,
+  'email': s.email,
+  'website': s.website,
+  'opening_hours': switch (encodeOpeningHours(s.openingHours)) {
+    final String json => jsonDecode(json),
+    null => null,
+  },
   'entry_methods': [for (final m in s.entryMethods) m.name],
   'exit_methods': [for (final m in s.exitMethods) m.name],
   'is_shared': s.isShared,

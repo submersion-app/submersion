@@ -27,11 +27,11 @@ import 'package:submersion/core/database/tables/trip_tables.dart';
 class Documents extends Table {
   TextColumn get id => text()();
 
-  /// Null exactly when [sharedLibraryId] is set (v388).
+  /// Null exactly when [sharedLibraryId] is set (v395).
   TextColumn get diverId => text().nullable().references(Divers, #id)();
 
   /// The shared site library this document belongs to; never on the
-  /// personal-sync wire (v388, issue #4713).
+  /// personal-sync wire (v395, issue #4713).
   TextColumn get sharedLibraryId => text().nullable()();
   TextColumn get diveId =>
       text().nullable().references(Dives, #id, onDelete: KeyAction.setNull)();
@@ -103,7 +103,7 @@ class DocumentPages extends Table {
   IntColumn get updatedAt => integer()();
 
   /// The `pages/<id>.bin` file of a shared library that holds these bytes
-  /// (v388, issue #4713); cleared when the bytes change, so a new scan is
+  /// (v395, issue #4713); cleared when the bytes change, so a new scan is
   /// uploaded as a new file. Device-local: never on the personal-sync wire.
   TextColumn get libraryFileId => text().nullable()();
 

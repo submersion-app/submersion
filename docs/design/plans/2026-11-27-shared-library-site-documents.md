@@ -20,7 +20,7 @@
 - Clocked document fields: `type`, `title`, `issuer`, `referenceNumber`, `issueDate`, `expiryDate`, `notes`, `tags`, `pages`, plus `deleted`. `siteId` is fixed, not clocked.
 - Page GC: an owner's sync deletes a page file referenced by no document file and no retained backup, and older than 30 days.
 - Each page is at most `kMaxDocumentPageBytes` (10 MB); no new limit.
-- Schema rung v388; `minimumCompatibleSchemaVersion` stays 386.
+- Schema rung v395; `minimumCompatibleSchemaVersion` stays 386.
 - No file in `lib/core/database/tables/**` or `lib/core/database/migrations/**` may pass 800 lines; files already over 800 lines (`shared_library_service.dart`, `shared_library_transport.dart`, `shared_library_store.dart`, `shared_library_models.dart`, `document_repository.dart`, `site_detail_page.dart`, `sync_service.dart`, `sync_data_serializer.dart`) take new logic in `part` or companion files only.
 - All new UI text localised in `app_en.arb` and the ten other locales.
 - Every path built with `p.join` in tests; no literal `/tmp`.
@@ -46,21 +46,21 @@
 **Files:**
 - Modify: `lib/core/database/tables/document_tables.dart` (diverId nullable, `sharedLibraryId`)
 - Modify: `lib/core/database/tables/shared_library_tables.dart` (new `SharedDocumentStates`)
-- Modify: `lib/core/database/database.dart` (register table, `currentSchemaVersion = 388`, append to `migrationVersions`)
+- Modify: `lib/core/database/database.dart` (register table, `currentSchemaVersion = 395`, append to `migrationVersions`)
 - Create: `lib/core/database/migrations/helpers/shared_document_migrations.dart` (`part of '../app_database_migrations.dart'`)
 - Modify: `lib/core/database/migrations/app_database_migrations.dart` (part line)
-- Modify: `lib/core/database/migrations/ladder/rungs_v340_onward.dart` (v388 rung)
+- Modify: `lib/core/database/migrations/ladder/rungs_v340_onward.dart` (v395 rung)
 - Modify: `lib/core/database/migrations/before_open_table_backstops.dart` (call the assert)
 - Modify: `lib/features/documents/domain/entities/document.dart`, `lib/features/documents/data/repositories/document_row_mapper.dart`
-- Test: `test/core/database/migrations/v388_shared_documents_test.dart`, `test/features/documents/domain/document_test.dart` (extend if present, else create)
+- Test: `test/core/database/migrations/v395_shared_documents_test.dart`, `test/features/documents/domain/document_test.dart` (extend if present, else create)
 
 **Interfaces:**
 - Produces: `Documents.diverId` nullable; `Documents.sharedLibraryId` (`TextColumn`, nullable); `DocumentPages.libraryFileId` (`TextColumn`, nullable: the `pages/<fileId>.bin` a shared page lives in); `DocumentPage.libraryFileId` (`String?`); table `SharedDocumentStates` (`@DataClassName('SharedDocumentStateRow')`) with `documentId` PK, `libraryId`, `siteId`, `clocksJson` default `'{}'`, `remoteModifiedTime` nullable, `dirty` default false, `deleted` default false, `parked` default false, `lastEditorMemberId`, `lastEditedAtMs`; `Document.diverId` is `String?`; `Document.sharedLibraryId` (`String?`); `Document.isShared => sharedLibraryId != null`; `copyWith` handles both (use the `_unset` sentinel for both nullable fields).
-- Produces (migration extension): `Future<void> _assertSharedDocumentSchema()` on `AppDatabase`: calls `_dropNotNullByRebuild('documents', const {'diver_id': 'TEXT'})`, `_addMissingColumns('documents', {'shared_library_id': 'TEXT'})`, `_addMissingColumns('document_pages', {'library_file_id': 'TEXT'})`, and creates `shared_document_states` if missing. Idempotent; run by the v388 rung and by the backstop.
+- Produces (migration extension): `Future<void> _assertSharedDocumentSchema()` on `AppDatabase`: calls `_dropNotNullByRebuild('documents', const {'diver_id': 'TEXT'})`, `_addMissingColumns('documents', {'shared_library_id': 'TEXT'})`, `_addMissingColumns('document_pages', {'library_file_id': 'TEXT'})`, and creates `shared_document_states` if missing. Idempotent; run by the v395 rung and by the backstop.
 
-- [ ] **Step 1: Write the failing migration test** `v388 makes documents.diver_id nullable and keeps every row`: build a v387 database with a diver, a document, two pages and a document tag; run migration; assert `PRAGMA table_info('documents')` reports `diver_id` notnull 0, `shared_library_id` exists, the document, both pages and the tag link survive with identical values, `PRAGMA foreign_key_check` returns no rows, and `shared_document_states` exists. Second test `v388 is idempotent`: run `_assertSharedDocumentSchema` twice; no error, same schema.
-- [ ] **Step 2: Run it**: `flutter test test/core/database/migrations/v388_shared_documents_test.dart`. Expected: FAIL (column still NOT NULL).
-- [ ] **Step 3: Implement** the table changes, the helper, the rung (`if (from < 388) await _assertSharedDocumentSchema(); if (from < 388) await reportProgress();` with a comment naming issue #4713), the backstop call, the entity and mapper fields. Then fix every compile error from `Document.diverId` becoming nullable: callers that need a diver (`_clearOtherPrimaries`, `primaryInsuranceByDiver`, clearance supersession, notification payloads) use `doc.diverId!` only where the document is provably personal, or skip shared documents. Run `dart run build_runner build --delete-conflicting-outputs` in the background.
+- [ ] **Step 1: Write the failing migration test** `v395 makes documents.diver_id nullable and keeps every row`: build a v387 database with a diver, a document, two pages and a document tag; run migration; assert `PRAGMA table_info('documents')` reports `diver_id` notnull 0, `shared_library_id` exists, the document, both pages and the tag link survive with identical values, `PRAGMA foreign_key_check` returns no rows, and `shared_document_states` exists. Second test `v395 is idempotent`: run `_assertSharedDocumentSchema` twice; no error, same schema.
+- [ ] **Step 2: Run it**: `flutter test test/core/database/migrations/v395_shared_documents_test.dart`. Expected: FAIL (column still NOT NULL).
+- [ ] **Step 3: Implement** the table changes, the helper, the rung (`if (from < 395) await _assertSharedDocumentSchema(); if (from < 395) await reportProgress();` with a comment naming issue #4713), the backstop call, the entity and mapper fields. Then fix every compile error from `Document.diverId` becoming nullable: callers that need a diver (`_clearOtherPrimaries`, `primaryInsuranceByDiver`, clearance supersession, notification payloads) use `doc.diverId!` only where the document is provably personal, or skip shared documents. Run `dart run build_runner build --delete-conflicting-outputs` in the background.
 - [ ] **Step 4: Run** the migration test and `test/features/documents/domain/document_test.dart` (add `copyWith clears sharedLibraryId with null`). Expected: PASS. Run `flutter analyze`. Expected: no issues.
 - [ ] **Step 5: Commit** `feat(shared-library): schema for shared site documents`.
 

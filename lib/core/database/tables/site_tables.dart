@@ -58,6 +58,15 @@ class DiveSites extends Table {
       text().nullable()(); // Mooring buoy number for boats
   TextColumn get parkingInfo =>
       text().nullable()(); // Parking availability and tips
+  TextColumn get address =>
+      text().nullable()(); // Street address, free text (issue #5073)
+  TextColumn get phone =>
+      text().nullable()(); // Phone number for the site or its owner
+  TextColumn get email => text().nullable()(); // Contact email address
+  TextColumn get website =>
+      text().nullable()(); // Website, as typed; https added when opened
+  TextColumn get openingHours =>
+      text().nullable()(); // Opening hours as versioned JSON (OpeningHours)
   RealColumn get altitude => real()
       .nullable()(); // Altitude above sea level in meters (for altitude diving)
   /// Typical entry and exit method at this site, stored as EntryMethod.name

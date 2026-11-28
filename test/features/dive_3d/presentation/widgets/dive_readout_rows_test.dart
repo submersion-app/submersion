@@ -51,7 +51,7 @@ void main() {
     expect(byLabel['Depth']!.emphasized, isFalse);
     expect(byLabel['ppO2']!.value, '0.42');
     expect(byLabel['CNS']!.value, '5%');
-    expect(byLabel['Tank 1']!.value, startsWith('150'));
+    expect(byLabel['Cylinder 1']!.value, startsWith('150'));
     // Ceiling and TTS are null at t=0 so interpolation yields nothing.
     expect(byLabel.containsKey('Ceiling'), isFalse);
     expect(byLabel.containsKey('Ascent'), isFalse);
@@ -169,8 +169,8 @@ void main() {
         l10n: l10n,
       );
       final labels = rows.map((r) => r.label).toList();
-      expect(labels, contains('Tank 2'));
-      expect(labels, isNot(contains('Tank 1')));
+      expect(labels, contains('Cylinder 2'));
+      expect(labels, isNot(contains('Cylinder 1')));
     },
   );
 

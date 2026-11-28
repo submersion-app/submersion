@@ -180,7 +180,7 @@ extension TableBackstopsFromV217 on AppDatabase {
     // idempotent).
     await _assertSpeciesRevampSchema();
 
-    // v388 backstop: shared library documents (issue #4713; idempotent,
+    // v395 backstop: shared library documents (issue #4713; idempotent,
     // the rebuild is skipped once diver_id is nullable). After the v289
     // backstop, which creates the library tables.
     await _assertSharedDocumentSchema();

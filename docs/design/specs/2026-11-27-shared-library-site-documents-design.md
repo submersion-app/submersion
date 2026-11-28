@@ -210,9 +210,9 @@ the agent-access document writes.
 
 ## Local data model
 
-One migration rung (v388), helpers in `lib/core/database/migrations/helpers/`
-and a `beforeOpen` backstop in a part file (`before_open.dart` is at its line
-limit).
+One migration rung (v395, numbered after main's v394 because #5073 took
+v388), helpers in `lib/core/database/migrations/helpers/` and a `beforeOpen`
+backstop in a part file (`before_open.dart` is at its line limit).
 
 - `documents.diver_id` becomes nullable by the repository's
   `_dropNotNullByRebuild` precedent (foreign keys off, transactional copy,
@@ -399,7 +399,7 @@ All new text is localised in English and the ten other locales.
   personal tombstones for library rows.
 - Personal-sync guards: the two-device convergence harness with a shared
   document, asserting it is never exported, overwritten or tombstoned.
-- Migration: v388 from a v387 database keeps every document and page and its
+- Migration: v395 from a v387 database keeps every document and page and its
   foreign keys.
 - Maintenance: key rotation rewrites both folders; a backup holds document
   files but no page files; restore brings a deleted shared document back with
