@@ -32817,6 +32817,18 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Add 1 to this dive} other{Add all {count} to this dive}}'**
   String media_photoPicker_files_addAllToDive(int count);
 
+  /// Unmatched files group action: put every unmatched file on one dive site
+  ///
+  /// In en, this message translates to:
+  /// **'Put all on a site'**
+  String get media_photoPicker_files_allOnSite;
+
+  /// Unmatched files group action: keep every unmatched file in the library with no dive and no site
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all without a place'**
+  String get media_photoPicker_files_allUnplaced;
+
   /// No description provided for @media_photoPicker_files_addToDiveTooltip.
   ///
   /// In en, this message translates to:
@@ -33782,6 +33794,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose dive'**
   String get media_import_review_chooseDive;
+
+  /// Review row menu: keep the file in the media library with no dive and no site
+  ///
+  /// In en, this message translates to:
+  /// **'Keep without a place'**
+  String get media_import_review_keepUnplaced;
+
+  /// Review row subtitle for a file kept with no dive and no site
+  ///
+  /// In en, this message translates to:
+  /// **'Keep in the library, no dive or site'**
+  String get media_import_review_unplaced;
+
+  /// Review action: put every file that has no dive or site yet on one dive site
+  ///
+  /// In en, this message translates to:
+  /// **'Put the rest on a site'**
+  String get media_import_review_allOnSite;
+
+  /// Review action: keep every file that has no dive or site yet in the library with no place
+  ///
+  /// In en, this message translates to:
+  /// **'Keep the rest without a place'**
+  String get media_import_review_allUnplaced;
 
   /// Media console label for the sources section
   ///

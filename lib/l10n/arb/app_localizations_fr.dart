@@ -20886,6 +20886,12 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get media_photoPicker_files_allOnSite => 'Put all on a site';
+
+  @override
+  String get media_photoPicker_files_allUnplaced => 'Keep all without a place';
+
+  @override
   String get media_photoPicker_files_addToDiveTooltip =>
       'Ajouter à cette plongée';
 
@@ -21542,6 +21548,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get media_import_review_chooseDive => 'Choisir la plongée';
+
+  @override
+  String get media_import_review_keepUnplaced => 'Keep without a place';
+
+  @override
+  String get media_import_review_unplaced =>
+      'Keep in the library, no dive or site';
+
+  @override
+  String get media_import_review_allOnSite => 'Put the rest on a site';
+
+  @override
+  String get media_import_review_allUnplaced => 'Keep the rest without a place';
 
   @override
   String get media_console_sources => 'Sources';

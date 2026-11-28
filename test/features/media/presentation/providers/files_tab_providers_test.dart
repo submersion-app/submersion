@@ -1171,4 +1171,93 @@ void main() {
       );
     });
   });
+
+  // Issue #5122: with no owner, the unmatched files can go to one site or be
+  // kept with no place instead of being left out.
+  group('commit with an unmatched target', () {
+    late List<MediaItem> captured;
+
+    setUp(() {
+      when(
+        mockPlatform.createBookmark(any),
+      ).thenAnswer((_) async => Uint8List.fromList([1, 2, 3]));
+      when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
+      captured = [];
+      var counter = 0;
+      when(mockRepo.createMedia(any)).thenAnswer((invocation) async {
+        captured.add(invocation.positionalArguments.first as MediaItem);
+        counter += 1;
+        return _saved('saved-$counter');
+      });
+    });
+
+    void stage(FilesTabNotifier notifier) {
+      final matched = _ef('/matched.jpg');
+      final loose = _ef('/loose.mp4');
+      notifier.setFiles(
+        [matched, loose],
+        match: MatchedSelection(
+          matched: {
+            'd1': [matched],
+          },
+          unmatched: [loose],
+        ),
+      );
+    }
+
+    test('keeps the unmatched files retained with no links', () async {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      stage(notifier);
+      notifier.setUnmatchedTarget(const UnplacedAttachTarget());
+
+      final created = await notifier.commit();
+
+      expect(created, hasLength(2));
+      final kept = captured.singleWhere((m) => m.diveId == null);
+      expect(kept.siteId, isNull);
+      expect(kept.equipmentId, isNull);
+      expect(kept.retainInLibrary, isTrue);
+      expect(
+        captured.singleWhere((m) => m.diveId == 'd1').retainInLibrary,
+        isFalse,
+      );
+    });
+
+    test('puts the unmatched files on the chosen site', () async {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      stage(notifier);
+      notifier.setUnmatchedTarget(const SiteAttachTarget('site-1'));
+
+      await notifier.commit();
+
+      final placed = captured.singleWhere((m) => m.diveId == null);
+      expect(placed.siteId, 'site-1');
+      expect(placed.retainInLibrary, isFalse);
+    });
+
+    test('clearing the choice leaves them out again', () async {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      stage(notifier);
+      notifier
+        ..setUnmatchedTarget(const UnplacedAttachTarget())
+        ..setUnmatchedTarget(null);
+
+      final created = await notifier.commit();
+
+      expect(created, hasLength(1));
+      expect(captured.single.diveId, 'd1');
+    });
+
+    test('a dive session ignores it', () async {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      stage(notifier);
+      notifier.setUnmatchedTarget(const UnplacedAttachTarget());
+
+      final created = await notifier.commit(
+        target: const DiveAttachTarget('d1'),
+      );
+
+      expect(created, hasLength(1));
+    });
+  });
 }

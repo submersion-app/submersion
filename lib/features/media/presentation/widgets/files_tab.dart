@@ -75,7 +75,10 @@ class FilesTab extends ConsumerWidget {
   /// one to offer.
   String? get _assignableDiveId => switch (target) {
     DiveAttachTarget(:final diveId) => diveId,
-    SiteAttachTarget() || EquipmentAttachTarget() || null => null,
+    SiteAttachTarget() ||
+    EquipmentAttachTarget() ||
+    UnplacedAttachTarget() ||
+    null => null,
   };
 
   // coverage:ignore-start

@@ -12628,6 +12628,14 @@
       }
     }
   },
+  "media_photoPicker_files_allOnSite": "Put all on a site",
+  "@media_photoPicker_files_allOnSite": {
+    "description": "Unmatched files group action: put every unmatched file on one dive site"
+  },
+  "media_photoPicker_files_allUnplaced": "Keep all without a place",
+  "@media_photoPicker_files_allUnplaced": {
+    "description": "Unmatched files group action: keep every unmatched file in the library with no dive and no site"
+  },
   "media_photoPicker_files_addToDiveTooltip": "Add to this dive",
   "media_photoPicker_files_chooseDiveTooltip": "Choose a dive",
   "media_photoPicker_files_removeTooltip": "Remove from selection",
@@ -13181,6 +13189,22 @@
   "media_import_review_chooseDive": "Choose dive",
   "@media_import_review_chooseDive": {
     "description": "Review row menu: pick a dive"
+  },
+  "media_import_review_keepUnplaced": "Keep without a place",
+  "@media_import_review_keepUnplaced": {
+    "description": "Review row menu: keep the file in the media library with no dive and no site"
+  },
+  "media_import_review_unplaced": "Keep in the library, no dive or site",
+  "@media_import_review_unplaced": {
+    "description": "Review row subtitle for a file kept with no dive and no site"
+  },
+  "media_import_review_allOnSite": "Put the rest on a site",
+  "@media_import_review_allOnSite": {
+    "description": "Review action: put every file that has no dive or site yet on one dive site"
+  },
+  "media_import_review_allUnplaced": "Keep the rest without a place",
+  "@media_import_review_allUnplaced": {
+    "description": "Review action: keep every file that has no dive or site yet in the library with no place"
   },
   "media_console_sources": "Sources",
   "@media_console_sources": {

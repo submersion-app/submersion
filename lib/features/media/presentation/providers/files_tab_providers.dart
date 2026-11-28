@@ -42,6 +42,11 @@ class FilesTabState extends Equatable {
   /// offset left set would silently follow the user into their next import.
   final Duration captureTimeOffset;
 
+  /// Where the files the matcher found no dive for go, in a session with no
+  /// owner (issue #5122): all on one site ([SiteAttachTarget]), or kept with
+  /// no place ([UnplacedAttachTarget]). Null skips them, as before.
+  final MediaAttachTarget? unmatchedTarget;
+
   const FilesTabState({
     required this.files,
     required this.autoMatchByDate,
@@ -50,6 +55,7 @@ class FilesTabState extends Equatable {
     required this.totalToExtract,
     required this.match,
     required this.captureTimeOffset,
+    this.unmatchedTarget,
   });
 
   factory FilesTabState.initial() => FilesTabState(
@@ -70,6 +76,7 @@ class FilesTabState extends Equatable {
     int? totalToExtract,
     MatchedSelection? match,
     Duration? captureTimeOffset,
+    Object? unmatchedTarget = _keepUnmatchedTarget,
   }) => FilesTabState(
     files: files ?? this.files,
     autoMatchByDate: autoMatchByDate ?? this.autoMatchByDate,
@@ -78,7 +85,12 @@ class FilesTabState extends Equatable {
     totalToExtract: totalToExtract ?? this.totalToExtract,
     match: match ?? this.match,
     captureTimeOffset: captureTimeOffset ?? this.captureTimeOffset,
+    unmatchedTarget: identical(unmatchedTarget, _keepUnmatchedTarget)
+        ? this.unmatchedTarget
+        : unmatchedTarget as MediaAttachTarget?,
   );
+
+  static const Object _keepUnmatchedTarget = Object();
 
   @override
   List<Object?> get props => [
@@ -89,6 +101,7 @@ class FilesTabState extends Equatable {
     totalToExtract,
     match,
     captureTimeOffset,
+    unmatchedTarget,
   ];
 }
 
@@ -256,6 +269,12 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     );
   }
 
+  /// Sends the unmatched files to [target] on commit, in a session with no
+  /// owner (issue #5122): one site, or no place. Null skips them again.
+  void setUnmatchedTarget(MediaAttachTarget? target) {
+    state = state.copyWith(unmatchedTarget: target);
+  }
+
   /// Routes every currently-unmatched file to [diveId]. Backs the review
   /// pane's bulk "add all to this dive" action.
   void assignAllUnmatched(String diveId) {
@@ -292,7 +311,10 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
   /// - [DiveAttachTarget], or no target at all: the matcher's per-dive
   ///   assignment, which the review pane lets the user correct first.
   ///   Unmatched files are skipped; the pane's assign actions are how they
-  ///   get out of that bucket.
+  ///   get out of that bucket. With no target, the pane can also send them
+  ///   all to one site or keep them with no place
+  ///   ([FilesTabState.unmatchedTarget], issue #5122).
+  /// - [UnplacedAttachTarget]: every file kept with no place.
   ///
   /// Both photos and videos are persisted; [_persistOne] tags each row with
   /// the right [MediaType] from its MIME. On desktop a local-file video
@@ -316,10 +338,28 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
             ),
           );
         }
+      case UnplacedAttachTarget():
+        for (final file in state.files) {
+          created.add(await _persistOne(file, unplaced: true));
+        }
       case DiveAttachTarget() || null:
         for (final entry in state.match.matched.entries) {
           for (final file in entry.value) {
             created.add(await _persistOne(file, diveId: entry.key));
+          }
+        }
+        // With no owner, the diver may send the unmatched files to one site
+        // or keep them with no place (issue #5122).
+        if (target == null) {
+          for (final file in state.match.unmatched) {
+            switch (state.unmatchedTarget) {
+              case SiteAttachTarget(:final siteId):
+                created.add(await _persistOne(file, siteId: siteId));
+              case UnplacedAttachTarget():
+                created.add(await _persistOne(file, unplaced: true));
+              case DiveAttachTarget() || EquipmentAttachTarget() || null:
+                break;
+            }
           }
         }
     }
@@ -396,7 +436,8 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
 
   /// Writes one row. Exactly one of [diveId] / [siteId] is supplied by
   /// [commit]; the other stays null so the row belongs to one owner and does
-  /// not surface in both a dive's grid and a site's.
+  /// not surface in both a dive's grid and a site's. [unplaced] instead keeps
+  /// the row with no owner at all, marked `retain_in_library` (issue #5122).
   Future<MediaItem> _itemFor(
     ExtractedFile file, {
     String id = '',
@@ -404,15 +445,18 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     String? siteId,
     String? equipmentId,
     String? observationId,
+    bool unplaced = false,
   }) async {
     // Asserted, not just documented: neither mistake announces itself. Both
     // set puts the photo in a dive's grid and a site's; neither set writes an
     // ownerless row that shows up in no grid at all, which reads to the user
     // exactly like the import having silently failed.
     assert(
-      [diveId, siteId, equipmentId].where((id) => id != null).length == 1,
-      'a Files-tab row belongs to exactly one owner, got '
-      'diveId=$diveId siteId=$siteId equipmentId=$equipmentId',
+      [diveId, siteId, equipmentId].where((id) => id != null).length ==
+          (unplaced ? 0 : 1),
+      'a Files-tab row belongs to exactly one owner, or none when kept with '
+      'no place, got diveId=$diveId siteId=$siteId equipmentId=$equipmentId '
+      'unplaced=$unplaced',
     );
     // [ExtractedFile.file] is a dart:io File, so its path is always a
     // filesystem path; the factory decides per platform whether that path
@@ -427,6 +471,7 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
       siteId: siteId,
       equipmentId: equipmentId,
       observationId: observationId,
+      retainInLibrary: unplaced,
       mediaType: file.metadata.mimeType.startsWith('video/')
           ? MediaType.video
           : MediaType.photo,
@@ -464,6 +509,7 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
     String? siteId,
     String? equipmentId,
     String? observationId,
+    bool unplaced = false,
   }) async {
     final item = await _itemFor(
       file,
@@ -471,6 +517,7 @@ class FilesTabNotifier extends StateNotifier<FilesTabState> {
       siteId: siteId,
       equipmentId: equipmentId,
       observationId: observationId,
+      unplaced: unplaced,
     );
     final saved = await mediaRepository.createMedia(item);
     onMediaCreated?.call(saved.id);

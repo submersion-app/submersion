@@ -15,15 +15,17 @@ import 'package:submersion/l10n/l10n_extension.dart';
 typedef ImportReviewConfirm =
     Future<ImportReviewResult> Function(Map<String, MediaAttachTarget> targets);
 
-/// The pre-import review: every candidate resolves to a dive, a site, or
-/// "not imported" before the caller writes anything. Confident timestamp
-/// matches start checked; ambiguous and unmatched candidates need a pick.
+/// The pre-import review: every candidate resolves to a dive, a site, no
+/// place ([allowUnplaced] only), or "not imported" before the caller writes
+/// anything. Confident timestamp matches start checked; ambiguous and
+/// unmatched candidates need a pick, one at a time or all the rest at once.
 class MediaImportReviewPage extends ConsumerStatefulWidget {
   const MediaImportReviewPage({
     super.key,
     required this.candidates,
     required this.onConfirm,
     this.reportResult = true,
+    this.allowUnplaced = false,
   });
 
   final List<ImportCandidate> candidates;
@@ -33,6 +35,11 @@ class MediaImportReviewPage extends ConsumerStatefulWidget {
   /// yet: a species page in a sitting holds the photos until Save (issue
   /// #4527, phase 3).
   final bool reportResult;
+
+  /// Whether a file may be kept in the library with no dive and no site
+  /// (issue #5122). Only the library's own import offers it: a species page
+  /// adds its photos to a dive or a site.
+  final bool allowUnplaced;
 
   @override
   ConsumerState<MediaImportReviewPage> createState() =>
@@ -75,6 +82,26 @@ class _MediaImportReviewPageState extends ConsumerState<MediaImportReviewPage> {
     if (result is! SitePicked || !mounted) return;
     setState(() => _overrides[c.key] = SiteAttachTarget(result.site.id));
   }
+
+  void _keepUnplaced(ImportCandidate c) =>
+      setState(() => _overrides[c.key] = const UnplacedAttachTarget());
+
+  /// Puts every candidate in [rest] (those with no target yet) on one site.
+  Future<void> _allOnSite(List<ImportCandidate> rest) async {
+    final result = await showSitePicker(context, useDeviceLocation: false);
+    if (result is! SitePicked || !mounted) return;
+    setState(() {
+      for (final c in rest) {
+        _overrides[c.key] = SiteAttachTarget(result.site.id);
+      }
+    });
+  }
+
+  void _allUnplaced(List<ImportCandidate> rest) => setState(() {
+    for (final c in rest) {
+      _overrides[c.key] = const UnplacedAttachTarget();
+    }
+  });
 
   void _toggle(ImportCandidate c, ImportSuggestion? s) {
     final current = _targetFor(c, s);
@@ -135,6 +162,8 @@ class _MediaImportReviewPageState extends ConsumerState<MediaImportReviewPage> {
         return l10n.media_import_review_linkToSite;
       case EquipmentAttachTarget():
         return l10n.media_import_review_linkToGear;
+      case UnplacedAttachTarget():
+        return l10n.media_import_review_unplaced;
       case null:
         break;
     }
@@ -162,11 +191,41 @@ class _MediaImportReviewPageState extends ConsumerState<MediaImportReviewPage> {
       if (target != null) targets[c.key] = target;
       rows.add((c, s, target));
     }
+    // The rest: what no match, pick or bulk action has placed yet. A row the
+    // diver unchecked stays out of it.
+    final rest = [
+      for (final (c, _, target) in rows)
+        if (target == null && !_overrides.containsKey(c.key) && c.error == null)
+          c,
+    ];
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.media_import_review_title)),
       body: Column(
         children: [
+          if (rest.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  OutlinedButton.icon(
+                    key: const ValueKey('media_import_review_all_on_site'),
+                    onPressed: _busy ? null : () => _allOnSite(rest),
+                    icon: const Icon(Icons.place_outlined),
+                    label: Text(l10n.media_import_review_allOnSite),
+                  ),
+                  if (widget.allowUnplaced)
+                    OutlinedButton.icon(
+                      key: const ValueKey('media_import_review_all_unplaced'),
+                      onPressed: _busy ? null : () => _allUnplaced(rest),
+                      icon: const Icon(Icons.inventory_2_outlined),
+                      label: Text(l10n.media_import_review_allUnplaced),
+                    ),
+                ],
+              ),
+            ),
           Expanded(
             child: ListView.builder(
               itemCount: rows.length,
@@ -207,10 +266,13 @@ class _MediaImportReviewPageState extends ConsumerState<MediaImportReviewPage> {
                   trailing: PopupMenuButton<String>(
                     enabled: !_busy,
                     onSelected: (action) {
-                      if (action == 'dive') {
-                        _chooseDive(c, s);
-                      } else {
-                        _chooseSite(c);
+                      switch (action) {
+                        case 'dive':
+                          _chooseDive(c, s);
+                        case 'site':
+                          _chooseSite(c);
+                        case 'unplaced':
+                          _keepUnplaced(c);
                       }
                     },
                     itemBuilder: (context) => [
@@ -222,6 +284,11 @@ class _MediaImportReviewPageState extends ConsumerState<MediaImportReviewPage> {
                         value: 'site',
                         child: Text(l10n.media_import_review_chooseSite),
                       ),
+                      if (widget.allowUnplaced)
+                        PopupMenuItem(
+                          value: 'unplaced',
+                          child: Text(l10n.media_import_review_keepUnplaced),
+                        ),
                     ],
                   ),
                 );
