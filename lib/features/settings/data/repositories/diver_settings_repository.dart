@@ -415,6 +415,7 @@ class DiverSettingsRepository {
                   s.defaultShowAveloGasRemaining,
                 ),
                 defaultShowComputerRmv: Value(s.defaultShowComputerRmv),
+                defaultShowTrim: Value(s.defaultShowTrim),
                 favouriteDiveTypeIds: Value(
                   _encodeDisabledRules(s.favouriteDiveTypeIds),
                 ),
@@ -825,6 +826,7 @@ class DiverSettingsRepository {
         settings.defaultShowAveloGasRemaining,
       ),
       defaultShowComputerRmv: Value(settings.defaultShowComputerRmv),
+      defaultShowTrim: Value(settings.defaultShowTrim),
       favouriteDiveTypeIds: Value(
         _encodeDisabledRules(settings.favouriteDiveTypeIds),
       ),
@@ -1117,6 +1119,7 @@ class DiverSettingsRepository {
       defaultShowAveloBuoyancy: row.defaultShowAveloBuoyancy,
       defaultShowAveloGasRemaining: row.defaultShowAveloGasRemaining,
       defaultShowComputerRmv: row.defaultShowComputerRmv,
+      defaultShowTrim: row.defaultShowTrim,
       favouriteDiveTypeIds: _decodeDisabledRules(row.favouriteDiveTypeIds),
       defaultShowEstimatedTankPressure: row.defaultShowEstimatedTankPressure,
       defaultShowAscentRateLine: row.defaultShowAscentRateLine,

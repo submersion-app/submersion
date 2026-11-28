@@ -8768,6 +8768,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_computerRmv => 'RMV（电脑）';
 
   @override
+  String get diveLog_legend_label_trim => '纵倾';
+
+  @override
   String get diveLog_legend_source_dc => '潜水电脑';
 
   @override
@@ -21718,6 +21721,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_defaultShowBuoyancy => '剖面显示浮力';
 
   @override
+  String get settings_conflict_field_defaultShowTrim => '剖面显示纵倾';
+
+  @override
   String get settings_conflict_field_defaultShowAveloBuoyancy =>
       '剖面显示 Avelo 浮力';
 
@@ -22655,6 +22661,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_computerRmv => 'RMV（电脑）';
+
+  @override
+  String get settings_appearance_metric_trim => '纵倾';
 
   @override
   String get settings_appearance_metric_events => '事件';
@@ -53698,6 +53707,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_profileMetric_computerRmv => 'RMV（电脑）';
 
   @override
+  String get enum_profileMetric_trim => '纵倾';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => '电池';
 
   @override
@@ -53711,6 +53723,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_profileMetric_computerRmv_short => 'RMV';
+
+  @override
+  String get enum_profileMetric_trim_short => '纵倾';
 
   @override
   String get diveLog_o2CellSpread_label => 'O2电池离散度';
@@ -61095,6 +61110,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get info_term_aveloProfile_body =>
       'Shearwater 的 Avelo 模式按潜水电脑的记录保存这些数值：Avelo 浮力（负值表示偏重）、Hydrotank 中剩余气体的百分比，以及电脑自身的 RMV。它们不是由应用计算的，这里的浮力也不是浮力卡片中的模型浮力。';
+
+  @override
+  String get info_term_trimProfile_label => '纵倾';
+
+  @override
+  String get info_term_trimProfile_body =>
+      '潜水电脑为自身倾斜记录的角度：正值为头朝上，负值为头朝下，0 为水平。腕式电脑的读数同时反映前臂和身体的姿态，并非纵倾计算器的估算值。';
 
   @override
   String get info_term_hypercapnia_label => '高碳酸血症';

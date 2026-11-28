@@ -7,9 +7,11 @@ import 'package:submersion/features/dive_log/presentation/profile_colors/profile
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_avelo_lines.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_trim_line.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// The chart readout's rows for the Avelo lines (issue #4664), one per line
+/// The chart readout's rows for the Avelo lines (issue #4664) and the trim
+/// line (issue #5098), one per line
 /// [shown] says is drawn, read from [point], the sample under the cursor.
 /// A sample the computer left blank reads '-'.
 List<TooltipRow> aveloReadoutRows({
@@ -20,7 +22,7 @@ List<TooltipRow> aveloReadoutRows({
   required TextDirection direction,
   required Color Function(ProfileMetric metric) colorOf,
 }) => [
-  for (final metric in aveloLineMetrics)
+  for (final metric in computerSampleLineMetrics)
     if (shown(metric))
       switch (metric) {
         ProfileRightAxisMetric.aveloBuoyancy => TooltipRow(
@@ -44,6 +46,15 @@ List<TooltipRow> aveloReadoutRows({
             null => '-',
           },
           bulletColor: colorOf(ProfileMetric.aveloGasRemaining),
+          metric: metric,
+        ),
+        ProfileRightAxisMetric.trim => TooltipRow(
+          label: l10n.diveLog_legend_label_trim,
+          value: switch (point?.trim) {
+            final degrees? => formatTrimDegrees(degrees),
+            null => '-',
+          },
+          bulletColor: colorOf(ProfileMetric.trim),
           metric: metric,
         ),
         _ => TooltipRow(

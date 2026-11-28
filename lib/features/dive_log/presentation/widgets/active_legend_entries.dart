@@ -195,6 +195,12 @@ List<ActiveLegendEntry> activeLegendEntries(
     palette.colorOf(ProfileMetric.computerRmv),
   );
   add(
+    config.hasTrim,
+    state.showTrim,
+    l10n.diveLog_legend_label_trim,
+    palette.colorOf(ProfileMetric.trim),
+  );
+  add(
     config.hasAscentRates,
     state.showAscentRateColors,
     l10n.diveLog_legend_label_ascentRate,

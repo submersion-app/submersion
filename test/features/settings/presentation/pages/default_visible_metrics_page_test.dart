@@ -51,6 +51,10 @@ class _StubSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(defaultShowComputerRmv: value);
 
   @override
+  Future<void> setDefaultShowTrim(bool value) async =>
+      state = state.copyWith(defaultShowTrim: value);
+
+  @override
   Future<void> setO2CellUnit(O2CellUnit value) async =>
       state = state.copyWith(o2CellUnit: value);
 
@@ -306,4 +310,24 @@ void main() {
       expect(read(notifier.state), isTrue);
     });
   }
+
+  // Issue #5098: the trim line is off until the diver turns it on.
+  testWidgets('toggles the Trim default', (tester) async {
+    final notifier = _StubSettingsNotifier();
+    await tester.pumpWidget(buildPage(notifier));
+    await tester.pumpAndSettle();
+
+    final tile = find.widgetWithText(SwitchListTile, 'Trim');
+    await tester.dragUntilVisible(
+      tile,
+      find.byType(Scrollable),
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.widget<SwitchListTile>(tile).value, isFalse);
+
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+    expect(notifier.state.defaultShowTrim, isTrue);
+  });
 }

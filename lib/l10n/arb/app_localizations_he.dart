@@ -9038,6 +9038,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_computerRmv => 'RMV (מחשב)';
 
   @override
+  String get diveLog_legend_label_trim => 'טרים';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -22381,6 +22384,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_defaultShowBuoyancy => 'הפרופיל מציג ציפה';
 
   @override
+  String get settings_conflict_field_defaultShowTrim => 'הפרופיל מציג טרים';
+
+  @override
   String get settings_conflict_field_defaultShowAveloBuoyancy =>
       'הפרופיל מציג ציפה של Avelo';
 
@@ -23370,6 +23376,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_computerRmv => 'RMV (מחשב)';
+
+  @override
+  String get settings_appearance_metric_trim => 'טרים';
 
   @override
   String get settings_appearance_metric_events => 'אירועים';
@@ -56078,6 +56087,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_profileMetric_computerRmv => 'RMV (מחשב)';
 
   @override
+  String get enum_profileMetric_trim => 'טרים';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'תאים';
 
   @override
@@ -56091,6 +56103,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get enum_profileMetric_computerRmv_short => 'RMV';
+
+  @override
+  String get enum_profileMetric_trim_short => 'טרים';
 
   @override
   String get diveLog_o2CellSpread_label => 'פיזור תאי O2';
@@ -63756,6 +63771,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get info_term_aveloProfile_body =>
       'מצב Avelo של Shearwater רושם ערכים אלה כפי שמחשב הצלילה תיעד אותם: ציפה של Avelo (שלילי פירושו כבד), הגז שנותר ב-Hydrotank באחוזים, וה-RMV של המחשב עצמו. האפליקציה אינה מחשבת אותם, והציפה כאן אינה הציפה המחושבת בכרטיס הציפה.';
+
+  @override
+  String get info_term_trimProfile_label => 'טרים';
+
+  @override
+  String get info_term_trimProfile_body =>
+      'הזווית שמחשב הצלילה רשם עבור ההטיה שלו: חיובי הוא ראש למעלה, שלילי ראש למטה ו-0 הוא אופקי. במחשב יד היא עוקבת אחרי האמה וגם אחרי הגוף, והיא אינה ההערכה של מחשבון הטרים.';
 
   @override
   String get info_term_hypercapnia_label => 'היפרקפניה';

@@ -9268,6 +9268,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_legend_label_computerRmv => 'RMV (ordinateur)';
 
   @override
+  String get diveLog_legend_label_trim => 'Trim';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -22923,6 +22926,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Le profil affiche la flottabilité';
 
   @override
+  String get settings_conflict_field_defaultShowTrim =>
+      'Le profil affiche le trim';
+
+  @override
   String get settings_conflict_field_defaultShowAveloBuoyancy =>
       'Le profil affiche la flottabilité Avelo';
 
@@ -23939,6 +23946,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_computerRmv => 'RMV (ordinateur)';
+
+  @override
+  String get settings_appearance_metric_trim => 'Trim';
 
   @override
   String get settings_appearance_metric_events => 'Événements';
@@ -57401,6 +57411,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_profileMetric_computerRmv => 'RMV (ordinateur)';
 
   @override
+  String get enum_profileMetric_trim => 'Trim';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'Cellules';
 
   @override
@@ -57414,6 +57427,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get enum_profileMetric_computerRmv_short => 'RMV';
+
+  @override
+  String get enum_profileMetric_trim_short => 'Trim';
 
   @override
   String get diveLog_o2CellSpread_label => 'Écart des cellules O2';
@@ -65241,6 +65257,13 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get info_term_aveloProfile_body =>
       'Le mode Avelo de Shearwater enregistre ces valeurs telles que l\'ordinateur de plongée les a relevées : la flottabilité Avelo (négative signifie lourd), le gaz restant dans le Hydrotank en pourcentage et le RMV de l\'ordinateur lui-même. L\'application ne les calcule pas, et cette flottabilité n\'est pas la flottabilité modélisée de la carte Flottabilité.';
+
+  @override
+  String get info_term_trimProfile_label => 'Trim';
+
+  @override
+  String get info_term_trimProfile_body =>
+      'L\'angle que l\'ordinateur de plongée a enregistré pour sa propre inclinaison : positif tête en haut, négatif tête en bas, 0 à plat. Sur un ordinateur au poignet, il suit l\'avant-bras autant que le corps, et ce n\'est pas l\'estimation du calculateur de trim.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnie';

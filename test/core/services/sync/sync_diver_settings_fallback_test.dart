@@ -683,6 +683,44 @@ void main() {
     expect(row.defaultShowComputerRmv, isFalse);
   });
 
+  test('applies a pre-v388 diver_settings payload missing the trim line '
+      'default', () async {
+    await db.customStatement('PRAGMA foreign_keys = OFF');
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.diverSettings)
+        .insert(
+          DiverSettingsCompanion.insert(
+            id: 'ds-trim',
+            diverId: 'diver-trim',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    final exported = await serializer.fetchRecord('diverSettings', 'ds-trim');
+    expect(exported, isNotNull);
+
+    // A peer still on v387 exports neither. The visibility column is NOT
+    // NULL, so an unseeded import would throw in DiverSetting.fromJson
+    // (#5098).
+    final legacy = Map<String, dynamic>.from(exported!)
+      ..remove('defaultShowTrim')
+      ..remove('profileColorTrim');
+
+    await (db.delete(
+      db.diverSettings,
+    )..where((t) => t.id.equals('ds-trim'))).go();
+
+    await serializer.upsertRecord('diverSettings', legacy);
+
+    final row = await (db.select(
+      db.diverSettings,
+    )..where((t) => t.id.equals('ds-trim'))).getSingle();
+    expect(row.defaultShowTrim, isFalse);
+    expect(row.profileColorTrim, isNull);
+  });
+
   test('applies a pre-v387 diver_settings payload missing the CCR setpoint '
       'switch depth', () async {
     await db.customStatement('PRAGMA foreign_keys = OFF');

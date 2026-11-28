@@ -247,6 +247,7 @@ Future<void> _changeEverySetting(SettingsNotifier n) {
     n.setDefaultShowAveloBuoyancy(!d.defaultShowAveloBuoyancy),
     n.setDefaultShowAveloGasRemaining(!d.defaultShowAveloGasRemaining),
     n.setDefaultShowComputerRmv(!d.defaultShowComputerRmv),
+    n.setDefaultShowTrim(!d.defaultShowTrim),
     n.setDefaultShowEstimatedTankPressure(!d.defaultShowEstimatedTankPressure),
     n.setDefaultShowAscentRateLine(!d.defaultShowAscentRateLine),
     n.setNotificationsEnabled(false),

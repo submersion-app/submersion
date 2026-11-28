@@ -1035,6 +1035,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showAveloBuoyancy = false;
   bool _showAveloGasRemaining = false;
   bool _showComputerRmv = false;
+  // The trim angle the computer logged (#5098).
+  bool _showTrim = false;
   bool _showLateGasSwitches = true;
   bool _showCounterdiffusion = false;
   bool _counterdiffusionShowAll = false;
@@ -2612,8 +2614,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
-    // The computer's Avelo values (issue #4664), shown once enabled on a
-    // dive that carries them.
+    // The computer's Avelo values and trim angle (issues #4664, #5098),
+    // shown once enabled on a dive that carries them.
     rows.addAll(
       aveloReadoutRows(
         // The readout's own point: on the surface lead-in it is the
@@ -3140,6 +3142,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showAveloBuoyancy = false;
     _showAveloGasRemaining = false;
     _showComputerRmv = false;
+    _showTrim = false;
     _showCns = false;
     _showOtu = false;
     _showPressure = true;
@@ -3261,6 +3264,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showAveloBuoyancy = legendState.showAveloBuoyancy;
     _showAveloGasRemaining = legendState.showAveloGasRemaining;
     _showComputerRmv = legendState.showComputerRmv;
+    _showTrim = legendState.showTrim;
     _showCns = legendState.showCns;
     _showOtu = legendState.showOtu;
     // Sync per-tank pressure visibility. Replace rather than merge: the
@@ -3356,6 +3360,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         ProfileRightAxisMetric.aveloGasRemaining,
       ),
       hasComputerRmv: _hasDataForMetric(ProfileRightAxisMetric.computerRmv),
+      hasTrim: _hasDataForMetric(ProfileRightAxisMetric.trim),
       hasGfData: hasGfData,
       hasSurfaceGfData: hasSurfaceGfData,
       hasMeanDepthData: hasMeanDepthData,
@@ -4444,11 +4449,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           final neutralRule = buoyancyRange == null
               ? const <LineChartBarData>[]
               : [_buildNeutralRule(metricBand, buoyancyRange)];
+          // The trim line's dashed flat rule at 0 degrees (#5098).
+          final trimRange = _aveloShown(ProfileRightAxisMetric.trim)
+              ? aveloCurveRange(
+                  ProfileRightAxisMetric.trim,
+                  _aveloCurveOf(ProfileRightAxisMetric.trim),
+                )
+              : null;
+          final flatRule = trimRange == null
+              ? const <LineChartBarData>[]
+              : [_buildNeutralRule(metricBand, trimRange)];
 
-          // The three Avelo lines (if showing), straight from the samples
-          // (#4664).
+          // The three Avelo lines and the trim line (if showing), straight
+          // from the samples (#4664, #5098).
           final aveloLines = [
-            for (final metric in aveloLineMetrics)
+            for (final metric in computerSampleLineMetrics)
               if (_aveloShown(metric))
                 if (_buildAveloLine(metric, metricBand) case final bar?)
                   (bar: bar, tag: metric),
@@ -4474,6 +4489,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             ..._tagAll(cnsLines, ProfileRightAxisMetric.cns),
             ..._tagAll(otuLines, ProfileRightAxisMetric.otu),
             ..._tagAll(neutralRule, null),
+            ..._tagAll(flatRule, null),
             ..._tagAll(buoyancyLines, ProfileRightAxisMetric.buoyancy),
             ...aveloLines,
           ];
@@ -7447,10 +7463,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   final Map<ProfileRightAxisMetric, List<double?>> _aveloCurves = {};
   List<DiveProfilePoint>? _aveloCurvesProfile;
 
-  /// Whether the legend has [metric], one of the Avelo lines, switched on.
+  /// Whether the legend has [metric], one of the
+  /// [computerSampleLineMetrics], switched on.
   bool _aveloShown(ProfileRightAxisMetric metric) => switch (metric) {
     ProfileRightAxisMetric.aveloBuoyancy => _showAveloBuoyancy,
     ProfileRightAxisMetric.aveloGasRemaining => _showAveloGasRemaining,
+    ProfileRightAxisMetric.trim => _showTrim,
     _ => _showComputerRmv,
   };
 
@@ -8159,6 +8177,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ProfileRightAxisMetric.aveloBuoyancy => _showAveloBuoyancy,
       ProfileRightAxisMetric.aveloGasRemaining => _showAveloGasRemaining,
       ProfileRightAxisMetric.computerRmv => _showComputerRmv,
+      ProfileRightAxisMetric.trim => _showTrim,
     };
     return toggledOn && _hasDataForMetric(metric);
   }

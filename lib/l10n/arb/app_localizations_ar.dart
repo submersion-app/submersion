@@ -9372,6 +9372,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_legend_label_computerRmv => 'RMV (الكمبيوتر)';
 
   @override
+  String get diveLog_legend_label_trim => 'الوضعية';
+
+  @override
   String get diveLog_legend_source_dc => 'DC';
 
   @override
@@ -23270,6 +23273,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_defaultShowBuoyancy => 'الملف يعرض الطفو';
 
   @override
+  String get settings_conflict_field_defaultShowTrim => 'الملف يعرض الوضعية';
+
+  @override
   String get settings_conflict_field_defaultShowAveloBuoyancy =>
       'الملف يعرض طفو Avelo';
 
@@ -24294,6 +24300,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_computerRmv => 'RMV (الكمبيوتر)';
+
+  @override
+  String get settings_appearance_metric_trim => 'الوضعية';
 
   @override
   String get settings_appearance_metric_events => 'الأحداث';
@@ -58140,6 +58149,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_profileMetric_computerRmv => 'RMV (الكمبيوتر)';
 
   @override
+  String get enum_profileMetric_trim => 'الوضعية';
+
+  @override
   String get enum_profileMetric_o2CellMv_short => 'الخلايا';
 
   @override
@@ -58153,6 +58165,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_profileMetric_computerRmv_short => 'RMV';
+
+  @override
+  String get enum_profileMetric_trim_short => 'الوضعية';
 
   @override
   String get diveLog_o2CellSpread_label => 'تشتت خلايا O2';
@@ -66111,6 +66126,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get info_term_aveloProfile_body =>
       'يسجّل وضع Avelo في Shearwater هذه القيم كما سجّلها كمبيوتر الغوص: طفو Avelo (السالب يعني ثقيلًا)، والغاز المتبقي في Hydrotank كنسبة مئوية، وRMV الخاص بالكمبيوتر. لا يحسبها التطبيق، والطفو هنا ليس الطفو المحسوب في بطاقة الطفو.';
+
+  @override
+  String get info_term_trimProfile_label => 'الوضعية';
+
+  @override
+  String get info_term_trimProfile_body =>
+      'الزاوية التي سجّلها حاسوب الغوص لميله: الموجب يعني الرأس للأعلى، والسالب الرأس للأسفل، و0 يعني أفقيًا. على حاسوب المعصم تتبع الساعد إلى جانب الجسم، وهي ليست تقدير حاسبة الوضعية.';
 
   @override
   String get info_term_hypercapnia_label => 'فرط ثاني أكسيد الكربون';

@@ -40,6 +40,7 @@ List<DiveTerm> profileOverlayTerms(
         (config.hasAveloGasRemaining && state.showAveloGasRemaining) ||
         (config.hasComputerRmv && state.showComputerRmv))
       DiveTerm.aveloProfile,
+    if (config.hasTrim && state.showTrim) DiveTerm.trimProfile,
     if (config.hasAscentRates &&
         (state.showAscentRateColors || state.showAscentRateLine))
       DiveTerm.ascentRate,

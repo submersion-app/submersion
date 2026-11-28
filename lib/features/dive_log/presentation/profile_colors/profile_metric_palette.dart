@@ -93,5 +93,6 @@ class ProfileMetricPalette {
       ProfileMetric.aveloGasRemaining,
     ),
     ProfileRightAxisMetric.computerRmv => colorOf(ProfileMetric.computerRmv),
+    ProfileRightAxisMetric.trim => colorOf(ProfileMetric.trim),
   };
 }

@@ -86,7 +86,9 @@ double _displayValue(
   ProfileRightAxisMetric.cns ||
   ProfileRightAxisMetric.otu ||
   ProfileRightAxisMetric.o2CellMv ||
-  ProfileRightAxisMetric.aveloGasRemaining => value,
+  ProfileRightAxisMetric.aveloGasRemaining ||
+  // Degrees, the same in every unit system (#5098).
+  ProfileRightAxisMetric.trim => value,
 };
 
 int _baseDecimals(ProfileRightAxisMetric metric) => switch (metric) {

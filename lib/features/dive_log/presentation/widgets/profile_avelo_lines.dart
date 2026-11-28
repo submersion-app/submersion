@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_line_builders.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_trim_line.dart';
 
 /// The three lines for the values Shearwater's Avelo mode logs (issue
 /// #4664), in the order the legend and the chart draw them.
@@ -17,9 +18,18 @@ const aveloLineMetrics = [
   ProfileRightAxisMetric.computerRmv,
 ];
 
+/// Every line drawn straight from a value the computer logged per sample:
+/// the Avelo lines, then the trim angle a computer such as the Halcyon
+/// Symbios logs (issue #5098). The helpers below serve all of them.
+const computerSampleLineMetrics = [
+  ...aveloLineMetrics,
+  ProfileRightAxisMetric.trim,
+];
+
 /// [metric]'s value on each sample of [profile], null where the computer
 /// logged none: kilograms for buoyancy, percent for gas remaining, litres
-/// per minute for RMV. [metric] is one of [aveloLineMetrics].
+/// per minute for RMV, degrees for trim. [metric] is one of
+/// [computerSampleLineMetrics].
 List<double?> aveloCurve(
   ProfileRightAxisMetric metric,
   List<DiveProfilePoint> profile,
@@ -30,14 +40,19 @@ List<double?> aveloCurve(
       ProfileRightAxisMetric.aveloGasRemaining =>
         p.aveloGasRemaining?.toDouble(),
       ProfileRightAxisMetric.computerRmv => p.computerRmv,
-      _ => throw ArgumentError.value(metric, 'metric', 'not an Avelo line'),
+      ProfileRightAxisMetric.trim => p.trim,
+      _ => throw ArgumentError.value(
+        metric,
+        'metric',
+        'not a computer sample line',
+      ),
     },
 ];
 
 /// The range [metric]'s line and right axis are drawn over, or null when
 /// [profile] has nothing to draw: gas remaining 0 to 100 percent, RMV from 0
 /// to a fifth above its peak, buoyancy spanning neutral like the modelled
-/// buoyancy line.
+/// buoyancy line, trim symmetric about flat (see [trimAxisHalfRange]).
 ({double min, double max})? aveloLineRange(
   ProfileRightAxisMetric metric,
   List<DiveProfilePoint> profile,
@@ -53,6 +68,11 @@ List<double?> aveloCurve(
   return switch (metric) {
     ProfileRightAxisMetric.aveloBuoyancy => buoyancyAxisRange(curve),
     ProfileRightAxisMetric.aveloGasRemaining => (min: 0.0, max: 100.0),
+    ProfileRightAxisMetric.trim => switch (trimAxisHalfRange([
+      for (final v in curve) ?v,
+    ])) {
+      final half => (min: -half, max: half),
+    },
     _ => (min: 0.0, max: [for (final v in curve) ?v].reduce(math.max) * 1.2),
   };
 }

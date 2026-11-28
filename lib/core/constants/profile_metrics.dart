@@ -165,6 +165,15 @@ enum ProfileRightAxisMetric {
     color: Color(0xFFFF7043),
     unitSuffix: null, // Uses unit formatter (L/min or cuft/min)
     category: ProfileMetricCategory.gasAnalysis,
+  ),
+  // The computer's own pitch, as a Halcyon Symbios logs it (issue #5098).
+  // Its colour is the diver's palette's.
+  trim(
+    displayName: 'Trim',
+    shortName: 'Trim',
+    color: Color(0xFF8D6E63),
+    unitSuffix: '°',
+    category: ProfileMetricCategory.other,
   );
 
   final String displayName;

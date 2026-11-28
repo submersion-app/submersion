@@ -76,6 +76,7 @@ bool hasDataForMetric(
     case ProfileRightAxisMetric.aveloBuoyancy:
     case ProfileRightAxisMetric.aveloGasRemaining:
     case ProfileRightAxisMetric.computerRmv:
+    case ProfileRightAxisMetric.trim:
       return aveloLineRange(metric, config.profile) != null;
   }
 }
@@ -197,7 +198,8 @@ bool hasDataForMetric(
     case ProfileRightAxisMetric.aveloBuoyancy:
     case ProfileRightAxisMetric.aveloGasRemaining:
     case ProfileRightAxisMetric.computerRmv:
-      // Kilograms, percent and litres per minute (#4664).
+    case ProfileRightAxisMetric.trim:
+      // Kilograms, percent, litres per minute (#4664) and degrees (#5098).
       return aveloLineRange(metric, config.profile);
   }
 }
@@ -265,6 +267,7 @@ String profileMetricName(
   ProfileRightAxisMetric.aveloGasRemaining =>
     l10n.enum_profileMetric_aveloGasRemaining,
   ProfileRightAxisMetric.computerRmv => l10n.enum_profileMetric_computerRmv,
+  ProfileRightAxisMetric.trim => l10n.enum_profileMetric_trim,
 };
 
 /// Localized short name for a right-axis metric, used on the axis itself
@@ -299,6 +302,7 @@ String profileMetricShortName(
     l10n.enum_profileMetric_aveloGasRemaining_short,
   ProfileRightAxisMetric.computerRmv =>
     l10n.enum_profileMetric_computerRmv_short,
+  ProfileRightAxisMetric.trim => l10n.enum_profileMetric_trim_short,
 };
 
 /// Localized unit suffix for the metrics whose unit is fixed rather than
@@ -321,6 +325,8 @@ String? profileMetricUnitSuffix(
   ProfileRightAxisMetric.surfaceGf ||
   ProfileRightAxisMetric.cns ||
   ProfileRightAxisMetric.aveloGasRemaining => l10n.units_profileMetric_percent,
+  // A degree sign reads the same in every locale (#5098).
+  ProfileRightAxisMetric.trim => '°',
   _ => null,
 };
 

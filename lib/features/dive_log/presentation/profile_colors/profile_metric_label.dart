@@ -28,4 +28,5 @@ String profileMetricLabel(AppLocalizations l10n, ProfileMetric metric) =>
       ProfileMetric.aveloGasRemaining =>
         l10n.diveLog_legend_label_aveloGasRemaining,
       ProfileMetric.computerRmv => l10n.diveLog_legend_label_computerRmv,
+      ProfileMetric.trim => l10n.diveLog_legend_label_trim,
     };

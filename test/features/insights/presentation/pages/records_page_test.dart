@@ -804,6 +804,10 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(defaultShowComputerRmv: value);
 
   @override
+  Future<void> setDefaultShowTrim(bool value) async =>
+      state = state.copyWith(defaultShowTrim: value);
+
+  @override
   Future<void> setO2CellUnit(O2CellUnit value) async =>
       state = state.copyWith(o2CellUnit: value);
 

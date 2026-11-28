@@ -356,5 +356,11 @@ extension RungsFromV340 on AppDatabase {
     // no backfill; re-asserted in beforeOpen. The floor does not move.
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
+
+    // v388: the default visibility and palette colour of the trim line on
+    // the dive profile (issue #5098). Columns only, defaulted off or null;
+    // re-asserted in beforeOpen. The floor does not move.
+    if (from < 388) await _assertTrimLineColumns();
+    if (from < 388) await reportProgress();
   }
 }

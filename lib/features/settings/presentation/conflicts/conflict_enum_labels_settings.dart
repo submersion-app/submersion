@@ -202,6 +202,7 @@ final ConflictEnumLabeler profileRightAxisMetricLabeler = enumLabeler(
     ProfileRightAxisMetric.aveloGasRemaining =>
       l.enum_profileMetric_aveloGasRemaining,
     ProfileRightAxisMetric.computerRmv => l.enum_profileMetric_computerRmv,
+    ProfileRightAxisMetric.trim => l.enum_profileMetric_trim,
   },
 );
 

@@ -35,7 +35,8 @@ enum ProfileMetric {
   meanDepth(ProfileMetricColors.meanDepth),
   aveloBuoyancy(ProfileMetricColors.aveloBuoyancy),
   aveloGasRemaining(ProfileMetricColors.aveloGasRemaining),
-  computerRmv(ProfileMetricColors.computerRmv);
+  computerRmv(ProfileMetricColors.computerRmv),
+  trim(ProfileMetricColors.trim);
 
   const ProfileMetric(this.defaultColor);
 

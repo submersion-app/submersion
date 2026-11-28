@@ -529,6 +529,10 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(false))();
   BoolColumn get defaultShowComputerRmv =>
       boolean().withDefault(const Constant(false))();
+  // v388: default visibility for the trim line on the dive profile, the
+  // angle a computer such as the Halcyon Symbios logs (issue #5098).
+  BoolColumn get defaultShowTrim =>
+      boolean().withDefault(const Constant(false))();
   // v371: the dive types this diver starred to list first in the pickers, a
   // sorted JSON list of ids (issue #4413). Null means none.
   TextColumn get favouriteDiveTypeIds => text().nullable()();
@@ -597,6 +601,8 @@ class DiverSettings extends Table {
   IntColumn get profileColorAveloBuoyancy => integer().nullable()();
   IntColumn get profileColorAveloGasRemaining => integer().nullable()();
   IntColumn get profileColorComputerRmv => integer().nullable()();
+  // v388: the trim line (issue #5098).
+  IntColumn get profileColorTrim => integer().nullable()();
   // coverage:ignore-end
   // Data source badge visibility (v55)
   BoolColumn get showDataSourceBadges =>

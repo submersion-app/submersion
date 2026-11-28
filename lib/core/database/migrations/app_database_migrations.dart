@@ -100,6 +100,7 @@ part 'helpers/country_flags_migrations.dart';
 part 'helpers/counterdiffusion_migrations.dart';
 part 'helpers/buoyancy_line_migrations.dart';
 part 'helpers/avelo_line_migrations.dart';
+part 'helpers/trim_line_migrations.dart';
 part 'helpers/ccr_setpoint_switch_migrations.dart';
 part 'helpers/course_requirement_migrations.dart';
 part 'helpers/dive_center_logo_migrations.dart';

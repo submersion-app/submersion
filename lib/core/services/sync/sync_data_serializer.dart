@@ -13182,6 +13182,8 @@ class SyncDataSerializer {
       'defaultShowAveloBuoyancy': false,
       'defaultShowAveloGasRemaining': false,
       'defaultShowComputerRmv': false,
+      // v388: the trim profile line (issue #5098).
+      'defaultShowTrim': false,
       // v177: GTR settings; seed them so payloads predating the columns
       // hydrate instead of throwing in DiverSetting.fromJson.
       'defaultShowGtr': false,
