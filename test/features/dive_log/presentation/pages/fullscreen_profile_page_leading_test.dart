@@ -7,7 +7,8 @@ import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profi
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_transport_bar.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -94,18 +95,12 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byIcon(Icons.close), findsOneWidget);
+    expect(find.byType(ProfileTransportBar), findsOneWidget);
   });
 
-  testWidgets('playback can keep going when the window loses focus', (
-    tester,
-  ) async {
-    // A pop-out playing on the second monitor while the diver works in the
-    // main window (#5078).
-    addTearDown(
-      () => tester.binding.handleAppLifecycleStateChanged(
-        AppLifecycleState.resumed,
-      ),
-    );
+  testWidgets('the playback bar can be left out', (tester) async {
+    // A desktop pop-out (#5078) is a chart to look at beside the main
+    // window, so it has no transport strip under it.
     await tester.pumpWidget(
       ProviderScope(
         overrides: _overrides().cast(),
@@ -114,29 +109,19 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: MediaQuery(
             data: MediaQueryData(size: Size(1200, 900)),
-            child: FullscreenProfilePage(
-              diveId: 'd1',
-              pauseWhenInactive: false,
-            ),
+            child: FullscreenProfilePage(diveId: 'd1', showTransport: false),
           ),
         ),
       ),
     );
     await tester.pumpAndSettle();
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(FullscreenProfilePage)),
+    expect(find.byType(ProfileTransportBar), findsNothing);
+    // With no bar under it, the chart keeps a margin from the window's edge
+    // so its time axis does not sit on it.
+    final window = tester.view.physicalSize / tester.view.devicePixelRatio;
+    expect(
+      tester.getRect(find.byType(DiveProfileChart)).bottom,
+      lessThanOrEqualTo(window.height - 8),
     );
-    final playback = container.read(playbackProvider('d1').notifier);
-    if (!container.read(playbackProvider('d1')).isActive) {
-      playback.togglePlaybackMode();
-    }
-    playback.play();
-    expect(container.read(playbackProvider('d1')).isPlaying, isTrue);
-
-    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
-    await tester.pump();
-
-    expect(container.read(playbackProvider('d1')).isPlaying, isTrue);
-    playback.pause();
   });
 }

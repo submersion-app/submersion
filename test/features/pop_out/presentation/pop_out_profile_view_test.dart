@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profi
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_transport_bar.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/pop_out/domain/pop_out_messages.dart';
@@ -115,6 +116,8 @@ void main() {
     expect(find.byType(FullscreenProfilePage), findsOneWidget);
     expect(find.byTooltip('Pin to this dive'), findsOneWidget);
     expect(control.calls, contains('title:Profile: #142 Salt Pier'));
+    // A chart to look at beside the main window: no playback bar.
+    expect(find.byType(ProfileTransportBar), findsNothing);
 
     await tester.tap(find.byTooltip('Pin to this dive'));
     await tester.pumpAndSettle();

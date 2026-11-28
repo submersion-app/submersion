@@ -99,7 +99,7 @@ class _ShownDiveState extends ConsumerState<_ShownDive> {
     return FullscreenProfilePage(
       key: ValueKey(diveId),
       diveId: diveId,
-      pauseWhenInactive: false,
+      showTransport: false,
       leading: IconButton(
         icon: Icon(widget.pinned ? Icons.push_pin : Icons.push_pin_outlined),
         tooltip: widget.pinned

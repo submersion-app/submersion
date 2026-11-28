@@ -20,9 +20,8 @@ both windows."
   own OS window, which the diver can drag to another monitor and resize.
 - The pop-out follows the dive the main window shows, so browsing dives
   changes it, unless the diver pins it to one dive.
-- The profile cursor is shared live between the two windows: scrubbing or
-  playback in either moves the cursor in the other whenever both show the
-  same dive.
+- The profile cursor is shared live between the two windows: scrubbing
+  either moves the cursor in the other whenever both show the same dive.
 - Edits made in the main window (units, a changed dive, a deleted dive) reach
   the pop-out without reopening it.
 - The window plumbing (opening, message channel, shared database access) is
@@ -93,9 +92,13 @@ database connection and a cross-process channel, strictly worse than (1).
 ### What the window shows
 
 - The existing fullscreen profile view (`FullscreenProfilePage`): chart,
-  legend, range mode and range stats, the tooltip panel and the playback
-  transport bar. It is opened with no `EditSession` and no `onOpenInNotes`,
-  which the page already treats as read-only.
+  legend, range mode and range stats and the tooltip panel. It is opened with
+  no `EditSession` and no `onOpenInNotes`, which the page already treats as
+  read-only.
+- No playback transport bar (play, step, scrub strip, speed): the pop-out is
+  a chart to look at beside the main window, so it leaves the bar out
+  (`showTransport: false`). Decided after the first build, at the diver's
+  request.
 - The OS window title names the dive, for example "Profile: #142 Salt Pier",
   and updates when the dive changes.
 - The page's own controls that only make sense inside the main window (a back
@@ -120,7 +123,7 @@ database connection and a cross-process channel, strictly worse than (1).
   instead of an empty chart. A pinned dive that is deleted unpins and shows
   the same message.
 
-### Shared cursor and playback
+### Shared cursor
 
 - The shared position is the dive time in seconds, not a sample index, since
   each window builds its own chart series. The main window's cursor is
@@ -129,8 +132,6 @@ database connection and a cross-process channel, strictly worse than (1).
   pop-out's is the fullscreen page's `profileReviewProvider(diveId)`.
 - Scrubbing either window moves the other window's cursor when both show the
   same dive. Clearing the cursor (pointer leaves the chart) clears it in both.
-- Playback in the pop-out moves the main window's cursor as it plays, and so
-  do the transport slider and step controls.
 - Updates are coalesced to at most one message per frame per direction, and
   each window ignores a position it just sent, so there is no echo loop.
 - When the two windows show different dives (pinned, or following lags a

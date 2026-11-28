@@ -76,10 +76,10 @@ class FullscreenProfilePage extends ConsumerStatefulWidget {
   /// there is nothing to go back to. Null keeps the close button.
   final Widget? leading;
 
-  /// Whether playback pauses when the app's window loses focus. A desktop
-  /// pop-out (issue #5078) keeps playing on its monitor while the diver
-  /// works in the main window.
-  final bool pauseWhenInactive;
+  /// Whether the playback bar sits under the chart (phones never show it).
+  /// A desktop pop-out (issue #5078) is a chart to look at beside the main
+  /// window and leaves it out.
+  final bool showTransport;
 
   const FullscreenProfilePage({
     super.key,
@@ -87,7 +87,7 @@ class FullscreenProfilePage extends ConsumerStatefulWidget {
     this.onOpenInNotes,
     this.session,
     this.leading,
-    this.pauseWhenInactive = true,
+    this.showTransport = true,
   });
 
   @override
@@ -156,9 +156,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     _windowFullscreen = ref.read(viewerWindowFullscreenProvider);
     _windowFullscreen.enter(this);
     _lifecycleListener = AppLifecycleListener(
-      onInactive: () {
-        if (widget.pauseWhenInactive) _playbackNotifier.pause();
-      },
+      onInactive: () => _playbackNotifier.pause(),
     );
   }
 
@@ -512,9 +510,16 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                     child: Stack(
                       children: [
                         Padding(
+                          // With no transport bar beneath, the time axis
+                          // keeps the same margin from the edge as the top.
                           padding: isPhone
                               ? const EdgeInsets.all(4)
-                              : const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                              : EdgeInsets.fromLTRB(
+                                  12,
+                                  8,
+                                  12,
+                                  widget.showTransport ? 0 : 8,
+                                ),
                           child: DiveProfileChart(
                             profile: chartProfile,
                             overlays: overlays.isEmpty ? null : overlays,
@@ -856,7 +861,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                         environment: dive.environment,
                       ),
                     ),
-                  if (!isPhone)
+                  if (!isPhone && widget.showTransport)
                     ProfileTransportBar(
                       diveId: widget.diveId,
                       // The same profile the chart renders: the scrub minimap
