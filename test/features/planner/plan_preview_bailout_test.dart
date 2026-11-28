@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_headline_figures.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -16,6 +19,26 @@ import '../../helpers/planner_results.dart';
 import '../../helpers/test_app.dart';
 
 const _air = GasMix(o2: 21);
+
+/// Runs on the calling isolate, failing every run for a deviated plan (its id
+/// names the deviation) and counting them.
+class _FailingPreviewRunner extends InlinePlanResultRunner {
+  int previewRuns = 0;
+
+  @override
+  Future<T> run<T>(
+    PlanComputation<T> computation,
+    domain.DivePlan plan,
+    TissueState? startState,
+    PlanEngineConfig config,
+  ) {
+    if (plan.id.contains('+')) {
+      previewRuns++;
+      return Future.error(StateError('engine'));
+    }
+    return super.run(computation, plan, startState, config);
+  }
+}
 
 /// A CCR dive on air diluent at [depth] for [minutes], bailing out to
 /// [bailout].
@@ -72,6 +95,7 @@ Future<ProviderContainer> _mount(
   WidgetTester tester,
   domain.DivePlan plan, {
   bool bailoutView = false,
+  PlanResultRunner runner = const InlinePlanResultRunner(),
   List<Override> overrides = const [],
 }) async {
   const child = SizedBox.shrink();
@@ -79,7 +103,8 @@ Future<ProviderContainer> _mount(
     testApp(
       locale: const Locale('en'),
       overrides: [
-        ...plannerResultsInline(),
+        planResultsSettleDelayProvider.overrideWithValue(Duration.zero),
+        planResultRunnerProvider.overrideWithValue(runner),
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         ...overrides,
       ],
@@ -176,6 +201,26 @@ void main() {
         ChartDisplayMode.bailout;
     await tester.pumpAndSettle();
     expect(container.read(planChartBailoutPreviewProvider).picture, isNotNull);
+  });
+
+  testWidgets('a failed preview bailout says so once, and leaves the '
+      "plan's figures undimmed", (tester) async {
+    final runner = _FailingPreviewRunner();
+    final container = await _mount(
+      tester,
+      _plan(),
+      bailoutView: true,
+      runner: runner,
+    );
+    container.read(contingencySelectionProvider.notifier).toggleDeeper();
+    await tester.pumpAndSettle();
+
+    expect(
+      container.read(planChartBailoutPreviewProvider).status,
+      PlanResultStatus.failed,
+    );
+    expect(runner.previewRuns, 1);
+    expect(container.read(planHeadlineFiguresProvider).stale, isFalse);
   });
 
   testWidgets("another deviation never shows the last one's bailout", (
