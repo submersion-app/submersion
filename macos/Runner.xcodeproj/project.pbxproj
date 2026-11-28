@@ -377,7 +377,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# gen_snapshot emits App.framework's exported symbols in address order,\n# which macOS 11's dyld cannot resolve by binary search (issue #996).\n# Must run before signing; both pipelines codesign after the Xcode build.\nif [ \"${CONFIGURATION}\" = \"Debug\" ]; then\n  exit 0\nfi\nAPP_BINARY=\"${BUILT_PRODUCTS_DIR}/${FULL_PRODUCT_NAME}/Contents/Frameworks/App.framework/Versions/A/App\"\nif [ ! -f \"${APP_BINARY}\" ]; then\n  echo \"error: App.framework binary not found at ${APP_BINARY}\"\n  exit 1\nfi\nexec /usr/bin/env python3 \"${SRCROOT}/../scripts/fix_macho_symbol_order.py\" \"${APP_BINARY}\"\n";
+			shellScript = "# gen_snapshot emits App.framework's exported symbols in address order,\n# which macOS 11's dyld cannot resolve by binary search (issue #996).\n# Must run before signing; both pipelines codesign after the Xcode build.\nif [ \"${CONFIGURATION}\" = \"Debug\" ]; then\n  exit 0\nfi\nAPP_BINARY=\"${BUILT_PRODUCTS_DIR}/${FULL_PRODUCT_NAME}/Contents/Frameworks/App.framework/Versions/A/App\"\nif [ ! -f \"${APP_BINARY}\" ]; then\n  echo \"error: App.framework binary not found at ${APP_BINARY}\"\n  exit 1\nfi\nexec /usr/bin/env python3 \"${SRCROOT}/../scripts/ci/fix_macho_symbol_order.py\" \"${APP_BINARY}\"\n";
 		};
 		3399D490228B24CF009A79C7 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;

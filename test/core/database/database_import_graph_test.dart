@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 /// `database.dart` (and everything it imports) must stay Flutter-free: it
-/// runs on the headless isolate and is imported by tools/ scripts. A direct
+/// runs on the headless isolate and is imported by tool/perf/ scripts. A direct
 /// grep of one file cannot see a transitive import, so this walks the graph.
 void main() {
   test('database.dart imports nothing from Flutter, transitively', () {
