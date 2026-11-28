@@ -30,7 +30,7 @@ const computerSampleLineMetrics = [
 /// logged none: kilograms for buoyancy, percent for gas remaining, litres
 /// per minute for RMV, degrees for trim. [metric] is one of
 /// [computerSampleLineMetrics].
-List<double?> aveloCurve(
+List<double?> sampleLineCurve(
   ProfileRightAxisMetric metric,
   List<DiveProfilePoint> profile,
 ) => [
@@ -53,14 +53,14 @@ List<double?> aveloCurve(
 /// [profile] has nothing to draw: gas remaining 0 to 100 percent, RMV from 0
 /// to a fifth above its peak, buoyancy spanning neutral like the modelled
 /// buoyancy line, trim symmetric about flat (see [trimAxisHalfRange]).
-({double min, double max})? aveloLineRange(
+({double min, double max})? sampleLineRange(
   ProfileRightAxisMetric metric,
   List<DiveProfilePoint> profile,
-) => aveloCurveRange(metric, aveloCurve(metric, profile));
+) => sampleLineCurveRange(metric, sampleLineCurve(metric, profile));
 
-/// [aveloLineRange] for a [curve] already read by [aveloCurve], so a caller
+/// [sampleLineRange] for a [curve] already read by [sampleLineCurve], so a caller
 /// that draws the line too reads the samples once.
-({double min, double max})? aveloCurveRange(
+({double min, double max})? sampleLineCurveRange(
   ProfileRightAxisMetric metric,
   List<double?> curve,
 ) {
@@ -77,13 +77,14 @@ List<double?> aveloCurve(
   };
 }
 
-/// One Avelo line: [curve] on [band] over [range], at each sample's time in
+/// One line of a value the computer logged per sample (an Avelo line or
+/// trim): [curve] on [band] over [range], at each sample's time in
 /// [profile]. [indices] are the samples to draw, in order (the chart's
 /// decimation of [curve]); without them every sample with a value is drawn.
 /// Where the computer logged nothing between two drawn samples the line
 /// breaks rather than bridging or dropping to zero, as the computer's GTR
 /// line does; a value left out by decimation is no break.
-LineChartBarData buildAveloLine({
+LineChartBarData buildSampleLine({
   required Color color,
   required MetricBand band,
   required List<double?> curve,

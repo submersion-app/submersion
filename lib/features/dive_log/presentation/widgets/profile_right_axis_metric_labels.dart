@@ -6,7 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/profile_avelo_lines.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_sample_lines.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -77,7 +77,7 @@ bool hasDataForMetric(
     case ProfileRightAxisMetric.aveloGasRemaining:
     case ProfileRightAxisMetric.computerRmv:
     case ProfileRightAxisMetric.trim:
-      return aveloLineRange(metric, config.profile) != null;
+      return sampleLineRange(metric, config.profile) != null;
   }
 }
 
@@ -200,7 +200,7 @@ bool hasDataForMetric(
     case ProfileRightAxisMetric.computerRmv:
     case ProfileRightAxisMetric.trim:
       // Kilograms, percent, litres per minute (#4664) and degrees (#5098).
-      return aveloLineRange(metric, config.profile);
+      return sampleLineRange(metric, config.profile);
   }
 }
 

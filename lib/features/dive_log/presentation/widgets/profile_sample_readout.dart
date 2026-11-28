@@ -5,7 +5,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/profile_avelo_lines.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_sample_lines.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_buoyancy_line.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_trim_line.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -14,7 +14,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// line (issue #5098), one per line
 /// [shown] says is drawn, read from [point], the sample under the cursor.
 /// A sample the computer left blank reads '-'.
-List<TooltipRow> aveloReadoutRows({
+List<TooltipRow> sampleLineReadoutRows({
   required DiveProfilePoint? point,
   required bool Function(ProfileRightAxisMetric metric) shown,
   required AppLocalizations l10n,
@@ -51,7 +51,7 @@ List<TooltipRow> aveloReadoutRows({
         ProfileRightAxisMetric.trim => TooltipRow(
           label: l10n.diveLog_legend_label_trim,
           value: switch (point?.trim) {
-            final degrees? => formatTrimDegrees(degrees),
+            final degrees? => formatTrimDegrees(degrees, direction: direction),
             null => '-',
           },
           bulletColor: colorOf(ProfileMetric.trim),
