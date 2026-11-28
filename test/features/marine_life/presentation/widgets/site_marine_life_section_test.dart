@@ -111,6 +111,8 @@ void main() {
     NearbySpecies? nearby = _nearbyWhaleShark,
     List<Species> catalog = const [_whaleShark],
     GeoPoint? siteLocation = location,
+    // The site page's other cards, below this one.
+    double below = 0,
   }) async {
     final repository = _RecordingSpeciesRepository();
     final router = GoRouter(
@@ -120,10 +122,16 @@ void main() {
           path: '/',
           builder: (_, _) => Scaffold(
             body: SingleChildScrollView(
-              child: SiteMarineLifeSection(
-                siteId: 'site-1',
-                location: siteLocation,
-                species: expected,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SiteMarineLifeSection(
+                    siteId: 'site-1',
+                    location: siteLocation,
+                    species: expected,
+                  ),
+                  SizedBox(height: below),
+                ],
               ),
             ),
           ),
@@ -586,6 +594,31 @@ void main() {
 
       expect(find.text('Fish 11'), findsOneWidget);
       expect(find.text('Hawksbill Turtle'), findsNothing);
+    });
+
+    testWidgets('Show fewer at the foot of a long list keeps it in view', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(400, 600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await pump(tester, expected: expectedFish(120), below: 3000);
+
+      final showAll = find.text(l.marineLife_speciesDetail_showAll(120));
+      await tester.ensureVisible(showAll);
+      await tester.tap(showAll);
+      await tester.pumpAndSettle();
+      final showFewer = find.text(l.marineLife_speciesDetail_showFewer);
+      await tester.ensureVisible(showFewer);
+      await tester.pumpAndSettle();
+      await tester.tap(showFewer);
+      await tester.pumpAndSettle();
+
+      final toggle = tester.getRect(
+        find.text(l.marineLife_speciesDetail_showAll(120)),
+      );
+      expect(toggle.top, greaterThanOrEqualTo(0));
+      expect(toggle.bottom, lessThanOrEqualTo(600));
     });
 
     testWidgets('again when another site opens in the same card', (

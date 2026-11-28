@@ -123,7 +123,6 @@ class SiteMarineLifeSection extends ConsumerWidget {
               species: spotted
                   .map(
                     (s) => SiteSpeciesChipData(
-                      id: s.speciesId,
                       name: localizedSpeciesName(
                         context.l10n,
                         s.speciesId,
@@ -183,7 +182,6 @@ class SiteMarineLifeSection extends ConsumerWidget {
               species: expected
                   .map(
                     (s) => SiteSpeciesChipData(
-                      id: s.speciesId,
                       name: localizedSpeciesName(
                         context.l10n,
                         s.speciesId,

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
@@ -10,7 +11,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One species chip in a section of a site's Marine life card.
 class SiteSpeciesChipData {
-  final String id;
   final String name;
   final SpeciesCategory category;
 
@@ -18,7 +18,6 @@ class SiteSpeciesChipData {
   final int? count;
 
   const SiteSpeciesChipData({
-    required this.id,
     required this.name,
     required this.category,
     this.count,
@@ -56,6 +55,38 @@ class _SiteSpeciesChipGroupsState extends State<SiteSpeciesChipGroups> {
 
   bool _expanded = false;
 
+  /// The Show all / Show fewer button, brought back into view on Show fewer.
+  final GlobalKey _toggleKey = GlobalKey();
+
+  void _toggle() {
+    final collapsing = _expanded;
+    setState(() => _expanded = !_expanded);
+    if (collapsing) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _revealToggle());
+    }
+  }
+
+  /// Show fewer at the foot of a long list takes away what was above the
+  /// reader, leaving the page scrolled past the card. When the button has
+  /// gone above the viewport, it is brought to the viewport's foot, with
+  /// the shortened list above it.
+  void _revealToggle() {
+    if (!mounted) return;
+    final toggle = _toggleKey.currentContext?.findRenderObject();
+    final position = _toggleKey.currentContext == null
+        ? null
+        : Scrollable.maybeOf(_toggleKey.currentContext!)?.position;
+    if (toggle == null || position == null) return;
+    final viewport = RenderAbstractViewport.maybeOf(toggle);
+    if (viewport == null) return;
+    final atTop = viewport.getOffsetToReveal(toggle, 0).offset;
+    if (position.pixels <= atTop) return;
+    final atFoot = viewport.getOffsetToReveal(toggle, 1).offset;
+    position.jumpTo(
+      atFoot.clamp(position.minScrollExtent, position.maxScrollExtent),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final species = widget.species;
@@ -87,7 +118,8 @@ class _SiteSpeciesChipGroupsState extends State<SiteSpeciesChipGroups> {
           Align(
             alignment: AlignmentDirectional.centerEnd,
             child: TextButton(
-              onPressed: () => setState(() => _expanded = !_expanded),
+              key: _toggleKey,
+              onPressed: _toggle,
               child: Text(
                 _expanded
                     ? context.l10n.marineLife_speciesDetail_showFewer
