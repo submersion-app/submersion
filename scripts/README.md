@@ -195,6 +195,9 @@ Builders for in-app artwork, with the sources they read.
   equipment glyphs.
 - `scripts/artwork/build_figure_artwork.py`: compiles the diver figure SVGs
   in `scripts/artwork/figure/` into Dart (`--verify` checks it).
+- `scripts/artwork/build_trim_artwork.py`: compiles the trim figure's
+  side-view SVGs in `scripts/artwork/figure_side/` into Dart, reusing the
+  diver figure builder (`--verify` checks it).
 
 ## datasets/
 

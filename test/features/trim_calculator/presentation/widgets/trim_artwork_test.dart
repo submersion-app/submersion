@@ -15,8 +15,8 @@ import 'package:submersion/features/trim_calculator/presentation/widgets/trim_sp
 /// tests keep the file honest: its digest must match its sources, and every
 /// path must parse and stay inside the side box.
 void main() {
-  test('the generated artwork matches tool/figure_side', () {
-    final dir = Directory(p.join('tool', 'figure_side'));
+  test('the generated artwork matches scripts/artwork/figure_side', () {
+    final dir = Directory(p.join('scripts', 'artwork', 'figure_side'));
     final files =
         dir
             .listSync()
@@ -39,7 +39,7 @@ void main() {
     expect(
       trimArtworkDigest,
       sha256.convert(bytes).toString(),
-      reason: 'run: python3.14 tool/build_trim_artwork.py',
+      reason: 'run: python3.14 scripts/artwork/build_trim_artwork.py',
     );
   });
 
