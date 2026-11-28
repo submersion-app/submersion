@@ -39,7 +39,7 @@
 - Modify: `lib/features/media/presentation/editing/record_media_sitting.dart` (add `SittingMediaWriters.forLibrary`)
 - Modify: `lib/features/media/data/services/media_unlink_service.dart` (add `unlinkEverywhere`)
 - Test: `test/features/media/presentation/editing/photo_viewer_unlink_test.dart`
-- Test: `test/features/media/data/media_unlink_delete_test.dart` (add one test)
+- Test: `test/features/media/data/media_unlink_history_test.dart` (add one test)
 
 **Interfaces:**
 - Produces:
@@ -58,11 +58,11 @@
   - `holding marks the sitting changed with the unlink card`: after `holdViewerUnlink`, `session.isDirty`, `session.changedCardIds` contains `'unlink'`, `viewerUnlinkHeld(session)` true.
   - `undo drops only the unlink`: with a pin change set (`photoPinField`) and the unlink held, `undoViewerUnlink` leaves `isDirty` true, `viewerUnlinkHeld` false.
   - `the held write unlinks the sitting's photo`: a fake `SittingMediaWriters` whose `unlink` records ids; `await session.runHeldWrites()` records `['p1']`.
-  - In `media_unlink_delete_test.dart`, `unlinkEverywhere deletes the row and clears a gear cover naming it`, following that file's existing setup.
+  - In `media_unlink_history_test.dart`, `unlinkEverywhere deletes the row and clears a gear cover naming it, with no History entry of its own`, beside that file's gear cover test.
 
 - [ ] **Step 2: Run them to verify they fail**
 
-Run: `flutter test test/features/media/presentation/editing/photo_viewer_unlink_test.dart test/features/media/data/media_unlink_delete_test.dart`
+Run: `flutter test test/features/media/presentation/editing/photo_viewer_unlink_test.dart test/features/media/data/media_unlink_history_test.dart`
 Expected: FAIL, `photo_viewer_unlink.dart` and `unlinkEverywhere` not defined.
 
 - [ ] **Step 3: Implement** the Produces list. `SittingMediaWriters.forLibrary(read)` is `_app` with `unlinkFrom: (service, ids) => service.unlinkEverywhere(ids)` and the `replace` that throws `UnsupportedError('a library viewer relinks no media')`.
@@ -72,7 +72,7 @@ Expected: FAIL, `photo_viewer_unlink.dart` and `unlinkEverywhere` not defined.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add lib/features/media/presentation/editing/photo_viewer_unlink.dart lib/features/media/presentation/editing/photo_edit_fields.dart lib/features/media/presentation/editing/record_media_sitting.dart lib/features/media/data/services/media_unlink_service.dart test/features/media/presentation/editing/photo_viewer_unlink_test.dart test/features/media/data/media_unlink_delete_test.dart
+git add lib/features/media/presentation/editing/photo_viewer_unlink.dart lib/features/media/presentation/editing/photo_edit_fields.dart lib/features/media/presentation/editing/record_media_sitting.dart lib/features/media/data/services/media_unlink_service.dart test/features/media/presentation/editing/photo_viewer_unlink_test.dart test/features/media/data/media_unlink_history_test.dart
 git commit -m "feat(media): held unlink for the photo viewer's sitting"
 ```
 
