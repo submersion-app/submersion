@@ -30824,7 +30824,7 @@ abstract class AppLocalizations {
   /// No description provided for @marineLife_siteSection_expectedSpecies.
   ///
   /// In en, this message translates to:
-  /// **'Expected Species'**
+  /// **'Expected species'**
   String get marineLife_siteSection_expectedSpecies;
 
   /// No description provided for @marineLife_siteSection_noExpected.
@@ -30851,7 +30851,7 @@ abstract class AppLocalizations {
   /// No description provided for @marineLife_siteSection_spottedHere.
   ///
   /// In en, this message translates to:
-  /// **'Spotted Here'**
+  /// **'Spotted here'**
   String get marineLife_siteSection_spottedHere;
 
   /// No description provided for @marineLife_siteSection_title.

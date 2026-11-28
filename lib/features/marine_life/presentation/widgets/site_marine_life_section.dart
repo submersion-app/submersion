@@ -103,7 +103,8 @@ class SiteMarineLifeSection extends ConsumerWidget {
         SpeciesTierHeader(
           icon: Icons.visibility,
           title: context.l10n.marineLife_siteSection_spottedHere,
-          count: spottedAsync.value?.length,
+          // None over an error, though the value keeps the last list.
+          count: spottedAsync.hasError ? null : spottedAsync.value?.length,
         ),
         const SizedBox(height: 8),
         spottedAsync.when(
@@ -163,7 +164,8 @@ class SiteMarineLifeSection extends ConsumerWidget {
         SpeciesTierHeader(
           icon: Icons.auto_awesome,
           title: context.l10n.marineLife_siteSection_expectedSpecies,
-          count: expectedAsync.value?.length,
+          // None over an error, though the value keeps the last list.
+          count: expectedAsync.hasError ? null : expectedAsync.value?.length,
         ),
         const SizedBox(height: 8),
         expectedAsync.when(
