@@ -321,7 +321,11 @@ class SiteMarineLifeSection extends ConsumerWidget {
   }) {
     final theme = Theme.of(context);
     final count = showCount ? s.count : null;
+    // The one announcement for the chip: Chip builds a container node of
+    // its own, so its visible label would otherwise be read a second time.
+    // Nothing on the chip is tappable, so excluding it loses no action.
     return Semantics(
+      excludeSemantics: true,
       label: count != null
           ? context.l10n.marineLife_siteSection_spottedCountSemantics(
               s.name,

@@ -281,6 +281,25 @@ void main() {
     );
   });
 
+  testWidgets('a spotted chip is announced once, with its count in words', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await pump(
+      tester,
+      spotted: [_spotted('a', 'Blue Tang', SpeciesCategory.fish, count: 4)],
+    );
+
+    expect(
+      find.bySemanticsLabel(
+        l.marineLife_siteSection_spottedCountSemantics('Blue Tang', 4),
+      ),
+      findsOneWidget,
+    );
+    expect(find.bySemanticsLabel('Blue Tang (4)'), findsNothing);
+    handle.dispose();
+  });
+
   testWidgets('an empty section counts nothing', (tester) async {
     await pump(tester);
 
