@@ -127,7 +127,32 @@ class ScratchKeeper {
         retainInLibrary: target is UnplacedAttachTarget,
       ),
     );
+    try {
+      await _copyFindings(item, saved, tags);
+    } catch (_) {
+      // Half a keep is worse than none: the diver is told it failed, and a
+      // retry must not make a second row.
+      try {
+        await _media.deleteMedia(saved.id);
+      } catch (error, stackTrace) {
+        _log.error(
+          'Could not undo a failed keep of ${item.id}',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
+      rethrow;
+    }
+    return saved.id;
+  }
 
+  /// What the session found on [item], and the species tagged, onto
+  /// [saved].
+  Future<void> _copyFindings(
+    MediaItem item,
+    MediaItem saved,
+    List<SpeciesTagChip> tags,
+  ) async {
     final run = await _scratchIdentifications.runFor(item.id);
     final rows = await _scratchIdentifications.forMedia(item.id);
     await _ensureSpecies({
@@ -161,7 +186,6 @@ class ScratchKeeper {
       await _tagging.tagPhoto(mediaId: saved.id, speciesId: chip.speciesId);
     }
     await _afterKeep?.call(saved);
-    return saved.id;
   }
 
   /// Creates in the logbook each of [ids] that only the session has: a

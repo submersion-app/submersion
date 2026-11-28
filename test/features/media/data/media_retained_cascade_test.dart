@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' show Value;
+import 'package:path/path.dart' as p;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/repositories/media_parent_cascade.dart';
@@ -68,8 +71,8 @@ void main() {
       id: '',
       mediaType: MediaType.video,
       sourceType: MediaSourceType.platformGallery,
-      filePath: '/tmp/$name',
-      localPath: '/tmp/$name',
+      filePath: p.join(Directory.systemTemp.path, name),
+      localPath: p.join(Directory.systemTemp.path, name),
       originalFilename: name,
       diveId: diveId,
       siteId: siteId,

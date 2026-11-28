@@ -53,13 +53,16 @@ extension _ViewerScratchMode on _MediaViewerPageState {
     return leave ?? false;
   }
 
-  /// The system Back asks too, as the close button does.
+  /// The system Back asks too, as the close button does. Decided when Back
+  /// is pressed, not at build: holding a species does not rebuild the
+  /// viewer. In fullscreen, Back leaves fullscreen first.
   Widget _scratchPopScope({required Widget child}) {
     if (widget.scratch == null) return child;
+    final fullscreen = isFullscreen;
     return PopScope(
-      canPop: !_scratchHasUnkeptChoices,
+      canPop: fullscreen,
       onPopInvokedWithResult: (didPop, _) async {
-        if (didPop) return;
+        if (didPop || fullscreen) return;
         if (await _scratchLeave() && mounted) Navigator.of(context).pop();
       },
       child: child,

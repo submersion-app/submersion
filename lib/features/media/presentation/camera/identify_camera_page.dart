@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/providers/provider.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/features/media/presentation/camera/identify_camera.da
 import 'package:submersion/features/media/presentation/camera/live_label_overlay.dart';
 import 'package:submersion/features/media/presentation/pages/identify_viewer_page.dart';
 import 'package:submersion/features/species_id/data/camera/camera_frame_jpeg.dart';
+import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
 import 'package:submersion/features/species_id/domain/services/live_naming_controller.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -36,6 +38,7 @@ class _IdentifyCameraPageState extends ConsumerState<IdentifyCameraPage> {
   bool _recording = false;
   bool _namesOn = true;
   bool _encoding = false;
+  bool _startingNaming = false;
   List<MediaItem> _captures = const [];
   LiveNamingController? _naming;
   LiveLabels? _labels;
@@ -43,6 +46,13 @@ class _IdentifyCameraPageState extends ConsumerState<IdentifyCameraPage> {
   @override
   void initState() {
     super.initState();
+    // The preview, the frames and the boxes over them are laid out upright
+    // for a portrait screen.
+    unawaited(
+      SystemChrome.setPreferredOrientations(const [
+        DeviceOrientation.portraitUp,
+      ]),
+    );
     unawaited(_open());
   }
 
@@ -60,10 +70,17 @@ class _IdentifyCameraPageState extends ConsumerState<IdentifyCameraPage> {
 
   /// Starts naming frames, when names are on and a model can run.
   Future<void> _startNaming() async {
-    if (!_namesOn || _naming != null) return;
+    if (!_namesOn || _naming != null || _startingNaming) return;
+    _startingNaming = true;
     final service = ref.read(mediaIdentificationServiceProvider);
-    final live = await service.liveNaming();
-    if (live == null || !mounted) {
+    final LiveNaming? live;
+    try {
+      live = await service.liveNaming();
+    } finally {
+      _startingNaming = false;
+    }
+    // Turned off, or the page gone, while the models loaded.
+    if (live == null || !mounted || !_namesOn) {
       if (live != null) service.releaseLiveNaming();
       return;
     }
@@ -153,11 +170,31 @@ class _IdentifyCameraPageState extends ConsumerState<IdentifyCameraPage> {
     }
   }
 
-  Future<void> _openCaptures() => openIdentifyViewer(
-    context,
-    _captures,
-    captures: {for (final c in _captures) c.id},
-  );
+  Future<void> _openCaptures() async {
+    final kept = await openIdentifyViewer(
+      context,
+      _captures,
+      captures: {for (final c in _captures) c.id},
+    );
+    if (kept.isEmpty || !mounted) return;
+    // A kept capture is in the photo library now: its copy here goes, and
+    // it is not offered again.
+    for (final capture in _captures.where((c) => kept.contains(c.id))) {
+      _deleteCapture(capture);
+    }
+    setState(
+      () => _captures = [
+        for (final c in _captures)
+          if (!kept.contains(c.id)) c,
+      ],
+    );
+  }
+
+  void _deleteCapture(MediaItem capture) {
+    final path = capture.localPath;
+    if (path == null) return;
+    unawaited(File(path).delete().then((_) {}, onError: (Object _) {}));
+  }
 
   Future<void> _pickFiles() async {
     final items = await pickIdentifyItems(ref);
@@ -174,11 +211,9 @@ class _IdentifyCameraPageState extends ConsumerState<IdentifyCameraPage> {
     unawaited(_camera.dispose());
     // Captures not kept go with the camera; a kept one is in the photo
     // library by now.
-    for (final capture in _captures) {
-      final path = capture.localPath;
-      if (path == null) continue;
-      unawaited(File(path).delete().then((_) {}, onError: (Object _) {}));
-    }
+    _captures.forEach(_deleteCapture);
+    // Back to whatever the app allows.
+    unawaited(SystemChrome.setPreferredOrientations(const []));
     super.dispose();
   }
 

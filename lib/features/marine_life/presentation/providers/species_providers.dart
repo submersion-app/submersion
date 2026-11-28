@@ -39,7 +39,7 @@ final speciesByCategoryProvider =
       final repository = ref.watch(speciesRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchSpeciesChanges());
       return repository.getSpeciesByCategory(category);
-    });
+    }, dependencies: [speciesRepositoryProvider]);
 
 /// Species search provider
 final speciesSearchProvider = FutureProvider.family<List<Species>, String>((
@@ -52,7 +52,7 @@ final speciesSearchProvider = FutureProvider.family<List<Species>, String>((
   final repository = ref.watch(speciesRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchSpeciesChanges());
   return repository.searchSpecies(query);
-});
+}, dependencies: [allSpeciesProvider, speciesRepositoryProvider]);
 
 /// Single species provider
 final speciesProvider = FutureProvider.family<Species?, String>((

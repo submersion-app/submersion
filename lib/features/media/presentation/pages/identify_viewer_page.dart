@@ -41,7 +41,7 @@ MediaItem scratchItemFromFile(
   final now = DateTime.now();
   return MediaItem(
     id: ScratchSession.newId(),
-    mediaType: metadata.mimeType.startsWith('video/')
+    mediaType: _isVideo(path, metadata.mimeType)
         ? MediaType.video
         : MediaType.photo,
     sourceType: MediaSourceType.localFile,
@@ -57,6 +57,15 @@ MediaItem scratchItemFromFile(
     createdAt: now,
     updatedAt: now,
   );
+}
+
+/// Whether the file at [path] is a video: by its type, or by its extension
+/// when the extractor could not read the type.
+bool _isVideo(String path, String mimeType) {
+  if (mimeType.startsWith('video/')) return true;
+  if (mimeType.startsWith('image/')) return false;
+  const videos = {'.mp4', '.mov', '.m4v', '.avi', '.mkv', '.3gp', '.mts'};
+  return videos.contains(p.extension(path).toLowerCase());
 }
 
 /// Picks photos and videos to identify, with what each file says of when
@@ -119,25 +128,28 @@ bool identifyOpensCamera() =>
 
 /// Opens the Identify viewer on [items] (issue #5122). [captures] are the
 /// ids of camera captures: kept ones go to the photo library first.
-Future<void> openIdentifyViewer(
+/// Returns the ids kept, so a caller showing the same files again does not
+/// offer to keep them twice.
+Future<Set<String>> openIdentifyViewer(
   BuildContext context,
   List<MediaItem> items, {
   Set<String> captures = const {},
 }) async {
-  if (items.isEmpty) return;
+  if (items.isEmpty) return const {};
   final session = await ScratchSession.open(
     items: items,
     source: DatabaseService.instance.database,
   );
   if (!context.mounted) {
     await session.dispose();
-    return;
+    return const {};
   }
   await Navigator.of(context).push(
     MaterialPageRoute<void>(
       builder: (_) => IdentifyViewerPage(session: session, captures: captures),
     ),
   );
+  return session.keptIds;
 }
 
 /// The media viewer over a [ScratchSession]: species identification runs

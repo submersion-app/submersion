@@ -206,6 +206,24 @@ void main() {
     expect(linked, [a]);
   });
 
+  test('a keep that fails part way leaves no row behind', () async {
+    // A tag of a species neither logbook has fails after the row is in.
+    final result = await keeper.keep(
+      [a],
+      const UnplacedAttachTarget(),
+      {
+        a: [chip('sp_nowhere')],
+      },
+    );
+
+    expect(result.failures.keys, [a]);
+    final rows = await logbook
+        .customSelect('SELECT COUNT(*) AS n FROM media')
+        .getSingle();
+    expect(rows.read<int>('n'), 0);
+    expect(session.isKept(a), isFalse);
+  });
+
   test('a file gone from disk fails alone', () async {
     gone.add(a);
 
