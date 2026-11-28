@@ -10,6 +10,7 @@ import 'package:submersion/features/media/domain/value_objects/extracted_file.da
 import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
+import 'package:submersion/features/media/presentation/helpers/media_hold.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/file_review_pane.dart';
 import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
@@ -284,10 +285,9 @@ void main() {
     expect(progress.value, isNull); // indeterminate
   });
 
-  // commit() only persists files in match.matched, and the Link button is
-  // gated on matched being non-empty, so a photo the date matcher rejected
-  // could never be linked. When the picker was opened from a dive, that dive
-  // is an obvious manual target.
+  // With no target, commit() only persists files in match.matched, so a
+  // photo the date matcher rejected could never be linked. When the picker
+  // was opened from a dive, that dive is an obvious manual target.
   group('manual assignment to the picker\'s dive', () {
     Widget wrap(FilesTabState seed, {String? diveId}) => ProviderScope(
       overrides: [
@@ -343,6 +343,73 @@ void main() {
       expect(notifier.state.match.unmatched, isEmpty);
       // The Link button was previously unreachable in this state.
       expect(find.text('Link 2 items'), findsOneWidget);
+    });
+
+    // Issue #5063: an Android video the matcher could not place showed in
+    // the review list under a disabled "Link 0", so it could not be saved.
+    // Opened from a dive, Link takes the unplaced files to that dive.
+    testWidgets('Link counts and enables unmatched files on a dive', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        wrap(withUnmatched([_ef('/clip.mp4')]), diveId: 'd1'),
+      );
+
+      expect(find.text('Link 1 item'), findsOneWidget);
+      final button = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Link 1 item'),
+      );
+      expect(button.onPressed, isNotNull);
+    });
+
+    testWidgets('in a sitting, files matched to another dive are not counted', (
+      tester,
+    ) async {
+      final mine = _ef('/mine.jpg');
+      final other = _ef('/other.jpg');
+      final clip = _ef('/clip.mp4');
+      final seed = FilesTabState.initial().copyWith(
+        files: [mine, other, clip],
+        match: MatchedSelection(
+          matched: {
+            'd1': [mine],
+            'd2': [other],
+          },
+          unmatched: [clip],
+        ),
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            filesTabNotifierProvider.overrideWith(
+              (ref) => _SeededFilesTabNotifier(seed),
+            ),
+          ],
+          child: _host(
+            MediaHoldScope.wrap(
+              (_) {},
+              const FilesTab(target: DiveAttachTarget('d1')),
+            ),
+          ),
+        ),
+      );
+
+      // heldRows holds mine.jpg and clip.mp4; other.jpg is left out.
+      expect(find.text('Link 2 items'), findsOneWidget);
+    });
+
+    testWidgets('a folder scan\'s unmatched files are not counted', (
+      tester,
+    ) async {
+      final files = [_ef('/a.jpg')];
+      final seed = FilesTabState.initial().copyWith(
+        files: files,
+        match: MatchedSelection(matched: const {}, unmatched: files),
+        folderPaths: {'/a.jpg'},
+      );
+      await tester.pumpWidget(wrap(seed, diveId: 'd1'));
+
+      expect(find.text('Link 0 items'), findsOneWidget);
     });
 
     testWidgets('turning auto-match off still leaves files linkable', (

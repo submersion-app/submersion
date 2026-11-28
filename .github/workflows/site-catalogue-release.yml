@@ -89,7 +89,7 @@ jobs:
           gh release view "$TAG" --repo "$CATALOGUE_REPO" --json body -q .body > release-notes.md
           older=""
           if [ "$ALLOW_OLDER" = "true" ]; then older="--allow-older"; fi
-          python3.14 scripts/site_catalogue_intake.py release --tag "$TAG" \
+          python3.14 scripts/datasets/site_catalogue/site_catalogue_intake.py release --tag "$TAG" \
             --notes release-notes.md --body pr-body.md $older
 
       - name: Open the PR

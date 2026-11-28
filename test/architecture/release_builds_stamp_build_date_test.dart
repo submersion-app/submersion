@@ -23,7 +23,7 @@ const _mustHaveReleaseBuilds = <String>[
   '.github/workflows/build-all.yml',
   'ios/fastlane/Fastfile',
   'macos/fastlane/Fastfile',
-  'scripts/build_web.sh',
+  'scripts/web/build_web.sh',
   'scripts/release/build_nosandbox_macos.sh',
 ];
 

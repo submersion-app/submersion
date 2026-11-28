@@ -942,6 +942,115 @@ void main() {
       expect(captured.map((m) => m.diveId), ['dive-a', 'dive-b']);
       expect(captured.map((m) => m.siteId), [null, null]);
     });
+
+    // Issue #5063: picked on a dive, a file the matcher could not place is
+    // that dive's, instead of being skipped.
+    test('persists unmatched files against the opening dive', () async {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      final a = _ef('/a.jpg');
+      final b = _ef('/b.jpg');
+      notifier.setFiles(
+        [a, b],
+        match: MatchedSelection(
+          matched: {
+            'dive-b': [a],
+          },
+          unmatched: [b],
+        ),
+      );
+
+      when(
+        mockPlatform.createBookmark(any),
+      ).thenAnswer((_) async => Uint8List.fromList([1, 2, 3]));
+      when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
+      final captured = <MediaItem>[];
+      var counter = 0;
+      when(mockRepo.createMedia(any)).thenAnswer((invocation) async {
+        captured.add(invocation.positionalArguments.first as MediaItem);
+        counter += 1;
+        return _saved('saved-$counter');
+      });
+
+      await notifier.commit(target: const DiveAttachTarget('dive-a'));
+
+      expect(captured.map((m) => (m.originalFilename, m.diveId)), [
+        ('a.jpg', 'dive-b'),
+        ('b.jpg', 'dive-a'),
+      ]);
+    });
+
+    test('skips the unmatched files of a folder scan', () async {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      final a = _ef('/a.jpg');
+      final b = _ef('/b.jpg');
+      notifier.setFiles(
+        [a, b],
+        match: MatchedSelection(
+          matched: {
+            'dive-a': [a],
+          },
+          unmatched: [b],
+        ),
+        folderPaths: {'/b.jpg'},
+      );
+
+      when(
+        mockPlatform.createBookmark(any),
+      ).thenAnswer((_) async => Uint8List.fromList([1, 2, 3]));
+      when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
+      final captured = <MediaItem>[];
+      when(mockRepo.createMedia(any)).thenAnswer((invocation) async {
+        captured.add(invocation.positionalArguments.first as MediaItem);
+        return _saved('saved-${captured.length}');
+      });
+
+      await notifier.commit(target: const DiveAttachTarget('dive-a'));
+
+      expect(captured.map((m) => m.originalFilename), ['a.jpg']);
+    });
+
+    // One drop can hold a folder and loose files: only the loose ones were
+    // chosen for the dive.
+    test('takes a loose file to the dive but not a folder\'s', () async {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      final scanned = _ef('/card/scanned.jpg');
+      final loose = _ef('/loose.mp4');
+      notifier.setFiles(
+        [scanned, loose],
+        match: MatchedSelection(matched: const {}, unmatched: [scanned, loose]),
+        folderPaths: {'/card/scanned.jpg'},
+      );
+
+      when(
+        mockPlatform.createBookmark(any),
+      ).thenAnswer((_) async => Uint8List.fromList([1, 2, 3]));
+      when(mockBookmarkStorage.write(any, any)).thenAnswer((_) async {});
+      final captured = <MediaItem>[];
+      when(mockRepo.createMedia(any)).thenAnswer((invocation) async {
+        captured.add(invocation.positionalArguments.first as MediaItem);
+        return _saved('saved-${captured.length}');
+      });
+
+      await notifier.commit(target: const DiveAttachTarget('dive-a'));
+
+      expect(captured.map((m) => (m.originalFilename, m.diveId)), [
+        ('loose.mp4', 'dive-a'),
+      ]);
+    });
+
+    test('clearStagedFiles forgets which files a folder scan found', () {
+      final notifier = container.read(filesTabNotifierProvider.notifier);
+      notifier.setFiles(
+        [_ef('/a.jpg')],
+        match: MatchedSelection.empty(),
+        folderPaths: {'/a.jpg'},
+      );
+      expect(notifier.state.folderPaths, {'/a.jpg'});
+
+      notifier.clearStagedFiles();
+
+      expect(notifier.state.folderPaths, isEmpty);
+    });
   });
 
   group('diveBoundsProvider', () {
@@ -1248,16 +1357,18 @@ void main() {
       expect(captured.single.diveId, 'd1');
     });
 
-    test('a dive session ignores it', () async {
-      final notifier = container.read(filesTabNotifierProvider.notifier);
-      stage(notifier);
-      notifier.setUnmatchedTarget(const UnplacedAttachTarget());
+    test(
+      'a dive session ignores it: the dive takes them (issue #5063)',
+      () async {
+        final notifier = container.read(filesTabNotifierProvider.notifier);
+        stage(notifier);
+        notifier.setUnmatchedTarget(const UnplacedAttachTarget());
 
-      final created = await notifier.commit(
-        target: const DiveAttachTarget('d1'),
-      );
+        await notifier.commit(target: const DiveAttachTarget('d1'));
 
-      expect(created, hasLength(1));
-    });
+        expect(captured.map((m) => m.diveId), everyElement('d1'));
+        expect(captured.any((m) => m.retainInLibrary), isFalse);
+      },
+    );
   });
 }

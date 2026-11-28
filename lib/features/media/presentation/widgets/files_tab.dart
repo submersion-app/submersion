@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/media/data/services/media_file_types.dart';
-import 'package:submersion/features/media/domain/value_objects/matched_selection.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/file_review_pane.dart';
@@ -47,10 +46,11 @@ class FilesTab extends ConsumerWidget {
   /// What this picker session attaches its files to, when it has an owner.
   ///
   /// A [DiveAttachTarget] backs the review pane's "add all to this dive"
-  /// action and makes turning auto-match off produce a usable selection
-  /// instead of an inert one: [FilesTabNotifier.commit] only persists files
-  /// sitting in [MatchedSelection.matched], so without a manual target a
-  /// photo the date matcher rejected had no route into the database.
+  /// action, and makes the commit button take the hand-picked files the date
+  /// matcher rejected to that dive: the user picked them on it (a folder
+  /// scan's stay out, see [FilesTabState.folderPaths]). Counting only the
+  /// matched files left an Android video whose time could not be placed
+  /// under a disabled "Link 0", seen but never saved (issue #5063).
   ///
   /// A [SiteAttachTarget] switches the tab out of dive mode entirely; see
   /// [_ownsEveryFile]. Null when the picker was opened with no owning entity
@@ -125,6 +125,7 @@ class FilesTab extends ConsumerWidget {
       paths,
       target: target,
       isActive: () => context.mounted,
+      folderPaths: paths.toSet(),
     );
   }
   // coverage:ignore-end
@@ -215,7 +216,7 @@ class FilesTab extends ConsumerWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: _committableCount(state) == 0
+                  onPressed: _committableCount(context, state) == 0
                       ? null
                       // coverage:ignore-start
                       : () => _commit(context, ref),
@@ -230,12 +231,23 @@ class FilesTab extends ConsumerWidget {
   }
 
   /// How many staged files [FilesTabNotifier.commit] would actually persist.
-  int _committableCount(FilesTabState state) => _ownsEveryFile
-      ? state.files.length
-      : state.match.totalFiles - state.match.unmatched.length;
+  ///
+  /// Opened from a dive, the hand-picked files the matcher could not place
+  /// count too: they go to the dive (issue #5063). In a sitting on that dive,
+  /// files matched to another dive do not: [FilesTabNotifier.heldRows] leaves
+  /// them out.
+  int _committableCount(BuildContext context, FilesTabState state) {
+    if (_ownsEveryFile) return state.files.length;
+    final diveId = _assignableDiveId;
+    final unplaced = diveId != null ? state.unmatchedForTarget.length : 0;
+    if (diveId != null && MediaHoldScope.maybeOf(context) != null) {
+      return (state.match.matched[diveId]?.length ?? 0) + unplaced;
+    }
+    return state.match.totalFiles - state.match.unmatched.length + unplaced;
+  }
 
   String _commitLabel(BuildContext context, FilesTabState state) {
-    final count = _committableCount(state);
+    final count = _committableCount(context, state);
     // Only a site session names its destination; a gear session (issue
     // #3355) uses the plain label.
     return target is SiteAttachTarget
@@ -304,13 +316,14 @@ class FilesTab extends ConsumerWidget {
       navigator.pop();
       return;
     }
-    // commit() clears the staged state, so snapshot the dives first.
-    final diveIds = ref
-        .read(filesTabNotifierProvider)
-        .match
-        .matched
-        .keys
-        .toList();
+    // commit() clears the staged state, so snapshot the dives first,
+    // including the target dive when it takes the unmatched files.
+    final staged = ref.read(filesTabNotifierProvider);
+    final diveIds = {
+      ...staged.match.matched.keys,
+      if (dive is DiveAttachTarget && staged.unmatchedForTarget.isNotEmpty)
+        dive.diveId,
+    }.toList();
     final created = await notifier.commit(target: target);
     if (!context.mounted) return;
     // Both snackbars go to the root messenger and so are enqueued before the

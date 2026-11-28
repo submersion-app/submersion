@@ -57,6 +57,8 @@ extension _ViewerActions on _MediaViewerPageState {
     if (controller == null) return;
     final value = controller.value;
     if (!value.isInitialized || value.hasError) return;
+    // The diver's choice: the sighting start seek leaves it (issue #5084).
+    markDiverMoved(controller);
     unawaited(controller.pause().then((_) => controller.seekTo(at)));
   }
 

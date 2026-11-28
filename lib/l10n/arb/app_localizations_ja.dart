@@ -8921,10 +8921,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'タンク圧';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport => 'オーバーレイを表示範囲内に保つ';
+  String get diveLog_chartOption_tooltipFollowsCursor => 'ツールチップをカーソルに追従';
 
   @override
-  String get diveLog_chartOption_tooltipFollowsCursor => 'ツールチップをカーソルに追従';
+  String get diveLog_chartOption_zoom => 'ズーム';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify => '両軸、オーバーレイを拡大';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView => '両軸、オーバーレイを表示範囲内に保つ';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => '時間のみ';
+
+  @override
+  String get diveLog_chartOption_rightAxis => '右軸';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '（推定）';
@@ -23171,8 +23183,10 @@ class AppLocalizationsJa extends AppLocalizations {
       'ズーム時にオーバーレイを表示範囲内に保つ';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'NDLやppO2などのオーバーレイを、水深軸と一緒に拡大せずに表示領域に合わせます';
+  String get settings_appearance_profileZoom => 'ズーム';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict => 'プロファイルのズーム: 時間のみ';
 
   @override
   String get settings_appearance_rightYAxisMetric => '右Y軸の指標';
@@ -41894,17 +41908,17 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'ピーク$rate（$range）';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return '平均$rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => '平均';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return '平均 $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => 'ピーク';
@@ -42655,6 +42669,82 @@ class AppLocalizationsJa extends AppLocalizations {
       one: 'バッテリーサイクル1回',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_exposure_lastDivedLabel => '最終ダイブ';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => 'ダイブ数';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => '時間';
+
+  @override
+  String get equipmentCondition_exposure_today => '今日';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count日前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countか月前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count年前',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return '最終ダイブ：$ago（$date）';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12か月';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => '全期間';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '過去12か月で$count本',
+      zero: '過去12か月のダイブはありません',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives、$hours';
   }
 
   @override
@@ -54438,6 +54528,9 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get media_species_nextSighting => '次の観察';
+
+  @override
   String get media_species_openSpeciesPage => '種のページ';
 
   @override
@@ -63547,7 +63640,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get info_equipment_exposure_summary =>
-      'この器材の使用量を、メンテナンス時期の計算に使う各単位で数えたものです。';
+      'この器材の使用量を、メンテナンス時期の計算に使う各単位で数えたものです。グラフは今日までのダイブ数を月別または年別に数えます。';
 
   @override
   String get info_site_altitude_summary => 'サイトの標高とそこでの気圧で、減圧モデルの開始時の値になります。';

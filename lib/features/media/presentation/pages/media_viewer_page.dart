@@ -37,6 +37,7 @@ import 'package:submersion/features/media/presentation/editing/photo_sitting_sho
 import 'package:submersion/features/media/presentation/editing/photo_viewer_editing.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
+import 'package:submersion/features/media/presentation/helpers/video_diver_moves.dart';
 import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
 import 'package:submersion/features/media/presentation/helpers/set_time_seed.dart';
 import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart';
@@ -83,6 +84,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/media/presentation/match_confidence_display.dart';
 import 'package:submersion/features/species_id/presentation/widgets/identification_labels.dart';
+import 'package:submersion/features/species_id/presentation/providers/video_sighting_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/identification_trigger.dart';
 import 'package:submersion/features/species_id/presentation/widgets/labels_menu.dart';
 import 'package:submersion/features/species_id/presentation/widgets/photo_identification_layer.dart';
@@ -97,6 +99,7 @@ part 'media_viewer_keyboard.dart';
 part 'media_viewer_paging.dart';
 part 'media_viewer_perdix.dart';
 part 'media_viewer_scratch.dart';
+part 'media_viewer_sightings.dart';
 part 'media_viewer_video_item.dart';
 part 'media_viewer_write_metadata.dart';
 
@@ -129,6 +132,10 @@ class MediaViewerPage extends ConsumerStatefulWidget {
   /// moment (issue #5027). Applied once, to that item only.
   final Duration? initialVideoPosition;
 
+  /// The species a sighting row opened the viewer on (issue #5084): each
+  /// video starts at its first sighting, and its bar marks them all.
+  final String? focusSpeciesId;
+
   /// Set for files the diver has not kept (issue #5122): see
   /// [ViewerScratch].
   final ViewerScratch? scratch;
@@ -140,6 +147,7 @@ class MediaViewerPage extends ConsumerStatefulWidget {
     this.showGoToDive = false,
     this.captionFor,
     this.initialVideoPosition,
+    this.focusSpeciesId,
     this.scratch,
   });
 
@@ -154,8 +162,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
         ColorAdjustViewerMixin<MediaViewerPage>,
         PeopleTagViewerMixin<MediaViewerPage>,
         PhotoViewerEditing<MediaViewerPage> {
-  /// A file not kept holds its species in a sitting of its own, never
-  /// saved (issue #5122); see `media_viewer_scratch.dart`.
+  /// A file not kept holds its species in a sitting of its own (#5122).
   @override
   EditSession<PhotoRecord>? get photoSitting =>
       widget.scratch == null ? super.photoSitting : _scratchSitting();
@@ -165,10 +172,8 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   Future<bool> leaveGuarded() =>
       widget.scratch == null ? super.leaveGuarded() : _scratchLeave();
 
-  /// Each scratch file's sitting, by its id.
+  /// Each scratch file's sitting by id, and the scratch files kept.
   final Map<String, EditSession<PhotoRecord>> _scratchSittings = {};
-
-  /// The scratch files kept so far.
   final Set<String> _scratchKept = {};
 
   /// Records [ids] as kept: their banner says so.
@@ -258,6 +263,8 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       if (start != null && !_startApplied && mediaId == widget.initialMediaId) {
         _startApplied = true;
         unawaited(controller.seekTo(start));
+      } else {
+        unawaited(_seekToFirstSighting(mediaId, controller));
       }
     }
   }
@@ -479,6 +486,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                       RepaintBoundary(
                         key: galleryBoundaryKey,
                         child: _PhotoGallery(
+                          focusSpeciesId: widget.focusSpeciesId,
                           mediaList: shownMediaList(mediaList, heldProfile),
                           pagingLocked: photoUnlocked,
                           pageController: _pageController,

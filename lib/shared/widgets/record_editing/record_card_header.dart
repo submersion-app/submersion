@@ -91,6 +91,10 @@ class RecordCardHeader extends StatelessWidget {
   final Widget? leading;
 
   /// What the card shows at the right while reading, such as a count.
+  ///
+  /// It is placed directly in the header's row in every state, so it may be
+  /// a [Flexible] to keep a long value within the row (the training
+  /// signature's course chips do).
   final Widget? trailing;
 
   @override

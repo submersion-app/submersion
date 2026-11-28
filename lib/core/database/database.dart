@@ -341,7 +341,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 388;
+  static const int currentSchemaVersion = 390;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1833,10 +1833,16 @@ class AppDatabase extends _$AppDatabase {
     // depth and a plan's no-switch flag (issue #3793). Additive and
     // defaulted; the floor does not move.
     387,
-    // v388: the device-local held_media table, for keeping media with no
+    // v389: diver_settings.profile_zoom_time_only, the profile chart's Time
+    // only zoom choice (issue #5069). Nullable, no backfill; the floor does
+    // not move. Numbered 389 because open work claims 388.
+    389,
+    // v390: the device-local held_media table, for keeping media with no
     // place away from older devices (issue #5122). Never synced, so the
-    // floor does not move.
-    388,
+    // floor does not move. Numbered 390 because 389
+    // went to #5069 first, and a build at 389 without this deletes such
+    // media.
+    390,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading
