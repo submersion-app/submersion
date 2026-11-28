@@ -10940,6 +10940,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Begindruk';
 
   @override
+  String get diveLog_tank_managePresets => 'Voorinstellingen beheren';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'Flesvoorinstelling';
 
   @override
@@ -11531,7 +11534,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan niet omzetten: plan heeft kritieke waarschuwingen';
 
   @override
-  String get divePlanner_error_reserveExceedsTank => 'Overschrijdt tankdruk';
+  String get divePlanner_error_reserveExceedsTank => 'Overschrijdt flesdruk';
 
   @override
   String get divePlanner_error_reserveMustBePositive =>
@@ -14319,6 +14322,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_equipmentType_harness => 'Harnas';
 
   @override
+  String get equipment_searchWords_cylinder => 'tank, cilinder, stage, pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'tankband, cam band';
+
+  @override
   String get enum_equipmentType_tankBand => 'Flesband';
 
   @override
@@ -16908,6 +16917,53 @@ class AppLocalizationsNl extends AppLocalizations {
       'Een verbonden duikcomputer of zender behoudt zijn type.';
 
   @override
+  String get equipment_suggest_link => 'Past niets? Stel een categorie voor';
+
+  @override
+  String get equipment_suggest_title => 'Categorie voorstellen';
+
+  @override
+  String get equipment_suggest_intro =>
+      'Er opent een vooraf ingevuld functieverzoek op GitHub. Je controleert het en plaatst het vanuit je browser.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'Wat stel je voor?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'Nieuw type uitrusting';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'Nieuwe variant van een type';
+
+  @override
+  String get equipment_suggest_nameLabel => 'Naam';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'Een variant van';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel =>
+      'Dichtstbijzijnde bestaande type';
+
+  @override
+  String get equipment_suggest_parentNone => 'Geen';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'Waarom is het nodig?';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'Wat onderscheidt het van de bestaande types?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'Dit item als voorbeeld meesturen ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'Openen in GitHub';
+
+  @override
   String get equipment_edit_useCustomReminders =>
       'Aangepaste herinneringen gebruiken';
 
@@ -18318,6 +18374,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_consumption_diveTime => 'Duiktijd';
 
   @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. Waarschuwing: overschrijdt de flescapaciteit',
+      'other': '',
+    });
+    return 'Gasverbruik: $volume $volumeSymbol, $pressure $pressureSymbol$_temp0';
+  }
+
+  @override
   String gasCalculators_consumption_exceedsTank(
     Object pressure,
     Object symbol,
@@ -19557,9 +19628,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => 'Kon de browser niet openen';
-
-  @override
-  String get marineLife_suggest_copyLink => 'Link kopiëren';
 
   @override
   String get marineLife_editCard_photos => 'Foto\'s';
@@ -27883,6 +27951,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_volumeL => 'Volume';
 
   @override
+  String get settings_conflict_field_ratedCapacityCuft => 'Nominale capaciteit';
+
+  @override
   String get settings_conflict_field_volumeLiters => 'Volume';
 
   @override
@@ -29355,7 +29426,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'Minste namen. Ongeveer $percent% juist';
+    return 'Minste namen. Ongeveer $percent% juist op foto\'s';
   }
 
   @override
@@ -29364,12 +29435,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'Meer namen. Ongeveer $percent% juist';
+    return 'Meer namen. Ongeveer $percent% juist op foto\'s';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'Meeste namen. Ongeveer $percent% juist';
+    return 'Meeste namen. Ongeveer $percent% juist op foto\'s';
   }
 
   @override
@@ -39490,6 +39561,19 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_duplicatePreset => 'Dupliceren';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (kopie)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (kopie $number)';
+  }
+
+  @override
   String get tankPresets_editPreset => 'Instelling bewerken';
 
   @override
@@ -39499,7 +39583,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tankPresets_edit_descriptionHint =>
-      'bijv. Mijn huurcilinder van de duikshop';
+      'bijv. Mijn huurfles van de duikshop';
 
   @override
   String get tankPresets_edit_descriptionOptional => 'Beschrijving (optioneel)';
@@ -56221,8 +56305,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_species_suggested => 'Suggesties';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
+  String media_species_suggestedChipLabel(String name) {
+    return 'Suggestie: $name';
   }
 
   @override

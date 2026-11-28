@@ -255,6 +255,19 @@ class TankPresetsPage extends ConsumerWidget {
                   : context.l10n.tankPresets_setAsDefault,
             ),
           ),
+          // A built-in preset can seed the diver's own (issue #800).
+          if (!canEdit)
+            IconButton(
+              key: ValueKey('tank-preset-duplicate-${preset.name}'),
+              icon: const Icon(Icons.copy_outlined),
+              onPressed: () => context.push(
+                Uri(
+                  path: '/tank-presets/new',
+                  queryParameters: {'from': preset.id},
+                ).toString(),
+              ),
+              tooltip: context.l10n.tankPresets_duplicatePreset,
+            ),
           // Built-in presets can be hidden from the pickers (issue #2305),
           // except one named as the default, which the pickers always offer.
           // Its switch keeps its space so the stars stay aligned down the

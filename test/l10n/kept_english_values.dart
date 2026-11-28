@@ -150,8 +150,6 @@ const Map<String, String> keptEnglishValues = {
   'enum_pdfPageSize_letter_description': _units,
   'enum_siteField_maxDepth_short@nl': _abbreviation,
   'enum_siteField_minDepth_short@nl': _abbreviation,
-  'enum_tankRole_pony@fr': _loanword,
-  'enum_tankRole_pony@it': _loanword,
   'enum_tripField_maxDepth_short@nl': _abbreviation,
   'enum_weatherSource_openMeteo': _brand,
   'equipment_figure_summary@nl': _dutchItem,

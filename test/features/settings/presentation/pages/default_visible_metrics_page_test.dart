@@ -250,7 +250,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.dragUntilVisible(
-      find.text('Estimated Tank Pressure'),
+      find.text('Estimated Cylinder Pressure'),
       find.byType(Scrollable),
       const Offset(0, -200),
     );
@@ -258,7 +258,7 @@ void main() {
 
     final tile = tester.widget<SwitchListTile>(
       find.ancestor(
-        of: find.text('Estimated Tank Pressure'),
+        of: find.text('Estimated Cylinder Pressure'),
         matching: find.byType(SwitchListTile),
       ),
     );
@@ -273,13 +273,13 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.dragUntilVisible(
-      find.text('Estimated Tank Pressure'),
+      find.text('Estimated Cylinder Pressure'),
       find.byType(Scrollable),
       const Offset(0, -200),
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Estimated Tank Pressure'));
+    await tester.tap(find.text('Estimated Cylinder Pressure'));
     await tester.pumpAndSettle();
 
     expect(notifier.state.defaultShowEstimatedTankPressure, isFalse);

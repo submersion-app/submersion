@@ -11012,6 +11012,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Pressione iniziale';
 
   @override
+  String get diveLog_tank_managePresets => 'Gestisci preset';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'Preset bombola';
 
   @override
@@ -14408,6 +14411,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_equipmentType_harness => 'Imbrago';
 
   @override
+  String get equipment_searchWords_cylinder =>
+      'serbatoio, cilindro, stage, pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'cinghia, cam band';
+
+  @override
   String get enum_equipmentType_tankBand => 'Cinghia per bombola';
 
   @override
@@ -14925,7 +14935,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_tankRole_oxygenSupply => 'Riserva O2';
 
   @override
-  String get enum_tankRole_pony => 'Pony bottle';
+  String get enum_tankRole_pony => 'Pony';
 
   @override
   String get enum_tankRole_sidemountLeft => 'Sidemount sinistra';
@@ -17013,6 +17023,54 @@ class AppLocalizationsIt extends AppLocalizations {
       'Un computer subacqueo o un trasmettitore collegato mantiene il suo tipo.';
 
   @override
+  String get equipment_suggest_link =>
+      'Nessun tipo adatto? Suggerisci una categoria';
+
+  @override
+  String get equipment_suggest_title => 'Suggerisci una categoria';
+
+  @override
+  String get equipment_suggest_intro =>
+      'Si apre su GitHub una richiesta di funzionalità precompilata. La controlli e la pubblichi dal tuo browser.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'Cosa suggerisci?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'Nuovo tipo di attrezzatura';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'Nuova variante di un tipo';
+
+  @override
+  String get equipment_suggest_nameLabel => 'Nome';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'Una variante di';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel =>
+      'Tipo esistente più vicino';
+
+  @override
+  String get equipment_suggest_parentNone => 'Nessuno';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'Perché serve?';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'Cosa la distingue dai tipi esistenti?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'Includi questo articolo come esempio ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'Apri in GitHub';
+
+  @override
   String get equipment_edit_useCustomReminders =>
       'Usa promemoria personalizzati';
 
@@ -18437,6 +18495,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get gasCalculators_consumption_diveTime => 'Tempo Immersione';
 
   @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. Attenzione: supera la capacità della bombola',
+      'other': '',
+    });
+    return 'Consumo di gas: $volume $volumeSymbol, $pressure $pressureSymbol$_temp0';
+  }
+
+  @override
   String gasCalculators_consumption_exceedsTank(
     Object pressure,
     Object symbol,
@@ -19685,9 +19758,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => 'Impossibile aprire il browser';
-
-  @override
-  String get marineLife_suggest_copyLink => 'Copia link';
 
   @override
   String get marineLife_editCard_photos => 'Foto';
@@ -28073,6 +28143,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_field_volumeL => 'Volume';
 
   @override
+  String get settings_conflict_field_ratedCapacityCuft => 'Capacità nominale';
+
+  @override
   String get settings_conflict_field_volumeLiters => 'Volume';
 
   @override
@@ -29554,7 +29627,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'Meno nomi. Circa $percent% corretti';
+    return 'Meno nomi. Circa $percent% corretti sulle foto';
   }
 
   @override
@@ -29563,12 +29636,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'Più nomi. Circa $percent% corretti';
+    return 'Più nomi. Circa $percent% corretti sulle foto';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'Il maggior numero di nomi. Circa $percent% corretti';
+    return 'Il maggior numero di nomi. Circa $percent% corretti sulle foto';
   }
 
   @override
@@ -39764,6 +39837,19 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String tankPresets_deleted(Object name) {
     return '\"$name\" eliminato';
+  }
+
+  @override
+  String get tankPresets_duplicatePreset => 'Duplica';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (copia)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (copia $number)';
   }
 
   @override
@@ -56573,8 +56659,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_species_suggested => 'Suggerimenti';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
+  String media_species_suggestedChipLabel(String name) {
+    return 'Suggerimento: $name';
   }
 
   @override

@@ -2,7 +2,7 @@
 
 When you finish this guide, you will have downloaded your dives from your dive computer and turned one of them into a complete log entry: where you dived, who with, what you wore and breathed, the conditions, and your photos, alongside the profile your computer recorded.
 
-Your dive computer knows the numbers: time, depth, temperature, and often gas and tank pressure. Submersion fills in the rest with you.
+Your dive computer knows the numbers: time, depth, temperature, and often gas and cylinder pressure. Submersion fills in the rest with you.
 
 ## Before you start
 
@@ -87,11 +87,11 @@ Open the **Buddies** card and tap **Add**. In **Select Buddies**, tap someone yo
 
 ## 8. Add gas and gear
 
-- Open the **Cylinders** card. Check the tank your computer reported, or tap **Add Tank** for each one you breathed from. Gas use and statistics come from these tanks.
+- Open the **Cylinders** card. Check the cylinder your computer reported, or tap **Add Cylinder** for each one you breathed from. Gas use and statistics come from these cylinders.
 - Open the **Equipment** card (tap **Equipment** in the **Add** strip if it is not on the page yet). Tap **Use Set** to add a saved set of your usual gear in one go, or **Add** to pick items one by one. Each item then counts this dive towards its service history.
 - If you track weight, tap **Weights** in the **Add** strip and fill in the **Weight** card.
 
-![The Gas & Gear section open, with a tank and the Equipment list using a set](images/how-to/log-a-dive/08-gas-gear.png)
+![The Gas & Gear section open, with a cylinder and the Equipment list using a set](images/how-to/log-a-dive/08-gas-gear.png)
 
 ## 9. Add the conditions
 

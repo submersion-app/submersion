@@ -370,10 +370,16 @@ extension RungsFromV340 on AppDatabase {
     if (from < 393) await _backfillWingInspectionServiceKind();
     if (from < 393) await reportProgress();
 
-    // v394: the default visibility and palette colour of the trim line on
+    // v394 (issue #800): tank_presets.rated_capacity_cuft, the rated capacity
+    // a copy of a built-in preset keeps. Nullable, no backfill, re-asserted
+    // in beforeOpen; the floor does not move.
+    if (from < 394) await _assertTankPresetRatedCapacityColumn();
+    if (from < 394) await reportProgress();
+
+    // v395: the default visibility and palette colour of the trim line on
     // the dive profile (issue #5098). Columns only, defaulted off or null;
     // re-asserted in beforeOpen. The floor does not move.
-    if (from < 394) await _assertTrimLineColumns();
-    if (from < 394) await reportProgress();
+    if (from < 395) await _assertTrimLineColumns();
+    if (from < 395) await reportProgress();
   }
 }

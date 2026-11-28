@@ -14,11 +14,31 @@ import 'package:submersion/features/species_id/domain/entities/video_detections.
 /// #4729). 3: a track is named from its most decided view, not an average
 /// of its views (issue #4736). 4: only a view a second away agrees with it
 /// (issue #4747). 5: a small fish is cropped with more of its
-/// surroundings (`VisionModels.momentPadding`, issue #4882).
-const int videoTrackerVersion = 5;
+/// surroundings (`VisionModels.momentPadding`, issue #4882). 6: an animal
+/// out of sight for up to 3 s continues its track ([LostTrackLink], issue
+/// #5120).
+const int videoTrackerVersion = 6;
 
 /// How far apart a scan samples a video's frames, in milliseconds.
 const int videoSampleIntervalMs = 250;
+
+/// The longest gap between two sightings the frame-to-frame link
+/// ([TrackLink]) bridges: [VideoTracker.defaultMaxGapSamples] misses.
+const int liveGapMs =
+    (VideoTracker.defaultMaxGapSamples + 1) * videoSampleIntervalMs;
+
+/// How long an animal seen at [ms] (oldest first) was in view: the time
+/// from its first sighting to its last, less each gap longer than
+/// [maxGapMs] (the live link's reach), where it was out of sight (issue
+/// #5120). An animal seen at every sample is in view for its whole span.
+int seenMs(List<int> ms, {int maxGapMs = liveGapMs}) {
+  var total = 0;
+  for (var k = 1; k < ms.length; k++) {
+    final step = ms[k] - ms[k - 1];
+    if (step <= maxGapMs) total += step;
+  }
+  return total;
+}
 
 /// What a video's run stores as its detector id: the pack's detector set
 /// and the tracker version. A change to either scans the video again.
@@ -60,18 +80,67 @@ class TrackLink {
     if (larger <= 0 || math.min(last.area, next.area) / larger < minAreaRatio) {
       return null;
     }
-    final across =
-        ((last.x + last.width / 2) - (next.x + next.width / 2)).abs() /
-        math.max(last.width, next.width);
-    final down =
-        ((last.y + last.height / 2) - (next.y + next.height / 2)).abs() /
-        math.max(last.height, next.height);
-    final shift = math.sqrt(across * across + down * down);
+    final shift = _shift(last, next);
     return shift <= maxShift ? 1 - shift : null;
   }
 
   /// Whether [score] is an overlap link's.
   static bool isOverlap(double score) => score > 1;
+}
+
+/// How far apart the centres of [a] and [b] are, in boxes: across in the
+/// wider one's widths, down in the taller one's heights.
+double _shift(IdentificationBox a, IdentificationBox b) {
+  final across =
+      ((a.x + a.width / 2) - (b.x + b.width / 2)).abs() /
+      math.max(a.width, b.width);
+  final down =
+      ((a.y + a.height / 2) - (b.y + b.height / 2)).abs() /
+      math.max(a.height, b.height);
+  return math.sqrt(across * across + down * down);
+}
+
+/// Whether a box can continue a track out of sight for longer than the
+/// tracker's gap, and how well (issue #5120): an animal hidden behind
+/// rock, coral or another fish for a moment that comes back about where
+/// it was last seen.
+///
+/// A box mostly inside the last box, or the last box mostly inside it, by
+/// [minCover] of the smaller one, continues it whatever their sizes: a
+/// moray's box changes size and shape as it moves in and out of its hole.
+/// So does a box of alike size ([minAreaRatio]) whose centre is at most
+/// [maxShift] boxes away, as [TrackLink] measures it.
+///
+/// Every score is 1 or less, never an overlap link's
+/// ([TrackLink.isOverlap]): a box is handed to a lost track only when
+/// neither has another candidate ([matchLinks]), as two fish of a school
+/// that went out of sight together cannot be told apart by where they
+/// come back.
+class LostTrackLink {
+  const LostTrackLink({
+    this.minCover = 0.5,
+    this.maxShift = 1.5,
+    this.minAreaRatio = 0.2,
+  }) : assert(minCover > 0 && minCover <= 1),
+       assert(maxShift > 0),
+       assert(minAreaRatio >= 0 && minAreaRatio <= 1);
+
+  final double minCover;
+  final double maxShift;
+  final double minAreaRatio;
+
+  /// How well [next] continues a track last seen at [last], 0 to 1, or
+  /// null when it cannot: the cover for a box inside the other ([minCover]
+  /// to 1), at most [minCover] for a nearby one, falling with its shift.
+  double? score(IdentificationBox last, IdentificationBox next) {
+    final smaller = math.min(last.area, next.area);
+    if (smaller <= 0) return null;
+    final cover = last.intersection(next) / smaller;
+    if (cover >= minCover) return math.min(1, cover);
+    if (smaller / math.max(last.area, next.area) < minAreaRatio) return null;
+    final shift = _shift(last, next);
+    return shift <= maxShift ? (1 - shift / maxShift) * minCover : null;
+  }
 }
 
 /// One-to-one pairs of `from` and `to` indexes by [score] (a [TrackLink]
@@ -137,6 +206,41 @@ List<({int from, int to})> matchLinks(
   return pairs;
 }
 
+/// [matchLinks] by [live] (a [TrackLink] score, null for none) first, then
+/// among the `from` and `to` indexes left, by [live] or else [lost] (a
+/// [LostTrackLink] score) (issue #5120). An animal in view is always
+/// followed first, so a lost track never takes a box one in view
+/// continues, and a box one in view could also continue is not handed to
+/// a lost track: it has a rival. With no [lost] links the second pass adds
+/// nothing, as [matchLinks] already made every pair it could.
+List<({int from, int to})> matchLinksLiveFirst(
+  int fromCount,
+  int toCount, {
+  required double? Function(int from, int to) live,
+  required double? Function(int from, int to) lost,
+}) {
+  final first = matchLinks(fromCount, toCount, live);
+  final usedFrom = {for (final p in first) p.from};
+  final usedTo = {for (final p in first) p.to};
+  final froms = [
+    for (var f = 0; f < fromCount; f++)
+      if (!usedFrom.contains(f)) f,
+  ];
+  final tos = [
+    for (var t = 0; t < toCount; t++)
+      if (!usedTo.contains(t)) t,
+  ];
+  final second = matchLinks(
+    froms.length,
+    tos.length,
+    (f, t) => live(froms[f], tos[t]) ?? lost(froms[f], tos[t]),
+  );
+  return [
+    ...first,
+    for (final p in second) (from: froms[p.from], to: tos[p.to]),
+  ];
+}
+
 /// One animal followed through consecutive sampled frames.
 class TrackedAnimal {
   /// [pending]: the stored row was kept without a name when a scan
@@ -183,6 +287,11 @@ class TrackedAnimal {
   int get startMs => points.first.ms;
   int get endMs => points.last.ms;
 
+  /// How long it was in view ([seenMs]): its span less the gaps longer
+  /// than [maxGapMs] it was lost in.
+  int inViewMs({int maxGapMs = liveGapMs}) =>
+      seenMs([for (final p in points) p.ms], maxGapMs: maxGapMs);
+
   List<TrackSample> get samples => [
     for (final p in points) TrackSample(ms: p.ms, box: p.detection.box),
   ];
@@ -199,21 +308,35 @@ class _Open {
 
 /// Feeds on frames in time order. A frame's boxes are matched to the open
 /// tracks by [link] ([matchLinks]); a box left over opens a track. A track
-/// missed for more than [maxGapSamples] frames in a row is closed. A track
-/// seen in one frame only is dropped as flicker.
+/// missed for more than [maxGapSamples] frames in a row is lost: only a
+/// box left over by the tracks in view continues it, by [lostLink]
+/// ([matchLinksLiveFirst], issue #5120). A track missed for more than
+/// [maxLostSamples] is closed. A track seen in one frame only is dropped as
+/// flicker once it is missed for more than [maxGapSamples].
 class VideoTracker {
   VideoTracker({
     this.link = const TrackLink(),
+    this.lostLink = const LostTrackLink(),
     this.maxGapSamples = defaultMaxGapSamples,
-  });
+    this.maxLostSamples = defaultMaxLostSamples,
+  }) : assert(maxLostSamples >= maxGapSamples);
 
-  /// How many frames in a row a track may be missed in and still go on. A
-  /// video's labels ride over the gaps this leaves (`labelMaxGapMs`).
+  /// How many frames in a row a track may be missed in and still go on
+  /// by [link]. A video's labels ride over the gaps this leaves
+  /// (`labelMaxGapMs`).
   static const int defaultMaxGapSamples = 2;
+
+  /// How many frames in a row a track may be missed in and still go on
+  /// by [lostLink]: 3 s at [videoSampleIntervalMs] (issue #5120).
+  static const int defaultMaxLostSamples = 12;
 
   /// Which box continues a track.
   final TrackLink link;
+
+  /// Which box continues a lost track.
+  final LostTrackLink lostLink;
   final int maxGapSamples;
+  final int maxLostSamples;
 
   final _open = <_Open>[];
 
@@ -262,13 +385,17 @@ class VideoTracker {
 
   /// Adds [frame]; returns the tracks it closed.
   List<TrackedAnimal> add(FrameDetections frame) {
-    final pairs = matchLinks(
+    bool isLost(int t) => _open[t].missed > maxGapSamples;
+    bool inReach(int t) => _open[t].missed <= maxLostSamples;
+    IdentificationBox last(int t) => _open[t].animal.points.last.detection.box;
+    final pairs = matchLinksLiveFirst(
       _open.length,
       frame.boxes.length,
-      (t, b) => link.score(
-        _open[t].animal.points.last.detection.box,
-        frame.boxes[b].box,
-      ),
+      live: (t, b) =>
+          isLost(t) ? null : link.score(last(t), frame.boxes[b].box),
+      lost: (t, b) => isLost(t) && inReach(t)
+          ? lostLink.score(last(t), frame.boxes[b].box)
+          : null,
     );
     final matchedTracks = <int>{};
     final matchedBoxes = <int>{};
@@ -283,8 +410,12 @@ class VideoTracker {
     final still = <_Open>[];
     for (var t = 0; t < _open.length; t++) {
       final open = _open[t];
-      if (!matchedTracks.contains(t) && ++open.missed > maxGapSamples) {
-        if (open.animal.points.length > 1) closed.add(open.animal);
+      if (matchedTracks.contains(t) || ++open.missed <= maxGapSamples) {
+        still.add(open);
+      } else if (open.animal.points.length < 2) {
+        // Flicker: dropped, not kept to be found again.
+      } else if (open.missed > maxLostSamples) {
+        closed.add(open.animal);
       } else {
         still.add(open);
       }
@@ -302,7 +433,8 @@ class VideoTracker {
   }
 
   /// Continues [animal] as an open track, last matched [missed] frames ago:
-  /// one a stopped scan was following when it stopped.
+  /// one a stopped scan was following when it stopped. Past
+  /// [maxLostSamples] it links to nothing and closes on the next frame.
   void resume(TrackedAnimal animal, {int missed = 0}) {
     _open.add(_Open(animal)..missed = missed);
   }

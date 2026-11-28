@@ -29,7 +29,7 @@ void main() {
     expect(find.text('Import options'), findsOneWidget);
     expect(find.byType(ImportPreferencesGroup), findsOneWidget);
     expect(find.text('Auto site matching'), findsOneWidget);
-    expect(find.text('Tank pressure at surfacing'), findsOneWidget);
+    expect(find.text('Cylinder pressure at surfacing'), findsOneWidget);
     expect(find.text('Tag imports automatically'), findsOneWidget);
   });
 

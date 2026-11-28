@@ -91,7 +91,7 @@ void main() {
         ),
       ),
     );
-    expect(find.text('Used on single-tank dives'), findsOneWidget);
+    expect(find.text('Used on single-cylinder dives'), findsOneWidget);
   });
 
   testWidgets('the sheet names a held swatch and tapping it swaps', (

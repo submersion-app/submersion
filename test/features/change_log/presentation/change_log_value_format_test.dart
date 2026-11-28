@@ -98,7 +98,7 @@ void main() {
   });
 
   test('a reference column is named as the conflict dialog names it', () {
-    expect(formatter().label('tank_pressure_series', 'tank_id'), 'Tank');
+    expect(formatter().label('tank_pressure_series', 'tank_id'), 'Cylinder');
     expect(formatter().label('dive_plans', 'linked_dive_id'), 'Linked dive');
     expect(formatter().label('documents', 'dive_id'), 'Dive');
     // Catalogued: unchanged.

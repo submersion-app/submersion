@@ -24,6 +24,16 @@ const _uuid = Uuid();
 /// build this plan, not forever.
 final savedTanksExpandedProvider = StateProvider<bool>((_) => false);
 
+/// Names the planner gave its saved-cylinders folder before issue #5106
+/// renamed tanks to cylinders, by language. A folder still named one of them
+/// is the folder saves go to, so a diver who saved before does not get a
+/// second one.
+const kFormerSavedTanksFolderNames = {
+  'Saved tanks',
+  'Bouteilles enregistrées',
+  'מכלים שמורים',
+};
+
 /// A bar above the plan's tanks that opens into the diver's saved cylinders.
 ///
 /// Saved cylinders are the app's cylinder-configuration items, so a rig
@@ -207,10 +217,13 @@ class PlanSavedTanksBar extends ConsumerWidget {
       final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
       final folderName = l10n.divePlanner_savedTanks_title;
 
+      // A folder made before cylinders were called cylinders keeps its old
+      // name, and saves still go to it (issue #5106).
+      final folderNames = {folderName, ...kFormerSavedTanksFolderNames};
       final existing = (await repository.getAllConfigs(
         diverId: diverId,
         includeItems: true,
-      )).where((c) => c.equipmentId == null && c.name == folderName);
+      )).where((c) => c.equipmentId == null && folderNames.contains(c.name));
       final folder = existing.isEmpty ? null : existing.first;
       final configId =
           folder?.id ??

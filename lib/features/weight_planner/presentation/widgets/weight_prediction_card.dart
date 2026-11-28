@@ -46,6 +46,8 @@ class WeightPredictionCard extends StatelessWidget {
       return context.l10n.tools_weight_personalTerm;
     }
     if (term.label == 'water') return context.l10n.tools_weight_waterTerm;
+    // A cylinder with no preset name (issue #5106).
+    if (term.label == 'tank') return context.l10n.enum_equipmentType_tank;
     if (term.label == BodyComposition.termLabel) {
       return context.l10n.tools_weight_bmiTerm;
     }
