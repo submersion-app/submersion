@@ -35,11 +35,18 @@ class NearbySpeciesTier extends ConsumerStatefulWidget {
   /// shown without an action.
   final ValueChanged<String>? onSpeciesTap;
 
+  /// Draws the tier's title from the number of species it lists, in place
+  /// of the plain title and count. Built only when the tier shows, so a
+  /// host can put what separates the tier from the sections above in it
+  /// (the site page's Marine life card, issue #5128).
+  final Widget Function(BuildContext context, int count)? headerBuilder;
+
   const NearbySpeciesTier({
     super.key,
     required this.siteId,
     required this.location,
     this.onSpeciesTap,
+    this.headerBuilder,
   });
 
   @override
@@ -107,22 +114,23 @@ class _NearbySpeciesTierState extends ConsumerState<NearbySpeciesTier> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                context.l10n.reef_species_recordedNearby,
-                style: theme.textTheme.labelLarge,
-              ),
+        widget.headerBuilder?.call(context, chips.length) ??
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    context.l10n.reef_species_recordedNearby,
+                    style: theme.textTheme.labelLarge,
+                  ),
+                ),
+                Text(
+                  '${chips.length}',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
-            Text(
-              '${chips.length}',
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
         const SizedBox(height: 8),
         Wrap(spacing: 8, runSpacing: 4, children: visible),
         if (hidden > 0)

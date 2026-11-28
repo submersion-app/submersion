@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,7 +10,11 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
+import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
+import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/site_marine_life_section.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_tier_header.dart';
 import 'package:submersion/features/reef/domain/entities/nearby_species.dart';
 import 'package:submersion/features/reef/domain/entities/reef_data_status.dart';
 import 'package:submersion/features/reef/presentation/providers/reef_providers.dart';
@@ -23,6 +28,45 @@ const _whaleShark = Species(
   category: SpeciesCategory.shark,
   isBuiltIn: true,
 );
+
+const _octopus = Species(
+  id: 'sp_octopus',
+  commonName: 'Common Octopus',
+  scientificName: 'Octopus vulgaris',
+  category: SpeciesCategory.invertebrate,
+  isBuiltIn: true,
+);
+
+const _nearbyWhaleShark = NearbySpecies(
+  matched: [
+    MatchedNearbySpecies(speciesId: 'sp_whale_shark', occurrenceCount: 42),
+  ],
+  unmatchedNames: [],
+);
+
+SiteSpeciesSummary _spotted(
+  String id,
+  String name,
+  SpeciesCategory category, {
+  int count = 1,
+}) => SiteSpeciesSummary(
+  speciesId: id,
+  speciesName: name,
+  category: category,
+  sightingCount: count,
+  animalCount: count,
+  diveCount: count,
+);
+
+SiteSpeciesEntry _expected(String id, String name, SpeciesCategory category) =>
+    SiteSpeciesEntry(
+      id: 'entry-$id',
+      siteId: 'site-1',
+      speciesId: id,
+      speciesName: name,
+      category: category,
+      createdAt: DateTime(2026),
+    );
 
 /// Records any expected species written, so a tap that writes is caught.
 class _RecordingSpeciesRepository extends Fake implements SpeciesRepository {
@@ -54,24 +98,32 @@ class _RecordingSpeciesRepository extends Fake implements SpeciesRepository {
 }
 
 /// The site page's Marine life card shows the site's species only: the lock
-/// is the one way to change them (issue #4527, phase 2, plan 7).
+/// is the one way to change them (issue #4527, phase 2, plan 7). Its three
+/// sections read as sections, each category beside its chips (issue #5128).
 void main() {
   final l = AppLocalizationsEn();
   const location = GeoPoint(12.16, -68.28);
 
-  Future<_RecordingSpeciesRepository> pump(WidgetTester tester) async {
+  Future<_RecordingSpeciesRepository> pump(
+    WidgetTester tester, {
+    List<SiteSpeciesSummary> spotted = const [],
+    List<SiteSpeciesEntry> expected = const [],
+    NearbySpecies? nearby = _nearbyWhaleShark,
+    List<Species> catalog = const [_whaleShark],
+    GeoPoint? siteLocation = location,
+  }) async {
     final repository = _RecordingSpeciesRepository();
     final router = GoRouter(
       initialLocation: '/',
       routes: [
         GoRoute(
           path: '/',
-          builder: (_, _) => const Scaffold(
+          builder: (_, _) => Scaffold(
             body: SingleChildScrollView(
               child: SiteMarineLifeSection(
                 siteId: 'site-1',
-                location: location,
-                species: [],
+                location: siteLocation,
+                species: expected,
               ),
             ),
           ),
@@ -89,21 +141,13 @@ void main() {
           validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
           siteSpottedSpeciesProvider(
             'site-1',
-          ).overrideWith((ref) async => const []),
+          ).overrideWith((ref) async => spotted),
           reefNearbySpeciesProvider(location).overrideWith(
-            (ref) async => const ReefPart<NearbySpecies>.ok(
-              NearbySpecies(
-                matched: [
-                  MatchedNearbySpecies(
-                    speciesId: 'sp_whale_shark',
-                    occurrenceCount: 42,
-                  ),
-                ],
-                unmatchedNames: [],
-              ),
-            ),
+            (ref) async => nearby == null
+                ? const ReefPart<NearbySpecies>.unavailable()
+                : ReefPart<NearbySpecies>.ok(nearby),
           ),
-          allSpeciesProvider.overrideWith((ref) async => const [_whaleShark]),
+          allSpeciesProvider.overrideWith((ref) async => catalog),
           speciesRepositoryProvider.overrideWithValue(repository),
         ],
         child: MaterialApp.router(
@@ -117,6 +161,18 @@ void main() {
     await tester.pumpAndSettle();
     return repository;
   }
+
+  TextStyle renderedStyle(WidgetTester tester, String text) =>
+      tester.renderObject<RenderParagraph>(find.text(text).first).text.style!;
+
+  Rect chipRect(WidgetTester tester, String label) => tester.getRect(
+    find.ancestor(of: find.text(label), matching: find.byType(Chip)).first,
+  );
+
+  Finder header(String title) => find.ancestor(
+    of: find.text(title),
+    matching: find.byType(SpeciesTierHeader),
+  );
 
   testWidgets('a species recorded nearby opens its page and adds nothing', (
     tester,
@@ -143,5 +199,276 @@ void main() {
       ),
       findsNothing,
     );
+  });
+
+  testWidgets(
+    'the three section titles share one style, above the category labels',
+    (tester) async {
+      await pump(
+        tester,
+        spotted: [_spotted('a', 'Blue Tang', SpeciesCategory.fish)],
+        expected: [_expected('b', 'Tarpon', SpeciesCategory.fish)],
+      );
+
+      final context = tester.element(find.byType(SiteMarineLifeSection));
+      final onSurface = Theme.of(context).colorScheme.onSurface;
+      final spotted = renderedStyle(
+        tester,
+        l.marineLife_siteSection_spottedHere,
+      );
+      final expectedTitle = renderedStyle(
+        tester,
+        l.marineLife_siteSection_expectedSpecies,
+      );
+      final nearby = renderedStyle(tester, l.reef_species_recordedNearby);
+      final category = renderedStyle(
+        tester,
+        SpeciesCategory.fish.localizedName(l),
+      );
+
+      for (final title in [spotted, expectedTitle, nearby]) {
+        expect(title.fontSize, spotted.fontSize);
+        expect(title.fontWeight, spotted.fontWeight);
+        expect(title.color, onSurface);
+      }
+      expect(spotted.fontSize, greaterThan(category.fontSize!));
+      // Each title is a heading for assistive tech too.
+      expect(
+        tester.getSemantics(find.text(l.marineLife_siteSection_spottedHere)),
+        matchesSemantics(
+          label: l.marineLife_siteSection_spottedHere,
+          isHeader: true,
+        ),
+      );
+    },
+  );
+
+  testWidgets('each section title counts the species under it', (tester) async {
+    await pump(
+      tester,
+      spotted: [
+        _spotted('a', 'Blue Tang', SpeciesCategory.fish, count: 4),
+        _spotted('b', 'Trumpetfish', SpeciesCategory.fish),
+        _spotted('c', 'Green Sea Turtle', SpeciesCategory.turtle),
+      ],
+      expected: [
+        _expected('d', 'Tarpon', SpeciesCategory.fish),
+        _expected('e', 'Hawksbill Turtle', SpeciesCategory.turtle),
+      ],
+    );
+
+    expect(
+      find.descendant(
+        of: header(l.marineLife_siteSection_spottedHere),
+        matching: find.text('3'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: header(l.marineLife_siteSection_expectedSpecies),
+        matching: find.text('2'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: header(l.reef_species_recordedNearby),
+        matching: find.text('1'),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('an empty section counts nothing', (tester) async {
+    await pump(tester);
+
+    expect(
+      find.descendant(
+        of: header(l.marineLife_siteSection_spottedHere),
+        matching: find.text('0'),
+      ),
+      findsNothing,
+    );
+    expect(find.text(l.marineLife_siteSection_noSpotted), findsOneWidget);
+  });
+
+  testWidgets('a divider separates each section from the next', (tester) async {
+    await pump(tester);
+
+    expect(
+      find.descendant(
+        of: find.byType(SiteMarineLifeSection),
+        matching: find.byType(Divider),
+      ),
+      findsNWidgets(2),
+    );
+  });
+
+  testWidgets('no divider is left for a nearby tier that draws nothing', (
+    tester,
+  ) async {
+    await pump(tester, nearby: null);
+
+    expect(find.text(l.reef_species_recordedNearby), findsNothing);
+    expect(
+      find.descendant(
+        of: find.byType(SiteMarineLifeSection),
+        matching: find.byType(Divider),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a category label sits beside its chips, on their first line', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      spotted: [
+        _spotted('a', 'Blue Tang', SpeciesCategory.fish),
+        _spotted('b', 'Trumpetfish', SpeciesCategory.fish),
+        _spotted('c', 'Green Sea Turtle', SpeciesCategory.turtle),
+      ],
+    );
+
+    final fishLabel = tester.getRect(
+      find.text(SpeciesCategory.fish.localizedName(l)),
+    );
+    final turtleLabel = tester.getRect(
+      find.text(SpeciesCategory.turtle.localizedName(l)),
+    );
+    final blueTang = chipRect(tester, 'Blue Tang (1)');
+    final turtle = chipRect(tester, 'Green Sea Turtle (1)');
+
+    // Beside: the label ends before its chips start.
+    expect(fishLabel.right, lessThanOrEqualTo(blueTang.left));
+    expect(turtleLabel.right, lessThanOrEqualTo(turtle.left));
+    // On the first line: the label is level with its first chip, so a
+    // category of one species takes one line, not two.
+    expect(fishLabel.center.dy, closeTo(blueTang.center.dy, 4));
+    expect(turtleLabel.center.dy, closeTo(turtle.center.dy, 4));
+    expect(turtle.top, greaterThanOrEqualTo(blueTang.bottom));
+    // Both categories' chips start in one column.
+    expect(turtle.left, blueTang.left);
+  });
+
+  testWidgets('a category reads in one colour wherever the card shows it', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      spotted: [
+        _spotted('x', 'Caribbean Reef Squid', SpeciesCategory.invertebrate),
+      ],
+      nearby: const NearbySpecies(
+        matched: [
+          MatchedNearbySpecies(speciesId: 'sp_octopus', occurrenceCount: 3),
+        ],
+        unmatchedNames: [],
+      ),
+      catalog: const [_octopus],
+    );
+
+    final icons = tester
+        .widgetList<Icon>(
+          find.byIcon(iconForSpeciesCategory(SpeciesCategory.invertebrate)),
+        )
+        .toList();
+    expect(icons, hasLength(2));
+    final brightness = Theme.of(
+      tester.element(find.byType(SiteMarineLifeSection)),
+    ).brightness;
+    for (final icon in icons) {
+      expect(
+        icon.color,
+        colorForSpeciesCategory(SpeciesCategory.invertebrate, brightness),
+      );
+    }
+  });
+
+  testWidgets('a long list on a narrow phone lays out without overflow', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await pump(
+      tester,
+      spotted: [
+        for (var i = 0; i < 40; i++)
+          _spotted(
+            's$i',
+            'Long-named Reef Species Number $i',
+            SpeciesCategory.values[i % SpeciesCategory.values.length],
+            count: i + 1,
+          ),
+      ],
+      expected: [
+        for (var i = 0; i < 15; i++)
+          _expected(
+            'e$i',
+            'Expected Species $i',
+            SpeciesCategory.values[i % SpeciesCategory.values.length],
+          ),
+      ],
+    );
+
+    expect(tester.takeException(), isNull);
+    // The label column stays narrow enough to leave the chips most of it.
+    final card = tester.getRect(find.byType(SiteMarineLifeSection));
+    final label = tester.getRect(
+      find.text(SpeciesCategory.invertebrate.localizedName(l)).first,
+    );
+    expect(label.width, lessThanOrEqualTo(card.width * 0.35));
+  });
+
+  testWidgets('every section starts its chips in one column', (tester) async {
+    // Spotted has only a short category name, Expected a long one: the
+    // chips still line up down the card.
+    await pump(
+      tester,
+      spotted: [_spotted('a', 'Blue Tang', SpeciesCategory.fish)],
+      expected: [
+        _expected('b', 'Caribbean Reef Squid', SpeciesCategory.invertebrate),
+      ],
+    );
+
+    expect(
+      chipRect(tester, 'Blue Tang (1)').left,
+      chipRect(tester, 'Caribbean Reef Squid').left,
+    );
+  });
+
+  testWidgets('a long name on a narrow phone wraps and keeps its count', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    const name = 'Caribbean Reef Squid With A Very Long Name (12)';
+
+    await pump(
+      tester,
+      spotted: [
+        _spotted(
+          'a',
+          'Caribbean Reef Squid With A Very Long Name',
+          SpeciesCategory.invertebrate,
+          count: 12,
+        ),
+      ],
+    );
+
+    final paragraph = tester.renderObject<RenderParagraph>(find.text(name));
+    // Not faded out at the chip's edge, which is how a chip cuts a label,
+    // but wrapped onto a second line.
+    expect(paragraph.debugHasOverflowShader, isFalse);
+    expect(
+      paragraph.size.height,
+      greaterThan(paragraph.getMinIntrinsicHeight(double.infinity)),
+    );
+    expect(tester.takeException(), isNull);
   });
 }

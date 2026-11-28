@@ -1,10 +1,14 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
+import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_tier_header.dart';
 import 'package:submersion/features/reef/presentation/widgets/nearby_species_tier.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -49,23 +53,37 @@ class SiteMarineLifeSection extends ConsumerWidget {
             _buildHeader(context),
             const SizedBox(height: 16),
             _buildSpottedSection(context, ref, spottedAsync),
-            const SizedBox(height: 16),
+            _sectionDivider,
             _buildExpectedSection(context, ref, expectedAsync),
-            if (location != null) ...[
-              const SizedBox(height: 16),
+            if (location != null)
               // Shown only, as on the species map: a species opens its
-              // page, and adding one is the unlocked card's (plan 7).
+              // page, and adding one is the unlocked card's (plan 7). The
+              // divider comes with the tier's header, since the tier alone
+              // knows whether it draws anything.
               NearbySpeciesTier(
                 siteId: siteId,
                 location: location!,
                 onSpeciesTap: (id) => context.push('/species/$id'),
+                headerBuilder: (context, count) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _sectionDivider,
+                    SpeciesTierHeader(
+                      icon: Icons.travel_explore,
+                      title: context.l10n.reef_species_recordedNearby,
+                      count: count,
+                    ),
+                  ],
+                ),
               ),
-            ],
           ],
         ),
       ),
     );
   }
+
+  /// What separates one section of the card from the next.
+  static const Widget _sectionDivider = Divider(height: 32);
 
   Widget _buildHeader(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -86,21 +104,10 @@ class SiteMarineLifeSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(
-              Icons.visibility,
-              size: 16,
-              color: colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              context.l10n.marineLife_siteSection_spottedHere,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
+        SpeciesTierHeader(
+          icon: Icons.visibility,
+          title: context.l10n.marineLife_siteSection_spottedHere,
+          count: spottedAsync.value?.length,
         ),
         const SizedBox(height: 8),
         spottedAsync.when(
@@ -158,23 +165,10 @@ class SiteMarineLifeSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(
-              Icons.auto_awesome,
-              size: 16,
-              color: colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                context.l10n.marineLife_siteSection_expectedSpecies,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          ],
+        SpeciesTierHeader(
+          icon: Icons.auto_awesome,
+          title: context.l10n.marineLife_siteSection_expectedSpecies,
+          count: expectedAsync.value?.length,
         ),
         const SizedBox(height: 8),
         expectedAsync.when(
@@ -221,96 +215,143 @@ class SiteMarineLifeSection extends ConsumerWidget {
     );
   }
 
+  /// The species grouped by category, each category's name in a column
+  /// beside its chips (issue #5128). Stacked above them, the names ran
+  /// together with the section titles, and a category of one species took
+  /// two lines. The names sit on the baseline of their first row of chips.
   Widget _buildSpeciesChips(
     BuildContext context,
     List<_SpeciesChipData> species, {
     required bool showCount,
   }) {
-    // Group by category
     final grouped = <SpeciesCategory, List<_SpeciesChipData>>{};
     for (final s in species) {
       grouped.putIfAbsent(s.category, () => []).add(s);
     }
 
-    final colorScheme = Theme.of(context).colorScheme;
+    final groups = grouped.entries.toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: grouped.entries.map((entry) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Table(
+      // Wide enough for any category's name, so every section starts its
+      // chips in one column down the card, but never more than about a
+      // third of it: a long translation wraps rather than crowding the
+      // chips on a phone.
+      columnWidths: {
+        0: MinColumnWidth(
+          FixedColumnWidth(_categoryColumnWidth(context)),
+          const FractionColumnWidth(0.35),
+        ),
+        1: const FlexColumnWidth(),
+      },
+      defaultVerticalAlignment: TableCellVerticalAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        for (final (index, entry) in groups.indexed)
+          TableRow(
             children: [
-              Text(
-                entry.key.localizedName(context.l10n),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+              Padding(
+                padding: EdgeInsetsDirectional.only(
+                  end: _categoryGap,
+                  bottom: index == groups.length - 1 ? 0 : 8,
+                ),
+                child: Text(
+                  entry.key.localizedName(context.l10n),
+                  style: _categoryStyle(context),
                 ),
               ),
-              const SizedBox(height: 4),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: entry.value.map((s) {
-                  final chipLabel = showCount && s.count != null
-                      ? context.l10n
-                            .marineLife_siteSection_spottedCountSemantics(
-                              s.name,
-                              s.count!,
-                            )
-                      : s.name;
-                  return Semantics(
-                    label: chipLabel,
-                    child: Chip(
-                      avatar: ExcludeSemantics(
-                        child: Icon(
-                          iconForSpeciesCategory(s.category),
-                          size: 16,
-                          color: _getCategoryColor(s.category),
-                        ),
-                      ),
-                      label: Text(
-                        showCount && s.count != null
-                            ? '${s.name} (${s.count})'
-                            : s.name,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                    ),
-                  );
-                }).toList(),
+              Padding(
+                padding: EdgeInsets.only(
+                  bottom: index == groups.length - 1 ? 0 : 8,
+                ),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    for (final s in entry.value)
+                      _speciesChip(context, s, showCount: showCount),
+                  ],
+                ),
               ),
             ],
           ),
-        );
-      }).toList(),
+      ],
     );
   }
 
-  Color _getCategoryColor(SpeciesCategory category) {
-    switch (category) {
-      case SpeciesCategory.fish:
-        return Colors.blue;
-      case SpeciesCategory.shark:
-        return Colors.blueGrey;
-      case SpeciesCategory.ray:
-        return Colors.indigo;
-      case SpeciesCategory.mammal:
-        return Colors.teal;
-      case SpeciesCategory.turtle:
-        return Colors.green;
-      case SpeciesCategory.invertebrate:
-        return Colors.orange;
-      case SpeciesCategory.coral:
-        return Colors.pink;
-      case SpeciesCategory.plant:
-        return Colors.lightGreen;
-      case SpeciesCategory.other:
-        return Colors.grey;
+  /// Between a category's name and its chips.
+  static const double _categoryGap = 12;
+
+  TextStyle? _categoryStyle(BuildContext context) {
+    final theme = Theme.of(context);
+    return theme.textTheme.labelMedium?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+  }
+
+  /// The widest category name in this language, at the diver's text size,
+  /// plus the gap before the chips. Measured over every category, not just
+  /// those listed, so Spotted and Expected arrive at the same width.
+  double _categoryColumnWidth(BuildContext context) {
+    final style = DefaultTextStyle.of(
+      context,
+    ).style.merge(_categoryStyle(context));
+    final painter = TextPainter(
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+    );
+    var widest = 0.0;
+    for (final category in SpeciesCategory.values) {
+      painter
+        ..text = TextSpan(
+          text: category.localizedName(context.l10n),
+          style: style,
+        )
+        ..layout();
+      widest = math.max(widest, painter.width);
     }
+    painter.dispose();
+    return widest.ceilToDouble() + _categoryGap;
+  }
+
+  Widget _speciesChip(
+    BuildContext context,
+    _SpeciesChipData s, {
+    required bool showCount,
+  }) {
+    final theme = Theme.of(context);
+    final count = showCount ? s.count : null;
+    return Semantics(
+      label: count != null
+          ? context.l10n.marineLife_siteSection_spottedCountSemantics(
+              s.name,
+              count,
+            )
+          : s.name,
+      child: Chip(
+        avatar: ExcludeSemantics(
+          child: Icon(
+            iconForSpeciesCategory(s.category),
+            size: 16,
+            // The app's one colour per category, as Recorded nearby below
+            // draws it.
+            color: colorForSpeciesCategory(s.category, theme.brightness),
+          ),
+        ),
+        // A chip fades a label it cannot fit on one line, which on a
+        // phone cut the count off a long name. It wraps instead. A null
+        // maxLines would take the chip's one line, so the cap is explicit.
+        label: Text(
+          count != null ? '${s.name} ($count)' : s.name,
+          style: theme.textTheme.bodySmall,
+          softWrap: true,
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+        ),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+      ),
+    );
   }
 }
 
