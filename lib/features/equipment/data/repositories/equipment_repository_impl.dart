@@ -389,6 +389,8 @@ class EquipmentRepository {
                     : null,
               ),
               parentEquipmentId: Value(equipment.parentEquipmentId),
+              sellerBuddyId: Value(equipment.sellerBuddyId),
+              sellerDiveCenterId: Value(equipment.sellerDiveCenterId),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -547,6 +549,8 @@ class EquipmentRepository {
                   : null,
             ),
             parentEquipmentId: Value(equipment.parentEquipmentId),
+            sellerBuddyId: Value(equipment.sellerBuddyId),
+            sellerDiveCenterId: Value(equipment.sellerDiveCenterId),
             updatedAt: Value(now),
           ),
         );
@@ -1210,6 +1214,8 @@ class EquipmentRepository {
                     .cast<int>()
               : null,
           parentEquipmentId: row.data['parent_equipment_id'] as String?,
+          sellerBuddyId: row.data['seller_buddy_id'] as String?,
+          sellerDiveCenterId: row.data['seller_dive_center_id'] as String?,
           createdAt: DateTime.fromMillisecondsSinceEpoch(
             row.data['created_at'] as int,
           ),
@@ -1953,6 +1959,8 @@ class EquipmentRepository {
           : null,
       parentEquipmentId: row.parentEquipmentId,
       coverMediaId: row.coverMediaId,
+      sellerBuddyId: row.sellerBuddyId,
+      sellerDiveCenterId: row.sellerDiveCenterId,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     );
   }

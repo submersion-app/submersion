@@ -44,6 +44,8 @@ EquipmentItem _with(
   Object? customReminderDays = _keep,
   Object? parentEquipmentId = _keep,
   Object? coverMediaId = _keep,
+  Object? sellerBuddyId = _keep,
+  Object? sellerDiveCenterId = _keep,
 }) => EquipmentItem(
   id: e.id,
   diverId: e.diverId,
@@ -68,6 +70,8 @@ EquipmentItem _with(
   customReminderDays: _or<List<int>>(customReminderDays, e.customReminderDays),
   parentEquipmentId: _or<String>(parentEquipmentId, e.parentEquipmentId),
   coverMediaId: _or<String>(coverMediaId, e.coverMediaId),
+  sellerBuddyId: _or<String>(sellerBuddyId, e.sellerBuddyId),
+  sellerDiveCenterId: _or<String>(sellerDiveCenterId, e.sellerDiveCenterId),
   createdAt: e.createdAt,
 );
 

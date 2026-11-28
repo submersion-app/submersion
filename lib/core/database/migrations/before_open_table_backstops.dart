@@ -156,6 +156,9 @@ extension TableBackstopsFromV217 on AppDatabase {
     // (issue #3355; idempotent).
     await _assertEquipmentPhotoColumns();
 
+    // v397 backstop: who sold a gear item (issue #5140; idempotent).
+    await _assertEquipmentSellerColumns();
+
     // v375 backstop: the marine life identification tables (issue #4668;
     // local, idempotent).
     await _assertMediaIdentificationTables();

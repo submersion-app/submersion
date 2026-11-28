@@ -39,6 +39,12 @@ class EquipmentItem extends Equatable {
   /// by an item's save.
   final String? coverMediaId;
 
+  /// Who sold the item (issue #5140): a buddy or a saved dive centre, at
+  /// most one. The `retailer` attribute holds the seller's name either way;
+  /// see `resolveEquipmentSeller` for how the two read together.
+  final String? sellerBuddyId;
+  final String? sellerDiveCenterId;
+
   /// Row creation time (null for entities built before persistence); used as
   /// the last anchor fallback for service clocks.
   final DateTime? createdAt;
@@ -64,6 +70,8 @@ class EquipmentItem extends Equatable {
     this.customReminderDays,
     this.parentEquipmentId,
     this.coverMediaId,
+    this.sellerBuddyId,
+    this.sellerDiveCenterId,
     this.createdAt,
   });
 
@@ -284,6 +292,9 @@ class EquipmentItem extends Equatable {
     bool clearParentEquipmentId = false,
     String? coverMediaId,
     bool clearCoverMediaId = false,
+    String? sellerBuddyId,
+    String? sellerDiveCenterId,
+    bool clearSellerLinks = false,
     DateTime? createdAt,
   }) {
     return EquipmentItem(
@@ -312,6 +323,13 @@ class EquipmentItem extends Equatable {
       coverMediaId: clearCoverMediaId
           ? null
           : (coverMediaId ?? this.coverMediaId),
+      // Cleared first, then any link given: one call moves a seller from a
+      // buddy to a centre.
+      sellerBuddyId:
+          sellerBuddyId ?? (clearSellerLinks ? null : this.sellerBuddyId),
+      sellerDiveCenterId:
+          sellerDiveCenterId ??
+          (clearSellerLinks ? null : this.sellerDiveCenterId),
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -338,6 +356,8 @@ class EquipmentItem extends Equatable {
     customReminderDays,
     parentEquipmentId,
     coverMediaId,
+    sellerBuddyId,
+    sellerDiveCenterId,
     createdAt,
   ];
 }

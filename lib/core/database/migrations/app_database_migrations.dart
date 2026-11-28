@@ -112,6 +112,7 @@ part 'helpers/site_catalogue_answers_migrations.dart';
 part 'helpers/equipment_condition_migrations.dart';
 part 'helpers/equipment_location_migrations.dart';
 part 'helpers/equipment_photo_migrations.dart';
+part 'helpers/equipment_seller_migrations.dart';
 part 'helpers/first_day_of_week_migrations.dart';
 part 'helpers/insight_migrations.dart';
 part 'helpers/nearby_migrations.dart';

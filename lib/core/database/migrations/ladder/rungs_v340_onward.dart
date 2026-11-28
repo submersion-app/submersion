@@ -369,5 +369,12 @@ extension RungsFromV340 on AppDatabase {
     // v239 built-in backfill is not. The floor does not move.
     if (from < 393) await _backfillWingInspectionServiceKind();
     if (from < 393) await reportProgress();
+
+    // v397 (issue #5140): equipment.seller_buddy_id and
+    // seller_dive_center_id, who sold a gear item. Nullable, no backfill,
+    // re-asserted in beforeOpen; the floor does not move. Numbered 397
+    // because open work claims 394 to 396.
+    if (from < 397) await _assertEquipmentSellerColumns();
+    if (from < 397) await reportProgress();
   }
 }
