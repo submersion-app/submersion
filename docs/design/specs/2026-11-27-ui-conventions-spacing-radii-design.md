@@ -115,10 +115,12 @@ recursively through parentheses. An operand of arithmetic is not flagged
 
 It does not flag:
 
-- anything inside the initializer of a top-level variable, a `static`
-  field declaration or an enum constant's arguments (a named constant, such as `FormStyle.rowPadding` or
-  `kFabListPadding`), except inside a closure there. An instance field is
-  widget state and is checked (narrowed after the final review);
+- an off-scale value inside the initializer of a top-level variable, a
+  `static` field declaration or an enum constant's arguments (a named
+  constant, such as `FormStyle.rowPadding` or `kFabListPadding`), except
+  inside a closure there. An on-scale value there is still flagged, since it
+  belongs on the scale (narrowed after review). An instance field is widget
+  state and is checked (narrowed after the final review);
 - expressions built from names (`FormStyle.groupRadius`);
 - `SizedBox.square`, `SizedBox.fromSize` and two-axis boxes, which are sizes;
 - comments and strings, which the AST never presents as arguments.

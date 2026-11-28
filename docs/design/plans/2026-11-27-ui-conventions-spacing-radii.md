@@ -24,9 +24,9 @@
 
 1. A construction without `const` parses as a `MethodInvocation` (`EdgeInsets.all(8)`, `SizedBox(width: 8)`), not an `InstanceCreationExpression`. Both shapes must be flagged (Task 2 tests both).
 2. `16.0`, `-4` and `0.0`: a double and a negated literal are flagged; zero in either spelling is not (Task 2).
-3. A `const pad = EdgeInsets.all(10);` local inside a method is not a named constant in the spec's sense and is flagged; a top-level or class field is exempt (Task 2).
+3. A `const pad = EdgeInsets.all(10);` local inside a method is not a named constant in the spec's sense and is flagged. A top-level, `static` or enum constant declaration exempts an off-scale value only; an on-scale value there (`static const gap = EdgeInsets.all(12)`) is still flagged, since it belongs on the scale (Task 2; narrowed after review).
 4. A multi-line `EdgeInsets.fromLTRB(` whose arguments sit on separate lines reports the line of each literal, so the rewrite hits the right token (Task 2 asserts offsets).
-5. The guard could pass vacuously if the scanner stops matching. The guard test also scans `lib/features/` and asserts it finds more than 1000 literals there (Task 3).
+5. The guard could pass vacuously if the scanner stops matching. The guard test also scans a committed fixture widget, `test/architecture/spacing_literal_fixture.dart`, and expects exactly its six literals in source order (Task 3). A count over `lib/features/` was used first and replaced after review: it falls with every feature migration.
 
 ---
 
@@ -79,7 +79,7 @@
 - [ ] **Step 1: Write the failing tests** with the temp-directory harness of `list_tile_trailing_scanner_test.dart`:
   - `group('flags')`, one test per form, each asserting `values == [N]` and `call`:
     `const EdgeInsets.all(16)`, `EdgeInsets.all(16)` (no const), `EdgeInsets.symmetric(horizontal: 8, vertical: 4)` gives `[8, 4]`, `EdgeInsets.only(left: 10)`, `EdgeInsets.fromLTRB(16, 0, 16, 6)` gives `[16, 16, 6]`, `EdgeInsetsDirectional.fromSTEB(4, 0, 4, 0)`, `BorderRadius.circular(12)`, `Radius.circular(8)`, `Radius.elliptical(4, 6)`, `SizedBox(width: 8)`, `const SizedBox(height: 12)`, `Wrap(spacing: 24, runSpacing: 12)`, `Row(spacing: 8)`, `GridView.count(crossAxisCount: 2, mainAxisSpacing: 4)`, `Divider(indent: 16, endIndent: 16)`, `EdgeInsets.all(compact ? 8 : 16)` gives `[8, 16]`, `EdgeInsets.all(gap ?? 4)`, `EdgeInsets.all((12))`, `EdgeInsets.all(16.0)`, `EdgeInsets.only(top: -4)` gives `[-4]`, a local `const pad = EdgeInsets.all(10);` inside a function.
-  - `group('ignores')`: `EdgeInsets.zero`, `EdgeInsets.all(0)`, `EdgeInsets.all(0.0)`, `EdgeInsets.all(Spacing.s8)`, `EdgeInsets.all(Spacing.s8 * 2)`, `SizedBox(width: 8, height: 8)`, `SizedBox(width: 150, child: x)`, `SizedBox.square(dimension: 24)`, `GridView.count(crossAxisCount: 2)`, a top-level `const kPad = EdgeInsets.only(bottom: 88);`, a `static const rowPadding = EdgeInsets.symmetric(horizontal: 14);` field, `// EdgeInsets.all(16)` in a comment, `'EdgeInsets.all(16)'` in a string, a file named `x.g.dart`.
+  - `group('ignores')`: `EdgeInsets.zero`, `EdgeInsets.all(0)`, `EdgeInsets.all(0.0)`, `EdgeInsets.all(Spacing.s8)`, `EdgeInsets.all(Spacing.s8 * 2)`, `SizedBox(width: 8, height: 8)`, `SizedBox(width: 150, child: x)`, `SizedBox.square(dimension: 24)`, `GridView.count(crossAxisCount: 2)`, a top-level `const kPad = EdgeInsets.only(bottom: 88);`, a `static const rowPadding = EdgeInsets.symmetric(horizontal: 14);` field (both off the scale; an on-scale value in a named constant is flagged), `// EdgeInsets.all(16)` in a comment, `'EdgeInsets.all(16)'` in a string, a file named `x.g.dart`.
   - `test('reports the line and offset of each literal')`: a multi-line `EdgeInsets.fromLTRB(\n  16,\n  8,\n  16,\n  4,\n)`; expect lines `[2, 3, 4, 5]` relative to the snippet and `source.substring(offset, offset + length)` equal to `'16','8','16','4'`; for `-4` the substring is `'-4'`.
 - [ ] **Step 2: Run** `flutter test test/architecture/spacing_literal_scanner_test.dart`. Expected: FAIL (scanner missing).
 - [ ] **Step 3: Implement** `scanForSpacingLiterals` with `parseString(content:, featureSet: FeatureSet.latestLanguageVersion(), throwIfDiagnostics: false)` and a `RecursiveAstVisitor` that tracks when it is inside a top-level or field initializer.
@@ -96,9 +96,9 @@
 - Produces: `const guardedRoots = ['lib/shared/widgets'];` at the top of the test, the list later feature migrations extend.
 
 - [ ] **Step 1: Write the tests:**
-  - `the scanner still matches real code, so the guard cannot pass vacuously`: scanning `lib/features` finds more than 1000 literals.
+  - `the scanner still matches a real widget file, so the guard cannot pass vacuously`: scanning the committed fixture `test/architecture/spacing_literal_fixture.dart` reports exactly its six literals (`EdgeInsets.all 16`, `BorderRadius.circular 12`, `Column.spacing 4`, `SizedBox.height 8`, `EdgeInsetsDirectional.only 6`, `Radius.circular 2`) and skips its `static const` off-scale value and its child-sizing box. A fixture, not a count over `lib/features`, so migrations cannot break it.
   - `guarded folders hold no spacing or radius literals`: scanning every `.dart` file under `guardedRoots` gives an empty list; `reason` lists each `toString()` and says to use `Spacing` / `Radii` from `lib/core/theme/spacing.dart`, or a named constant with a reason, per `docs/developer/ui-conventions.md`.
-- [ ] **Step 2: Run** `flutter test test/architecture/spacing_literals_test.dart`. Expected: the first test PASSES, the second FAILS listing roughly 190 findings. Do not commit yet; Task 4 turns it green.
+- [ ] **Step 2: Run** `flutter test test/architecture/spacing_literals_test.dart`. Expected: the fixture test PASSES, the guard test FAILS listing roughly 190 findings. Do not commit yet; Task 4 turns it green.
 
 ### Task 4: Migrate `lib/shared/widgets/`
 

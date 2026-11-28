@@ -152,12 +152,12 @@ Widget build() {
       );
     });
 
-    test("an enum constant's arguments", () {
+    test("an enum constant's off-scale arguments", () {
       expect(
         scanSource('''
 enum Gap {
-  tight(EdgeInsets.all(4)),
-  loose(EdgeInsets.all(12));
+  tight(EdgeInsets.all(10)),
+  loose(EdgeInsets.all(14));
 
   const Gap(this.padding);
   final EdgeInsets padding;
@@ -199,6 +199,71 @@ abstract final class Style {
         isEmpty,
       );
     });
+  });
+
+  // A named constant exempts a value that is off the scale. One that is on it
+  // belongs on the scale, wherever it is written.
+  group('flags an on-scale value inside a named constant', () {
+    final cases = <String, (String, List<num>)>{
+      'abstract final class S {\n'
+          '  static const gap = EdgeInsets.all(12);\n'
+          '}\n': (
+        'EdgeInsets.all',
+        [12],
+      ),
+      'const kPad = EdgeInsets.only(top: 14, bottom: 16);\n': (
+        'EdgeInsets.only',
+        [16],
+      ),
+      'enum Gap {\n'
+          '  tight(EdgeInsets.all(4)),\n'
+          '  loose(EdgeInsets.all(14));\n'
+          '\n'
+          '  const Gap(this.padding);\n'
+          '  final EdgeInsets padding;\n'
+          '}\n': (
+        'EdgeInsets.all',
+        [4],
+      ),
+      'abstract final class S {\n'
+          '  static final radius = BorderRadius.circular(8);\n'
+          '}\n': (
+        'BorderRadius.circular',
+        [8],
+      ),
+      'abstract final class S {\n'
+          '  static const pill = BorderRadius.all(Radius.circular(999));\n'
+          '}\n': (
+        'Radius.circular',
+        [999],
+      ),
+    };
+    cases.forEach((source, expected) {
+      test(source.split('\n')[source.startsWith('abstract') ? 1 : 0], () {
+        final found = scanSource(source);
+        expect(values(found), expected.$2);
+        expect(found.map((l) => l.call).toSet(), {expected.$1});
+      });
+    });
+
+    test('but not a radius-scale value used as spacing, or the reverse', () {
+      // 32 is on the spacing scale only and 999 on the radius scale only.
+      expect(
+        scanSource('''
+abstract final class S {
+  static const radius = BorderRadius.all(Radius.circular(32));
+  static const pad = EdgeInsets.only(left: 999);
+}
+'''),
+        isEmpty,
+      );
+    });
+  });
+
+  test('reads the scales from lib/core/theme/spacing.dart', () {
+    final scales = SpacingScales.app();
+    expect(scales.spacing, {2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48});
+    expect(scales.radii, {2, 4, 6, 8, 12, 16, 20, 24, 999});
   });
 
   test('reports the line and source span of each literal', () {

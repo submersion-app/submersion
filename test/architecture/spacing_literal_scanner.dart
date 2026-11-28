@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:path/path.dart' as p;
 
 /// A spacing or radius value written as a bare number where the scales in
 /// `lib/core/theme/spacing.dart` (or a named constant) belong (issue #4971).
@@ -56,6 +57,66 @@ const _measureCalls = {
   'Radius.circular',
   'Radius.elliptical',
 };
+
+/// The calls in [_measureCalls] whose numbers are radii; the rest are spacing.
+const _radiusCalls = {
+  'BorderRadius.circular',
+  'BorderRadiusDirectional.circular',
+  'Radius.circular',
+  'Radius.elliptical',
+};
+
+/// The values on the `Spacing` and `Radii` scales.
+///
+/// Read from `lib/core/theme/spacing.dart` rather than copied here, so the
+/// guard follows the scale when a step is added.
+class SpacingScales {
+  const SpacingScales({required this.spacing, required this.radii});
+
+  /// Reads every `static const double` of the `Spacing` and `Radii` classes
+  /// in [file].
+  factory SpacingScales.read(File file) {
+    final unit = parseFile(
+      path: file.absolute.path,
+      featureSet: FeatureSet.latestLanguageVersion(),
+    ).unit;
+    Set<double> valuesOf(String className) {
+      final declaration = unit.declarations
+          .whereType<ClassDeclaration>()
+          .singleWhere((c) => c.namePart.typeName.lexeme == className);
+      return {
+        for (final field
+            in (declaration.body as BlockClassBody).members
+                .whereType<FieldDeclaration>()
+                .where((f) => f.isStatic))
+          for (final variable in field.fields.variables)
+            if (variable.initializer case final IntegerLiteral literal)
+              literal.value!.toDouble()
+            else if (variable.initializer case final DoubleLiteral literal)
+              literal.value,
+      };
+    }
+
+    return SpacingScales(
+      spacing: valuesOf('Spacing'),
+      radii: valuesOf('Radii'),
+    );
+  }
+
+  /// The app's own scales, from `lib/core/theme/spacing.dart`.
+  factory SpacingScales.app() =>
+      SpacingScales.read(File(p.join('lib', 'core', 'theme', 'spacing.dart')));
+
+  final Set<double> spacing;
+  final Set<double> radii;
+
+  /// Whether [value], passed to [call], is a step of the scale that call
+  /// takes: radii for a radius call, spacing for everything else.
+  bool contains(String call, num value) =>
+      (_radiusCalls.contains(call) ? radii : spacing).contains(
+        value.toDouble(),
+      );
+}
 
 /// Named arguments that are gaps on any call: `Row` / `Column` / `Flex` /
 /// `Wrap` spacing, grid delegate spacing, and `Divider` insets.
@@ -132,16 +193,18 @@ bool _hasChild(ArgumentList arguments) {
 }
 
 class _SpacingVisitor extends RecursiveAstVisitor<void> {
-  _SpacingVisitor(this.file, this.lineInfo);
+  _SpacingVisitor(this.file, this.lineInfo, this.scales);
 
   final String file;
   final LineInfo lineInfo;
+  final SpacingScales scales;
   final found = <SpacingLiteral>[];
 
   /// Depth of top-level variable, static field and enum constant declarations
   /// around the node. A literal there is the value of a named constant, which
-  /// is the exemption. An instance field is widget state, not a named constant, and
-  /// a closure's body is code, so neither is exempt.
+  /// exempts it when it is off the scale; an on-scale value belongs on the
+  /// scale wherever it is written. An instance field is widget state, not a
+  /// named constant, and a closure's body is code, so neither is exempt.
   int _namedConstantDepth = 0;
 
   @override
@@ -187,7 +250,6 @@ class _SpacingVisitor extends RecursiveAstVisitor<void> {
   }
 
   void _check(Expression call) {
-    if (_namedConstantDepth > 0) return;
     final name = _callName(call);
     final arguments = _arguments(call);
     if (name == null || arguments == null) return;
@@ -252,6 +314,7 @@ class _SpacingVisitor extends RecursiveAstVisitor<void> {
   };
 
   void _record(Expression literal, String call, num value) {
+    if (_namedConstantDepth > 0 && !scales.contains(call, value)) return;
     found.add(
       SpacingLiteral(
         file: file,
@@ -272,11 +335,14 @@ class _SpacingVisitor extends RecursiveAstVisitor<void> {
 /// `padding` number is not seen. Generated `.g.dart` files are skipped.
 ///
 /// [relativize] converts a path into the form reported in
-/// [SpacingLiteral.file].
+/// [SpacingLiteral.file]. [scales] defaults to the app's own, read from
+/// `lib/core/theme/spacing.dart`.
 List<SpacingLiteral> scanForSpacingLiterals({
   required List<File> files,
   required String Function(String path) relativize,
+  SpacingScales? scales,
 }) {
+  final scale = scales ?? SpacingScales.app();
   final found = <SpacingLiteral>[];
   for (final file in files) {
     if (file.path.endsWith('.g.dart')) continue;
@@ -285,7 +351,11 @@ List<SpacingLiteral> scanForSpacingLiterals({
       featureSet: FeatureSet.latestLanguageVersion(),
       throwIfDiagnostics: false,
     );
-    final visitor = _SpacingVisitor(relativize(file.path), parsed.lineInfo);
+    final visitor = _SpacingVisitor(
+      relativize(file.path),
+      parsed.lineInfo,
+      scale,
+    );
     parsed.unit.accept(visitor);
     found.addAll(visitor.found);
   }

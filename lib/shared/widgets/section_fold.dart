@@ -51,7 +51,7 @@ class SectionFold extends StatelessWidget {
   /// closed header would cost the same as showing them.
   final WidgetBuilder contentBuilder;
 
-  static const _rowPadding = EdgeInsets.symmetric(vertical: 12);
+  static const _rowPadding = EdgeInsets.symmetric(vertical: Spacing.s12);
 
   @override
   Widget build(BuildContext context) {

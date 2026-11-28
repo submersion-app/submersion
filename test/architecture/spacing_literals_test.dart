@@ -18,8 +18,9 @@ final guardedRoots = [p.join('lib', 'shared', 'widgets')];
 /// Without a guard, every new widget writes its own `EdgeInsets.all(12)` and
 /// `BorderRadius.circular(8)`, and the scale drifts the way it had before the
 /// constants existed. A value that is deliberately off the scale is declared
-/// once as a named constant with a doc comment saying why; the scanner does
-/// not look inside top-level, `static` or enum constant declarations.
+/// once as a named constant with a doc comment saying why; the scanner skips
+/// an off-scale value inside a top-level, `static` or enum constant
+/// declaration, and flags an on-scale one there as anywhere else.
 void main() {
   List<File> dartFilesUnder(String root) => Directory(root)
       .listSync(recursive: true)

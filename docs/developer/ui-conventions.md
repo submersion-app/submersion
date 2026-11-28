@@ -81,10 +81,12 @@ writes a spacing or radius value as a bare number. It checks:
 
 It looks through parentheses, both branches of a conditional, each arm of a
 switch expression and the fallback of `??`. It does not look at zero, at any
-arithmetic (`Spacing.s8 * 2`, `16 + inset`), at a `SizedBox` that sizes a
-child, or inside a top-level, `static` or enum constant declaration, which is
-how a named constant is exempt. An instance field and a closure's body are checked like
-any other code.
+arithmetic (`Spacing.s8 * 2`, `16 + inset`) or at a `SizedBox` that sizes a
+child. Inside a top-level, `static` or enum constant declaration it skips a
+value that is off the scale, which is how a named constant is exempt, but
+still flags one that is on it: `static const gap = EdgeInsets.all(12)` uses
+`Spacing.s12`. An instance field and a closure's body are checked like any
+other code.
 
 A childless one-axis `SizedBox` that holds a place of a fixed size rather than
 a gap (a 300-tall chart placeholder) is still flagged: declare its size as a

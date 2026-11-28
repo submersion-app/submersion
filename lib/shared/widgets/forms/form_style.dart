@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
+
 /// Design tokens for the shared form system. Values match the header-in-card
 /// design-freeze mockup (docs/design/specs/assets/
 /// 2026-07-17-edit-form-chrome-redesign-mockup.html); tune here, never inline.
@@ -33,7 +35,7 @@ abstract final class FormStyle {
 
   /// Padding around a hero stat strip.
   static const EdgeInsets heroPadding = EdgeInsets.symmetric(
-    horizontal: 12,
+    horizontal: Spacing.s12,
     vertical: 10,
   );
 
@@ -41,7 +43,7 @@ abstract final class FormStyle {
   static const double sectionGap = 14;
 
   /// Horizontal page padding around the whole form.
-  static const EdgeInsets pagePadding = EdgeInsets.all(16);
+  static const EdgeInsets pagePadding = EdgeInsets.all(Spacing.s16);
 
   /// Tonal background of group surfaces and collapsed bars.
   static Color groupColor(BuildContext context) =>
@@ -90,7 +92,7 @@ abstract final class FormStyle {
   /// Padding of the header row inside a section card.
   static const EdgeInsets headerPadding = EdgeInsets.symmetric(
     horizontal: rowInset,
-    vertical: 12,
+    vertical: Spacing.s12,
   );
 
   /// Gap between a section header's icon and its title.
