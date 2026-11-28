@@ -17013,6 +17013,54 @@ class AppLocalizationsPt extends AppLocalizations {
       'Um computador de mergulho ou transmissor conectado mantém seu tipo.';
 
   @override
+  String get equipment_suggest_link =>
+      'Nenhum tipo serve? Sugira uma categoria';
+
+  @override
+  String get equipment_suggest_title => 'Sugerir uma categoria';
+
+  @override
+  String get equipment_suggest_intro =>
+      'Isso abre uma solicitação de recurso pré-preenchida no GitHub. Você a revisa e a publica pelo seu navegador.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'O que você está sugerindo?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'Novo tipo de equipamento';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'Nova variante de um tipo';
+
+  @override
+  String get equipment_suggest_nameLabel => 'Nome';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'Uma variante de';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel =>
+      'Tipo existente mais próximo';
+
+  @override
+  String get equipment_suggest_parentNone => 'Nenhum';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'Por que é necessário?';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'O que a diferencia dos tipos existentes?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'Incluir este item como exemplo ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'Abrir no GitHub';
+
+  @override
   String get equipment_edit_useCustomReminders =>
       'Usar Lembretes Personalizados';
 
@@ -19805,9 +19853,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get marineLife_suggest_couldNotOpen =>
       'Não foi possível abrir o navegador';
-
-  @override
-  String get marineLife_suggest_copyLink => 'Copiar link';
 
   @override
   String get marineLife_editCard_photos => 'Fotos';
@@ -29641,7 +29686,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'Menos nomes. Cerca de $percent% corretos';
+    return 'Menos nomes. Cerca de $percent% corretos em fotos';
   }
 
   @override
@@ -29650,12 +29695,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'Mais nomes. Cerca de $percent% corretos';
+    return 'Mais nomes. Cerca de $percent% corretos em fotos';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'A maioria dos nomes. Cerca de $percent% corretos';
+    return 'A maioria dos nomes. Cerca de $percent% corretos em fotos';
   }
 
   @override
@@ -56699,8 +56744,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_species_suggested => 'Sugestões';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
+  String media_species_suggestedChipLabel(String name) {
+    return 'Sugestão: $name';
   }
 
   @override
@@ -56889,6 +56934,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String media_species_playFrom(String time) {
     return 'Reproduzir a partir de $time';
   }
+
+  @override
+  String get media_species_nextSighting => 'Próximo avistamento';
 
   @override
   String get media_species_openSpeciesPage => 'Página da espécie';

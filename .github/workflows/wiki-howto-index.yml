@@ -2,7 +2,7 @@ name: Wiki how-to index
 
 # Keeps the "How-to guides" list on the wiki Home page in step with the
 # wiki's How-to-* pages, newest first (issue #4376).
-# scripts/wiki_howto_index.py has the details.
+# scripts/bots/wiki_howto_index.py has the details.
 #
 # `gollum` fires when a wiki page is created or edited, so a new how-to page
 # appears on Home within a minute. The weekly run and the manual button catch
@@ -47,7 +47,7 @@ jobs:
           fetch-depth: 0
 
       - name: Rebuild the how-to list
-        run: python3 scripts/wiki_howto_index.py wiki
+        run: python3 scripts/bots/wiki_howto_index.py wiki
 
       - name: Push Home if the list changed
         working-directory: wiki

@@ -17271,6 +17271,52 @@ class AppLocalizationsAr extends AppLocalizations {
       'يحتفظ حاسوب الغوص أو جهاز الإرسال المتصل بنوعه.';
 
   @override
+  String get equipment_suggest_link => 'لا يوجد نوع مناسب؟ اقترح فئة';
+
+  @override
+  String get equipment_suggest_title => 'اقتراح فئة';
+
+  @override
+  String get equipment_suggest_intro =>
+      'يفتح هذا طلب ميزة معبأً مسبقاً على GitHub. تراجعه وتنشره من متصفحك.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'ماذا تقترح؟';
+
+  @override
+  String get equipment_suggest_kindCategory => 'نوع معدات جديد';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'صنف جديد من نوع موجود';
+
+  @override
+  String get equipment_suggest_nameLabel => 'الاسم';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'صنف من';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => 'أقرب نوع موجود';
+
+  @override
+  String get equipment_suggest_parentNone => 'لا شيء';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'لماذا هو مطلوب؟';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'ما الذي يميزه عن الأنواع الموجودة؟';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'تضمين هذه القطعة كمثال ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'فتح في GitHub';
+
+  @override
   String get equipment_edit_useCustomReminders => 'استخدام تذكيرات مخصصة';
 
   @override
@@ -20085,9 +20131,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => 'تعذر فتح المتصفح';
-
-  @override
-  String get marineLife_suggest_copyLink => 'نسخ الرابط';
 
   @override
   String get marineLife_editCard_photos => 'الصور';
@@ -29984,7 +30027,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'أسماء أقل. نحو $percent% صحيحة';
+    return 'أسماء أقل. نحو $percent% صحيحة في الصور';
   }
 
   @override
@@ -29993,12 +30036,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'أسماء أكثر. نحو $percent% صحيحة';
+    return 'أسماء أكثر. نحو $percent% صحيحة في الصور';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'أكبر عدد من الأسماء. نحو $percent% صحيحة';
+    return 'أكبر عدد من الأسماء. نحو $percent% صحيحة في الصور';
   }
 
   @override
@@ -57557,8 +57600,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_species_suggested => 'مقترحة';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent٪';
+  String media_species_suggestedChipLabel(String name) {
+    return 'اقتراح: $name';
   }
 
   @override
@@ -57765,6 +57808,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String media_species_playFrom(String time) {
     return 'تشغيل من $time';
   }
+
+  @override
+  String get media_species_nextSighting => 'المشاهدة التالية';
 
   @override
   String get media_species_openSpeciesPage => 'صفحة النوع';

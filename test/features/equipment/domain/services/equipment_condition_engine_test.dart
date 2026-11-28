@@ -918,7 +918,7 @@ void main() {
         ),
         isEmpty,
       );
-      // Only regulators, BCDs, drysuits and lights are judged.
+      // Only regulators, BCDs, wings, drysuits and lights are judged.
       expect(
         of(
           engine.evaluate(
@@ -959,6 +959,30 @@ void main() {
       expect(found.evidence.values['deepIssueDives'], 3);
       expect(found.evidence.values['deepDives'], 5);
       expect(found.evidence.values['shallowDives'], 5);
+    });
+
+    test('a standalone wing is judged like a BCD (issue #5110)', () {
+      // A wing carries the same inflator and dumps a BCD does, so cold
+      // inflator trouble on it is worth the same finding.
+      final samples = [
+        for (var i = 0; i < 5; i++) sample(i, minTemp: 4),
+        for (var i = 5; i < 10; i++) sample(i, minTemp: 25),
+      ];
+      final found = of(
+        engine.evaluate(
+          input(
+            item: item('wing', EquipmentType.wing),
+            samples: samples,
+            observations: [
+              for (var i = 0; i < 3; i++)
+                issue('o$i', 'wing', 'd$i', ObservationTag.inflatorStuck),
+            ],
+          ),
+        ),
+        ConditionRuleId.issueColdCorrelated,
+      ).single;
+      expect(found.evidence.values['coldIssueDives'], 3);
+      expect(found.evidence.values['warmIssueDives'], 0);
     });
   });
 

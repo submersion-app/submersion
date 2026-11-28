@@ -16774,6 +16774,52 @@ class AppLocalizationsEn extends AppLocalizations {
       'A connected dive computer or transmitter keeps its type.';
 
   @override
+  String get equipment_suggest_link => 'Can\'t find a fit? Suggest a category';
+
+  @override
+  String get equipment_suggest_title => 'Suggest a category';
+
+  @override
+  String get equipment_suggest_intro =>
+      'This opens a prefilled feature request on GitHub. You review it and post it from your browser.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'What are you suggesting?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'New type of gear';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'New kind of a type';
+
+  @override
+  String get equipment_suggest_nameLabel => 'Name';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'A kind of';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => 'Closest existing type';
+
+  @override
+  String get equipment_suggest_parentNone => 'None';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'Why is it needed?';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'What sets it apart from the existing types?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'Include this item as an example ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'Open in GitHub';
+
+  @override
   String get equipment_edit_useCustomReminders => 'Use Custom Reminders';
 
   @override
@@ -19513,9 +19559,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => 'Could not open the browser';
-
-  @override
-  String get marineLife_suggest_copyLink => 'Copy link';
 
   @override
   String get marineLife_editCard_photos => 'Photos';
@@ -29167,7 +29210,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'Fewest names. About $percent% right';
+    return 'Fewest names. About $percent% right on photos';
   }
 
   @override
@@ -29176,12 +29219,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'More names. About $percent% right';
+    return 'More names. About $percent% right on photos';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'Most names. About $percent% right';
+    return 'Most names. About $percent% right on photos';
   }
 
   @override
@@ -55838,8 +55881,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_species_suggested => 'Suggested';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
+  String media_species_suggestedChipLabel(String name) {
+    return 'Suggested: $name';
   }
 
   @override
@@ -56023,6 +56066,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String media_species_playFrom(String time) {
     return 'Play from $time';
   }
+
+  @override
+  String get media_species_nextSighting => 'Next sighting';
 
   @override
   String get media_species_openSpeciesPage => 'Species page';

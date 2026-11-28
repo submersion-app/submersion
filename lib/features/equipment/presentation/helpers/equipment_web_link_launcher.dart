@@ -6,9 +6,10 @@ import 'package:submersion/shared/utils/link_open.dart';
 
 typedef UrlLauncher = Future<bool> Function(Uri uri);
 
-/// Opens an equipment item's product/receipt link in the external browser.
-/// A provider so widget tests can record the URL instead of leaving the app,
-/// mirroring `speciesSuggestionLaunchProvider`.
+/// Opens an equipment item's product/receipt link, or a category suggestion
+/// (issue #5103), in the external browser. A provider so widget tests can
+/// record the URL instead of leaving the app, mirroring
+/// `speciesSuggestionLaunchProvider`.
 final equipmentWebLinkLaunchProvider = Provider<UrlLauncher>((ref) {
   return (uri) => launchUrl(uri, mode: LaunchMode.externalApplication);
 });

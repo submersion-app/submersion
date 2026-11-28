@@ -45,5 +45,5 @@ done
 
 echo "Reports in $REPORT_DIR"
 if [ "$ALLOW_SKIPS" -eq 0 ]; then
-  python3 scripts/check_no_skipped_tests.py "$REPORT_DIR"/web-*.json
+  python3 scripts/checks/check_no_skipped_tests.py "$REPORT_DIR"/web-*.json
 fi

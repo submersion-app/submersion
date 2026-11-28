@@ -16911,6 +16911,53 @@ class AppLocalizationsNl extends AppLocalizations {
       'Een verbonden duikcomputer of zender behoudt zijn type.';
 
   @override
+  String get equipment_suggest_link => 'Past niets? Stel een categorie voor';
+
+  @override
+  String get equipment_suggest_title => 'Categorie voorstellen';
+
+  @override
+  String get equipment_suggest_intro =>
+      'Er opent een vooraf ingevuld functieverzoek op GitHub. Je controleert het en plaatst het vanuit je browser.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'Wat stel je voor?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'Nieuw type uitrusting';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'Nieuwe variant van een type';
+
+  @override
+  String get equipment_suggest_nameLabel => 'Naam';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'Een variant van';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel =>
+      'Dichtstbijzijnde bestaande type';
+
+  @override
+  String get equipment_suggest_parentNone => 'Geen';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'Waarom is het nodig?';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'Wat onderscheidt het van de bestaande types?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'Dit item als voorbeeld meesturen ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'Openen in GitHub';
+
+  @override
   String get equipment_edit_useCustomReminders =>
       'Aangepaste herinneringen gebruiken';
 
@@ -19682,9 +19729,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => 'Kon de browser niet openen';
-
-  @override
-  String get marineLife_suggest_copyLink => 'Link kopiëren';
 
   @override
   String get marineLife_editCard_photos => 'Foto\'s';
@@ -29474,7 +29518,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'Minste namen. Ongeveer $percent% juist';
+    return 'Minste namen. Ongeveer $percent% juist op foto\'s';
   }
 
   @override
@@ -29483,12 +29527,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'Meer namen. Ongeveer $percent% juist';
+    return 'Meer namen. Ongeveer $percent% juist op foto\'s';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'Meeste namen. Ongeveer $percent% juist';
+    return 'Meeste namen. Ongeveer $percent% juist op foto\'s';
   }
 
   @override
@@ -56362,8 +56406,8 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_species_suggested => 'Suggesties';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
+  String media_species_suggestedChipLabel(String name) {
+    return 'Suggestie: $name';
   }
 
   @override
@@ -56552,6 +56596,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String media_species_playFrom(String time) {
     return 'Afspelen vanaf $time';
   }
+
+  @override
+  String get media_species_nextSighting => 'Volgende waarneming';
 
   @override
   String get media_species_openSpeciesPage => 'Soortpagina';

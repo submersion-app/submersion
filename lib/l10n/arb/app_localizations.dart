@@ -27079,6 +27079,90 @@ abstract class AppLocalizations {
   /// **'A connected dive computer or transmitter keeps its type.'**
   String get equipment_edit_typeLockedHelper;
 
+  /// No description provided for @equipment_suggest_link.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t find a fit? Suggest a category'**
+  String get equipment_suggest_link;
+
+  /// No description provided for @equipment_suggest_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggest a category'**
+  String get equipment_suggest_title;
+
+  /// No description provided for @equipment_suggest_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'This opens a prefilled feature request on GitHub. You review it and post it from your browser.'**
+  String get equipment_suggest_intro;
+
+  /// No description provided for @equipment_suggest_kindQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What are you suggesting?'**
+  String get equipment_suggest_kindQuestion;
+
+  /// No description provided for @equipment_suggest_kindCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'New type of gear'**
+  String get equipment_suggest_kindCategory;
+
+  /// No description provided for @equipment_suggest_kindSubcategory.
+  ///
+  /// In en, this message translates to:
+  /// **'New kind of a type'**
+  String get equipment_suggest_kindSubcategory;
+
+  /// No description provided for @equipment_suggest_nameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get equipment_suggest_nameLabel;
+
+  /// No description provided for @equipment_suggest_parentSubcategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'A kind of'**
+  String get equipment_suggest_parentSubcategoryLabel;
+
+  /// No description provided for @equipment_suggest_parentCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Closest existing type'**
+  String get equipment_suggest_parentCategoryLabel;
+
+  /// No description provided for @equipment_suggest_parentNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get equipment_suggest_parentNone;
+
+  /// No description provided for @equipment_suggest_reasonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Why is it needed?'**
+  String get equipment_suggest_reasonLabel;
+
+  /// No description provided for @equipment_suggest_reasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What sets it apart from the existing types?'**
+  String get equipment_suggest_reasonHint;
+
+  /// No description provided for @equipment_suggest_includeExample.
+  ///
+  /// In en, this message translates to:
+  /// **'Include this item as an example ({example})'**
+  String equipment_suggest_includeExample(String example);
+
+  /// No description provided for @equipment_suggest_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in GitHub'**
+  String get equipment_suggest_open;
+
   /// No description provided for @equipment_edit_useCustomReminders.
   ///
   /// In en, this message translates to:
@@ -31483,12 +31567,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not open the browser'**
   String get marineLife_suggest_couldNotOpen;
-
-  /// No description provided for @marineLife_suggest_copyLink.
-  ///
-  /// In en, this message translates to:
-  /// **'Copy link'**
-  String get marineLife_suggest_copyLink;
 
   /// A card's title on a record page unlocked for editing, and in History's list of the cards an edit changed.
   ///
@@ -47004,10 +47082,10 @@ abstract class AppLocalizations {
   /// **'Eager'**
   String get settings_speciesId_levelEager;
 
-  /// Under Surer: how often its names were right when measured
+  /// Under Surer: how often its names were right when measured on held-out still photos (issue #5121); video frames were not measured
   ///
   /// In en, this message translates to:
-  /// **'Fewest names. About {percent}% right'**
+  /// **'Fewest names. About {percent}% right on photos'**
   String settings_speciesId_levelSurerAccuracy(int percent);
 
   /// Under Surer when the model carries no measured accuracy for it
@@ -47016,16 +47094,16 @@ abstract class AppLocalizations {
   /// **'Fewest names, most often right'**
   String get settings_speciesId_levelSurerUnmeasured;
 
-  /// Under Balanced: how often its names were right when measured
+  /// Under Balanced: how often its names were right when measured on held-out still photos (issue #5121); video frames were not measured
   ///
   /// In en, this message translates to:
-  /// **'More names. About {percent}% right'**
+  /// **'More names. About {percent}% right on photos'**
   String settings_speciesId_levelBalancedAccuracy(int percent);
 
-  /// Under Eager: how often its names were right when measured
+  /// Under Eager: how often its names were right when measured on held-out still photos (issue #5121); video frames were not measured
   ///
   /// In en, this message translates to:
-  /// **'Most names. About {percent}% right'**
+  /// **'Most names. About {percent}% right on photos'**
   String settings_speciesId_levelEagerAccuracy(int percent);
 
   /// Under the naming levels when the level the diver chose is not in the installed model: the app names at the nearest surer level it has, and choosing that one keeps it
@@ -88698,11 +88776,11 @@ abstract class AppLocalizations {
   /// **'Suggested'**
   String get media_species_suggested;
 
-  /// No description provided for @media_species_suggestedChip.
+  /// What a screen reader says for a suggested species chip in the viewer: the chip shows the name alone, so this tells it apart from a confirmed tag (issue #5121)
   ///
   /// In en, this message translates to:
-  /// **'{name} {percent}%'**
-  String media_species_suggestedChip(String name, int percent);
+  /// **'Suggested: {name}'**
+  String media_species_suggestedChipLabel(String name);
 
   /// No description provided for @media_species_suggestedCount.
   ///
@@ -88931,6 +89009,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Play from {time}'**
   String media_species_playFrom(String time);
+
+  /// Button on a video's controls, in the viewer opened from a species on a dive, that jumps to the next time that species was seen in the video (issue #5084).
+  ///
+  /// In en, this message translates to:
+  /// **'Next sighting'**
+  String get media_species_nextSighting;
 
   /// Button on a species' crop sheet that opens the species page (issue #5024).
   ///
