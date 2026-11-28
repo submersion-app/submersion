@@ -356,5 +356,13 @@ extension RungsFromV340 on AppDatabase {
     // no backfill; re-asserted in beforeOpen. The floor does not move.
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
+
+    // v388: equipment.catalogue_id and equipment.catalogue_answers, an
+    // item's link to its equipment catalogue record and what the diver
+    // settled about catalogue records for it (issue #5118). Nullable, with
+    // nothing to backfill, so the floor does not move. Re-asserted in
+    // beforeOpen.
+    if (from < 388) await _assertEquipmentCatalogueColumns();
+    if (from < 388) await reportProgress();
   }
 }

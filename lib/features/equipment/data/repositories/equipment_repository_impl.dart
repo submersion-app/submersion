@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/equipment/domain/entities/equipment_catalogue_answers.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/cylinder_volume_repair.dart';
@@ -389,6 +390,8 @@ class EquipmentRepository {
                     : null,
               ),
               parentEquipmentId: Value(equipment.parentEquipmentId),
+              catalogueId: Value(equipment.catalogueId),
+              catalogueAnswers: Value(equipment.catalogueAnswers.encode()),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -509,6 +512,32 @@ class EquipmentRepository {
       _db.transaction(action);
 
   /// Update equipment. [notify] as for [createEquipment].
+  /// Links item [id] to equipment catalogue record [catalogueId] (or
+  /// unlinks it with null) and stores [answers] (issue #5118). The only
+  /// write of either: [updateEquipment] never touches them, so a path that
+  /// rebuilds an item whole cannot drop its link.
+  Future<void> setCatalogueLink(
+    String id, {
+    required String? catalogueId,
+    required EquipmentCatalogueAnswers answers,
+    bool notify = true,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.equipment)..where((t) => t.id.equals(id))).write(
+      EquipmentCompanion(
+        catalogueId: Value(catalogueId),
+        catalogueAnswers: Value(answers.encode()),
+        updatedAt: Value(now),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'equipment',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    if (notify) SyncEventBus.notifyLocalChange();
+  }
+
   Future<void> updateEquipment(
     EquipmentItem equipment, {
     bool notify = true,
@@ -1953,6 +1982,8 @@ class EquipmentRepository {
           : null,
       parentEquipmentId: row.parentEquipmentId,
       coverMediaId: row.coverMediaId,
+      catalogueId: row.catalogueId,
+      catalogueAnswers: EquipmentCatalogueAnswers.decode(row.catalogueAnswers),
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     );
   }
