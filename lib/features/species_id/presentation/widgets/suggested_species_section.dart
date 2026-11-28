@@ -366,25 +366,33 @@ class SuggestionCropView extends ConsumerWidget {
                 ),
               ],
             ),
-            trailing: TextButton(
-              onPressed: ended
-                  ? null
-                  : () {
-                      // Started before the pop: it reads what it
-                      // needs at once, and outlives this view.
-                      unawaited(
-                        addSuggestedSpecies(
-                          context,
-                          ref,
-                          item,
-                          [alternative.candidate],
-                          sitting,
-                          claimTrackId: trackId,
-                        ),
-                      );
-                      Navigator.of(context).pop();
-                    },
-              child: Text(l10n.media_species_add),
+            // A fixed width, so a long translation of Add cannot squeeze
+            // the species name (issue #2717).
+            trailing: SizedBox(
+              width: 120,
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: TextButton(
+                  onPressed: ended
+                      ? null
+                      : () {
+                          // Started before the pop: it reads what it
+                          // needs at once, and outlives this view.
+                          unawaited(
+                            addSuggestedSpecies(
+                              context,
+                              ref,
+                              item,
+                              [alternative.candidate],
+                              sitting,
+                              claimTrackId: trackId,
+                            ),
+                          );
+                          Navigator.of(context).pop();
+                        },
+                  child: Text(l10n.media_species_add),
+                ),
+              ),
             ),
           ),
         if (trackId case final track?) ...[
