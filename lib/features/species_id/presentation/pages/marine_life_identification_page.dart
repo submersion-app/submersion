@@ -7,11 +7,14 @@ import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/features/species_id/data/pack/species_pack_downloader.dart';
 import 'package:submersion/features/species_id/domain/entities/vision_analysis.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_batch_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_download_prompt_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_pack_controller.dart';
 import 'package:submersion/features/species_id/presentation/widgets/naming_level_section.dart';
 import 'package:submersion/features/species_id/presentation/widgets/auto_apply_settings_section.dart';
+import 'package:submersion/features/species_id/presentation/widgets/find_species_batch_flow.dart';
+import 'package:submersion/features/species_id/presentation/widgets/species_batch_progress_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -97,6 +100,25 @@ class _MarineLifeIdentificationPageState
           ),
           const NamingLevelSection(),
           const AutoApplySettingsSection(),
+          // Find species over the whole logbook, and its progress (issue
+          // #5127), once a model is here to look with.
+          if (ref.watch(speciesBatchAvailableProvider)) ...[
+            const Divider(),
+            if (ref.watch(speciesBatchProgressProvider) == null)
+              ListTile(
+                key: const ValueKey('species_id_find_all'),
+                leading: const Icon(Icons.travel_explore_outlined),
+                title: Text(l10n.speciesBatch_findInLogbook),
+                subtitle: Text(l10n.speciesBatch_findInLogbookSubtitle),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => findSpeciesInLogbook(context, ref),
+              )
+            else
+              const SpeciesBatchProgressCard(
+                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+            const Divider(),
+          ],
           ListTile(
             title: Text(l10n.settings_speciesId_kept),
             subtitle: Text(

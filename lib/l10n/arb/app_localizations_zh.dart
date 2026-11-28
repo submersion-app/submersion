@@ -53326,6 +53326,112 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get speciesBatch_findInDives => '查找物种';
+
+  @override
+  String get speciesBatch_findInLogbook => '在所有潜水中查找物种';
+
+  @override
+  String get speciesBatch_findInLogbookSubtitle => '检查每次潜水的照片和视频';
+
+  @override
+  String speciesBatch_counting(int done, int total) {
+    return '正在统计照片和视频：$done/$total 次潜水';
+  }
+
+  @override
+  String get speciesBatch_countFailed => '无法统计照片和视频。';
+
+  @override
+  String speciesBatch_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesBatch_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片和视频',
+      one: '1 张照片或视频',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesBatch_toLookAt(String dives, String items) {
+    return '$dives，$items待检查。';
+  }
+
+  @override
+  String speciesBatch_applyOnly(String dives) {
+    return '没有需要检查的新内容。$dives中已找到的高置信度匹配将被标记。';
+  }
+
+  @override
+  String get speciesBatch_nothingToDo => '这些潜水的所有照片和视频都已检查过。';
+
+  @override
+  String speciesBatch_notOnDevice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '其中 $count 个不在此设备上。',
+      one: '其中 1 个不在此设备上。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesBatch_downloadThem => '下载并检查';
+
+  @override
+  String get speciesBatch_onDeviceOnly => '仅限此设备上已有的';
+
+  @override
+  String get speciesBatch_takesAWhile => '这可能需要一些时间。请保持应用打开：应用在后台时查找会暂停。';
+
+  @override
+  String get speciesBatch_start => '开始';
+
+  @override
+  String get speciesBatch_alreadyRunning => '已有一项物种查找正在运行。其进度显示在首页。';
+
+  @override
+  String get speciesBatch_progressTitle => '正在查找物种';
+
+  @override
+  String speciesBatch_progress(int dive, int dives, int done, int total) {
+    return '第 $dive/$dives 次潜水 · 已处理 $done/$total 张照片和视频';
+  }
+
+  @override
+  String get speciesBatch_pausedBackground => '应用在后台时已暂停';
+
+  @override
+  String get speciesBatch_stopped => '物种查找已停止。';
+
+  @override
+  String speciesBatch_summaryNotOnDevice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已跳过 $count 个不在此设备上的项目。',
+      one: '已跳过 1 个不在此设备上的项目。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesBatch_review => '审核';
+
+  @override
   String media_species_confirmTag(String name) {
     return '确认$name';
   }

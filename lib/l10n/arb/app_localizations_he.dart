@@ -55702,6 +55702,117 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get speciesBatch_findInDives => 'חיפוש מינים';
+
+  @override
+  String get speciesBatch_findInLogbook => 'חיפוש מינים בכל הצלילות';
+
+  @override
+  String get speciesBatch_findInLogbookSubtitle =>
+      'בודק את התמונות והסרטונים של כל צלילה';
+
+  @override
+  String speciesBatch_counting(int done, int total) {
+    return 'סופר תמונות וסרטונים: $done מתוך $total צלילות';
+  }
+
+  @override
+  String get speciesBatch_countFailed =>
+      'לא ניתן היה לספור את התמונות והסרטונים.';
+
+  @override
+  String speciesBatch_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesBatch_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות וסרטונים',
+      one: 'תמונה או סרטון אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesBatch_toLookAt(String dives, String items) {
+    return '$dives, $items לבדיקה.';
+  }
+
+  @override
+  String speciesBatch_applyOnly(String dives) {
+    return 'אין חדש לבדיקה. התאמות בטוחות שכבר נמצאו ב$dives יתויגו.';
+  }
+
+  @override
+  String get speciesBatch_nothingToDo =>
+      'כל התמונות והסרטונים של הצלילות האלה כבר נבדקו.';
+
+  @override
+  String speciesBatch_notOnDevice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מהם אינם במכשיר זה.',
+      one: 'אחד מהם אינו במכשיר זה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesBatch_downloadThem => 'הורדה ובדיקה';
+
+  @override
+  String get speciesBatch_onDeviceOnly => 'רק מה שנמצא במכשיר זה';
+
+  @override
+  String get speciesBatch_takesAWhile =>
+      'זה עשוי להימשך זמן מה. יש להשאיר את האפליקציה פתוחה: החיפוש מושהה כשהאפליקציה ברקע.';
+
+  @override
+  String get speciesBatch_start => 'התחלה';
+
+  @override
+  String get speciesBatch_alreadyRunning =>
+      'חיפוש מינים כבר פועל. ההתקדמות שלו מוצגת בבית.';
+
+  @override
+  String get speciesBatch_progressTitle => 'מחפש מינים';
+
+  @override
+  String speciesBatch_progress(int dive, int dives, int done, int total) {
+    return 'צלילה $dive מתוך $dives · $done מתוך $total תמונות וסרטונים';
+  }
+
+  @override
+  String get speciesBatch_pausedBackground => 'מושהה כשהאפליקציה ברקע';
+
+  @override
+  String get speciesBatch_stopped => 'חיפוש המינים נעצר.';
+
+  @override
+  String speciesBatch_summaryNotOnDevice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים שאינם במכשיר זה דולגו.',
+      one: 'פריט אחד שאינו במכשיר זה דולג.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesBatch_review => 'בדיקה';
+
+  @override
   String media_species_confirmTag(String name) {
     return 'אישור $name';
   }

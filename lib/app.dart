@@ -57,6 +57,11 @@ import 'package:submersion/features/import_wizard/presentation/suunto_file_impor
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
+import 'package:submersion/features/species_id/domain/entities/species_batch.dart';
+import 'package:submersion/features/species_id/domain/entities/species_review.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_batch_providers.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_review_providers.dart';
+import 'package:submersion/features/species_id/presentation/widgets/species_batch_end_notice.dart';
 import 'package:submersion/features/agent_access/presentation/providers/agent_access_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/nearby_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -491,6 +496,34 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     );
   }
 
+  Future<void> _onSpeciesBatchChanged(
+    SpeciesBatchRunState? previous,
+    SpeciesBatchRunState? next,
+  ) async {
+    if (next == null || !speciesBatchEnded(previous, next)) return;
+    // Held while it is read: the count disposes itself unwatched.
+    const count = LogReviewScope();
+    final held = ref.listenManual(speciesReviewCountProvider(count), (_, _) {});
+    int toReview;
+    try {
+      toReview = await ref.read(speciesReviewCountProvider(count).future);
+    } on Object {
+      toReview = 0;
+    } finally {
+      held.close();
+    }
+    final ctx = _scaffoldMessengerKey.currentContext;
+    if (ctx == null || !ctx.mounted) return;
+    _scaffoldMessengerKey.currentState?.showSnackBar(
+      speciesBatchEndSnackBar(
+        AppLocalizations.of(ctx),
+        next,
+        toReview: toReview,
+        onReview: () => _linkRouter.push('/species/review'),
+      ),
+    );
+  }
+
   void _onSyncStateChanged(SyncState? prev, SyncState next) {
     final ctx = _scaffoldMessengerKey.currentContext;
     final l10n = ctx != null ? AppLocalizations.of(ctx) : null;
@@ -815,6 +848,13 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     ref.listen<ImportJobOutcome?>(
       importJobProvider.select((job) => job.backgroundOutcome),
       _onBackgroundImportEnded,
+    );
+
+    // Find species over many dives (#5127) runs on whatever screen the
+    // diver moved to, so its end is told here too.
+    ref.listen<SpeciesBatchRunState?>(
+      speciesBatchRunProvider,
+      _onSpeciesBatchChanged,
     );
 
     return MaterialApp.router(

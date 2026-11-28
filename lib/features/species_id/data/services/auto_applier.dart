@@ -125,9 +125,13 @@ class AutoApplier {
   /// filed under it. Returns how many distinct species it tagged.
   ///
   /// [generation] is the logbook the run looked at its items in.
+  /// [operationId] files the items under that operation, so the dives of a
+  /// run over many make one entry while each applies in a short window of
+  /// its own (issue #5127).
   Future<int> applyAllInScope(
     List<RunAppliedItem> items, {
     required int generation,
+    String? operationId,
   }) {
     if (!isOn || items.isEmpty || _generation() != generation) {
       return Future.value(0);
@@ -135,6 +139,7 @@ class AutoApplier {
     return ChangeLogScope.automatic(
       DatabaseService.instance.databaseOrNull,
       label: ChangeLogLabels.marineLifeId,
+      operationId: operationId,
       body: () async {
         final species = <String>{};
         for (final item in items) {

@@ -33,6 +33,13 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
     required void Function(String mediaId) cancel,
     required Future<int> Function(List<RunAppliedItem> items, int generation)
     applyAll,
+    Future<int> Function(
+      List<RunAppliedItem> items,
+      int generation,
+      String operationId,
+    )?
+    applyAllInto,
+    Future<bool> Function(MediaItem item)? onDevice,
     required int Function() databaseGeneration,
     bool Function()? inForeground,
   }) : _mediaForDive = mediaForDive,
@@ -41,6 +48,8 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
        _requestFresh = requestFresh ?? request,
        _cancelItem = cancel,
        _applyAll = applyAll,
+       _applyAllInto = applyAllInto ?? ((items, g, _) => applyAll(items, g)),
+       _onDevice = onDevice ?? ((_) async => true),
        _generation = databaseGeneration,
        _inForeground = inForeground ?? (() => true),
        super(const {});
@@ -53,6 +62,14 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   final Future<RunItemOutcome> Function(MediaItem, GeoPoint?) _requestFresh;
   final void Function(String) _cancelItem;
   final Future<int> Function(List<RunAppliedItem>, int) _applyAll;
+
+  /// Applies as [_applyAll] does, filed under a given History operation: a
+  /// run over many dives makes one entry (issue #5127).
+  final Future<int> Function(List<RunAppliedItem>, int, String) _applyAllInto;
+
+  /// Whether an item's original is on this device, for a run that looks
+  /// only at those (issue #5127).
+  final Future<bool> Function(MediaItem) _onDevice;
   final int Function() _generation;
 
   /// Whether the app is in the foreground now: a refusal for being in the
@@ -65,6 +82,11 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
 
   /// The queued or running dives whose run is a fresh one.
   final _fresh = <String>{};
+
+  /// The queued or running dives whose run looks only at media on this
+  /// device, and those whose apply files under a given operation.
+  final _onDeviceOnly = <String>{};
+  final _operationOf = <String, String>{};
   final _finished = <String, Completer<void>>{};
   String? _current;
   String? _currentItem;
@@ -80,16 +102,42 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   /// Starts a run for [diveId], or queues it behind the one running.
   /// Completes when that dive's run ends. [fresh] is Check again (issue
   /// #4825); a dive whose run is already queued or going keeps that run.
-  Future<void> start(String diveId, {bool fresh = false}) {
+  ///
+  /// [onDeviceOnly] leaves out media whose original is not on this device,
+  /// and [operationId] files what the run tags under that History
+  /// operation, for a run over many dives (issue #5127).
+  Future<void> start(
+    String diveId, {
+    bool fresh = false,
+    bool onDeviceOnly = false,
+    String? operationId,
+  }) {
     final existing = _finished[diveId];
     if (existing != null && !existing.isCompleted) return existing.future;
     final done = Completer<void>();
     _finished[diveId] = done;
     _queue.add(diveId);
     if (fresh) _fresh.add(diveId);
+    if (onDeviceOnly) _onDeviceOnly.add(diveId);
+    if (operationId != null) _operationOf[diveId] = operationId;
     _set(DiveSpeciesRunState(diveId: diveId));
     if (_current == null) unawaited(_drain());
     return done.future;
+  }
+
+  /// Whether [diveId] has a run queued or going.
+  bool isQueuedOrRunning(String diveId) {
+    final done = _finished[diveId];
+    return done != null && !done.isCompleted;
+  }
+
+  /// Drops a finished or cancelled dive's state, so a run over the whole
+  /// logbook does not keep one entry per dive (issue #5127). A dive whose
+  /// run is still queued or going is left alone.
+  void forget(String diveId) {
+    if (isQueuedOrRunning(diveId) || !state.containsKey(diveId)) return;
+    _finished.remove(diveId);
+    state = {...state}..remove(diveId);
   }
 
   /// Stops [diveId]'s run after the item in progress, or drops it if it
@@ -97,6 +145,8 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
   void cancel(String diveId) {
     if (_queue.remove(diveId)) {
       _fresh.remove(diveId);
+      _onDeviceOnly.remove(diveId);
+      _operationOf.remove(diveId);
       _set(state[diveId]!.copyWith(phase: DiveRunPhase.cancelled));
       _finished[diveId]?.complete();
       return;
@@ -171,21 +221,33 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
 
   Future<void> _run(String diveId) async {
     final fresh = _fresh.remove(diveId);
+    final onDeviceOnly = _onDeviceOnly.remove(diveId);
+    final operationId = _operationOf.remove(diveId);
     final generation = _generation();
     var where = await _diveLocation(diveId);
     final all = await _mediaForDive(diveId);
-    final items = [
+    final ordered = [
       for (final m in all)
         if (m.mediaType == MediaType.photo) m,
       for (final m in all)
         if (m.mediaType == MediaType.video) m,
     ];
+    // Asked now, not when the run was planned: media added since, or an
+    // original the system moved to the cloud meanwhile, follow the
+    // diver's choice too.
+    final items = onDeviceOnly
+        ? [
+            for (final m in ordered)
+              if (await _onDevice(m)) m,
+          ]
+        : ordered;
+    final notOnDevice = ordered.length - items.length;
     var refusedHere = 0;
     var s = (state[diveId] ?? DiveSpeciesRunState(diveId: diveId)).copyWith(
       phase: DiveRunPhase.running,
       total: items.length,
       done: 0,
-      summary: const DiveRunSummary(),
+      summary: DiveRunSummary(notOnDevice: notOnDevice),
     );
     _set(s);
     final looked = <RunAppliedItem>[];
@@ -289,7 +351,9 @@ class DiveSpeciesRun extends StateNotifier<Map<String, DiveSpeciesRunState>> {
         stoppedFor != _Stop.logbook &&
         stoppedFor != _Stop.diveGone &&
         !_disposed) {
-      tagged = await _applyAll(looked, generation);
+      tagged = operationId == null
+          ? await _applyAll(looked, generation)
+          : await _applyAllInto(looked, generation, operationId);
     }
     if (_disposed) return;
     _set(

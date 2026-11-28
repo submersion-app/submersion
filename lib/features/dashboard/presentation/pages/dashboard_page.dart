@@ -45,6 +45,7 @@ import 'package:submersion/features/insights/presentation/providers/career_total
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/home_species_banner.dart';
+import 'package:submersion/features/species_id/presentation/widgets/species_batch_progress_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Home as a technical dashboard (issue #4824): a slim header with the
@@ -189,6 +190,13 @@ class DashboardPage extends ConsumerWidget {
                     // The species model offer, for a diver who would
                     // otherwise never hear of it (issue #4881).
                     const SliverToBoxAdapter(child: HomeSpeciesBanner()),
+                    // Find species over many dives, while it runs (issue
+                    // #5127): draws nothing otherwise.
+                    const SliverToBoxAdapter(
+                      child: SpeciesBatchProgressCard(
+                        margin: EdgeInsets.fromLTRB(12, 12, 12, 0),
+                      ),
+                    ),
                     SliverPadding(
                       padding: const EdgeInsets.all(12),
                       // The first-dive panel cannot be hidden, so an empty

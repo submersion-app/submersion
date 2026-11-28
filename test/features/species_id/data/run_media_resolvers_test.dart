@@ -68,4 +68,78 @@ void main() {
     answer.complete(false);
     expect(await count, 2);
   });
+
+  test(
+    'no more than eight library lookups run at once (issue #5127)',
+    () async {
+      var inFlight = 0;
+      var most = 0;
+      final count = await notOnDeviceCount(
+        [for (var i = 0; i < 30; i++) item('m$i', asset: 'PH-$i')],
+        libraryOriginalHere: (_) async {
+          inFlight++;
+          if (inFlight > most) most = inFlight;
+          await Future<void>.delayed(Duration.zero);
+          inFlight--;
+          return false;
+        },
+      );
+      expect(count, 30);
+      expect(most, lessThanOrEqualTo(8));
+      expect(most, greaterThan(1));
+    },
+  );
+
+  group('isOnDevice', () {
+    bool exists(String path) => path == '/here.jpg';
+    Future<bool> library(MediaItem _) async => true;
+
+    test('a file that exists is here, a missing one is not', () async {
+      expect(
+        await isOnDevice(
+          item('a', path: '/here.jpg'),
+          libraryOriginalHere: library,
+          fileExists: exists,
+        ),
+        isTrue,
+      );
+      expect(
+        await isOnDevice(
+          item('b', path: '/gone.jpg'),
+          libraryOriginalHere: library,
+          fileExists: exists,
+        ),
+        isFalse,
+      );
+    });
+
+    test('an item with no file of its own (a manifest or URL entry) is '
+        'not here: reading it fetches it', () async {
+      expect(
+        await isOnDevice(
+          item('c'),
+          libraryOriginalHere: library,
+          fileExists: exists,
+        ),
+        isFalse,
+      );
+    });
+
+    test('a library item is here when its original is', () async {
+      expect(
+        await isOnDevice(
+          item('a', asset: 'PH-1'),
+          libraryOriginalHere: (_) async => true,
+        ),
+        isTrue,
+      );
+      expect(
+        await isOnDevice(
+          item('b', asset: 'PH-2'),
+          libraryOriginalHere: (_) async => false,
+        ),
+        isFalse,
+      );
+    });
+  });
 }

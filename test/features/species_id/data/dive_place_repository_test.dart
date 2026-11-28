@@ -72,4 +72,35 @@ void main() {
 
     expect(place.exists, isFalse);
   });
+
+  group('placesOf (issue #5127)', () {
+    test('reads many dives at once, as placeOf reads one', () async {
+      await siteAt('s1', lat: 12.08, lon: -68.28);
+      await diveAt('d1', siteId: 's1');
+      await diveAt('d2', lat: 12.09, lon: -68.29);
+
+      final places = await DivePlaceRepository().placesOf(['d1', 'd2', 'gone']);
+
+      expect(places['d1']!.site, const GeoPoint(12.08, -68.28));
+      expect(places['d1']!.entry, isNull);
+      expect(places['d2']!.site, isNull);
+      expect(places['d2']!.entry, const GeoPoint(12.09, -68.29));
+      expect(places['gone']!.exists, isFalse);
+    });
+
+    test('more dives than SQLite takes in one statement', () async {
+      final ids = [for (var i = 0; i < 1200; i++) 'd$i'];
+      await diveAt('d7');
+
+      final places = await DivePlaceRepository().placesOf(ids);
+
+      expect(places, hasLength(1200));
+      expect(places['d7']!.exists, isTrue);
+      expect(places['d8']!.exists, isFalse);
+    });
+
+    test('no dives, no query', () async {
+      expect(await DivePlaceRepository().placesOf(const []), isEmpty);
+    });
+  });
 }

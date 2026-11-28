@@ -301,6 +301,33 @@ void main() {
     expect(ops, hasLength(1));
   });
 
+  test('dives of one batch apply into one change log operation', () async {
+    // Issue #5127: each dive applies on its own, under the batch's id.
+    await insertTestMedia(id: 'p2', diveId: 'd1');
+    await store('p1');
+    await store('p2');
+
+    await applier().applyAllInScope(
+      const [(mediaId: 'p1', isVideo: false)],
+      generation: 0,
+      operationId: 'batch',
+    );
+    await applier().applyAllInScope(
+      const [(mediaId: 'p2', isVideo: false)],
+      generation: 0,
+      operationId: 'batch',
+    );
+
+    await changeLog.settleAll();
+    final ops = await db
+        .customSelect(
+          "SELECT id FROM change_log_operations "
+          "WHERE label = 'marine_life_id'",
+        )
+        .get();
+    expect(ops.map((r) => r.data['id']), ['batch']);
+  });
+
   test(
     'an item that cannot be tagged does not stop the rest of a run',
     () async {

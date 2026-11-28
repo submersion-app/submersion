@@ -56947,6 +56947,120 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get speciesBatch_findInDives => 'Buscar especies';
+
+  @override
+  String get speciesBatch_findInLogbook =>
+      'Buscar especies en todas las inmersiones';
+
+  @override
+  String get speciesBatch_findInLogbookSubtitle =>
+      'Examina las fotos y los vídeos de cada inmersión';
+
+  @override
+  String speciesBatch_counting(int done, int total) {
+    return 'Contando fotos y vídeos: $done de $total inmersiones';
+  }
+
+  @override
+  String get speciesBatch_countFailed =>
+      'No se pudieron contar las fotos y los vídeos.';
+
+  @override
+  String speciesBatch_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones',
+      one: '1 inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesBatch_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos y vídeos',
+      one: '1 foto o vídeo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesBatch_toLookAt(String dives, String items) {
+    return '$dives, $items por examinar.';
+  }
+
+  @override
+  String speciesBatch_applyOnly(String dives) {
+    return 'Nada nuevo que examinar. Se etiquetarán las coincidencias seguras ya encontradas en $dives.';
+  }
+
+  @override
+  String get speciesBatch_nothingToDo =>
+      'Todas las fotos y vídeos de estas inmersiones ya están revisados.';
+
+  @override
+  String speciesBatch_notOnDevice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de ellos no están en este dispositivo.',
+      one: '1 de ellos no está en este dispositivo.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesBatch_downloadThem => 'Descargar y examinar';
+
+  @override
+  String get speciesBatch_onDeviceOnly =>
+      'Solo lo que está en este dispositivo';
+
+  @override
+  String get speciesBatch_takesAWhile =>
+      'Puede tardar un rato. La app debe seguir abierta: la búsqueda se pausa mientras está en segundo plano.';
+
+  @override
+  String get speciesBatch_start => 'Iniciar';
+
+  @override
+  String get speciesBatch_alreadyRunning =>
+      'Ya hay una búsqueda de especies en curso. Su progreso aparece en Inicio.';
+
+  @override
+  String get speciesBatch_progressTitle => 'Buscando especies';
+
+  @override
+  String speciesBatch_progress(int dive, int dives, int done, int total) {
+    return 'Inmersión $dive de $dives · $done de $total fotos y vídeos';
+  }
+
+  @override
+  String get speciesBatch_pausedBackground =>
+      'En pausa mientras la app está en segundo plano';
+
+  @override
+  String get speciesBatch_stopped => 'Búsqueda de especies detenida.';
+
+  @override
+  String speciesBatch_summaryNotOnDevice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se omitieron $count que no están en este dispositivo.',
+      one: 'Se omitió 1 que no está en este dispositivo.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesBatch_review => 'Revisar';
+
+  @override
   String media_species_confirmTag(String name) {
     return 'Confirmar $name';
   }

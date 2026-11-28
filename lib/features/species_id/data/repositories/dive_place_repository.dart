@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// Where a dive is, for a Find species run (issue #4727): whether it still
@@ -41,6 +42,42 @@ class DivePlaceRepository {
       site: _point(row.read(s.latitude), row.read(s.longitude)),
       entry: _point(row.read(d.entryLatitude), row.read(d.entryLongitude)),
     );
+  }
+
+  /// [placeOf] for many dives, a few statements in all (issue #5127): what
+  /// counting a whole logbook before Find species asks. Every id is in the
+  /// map; a dive that is gone has `exists: false`.
+  Future<Map<String, ({bool exists, GeoPoint? site, GeoPoint? entry})>>
+  placesOf(List<String> diveIds) async {
+    final places = <String, ({bool exists, GeoPoint? site, GeoPoint? entry})>{
+      for (final id in diveIds) id: (exists: false, site: null, entry: null),
+    };
+    if (diveIds.isEmpty) return places;
+    final d = _db.dives;
+    final s = _db.diveSites;
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final rows =
+          await (_db.selectOnly(d).join([
+                  leftOuterJoin(s, s.id.equalsExp(d.siteId)),
+                ])
+                ..addColumns([
+                  d.id,
+                  d.entryLatitude,
+                  d.entryLongitude,
+                  s.latitude,
+                  s.longitude,
+                ])
+                ..where(d.id.isIn(chunk)))
+              .get();
+      for (final row in rows) {
+        places[row.read(d.id)!] = (
+          exists: true,
+          site: _point(row.read(s.latitude), row.read(s.longitude)),
+          entry: _point(row.read(d.entryLatitude), row.read(d.entryLongitude)),
+        );
+      }
+    }
+    return places;
   }
 
   static GeoPoint? _point(double? latitude, double? longitude) =>

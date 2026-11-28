@@ -57763,6 +57763,129 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get speciesBatch_findInDives => 'البحث عن الأنواع';
+
+  @override
+  String get speciesBatch_findInLogbook => 'البحث عن الأنواع في كل الغوصات';
+
+  @override
+  String get speciesBatch_findInLogbookSubtitle =>
+      'يفحص صور ومقاطع فيديو كل غوصة';
+
+  @override
+  String speciesBatch_counting(int done, int total) {
+    return 'جارٍ عدّ الصور ومقاطع الفيديو: $done من $total غوصة';
+  }
+
+  @override
+  String get speciesBatch_countFailed => 'تعذر عدّ الصور ومقاطع الفيديو.';
+
+  @override
+  String speciesBatch_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصة',
+      many: '$count غوصةً',
+      few: '$count غوصات',
+      two: 'غوصتان',
+      one: 'غوصة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesBatch_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count من الصور ومقاطع الفيديو',
+      many: '$count من الصور ومقاطع الفيديو',
+      few: '$count من الصور ومقاطع الفيديو',
+      two: 'عنصران',
+      one: 'صورة أو مقطع فيديو واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesBatch_toLookAt(String dives, String items) {
+    return '$dives، $items للفحص.';
+  }
+
+  @override
+  String speciesBatch_applyOnly(String dives) {
+    return 'لا جديد للفحص. ستُوسم التطابقات المؤكدة التي عُثر عليها سابقًا في $dives.';
+  }
+
+  @override
+  String get speciesBatch_nothingToDo =>
+      'جميع الصور ومقاطع الفيديو في هذه الغوصات فُحصت بالفعل.';
+
+  @override
+  String speciesBatch_notOnDevice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count منها غير موجودة على هذا الجهاز.',
+      many: '$count منها غير موجودة على هذا الجهاز.',
+      few: '$count منها غير موجودة على هذا الجهاز.',
+      two: 'اثنان منها غير موجودين على هذا الجهاز.',
+      one: 'واحد منها غير موجود على هذا الجهاز.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesBatch_downloadThem => 'تنزيلها وفحصها';
+
+  @override
+  String get speciesBatch_onDeviceOnly => 'فقط ما هو موجود على هذا الجهاز';
+
+  @override
+  String get speciesBatch_takesAWhile =>
+      'قد يستغرق هذا بعض الوقت. أبقِ التطبيق مفتوحًا: يتوقف البحث مؤقتًا عندما يكون التطبيق في الخلفية.';
+
+  @override
+  String get speciesBatch_start => 'ابدأ';
+
+  @override
+  String get speciesBatch_alreadyRunning =>
+      'هناك بحث عن الأنواع قيد التشغيل بالفعل. يظهر تقدمه في الرئيسية.';
+
+  @override
+  String get speciesBatch_progressTitle => 'جارٍ البحث عن الأنواع';
+
+  @override
+  String speciesBatch_progress(int dive, int dives, int done, int total) {
+    return 'الغوصة $dive من $dives · $done من $total من الصور ومقاطع الفيديو';
+  }
+
+  @override
+  String get speciesBatch_pausedBackground =>
+      'متوقف مؤقتًا أثناء وجود التطبيق في الخلفية';
+
+  @override
+  String get speciesBatch_stopped => 'تم إيقاف البحث عن الأنواع.';
+
+  @override
+  String speciesBatch_summaryNotOnDevice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم استبعاد $count عنصر غير موجود على هذا الجهاز.',
+      many: 'تم استبعاد $count عنصرًا غير موجود على هذا الجهاز.',
+      few: 'تم استبعاد $count عناصر غير موجودة على هذا الجهاز.',
+      two: 'تم استبعاد عنصرين غير موجودين على هذا الجهاز.',
+      one: 'تم استبعاد عنصر واحد غير موجود على هذا الجهاز.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesBatch_review => 'مراجعة';
+
+  @override
   String media_species_confirmTag(String name) {
     return 'تأكيد $name';
   }

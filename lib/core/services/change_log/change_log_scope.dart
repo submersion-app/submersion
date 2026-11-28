@@ -83,20 +83,27 @@ abstract final class ChangeLogScope {
   static String? get currentOperationId => Zone.current[_scopeKey] as String?;
 
   /// Runs [body] with its changes filed under one new operation.
+  ///
+  /// Given [reopenId], the scope files under that operation instead: it is
+  /// created when missing and reopened when it exists, so several short
+  /// scopes make one entry (a batch of Find species runs, issue #5127)
+  /// while each holds the context only for its own body.
   static Future<T> run<T>(
     AppDatabase? db, {
     required ChangeLogSource source,
     String? label,
     String? deviceId,
     String? revertOfId,
+    String? reopenId,
     Duration lease = kChangeLogLease,
     required Future<T> Function() body,
   }) async {
     if (db == null) return body();
-    final operationId = const Uuid().v4();
+    final operationId = reopenId ?? const Uuid().v4();
     final previous = await _open(
       db,
       operationId: operationId,
+      reopen: reopenId != null,
       source: source,
       label: label,
       deviceId: deviceId,
@@ -132,14 +139,22 @@ abstract final class ChangeLogScope {
   /// A background job: one [ChangeLogSource.automatic] operation, or part of
   /// the scope already running. Without this a job's writes would look like
   /// the diver's. Keep [body] to the writes: anything the diver saves while
-  /// it runs gets its label.
+  /// it runs gets its label. [operationId] files it under that operation,
+  /// created or reopened ([run]'s `reopenId`).
   static Future<T> automatic<T>(
     AppDatabase? db, {
     required String label,
+    String? operationId,
     required Future<T> Function() body,
   }) {
     if (Zone.current[_scopeKey] != null) return body();
-    return run(db, source: ChangeLogSource.automatic, label: label, body: body);
+    return run(
+      db,
+      source: ChangeLogSource.automatic,
+      label: label,
+      reopenId: operationId,
+      body: body,
+    );
   }
 
   /// Runs [body] with the triggers silenced, then records one summary
@@ -186,6 +201,7 @@ abstract final class ChangeLogScope {
   static Future<({String? id})?> _open(
     AppDatabase db, {
     required String operationId,
+    bool reopen = false,
     required ChangeLogSource source,
     required String? label,
     required String? deviceId,
@@ -206,6 +222,15 @@ abstract final class ChangeLogScope {
               startedAt: now,
               endedAt: now,
             ),
+            // Reopened: it keeps when it started and what it holds.
+            onConflict: reopen
+                ? DoUpdate(
+                    (_) => ChangeLogOperationsCompanion(
+                      closed: const Value(false),
+                      endedAt: Value(now),
+                    ),
+                  )
+                : null,
           );
       // A lapsed lease is a job that died, so it is not handed back later.
       final context = await db

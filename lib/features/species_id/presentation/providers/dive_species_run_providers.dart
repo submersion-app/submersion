@@ -11,6 +11,7 @@ import 'package:submersion/features/media/presentation/providers/video_color_tra
 import 'package:submersion/features/species_id/data/repositories/dive_place_repository.dart';
 import 'package:submersion/features/species_id/data/services/dive_species_run.dart';
 import 'package:submersion/features/species_id/data/services/media_identification_service.dart';
+import 'package:submersion/features/species_id/data/services/run_media_resolvers.dart';
 import 'package:submersion/features/species_id/data/services/video_identification_scan.dart';
 import 'package:submersion/features/species_id/domain/entities/dive_species_run_state.dart';
 import 'package:submersion/features/species_id/presentation/providers/species_id_providers.dart';
@@ -82,6 +83,17 @@ final diveSpeciesRunProvider =
         applyAll: (items, generation) => ref
             .read(autoApplierProvider)
             .applyAllInScope(items, generation: generation),
+        applyAllInto: (items, generation, operationId) => ref
+            .read(autoApplierProvider)
+            .applyAllInScope(
+              items,
+              generation: generation,
+              operationId: operationId,
+            ),
+        onDevice: (item) => isOnDevice(
+          item,
+          libraryOriginalHere: ref.read(libraryOriginalHereProvider),
+        ),
         databaseGeneration: () => DatabaseService.instance.generation,
         inForeground: () =>
             WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed,

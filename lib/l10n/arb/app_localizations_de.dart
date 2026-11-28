@@ -56763,6 +56763,118 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get speciesBatch_findInDives => 'Arten finden';
+
+  @override
+  String get speciesBatch_findInLogbook => 'Arten in allen Tauchgängen finden';
+
+  @override
+  String get speciesBatch_findInLogbookSubtitle =>
+      'Untersucht die Fotos und Videos aller Tauchgänge';
+
+  @override
+  String speciesBatch_counting(int done, int total) {
+    return 'Fotos und Videos werden gezählt: $done von $total Tauchgängen';
+  }
+
+  @override
+  String get speciesBatch_countFailed =>
+      'Die Fotos und Videos konnten nicht gezählt werden.';
+
+  @override
+  String speciesBatch_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesBatch_items(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Fotos und Videos',
+      one: '1 Foto oder Video',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesBatch_toLookAt(String dives, String items) {
+    return '$dives, $items zu untersuchen.';
+  }
+
+  @override
+  String speciesBatch_applyOnly(String dives) {
+    return 'Nichts Neues zu untersuchen. Bereits gefundene sichere Treffer in $dives werden markiert.';
+  }
+
+  @override
+  String get speciesBatch_nothingToDo =>
+      'Alle Fotos und Videos dieser Tauchgänge sind bereits geprüft.';
+
+  @override
+  String speciesBatch_notOnDevice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count davon sind nicht auf diesem Gerät.',
+      one: '1 davon ist nicht auf diesem Gerät.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesBatch_downloadThem => 'Herunterladen und untersuchen';
+
+  @override
+  String get speciesBatch_onDeviceOnly => 'Nur, was auf diesem Gerät ist';
+
+  @override
+  String get speciesBatch_takesAWhile =>
+      'Das kann eine Weile dauern. Lass die App offen: Im Hintergrund pausiert die Suche.';
+
+  @override
+  String get speciesBatch_start => 'Starten';
+
+  @override
+  String get speciesBatch_alreadyRunning =>
+      'Es läuft bereits eine Artensuche. Ihr Fortschritt steht auf der Startseite.';
+
+  @override
+  String get speciesBatch_progressTitle => 'Arten werden gesucht';
+
+  @override
+  String speciesBatch_progress(int dive, int dives, int done, int total) {
+    return 'Tauchgang $dive von $dives · $done von $total Fotos und Videos';
+  }
+
+  @override
+  String get speciesBatch_pausedBackground =>
+      'Pausiert, solange die App im Hintergrund ist';
+
+  @override
+  String get speciesBatch_stopped => 'Artensuche angehalten.';
+
+  @override
+  String speciesBatch_summaryNotOnDevice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nicht auf diesem Gerät wurden ausgelassen.',
+      one: '1 nicht auf diesem Gerät wurde ausgelassen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesBatch_review => 'Prüfen';
+
+  @override
   String media_species_confirmTag(String name) {
     return '$name bestätigen';
   }

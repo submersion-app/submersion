@@ -44,6 +44,8 @@ import 'package:submersion/features/dive_log/presentation/helpers/dive_list_nav_
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_scrubber.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trip_group_header.dart';
+import 'package:submersion/features/species_id/presentation/providers/species_batch_providers.dart';
+import 'package:submersion/features/species_id/presentation/widgets/find_species_batch_flow.dart';
 import 'package:submersion/features/trips/presentation/helpers/new_trip_from_selection.dart';
 import 'package:submersion/features/weather/presentation/widgets/fetch_conditions_bulk_action.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
@@ -2075,6 +2077,14 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         ref,
         selected: () => _selectedIds.toSet(),
       ),
+      // Find species in the checked dives' photos and videos (#5127), where
+      // this device can run the models and a pack is installed.
+      if (ref.watch(speciesBatchAvailableProvider))
+        findSpeciesBulkAction(
+          context,
+          ref,
+          selected: () => _selectedIds.toSet(),
+        ),
       // Logbook rules on the checked dives, previewed first (#3513). Last,
       // so the existing inline actions keep their places.
       rulesBulkAction(
