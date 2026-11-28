@@ -106,6 +106,72 @@ void main() {
     expect((await row('tank-a')).endPressure, 50.0);
   });
 
+  test('a serial pairs its cylinder before the rest line up', () async {
+    // The diver reordered the cylinders; only one has a stored serial, and
+    // it names the file's first tank.
+    await seed('pony', 0, start: 200);
+    await seed('main', 1, start: 200, serial: '222');
+
+    await resync([
+      {
+        'startPressure': 200.0,
+        'endPressure': 150.0,
+        'transmitterSerial': '222',
+      },
+      {'startPressure': 200.0, 'endPressure': 120.0},
+    ]);
+
+    expect((await row('main')).endPressure, 150.0);
+    expect((await row('pony')).endPressure, 120.0);
+  });
+
+  test('a cylinder left as it was keeps its gas switches', () async {
+    // The diver corrected the deco cylinder's start pressure, so nothing
+    // says the file's second tank is it: it is left as it was, switches too.
+    await seed('back', 0, start: 200);
+    await seed('deco', 1, start: 180);
+    for (final (id, tankId, t) in [
+      ('gs-back', 'back', 0),
+      ('gs-deco', 'deco', 600),
+    ]) {
+      await db
+          .into(db.gasSwitches)
+          .insert(
+            GasSwitchesCompanion.insert(
+              id: id,
+              diveId: diveId,
+              tankId: tankId,
+              timestamp: t,
+              createdAt: 1000,
+            ),
+          );
+    }
+
+    await service.applyReimport(
+      diveId: diveId,
+      diveData: {
+        'tanks': [
+          {'startPressure': 200.0, 'endPressure': 60.0},
+          {'startPressure': 210.0, 'endPressure': 150.0},
+        ],
+        'gasSwitches': [
+          {'timestamp': 0, 'tankIndex': 0},
+          {'timestamp': 600, 'tankIndex': 1},
+        ],
+      },
+      now: DateTime(2026, 11, 28),
+    );
+
+    final switches = await (db.select(
+      db.gasSwitches,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    expect(
+      {for (final s in switches) (s.tankId, s.timestamp)},
+      {('back', 0), ('deco', 600)},
+    );
+    expect((await row('deco')).startPressure, 180.0);
+  });
+
   test('cylinders that line up in order pair by position', () async {
     await seed('a', 0, start: 200);
     await seed('b', 1, start: 200);

@@ -681,12 +681,15 @@ class DiveReimportService {
     if (dive?.gasSwitchesEdited ?? false) return;
     final switchesData = switchesRaw.cast<Map<String, dynamic>>();
 
+    // Only the cylinders this resync placed take the file's switches: a
+    // stored cylinder it left as it was (issue #4665) keeps its own.
+    final placedIds = {for (final id in tanks.idsByIndex) ?id};
     final existing = await (db.select(
       db.gasSwitches,
-    )..where((t) => t.diveId.equals(diveId))).get();
+    )..where((t) => t.diveId.equals(diveId) & t.tankId.isIn(placedIds))).get();
     await (db.delete(
       db.gasSwitches,
-    )..where((t) => t.diveId.equals(diveId))).go();
+    )..where((t) => t.diveId.equals(diveId) & t.tankId.isIn(placedIds))).go();
     for (final row in existing) {
       await _syncRepository.logDeletion(
         entityType: 'gasSwitches',

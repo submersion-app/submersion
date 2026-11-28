@@ -75,13 +75,14 @@ double? _bar(Object? value) => value is num ? value.toDouble() : null;
 /// a diver who removed or reordered a cylinder shifts every position after
 /// it. Returns the stored row for each file index it places.
 ///
-/// When every unplaced tank lines up with an unclaimed row in order and no
-/// pair contradicts itself (serials that differ, or a stored start pressure
-/// that agrees with none of the tank's [starts]), they pair in order, which
+/// A transmitter serial both name pairs first: a tank pairs with the one
+/// row whose serial it names, and both leave the rest of the pairing. Of
+/// what is left, when every tank lines up with a row in order and no pair
+/// contradicts itself (serials that differ, or a stored start pressure that
+/// agrees with none of the tank's [starts]), they pair in order, which
 /// settles two cylinders filled to the same pressure as Cloud import pairs
-/// them. Otherwise a tank pairs with the one row whose transmitter serial it
-/// names, or else with the one row whose start pressure agrees and whose
-/// serial does not contradict it, and only when no other unplaced tank
+/// them. Otherwise a tank pairs with the one row whose start pressure agrees
+/// and whose serial does not contradict it, and only when no other tank
 /// points at that row too. Anything less certain stays unplaced.
 Map<int, DiveTank> pairUnorderedTanks({
   required List<int> fileIndexes,
@@ -107,33 +108,54 @@ Map<int, DiveTank> pairUnorderedTanks({
         starts[i].any((p) => p != null && sameCylinderStartPressure(bar, p));
   }
 
-  final inOrder =
-      rows.length == fileIndexes.length &&
-      [for (var k = 0; k < rows.length; k++) (rows[k], fileIndexes[k])].every(
-        (pair) =>
-            !serialsConflict(pair.$1, pair.$2) &&
-            (sameSerial(pair.$1, pair.$2) ||
-                pair.$1.startPressure == null ||
-                pressureAgrees(pair.$1, pair.$2)),
-      );
-  if (inOrder) {
-    return {for (var k = 0; k < rows.length; k++) fileIndexes[k]: rows[k]};
-  }
-
-  List<DiveTank> candidatesFor(int i) {
-    final bySerial = [
+  // A serial both sides name is the surest sign there is: those pair first,
+  // and neither side is weighed again below.
+  final bySerial = <int, DiveTank>{};
+  for (final i in fileIndexes) {
+    final named = [
       for (final row in rows)
         if (sameSerial(row, i)) row,
     ];
-    if (bySerial.isNotEmpty) return bySerial;
-    return [
-      for (final row in rows)
-        if (!serialsConflict(row, i) && pressureAgrees(row, i)) row,
-    ];
+    if (named case [
+      final row,
+    ] when !bySerial.values.any((taken) => taken.id == row.id)) {
+      bySerial[i] = row;
+    }
+  }
+  final restIndexes = [
+    for (final i in fileIndexes)
+      if (!bySerial.containsKey(i)) i,
+  ];
+  final restRows = [
+    for (final row in rows)
+      if (!bySerial.values.any((taken) => taken.id == row.id)) row,
+  ];
+
+  final inOrder =
+      restRows.length == restIndexes.length &&
+      [
+        for (var k = 0; k < restRows.length; k++) (restRows[k], restIndexes[k]),
+      ].every(
+        (pair) =>
+            !serialsConflict(pair.$1, pair.$2) &&
+            (pair.$1.startPressure == null || pressureAgrees(pair.$1, pair.$2)),
+      );
+  if (inOrder) {
+    return {
+      ...bySerial,
+      for (var k = 0; k < restRows.length; k++) restIndexes[k]: restRows[k],
+    };
   }
 
-  final candidates = {for (final i in fileIndexes) i: candidatesFor(i)};
+  final candidates = {
+    for (final i in restIndexes)
+      i: [
+        for (final row in restRows)
+          if (!serialsConflict(row, i) && pressureAgrees(row, i)) row,
+      ],
+  };
   return {
+    ...bySerial,
     for (final MapEntry(key: i, value: rowsFor) in candidates.entries)
       if (rowsFor case [final row]
           when candidates.values
