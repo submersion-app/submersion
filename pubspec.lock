@@ -416,6 +416,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.9"
+  cupertino_ui:
+    dependency: transitive
+    description:
+      name: cupertino_ui
+      sha256: c3eaf7f5bdfee36deb0b14a4cbf7602f1b6b8d8b8576b81f38fc08c25881c94c
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.7"
   dart_earcut:
     dependency: transitive
     description:
@@ -1466,6 +1474,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.13.0"
+  material_ui:
+    dependency: transitive
+    description:
+      name: material_ui
+      sha256: a6b19012df437a356cbc01f8ea22a105e07194c47c9a6009da0032a0ce35c4ab
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.11.1"
   mcp_dart:
     dependency: "direct main"
     description:
@@ -1718,34 +1734,34 @@ packages:
     dependency: transitive
     description:
       name: pdfium_dart
-      sha256: "86e95c66b09f3245b95c4924f2edce8d4f7c9786876e5c5ee8e36b104a94bbb0"
+      sha256: "7d09706ebac2acb4ad8e3ebf6030281a36be14f86ee2deaad9bd81d5c30d2e85"
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.5"
+    version: "0.4.3"
   pdfium_flutter:
     dependency: transitive
     description:
       name: pdfium_flutter
-      sha256: "0b115c0917aef9cf6bb9c4d47d0efc61d97f44844cd76287c921f997c26cf15d"
+      sha256: "98c310ea9bef76d4b08700784f3863098d3739c9ed340e99c61d448a25406d9c"
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.3"
+    version: "0.4.3"
   pdfrx:
     dependency: "direct main"
     description:
       name: pdfrx
-      sha256: acce61944c31bd36f0c3031b1bbf41f59d0b0d4e5e27614fbdc74ff093d55464
+      sha256: "69e2fdfae25c9686b336d89c3841766a1043bc5ba7f24bb8252224b837018440"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.7"
+    version: "2.13.1"
   pdfrx_engine:
     dependency: transitive
     description:
       name: pdfrx_engine
-      sha256: ef8f8cfa64255bfc91a559dd2d32d7cfe7a0f8003bac297bbf9a0aed1182fae5
+      sha256: "001090d220b2773747ce396f2bcda3d6ac9389d87f937ef12d64ed3a9e80e8b0"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.6"
+    version: "0.9.3"
   permission_handler:
     dependency: "direct main"
     description:
@@ -2715,5 +2731,5 @@ packages:
     source: hosted
     version: "2.2.4"
 sdks:
-  dart: ">=3.12.0 <4.0.0"
-  flutter: ">=3.44.0"
+  dart: ">=3.13.0 <4.0.0"
+  flutter: ">=3.47.0"

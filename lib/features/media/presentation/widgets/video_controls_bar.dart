@@ -3,14 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
+import 'package:submersion/features/media/presentation/helpers/video_diver_moves.dart';
 import 'package:submersion/features/media/presentation/helpers/playhead_glide.dart';
 import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/video_tag_marks.dart';
 import 'package:submersion/features/media/presentation/widgets/video_volume_control.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/species_id/domain/services/species_crops.dart';
+import 'package:submersion/features/species_id/presentation/providers/video_sighting_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/video_analysed_stretches.dart';
+import 'package:submersion/features/species_id/presentation/widgets/video_sighting_marks.dart';
 
 /// Video playback controls: elapsed time, a scrub bar, and total time.
 ///
@@ -45,6 +50,15 @@ class VideoControlsBar extends StatefulWidget {
   /// drag, and [onHoldChanged] holds the controls up for each.
   final ViewerAudio? audio;
 
+  /// The species the viewer follows, when it was opened from a sighting
+  /// row (issue #5084): its sightings are marked on the bar, and with two
+  /// or more a button steps to the next. Null shows neither.
+  final String? speciesId;
+
+  /// The Next sighting button, for tests.
+  @visibleForTesting
+  static const nextSightingKey = ValueKey('videoControlsBar.nextSighting');
+
   /// The bar's touch area, for tests that tap or drag along it.
   @visibleForTesting
   static const trackKey = ValueKey('videoControlsBar.track');
@@ -65,6 +79,7 @@ class VideoControlsBar extends StatefulWidget {
     required this.mediaId,
     this.onHoldChanged,
     this.audio,
+    this.speciesId,
   });
 
   @override
@@ -196,6 +211,16 @@ class _VideoControlsBarState extends State<VideoControlsBar>
   Duration get _heading =>
       _seeking != null ? _seekTarget : widget.controller.value.position;
 
+  /// Steps to the next of [stretches] after where the video is headed,
+  /// wrapping to the first, keeping the play state (issue #5084).
+  void _nextSighting(List<VideoStretch> stretches) {
+    final target = nextStretchStart(stretches, _heading.inMilliseconds);
+    if (target == null) return;
+    unawaited(_seekTo(Duration(milliseconds: target)));
+    setState(() {});
+    _reportHold(scrubbing: false);
+  }
+
   void _step(Duration delta) {
     unawaited(_seekTo(_stepped(_heading, delta)));
     // Rebuild so the slider announces where the video is now headed.
@@ -228,6 +253,8 @@ class _VideoControlsBarState extends State<VideoControlsBar>
   /// Seeks to [target], coalescing with any seek already in flight. The
   /// returned future completes once the player has reached the newest target.
   Future<void> _seekTo(Duration target) {
+    // Every seek the bar makes is the diver's own.
+    markDiverMoved(widget.controller);
     _pendingSeek = target;
     _seekTarget = target;
     _glide.expectSeek(target);
@@ -361,6 +388,17 @@ class _VideoControlsBarState extends State<VideoControlsBar>
                       mediaId: widget.mediaId,
                       width: width,
                     );
+                    // The followed species' sightings (#5084), made once
+                    // here for the same reason.
+                    final speciesId = widget.speciesId;
+                    final sightings = speciesId == null
+                        ? null
+                        : VideoSightingMarks(
+                            mediaId: widget.mediaId,
+                            speciesId: speciesId,
+                            duration: duration,
+                            width: width,
+                          );
                     // A slider to assistive tech, stepping by a few seconds,
                     // since a screen reader cannot tap a point or drag.
                     return Semantics(
@@ -448,6 +486,8 @@ class _VideoControlsBarState extends State<VideoControlsBar>
                                         ),
                                       ),
                                     ),
+                                    // The species' sightings (issue #5084)
+                                    ?sightings,
                                     // Tagged moments (issue #1745)
                                     tagMarks!,
                                     // Thumb indicator
@@ -488,6 +528,8 @@ class _VideoControlsBarState extends State<VideoControlsBar>
                   textAlign: TextAlign.center,
                 ),
               ),
+              if (widget.speciesId case final speciesId?)
+                _nextSightingButton(speciesId),
               if (widget.audio case final audio?)
                 VideoVolumeControl(audio: audio, onHoldChanged: _onVolumeHold),
             ],
@@ -496,4 +538,35 @@ class _VideoControlsBarState extends State<VideoControlsBar>
       ),
     );
   }
+
+  /// The Next sighting button's size: an icon button at compact density.
+  static const double _nextSightingSize = 40;
+
+  /// Steps to the species' next sighting; shown only with two or more,
+  /// since with one there is nowhere else to go.
+  Widget _nextSightingButton(String speciesId) => Consumer(
+    builder: (context, ref, _) {
+      final sightings = ref.watch(
+        videoSpeciesSightingsProvider((
+          mediaId: widget.mediaId,
+          speciesId: speciesId,
+        )),
+      );
+      // Its place is held while they load, so the track does not shrink
+      // under the playhead when they arrive; a failed read holds nothing.
+      if (sightings.isLoading && !sightings.hasValue) {
+        return const SizedBox.square(dimension: _nextSightingSize);
+      }
+      final stretches = sightings.value ?? const <VideoStretch>[];
+      if (stretches.length < 2) return const SizedBox.shrink();
+      return IconButton(
+        key: VideoControlsBar.nextSightingKey,
+        icon: const Icon(Icons.skip_next),
+        color: Colors.white,
+        visualDensity: VisualDensity.compact,
+        tooltip: context.l10n.media_species_nextSighting,
+        onPressed: () => _nextSighting(stretches),
+      );
+    },
+  );
 }

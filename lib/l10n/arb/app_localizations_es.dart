@@ -9273,12 +9273,25 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'Presiones de botellas';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'Mantener las superposiciones a la vista';
-
-  @override
   String get diveLog_chartOption_tooltipFollowsCursor =>
       'El tooltip sigue al cursor';
+
+  @override
+  String get diveLog_chartOption_zoom => 'Zoom';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify =>
+      'Ambos ejes, ampliar las superposiciones';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView =>
+      'Ambos ejes, mantener las superposiciones a la vista';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => 'Solo tiempo';
+
+  @override
+  String get diveLog_chartOption_rightAxis => 'Eje derecho';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(est.)';
@@ -23999,8 +24012,11 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mantener las superposiciones a la vista al hacer zoom';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'Ajustar las superposiciones como NDL y ppO2 al área visible en lugar de ampliarlas con el eje de profundidad';
+  String get settings_appearance_profileZoom => 'Zoom';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict =>
+      'Zoom del perfil: solo tiempo';
 
   @override
   String get settings_appearance_rightYAxisMetric =>
@@ -43714,17 +43730,17 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'Pico de $rate en $range';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Promedio $rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => 'Media';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return 'media $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => 'Pico';
@@ -44505,6 +44521,86 @@ class AppLocalizationsEs extends AppLocalizations {
       one: '1 ciclo de batería',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_exposure_lastDivedLabel => 'Última inmersión';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => 'Inmersiones';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => 'Horas';
+
+  @override
+  String get equipmentCondition_exposure_today => 'Hoy';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Hace $count días',
+      one: 'Hace $count día',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Hace $count meses',
+      one: 'Hace $count mes',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Hace $count años',
+      one: 'Hace $count año',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return 'Última inmersión: $ago, el $date';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12 meses';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => 'Todos los años';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones en los últimos 12 meses',
+      one: '$count inmersión en los últimos 12 meses',
+      zero: 'Ninguna inmersión en los últimos 12 meses',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives, $hours';
   }
 
   @override
@@ -56754,6 +56850,9 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get media_species_nextSighting => 'Siguiente avistamiento';
+
+  @override
   String get media_species_openSpeciesPage => 'Página de la especie';
 
   @override
@@ -66224,7 +66323,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get info_equipment_exposure_summary =>
-      'Cuánto uso ha tenido este equipo, contado en cada unidad que usan sus relojes de mantenimiento.';
+      'Cuánto uso ha tenido este equipo, contado en cada unidad que usan sus relojes de mantenimiento. El gráfico cuenta sus inmersiones por mes o por año, hasta hoy.';
 
   @override
   String get info_site_altitude_summary =>

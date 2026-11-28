@@ -118,6 +118,11 @@ mixin PhotoViewerEditing<W extends ConsumerStatefulWidget> on ConsumerState<W> {
   Set<String> get unlinkedPhotoIds => _unlinked;
   Set<String> _unlinked = const {};
 
+  /// [items] without those this viewer's own Unlink took away.
+  List<MediaItem> withoutUnlinked(List<MediaItem> items) => _unlinked.isEmpty
+      ? items
+      : [...items.where((m) => !_unlinked.contains(m.id))];
+
   /// Told once a save that carried the Unlink of [mediaId] has committed,
   /// after it has joined [unlinkedPhotoIds].
   void onPhotoUnlinked(String mediaId) {}

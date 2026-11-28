@@ -61,6 +61,8 @@ class DiveSpeciesPhotoViewerPage extends ConsumerWidget {
           // Every photo is on the dive the viewer was opened from.
           showGoToDive: false,
           unlinkScope: ViewerUnlinkScope.dive,
+          // Its videos start at the species' sightings (issue #5084).
+          focusSpeciesId: speciesId,
         );
       },
       loading: () => const Scaffold(

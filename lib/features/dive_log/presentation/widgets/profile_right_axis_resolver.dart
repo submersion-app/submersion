@@ -9,8 +9,8 @@ import 'package:submersion/core/constants/profile_metrics.dart';
 /// [ProfileRightAxisMetric.fallbackPriority], else any other drawn metric in
 /// declaration order. With only depth drawn there is no right axis, so null.
 ///
-/// Ascent rate is never a fallback: its bars come from their own overlay, not
-/// from a line drawn against this scale, so the axis menu leaves it out too.
+/// Ascent rate comes last (issue #5069): its axis labels the bars' own fixed
+/// scale rather than a line, so it takes the axis only when no line is drawn.
 /// [preferred] is never stored back, so turning its line on again returns
 /// the axis to it.
 ProfileRightAxisMetric? resolveRightAxisMetric(
@@ -25,6 +25,9 @@ ProfileRightAxisMetric? resolveRightAxisMetric(
     if (metric != ProfileRightAxisMetric.ascentRate && isDrawn(metric)) {
       return metric;
     }
+  }
+  if (isDrawn(ProfileRightAxisMetric.ascentRate)) {
+    return ProfileRightAxisMetric.ascentRate;
   }
   return null;
 }

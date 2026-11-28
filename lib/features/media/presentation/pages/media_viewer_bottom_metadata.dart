@@ -45,6 +45,7 @@ extension _ViewerBottomPanel on _MediaViewerPageState {
               controller: video,
               mediaId: item.id,
               audio: _audio,
+              speciesId: widget.focusSpeciesId,
               // The controls hide 3 s after a reveal: hold them up while
               // scrubbing or under the mouse, so the bar is not pulled from
               // under the pointer.

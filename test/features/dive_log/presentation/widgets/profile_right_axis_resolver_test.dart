@@ -74,15 +74,51 @@ void main() {
       );
     });
 
-    test('never falls back to ascent rate, which has no line on the axis', () {
-      // Its bars are drawn by their own overlay, not against this scale, so
-      // the axis menu leaves it out too.
+    // Issue #5069: ascent rate has an axis that matches its bars, so it is
+    // a fallback too, after every line.
+    test('ascent rate is the last fallback', () {
       expect(
         resolveRightAxisMetric(
           ProfileRightAxisMetric.temperature,
           isDrawn: _drawing({ProfileRightAxisMetric.ascentRate}),
         ),
-        isNull,
+        ProfileRightAxisMetric.ascentRate,
+      );
+    });
+
+    test('a drawn line beats ascent rate', () {
+      expect(
+        resolveRightAxisMetric(
+          ProfileRightAxisMetric.temperature,
+          isDrawn: _drawing({
+            ProfileRightAxisMetric.ascentRate,
+            ProfileRightAxisMetric.otu,
+          }),
+        ),
+        ProfileRightAxisMetric.otu,
+      );
+    });
+
+    test('a preferred ascent rate with the bars off falls back', () {
+      expect(
+        resolveRightAxisMetric(
+          ProfileRightAxisMetric.ascentRate,
+          isDrawn: _drawing({ProfileRightAxisMetric.heartRate}),
+        ),
+        ProfileRightAxisMetric.heartRate,
+      );
+    });
+
+    test('a preferred ascent rate with the bars on keeps the axis', () {
+      expect(
+        resolveRightAxisMetric(
+          ProfileRightAxisMetric.ascentRate,
+          isDrawn: _drawing({
+            ProfileRightAxisMetric.ascentRate,
+            ProfileRightAxisMetric.temperature,
+          }),
+        ),
+        ProfileRightAxisMetric.ascentRate,
       );
     });
 

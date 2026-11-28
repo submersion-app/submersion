@@ -1,6 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/right_axis_metric_menu.dart';
 
 /// A metric an overlaid source can draw its own trace of, alongside the
 /// active source's. Metrics missing here (heart rate, SAC, markers, tank
@@ -158,6 +161,17 @@ class ProfileLegendConfig {
   /// Whether the dive carries both units, so the unit is a real choice. A dive
   /// with only one renders that one and offers no switch.
   final bool hasBothO2CellUnits;
+
+  /// The metrics the right axis can show on this dive, with their line
+  /// colours, for the chart options' Right axis row (issue #5069). Empty when
+  /// there is nothing to choose, and then the row is left out.
+  final List<RightAxisChoice> rightAxisChoices;
+
+  /// The metric the right axis shows (null when it shows none, chosen or
+  /// because no line besides depth is drawn), for the Right axis row. A
+  /// listenable, so an options dialog left open follows the chart.
+  final ValueListenable<ProfileRightAxisMetric?>? shownRightAxisMetric;
+
   const ProfileLegendConfig({
     this.activeSourceName,
     this.overlays = const [],
@@ -206,6 +220,8 @@ class ProfileLegendConfig {
     this.hasOtuData = false,
     this.hasO2CellData = false,
     this.hasBothO2CellUnits = false,
+    this.rightAxisChoices = const [],
+    this.shownRightAxisMetric,
   });
 
   bool get hasTankListSection =>

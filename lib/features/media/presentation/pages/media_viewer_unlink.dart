@@ -37,10 +37,6 @@ extension _ViewerUnlink on _MediaViewerPageState {
     );
   }
 
-  /// [child], the photo, dimmed while its Unlink is held.
-  Widget _dimWhileUnlinkHeld(Widget child) =>
-      Opacity(opacity: photoUnlinkHeld ? 0.45 : 1, child: child);
-
   /// Closes the viewer once a saved Unlink has taken its last item away
   /// (the pager drops the item through [unlinkedPhotoIds], so the next one
   /// takes its place, or the one before when it was the last).

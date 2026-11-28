@@ -37,6 +37,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
 import 'package:submersion/features/media/presentation/helpers/media_share_helper.dart';
 import 'package:submersion/features/media/presentation/helpers/set_time_seed.dart';
+import 'package:submersion/features/media/presentation/helpers/video_diver_moves.dart';
 import 'package:submersion/features/media/presentation/helpers/viewer_audio.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
@@ -81,6 +82,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/features/media/presentation/match_confidence_display.dart';
+import 'package:submersion/features/species_id/presentation/providers/video_sighting_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/identification_labels.dart';
 import 'package:submersion/features/species_id/presentation/widgets/identification_trigger.dart';
 import 'package:submersion/features/species_id/presentation/widgets/labels_menu.dart';
@@ -94,6 +96,7 @@ part 'media_viewer_chrome.dart';
 part 'media_viewer_gallery.dart';
 part 'media_viewer_keyboard.dart';
 part 'media_viewer_perdix.dart';
+part 'media_viewer_sightings.dart';
 part 'media_viewer_unlink.dart';
 part 'media_viewer_video_item.dart';
 part 'media_viewer_write_metadata.dart';
@@ -127,9 +130,12 @@ class MediaViewerPage extends ConsumerStatefulWidget {
   /// moment (issue #5027). Applied once, to that item only.
   final Duration? initialVideoPosition;
 
+  /// The species a sighting row opened the viewer on (issue #5084): each
+  /// video starts at its first sighting, and its bar marks them all.
+  final String? focusSpeciesId;
+
   /// What Unlink unlinks the item from (issue #5126); null offers none.
   final ViewerUnlinkScope? unlinkScope;
-
   const MediaViewerPage({
     super.key,
     required this.mediaList,
@@ -137,6 +143,7 @@ class MediaViewerPage extends ConsumerStatefulWidget {
     this.showGoToDive = false,
     this.captionFor,
     this.initialVideoPosition,
+    this.focusSpeciesId,
     this.unlinkScope,
   });
 
@@ -176,13 +183,11 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   /// every wrapper at once (PhotoViewerPage, TripPhotoViewerPage,
   /// SiteMediaViewerPage, and the library view), which is what the per-caller
   /// guards kept missing.
-  List<MediaItem> get _pageableMedia => widget.mediaList
-      .where((m) => !m.isDocument && !unlinkedPhotoIds.contains(m.id))
-      .toList();
+  List<MediaItem> get _pageableMedia =>
+      withoutUnlinked(widget.mediaList).where((m) => !m.isDocument).toList();
 
   @override
   ViewerUnlinkScope? get unlinkScope => widget.unlinkScope;
-
   @override
   void onPhotoUnlinked(String mediaId) => _closeWhenEmptied();
 
@@ -253,6 +258,8 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       if (start != null && !_startApplied && mediaId == widget.initialMediaId) {
         _startApplied = true;
         unawaited(controller.seekTo(start));
+      } else {
+        unawaited(_seekToFirstSighting(mediaId, controller));
       }
     }
   }
@@ -491,48 +498,46 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                 },
                 child: Stack(
                   children: [
-                    _dimWhileUnlinkHeld(
-                      RepaintBoundary(
-                        key: galleryBoundaryKey,
-                        child: _PhotoGallery(
-                          mediaList: shownMediaList(mediaList, heldProfile),
-                          pagingLocked: photoUnlocked,
-                          pageController: _pageController,
-                          onPageChanged: (index) {
-                            // Swipes and settles both land here, which is what
-                            // re-syncs the nav target after a gesture.
-                            setState(() {
-                              _currentIndex = index;
-                              _navTargetIndex = index;
-                              selectedPeopleTagId = null;
-                            });
-                            // Controls left up on a paused video have no timer; the
-                            // next page restarts the 3-second hide so they do not
-                            // linger over a photo nobody tapped.
-                            if (isFullscreen && fullscreenControlsVisible) {
-                              revealFullscreenControls(autoHide: true);
-                            }
-                            // A mouse-move clock left by a video is not the
-                            // next page's to act on.
-                            cancelVideoOverlayClock();
-                          },
-                          showOverlay: isFullscreen
-                              ? fullscreenControlsVisible
-                              : _showOverlay || photoUnlocked,
-                          fullscreen: isFullscreen,
-                          onFullscreenTap: toggleFullscreenControls,
-                          onSetOverlay: _onSetOverlay,
-                          onVideoHoldChanged: videoHoldChanged,
-                          onVideoControllerChanged: _onVideoControllerChanged,
-                          audio: _audio,
-                          currentIndex: currentIndex,
-                          people: peopleSession,
-                          identificationsEditable: photoEditable,
-                          hideIdentifications: pickingWhite,
-                          videoControlsInset: panelShown
-                              ? _bottomPanelHeight
-                              : 0,
-                        ),
+                    RepaintBoundary(
+                      key: galleryBoundaryKey,
+                      child: _PhotoGallery(
+                        focusSpeciesId: widget.focusSpeciesId,
+                        dimmed: photoUnlinkHeld,
+                        mediaList: shownMediaList(mediaList, heldProfile),
+                        pagingLocked: photoUnlocked,
+                        pageController: _pageController,
+                        onPageChanged: (index) {
+                          // Swipes and settles both land here, which is what
+                          // re-syncs the nav target after a gesture.
+                          setState(() {
+                            _currentIndex = index;
+                            _navTargetIndex = index;
+                            selectedPeopleTagId = null;
+                          });
+                          // Controls left up on a paused video have no timer; the
+                          // next page restarts the 3-second hide so they do not
+                          // linger over a photo nobody tapped.
+                          if (isFullscreen && fullscreenControlsVisible) {
+                            revealFullscreenControls(autoHide: true);
+                          }
+                          // A mouse-move clock left by a video is not the
+                          // next page's to act on.
+                          cancelVideoOverlayClock();
+                        },
+                        showOverlay: isFullscreen
+                            ? fullscreenControlsVisible
+                            : _showOverlay || photoUnlocked,
+                        fullscreen: isFullscreen,
+                        onFullscreenTap: toggleFullscreenControls,
+                        onSetOverlay: _onSetOverlay,
+                        onVideoHoldChanged: videoHoldChanged,
+                        onVideoControllerChanged: _onVideoControllerChanged,
+                        audio: _audio,
+                        currentIndex: currentIndex,
+                        people: peopleSession,
+                        identificationsEditable: photoEditable,
+                        hideIdentifications: pickingWhite,
+                        videoControlsInset: panelShown ? _bottomPanelHeight : 0,
                       ),
                     ),
 
@@ -680,7 +685,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                     ],
 
                     ?_unlinkStrip(context, panelShown: panelShown),
-
                     // People tag mode's hint and actions (issue #1745).
                     if (taggingPeople)
                       peopleTagHint(

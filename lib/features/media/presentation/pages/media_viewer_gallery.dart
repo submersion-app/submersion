@@ -46,6 +46,12 @@ class _PhotoGallery extends ConsumerStatefulWidget {
   /// hidden.
   final double videoControlsInset;
 
+  /// The species the viewer follows (issue #5084), for the fullscreen bar.
+  final String? focusSpeciesId;
+
+  /// Dimmed: the item's Unlink is held until Save (issue #5126).
+  final bool dimmed;
+
   const _PhotoGallery({
     required this.mediaList,
     required this.pageController,
@@ -63,6 +69,8 @@ class _PhotoGallery extends ConsumerStatefulWidget {
     this.identificationsEditable = true,
     this.hideIdentifications = false,
     this.videoControlsInset = 0,
+    this.focusSpeciesId,
+    this.dimmed = false,
   });
 
   @override
@@ -113,7 +121,7 @@ class _PhotoGalleryState extends ConsumerState<_PhotoGallery> {
   Widget build(BuildContext context) {
     final mediaList = widget.mediaList;
     final people = widget.people;
-    return PhotoViewGallery.builder(
+    final gallery = PhotoViewGallery.builder(
       // Tag mode holds the page still, so dragging a box never swipes.
       scrollPhysics: people.active || widget.pagingLocked
           ? const NeverScrollableScrollPhysics()
@@ -166,6 +174,7 @@ class _PhotoGalleryState extends ConsumerState<_PhotoGallery> {
               identificationsEditable: widget.identificationsEditable,
               hideIdentifications: widget.hideIdentifications,
               controlsInset: widget.videoControlsInset,
+              focusSpeciesId: widget.focusSpeciesId,
             ),
           );
         }
@@ -198,6 +207,7 @@ class _PhotoGalleryState extends ConsumerState<_PhotoGallery> {
       loadingBuilder: (context, event) =>
           const Center(child: CircularProgressIndicator(color: Colors.white54)),
     );
+    return widget.dimmed ? Opacity(opacity: 0.45, child: gallery) : gallery;
   }
 }
 
