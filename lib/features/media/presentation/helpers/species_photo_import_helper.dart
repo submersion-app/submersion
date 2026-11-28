@@ -80,8 +80,9 @@ class SpeciesPhotoImportHelper {
           byDive.putIfAbsent(diveId, () => []).add(asset);
         case SiteAttachTarget(:final siteId):
           bySite.putIfAbsent(siteId, () => []).add(asset);
-        case EquipmentAttachTarget():
-          // A species' photos go to a dive or a site, never to gear.
+        case EquipmentAttachTarget() || UnplacedAttachTarget():
+          // A species' photos go to a dive or a site, never to gear or to
+          // no place: the species page offers only those two.
           failures[key] = 'not a dive or a site';
       }
     }

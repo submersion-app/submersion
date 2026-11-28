@@ -30,6 +30,10 @@ NetworkInsertRequest _request(
         equipmentId: equipmentId,
         observationId: observationId,
       ),
+    UnplacedAttachTarget() => NetworkInsertRequest(
+      media: media,
+      unplaced: true,
+    ),
   };
 }
 

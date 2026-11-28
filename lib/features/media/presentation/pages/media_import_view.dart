@@ -78,6 +78,7 @@ abstract final class MediaImportView {
     final byDive = <String, List<AssetInfo>>{};
     final bySite = <String, List<AssetInfo>>{};
     final byEquipment = <EquipmentAttachTarget, List<AssetInfo>>{};
+    final unplaced = <AssetInfo>[];
     for (final MapEntry(:key, :value) in targets.entries) {
       final asset = byId[key];
       if (asset == null) continue;
@@ -88,6 +89,8 @@ abstract final class MediaImportView {
           bySite.putIfAbsent(siteId, () => []).add(asset);
         case EquipmentAttachTarget():
           byEquipment.putIfAbsent(value, () => []).add(asset);
+        case UnplacedAttachTarget():
+          unplaced.add(asset);
       }
     }
 
@@ -152,6 +155,18 @@ abstract final class MediaImportView {
         failGroup(value, e);
       }
     }
+    if (unplaced.isNotEmpty) {
+      try {
+        final result = await service.importPhotosUnplaced(
+          selectedAssets: unplaced,
+        );
+        linked += result.imported.length;
+        importedIds.addAll(result.imported.map((m) => m.id));
+        failures.addAll(result.failures);
+      } catch (e) {
+        failGroup(unplaced, e);
+      }
+    }
     return ImportReviewResult(
       linked: linked,
       linkedDiveIds: byDive.keys.toList(),
@@ -183,6 +198,7 @@ abstract final class MediaImportView {
       MaterialPageRoute<void>(
         builder: (_) => MediaImportReviewPage(
           candidates: candidates,
+          allowUnplaced: true,
           onConfirm: (targets) async {
             final result = await importResolved(
               service: ref.read(mediaImportServiceProvider),

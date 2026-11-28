@@ -1769,6 +1769,11 @@ class MediaRepository {
   Future<List<domain.MediaItem>> getGalleryLinksForSite(String siteId) =>
       _getGalleryLinks(_db.media.siteId.equals(siteId), 'site: $siteId');
 
+  /// Gallery links of the rows kept with no dive, site or gear (issue
+  /// #5122), for skipping picks already kept that way.
+  Future<List<domain.MediaItem>> getGalleryLinksUnplaced() =>
+      _getGalleryLinks(isLinkedToLogbook(_db.media).not(), 'no place');
+
   Future<List<domain.MediaItem>> _getGalleryLinks(
     Expression<bool> scope,
     String scopeLabel,
@@ -1833,6 +1838,27 @@ class MediaRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get linked local paths for site: $siteId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Local paths of the rows kept with no dive, site or gear (issue #5122).
+  Future<Set<String>> getLinkedLocalPathsUnplaced() async {
+    try {
+      final result = await _db
+          .customSelect(
+            'SELECT local_path FROM media '
+            'WHERE dive_id IS NULL AND site_id IS NULL '
+            'AND equipment_id IS NULL AND local_path IS NOT NULL',
+          )
+          .get();
+      return result.map((row) => row.data['local_path'] as String).toSet();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get linked local paths for media with no place',
         error: e,
         stackTrace: stackTrace,
       );

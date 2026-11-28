@@ -98,13 +98,15 @@ class _UrlTabState extends ConsumerState<UrlTab> {
       return;
     }
 
-    // No owner: every URL needs a dive or a site before it may land. The
+    // No owner: every URL needs a dive, a site or to be kept with no place
+    // (issue #5122) before it may land. The
     // draft stays in the field until Confirm, so backing out of the review
     // leaves the pasted URLs where they were.
     await navigator.push(
       MaterialPageRoute<void>(
         builder: (_) => MediaImportReviewPage(
           candidates: candidatesFor(resolved),
+          allowUnplaced: true,
           onConfirm: (targets) async {
             final requests = requestsFromReview(resolved, targets);
             final ids = await notifier.commitRequests(requests);
