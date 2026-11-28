@@ -27,7 +27,7 @@ import 'package:submersion/shared/selection/selection_state.dart';
 class MediaLibraryView extends ConsumerStatefulWidget {
   const MediaLibraryView({
     super.key,
-    this.openViewer = openMediaViewer,
+    this.openViewer = openLibraryMediaViewer,
     this.selection,
     this.showToolbar = true,
   });

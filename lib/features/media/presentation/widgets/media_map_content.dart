@@ -33,7 +33,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// attribution, compass, fit-all) without its heat map, seascape or
 /// bathymetry layers. Camera moves go through [MapCameraAnimator].
 class MediaMapContent extends ConsumerStatefulWidget {
-  const MediaMapContent({super.key, this.openViewer = openMediaViewer});
+  const MediaMapContent({super.key, this.openViewer = openLibraryMediaViewer});
 
   /// How a tap reaches the viewer. Injected so tests can capture the call
   /// instead of pushing the real viewer and its provider graph.

@@ -30,22 +30,10 @@ extension _ViewerUnlink on _MediaViewerPageState {
   Widget? _unlinkStrip(BuildContext context, {required bool panelShown}) {
     final scope = unlinkScope;
     if (scope == null || !photoUnlinkHeld) return null;
-    return Positioned(
-      left: 16,
-      right: 16,
-      bottom:
-          (panelShown ? _bottomPanelHeight : 0) +
-          MediaQuery.paddingOf(context).bottom +
-          16,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560),
-          child: MediaViewerUnlinkStrip(
-            message: _unlinkHeldMessageFor(context, scope),
-            onUndo: undoPhotoUnlink,
-          ),
-        ),
-      ),
+    return PositionedUnlinkStrip(
+      bottom: (panelShown ? _bottomPanelHeight : 0) + 16,
+      message: _unlinkHeldMessageFor(context, scope),
+      onUndo: undoPhotoUnlink,
     );
   }
 

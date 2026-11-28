@@ -15,6 +15,8 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
+import 'package:submersion/features/media/presentation/pages/media_viewer_launcher.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/pages/trip_photo_viewer_page.dart';
@@ -115,6 +117,12 @@ void main() {
         ],
       );
       expect(find.byType(MediaViewerPage), findsOneWidget);
+      expect(
+        tester
+            .widget<MediaViewerPage>(find.byType(MediaViewerPage))
+            .unlinkScope,
+        ViewerUnlinkScope.dive,
+      );
     });
 
     testWidgets('shows a spinner while the dive list loads', (tester) async {
@@ -153,6 +161,52 @@ void main() {
     });
   });
 
+  group('openers (#5126)', () {
+    Future<MediaViewerPage> opened(
+      WidgetTester tester,
+      void Function(BuildContext) open,
+    ) async {
+      await pump(
+        tester,
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => open(context),
+            child: const Text('open'),
+          ),
+        ),
+        const [],
+      );
+      await tester.tap(find.text('open'));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      return tester.widget<MediaViewerPage>(find.byType(MediaViewerPage));
+    }
+
+    testWidgets('the library opener unlinks from the library', (tester) async {
+      final viewer = await opened(
+        tester,
+        (context) => openLibraryMediaViewer(context, [item('m1')], 'm1'),
+      );
+      expect(viewer.unlinkScope, ViewerUnlinkScope.library);
+    });
+
+    testWidgets('the plain opener passes its scope', (tester) async {
+      final viewer = await opened(
+        tester,
+        (context) => openMediaViewer(
+          context,
+          [item('m1')],
+          'm1',
+          unlinkScope: ViewerUnlinkScope.gear,
+        ),
+      );
+      expect(viewer.unlinkScope, ViewerUnlinkScope.gear);
+    });
+  });
+
   group('TripPhotoViewerPage', () {
     testWidgets('hands the trip list to the shared viewer', (tester) async {
       await pump(
@@ -165,6 +219,12 @@ void main() {
         ],
       );
       expect(find.byType(MediaViewerPage), findsOneWidget);
+      expect(
+        tester
+            .widget<MediaViewerPage>(find.byType(MediaViewerPage))
+            .unlinkScope,
+        ViewerUnlinkScope.dive,
+      );
     });
 
     testWidgets('shows a spinner while the trip list loads', (tester) async {

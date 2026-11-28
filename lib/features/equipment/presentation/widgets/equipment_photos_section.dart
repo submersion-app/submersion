@@ -20,6 +20,7 @@ import 'package:submersion/shared/selection/selectable_list_scope.dart';
 import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 
 /// The gear page's Photos card (issue #3355): reference shots of the item
 /// itself (the whole item, its serial number label, its markings). Photos
@@ -262,7 +263,12 @@ class _EquipmentPhotosSectionState
                       selection: selection,
                       onTap: (item) => selection.isActive
                           ? _selection.toggle(item.id)
-                          : openMediaViewer(context, photos, item.id),
+                          : openMediaViewer(
+                              context,
+                              photos,
+                              item.id,
+                              unlinkScope: ViewerUnlinkScope.gear,
+                            ),
                     ),
               loading: () => const SizedBox(
                 height: 100,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/presentation/pages/dive_species_photo_viewer_page.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 
@@ -27,6 +28,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final viewer = tester.widget<MediaViewerPage>(find.byType(MediaViewerPage));
+    expect(viewer.unlinkScope, ViewerUnlinkScope.dive);
     expect(viewer.mediaList.map((m) => m.id).toList(), ['p1', 'p2']);
     expect(viewer.initialMediaId, 'p1');
     expect(viewer.showGoToDive, isFalse);

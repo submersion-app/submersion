@@ -46,3 +46,31 @@ class MediaViewerUnlinkStrip extends StatelessWidget {
     );
   }
 }
+
+/// [MediaViewerUnlinkStrip] over the bottom of a viewer's [Stack], [bottom]
+/// above the safe area, and no wider than reads well on a desktop.
+class PositionedUnlinkStrip extends StatelessWidget {
+  const PositionedUnlinkStrip({
+    super.key,
+    required this.bottom,
+    required this.message,
+    required this.onUndo,
+  });
+
+  final double bottom;
+  final String message;
+  final VoidCallback onUndo;
+
+  @override
+  Widget build(BuildContext context) => Positioned(
+    left: 16,
+    right: 16,
+    bottom: MediaQuery.paddingOf(context).bottom + bottom,
+    child: Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560),
+        child: MediaViewerUnlinkStrip(message: message, onUndo: onUndo),
+      ),
+    ),
+  );
+}

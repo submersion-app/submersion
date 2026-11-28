@@ -8,6 +8,7 @@ import 'package:submersion/features/media/presentation/editing/photo_sitting_sho
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 
 /// Dive-scoped wrapper around [MediaViewerPage]: resolves the dive's media
 /// list reactively, then hands off. Kept so the dive-detail call sites (the
@@ -61,6 +62,9 @@ class PhotoViewerPage extends ConsumerWidget {
     );
   }
 
-  Widget _viewer(List<MediaItem> mediaList) =>
-      MediaViewerPage(mediaList: mediaList, initialMediaId: initialMediaId);
+  Widget _viewer(List<MediaItem> mediaList) => MediaViewerPage(
+    mediaList: mediaList,
+    initialMediaId: initialMediaId,
+    unlinkScope: ViewerUnlinkScope.dive,
+  );
 }

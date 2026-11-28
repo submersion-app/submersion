@@ -18,6 +18,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_launcher.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 
 /// The item page's check-in list: every observation on the item, newest
 /// first, with the dive it was made on (or "Bench"). Adding and editing go
@@ -277,7 +278,12 @@ class _ObservationRow extends ConsumerWidget {
                     SizedBox.square(
                       dimension: 44,
                       child: GestureDetector(
-                        onTap: () => openMediaViewer(context, photos, photo.id),
+                        onTap: () => openMediaViewer(
+                          context,
+                          photos,
+                          photo.id,
+                          unlinkScope: ViewerUnlinkScope.gear,
+                        ),
                         child: MediaThumbnailTile(
                           item: photo,
                           settings: settings,

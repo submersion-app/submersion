@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 
 /// Opens one dive's photos of one species: the gallery a sighting row's
 /// photo chip leads to. Resolves the list reactively, then hands off to
@@ -59,6 +60,7 @@ class DiveSpeciesPhotoViewerPage extends ConsumerWidget {
           initialMediaId: initialMediaId ?? mediaList.first.id,
           // Every photo is on the dive the viewer was opened from.
           showGoToDive: false,
+          unlinkScope: ViewerUnlinkScope.dive,
         );
       },
       loading: () => const Scaffold(

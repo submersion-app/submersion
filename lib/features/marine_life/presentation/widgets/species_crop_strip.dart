@@ -6,6 +6,7 @@ import 'package:submersion/features/media/presentation/pages/media_viewer_launch
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/species_id/presentation/widgets/suggested_species_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 
 /// Opens the viewer over [items] at [initialId]; [openMediaViewer] in the
 /// app, a recorder in tests.
@@ -27,6 +28,7 @@ void _openViewer(
   items,
   initialId,
   initialVideoPosition: initialVideoPosition,
+  unlinkScope: ViewerUnlinkScope.dive,
 );
 
 /// Side of a strip tile.

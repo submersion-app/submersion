@@ -11,6 +11,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/forms/discard_dialog.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 
 /// Species to review (issue #4727): what the app tagged on its own and what
 /// it only suggests, for one dive or the whole log. Every decision is held
@@ -186,6 +187,7 @@ class _SpeciesReviewPageState extends ConsumerState<SpeciesReviewPage> {
           mediaList: [for (final i in row.items) i.media],
           initialMediaId: item.media.id,
           showGoToDive: true,
+          unlinkScope: ViewerUnlinkScope.dive,
         ),
       ),
     );

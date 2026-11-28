@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/pages/species_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
@@ -30,5 +31,6 @@ void main() {
     expect(viewer.mediaList.map((m) => m.id).toList(), ['p1', 'p2']);
     expect(viewer.initialMediaId, 'p2');
     expect(viewer.showGoToDive, isTrue);
+    expect(viewer.unlinkScope, ViewerUnlinkScope.dive);
   });
 }

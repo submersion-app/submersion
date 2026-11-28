@@ -25,6 +25,8 @@ import 'package:submersion/features/media/presentation/widgets/media_viewer_tool
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
+import 'package:submersion/features/media/presentation/widgets/media_viewer_unlink_strip.dart';
 
 /// Which list of site-related media backs the viewer's pager.
 enum SiteViewerScope {
@@ -70,6 +72,18 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
   /// Adjust color holds its changes in the photo's sitting.
   @override
   EditSession<PhotoRecord>? get colorSitting => photoSitting;
+
+  /// A site's own media unlinks from the site; the dive photos taken here
+  /// unlink from their dive (issue #5126).
+  @override
+  ViewerUnlinkScope get unlinkScope =>
+      widget.scope == SiteViewerScope.attachments
+      ? ViewerUnlinkScope.site
+      : ViewerUnlinkScope.dive;
+
+  /// Whether this viewer has asked to close, once a saved Unlink left it
+  /// nothing to show.
+  bool _closing = false;
 
   /// Steps through the check while unlocked, so the next photo opens locked.
   void _step(int delta, int totalCount) =>
@@ -206,9 +220,21 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
             data: (all) {
               // A sitting keeps its photo here while the photo exists.
               final mediaList = keepSittingPhoto(
-                all.where((m) => !m.isDocument).toList(),
+                all
+                    .where(
+                      (m) => !m.isDocument && !unlinkedPhotoIds.contains(m.id),
+                    )
+                    .toList(),
               );
               if (mediaList.isEmpty) {
+                // Its own Unlink took the last one away: close, a frame on,
+                // once the leave guard has seen the sitting end.
+                if (unlinkedPhotoIds.isNotEmpty && !_closing) {
+                  _closing = true;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) Navigator.of(context).maybePop();
+                  });
+                }
                 // Nothing left to tap means no exit button (a sync can empty the
                 // list under the viewer).
                 exitFullscreenWhenEmpty();
@@ -262,20 +288,24 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                 },
                 child: Stack(
                   children: [
-                    RepaintBoundary(
-                      key: galleryBoundaryKey,
-                      child: _MediaGalleryPager(
-                        mediaList: shownMediaList(mediaList, const []),
-                        pagingLocked: photoUnlocked,
-                        pageController: _pageController,
-                        onPageChanged: (index) {
-                          // Swipes and settles both land here, which is what
-                          // re-syncs the nav target after a gesture.
-                          setState(() {
-                            _currentIndex = index;
-                            _navTargetIndex = index;
-                          });
-                        },
+                    // Dimmed while its Unlink is held (issue #5126).
+                    Opacity(
+                      opacity: photoUnlinkHeld ? 0.45 : 1,
+                      child: RepaintBoundary(
+                        key: galleryBoundaryKey,
+                        child: _MediaGalleryPager(
+                          mediaList: shownMediaList(mediaList, const []),
+                          pagingLocked: photoUnlocked,
+                          pageController: _pageController,
+                          onPageChanged: (index) {
+                            // Swipes and settles both land here, which is what
+                            // re-syncs the nav target after a gesture.
+                            setState(() {
+                              _currentIndex = index;
+                              _navTargetIndex = index;
+                            });
+                          },
+                        ),
                       ),
                     ),
 
@@ -313,6 +343,13 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                         !pickingWhite) ...[
                       _TopOverlay(
                         onAdjustColor: () => openColorPanel(),
+                        editable: photoEditable,
+                        onUnlinkMedia: canUnlinkPhoto(currentItem)
+                            ? () => unawaited(unlinkPhotoHeld(currentItem))
+                            : null,
+                        unlinkLabel: unlinkScope == ViewerUnlinkScope.site
+                            ? context.l10n.media_viewer_unlinkFromSite
+                            : context.l10n.media_viewer_unlinkFromDive,
                         onUnlock:
                             !photoUnlocked &&
                                 canUnlock(currentItem, storedPhoto)
@@ -375,6 +412,15 @@ class _SiteMediaViewerPageState extends ConsumerState<SiteMediaViewerPage>
                       ),
                       _BottomMetadataOverlay(item: currentItem),
                     ],
+
+                    if (photoUnlinkHeld)
+                      PositionedUnlinkStrip(
+                        bottom: 112,
+                        message: unlinkScope == ViewerUnlinkScope.site
+                            ? context.l10n.media_viewer_unlinkHeldSite
+                            : context.l10n.media_viewer_unlinkHeldDive,
+                        onUndo: undoPhotoUnlink,
+                      ),
 
                     if (isFullscreen && fullscreenControlsVisible)
                       MediaFullscreenExitButton(onExit: exitFullscreen),
@@ -507,8 +553,21 @@ class _TopOverlay extends StatelessWidget {
   /// Non-null while unlocked: drawn as the shared editing bar.
   final MediaViewerEditBar? editBar;
 
+  /// Whether the photo's own changes are offered: false while its Unlink
+  /// is held, since it is about to go (issue #5126).
+  final bool editable;
+
+  /// Holds unlinking the item (issue #5126); null offers no Unlink.
+  final VoidCallback? onUnlinkMedia;
+
+  /// What the Unlink action is called.
+  final String unlinkLabel;
+
   const _TopOverlay({
     required this.onAdjustColor,
+    this.editable = true,
+    this.onUnlinkMedia,
+    required this.unlinkLabel,
     this.onUnlock,
     this.editBar,
     required this.currentIndex,
@@ -524,15 +583,17 @@ class _TopOverlay extends StatelessWidget {
   List<MediaViewerAction> _editActions(BuildContext context) {
     final l10n = context.l10n;
     final details = onEditDetails;
+    final unlink = onUnlinkMedia;
     return [
-      MediaViewerAction(
-        id: 'adjust_color',
-        icon: Icons.palette_outlined,
-        label: l10n.media_color_adjustAction,
-        priority: 1,
-        onPressed: (_) => onAdjustColor(),
-      ),
-      if (details != null)
+      if (editable)
+        MediaViewerAction(
+          id: 'adjust_color',
+          icon: Icons.palette_outlined,
+          label: l10n.media_color_adjustAction,
+          priority: 1,
+          onPressed: (_) => onAdjustColor(),
+        ),
+      if (details != null && editable)
         MediaViewerAction(
           id: 'edit_details',
           icon: Icons.edit_outlined,
@@ -547,6 +608,15 @@ class _TopOverlay extends StatelessWidget {
         priority: 0,
         onPressed: (anchor) => onShare(shareAnchorFrom(anchor)),
       ),
+      // Last, so a phone keeps what it showed before (issue #5126).
+      if (unlink != null)
+        MediaViewerAction(
+          id: 'unlink',
+          icon: Icons.link_off,
+          label: unlinkLabel,
+          priority: 10,
+          onPressed: (_) => unlink(),
+        ),
     ];
   }
 

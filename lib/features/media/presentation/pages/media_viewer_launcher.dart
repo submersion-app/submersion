@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 
 /// Signature of [openMediaViewer], so a surface can take the opener as a
@@ -24,6 +25,7 @@ void openMediaViewer(
   String initialMediaId, {
   String? Function(MediaItem)? captionFor,
   Duration? initialVideoPosition,
+  ViewerUnlinkScope? unlinkScope,
 }) {
   Navigator.of(context).push(
     MaterialPageRoute<void>(
@@ -34,7 +36,21 @@ void openMediaViewer(
         showGoToDive: true,
         captionFor: captionFor,
         initialVideoPosition: initialVideoPosition,
+        unlinkScope: unlinkScope,
       ),
     ),
   );
 }
+
+/// [openMediaViewer] for the library and the media map, whose Unlink takes
+/// the item out of the library, as the library's own does (issue #5126).
+void openLibraryMediaViewer(
+  BuildContext context,
+  List<MediaItem> items,
+  String initialMediaId,
+) => openMediaViewer(
+  context,
+  items,
+  initialMediaId,
+  unlinkScope: ViewerUnlinkScope.library,
+);

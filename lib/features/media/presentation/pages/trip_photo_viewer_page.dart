@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_media_providers.dart';
+import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 
 /// Trip-scoped wrapper around [MediaViewerPage]: resolves the trip's flat
 /// media list reactively, then hands off. The viewer internals (zoom, video,
@@ -34,6 +35,7 @@ class TripPhotoViewerPage extends ConsumerWidget {
         mediaList: mediaList,
         initialMediaId: initialMediaId,
         showGoToDive: true,
+        unlinkScope: ViewerUnlinkScope.dive,
       ),
       loading: () => const Scaffold(
         backgroundColor: Colors.black,
