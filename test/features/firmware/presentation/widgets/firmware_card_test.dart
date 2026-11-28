@@ -292,4 +292,59 @@ void main() {
       'V95',
     );
   });
+
+  testWidgets('another item opens folded', (tester) async {
+    final many = List.generate(
+      5,
+      (i) => FirmwareRelease(version: 'V${100 - i}'),
+    );
+    final model = FirmwareModel(
+      id: 'm',
+      manufacturer: 'Shearwater',
+      model: 'Perdix 2',
+      equipmentTypes: const {EquipmentType.computer},
+      releases: [
+        ...many,
+        const FirmwareRelease(version: 'V90'),
+      ],
+    );
+    final status = FirmwareUpdateAvailable(model, many);
+    Widget host(EquipmentItem item) => ProviderScope(
+      overrides: [
+        firmwareStatusesProvider.overrideWith(
+          (ref) async => {'perdix': status, 'teric': status},
+        ),
+        // The same overrides for both hosts: a scope cannot gain one later.
+        for (final id in ['perdix', 'teric'])
+          computersForEquipmentProvider(
+            id,
+          ).overrideWith((ref) async => const <DiveComputer>[]),
+      ].cast(),
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(child: FirmwareCard(item: item)),
+        ),
+      ),
+    );
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(800, 1600);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(host(computer(firmware: 'V90')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Show all releases (5)'));
+    await tester.pumpAndSettle();
+    expect(find.text('V96'), findsOneWidget);
+
+    const teric = EquipmentItem(
+      id: 'teric',
+      name: 'Teric',
+      type: EquipmentType.computer,
+    );
+    await tester.pumpWidget(host(teric));
+    await tester.pumpAndSettle();
+    expect(find.text('V96'), findsNothing);
+  });
 }

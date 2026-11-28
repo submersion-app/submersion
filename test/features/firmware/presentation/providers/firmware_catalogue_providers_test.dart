@@ -114,6 +114,18 @@ void main() {
     expect(requests, 2);
   });
 
+  test(
+    'a last attempt in the future, from a clock set ahead, is due',
+    () async {
+      final c = await container();
+      final notifier = c.read(firmwareCatalogueProvider.notifier);
+      await notifier.refreshIfDue(now: t0.add(const Duration(days: 365)));
+      expect(requests, 1);
+      await notifier.refreshIfDue(now: t0);
+      expect(requests, 2);
+    },
+  );
+
   test('with checks off nothing is fetched and nothing is shown', () async {
     await FirmwareCatalogueStore(dir).save(sample, t0);
     final c = await container(checksOn: false);

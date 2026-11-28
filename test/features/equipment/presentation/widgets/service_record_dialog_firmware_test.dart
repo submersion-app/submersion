@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -34,6 +35,7 @@ void main() {
     String? serviceKindId,
     ServiceRecord? existingRecord,
     Future<void> Function(ServiceRecord)? onSave,
+    EquipmentType type = EquipmentType.computer,
   }) async {
     // The dialog body is a scroll view; a tall surface materializes it all.
     await tester.binding.setSurfaceSize(const Size(800, 4000));
@@ -54,6 +56,9 @@ void main() {
           serviceSchedulesForEquipmentProvider(
             'e1',
           ).overrideWith((ref) async => []),
+          equipmentItemProvider('e1').overrideWith(
+            (ref) async => EquipmentItem(id: 'e1', name: 'Item', type: type),
+          ),
         ].cast(),
         child: MaterialApp(
           locale: const Locale('en'),
@@ -180,5 +185,15 @@ void main() {
     await tester.tap(find.text('Add'));
     await tester.pumpAndSettle();
     expect(saved.single.cost, isNull);
+  });
+
+  testWidgets('gear with no firmware is not offered a firmware update', (
+    tester,
+  ) async {
+    await pumpDialog(tester, type: EquipmentType.regulator);
+    await tester.tap(find.byKey(categoryKey));
+    await tester.pumpAndSettle();
+    expect(find.text('Firmware update'), findsNothing);
+    expect(find.text('Repair'), findsWidgets);
   });
 }

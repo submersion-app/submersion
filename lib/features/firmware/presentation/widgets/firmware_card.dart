@@ -31,6 +31,14 @@ class FirmwareCard extends ConsumerStatefulWidget {
 class _FirmwareCardState extends ConsumerState<FirmwareCard> {
   bool _showAll = false;
 
+  /// A master-detail page reuses this state for the next item it shows;
+  /// that item's releases open folded.
+  @override
+  void didUpdateWidget(FirmwareCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.item.id != widget.item.id) _showAll = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final item = widget.item;

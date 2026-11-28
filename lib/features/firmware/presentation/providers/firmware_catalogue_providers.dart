@@ -65,7 +65,11 @@ class FirmwareCatalogueNotifier extends AsyncNotifier<FirmwareCatalogue?> {
       // The last try, failed or not, gates the next: at most one request a
       // day even while the catalogue cannot be reached.
       final last = await store.lastAttemptAt() ?? await store.lastFetchedAt();
-      if (last != null && now.difference(last) < kFirmwareRefreshInterval) {
+      // A time after now came from a clock that was ahead; it is due rather
+      // than blocking checks until real time catches up with it.
+      if (last != null &&
+          !last.isAfter(now) &&
+          now.difference(last) < kFirmwareRefreshInterval) {
         return;
       }
       await store.markAttempt(now);

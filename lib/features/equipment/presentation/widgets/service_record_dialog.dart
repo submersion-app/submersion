@@ -8,6 +8,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
@@ -374,7 +375,7 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                         context.l10n.equipment_serviceDialog_categoryHelper,
                     prefixIcon: const Icon(Icons.category_outlined),
                   ),
-                  items: ServiceCategory.values.map((category) {
+                  items: _offeredCategories(ref).map((category) {
                     return DropdownMenuItem(
                       value: category,
                       child: Text(category.label(context.l10n)),
@@ -621,6 +622,25 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
     if (picked != null) {
       setState(() => _nextServiceDue = picked);
     }
+  }
+
+  /// Every category, except a firmware update for gear whose type records
+  /// no firmware (issue #5104), unless the record already is one. While the
+  /// item loads every category is offered.
+  List<ServiceCategory> _offeredCategories(WidgetRef ref) {
+    final type = ref
+        .watch(equipmentItemProvider(widget.equipmentId))
+        .value
+        ?.type;
+    final keepFirmware =
+        type == null ||
+        EquipmentAttributeCatalog.hasFirmware(type) ||
+        widget.existingRecord?.serviceCategory ==
+            ServiceCategory.firmwareUpdate;
+    return [
+      for (final c in ServiceCategory.values)
+        if (keepFirmware || c != ServiceCategory.firmwareUpdate) c,
+    ];
   }
 
   bool get _isFirmwareUpdate =>
