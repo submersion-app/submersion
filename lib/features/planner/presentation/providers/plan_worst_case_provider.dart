@@ -1,5 +1,4 @@
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
@@ -99,10 +98,6 @@ PlanChartWorstCase? chartWorstCaseFrom(PlanResultView<BailoutOutcome?> view) {
 /// first, so removing the last bailout cylinder drops the marker that frame.
 final planChartWorstCaseProvider = Provider<PlanChartWorstCase?>((ref) {
   if (!ref.watch(planMayHaveBailoutProvider)) return null;
-  return chartWorstCaseFrom(
-    planResultView(
-      ref.watch(planBailoutProvider),
-      ref.watch(divePlanNotifierProvider.select((s) => s.id)),
-    ),
-  );
+  // The bailout of the dive on screen: a previewed deviation's (#5020).
+  return chartWorstCaseFrom(ref.watch(planShownBailoutProvider));
 });

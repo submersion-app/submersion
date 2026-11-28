@@ -6,7 +6,6 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
-import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
@@ -120,7 +119,7 @@ void main() {
     final base = planResultView(container.read(planBailoutProvider), 'figures');
     final preview = planResultView(
       container.read(planPreviewBailoutProvider),
-      'figures',
+      container.read(planBailoutDeviationProvider)!.id,
     );
     expect(
       preview.value!.worstCase.depthMeters,
@@ -162,7 +161,7 @@ void main() {
     await tester.pumpAndSettle();
     final preview = planResultView(
       container.read(planPreviewBailoutProvider),
-      'figures',
+      container.read(planBailoutDeviationProvider)!.id,
     );
     expect(container.read(planShownBailoutProvider).value, same(preview.value));
   });
@@ -177,5 +176,20 @@ void main() {
         ChartDisplayMode.bailout;
     await tester.pumpAndSettle();
     expect(container.read(planChartBailoutPreviewProvider).picture, isNotNull);
+  });
+
+  testWidgets("another deviation never shows the last one's bailout", (
+    tester,
+  ) async {
+    final container = await _mount(tester, _plan());
+    container.read(contingencySelectionProvider.notifier).toggleDeeper();
+    await tester.pumpAndSettle();
+    expect(container.read(planShownBailoutProvider).value, isNotNull);
+
+    container.read(contingencySelectionProvider.notifier).toggleLonger();
+
+    final shown = container.read(planShownBailoutProvider);
+    expect(shown.value, isNull);
+    expect(shown.status, PlanResultStatus.calculating);
   });
 }

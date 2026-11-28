@@ -61,11 +61,7 @@ void main() {
   test('deeper and longer apply as contingencyFor applies them', () {
     final plan = _plan();
     final deviated = service.deviatedPlan(plan, deeper: true, longer: true)!;
-    final combined = service.contingencyFor(
-      plan,
-      deeper: true,
-      longer: true,
-    )!;
+    final combined = service.contingencyFor(plan, deeper: true, longer: true)!;
 
     expect(deviated.maxDepth, combined.plan.maxDepth);
     expect(deviated.maxDepth, greaterThan(plan.maxDepth));

@@ -202,16 +202,21 @@ final planLostGasProvider =
 
 /// The deviation (+depth / +time) previewed on a loop plan that may have a
 /// bailout, as the plan the deviated dive's bailout solves from, or null.
-final _bailoutDeviationProvider = Provider<domain.DivePlan?>((ref) {
+final planBailoutDeviationProvider = Provider<domain.DivePlan?>((ref) {
   if (!ref.watch(planMayHaveBailoutProvider)) return null;
   final (deeper, longer) = ref.watch(
     contingencySelectionProvider.select((s) => (s.deeper, s.longer)),
   );
   if (!deeper && !longer) return null;
   final inputs = ref.watch(_planResultInputsProvider);
-  return ContingencyService(
+  final deviated = ContingencyService(
     config: inputs.config,
   ).deviatedPlan(inputs.plan, deeper: deeper, longer: longer);
+  // Its id names the deviation too, so a result for another deviation of the
+  // same plan reads as no result rather than as this one's.
+  return deviated?.copyWith(
+    id: '${inputs.plan.id}+${deeper ? 'depth' : ''}${longer ? 'time' : ''}',
+  );
 });
 
 /// Worst-case bailout of the previewed +depth / +time dive (issue #5020),
@@ -219,7 +224,7 @@ final _bailoutDeviationProvider = Provider<domain.DivePlan?>((ref) {
 /// deviation is previewed on a loop plan.
 final planPreviewBailoutProvider =
     FutureProvider<PlanBackgroundResult<BailoutOutcome?>>((ref) {
-      final deviated = ref.watch(_bailoutDeviationProvider);
+      final deviated = ref.watch(planBailoutDeviationProvider);
       if (deviated == null) return _nothingToCompute(ref, null);
       return _settledOn(ref, computeBailout, deviated);
     }, retry: (_, _) => null);
@@ -229,13 +234,15 @@ final planPreviewBailoutProvider =
 final planShownBailoutProvider = Provider<PlanResultView<BailoutOutcome?>>((
   ref,
 ) {
-  final planId = ref.watch(divePlanNotifierProvider.select((s) => s.id));
-  final previewed = ref.watch(
-    _bailoutDeviationProvider.select((plan) => plan != null),
+  final previewId = ref.watch(
+    planBailoutDeviationProvider.select((plan) => plan?.id),
   );
+  if (previewId != null) {
+    return planResultView(ref.watch(planPreviewBailoutProvider), previewId);
+  }
   return planResultView(
-    ref.watch(previewed ? planPreviewBailoutProvider : planBailoutProvider),
-    planId,
+    ref.watch(planBailoutProvider),
+    ref.watch(divePlanNotifierProvider.select((s) => s.id)),
   );
 });
 
@@ -296,12 +303,12 @@ final planChartBailoutPreviewProvider =
       })
     >((ref) {
       if (!ref.watch(planBailoutViewProvider)) return _noChartBailout;
-      if (ref.watch(_bailoutDeviationProvider) == null) return _noChartBailout;
+      final previewId = ref.watch(
+        planBailoutDeviationProvider.select((plan) => plan?.id),
+      );
+      if (previewId == null) return _noChartBailout;
       return _chartBailoutOf(
-        planResultView(
-          ref.watch(planPreviewBailoutProvider),
-          ref.watch(divePlanNotifierProvider.select((s) => s.id)),
-        ),
+        planResultView(ref.watch(planPreviewBailoutProvider), previewId),
       );
     });
 
