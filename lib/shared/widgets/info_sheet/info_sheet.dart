@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_content.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -23,7 +24,12 @@ Future<void> showInfoSheet(BuildContext context, InfoContent content) {
         return ConstrainedBox(
           constraints: BoxConstraints(maxHeight: maxHeight),
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+            padding: const EdgeInsets.fromLTRB(
+              Spacing.s24,
+              0,
+              Spacing.s24,
+              Spacing.s24,
+            ),
             child: InfoSheetBody(content: content),
           ),
         );
@@ -84,7 +90,7 @@ class InfoSheetBody extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (final entry in content.terms) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: Spacing.s12),
               Text.rich(
                 TextSpan(
                   children: [

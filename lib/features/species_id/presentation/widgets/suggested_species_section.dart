@@ -179,7 +179,6 @@ class SuggestedSpeciesSection extends ConsumerWidget {
               key: ValueKey('media_suggested_row_${s.top.candidate.gbifKey}'),
               item: item,
               suggestion: s,
-              percent: percent.format(s.score),
               enabled: !ended,
               sitting: sitting,
             ),
@@ -207,14 +206,12 @@ class _SuggestionRow extends ConsumerWidget {
     super.key,
     required this.item,
     required this.suggestion,
-    required this.percent,
     required this.enabled,
     required this.sitting,
   });
 
   final MediaItem item;
   final SpeciesSuggestion suggestion;
-  final String percent;
   final bool enabled;
   final EditSession<PhotoRecord> sitting;
 
@@ -269,8 +266,6 @@ class _SuggestionRow extends ConsumerWidget {
               ],
             ),
           ),
-          Text(percent, style: Theme.of(context).textTheme.bodySmall),
-          const SizedBox(width: 4),
           TextButton(
             key: ValueKey('media_suggested_add_$key'),
             onPressed: enabled
@@ -330,9 +325,6 @@ class SuggestionCropView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final percent = NumberFormat.percentPattern(
-      Localizations.localeOf(context).toString(),
-    );
     final ended = sitting.isDisposed;
     return ListView(
       shrinkWrap: true,
@@ -374,33 +366,32 @@ class SuggestionCropView extends ConsumerWidget {
                 ),
               ],
             ),
+            // A fixed width, so a long translation of Add cannot squeeze
+            // the species name (issue #2717).
             trailing: SizedBox(
               width: 120,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(percent.format(alternative.score)),
-                  TextButton(
-                    onPressed: ended
-                        ? null
-                        : () {
-                            // Started before the pop: it reads what it
-                            // needs at once, and outlives this view.
-                            unawaited(
-                              addSuggestedSpecies(
-                                context,
-                                ref,
-                                item,
-                                [alternative.candidate],
-                                sitting,
-                                claimTrackId: trackId,
-                              ),
-                            );
-                            Navigator.of(context).pop();
-                          },
-                    child: Text(l10n.media_species_add),
-                  ),
-                ],
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: TextButton(
+                  onPressed: ended
+                      ? null
+                      : () {
+                          // Started before the pop: it reads what it
+                          // needs at once, and outlives this view.
+                          unawaited(
+                            addSuggestedSpecies(
+                              context,
+                              ref,
+                              item,
+                              [alternative.candidate],
+                              sitting,
+                              claimTrackId: trackId,
+                            ),
+                          );
+                          Navigator.of(context).pop();
+                        },
+                  child: Text(l10n.media_species_add),
+                ),
               ),
             ),
           ),

@@ -211,7 +211,7 @@ void main() {
 
     testWidgets('a suggestion stays inert', (tester) async {
       await pump(tester, locked: true);
-      await tester.tap(find.text('Brown Chromis 71%'));
+      await tester.tap(find.text('Brown Chromis'));
       await tester.pumpAndSettle();
       expect(sheet, findsNothing);
       expect(find.textContaining('DETAIL'), findsNothing);

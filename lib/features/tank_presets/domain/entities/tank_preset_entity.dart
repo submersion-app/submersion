@@ -72,6 +72,7 @@ class TankPresetEntity extends Equatable {
     String? diverId,
     String description = '',
     int sortOrder = 0,
+    double? ratedCapacityCuft,
   }) {
     final now = DateTime.now();
     return TankPresetEntity(
@@ -87,6 +88,7 @@ class TankPresetEntity extends Equatable {
       isBuiltIn: false,
       createdAt: now,
       updatedAt: now,
+      ratedCapacityCuft: ratedCapacityCuft,
     );
   }
 
@@ -113,6 +115,9 @@ class TankPresetEntity extends Equatable {
     DateTime? createdAt,
     DateTime? updatedAt,
     double? ratedCapacityCuft,
+
+    /// Drops the rating: the cylinder changed, so it no longer holds.
+    bool clearRatedCapacityCuft = false,
   }) {
     return TankPresetEntity(
       id: id ?? this.id,
@@ -127,7 +132,9 @@ class TankPresetEntity extends Equatable {
       isBuiltIn: isBuiltIn ?? this.isBuiltIn,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
-      ratedCapacityCuft: ratedCapacityCuft ?? this.ratedCapacityCuft,
+      ratedCapacityCuft: clearRatedCapacityCuft
+          ? null
+          : ratedCapacityCuft ?? this.ratedCapacityCuft,
     );
   }
 

@@ -97,7 +97,7 @@ duplicate it and edit the copy.
 ## What-ifs
 
 On the Compare page you can branch the dive at any moment and change what
-happened next: lose a tank, switch gas, ascend earlier or change gradient
+happened next: lose a cylinder, switch gas, ascend earlier or change gradient
 factors. What-ifs always branch from the dive, never from the plan. Save one to
 keep it as a chip on the dive.
 

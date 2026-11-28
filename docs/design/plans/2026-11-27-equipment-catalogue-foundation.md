@@ -15,7 +15,7 @@
 - No em-dashes anywhere (code, comments, docs, commits, PR text). No emojis.
 - Nothing written to the repository or GitHub mentions the AI tool.
 - Files 200 to 400 lines typical, 800 max. Tables in `lib/core/database/tables/`, rungs in `lib/core/database/migrations/`; nothing added to `database.dart` beyond the version constant and its comment list entry.
-- Schema: next free version (394: open PRs claim 388 to 393; renumber at merge if main moved). Nullable columns only, so `syncCompatibilityFloor` does not move.
+- Schema: next free version (397: main took 394 and open PRs claim 395 and 396; renumber at merge if main moved). Nullable columns only, so `syncCompatibilityFloor` does not move.
 - Every new string in all 11 ARB files (`lib/l10n/arb/app_*.arb`), then `flutter gen-l10n`.
 - Every link opens through `parseWebLink`; only `https` URLs are accepted by the validator and by the app parser.
 - Web build: no fetch, setting hidden (`kIsWeb`).
@@ -179,13 +179,13 @@ Work in a clone outside the app repository: `~/repos/submersion-app/equipment-ca
 **Files:**
 - Modify: `lib/core/database/tables/equipment_tables.dart` (two columns with doc comments, used by the SQL notes generator)
 - Create: `lib/core/database/migrations/helpers/equipment_catalogue_migrations.dart` (`part of '../app_database_migrations.dart'`, `_assertEquipmentCatalogueColumns()`)
-- Modify: `lib/core/database/migrations/app_database_migrations.dart` (part line), `ladder/rungs_v340_onward.dart` (`if (from < 394)` pair), `before_open_child_columns.dart` (backstop call), `lib/core/database/database.dart` (version 394 and its comment list entry)
+- Modify: `lib/core/database/migrations/app_database_migrations.dart` (part line), `ladder/rungs_v340_onward.dart` (`if (from < 397)` pair), `before_open_child_columns.dart` (backstop call), `lib/core/database/database.dart` (version 394 and its comment list entry)
 - Create: `lib/features/equipment/domain/entities/equipment_catalogue_answers.dart`
 - Modify: `lib/features/equipment/domain/entities/equipment_item.dart` (`catalogueId`, `catalogueAnswers`, in `copyWith`, `props`), `equipment_repository_impl.dart` (row mapper reads both; `createEquipment` writes both; `updateEquipment` writes neither; new `Future<void> setCatalogueLink(String id, {required String? catalogueId, required EquipmentCatalogueAnswers? answers})` that writes both, bumps `updatedAt`, and marks the record pending)
 - Modify: `lib/features/settings/presentation/conflicts/catalogue/equipment_fields.dart` (`catalogueId`, `catalogueAnswers`, reusing the existing `settings_conflict_field_catalogueId` / `_catalogueAnswers` strings)
 - Modify: `lib/core/services/export/uddf/uddf_export_builders.dart`, `uddf_import_parsers.dart`, `lib/features/dive_import/data/services/uddf_entity_importer.dart` (`catalogueid`, `catalogueanswers` on an equipment item, as sites do)
 - Regenerate: `dart run tool/generate_sql_column_notes.dart`
-- Test: `test/core/database/migration_v394_equipment_catalogue_test.dart`, `test/core/services/sync/equipment_catalogue_sync_test.dart`, `test/features/equipment/domain/entities/equipment_catalogue_answers_test.dart`, `test/features/equipment/data/repositories/equipment_catalogue_link_test.dart`, `test/core/services/export/uddf_equipment_catalogue_round_trip_test.dart`
+- Test: `test/core/database/migration_v397_equipment_catalogue_test.dart`, `test/core/services/sync/equipment_catalogue_sync_test.dart`, `test/features/equipment/domain/entities/equipment_catalogue_answers_test.dart`, `test/features/equipment/data/repositories/equipment_catalogue_link_test.dart`, `test/core/services/export/uddf_equipment_catalogue_round_trip_test.dart`
 
 **Interfaces:**
 - Produces: `class EquipmentCatalogueAnswers { Set<String> notSame; Map<String, Set<String>> declined; Map<String, Object?> unknown; String encode(); static EquipmentCatalogueAnswers decode(String? json); EquipmentCatalogueAnswers withNotSame(String id); EquipmentCatalogueAnswers withDeclined(String id, Set<String> fields); bool get isEmpty; }` (shape of `SiteCatalogueAnswers`; `decode` of null or bad JSON gives empty). `EquipmentItem.catalogueId: String?`, `EquipmentItem.catalogueAnswers: EquipmentCatalogueAnswers` (default empty; stored as null when empty).

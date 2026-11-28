@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/shared/widgets/forms/form_style.dart';
 
 /// Lays a form's section list out responsively and scrollably.
@@ -18,7 +19,12 @@ class ResponsiveFormColumns extends StatelessWidget {
     super.key,
     required this.children,
     this.splitIndex,
-    this.padding = const EdgeInsets.fromLTRB(16, 16, 16, 32),
+    this.padding = const EdgeInsets.fromLTRB(
+      Spacing.s16,
+      Spacing.s16,
+      Spacing.s16,
+      Spacing.s32,
+    ),
   });
 
   /// The form's section widgets, in reading order, without inter-section

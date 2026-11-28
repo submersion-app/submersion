@@ -338,7 +338,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 394;
+  static const int currentSchemaVersion = 397;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1830,6 +1830,9 @@ class AppDatabase extends _$AppDatabase {
     // depth and a plan's no-switch flag (issue #3793). Additive and
     // defaulted; the floor does not move.
     387,
+    // v388: a dive site's address, contact details and opening hours
+    // (issue #5073). Nullable, no backfill; the floor does not move.
+    388,
     // v389: diver_settings.profile_zoom_time_only, the profile chart's Time
     // only zoom choice (issue #5069). Nullable, no backfill; the floor does
     // not move. Numbered 389 because open work claims 388.
@@ -1837,11 +1840,14 @@ class AppDatabase extends _$AppDatabase {
     // v393: the built-in BCD/wing inspection kind applies to wings (issue
     // #5110). Built-in reference data never syncs; the floor does not move.
     393,
-    // v394: equipment.catalogue_id and equipment.catalogue_answers, an
-    // item's equipment catalogue link and answers (issue #5118). Nullable,
-    // no backfill; the floor does not move. Skips 388 to 393, which open
-    // PRs already claim.
+    // v394: tank_presets.rated_capacity_cuft, the rated capacity a copy of a
+    // built-in preset keeps (issue #800). Nullable; the floor does not move.
     394,
+    // v397: equipment.catalogue_id and equipment.catalogue_answers, an
+    // item's equipment catalogue link and answers (issue #5118). Nullable,
+    // no backfill; the floor does not move. Skips 395 and 396, which open
+    // PRs already claim.
+    397,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

@@ -57,11 +57,11 @@ grouped into sections:
 | Overlay | What it shows |
 |---------|---------------|
 | **Temp** | Water temperature. |
-| **Pressure** | Tank pressure (on a multi-tank dive, choose tanks under **Tank Pressures**). |
+| **Pressure** | Cylinder pressure (on a multi-cylinder dive, choose cylinders under **Cylinder Pressures**). |
 | **Events** | Event markers (see [Event markers](#event-markers)); **Computed events** adds the ones Submersion detected itself. |
 | **Heart Rate** | Beats per minute, when your computer recorded a heart-rate belt. |
-| **Consumption** | Your gas consumption normalised to the surface (SAC), derived from tank-pressure change. Always shown as pressure per minute (bar/min or psi/min). See [Glossary](glossary.md). |
-| **Buoyancy** | Your net buoyancy through the dive, from the same model as the Buoyancy card, drawn green while you are buoyant and magenta while you are heavy, with a dashed line at neutral. On a dive logged by two computers it is modelled on the computer the chart is showing. Offered when the dive has a tank or an exposure suit. Off by default; Settings > Appearance > Default Visible Metrics turns it on for every dive. |
+| **Consumption** | Your gas consumption normalised to the surface (SAC), derived from cylinder-pressure change. Always shown as pressure per minute (bar/min or psi/min). See [Glossary](glossary.md). |
+| **Buoyancy** | Your net buoyancy through the dive, from the same model as the Buoyancy card, drawn green while you are buoyant and magenta while you are heavy, with a dashed line at neutral. On a dive logged by two computers it is modelled on the computer the chart is showing. Offered when the dive has a cylinder or an exposure suit. Off by default; Settings > Appearance > Default Visible Metrics turns it on for every dive. |
 | **Avelo buoyancy**, **Gas remaining**, **RMV (computer)** | What a Shearwater computer in Avelo mode logged for the Avelo Dive System: its buoyancy figure (negative is heavy), the gas left in the Hydrotank as a percentage, and its own RMV, each in your units. Not calculated by the app; the buoyancy is the computer's, not the modelled Buoyancy line. Offered on a dive whose samples carry them. Off by default; Settings > Appearance > Default Visible Metrics turns each on for every dive. |
 | **Ascent Rate** | Colours the depth line by how fast you were ascending: green within limits, orange at the warning threshold, red past the critical threshold. See [Ascent-rate thresholds](#ascent-rate-thresholds) below. **Ascent Rate Line** draws the rate as its own curve instead. |
 | **Gases** | A thin **gas timeline** strip drawn between the plot and the time axis, coloured by the gas in use (air, nitrox, oxygen, trimix) across the dive. |
@@ -71,8 +71,8 @@ grouped into sections:
 | Marker | What it shows |
 |--------|---------------|
 | **Max Depth** | A marker at the deepest point of the dive. |
-| **Pressure Thresholds** | Markers where tank pressure crossed configured thresholds (for example, turn or reserve pressure). |
-| **Gas Switches** | Markers at each point where you switched to a different tank or gas. |
+| **Pressure Thresholds** | Markers where cylinder pressure crossed configured thresholds (for example, turn or reserve pressure). |
+| **Gas Switches** | Markers at each point where you switched to a different cylinder or gas. |
 | **Late gas switches** | Shades deco gas switches that came late or were missed. |
 | **Counterdiffusion** | Offered when helium is breathed or still held in the tissues, from an earlier dive too. **ICD** shades in orange where a tissue compartment already holds more inert gas than is breathed and still takes gas up noticeably: isobaric counterdiffusion. **All** also shades, faintly, every phase in which nitrogen and helium move in opposite directions, which is normal on a trimix deco. Dashed lines mark gas switches that break the rule of fifths (red) or come close to it (orange) while **Warn on ICD risk** (Settings > Decompression) is on. Off by default; Settings > Appearance > Default Visible Metrics turns it on for every dive. |
 | **Photos** | Markers where photos and videos from the dive were taken. |
@@ -107,7 +107,7 @@ grouped into sections:
 | **Surface GF** | The gradient factor your tissues would be at if you surfaced right now: a running "how close to the limit am I" reading. |
 | **Mean Depth** | The running average depth of the dive so far. |
 
-**Tank Pressures** lists one pressure curve per tank on a multi-tank dive, and
+**Cylinder Pressures** lists one pressure curve per cylinder on a multi-cylinder dive, and
 **Display** holds two viewing options: **Keep overlays in view** and **Tooltip
 follows cursor**.
 
@@ -163,13 +163,13 @@ The event types Submersion recognises are:
 - **Deco Stop Start** / **Deco Stop End**: entry into and exit from a decompression stop.
 - **Decompression Dive**: the dive went into decompression obligation.
 - **Low No-Deco Time**: the no-decompression time ran low.
-- **Gas Switch**: a change of tank or gas (carries the gas name).
+- **Gas Switch**: a change of cylinder or gas (carries the gas name).
 - **Max Depth**: the deepest point of the dive.
 - **Ascent Rate Warning** / **Ascent Rate Critical**: the ascent exceeded the
   warning or critical rate (carries the rate in metres per minute).
 - **Deco Violation**: the ceiling was breached.
 - **Missed Deco Stop**: a required stop was skipped.
-- **Low Gas Warning**: tank pressure fell below a low-gas threshold.
+- **Low Gas Warning**: cylinder pressure fell below a low-gas threshold.
 - **CNS Warning** / **CNS Critical**: oxygen CNS load passed a threshold (carries the %).
 - **High ppO2** / **Low ppO2**: oxygen partial pressure went too high, or too
   low (a hypoxia risk, mainly relevant to rebreather diving). Carries the ppO2 in bar.

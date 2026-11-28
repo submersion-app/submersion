@@ -2048,7 +2048,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_bulkEdit_collectionWeights => 'Weights';
 
   @override
-  String get diveLog_bulkEdit_collectionTanks => 'Tanks';
+  String get diveLog_bulkEdit_collectionTanks => 'Cylinders';
 
   @override
   String get diveLog_bulkEdit_notesSet => 'Set';
@@ -2070,18 +2070,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_bulkEdit_tankOnlyIfEmpty =>
-      'Only dives that don\'t already have a tank';
+      'Only dives that don\'t already have a cylinder';
 
   @override
   String get diveLog_bulkEdit_tankSpecsHint =>
-      'Choose which attributes to overwrite on the tanks these dives already have. Start and end pressures are never changed.';
+      'Choose which attributes to overwrite on the cylinders these dives already have. Start and end pressures are never changed.';
 
   @override
-  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'All tanks';
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'All cylinders';
 
   @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
-      'Choose at least one tank attribute to update.';
+      'Choose at least one cylinder attribute to update.';
 
   @override
   String get diveLog_bulkEdit_tankFieldPreset => 'Preset';
@@ -2109,17 +2109,18 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count selected dives have no tanks and will be skipped.',
-      one: '1 selected dive has no tanks and will be skipped.',
+      other: '$count selected dives have no cylinders and will be skipped.',
+      one: '1 selected dive has no cylinders and will be skipped.',
     );
     return '$_temp0';
   }
 
   @override
-  String get diveLog_bulkEdit_tankRoleSameForAll => 'Same role on every tank';
+  String get diveLog_bulkEdit_tankRoleSameForAll =>
+      'Same role on every cylinder';
 
   @override
-  String get diveLog_bulkEdit_tankRoleByPosition => 'Role by tank position';
+  String get diveLog_bulkEdit_tankRoleByPosition => 'Role by cylinder position';
 
   @override
   String get diveLog_bulkEdit_tankRoleAddPosition => 'Add position';
@@ -2133,8 +2134,8 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'Only dives with exactly $count tanks get these roles, in tank order.',
-      one: 'Only dives with exactly $count tank get this role.',
+          'Only dives with exactly $count cylinders get these roles, in cylinder order.',
+      one: 'Only dives with exactly $count cylinder get this role.',
     );
     return '$_temp0';
   }
@@ -2145,9 +2146,9 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '$count dives don\'t match the tank positions, so their tank roles stay as they are.',
+          '$count dives don\'t match the cylinder positions, so their cylinder roles stay as they are.',
       one:
-          '$count dive doesn\'t match the tank positions, so its tank roles stay as they are.',
+          '$count dive doesn\'t match the cylinder positions, so its cylinder roles stay as they are.',
     );
     return '$_temp0';
   }
@@ -7198,7 +7199,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_combine_dataNote =>
-      'Details come from the earliest dive, with blanks filled from later dives. Notes are combined. Tanks, gear, buddies, tags, and sightings are all kept.';
+      'Details come from the earliest dive, with blanks filled from later dives. Notes are combined. Cylinders, gear, buddies, tags, and sightings are all kept.';
 
   @override
   String get diveLog_combine_error =>
@@ -7534,7 +7535,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_delete_confirm =>
-      'This action cannot be undone. The dive and all associated data (profile, tanks, sightings) will be permanently deleted.';
+      'This action cannot be undone. The dive and all associated data (profile, cylinders, sightings) will be permanently deleted.';
 
   @override
   String get diveLog_delete_delete => 'Delete';
@@ -7950,7 +7951,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_diveMode_ocDescription =>
-      'Standard open circuit scuba with tanks';
+      'Standard open circuit scuba with cylinders';
 
   @override
   String get diveLog_diveMode_scrDescription =>
@@ -7986,7 +7987,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_addCustomField => 'Add Field';
 
   @override
-  String get diveLog_edit_addTank => 'Add Tank';
+  String get diveLog_edit_addTank => 'Add Cylinder';
 
   @override
   String get diveLog_edit_addWeightEntry => 'Add Weight Entry';
@@ -8013,7 +8014,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_edit_equipmentCaption =>
-      'Gear you used, for its dive count and service history. A cylinder listed here adds no gas data; add it under Tanks too.';
+      'Gear you used, for its dive count and service history. A cylinder listed here adds no gas data; add it under Cylinders too.';
 
   @override
   String diveLog_edit_errorLoadingDiveTypes(Object error) {
@@ -8022,7 +8023,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_edit_gasSwitches_caption =>
-      'When you changed cylinders. Deco, tissue loading and per-tank SAC follow these switches.';
+      'When you changed cylinders. Deco, tissue loading and per-cylinder SAC follow these switches.';
 
   @override
   String diveLog_edit_gasSwitches_startsOn(String tank) {
@@ -8082,8 +8083,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count gas switches removed with their tank',
-      one: '$count gas switch removed with its tank',
+      other: '$count gas switches removed with their cylinder',
+      one: '$count gas switch removed with its cylinder',
     );
     return '$_temp0';
   }
@@ -8229,7 +8230,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_overline_gasSwitches => 'Gas switches';
 
   @override
-  String get diveLog_edit_overline_tanks => 'Tanks';
+  String get diveLog_edit_overline_tanks => 'Cylinders';
 
   @override
   String get diveLog_edit_planned_switch => 'Planned dive';
@@ -8468,12 +8469,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String diveLog_edit_tankCard_title(int number) {
-    return 'Tank $number';
+    return 'Cylinder $number';
   }
 
   @override
   String get diveLog_edit_tanksCaption =>
-      'What you breathed from. Gas graphs, gas consumption and statistics come from these tanks.';
+      'What you breathed from. Gas graphs, gas consumption and statistics come from these cylinders.';
 
   @override
   String get diveLog_edit_tooltip_calculateFromProfile =>
@@ -8909,10 +8910,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filter_sectionGasMix => 'Gas Mix (O₂%)';
 
   @override
-  String get diveLog_filter_sectionTankConfiguration => 'Tank configuration';
+  String get diveLog_filter_sectionTankConfiguration =>
+      'Cylinder configuration';
 
   @override
-  String get diveLog_filter_sectionTankExtras => 'Tank extras';
+  String get diveLog_filter_sectionTankExtras => 'Cylinder extras';
 
   @override
   String get diveLog_filter_sectionMinRating => 'Minimum Rating';
@@ -9122,7 +9124,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_chartSection_other => 'Other';
 
   @override
-  String get diveLog_chartSection_tankPressures => 'Tank Pressures';
+  String get diveLog_chartSection_tankPressures => 'Cylinder Pressures';
 
   @override
   String get diveLog_chartOption_tooltipFollowsCursor =>
@@ -10833,7 +10835,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Start Pressure';
 
   @override
-  String get diveLog_tank_label_tankPreset => 'Tank Preset';
+  String get diveLog_tank_managePresets => 'Manage presets';
+
+  @override
+  String get diveLog_tank_label_tankPreset => 'Cylinder Preset';
 
   @override
   String get diveLog_tank_label_volume => 'Volume';
@@ -10970,7 +10975,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter a volume and working pressure first';
 
   @override
-  String get diveLog_tank_saveAsPreset_nameTitle => 'Save tank preset';
+  String get diveLog_tank_saveAsPreset_nameTitle => 'Save cylinder preset';
 
   @override
   String get diveLog_tank_saveAsPreset_nameHint => 'e.g. My AL80';
@@ -10982,22 +10987,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String diveLog_tank_title(Object number) {
-    return 'Tank $number';
+    return 'Cylinder $number';
   }
 
   @override
-  String get diveLog_tank_tooltip_remove => 'Remove tank';
+  String get diveLog_tank_tooltip_remove => 'Remove cylinder';
 
   @override
   String get diveLog_tank_fromOwnCylinder => 'Fill from my cylinders';
 
   @override
   String get diveLog_tank_ownCylinderFailed =>
-      'Could not fill the tank from that cylinder. Try again.';
+      'Could not fill this dive\'s cylinder from that one. Try again.';
 
   @override
   String get diveLog_tank_ownCylinderHint =>
-      'Copies the cylinder\'s size and latest fill into this tank and adds the cylinder to this dive\'s equipment.';
+      'Copies your cylinder\'s size and latest fill onto this dive and adds it to this dive\'s equipment.';
 
   @override
   String get diveLog_tank_ownCylinderTitle => 'My cylinders';
@@ -11054,8 +11059,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count tanks aren\'t in your gear',
-      one: '$count tank isn\'t in your gear',
+      other: '$count cylinders aren\'t in your gear',
+      one: '$count cylinder isn\'t in your gear',
     );
     return '$_temp0';
   }
@@ -11085,7 +11090,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_tank_linkCylinderHint =>
-      'Links this tank to the cylinder and adds the cylinder to this dive\'s equipment. The tank keeps its recorded size.';
+      'Links this dive\'s cylinder to one you own and adds that cylinder to this dive\'s equipment. The recorded size stays as it is.';
 
   @override
   String get diveLog_tank_unlinkCylinder => 'Unlink cylinder';
@@ -11314,7 +11319,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_sources_splitDialog_body =>
-      'This source\'s profile, events, and tanks will move to a new dive. The logbook entry stays on this dive.';
+      'This source\'s profile, events, and cylinders will move to a new dive. The logbook entry stays on this dive.';
 
   @override
   String get diveLog_sources_splitDialog_confirm => 'Split';
@@ -11361,7 +11366,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String diveLog_sources_separateDialog_body(int count) {
-    return 'This dive was combined from $count dives. Each one\'s profile, events, tanks and gas switches move back to its own dive. The rest of the logbook entry, including buddies, tags, equipment, media, notes and the dive number, stays on this dive.';
+    return 'This dive was combined from $count dives. Each one\'s profile, events, cylinders and gas switches move back to its own dive. The rest of the logbook entry, including buddies, tags, equipment, media, notes and the dive number, stays on this dive.';
   }
 
   @override
@@ -11382,13 +11387,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_sources_separateFailed => 'Could not separate this dive';
 
   @override
-  String get divePlanner_action_addTank => 'Add Tank';
+  String get divePlanner_action_addTank => 'Add Cylinder';
 
   @override
   String get divePlanner_action_deletePlan => 'Delete plan';
 
   @override
-  String get divePlanner_action_editTank => 'Edit Tank';
+  String get divePlanner_action_editTank => 'Edit Cylinder';
 
   @override
   String divePlanner_action_fillBestMix(String depth, String mix) {
@@ -11418,7 +11423,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Cannot convert: plan has critical warnings';
 
   @override
-  String get divePlanner_error_reserveExceedsTank => 'Exceeds tank pressure';
+  String get divePlanner_error_reserveExceedsTank =>
+      'Exceeds cylinder pressure';
 
   @override
   String get divePlanner_error_reserveMustBePositive =>
@@ -11462,7 +11468,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get divePlanner_hint_tankName => 'Enter tank name';
+  String get divePlanner_hint_tankName => 'Enter cylinder name';
 
   @override
   String get divePlanner_label_airBreaks => 'Air breaks';
@@ -11602,7 +11608,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divePlanner_label_off => 'Off';
 
   @override
-  String get divePlanner_label_tanks => 'Tanks';
+  String get divePlanner_label_tanks => 'Cylinders';
 
   @override
   String get divePlanner_label_loopGases => 'Loop';
@@ -11614,26 +11620,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divePlanner_label_noBailout => 'No bailout cylinder yet';
 
   @override
-  String get divePlanner_savedTanks_title => 'Saved tanks';
+  String get divePlanner_savedTanks_title => 'Saved cylinders';
 
   @override
-  String get divePlanner_savedTanks_save => 'Save a tank';
+  String get divePlanner_savedTanks_save => 'Save a cylinder';
 
   @override
-  String get divePlanner_savedTanks_saveTitle => 'Save tank as';
+  String get divePlanner_savedTanks_saveTitle => 'Save cylinder as';
 
   @override
-  String get divePlanner_savedTanks_nameField => 'Tank name';
+  String get divePlanner_savedTanks_nameField => 'Cylinder name';
 
   @override
-  String get divePlanner_savedTanks_saved => 'Tank saved';
+  String get divePlanner_savedTanks_saved => 'Cylinder saved';
 
   @override
   String get divePlanner_savedTanks_manage => 'Manage';
 
   @override
   String get divePlanner_savedTanks_empty =>
-      'No saved tanks yet. Save a tank from this plan to reuse it in other plans.';
+      'No saved cylinders yet. Save a cylinder from this plan to reuse it in other plans.';
 
   @override
   String get divePlanner_label_timeAxis => 'Time (min)';
@@ -11687,11 +11693,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String divePlanner_warning_gasLow(Object threshold) {
-    return 'Tank below $threshold reserve';
+    return 'Cylinder below $threshold reserve';
   }
 
   @override
-  String get divePlanner_warning_gasOut => 'Tank will be empty';
+  String get divePlanner_warning_gasOut => 'Cylinder will be empty';
 
   @override
   String get divePlanner_warning_otuWarning => 'OTU accumulation high';
@@ -11856,6 +11862,142 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_detail_section_access => 'Access & Logistics';
 
   @override
+  String get diveSites_detail_section_contact => 'Contact';
+
+  @override
+  String get diveSites_detail_section_openingHours => 'Opening Hours';
+
+  @override
+  String get diveSites_contact_mapsFailed => 'Could not open maps';
+
+  @override
+  String get diveSites_contact_linkFailed => 'Could not open the link';
+
+  @override
+  String get diveSites_contact_directions => 'Directions';
+
+  @override
+  String get diveSites_contact_address => 'Address';
+
+  @override
+  String get diveSites_contact_phone => 'Phone';
+
+  @override
+  String get diveSites_contact_email => 'Email';
+
+  @override
+  String get diveSites_contact_website => 'Website';
+
+  @override
+  String get diveSites_hours_alwaysOpen => 'Open 24/7';
+
+  @override
+  String get diveSites_hours_addSchedule => 'Add schedule';
+
+  @override
+  String get diveSites_hours_scheduleName => 'Name';
+
+  @override
+  String get diveSites_hours_scheduleName_hint => 'Summer';
+
+  @override
+  String get diveSites_hours_seasonal => 'Seasonal';
+
+  @override
+  String get diveSites_hours_seasonFrom => 'From';
+
+  @override
+  String get diveSites_hours_seasonTo => 'To';
+
+  @override
+  String get diveSites_hours_deleteSchedule => 'Delete schedule';
+
+  @override
+  String get diveSites_hours_closed => 'Closed';
+
+  @override
+  String get diveSites_hours_open24h => 'Open 24 hours';
+
+  @override
+  String get diveSites_hours_kindHours => 'Hours';
+
+  @override
+  String get diveSites_hours_addRange => 'Add hours';
+
+  @override
+  String get diveSites_hours_removeRange => 'Remove hours';
+
+  @override
+  String get diveSites_hours_copyDay => 'Copy to other days';
+
+  @override
+  String diveSites_hours_copyTitle(String day) {
+    return 'Copy $day to';
+  }
+
+  @override
+  String get diveSites_hours_selectAll => 'Select all';
+
+  @override
+  String get diveSites_hours_copy => 'Copy';
+
+  @override
+  String get diveSites_hours_note => 'Note';
+
+  @override
+  String get diveSites_hours_note_hint =>
+      'Book slots by phone, closed public holidays';
+
+  @override
+  String get diveSites_hours_invalid =>
+      'Some hours overlap or close before they open';
+
+  @override
+  String get diveSites_hours_noSchedule => 'No weekly hours yet';
+
+  @override
+  String diveSites_hours_openUntil(String time) {
+    return 'Open now, closes $time';
+  }
+
+  @override
+  String get diveSites_hours_openNoClose => 'Open now';
+
+  @override
+  String diveSites_hours_closedOpensAt(String when) {
+    return 'Closed, opens $when';
+  }
+
+  @override
+  String diveSites_hours_closedForSeason(String date) {
+    return 'Closed for the season, opens $date';
+  }
+
+  @override
+  String get diveSites_hours_closedNow => 'Closed';
+
+  @override
+  String diveSites_hours_span(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String diveSites_hours_namedSeason(String name, String season) {
+    return '$name, $season';
+  }
+
+  @override
+  String diveSites_merge_hoursSchedules(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count schedules',
+      one: '$count schedule',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_detail_section_altitude => 'Altitude';
 
   @override
@@ -11969,6 +12111,38 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveSites_edit_access_parkingInfo_hint =>
       'Parking availability, fees, tips';
+
+  @override
+  String get diveSites_edit_contact_address_label => 'Address';
+
+  @override
+  String get diveSites_edit_contact_address_hint => 'Street, town and postcode';
+
+  @override
+  String get diveSites_edit_contact_phone_label => 'Phone';
+
+  @override
+  String get diveSites_edit_contact_phone_hint => 'Booking or owner number';
+
+  @override
+  String get diveSites_edit_contact_email_label => 'Email';
+
+  @override
+  String get diveSites_edit_contact_email_hint => 'name@example.com';
+
+  @override
+  String get diveSites_edit_contact_website_label => 'Website';
+
+  @override
+  String get diveSites_edit_contact_website_hint => 'example.com';
+
+  @override
+  String get diveSites_edit_contact_emailInvalid =>
+      'Enter an email address like name@example.com';
+
+  @override
+  String get diveSites_edit_contact_websiteInvalid =>
+      'Enter a web address like example.com';
 
   @override
   String get diveSites_edit_access_parkingInfo_label => 'Parking Information';
@@ -14191,7 +14365,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentType_harness => 'Harness';
 
   @override
-  String get enum_equipmentType_tankBand => 'Tank Band';
+  String get equipment_searchWords_cylinder => 'tank, bottle, stage, pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'tank band, cam band';
+
+  @override
+  String get enum_equipmentType_tankBand => 'Cylinder Band';
 
   @override
   String get enum_equipmentType_weightPocket => 'Weight Pocket';
@@ -14266,7 +14446,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentType_smb => 'SMB';
 
   @override
-  String get enum_equipmentType_tank => 'Tank';
+  String get enum_equipmentType_tank => 'Cylinder';
 
   @override
   String get enum_equipmentType_weights => 'Weights';
@@ -14697,7 +14877,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_tankRole_oxygenSupply => 'O₂ Supply';
 
   @override
-  String get enum_tankRole_pony => 'Pony Bottle';
+  String get enum_tankRole_pony => 'Pony';
 
   @override
   String get enum_tankRole_sidemountLeft => 'Sidemount Left';
@@ -14953,7 +15133,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passport_fill_writeToTagTitle => 'Fill logged';
 
   @override
-  String get passport_fill_writeToTagBody => 'Write it to the tank\'s tag?';
+  String get passport_fill_writeToTagBody => 'Write it to the cylinder\'s tag?';
 
   @override
   String get passport_fill_writeToTag => 'Write to tag';
@@ -16335,7 +16515,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String cylinderConfigs_overwriteTank(int number, String role) {
-    return 'Tank $number · $role';
+    return 'Cylinder $number · $role';
   }
 
   @override
@@ -16768,6 +16948,52 @@ class AppLocalizationsEn extends AppLocalizations {
       'A connected dive computer or transmitter keeps its type.';
 
   @override
+  String get equipment_suggest_link => 'Can\'t find a fit? Suggest a category';
+
+  @override
+  String get equipment_suggest_title => 'Suggest a category';
+
+  @override
+  String get equipment_suggest_intro =>
+      'This opens a prefilled feature request on GitHub. You review it and post it from your browser.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'What are you suggesting?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'New type of gear';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'New kind of a type';
+
+  @override
+  String get equipment_suggest_nameLabel => 'Name';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'A kind of';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => 'Closest existing type';
+
+  @override
+  String get equipment_suggest_parentNone => 'None';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'Why is it needed?';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'What sets it apart from the existing types?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'Include this item as an example ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'Open in GitHub';
+
+  @override
   String get equipment_edit_useCustomReminders => 'Use Custom Reminders';
 
   @override
@@ -17177,6 +17403,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Collapse all';
 
   @override
+  String get equipment_list_showParts => 'Show parts';
+
+  @override
+  String get equipment_list_hideParts => 'Hide parts';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count parts',
+      one: '1 part',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Location';
 
   @override
@@ -17193,6 +17436,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'One heading per place, on this page only';
+
+  @override
+  String get equipment_arrange_nestParts => 'Show parts under their assembly';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Fold each assembly\'s parts under it';
 
   @override
   String get equipment_locations_title => 'Locations';
@@ -18162,11 +18412,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gasCalculators_consumption_diveTime => 'Dive Time';
 
   @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. Warning: exceeds cylinder capacity',
+      'other': '',
+    });
+    return 'Gas consumption: $volume $volumeSymbol, $pressure $pressureSymbol$_temp0';
+  }
+
+  @override
   String gasCalculators_consumption_exceedsTank(
     Object pressure,
     Object symbol,
   ) {
-    return 'Exceeds tank capacity ($pressure $symbol)';
+    return 'Exceeds cylinder capacity ($pressure $symbol)';
   }
 
   @override
@@ -18186,7 +18451,7 @@ class AppLocalizationsEn extends AppLocalizations {
     Object fillPressure,
     Object pressureSymbol,
   ) {
-    return 'Tank capacity ($tankSize$volumeSymbol @ $fillPressure $pressureSymbol)';
+    return 'Cylinder capacity ($tankSize$volumeSymbol @ $fillPressure $pressureSymbol)';
   }
 
   @override
@@ -19004,7 +19269,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gasCalculators_tab_rockBottom => 'Rock Bottom';
 
   @override
-  String get gasCalculators_tankSize => 'Tank Size';
+  String get gasCalculators_tankSize => 'Cylinder Size';
 
   @override
   String get gasCalculators_title => 'Gas Calculators';
@@ -19386,9 +19651,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => 'Could not open the browser';
-
-  @override
-  String get marineLife_suggest_copyLink => 'Copy link';
 
   @override
   String get marineLife_editCard_photos => 'Photos';
@@ -22102,7 +22364,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get plannerSeries_fillAll => 'Fill all tanks';
+  String get plannerSeries_fillAll => 'Fill all cylinders';
 
   @override
   String get plannerSeries_createPlannedDive => 'Create planned dive';
@@ -23132,7 +23394,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buoyancy_drysuitGas => 'Drysuit gas added';
 
   @override
-  String get buoyancy_estimatedPressures => 'Tank pressures are estimated';
+  String get buoyancy_estimatedPressures => 'Cylinder pressures are estimated';
 
   @override
   String get buoyancy_linkSuitHint =>
@@ -23144,7 +23406,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get buoyancy_tankMaterialAssumedHint =>
-      'Tank material not set, so aluminum was assumed: set the material or pick a tank preset';
+      'Cylinder material not set, so aluminum was assumed: set the material or pick a cylinder preset';
 
   @override
   String get buoyancy_chartNet => 'Net';
@@ -23251,7 +23513,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String buoyancy_causeGas(String amount) {
-    return 'Gas breathed left the tanks $amount lighter';
+    return 'Gas breathed left the cylinders $amount lighter';
   }
 
   @override
@@ -23315,7 +23577,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveDetailSection_tanks_description =>
-      'Cylinder list, gas mixes, pressures, MOD/MND, per-tank consumption';
+      'Cylinder list, gas mixes, pressures, MOD/MND, per-cylinder consumption';
 
   @override
   String get diveDetailSection_buddies_name => 'Buddies';
@@ -23447,6 +23709,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Entry and exit, parking, mooring, access notes';
 
   @override
+  String get siteDetailSection_contact_description =>
+      'Address, phone, email and website';
+
+  @override
+  String get siteDetailSection_openingHours_description =>
+      'Opening days and hours, by season';
+
+  @override
   String get siteDetailSection_notes_description => 'Your notes about the site';
 
   @override
@@ -23555,7 +23825,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_estimatedTankPressure =>
-      'Estimated Tank Pressure';
+      'Estimated Cylinder Pressure';
 
   @override
   String get settings_appearance_metric_gasDensity => 'Gas Density';
@@ -23619,7 +23889,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_appearance_pressureThresholdMarkers_subtitleFull =>
-      'Show markers when tank pressure crosses 2/3, 1/2, and 1/3 thresholds';
+      'Show markers when cylinder pressure crosses 2/3, 1/2, and 1/3 thresholds';
 
   @override
   String get settings_appearance_metricsFollowViewport =>
@@ -23706,7 +23976,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_metricColors_pressureCustom =>
-      'Used on single-tank dives';
+      'Used on single-cylinder dives';
 
   @override
   String settings_metricColors_sheetTitle(String metric) {
@@ -25246,7 +25516,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_applyDefaultTankToImports =>
-      'Default tank on imported dives';
+      'Default cylinder on imported dives';
 
   @override
   String get settings_conflict_field_ascentGasSet => 'Ascent gases';
@@ -25407,7 +25677,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_bookmarkRef => 'File access';
 
   @override
-  String get settings_conflict_field_bottleLabel => 'Bottle number';
+  String get settings_conflict_field_bottleLabel => 'Cylinder number';
 
   @override
   String get settings_conflict_field_buddyListViewMode => 'Buddy list view';
@@ -25685,7 +25955,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_defaultShowEstimatedTankPressure =>
-      'Profile shows estimated tank pressure';
+      'Profile shows estimated cylinder pressure';
 
   @override
   String get settings_conflict_field_defaultShowEvents =>
@@ -25740,7 +26010,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_defaultShowPressure =>
-      'Profile shows tank pressure';
+      'Profile shows cylinder pressure';
 
   @override
   String get settings_conflict_field_defaultShowSac =>
@@ -25767,10 +26037,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Default start pressure';
 
   @override
-  String get settings_conflict_field_defaultTankPreset => 'Default tank preset';
+  String get settings_conflict_field_defaultTankPreset =>
+      'Default cylinder preset';
 
   @override
-  String get settings_conflict_field_defaultTankVolume => 'Default tank volume';
+  String get settings_conflict_field_defaultTankVolume =>
+      'Default cylinder volume';
 
   @override
   String get settings_conflict_field_defaultTtsSource =>
@@ -25903,7 +26175,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_divePlanSegments_type => 'Segment';
 
   @override
-  String get settings_conflict_field_divePlanTanks_role => 'Tank role';
+  String get settings_conflict_field_divePlanTanks_role => 'Cylinder role';
 
   @override
   String get settings_conflict_field_diveProfileEvents_severity => 'Severity';
@@ -26212,7 +26484,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_hiddenTankPresetIds =>
-      'Hidden tank presets';
+      'Hidden cylinder presets';
 
   @override
   String get settings_conflict_field_highO2ThresholdPercent =>
@@ -26430,7 +26702,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_matchConfidence => 'Match';
 
   @override
-  String get settings_conflict_field_material => 'Tank material';
+  String get settings_conflict_field_material => 'Cylinder material';
 
   @override
   String get settings_conflict_field_maxAscentRate => 'Maximum ascent rate';
@@ -26703,6 +26975,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_parkingInfo => 'Parking';
 
   @override
+  String get settings_conflict_field_address => 'Address';
+
+  @override
+  String get settings_conflict_field_openingHours => 'Opening hours';
+
+  @override
   String get settings_conflict_field_passportId => 'Cylinder passport';
 
   @override
@@ -26801,7 +27079,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_presetJson => 'Preset';
 
   @override
-  String get settings_conflict_field_presetName => 'Tank preset';
+  String get settings_conflict_field_presetName => 'Cylinder preset';
 
   @override
   String get settings_conflict_field_pressure => 'Pressure';
@@ -27263,11 +27541,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_sourceRef => 'Source file or device';
 
   @override
-  String get settings_conflict_field_sourceTankId => 'Carried over from tank';
+  String get settings_conflict_field_sourceTankId =>
+      'Carried over from cylinder';
 
   @override
   String get settings_conflict_field_sourceTankIndex =>
-      'Tank number in the source log';
+      'Cylinder number in the source log';
 
   @override
   String get settings_conflict_field_sourceType => 'Source';
@@ -27369,16 +27648,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_takenAt => 'Taken';
 
   @override
-  String get settings_conflict_field_tankMaterial => 'Tank material';
+  String get settings_conflict_field_tankMaterial => 'Cylinder material';
 
   @override
-  String get settings_conflict_field_tankName => 'Tank name';
+  String get settings_conflict_field_tankName => 'Cylinder name';
 
   @override
-  String get settings_conflict_field_tankOrder => 'Tank order';
+  String get settings_conflict_field_tankOrder => 'Cylinder order';
 
   @override
-  String get settings_conflict_field_tankRole => 'Tank role';
+  String get settings_conflict_field_tankRole => 'Cylinder role';
 
   @override
   String get settings_conflict_field_targetCount => 'Target';
@@ -27458,7 +27737,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_trimTankPressureAtSurfacing =>
-      'Tank pressure trimmed at surfacing';
+      'Cylinder pressure trimmed at surfacing';
 
   @override
   String get settings_conflict_field_tripChecklistItems_category => 'Category';
@@ -27572,6 +27851,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_volumeL => 'Volume';
+
+  @override
+  String get settings_conflict_field_ratedCapacityCuft => 'Rated capacity';
 
   @override
   String get settings_conflict_field_volumeLiters => 'Volume';
@@ -28236,7 +28518,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settings_conflict_ref_plannedTank => 'Planned tank';
+  String get settings_conflict_ref_plannedTank => 'Planned cylinder';
 
   @override
   String get settings_conflict_ref_preDiveChecklistTemplate =>
@@ -28294,7 +28576,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_ref_tag => 'Tag';
 
   @override
-  String get settings_conflict_ref_tank => 'Tank';
+  String get settings_conflict_ref_tank => 'Cylinder';
 
   @override
   String get settings_conflict_ref_weight => 'Weight';
@@ -28542,7 +28824,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_qualityCategory_source => 'Source';
 
   @override
-  String get enum_qualityCategory_tank => 'Tank';
+  String get enum_qualityCategory_tank => 'Cylinder';
 
   @override
   String get enum_qualityCategory_temperature => 'Temperature';
@@ -29040,7 +29322,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'Fewest names. About $percent% right';
+    return 'Fewest names. About $percent% right on photos';
   }
 
   @override
@@ -29049,12 +29331,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'More names. About $percent% right';
+    return 'More names. About $percent% right on photos';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'Most names. About $percent% right';
+    return 'Most names. About $percent% right on photos';
   }
 
   @override
@@ -29865,11 +30147,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_manage_tags_subtitle => 'Manage, merge, and delete tags';
 
   @override
-  String get settings_manage_tankPresets => 'Tank Presets';
+  String get settings_manage_tankPresets => 'Cylinder Presets';
 
   @override
   String get settings_manage_tankPresets_subtitle =>
-      'Manage custom tank configurations';
+      'Manage custom cylinder configurations';
 
   @override
   String get settings_manage_weightPresets => 'Weight Presets';
@@ -30659,7 +30941,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_section_diverProfile_title => 'Diver Profile';
 
   @override
-  String get settings_section_manage_subtitle => 'Dive types & tank presets';
+  String get settings_section_manage_subtitle =>
+      'Dive types & cylinder presets';
 
   @override
   String get settings_section_manage_title => 'Manage';
@@ -31177,12 +31460,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String settings_units_gasConsumption_rmv_subtitle(String unit) {
-    return 'Gas volume breathed per minute at the surface ($unit). Needs a tank volume.';
+    return 'Gas volume breathed per minute at the surface ($unit). Needs a cylinder volume.';
   }
 
   @override
   String settings_units_gasConsumption_sac_subtitle(String unit) {
-    return 'Tank pressure drop per minute ($unit). Works with any logged pressures.';
+    return 'Cylinder pressure drop per minute ($unit). Works with any logged pressures.';
   }
 
   @override
@@ -32075,11 +32358,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_gas_sacTrend_title => 'Gas consumption trend';
 
   @override
-  String get insights_gas_tankConfig_title => 'Tank configuration';
+  String get insights_gas_tankConfig_title => 'Cylinder configuration';
 
   @override
   String get insights_gas_tankConfig_subtitle =>
-      'Dives by how the tanks were set up';
+      'Dives by how the cylinders were set up';
 
   @override
   String get insights_gas_tankConfig_configurationHeading => 'Configuration';
@@ -32103,7 +32386,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_gas_tankConfig_other => 'Other';
 
   @override
-  String get insights_gas_tankConfig_noTanks => 'No tanks logged';
+  String get insights_gas_tankConfig_noTanks => 'No cylinders logged';
 
   @override
   String get insights_gas_tankConfig_stages => 'Stage(s)';
@@ -32203,7 +32486,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insights_gas_tankConfig_error =>
-      'Unable to load tank configuration';
+      'Unable to load cylinder configuration';
 
   @override
   String get insights_focus_title => 'Dive focus';
@@ -32606,7 +32889,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get insights_focus_factor_gas => 'Gas';
 
   @override
-  String get insights_focus_factor_tankVolume => 'Tank size';
+  String get insights_focus_factor_tankVolume => 'Cylinder size';
 
   @override
   String get insights_focus_factor_suit => 'Suit';
@@ -34564,13 +34847,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tank_al100_displayName => 'AL100';
 
   @override
-  String get tank_al30Stage_description => 'Aluminum 30 cu ft stage tank';
+  String get tank_al30Stage_description => 'Aluminum 30 cu ft stage cylinder';
 
   @override
   String get tank_al30Stage_displayName => 'AL30 Stage';
 
   @override
-  String get tank_al40Stage_description => 'Aluminum 40 cu ft stage tank';
+  String get tank_al40Stage_description => 'Aluminum 40 cu ft stage cylinder';
 
   @override
   String get tank_al40Stage_displayName => 'AL40 Stage';
@@ -36154,8 +36437,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dive tanks not linked to a cylinder',
-      one: '$count dive tank not linked to a cylinder',
+      other: '$count dive cylinders not linked to one on this board',
+      one: '$count dive cylinder not linked to one on this board',
     );
     return '$_temp0';
   }
@@ -36165,7 +36448,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String trips_cylinders_record_tank(int number) {
-    return 'Tank $number';
+    return 'Cylinder $number';
   }
 
   @override
@@ -36236,7 +36519,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String trips_cylinders_bottle(String label) {
-    return 'Bottle $label';
+    return 'Cylinder $label';
   }
 
   @override
@@ -36297,9 +36580,9 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'Delete this cylinder and its fills? $count dives used it. Those dives keep their tanks; only the link is removed.',
+          'Delete this cylinder and its fills? $count dives used it. Those dives keep their own record of it; only the link is removed.',
       one:
-          'Delete this cylinder and its fills? $count dive used it. That dive keeps its tank; only the link is removed.',
+          'Delete this cylinder and its fills? $count dive used it. That dive keeps its own record of the cylinder; only the link is removed.',
     );
     return '$_temp0';
   }
@@ -36362,7 +36645,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_cylinders_fill_analyzedHe => 'He analyzed (%)';
 
   @override
-  String get trips_cylinders_fill_bottle => 'Bottle number';
+  String get trips_cylinders_fill_bottle => 'Cylinder number';
 
   @override
   String get trips_cylinders_fill_cost => 'Cost';
@@ -36855,7 +37138,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeNoTankPressureTitle =>
-      'Tank pressure not recorded';
+      'Cylinder pressure not recorded';
 
   @override
   String get universalImport_summary_noticeNoTankPressureBody =>
@@ -38351,7 +38634,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divePlanner_segmentEditor_editTitle => 'Edit Segment';
 
   @override
-  String get divePlanner_segmentEditor_tankGas => 'Tank / Gas';
+  String get divePlanner_segmentEditor_tankGas => 'Cylinder / Gas';
 
   @override
   String get divePlanner_segmentList_addSegment => 'Add Segment';
@@ -38478,7 +38761,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gasCalculators_rockBottom_stressedSacRates => 'Stressed RMV';
 
   @override
-  String get gasCalculators_rockBottom_tankSize => 'Tank Size';
+  String get gasCalculators_rockBottom_tankSize => 'Cylinder Size';
 
   @override
   String get gasCalculators_rockBottom_totalReserveNeeded =>
@@ -39044,14 +39327,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'The box crosses the date line. Keep it on one side, or draw two boxes.';
 
   @override
-  String get tankPresets_addPreset => 'Add tank preset';
+  String get tankPresets_addPreset => 'Add cylinder preset';
 
   @override
   String get tankPresets_builtInPresets => 'Built-in Presets';
 
   @override
   String get tankPresets_builtInPresets_description =>
-      'Switch off the presets you don\'t use to hide them from the tank pickers. The default preset is always shown.';
+      'Switch off the presets you don\'t use to hide them from the cylinder pickers. The default preset is always shown.';
 
   @override
   String get tankPresets_currentDefault => 'Current default';
@@ -39060,15 +39343,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tankPresets_customPresets => 'Custom Presets';
 
   @override
-  String get tankPresets_defaultSettings => 'Default Tank';
+  String get tankPresets_defaultSettings => 'Default Cylinder';
 
   @override
   String get tankPresets_defaultSettings_description =>
-      'The starred preset is used as the default tank when logging new dives.';
+      'The starred preset is used as the default cylinder when logging new dives.';
 
   @override
   String tankPresets_deleteDefaultMessage(String name) {
-    return 'Are you sure you want to delete \"$name\"? This is your current default tank preset and will be reset to AL80.';
+    return 'Are you sure you want to delete \"$name\"? This is your current default cylinder preset and will be reset to AL80.';
   }
 
   @override
@@ -39080,11 +39363,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tankPresets_deletePreset => 'Delete preset';
 
   @override
-  String get tankPresets_deleteTitle => 'Delete Tank Preset?';
+  String get tankPresets_deleteTitle => 'Delete Cylinder Preset?';
 
   @override
   String tankPresets_deleted(Object name) {
     return 'Deleted \"$name\"';
+  }
+
+  @override
+  String get tankPresets_duplicatePreset => 'Duplicate';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (copy)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (copy $number)';
   }
 
   @override
@@ -39097,7 +39393,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tankPresets_edit_descriptionHint =>
-      'e.g., My rental tank from dive shop';
+      'e.g., My rental cylinder from dive shop';
 
   @override
   String get tankPresets_edit_descriptionOptional => 'Description (optional)';
@@ -39113,7 +39409,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tankPresets_edit_notFound => 'This tank preset no longer exists.';
+  String get tankPresets_edit_notFound =>
+      'This cylinder preset no longer exists.';
 
   @override
   String tankPresets_edit_gasCapacity(Object capacity) {
@@ -39128,7 +39425,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tankPresets_edit_nameHelper =>
-      'A friendly name for this tank preset';
+      'A friendly name for this cylinder preset';
 
   @override
   String get tankPresets_edit_nameHint => 'e.g., My AL80';
@@ -39143,10 +39440,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tankPresets_edit_required => 'Required';
 
   @override
-  String get tankPresets_edit_tankSpecifications => 'Tank Specifications';
+  String get tankPresets_edit_tankSpecifications => 'Cylinder Specifications';
 
   @override
-  String get tankPresets_edit_title => 'Edit Tank Preset';
+  String get tankPresets_edit_title => 'Edit Cylinder Preset';
 
   @override
   String tankPresets_edit_updated(Object name) {
@@ -39196,14 +39493,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tankPresets_applyToImports_subtitle =>
-      'Fill in missing tank data on imported dives using the default preset';
+      'Fill in missing cylinder data on imported dives using the default preset';
 
   @override
   String get tankPresets_defaultStartPressure => 'Default start pressure';
 
   @override
   String get tankPresets_defaultStartPressure_subtitle =>
-      'Filled in on new tanks, and on imported tanks with no start pressure when the default tank is applied to imports';
+      'Filled in on new cylinders, and on imported cylinders with no start pressure when the default cylinder is applied to imports';
 
   @override
   String tankPresets_defaultStartPressure_range(String max, String min) {
@@ -39211,19 +39508,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tankPresets_new_title => 'New Tank Preset';
+  String get tankPresets_new_title => 'New Cylinder Preset';
 
   @override
-  String get tankPresets_noPresets => 'No tank presets available';
+  String get tankPresets_noPresets => 'No cylinder presets available';
 
   @override
   String get tankPresets_setAsDefault => 'Set as default';
 
   @override
-  String get tankPresets_showInPickers => 'Show in tank pickers';
+  String get tankPresets_showInPickers => 'Show in cylinder pickers';
 
   @override
-  String get tankPresets_title => 'Tank Presets';
+  String get tankPresets_title => 'Cylinder Presets';
 
   @override
   String get tools_gpsLogger_title => 'GPS Logger';
@@ -39256,7 +39553,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_tankPressureAtSurfacing_title =>
-      'Tank pressure at surfacing';
+      'Cylinder pressure at surfacing';
 
   @override
   String get settings_tankPressureAtSurfacing_subtitle =>
@@ -39558,7 +39855,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveField_category_gas => 'Gas';
 
   @override
-  String get diveField_category_tank => 'Tank';
+  String get diveField_category_tank => 'Cylinder';
 
   @override
   String get diveField_category_weight => 'Weight';
@@ -40948,7 +41245,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tools_weight_addGear => 'Add gear';
 
   @override
-  String get tools_weight_addTank => 'Add tank';
+  String get tools_weight_addTank => 'Add cylinder';
 
   @override
   String tools_weight_basedOnDives(int count) {
@@ -41015,7 +41312,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tools_weight_source_userSpec => 'from your gear specs';
 
   @override
-  String get tools_weight_tanks => 'Tanks';
+  String get tools_weight_tanks => 'Cylinders';
 
   @override
   String get tools_weight_useSet => 'Use set';
@@ -41316,7 +41613,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String dive3d_readout_tank(int n) {
-    return 'Tank $n';
+    return 'Cylinder $n';
   }
 
   @override
@@ -42894,11 +43191,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_detail_sacSegmentsNoPressure =>
-      'Only start and end tank pressures were recorded, so gas use can\'t be split into segments. A breakdown needs pressure readings taken during the dive, such as from an air-integrated transmitter. The whole-dive average appears under Cylinders.';
+      'Only start and end cylinder pressures were recorded, so gas use can\'t be split into segments. A breakdown needs pressure readings taken during the dive, such as from an air-integrated transmitter. The whole-dive average appears under Cylinders.';
 
   @override
   String get diveLog_detail_sacSegmentsNoPressure_subtitle =>
-      'No tank pressure recorded during the dive';
+      'No cylinder pressure recorded during the dive';
 
   @override
   String get diveLog_detail_sacSegments_time => 'Time';
@@ -44524,7 +44821,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataQuality_chip_gas => 'Gas';
 
   @override
-  String get dataQuality_chip_tanks => 'Tanks';
+  String get dataQuality_chip_tanks => 'Cylinders';
 
   @override
   String get dataQuality_chip_duplicates => 'Duplicates';
@@ -44716,7 +45013,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String dataQuality_msg_pressureEndpoint(String record, String series) {
-    return 'Tank record says $record but the sensor series shows $series';
+    return 'Cylinder record says $record but the sensor series shows $series';
   }
 
   @override
@@ -44781,7 +45078,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String dataQuality_msg_tankInactive(String drop) {
-    return 'This tank lost $drop while the gas timeline says it was not in use';
+    return 'This cylinder lost $drop while the gas timeline says it was not in use';
   }
 
   @override
@@ -44848,12 +45145,12 @@ class AppLocalizationsEn extends AppLocalizations {
     String role,
     String ocDrop,
   ) {
-    return 'Tank $tankNumber is marked $role from its transmitter\'s name, but it lost $ocDrop after the switch to open circuit and almost none on the loop, so it looks like the bailout. A bailout that was never breathed, or one breathed without a gas switch on the computer, cannot be detected this way.';
+    return 'Cylinder $tankNumber is marked $role from its transmitter\'s name, but it lost $ocDrop after the switch to open circuit and almost none on the loop, so it looks like the bailout. A bailout that was never breathed, or one breathed without a gas switch on the computer, cannot be detected this way.';
   }
 
   @override
   String get dataQuality_msg_twinTanks =>
-      'Two tanks carry a near-identical pressure series';
+      'Two cylinders carry a near-identical pressure series';
 
   @override
   String dataQuality_msg_sourceDepth(String primary, String source) {
@@ -45074,11 +45371,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataQuality_repairLabel_setFromSeries => 'Use sensor values';
 
   @override
-  String get dataQuality_repairLabel_swapSeries => 'Swap tank series';
+  String get dataQuality_repairLabel_swapSeries => 'Swap cylinder series';
 
   @override
   String get dataQuality_repairLabel_reassignSeries =>
-      'Move series to another tank';
+      'Move series to another cylinder';
 
   @override
   String dataQuality_repairLabel_addGasSwitches(int count) {
@@ -45770,7 +46067,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_diveField_diluentGas => 'Diluent Gas';
 
   @override
-  String get enum_diveField_tankCount => 'Tank Count';
+  String get enum_diveField_tankCount => 'Cylinder Count';
 
   @override
   String get enum_diveField_startPressure => 'Start Pressure';
@@ -46224,7 +46521,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_diveField_diluentGas_short => 'Dil';
 
   @override
-  String get enum_diveField_tankCount_short => 'Tanks';
+  String get enum_diveField_tankCount_short => 'Cylinders';
 
   @override
   String get enum_diveField_startPressure_short => 'Start P';
@@ -46386,6 +46683,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_siteField_mooringNumber => 'Mooring Number';
 
   @override
+  String get enum_siteField_address => 'Address';
+
+  @override
+  String get enum_siteField_phone => 'Phone';
+
+  @override
+  String get enum_siteField_email => 'Email';
+
+  @override
+  String get enum_siteField_website => 'Website';
+
+  @override
   String get enum_siteField_hazards => 'Hazards';
 
   @override
@@ -46459,6 +46768,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_siteField_mooringNumber_short => 'Mooring';
+
+  @override
+  String get enum_siteField_address_short => 'Address';
+
+  @override
+  String get enum_siteField_phone_short => 'Phone';
+
+  @override
+  String get enum_siteField_email_short => 'Email';
+
+  @override
+  String get enum_siteField_website_short => 'Web';
 
   @override
   String get enum_siteField_hazards_short => 'Hazards';
@@ -52559,12 +52880,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String diveLog_filterChip_tankConfigCount(Object count) {
-    return '$count tank configurations';
+    return '$count cylinder configurations';
   }
 
   @override
   String diveLog_filterChip_tankExtrasCount(Object count) {
-    return '$count tank extras';
+    return '$count cylinder extras';
   }
 
   @override
@@ -53013,7 +53334,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_decompression_gtrReserve_subtitle =>
-      'Tank pressure the gas time remaining counts down to. The calculated GTR assumes a direct ascent at 10 m/min with no stops.';
+      'Cylinder pressure the gas time remaining counts down to. The calculated GTR assumes a direct ascent at 10 m/min with no stops.';
 
   @override
   String settings_fixDiveTimes_applied(int count, String hours, int hoursAbs) {
@@ -55689,8 +56010,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_species_suggested => 'Suggested';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
+  String media_species_suggestedChipLabel(String name) {
+    return 'Suggested: $name';
   }
 
   @override
@@ -57148,7 +57469,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLab_buoyancy_unavailable =>
-      'Buoyancy needs tanks or an exposure suit on the dive.';
+      'Buoyancy needs cylinders or an exposure suit on the dive.';
 
   @override
   String diveLab_sheet_ascentRate(String unit) {
@@ -58572,11 +58893,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dataQuality_repairLabel_useAsBailout => 'Use as bailout';
 
   @override
-  String get dataQuality_useAsBailout_title => 'Make this tank the bailout?';
+  String get dataQuality_useAsBailout_title =>
+      'Make this cylinder the bailout?';
 
   @override
   String dataQuality_useAsBailout_merge(int tankNumber) {
-    return 'Removes the duplicate Bailout cylinder (switches move to Tank $tankNumber)';
+    return 'Removes the duplicate Bailout cylinder (switches move to Cylinder $tankNumber)';
   }
 
   @override
@@ -59477,15 +59799,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveCenters_rental_applied =>
-      'Weights and tanks copied from your last dive here.';
+      'Weights and cylinders copied from your last dive here.';
 
   @override
   String get diveCenters_rental_applyConfirmTitle =>
-      'Replace weights and tanks?';
+      'Replace weights and cylinders?';
 
   @override
   String get diveCenters_rental_applyConfirmBody =>
-      'This dive already has weights or tanks. Replace them with the ones from your last dive here?';
+      'This dive already has weights or cylinders. Replace them with the ones from your last dive here?';
 
   @override
   String get diveCenters_rental_applyConfirmReplace => 'Replace';
@@ -59506,7 +59828,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get diveCenters_rental_tanksLabel => 'Tanks';
+  String get diveCenters_rental_tanksLabel => 'Cylinders';
 
   @override
   String get diveCenters_rental_verdictWorked => 'Worked';
@@ -59816,7 +60138,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_dives_favorite => 'Favorite';
 
   @override
-  String get query_dives_gasCount => 'Number of tanks';
+  String get query_dives_gasCount => 'Number of cylinders';
 
   @override
   String get query_dives_gear => 'Gear';
@@ -59825,7 +60147,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_dives_hasProfile => 'Has profile';
 
   @override
-  String get query_dives_tankConfig => 'Tank configuration';
+  String get query_dives_tankConfig => 'Cylinder configuration';
 
   @override
   String get query_dives_stages => 'Stage(s)';
@@ -59924,7 +60246,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_dives_tags => 'Tags';
 
   @override
-  String get query_dives_tanks => 'Tanks';
+  String get query_dives_tanks => 'Cylinders';
 
   @override
   String get query_dives_trip => 'Trip';
@@ -60032,7 +60354,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_entity_tags => 'Tags';
 
   @override
-  String get query_entity_tanks => 'Tanks';
+  String get query_entity_tanks => 'Cylinders';
 
   @override
   String get query_entity_trips => 'Trips';
@@ -65334,7 +65656,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get equipment_setEdit_tanks_title => 'Tanks';
+  String get equipment_setEdit_tanks_title => 'Cylinders';
 
   @override
   String get equipment_setEdit_tanks_add => 'Add cylinder configuration';
@@ -65356,7 +65678,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_setEdit_bundle_noGearHint =>
-      'A set with no gear does not appear on a dive as a set, so its weights and tanks have to be removed by hand.';
+      'A set with no gear does not appear on a dive as a set, so its weights and cylinders have to be removed by hand.';
 
   @override
   String equipment_setDetail_fromSet(String setName) {
@@ -65402,7 +65724,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rules_change_weights => 'Weights';
 
   @override
-  String get rules_change_tanks => 'Tanks';
+  String get rules_change_tanks => 'Cylinders';
 
   @override
   String preDive_setChecks_weights(String total, String breakdown) {

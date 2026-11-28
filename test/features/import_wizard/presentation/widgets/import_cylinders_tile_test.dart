@@ -51,7 +51,7 @@ void main() {
     );
     await pumpTile(tester, proposals);
 
-    expect(find.text("2 tanks aren't in your gear"), findsOneWidget);
+    expect(find.text("2 cylinders aren't in your gear"), findsOneWidget);
     await tester.tap(find.text('Review'));
     await tester.pumpAndSettle();
     expect(find.text('Add cylinders to your gear'), findsOneWidget);

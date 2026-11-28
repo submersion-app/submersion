@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Picks saturation (left to right) and brightness (bottom to top) for the
@@ -50,7 +51,7 @@ class _SquarePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
-    final clip = RRect.fromRectAndRadius(rect, const Radius.circular(8));
+    final clip = RRect.fromRectAndRadius(rect, const Radius.circular(Radii.r8));
     canvas.save();
     canvas.clipRRect(clip);
     canvas.drawRect(
@@ -123,11 +124,19 @@ class _HuePainter extends CustomPainter {
       HSVColor.fromAHSV(1, h % 360, 1, 1).toColor(),
   ];
 
+  /// Height of the hue track; its ends are rounded by half of it.
+  static const double _trackHeight = 14;
+
   @override
   void paint(Canvas canvas, Size size) {
-    final track = Rect.fromLTWH(0, size.height / 2 - 7, size.width, 14);
+    final track = Rect.fromLTWH(
+      0,
+      size.height / 2 - _trackHeight / 2,
+      size.width,
+      _trackHeight,
+    );
     canvas.drawRRect(
-      RRect.fromRectAndRadius(track, const Radius.circular(7)),
+      RRect.fromRectAndRadius(track, const Radius.circular(_trackHeight / 2)),
       Paint()..shader = LinearGradient(colors: _spectrum).createShader(track),
     );
     _paintThumb(canvas, Offset(hue / 360 * size.width, size.height / 2));

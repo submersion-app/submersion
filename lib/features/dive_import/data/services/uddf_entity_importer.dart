@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
+import 'package:submersion/core/opening_hours/opening_hours_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_sighting_amount.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
@@ -2131,6 +2132,11 @@ class UddfEntityImporter {
         accessNotes: siteData['accessNotes'] as String?,
         mooringNumber: siteData['mooringNumber'] as String?,
         parkingInfo: siteData['parkingInfo'] as String?,
+        address: siteData['address'] as String?,
+        phone: siteData['phone'] as String?,
+        email: siteData['email'] as String?,
+        website: siteData['website'] as String?,
+        openingHours: decodeOpeningHours(siteData['openingHours'] as String?),
         altitude: siteData['altitude'] as double?,
         // Null for an absent key, so the site keeps its own methods; a
         // decoded list (even an empty one) would replace them (#2054).
@@ -2246,6 +2252,11 @@ class UddfEntityImporter {
         accessNotes: siteData['accessNotes'] as String?,
         mooringNumber: siteData['mooringNumber'] as String?,
         parkingInfo: siteData['parkingInfo'] as String?,
+        address: siteData['address'] as String?,
+        phone: siteData['phone'] as String?,
+        email: siteData['email'] as String?,
+        website: siteData['website'] as String?,
+        openingHours: decodeOpeningHours(siteData['openingHours'] as String?),
         altitude: siteData['altitude'] as double?,
         entryMethods: decodeEntryMethods(siteData['entryMethod'] as String?),
         // A site's typical way out (issue #2201); null means the

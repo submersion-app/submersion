@@ -9,7 +9,7 @@ This guide is for the Suunto app (app.suunto.com). If you use the older Suunto D
 | Comes across | Does not come across |
 |---|---|
 | Dives, including freedives, with their profiles | Heart rate |
-| Gases, tanks, pressures and gas switches | Photos |
+| Gases, cylinders, pressures and gas switches | Photos |
 | Alarms and warnings from your computer | Dive sites: dives carry GPS, and Submersion can match them to sites |
 | Entry and exit GPS, and the underwater route | Gear and certifications |
 | Notes, buddies and dive center from your journal | Dive numbers (Submersion numbers them) |

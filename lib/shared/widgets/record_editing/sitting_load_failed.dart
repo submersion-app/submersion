@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// An open card whose rows could not be read for the sitting (issue #4527):
@@ -14,12 +15,12 @@ class SittingLoadFailed extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(Spacing.s16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(l10n.recordEdit_loadFailed, textAlign: TextAlign.center),
-          const SizedBox(height: 8),
+          const SizedBox(height: Spacing.s8),
           TextButton(onPressed: onRetry, child: Text(l10n.recordEdit_tryAgain)),
         ],
       ),

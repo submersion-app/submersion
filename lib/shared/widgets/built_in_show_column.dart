@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Width of the "Show" column on the Manage pages (issue #401). The header
@@ -40,7 +41,7 @@ class BuiltInShowColumnHeader extends StatelessWidget {
     final theme = Theme.of(context);
     return Padding(
       padding: EdgeInsetsDirectional.fromSTEB(
-        16,
+        Spacing.s16,
         top,
         _tileEndPadding + trailingInset,
         bottom,

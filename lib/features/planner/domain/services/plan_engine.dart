@@ -2357,7 +2357,7 @@ class PlanEngine {
           PlanIssue(
             type: PlanIssueType.gasOut,
             severity: PlanIssueSeverity.critical,
-            message: 'Tank runs out of gas',
+            message: 'Cylinder runs out of gas',
             atRuntime: drawOnset(0),
             tankId: usage.tankId,
             value: remaining,
@@ -2370,7 +2370,7 @@ class PlanEngine {
             type: PlanIssueType.gasReserveViolation,
             severity: PlanIssueSeverity.alert,
             message:
-                'Tank ends below the '
+                'Cylinder ends below the '
                 '${config.reservePressure.toStringAsFixed(0)} bar reserve',
             atRuntime: drawOnset(config.reservePressure),
             tankId: usage.tankId,
@@ -2507,7 +2507,7 @@ class PlanEngine {
         type: PlanIssueType.minGasAscentViolation,
         severity: PlanIssueSeverity.critical,
         message:
-            'Tank leaves the bottom with '
+            'Cylinder leaves the bottom with '
             '${atBottomEnd.toStringAsFixed(0)} bar, under the '
             '${ascentOnly.toStringAsFixed(0)} bar an emergency ascent needs',
         atRuntime: drawOnset(ascentOnly),
@@ -2521,7 +2521,7 @@ class PlanEngine {
         type: PlanIssueType.minGasViolation,
         severity: PlanIssueSeverity.warning,
         message:
-            'Tank leaves the bottom with '
+            'Cylinder leaves the bottom with '
             '${atBottomEnd.toStringAsFixed(0)} bar, under the rock-bottom '
             'minimum of ${minGas.toStringAsFixed(0)} bar: no gas held back '
             'for problem-solving time',

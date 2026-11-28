@@ -20,7 +20,7 @@ void main() {
       );
 
       final icon = find.byIcon(SubmersionIcons.tankPony);
-      final label = find.text('Pony Bottle');
+      final label = find.text('Pony');
       expect(icon, findsOneWidget);
       expect(label, findsOneWidget);
       expect(tester.getTopLeft(icon).dx, lessThan(tester.getTopLeft(label).dx));

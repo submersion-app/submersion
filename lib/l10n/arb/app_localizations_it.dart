@@ -11009,6 +11009,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Pressione iniziale';
 
   @override
+  String get diveLog_tank_managePresets => 'Gestisci preset';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'Preset bombola';
 
   @override
@@ -12043,6 +12046,142 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_detail_section_access => 'Accesso e logistica';
 
   @override
+  String get diveSites_detail_section_contact => 'Contatti';
+
+  @override
+  String get diveSites_detail_section_openingHours => 'Orari';
+
+  @override
+  String get diveSites_contact_mapsFailed => 'Impossibile aprire le mappe';
+
+  @override
+  String get diveSites_contact_linkFailed => 'Impossibile aprire il link';
+
+  @override
+  String get diveSites_contact_directions => 'Indicazioni';
+
+  @override
+  String get diveSites_contact_address => 'Indirizzo';
+
+  @override
+  String get diveSites_contact_phone => 'Telefono';
+
+  @override
+  String get diveSites_contact_email => 'E-mail';
+
+  @override
+  String get diveSites_contact_website => 'Sito web';
+
+  @override
+  String get diveSites_hours_alwaysOpen => 'Aperto 24/7';
+
+  @override
+  String get diveSites_hours_addSchedule => 'Aggiungi orario';
+
+  @override
+  String get diveSites_hours_scheduleName => 'Nome';
+
+  @override
+  String get diveSites_hours_scheduleName_hint => 'Estate';
+
+  @override
+  String get diveSites_hours_seasonal => 'Stagionale';
+
+  @override
+  String get diveSites_hours_seasonFrom => 'Dal';
+
+  @override
+  String get diveSites_hours_seasonTo => 'Al';
+
+  @override
+  String get diveSites_hours_deleteSchedule => 'Elimina orario';
+
+  @override
+  String get diveSites_hours_closed => 'Chiuso';
+
+  @override
+  String get diveSites_hours_open24h => 'Aperto 24 ore';
+
+  @override
+  String get diveSites_hours_kindHours => 'Orari';
+
+  @override
+  String get diveSites_hours_addRange => 'Aggiungi orari';
+
+  @override
+  String get diveSites_hours_removeRange => 'Rimuovi orari';
+
+  @override
+  String get diveSites_hours_copyDay => 'Copia su altri giorni';
+
+  @override
+  String diveSites_hours_copyTitle(String day) {
+    return 'Copia $day su';
+  }
+
+  @override
+  String get diveSites_hours_selectAll => 'Seleziona tutto';
+
+  @override
+  String get diveSites_hours_copy => 'Copia';
+
+  @override
+  String get diveSites_hours_note => 'Nota';
+
+  @override
+  String get diveSites_hours_note_hint =>
+      'Prenota i turni per telefono, chiuso nei festivi';
+
+  @override
+  String get diveSites_hours_invalid =>
+      'Alcuni orari si sovrappongono o chiudono prima di aprire';
+
+  @override
+  String get diveSites_hours_noSchedule => 'Nessun orario settimanale';
+
+  @override
+  String diveSites_hours_openUntil(String time) {
+    return 'Aperto ora, chiude alle $time';
+  }
+
+  @override
+  String get diveSites_hours_openNoClose => 'Aperto ora';
+
+  @override
+  String diveSites_hours_closedOpensAt(String when) {
+    return 'Chiuso, apre $when';
+  }
+
+  @override
+  String diveSites_hours_closedForSeason(String date) {
+    return 'Chiuso per la stagione, apre il $date';
+  }
+
+  @override
+  String get diveSites_hours_closedNow => 'Chiuso';
+
+  @override
+  String diveSites_hours_span(String from, String to) {
+    return 'dal $from al $to';
+  }
+
+  @override
+  String diveSites_hours_namedSeason(String name, String season) {
+    return '$name, $season';
+  }
+
+  @override
+  String diveSites_merge_hoursSchedules(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count orari',
+      one: '$count orario',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_detail_section_altitude => 'Altitudine';
 
   @override
@@ -12159,6 +12298,39 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveSites_edit_access_parkingInfo_hint =>
       'Disponibilità parcheggio, tariffe, consigli';
+
+  @override
+  String get diveSites_edit_contact_address_label => 'Indirizzo';
+
+  @override
+  String get diveSites_edit_contact_address_hint => 'Via, città e CAP';
+
+  @override
+  String get diveSites_edit_contact_phone_label => 'Telefono';
+
+  @override
+  String get diveSites_edit_contact_phone_hint =>
+      'Numero per prenotazioni o del gestore';
+
+  @override
+  String get diveSites_edit_contact_email_label => 'E-mail';
+
+  @override
+  String get diveSites_edit_contact_email_hint => 'name@example.com';
+
+  @override
+  String get diveSites_edit_contact_website_label => 'Sito web';
+
+  @override
+  String get diveSites_edit_contact_website_hint => 'example.com';
+
+  @override
+  String get diveSites_edit_contact_emailInvalid =>
+      'Inserisci un indirizzo e-mail come name@example.com';
+
+  @override
+  String get diveSites_edit_contact_websiteInvalid =>
+      'Inserisci un indirizzo web come example.com';
 
   @override
   String get diveSites_edit_access_parkingInfo_label =>
@@ -14405,6 +14577,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_equipmentType_harness => 'Imbrago';
 
   @override
+  String get equipment_searchWords_cylinder =>
+      'serbatoio, cilindro, stage, pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'cinghia, cam band';
+
+  @override
   String get enum_equipmentType_tankBand => 'Cinghia per bombola';
 
   @override
@@ -14922,7 +15101,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_tankRole_oxygenSupply => 'Riserva O2';
 
   @override
-  String get enum_tankRole_pony => 'Pony bottle';
+  String get enum_tankRole_pony => 'Pony';
 
   @override
   String get enum_tankRole_sidemountLeft => 'Sidemount sinistra';
@@ -17010,6 +17189,54 @@ class AppLocalizationsIt extends AppLocalizations {
       'Un computer subacqueo o un trasmettitore collegato mantiene il suo tipo.';
 
   @override
+  String get equipment_suggest_link =>
+      'Nessun tipo adatto? Suggerisci una categoria';
+
+  @override
+  String get equipment_suggest_title => 'Suggerisci una categoria';
+
+  @override
+  String get equipment_suggest_intro =>
+      'Si apre su GitHub una richiesta di funzionalità precompilata. La controlli e la pubblichi dal tuo browser.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'Cosa suggerisci?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'Nuovo tipo di attrezzatura';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'Nuova variante di un tipo';
+
+  @override
+  String get equipment_suggest_nameLabel => 'Nome';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'Una variante di';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel =>
+      'Tipo esistente più vicino';
+
+  @override
+  String get equipment_suggest_parentNone => 'Nessuno';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'Perché serve?';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'Cosa la distingue dai tipi esistenti?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'Includi questo articolo come esempio ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'Apri in GitHub';
+
+  @override
   String get equipment_edit_useCustomReminders =>
       'Usa promemoria personalizzati';
 
@@ -17421,6 +17648,23 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Comprimi tutto';
 
   @override
+  String get equipment_list_showParts => 'Mostra parti';
+
+  @override
+  String get equipment_list_hideParts => 'Nascondi parti';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count parti',
+      one: '1 parte',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Posizione';
 
   @override
@@ -17437,6 +17681,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'Un\'intestazione per luogo, solo in questa pagina';
+
+  @override
+  String get equipment_arrange_nestParts =>
+      'Mostra le parti sotto il loro assieme';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Raccoglie le parti di ogni assieme sotto di esso';
 
   @override
   String get equipment_locations_title => 'Posizioni';
@@ -18432,6 +18684,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gasCalculators_consumption_diveTime => 'Tempo Immersione';
+
+  @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. Attenzione: supera la capacità della bombola',
+      'other': '',
+    });
+    return 'Consumo di gas: $volume $volumeSymbol, $pressure $pressureSymbol$_temp0';
+  }
 
   @override
   String gasCalculators_consumption_exceedsTank(
@@ -19682,9 +19949,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get marineLife_suggest_couldNotOpen => 'Impossibile aprire il browser';
-
-  @override
-  String get marineLife_suggest_copyLink => 'Copia link';
 
   @override
   String get marineLife_editCard_photos => 'Foto';
@@ -23795,6 +24059,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Entrata e uscita, parcheggio, ormeggio, note di accesso';
 
   @override
+  String get siteDetailSection_contact_description =>
+      'Indirizzo, telefono, e-mail e sito web';
+
+  @override
+  String get siteDetailSection_openingHours_description =>
+      'Giorni e orari di apertura, per stagione';
+
+  @override
   String get siteDetailSection_notes_description => 'Le tue note sul sito';
 
   @override
@@ -27152,6 +27424,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_field_parkingInfo => 'Parcheggio';
 
   @override
+  String get settings_conflict_field_address => 'Indirizzo';
+
+  @override
+  String get settings_conflict_field_openingHours => 'Orari';
+
+  @override
   String get settings_conflict_field_passportId => 'Passaporto della bombola';
 
   @override
@@ -28061,6 +28339,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_volumeL => 'Volume';
+
+  @override
+  String get settings_conflict_field_ratedCapacityCuft => 'Capacità nominale';
 
   @override
   String get settings_conflict_field_volumeLiters => 'Volume';
@@ -29544,7 +29825,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'Meno nomi. Circa $percent% corretti';
+    return 'Meno nomi. Circa $percent% corretti sulle foto';
   }
 
   @override
@@ -29553,12 +29834,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'Più nomi. Circa $percent% corretti';
+    return 'Più nomi. Circa $percent% corretti sulle foto';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'Il maggior numero di nomi. Circa $percent% corretti';
+    return 'Il maggior numero di nomi. Circa $percent% corretti sulle foto';
   }
 
   @override
@@ -39757,6 +40038,19 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_duplicatePreset => 'Duplica';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (copia)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (copia $number)';
+  }
+
+  @override
   String get tankPresets_editPreset => 'Modifica preset';
 
   @override
@@ -47153,6 +47447,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_siteField_mooringNumber => 'Numero ormeggio';
 
   @override
+  String get enum_siteField_address => 'Indirizzo';
+
+  @override
+  String get enum_siteField_phone => 'Telefono';
+
+  @override
+  String get enum_siteField_email => 'E-mail';
+
+  @override
+  String get enum_siteField_website => 'Sito web';
+
+  @override
   String get enum_siteField_hazards => 'Pericoli';
 
   @override
@@ -47226,6 +47532,18 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_siteField_mooringNumber_short => 'Ormeggio';
+
+  @override
+  String get enum_siteField_address_short => 'Indirizzo';
+
+  @override
+  String get enum_siteField_phone_short => 'Tel.';
+
+  @override
+  String get enum_siteField_email_short => 'E-mail';
+
+  @override
+  String get enum_siteField_website_short => 'Sito';
 
   @override
   String get enum_siteField_hazards_short => 'Pericoli';
@@ -56563,8 +56881,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_species_suggested => 'Suggerimenti';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
+  String media_species_suggestedChipLabel(String name) {
+    return 'Suggerimento: $name';
   }
 
   @override

@@ -81,8 +81,9 @@ void main() {
       // Garmin activity file names, staged in a stable order.
       'lib/features/universal_import/data/services/garmin_mtp_stager.dart':
           'a.name.compareTo(b.name)',
-      // Enum names (`EquipmentType.name`, an exposure unit's key).
-      'lib/features/equipment/presentation/providers/equipment_providers.dart':
+      // Enum names (`EquipmentType.name`, an exposure unit's key). The
+      // installed-parts order moved to the part tree (issue #5071).
+      'lib/features/equipment/domain/services/equipment_part_tree.dart':
           'a.type.name.compareTo(b.type.name)',
       'lib/features/equipment/domain/entities/exposure_unit.dart':
           'a.key.name.compareTo(b.key.name)',

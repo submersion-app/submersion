@@ -2699,8 +2699,8 @@ void main() {
 
     test('any other tank is numbered, and so is an unknown one', () {
       const back = DiveTank(id: 'b', gasMix: GasMix(o2: 21));
-      expect(DiveProfileChart.tankDefaultLabel(l10n, back, 1), 'Tank 2');
-      expect(DiveProfileChart.tankDefaultLabel(l10n, null, 0), 'Tank 1');
+      expect(DiveProfileChart.tankDefaultLabel(l10n, back, 1), 'Cylinder 2');
+      expect(DiveProfileChart.tankDefaultLabel(l10n, null, 0), 'Cylinder 1');
     });
   });
 

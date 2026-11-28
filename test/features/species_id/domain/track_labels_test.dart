@@ -79,6 +79,47 @@ void main() {
       );
       expect(kind(second, playing: false), TrackLabelKind.dot);
     });
+
+    test('a dot needs a second in view, not counting a moment out of sight '
+        '(issue #5120)', () {
+      // Seen 500 ms, out of sight 3 s, seen 250 ms: a span of 3.75 s.
+      final joined = track(
+        'a',
+        endMs: 4750,
+        suggestable: false,
+        confident: false,
+      );
+      final gappy = joined.copyWith(
+        path: [
+          for (final s in joined.path)
+            if (s.ms <= 1500 || s.ms >= 4500) s,
+        ],
+      );
+      expect(kind(gappy, playing: false), isNull);
+      // Seen 1 s in two parts 750 ms apart: the live link bridges that.
+      final bridged = joined.copyWith(
+        path: [
+          for (final s in joined.path)
+            if (s.ms <= 1500 || (s.ms >= 2250 && s.ms <= 2500)) s,
+        ],
+      );
+      expect(kind(bridged, playing: false), TrackLabelKind.dot);
+    });
+
+    test('a track with no path samples goes by its span', () {
+      final t = track('a', endMs: 2000, suggestable: false, confident: false);
+      expect(
+        kind(t.copyWith(path: const []), playing: false),
+        TrackLabelKind.dot,
+      );
+      final short = track(
+        'a',
+        endMs: 1750,
+        suggestable: false,
+        confident: false,
+      );
+      expect(kind(short.copyWith(path: const []), playing: false), isNull);
+    });
   });
 
   group('boxAt', () {

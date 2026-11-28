@@ -1,6 +1,6 @@
 # Dive computers
 
-Download your dives straight from a dive computer over Bluetooth or USB. Submersion reads the full profile (depth, temperature, tank pressure, gas mixes, decompression data, and more) and turns each recorded dive into a log entry.
+Download your dives straight from a dive computer over Bluetooth or USB. Submersion reads the full profile (depth, temperature, cylinder pressure, gas mixes, decompression data, and more) and turns each recorded dive into a log entry.
 
 > [!NOTE]
 > **Where to find it:** Tap the **+** button on the **Dives** list and choose **Import from Computer**, or open **Transfer** in the main navigation. Transfer lists your **Known Computers** and offers **Connect New Computer** and, on iOS, **Import from Apple Watch**.
@@ -148,7 +148,7 @@ Many divers wear two computers for redundancy, or switch between a primary and a
 
 **Separate computers, separate records.** Pair as many computers as you like. Each keeps its own dive count, fingerprint, and download history.
 
-**One dive, multiple computers.** When you download the *same* dive from a second computer, choose **Consolidate** at the duplicate review to attach it to the existing dive as an additional data source rather than creating a duplicate. A consolidated dive keeps everything each computer recorded: profiles, tanks and transmitter pressure curves, events, and per-computer statistics.
+**One dive, multiple computers.** When you download the *same* dive from a second computer, choose **Consolidate** at the duplicate review to attach it to the existing dive as an additional data source rather than creating a duplicate. A consolidated dive keeps everything each computer recorded: profiles, cylinders and transmitter pressure curves, events, and per-computer statistics.
 
 - The **dive profile** chart can overlay each computer's depth (and ceiling, temperature, and other traces) with per-computer toggles in its **SOURCES** bar. The primary computer draws as a solid line; others as dashed lines.
 - The dive's **Data Sources** section compares the computers side by side.

@@ -121,7 +121,7 @@ confirmation reverses the whole merge.
 
 ## What Syncs Between Devices
 
-Your whole dive log syncs: divers and their settings, dives (with tanks, weights,
+Your whole dive log syncs: divers and their settings, dives (with cylinders, weights,
 gear, buddies, tags, profiles and safety reviews), sites, trips, dive centers,
 equipment and its service history, certifications and courses, dive plans,
 species and sightings, presets, dive computers and the ways each one has been

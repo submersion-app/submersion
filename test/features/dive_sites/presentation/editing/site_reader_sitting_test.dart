@@ -20,6 +20,10 @@ void main() {
       'rating': SiteReaderCard.private,
       'hazards': SiteReaderCard.suggested,
       'access': SiteReaderCard.suggested,
+      // Contact details and hours are the library's, so a reader suggests
+      // them (issue #5073).
+      'contact': SiteReaderCard.suggested,
+      'openingHours': SiteReaderCard.suggested,
       'features': SiteReaderCard.library,
       'marineLife': SiteReaderCard.library,
       'media': SiteReaderCard.private,
