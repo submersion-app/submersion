@@ -19,21 +19,25 @@ Every beta is served the same way at <https://beta.web.submersion.app>
   `GOOGLE_WEB_CLIENT_ID` to `scripts/web/build_web.sh`, with
   `GOOGLE_WEB_CLIENT_ORIGINS=https://web.submersion.app,https://beta.web.submersion.app`.
   The app uses the client only at those addresses, so one
-  `Submersion-<tag>-Web.zip` serves both sites and self-hosters. The client goes in when the beta is
-  built: promotion copies the beta's files and builds nothing.
+  `Submersion-<tag>-Web.zip` serves both sites and self-hosters. The
+  client goes in when the beta is built: promotion copies the beta's files
+  and builds nothing.
 - **The host.** GitHub Pages, from the `main` branch root of
   [submersion-app/web](https://github.com/submersion-app/web), with the
   custom domain `web.submersion.app`. Pages sends no custom headers, so
   Chrome runs the slower IndexedDB storage (see `web_hosting/HOSTING.md`);
   it also sends no opener policy, so Google's sign-in popup works.
-- **The deploy.** `.github/workflows/deploy-web.yml` takes a stable tag,
-  downloads that release's `Web.zip`, stages it with
+- **The deploy.** `.github/workflows/deploy-web.yml` takes a site and a
+  tag, downloads that release's `Web.zip`, stages it with
   `scripts/web/stage_hosted_site.py` (the bundle check, `CNAME`,
-  `.nojekyll`), and force-pushes it to `submersion-app/web` as a single
-  commit, authenticated by a fine-grained token for the two Pages
+  `.nojekyll`), and force-pushes it to the site's Pages repository as a
+  single commit, authenticated by a fine-grained token for the two Pages
   repositories alone, `submersion-app/web` and `submersion-app/web-beta`
-  (the organization turns deploy keys off). `promote.yml` calls it after
-  every promotion, and `release.yml` for a stable tag pushed by hand.
+  (the organization turns deploy keys off). For the stable site
+  (`submersion-app/web`), `promote.yml` calls it after every promotion,
+  and `release.yml` for a stable tag pushed by hand; `beta.yml` calls it
+  for the beta site after every published beta
+  ([The beta site](#the-beta-site)).
 
 ## One-time setup
 

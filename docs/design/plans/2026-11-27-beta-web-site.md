@@ -108,13 +108,13 @@ Strings, grouped after `settings_updates_joinBetaSubtitle` in every ARB:
 - Modify: `.github/workflows/deploy-web.yml`
 - Modify: `.github/workflows/beta.yml` (new `deploy-web` job; `alert.needs`)
 - Modify: `.github/workflows/build-all.yml:843` (`GOOGLE_WEB_CLIENT_ORIGINS`)
-- Test: `scripts/beta_failure_alert_test.py` (existing; checks `alert.needs` lists every job)
+- Test: `scripts/bots/beta_failure_alert_test.py` (existing; checks `alert.needs` lists every job)
 
 - [ ] **Step 1:** `deploy-web.yml`: add input `site` (type `choice` with `stable`, `beta` on dispatch; `string` default `stable` on call). Replace the `SITE_DOMAIN`/`PAGES_REMOTE` env with a first step in `deploy` that maps `site` to `RELEASE_REPO`, `PAGES_REMOTE` and `SITE_DOMAIN` (written to `$GITHUB_ENV`), failing on any other value; the `configured` job's notice names the site. Use `RELEASE_REPO` in "Refuse an unknown tag" (its error names that repository) and "Download". Concurrency group `deploy-web-${{ inputs.site || 'stable' }}`. Update the header comment and the dispatch descriptions ("Release tag", no longer "Stable").
 - [ ] **Step 2:** "Read the release's sqlite3.wasm lock": for `stable` keep the tag fetch; for `beta`, `gh release download "$TAG" --repo "$RELEASE_REPO" --pattern metadata.json`, read `.sourceSha` with `python3 -c`, refuse an empty value, `git fetch -q --depth 1 origin "$SHA"` and `git show "$SHA:scripts/web/sqlite3_wasm.lock"`.
 - [ ] **Step 3:** `beta.yml`: job `deploy-web` named "Deploy the beta web app", `needs: [precheck, publish-beta]`, `if: needs.publish-beta.result == 'success'`, `uses: ./.github/workflows/deploy-web.yml` with `tag: ${{ needs.precheck.outputs.tag }}`, `site: beta`, secret `WEB_DEPLOY_TOKEN`, `permissions: contents: read`. Add `deploy-web` to `alert.needs`.
 - [ ] **Step 4:** `build-all.yml`: origins value per Global Constraints; the comment above it names both sites.
-- [ ] **Step 5:** `python3.14 -m pytest scripts/beta_failure_alert_test.py -q`; expect pass. Run `actionlint` on the three workflows if installed, else `python3.14 -c "import yaml,sys; [yaml.safe_load(open(f)) for f in sys.argv[1:]]"` on them.
+- [ ] **Step 5:** `python3.14 -m pytest scripts/bots/beta_failure_alert_test.py -q`; expect pass. Run `actionlint` on the three workflows if installed, else `python3.14 -c "import yaml,sys; [yaml.safe_load(open(f)) for f in sys.argv[1:]]"` on them.
 - [ ] **Step 6:** Commit `feat(web): deploy every beta to beta.web.submersion.app`.
 
 ### Task 4: Docs
@@ -127,11 +127,11 @@ Strings, grouped after `settings_updates_joinBetaSubtitle` in every ARB:
 - Modify: `docs/design/specs/2026-11-03-hosted-web-app-design.md` (the non-goal "A beta or preview site" gains "(since added: `2026-11-27-beta-web-site-design.md`, #4481)")
 
 - [ ] **Step 1:** Write the sections. The user doc says: the address; it updates with every beta; its library is separate and fills through sync; a stable device holds beta peers (#2619) so a beta tester syncs the beta site with beta apps.
-- [ ] **Step 2:** `python3.14 scripts/check_docs_links.py`; expect OK.
+- [ ] **Step 2:** `python3.14 scripts/checks/check_docs_links.py`; expect OK.
 - [ ] **Step 3:** Commit `docs(web): document the beta web site`.
 
 ### Task 5: Verify and hand off to the PR
 
 - [ ] **Step 1:** `dart format --set-exit-if-changed .` and `flutter analyze`; both clean.
-- [ ] **Step 2:** `scripts/build_web.sh` with `GOOGLE_WEB_CLIENT_ID=test.apps.googleusercontent.com` and the two origins; then `python3.14 scripts/web/stage_hosted_site.py stage` on a zip of `build/web` with `--domain beta.web.submersion.app --client-id test.apps.googleusercontent.com`: expect no origin warning. Rebuild with only the stable origin and stage for the beta domain: expect the origin warning (decision 11 proved on a real bundle).
+- [ ] **Step 2:** `scripts/web/build_web.sh` with `GOOGLE_WEB_CLIENT_ID=test.apps.googleusercontent.com` and the two origins; then `python3.14 scripts/web/stage_hosted_site.py stage` on a zip of `build/web` with `--domain beta.web.submersion.app --client-id test.apps.googleusercontent.com`: expect no origin warning. Rebuild with only the stable origin and stage for the beta domain: expect the origin warning (decision 11 proved on a real bundle).
 - [ ] **Step 3:** Continue with the build-feature skill's step 5 (PR). The PR body lists the owner's four setup steps as a pre-merge checklist (decision 10).

@@ -7,8 +7,9 @@ folder to any web host that serves files, open its address, and connect the
 store you already sync with.
 
 You do not need to host it to use it: Submersion serves its own copy at
-<https://web.submersion.app>, the one site that can open the Google Drive
-library the installed apps sync to. Host your own when you want the app at
+<https://web.submersion.app>, and every beta at
+<https://beta.web.submersion.app>, the two sites that can open the Google
+Drive library the installed apps sync to. Host your own when you want the app at
 an address you control.
 
 The user guide for the web app, with the connection steps for each store,

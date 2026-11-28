@@ -1,4 +1,5 @@
 import 'package:submersion/core/platform/host_platform.dart';
+import 'package:submersion/core/utils/web_origin.dart';
 
 /// Which of Submersion's own web sites this page is (issue #4481).
 ///
@@ -22,13 +23,10 @@ const kBetaWebSiteHost = 'beta.web.submersion.app';
 ///
 /// Read from the address because nothing fixed at build time can tell the
 /// sites apart: promotion re-hosts the beta's files on the stable site
-/// unchanged. Case and trailing slashes are ignored, as the Google client
-/// check (`GoogleDriveClientConfig.builtInWebClientIdFor`) ignores them.
+/// unchanged. Compared in [normalizeWebOrigin]'s form, the one the Google
+/// client check (`GoogleDriveClientConfig.builtInWebClientIdFor`) uses.
 HostedWebSite hostedWebSiteFor(String pageOrigin) {
-  var origin = pageOrigin.trim().toLowerCase();
-  while (origin.endsWith('/')) {
-    origin = origin.substring(0, origin.length - 1);
-  }
+  final origin = normalizeWebOrigin(pageOrigin);
   for (final site in const [HostedWebSite.stable, HostedWebSite.beta]) {
     if (origin == site.uri.toString()) return site;
   }

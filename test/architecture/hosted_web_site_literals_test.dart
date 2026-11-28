@@ -25,6 +25,13 @@ const _hostSpellings = [
   'web.submersion.app',
 ];
 
+/// A host constant interpolated into a string (`$k...`, `${k...`) or joined
+/// with `+` on either side, in lowercased code.
+final _hostConstantInString = RegExp(
+  r'(\$\{?|\+\s*)k(?:stable|beta)websitehost\b'
+  r'|\bk(?:stable|beta)websitehost\s*\+',
+);
+
 /// The 1-based line numbers of [text] that spell, or build at compile time,
 /// either site's address.
 ///
@@ -62,6 +69,12 @@ List<int> addressLines(String text, {bool dart = true}) {
     final statement = code.substring(at, end < 0 ? code.length : end);
     if (_hostSpellings.any(statement.contains)) lines.add(masked.lineOf(at));
   }
+  // The app only ever hands the host constants to `Uri(host: ...)`, so any
+  // interpolation or concatenation of one is building a string with it,
+  // whatever holds the scheme.
+  for (final match in _hostConstantInString.allMatches(code)) {
+    lines.add(masked.lineOf(match.start));
+  }
   return lines.toList()..sort();
 }
 
@@ -92,6 +105,22 @@ void main() {
       addressLines("final u =\n    'https://' +\n    kStableWebSiteHost;"),
       [2],
     );
+    // A scheme held in a constant of its own folds in just the same, with
+    // no https:// beside the host.
+    expect(
+      addressLines(
+        "const _https = 'https://';\n"
+        r"final u = '$_https$kBetaWebSiteHost';",
+      ),
+      [2],
+    );
+    expect(
+      addressLines(
+        "const _https = 'https://';\nconst u = _https +\n    kStableWebSiteHost;",
+      ),
+      [2],
+    );
+    expect(addressLines(r"final s = '${kStableWebSiteHost}x';"), [1]);
     // A comment never reaches the compiled app.
     expect(
       addressLines(

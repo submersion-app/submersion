@@ -19,7 +19,7 @@ client id until the next release.
 
 `check-newer` compares the staged bundle's `version.json` with the one the
 site serves and refuses an older bundle unless `--force` (spec decision 8):
-every visitor's library lives in their browser on the one origin, already
+every visitor's library lives in their browser on the site's origin, already
 moved to the newer schema, and an older release cannot open it. A deployed
 version that cannot be read (an empty Pages repository, the first deploy)
 lets the deploy go ahead.

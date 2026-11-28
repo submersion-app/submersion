@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/services/cloud_storage/google_drive/google_web_client_id_store.dart';
+import 'package:submersion/core/utils/web_origin.dart';
 
 /// OAuth client configuration for Google Drive sync.
 ///
@@ -127,16 +128,8 @@ class GoogleDriveClientConfig {
     required String pageOrigin,
   }) {
     if (id.isEmpty) return null;
-    String normalized(String origin) {
-      var trimmed = origin.trim().toLowerCase();
-      while (trimmed.endsWith('/')) {
-        trimmed = trimmed.substring(0, trimmed.length - 1);
-      }
-      return trimmed;
-    }
-
-    final page = normalized(pageOrigin);
-    final authorised = origins.split(',').map(normalized);
+    final page = normalizeWebOrigin(pageOrigin);
+    final authorised = origins.split(',').map(normalizeWebOrigin);
     return authorised.any((o) => o.isNotEmpty && o == page) ? id : null;
   }
 
