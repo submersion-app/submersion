@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/editing/photo_viewer_unlink.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/widgets/media_info_panel.dart';
 import 'package:submersion/features/media/presentation/widgets/media_species_chips_row.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
+import 'package:submersion/features/media/presentation/widgets/mini_dive_profile_overlay.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
@@ -176,6 +179,56 @@ void main() {
     expect(chips().onSuggestionTap, isNull);
   });
 
+  testWidgets('holding and undoing keep the pager, not rebuild it', (
+    tester,
+  ) async {
+    await open(tester);
+    await tapUnlock(tester);
+    final pager = tester.state(find.byType(PhotoViewGallery));
+
+    await holdUnlink(tester);
+    expect(tester.state(find.byType(PhotoViewGallery)), same(pager));
+
+    await tester.tap(find.byKey(const ValueKey('viewer_unlink_undo')));
+    await settleViewer(tester);
+    expect(tester.state(find.byType(PhotoViewGallery)), same(pager));
+  });
+
+  testWidgets('on a phone the strip clears the mini profile', (tester) async {
+    // Placed two minutes into its dive, so the mini profile shows.
+    await tester.runAsync(
+      () => db.customStatement(
+        'INSERT INTO media_enrichment '
+        '(id, media_id, dive_id, elapsed_seconds, depth_meters, created_at) '
+        'VALUES (?, ?, ?, ?, ?, ?)',
+        ['e2', 'p2', 'd1', 120, 20.0, 0],
+      ),
+    );
+    await pumpViewer(
+      tester,
+      unlinkScope: ViewerUnlinkScope.dive,
+      size: const Size(430, 900),
+      overrides: [
+        mediaDeletionCoordinatorProvider.overrideWithValue(coordinator),
+      ],
+    );
+    await tapUnlock(tester);
+    await tester.tap(find.byKey(const ValueKey('viewer_overflow')));
+    await settleViewer(tester);
+    await tester.tap(find.byKey(const ValueKey('viewer_menu_unlink')));
+    await settleViewer(tester);
+    await tester.tap(find.byKey(const ValueKey('viewer_unlink_confirm')));
+    await settleViewer(tester);
+
+    final chart = tester.getRect(find.byType(MiniDiveProfileOverlay));
+    final held = tester.getRect(strip());
+    expect(
+      held.bottom,
+      lessThanOrEqualTo(chart.top),
+      reason: 'strip $held over chart $chart',
+    );
+  });
+
   testWidgets('Undo drops the hold', (tester) async {
     await open(tester);
     await tapUnlock(tester);
@@ -313,6 +366,42 @@ void main() {
       await settleViewer(tester, rounds: 6);
 
       expect(find.text(l10n.media_viewer_photoGoneWhileEditing), findsNothing);
+    });
+
+    testWidgets('the next video gets a page of its own, not the last one\'s', (
+      tester,
+    ) async {
+      await tester.runAsync(() async {
+        for (final id in ['v1', 'v2']) {
+          await insertTestMedia(
+            id: id,
+            fileType: 'video',
+            takenAt: DateTime(2024, 1, 10, 9, 3),
+          );
+        }
+      });
+      await open(
+        tester,
+        ids: ['v1', 'v2'],
+        initial: 'v1',
+        scope: ViewerUnlinkScope.library,
+      );
+      // The video page on screen, and which item it was built for.
+      Element page() => tester.element(
+        find
+            .byWidgetPredicate((w) => w.runtimeType.toString() == '_VideoItem')
+            .first,
+      );
+      final before = page();
+      expect(((before.widget as dynamic).item as MediaItem).id, 'v1');
+      await tapUnlock(tester);
+      await holdUnlink(tester);
+
+      await save(tester);
+
+      final after = page();
+      expect(((after.widget as dynamic).item as MediaItem).id, 'v2');
+      expect(after, isNot(same(before)), reason: "v1's player must not carry");
     });
 
     testWidgets('a video unlinks too', (tester) async {

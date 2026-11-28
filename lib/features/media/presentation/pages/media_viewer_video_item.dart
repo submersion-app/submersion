@@ -58,6 +58,7 @@ class _VideoItem extends ConsumerStatefulWidget {
   final String? focusSpeciesId;
 
   const _VideoItem({
+    super.key,
     required this.item,
     required this.isCurrent,
     required this.showOverlay,

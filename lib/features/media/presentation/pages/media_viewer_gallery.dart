@@ -150,6 +150,8 @@ class _PhotoGalleryState extends ConsumerState<_PhotoGallery> {
               minScale: PhotoViewComputedScale.contained,
               maxScale: PhotoViewComputedScale.contained,
               child: _ConnectorVideoItem(
+                // A page that comes to show another video starts afresh.
+                key: ValueKey(item.id),
                 item: item,
                 sitting: people.sitting,
                 fullscreen: widget.fullscreen,
@@ -162,6 +164,10 @@ class _PhotoGalleryState extends ConsumerState<_PhotoGallery> {
             minScale: PhotoViewComputedScale.contained,
             maxScale: PhotoViewComputedScale.contained, // No zoom for videos
             child: _VideoItem(
+              // Pages are built by index: when the list shifts under one (a
+              // saved Unlink, a delete elsewhere), the video now there gets a
+              // player of its own rather than the last one's (issue #5126).
+              key: ValueKey(item.id),
               item: item,
               isCurrent: index == widget.currentIndex,
               showOverlay: widget.showOverlay,
@@ -207,7 +213,9 @@ class _PhotoGalleryState extends ConsumerState<_PhotoGallery> {
       loadingBuilder: (context, event) =>
           const Center(child: CircularProgressIndicator(color: Colors.white54)),
     );
-    return widget.dimmed ? Opacity(opacity: 0.45, child: gallery) : gallery;
+    // Always wrapped, so dimming never changes the tree above the pager and
+    // costs it its pages; at full opacity it paints straight through.
+    return Opacity(opacity: widget.dimmed ? 0.45 : 1, child: gallery);
   }
 }
 
@@ -391,6 +399,7 @@ class _ConnectorVideoItem extends ConsumerWidget {
   final EditSession<PhotoRecord>? sitting;
 
   const _ConnectorVideoItem({
+    super.key,
     required this.item,
     this.sitting,
     this.fullscreen = false,
