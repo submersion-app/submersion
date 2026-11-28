@@ -83,6 +83,7 @@ void main() {
     List<List<MediaItem>>? libraryPages,
     List<MediaItem> library = const [],
     List<MediaItem> linked = const [],
+    Object? diveIdsError,
     Future<void> Function()? act,
   }) async {
     tester.view.physicalSize = const Size(600, 1200);
@@ -93,7 +94,9 @@ void main() {
       await mediaTestApp(
         overrides: [
           validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
-          equipmentDiveIdsProvider('e1').overrideWith((ref) async => diveIds),
+          equipmentDiveIdsProvider('e1').overrideWith(
+            (ref) async => diveIdsError == null ? diveIds : throw diveIdsError,
+          ),
           mediaGearRepositoryProvider.overrideWithValue(
             divePhotos ??
                 _DivePhotos({
@@ -179,6 +182,43 @@ void main() {
       find.byKey(const ValueKey('gear_photo_link_tile_x')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a failed read of the item\'s dives falls back to All photos', (
+    tester,
+  ) async {
+    await open(
+      tester,
+      diveIdsError: StateError('database closed'),
+      library: [testMediaItem(id: 'x')],
+    );
+    final segments = tester.widget<SegmentedButton<bool>>(
+      find.byType(SegmentedButton<bool>),
+    );
+    expect(segments.selected, {true});
+    expect(
+      find.byKey(const ValueKey('gear_photo_link_tile_x')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('photos on no dive are grouped by day', (tester) async {
+    await open(
+      tester,
+      diveIds: const [],
+      library: [
+        testMediaItem(id: 'x', takenAt: DateTime.utc(2026, 4, 9, 12)),
+        testMediaItem(id: 'y', takenAt: DateTime.utc(2026, 3, 3, 12)),
+      ],
+    );
+    final headers = find.byWidgetPredicate(
+      (w) =>
+          w.key is ValueKey<String> &&
+          (w.key! as ValueKey<String>).value.startsWith(
+            'gear_photo_link_group_',
+          ),
+    );
+    expect(headers, findsNWidgets(2));
   });
 
   testWidgets('unchecking a linked photo removes it', (tester) async {

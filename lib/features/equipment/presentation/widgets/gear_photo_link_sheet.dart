@@ -189,8 +189,10 @@ class _GearPhotoLinkSheetState extends ConsumerState<GearPhotoLinkSheet> {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final diveIds = ref.watch(equipmentDiveIdsProvider(widget.item.id));
-    if (_allPhotos == null && diveIds.hasValue) {
-      _diveIds = diveIds.value!;
+    // A failed read of the item's dives falls back to All photos, so the
+    // diver can still link from the Library.
+    if (_allPhotos == null && (diveIds.hasValue || diveIds.hasError)) {
+      _diveIds = diveIds.value ?? const [];
       _allPhotos = _diveIds.isEmpty;
       if (_allPhotos!) _dives.done = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -252,11 +254,13 @@ class _GearPhotoLinkSheetState extends ConsumerState<GearPhotoLinkSheet> {
                   context,
                   [
                     for (final e in paged.entries)
-                      (
-                        key: e.item.diveId ?? '',
-                        title: _groupTitle(context, e),
-                        item: e.item,
-                      ),
+                      if (_groupTitle(context, e) case final title)
+                        (
+                          // A photo on no dive groups by its day.
+                          key: e.item.diveId ?? 'day $title',
+                          title: title,
+                          item: e.item,
+                        ),
                   ],
                   loading: !paged.done && !paged.failed,
                   failed: paged.failed,
