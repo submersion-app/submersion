@@ -7445,15 +7445,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _seriesGetsLeadIn,
   );
 
-  /// Build the gas time remaining line.
-  ///
-  /// Null samples are where the computer (or the calculation) blanked the
-  /// value, so the line breaks there instead of dropping to zero. No surface
-  /// lead-in: GTR is blank on the surface by definition.
-  /// [metric]'s per-sample curve, read once per profile: the decimation cache is
-  /// keyed by the curve's identity and kept until the profile or viewport
-  /// changes, so a fresh list on every rebuild would never hit it and would
-  /// pile up in it.
+  /// [metric]'s per-sample curve, read once per profile: the decimation
+  /// cache is keyed by the curve's identity and kept until the profile or
+  /// viewport changes, so a fresh list on every rebuild would never hit it
+  /// and would pile up in it.
   List<double?> _sampleCurveOf(ProfileRightAxisMetric metric) {
     if (!identical(_sampleCurvesProfile, widget.profile)) {
       _sampleCurves.clear();
@@ -7497,6 +7492,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
   }
 
+  /// Build the gas time remaining line.
+  ///
+  /// Null samples are where the computer (or the calculation) blanked the
+  /// value, so the line breaks there instead of dropping to zero. No surface
+  /// lead-in: GTR is blank on the surface by definition.
   LineChartBarData _buildGtrLine(MetricBand band) => buildGtrLine(
     _metricColor(ProfileMetric.gtr),
     band,
