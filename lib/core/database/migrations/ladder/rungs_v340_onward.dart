@@ -356,5 +356,11 @@ extension RungsFromV340 on AppDatabase {
     // no backfill; re-asserted in beforeOpen. The floor does not move.
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
+
+    // v388 (issue #800): tank_presets.rated_capacity_cuft, the rated capacity
+    // a copy of a built-in preset keeps. Nullable, no backfill, re-asserted
+    // in beforeOpen; the floor does not move.
+    if (from < 388) await _assertTankPresetRatedCapacityColumn();
+    if (from < 388) await reportProgress();
   }
 }

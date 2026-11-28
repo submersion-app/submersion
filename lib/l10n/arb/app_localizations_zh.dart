@@ -26415,6 +26415,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_volumeL => '容积';
 
   @override
+  String get settings_conflict_field_ratedCapacityCuft => '额定容量';
+
+  @override
   String get settings_conflict_field_volumeLiters => '容积';
 
   @override

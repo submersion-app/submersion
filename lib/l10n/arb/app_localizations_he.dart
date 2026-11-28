@@ -27350,6 +27350,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_volumeL => 'נפח';
 
   @override
+  String get settings_conflict_field_ratedCapacityCuft => 'קיבולת נקובה';
+
+  @override
   String get settings_conflict_field_volumeLiters => 'נפח';
 
   @override

@@ -8238,6 +8238,7 @@
   "settings_conflict_field_visibilityScaleModerateM": "رؤية متوسطة بدءًا من",
   "settings_conflict_field_volume": "الحجم",
   "settings_conflict_field_volumeL": "الحجم",
+  "settings_conflict_field_ratedCapacityCuft": "السعة الاسمية",
   "settings_conflict_field_volumeLiters": "الحجم",
   "settings_conflict_field_volumeUnit": "وحدة الحجم",
   "settings_conflict_field_walkSpeedMps": "سرعة المشي",

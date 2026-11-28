@@ -8238,6 +8238,7 @@
   "settings_conflict_field_visibilityScaleModerateM": "Visibilidade moderada a partir de",
   "settings_conflict_field_volume": "Volume",
   "settings_conflict_field_volumeL": "Volume",
+  "settings_conflict_field_ratedCapacityCuft": "Capacidade nominal",
   "settings_conflict_field_volumeLiters": "Volume",
   "settings_conflict_field_volumeUnit": "Unidade de volume",
   "settings_conflict_field_walkSpeedMps": "Velocidade de caminhada",

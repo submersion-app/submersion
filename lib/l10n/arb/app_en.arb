@@ -16729,6 +16729,10 @@
   "settings_conflict_field_visibilityScaleModerateM": "Moderate visibility from",
   "settings_conflict_field_volume": "Volume",
   "settings_conflict_field_volumeL": "Volume",
+  "settings_conflict_field_ratedCapacityCuft": "Rated capacity",
+  "@settings_conflict_field_ratedCapacityCuft": {
+    "description": "Conflict dialog label for a custom cylinder preset's rated capacity, the manufacturer's figure a copy of a built-in preset keeps (issue #800)."
+  },
   "settings_conflict_field_volumeLiters": "Volume",
   "settings_conflict_field_volumeUnit": "Volume unit",
   "settings_conflict_field_walkSpeedMps": "Walking speed",

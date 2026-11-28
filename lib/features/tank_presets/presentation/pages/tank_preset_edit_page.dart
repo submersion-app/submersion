@@ -502,6 +502,10 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
         ? (volumeDisplay * 28.3168) / workingPressureBar
         : volumeDisplay;
 
+    // A manufacturer's rating belongs to one volume at one pressure: it
+    // holds while neither changes and goes when either does (issue #800).
+    final sameCylinder = !volumeChanged && !pressureChanged;
+
     // A stored preset is always updated, never created again: with no
     // start draft to compare with, every field counts as changed.
     if (stored != null) {
@@ -519,6 +523,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
           workingPressureBar: workingPressureBar,
           material: materialChanged ? material : stored.material,
           description: descriptionChanged ? description : stored.description,
+          clearRatedCapacityCuft: !sameCylinder,
           updatedAt: DateTime.now(),
         ),
       );
@@ -538,6 +543,7 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage>
         workingPressureBar: workingPressureBar,
         material: _material,
         description: description,
+        ratedCapacityCuft: sameCylinder ? kept?.ratedCapacityCuft : null,
       ),
     );
   }

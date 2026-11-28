@@ -494,6 +494,8 @@ void main() {
       expect(saved.displayName, 'AL80 bailout');
       expect(saved.volumeLiters, 11.1);
       expect(saved.workingPressureBar, 206.843);
+      // Same cylinder, so its rating still holds (#800).
+      expect(saved.ratedCapacityCuft, 77.4);
     });
 
     testWidgets('changing the pressure in cuft stores it and the volume the '
@@ -510,6 +512,8 @@ void main() {
       const bar = 3442 / 14.5038;
       expect(saved.workingPressureBar, closeTo(bar, 0.01));
       expect(saved.volumeLiters, closeTo(77.4 * 28.3168 / bar, 0.01));
+      // A new pressure is a different cylinder: the rating no longer holds.
+      expect(saved.ratedCapacityCuft, isNull);
     });
 
     testWidgets('changing the pressure in litres keeps the stored volume', (
@@ -634,6 +638,23 @@ void main() {
       final created = repo.created.single;
       expect(created.workingPressureBar, al80.workingPressureBar);
       expect(created.volumeLiters, al80.volumeLiters);
+      // The copy still reads the built-in's rated 77.4 cuft (#800).
+      expect(created.ratedCapacityCuft, al80.ratedCapacityCuft);
+      expect(created.volumeCuft, 77.4);
+    });
+
+    testWidgets('a duplicate given a new pressure drops the built-in rating '
+        '(#800)', (tester) async {
+      final al80 = TankPresetEntity.fromBuiltIn(TankPresets.byName('al80')!);
+      await pumpEditor(tester, duplicateFromId: 'al80', repoPreset: al80);
+      await tester.enterText(
+        find.widgetWithText(TextFormField, '3000'),
+        '3442',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(saveAction());
+      await tester.pumpAndSettle();
+      expect(repo.created.single.ratedCapacityCuft, isNull);
     });
 
     testWidgets('a duplicate takes the built-in description in the app '

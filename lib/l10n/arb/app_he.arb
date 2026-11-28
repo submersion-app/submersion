@@ -8242,6 +8242,7 @@
   "settings_conflict_field_visibilityScaleModerateM": "ראות בינונית החל מ",
   "settings_conflict_field_volume": "נפח",
   "settings_conflict_field_volumeL": "נפח",
+  "settings_conflict_field_ratedCapacityCuft": "קיבולת נקובה",
   "settings_conflict_field_volumeLiters": "נפח",
   "settings_conflict_field_volumeUnit": "יחידת נפח",
   "settings_conflict_field_walkSpeedMps": "מהירות הליכה",

@@ -28370,6 +28370,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_volumeL => 'الحجم';
 
   @override
+  String get settings_conflict_field_ratedCapacityCuft => 'السعة الاسمية';
+
+  @override
   String get settings_conflict_field_volumeLiters => 'الحجم';
 
   @override

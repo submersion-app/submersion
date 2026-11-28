@@ -481,6 +481,11 @@ final Map<String, ConflictField> siteTripFields = {
     (l) => l.settings_conflict_field_volumeLiters,
     FieldKind.volume,
   ),
+  // A custom cylinder preset's rated capacity (issue #800).
+  'ratedCapacityCuft': ConflictField(
+    (l) => l.settings_conflict_field_ratedCapacityCuft,
+    FieldKind.ratedCapacityCuft,
+  ),
   'website': ConflictField(
     (l) => DiveCenterField.website.localizedDisplayName(l),
     FieldKind.shortText,

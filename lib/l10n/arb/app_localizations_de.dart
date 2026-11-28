@@ -28000,6 +28000,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_volumeL => 'Volumen';
 
   @override
+  String get settings_conflict_field_ratedCapacityCuft => 'Nennkapazität';
+
+  @override
   String get settings_conflict_field_volumeLiters => 'Volumen';
 
   @override

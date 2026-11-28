@@ -27905,6 +27905,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_volumeL => 'Térfogat';
 
   @override
+  String get settings_conflict_field_ratedCapacityCuft => 'Névleges kapacitás';
+
+  @override
   String get settings_conflict_field_volumeLiters => 'Térfogat';
 
   @override

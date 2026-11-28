@@ -763,6 +763,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'diver_id': 'Owner of preset',
     'material': 'aluminum, steel, carbonFiber',
     'name': 'Internal name/identifier',
+    'rated_capacity_cuft': 'Manufacturer\'s rated capacity in cubic feet, kept by a copy of a built-in preset',
     'volume_liters': 'Water volume in liters',
     'working_pressure_bar': 'Rated working pressure',
   },

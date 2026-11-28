@@ -8280,6 +8280,7 @@
   "settings_conflict_field_visibilityScaleModerateM": "透明度「普通」の基準",
   "settings_conflict_field_volume": "容量",
   "settings_conflict_field_volumeL": "容量",
+  "settings_conflict_field_ratedCapacityCuft": "定格容量",
   "settings_conflict_field_volumeLiters": "容量",
   "settings_conflict_field_volumeUnit": "容量の単位",
   "settings_conflict_field_walkSpeedMps": "歩く速さ",

@@ -44334,6 +44334,12 @@ abstract class AppLocalizations {
   /// **'Volume'**
   String get settings_conflict_field_volumeL;
 
+  /// Conflict dialog label for a custom cylinder preset's rated capacity, the manufacturer's figure a copy of a built-in preset keeps (issue #800).
+  ///
+  /// In en, this message translates to:
+  /// **'Rated capacity'**
+  String get settings_conflict_field_ratedCapacityCuft;
+
   /// No description provided for @settings_conflict_field_volumeLiters.
   ///
   /// In en, this message translates to:

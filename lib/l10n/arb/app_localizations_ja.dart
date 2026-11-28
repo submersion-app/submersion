@@ -26832,6 +26832,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_conflict_field_volumeL => '容量';
 
   @override
+  String get settings_conflict_field_ratedCapacityCuft => '定格容量';
+
+  @override
   String get settings_conflict_field_volumeLiters => '容量';
 
   @override
