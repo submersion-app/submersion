@@ -1,6 +1,7 @@
 # Limits each generator to the files that use it; a cold build runs about 4x
-# faster. A new @riverpod file or a Drift table outside lib/core/database/
-# must be listed here, or its part file is not generated;
+# faster. A new @riverpod file, or a @DriftDatabase or @DriftAccessor file
+# outside lib/core/database/, must be listed here, or its part file is not
+# generated (tables need no entry: the database that imports them covers them);
 # test/architecture/build_yaml_generate_for_test.dart fails until it is.
 targets:
   $default:

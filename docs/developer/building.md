@@ -68,9 +68,10 @@ Submersion uses code generation for:
 `build.yaml` limits each generator to the files that use it, which makes a
 cold build about 4x faster: `drift_dev` runs only on `lib/core/database/**`
 and `riverpod_generator` only on the files listed under it. A new `@riverpod`
-file, or a Drift database outside `lib/core/database/`, has to be added to
-`build.yaml`, or its `.g.dart` part is never generated and the build fails
-with an undefined `_$...` name.
+file, or a `@DriftDatabase` or `@DriftAccessor` file outside
+`lib/core/database/`, has to be added to `build.yaml`, or its `.g.dart` part
+is never generated and the build fails with an undefined `_$...` name. A
+table needs no entry: the database that imports it covers it.
 `test/architecture/build_yaml_generate_for_test.dart` names the file and the
 builder to list it under.
 
