@@ -1,0 +1,44 @@
+diff --git a/include/libdivecomputer/parser.h b/include/libdivecomputer/parser.h
+index df4becc..7b2456d 100644
+--- a/include/libdivecomputer/parser.h
++++ b/include/libdivecomputer/parser.h
+@@ -56,6 +56,9 @@ typedef enum dc_sample_type_t {
+ 	DC_SAMPLE_BUOYANCY,
+ 	DC_SAMPLE_GASREMAINING,
+ 	DC_SAMPLE_RMV,
++	/* Submersion patch (Symbios trim): the computer's own pitch, in degrees,
++	 * positive head up, as the Halcyon Symbios logs it. */
++	DC_SAMPLE_TRIM,
+ } dc_sample_type_t;
+ 
+ typedef enum dc_field_type_t {
+@@ -314,6 +317,8 @@ typedef union dc_sample_value_t {
+ 	double buoyancy; /* Kilograms, negative is heavy */
+ 	unsigned int gasremaining; /* Percent */
+ 	double rmv; /* Litres per minute */
++	/* Submersion patch (Symbios trim): see DC_SAMPLE_TRIM. */
++	double trim; /* Degrees, positive head up */
+ } dc_sample_value_t;
+ 
+ typedef struct dc_parser_t dc_parser_t;
+diff --git a/src/halcyon_symbios_parser.c b/src/halcyon_symbios_parser.c
+index 4d9ea1b..d048058 100644
+--- a/src/halcyon_symbios_parser.c
++++ b/src/halcyon_symbios_parser.c
+@@ -635,7 +635,15 @@ halcyon_symbios_parser_samples_foreach (dc_parser_t *abstract, dc_sample_callbac
+ 			sample.bearing = heading;
+ 			if (callback) callback(DC_SAMPLE_BEARING, &sample, userdata);
+ 		} else if (type == ID_TRIM) {
+-			int DC_ATTR_UNUSED trim = (signed int) data[offset + 2];
++			/* Submersion patch (Symbios trim): a signed byte in degrees,
++			 * positive head up. The read goes through signed char: data is
++			 * unsigned, so a plain int cast would turn -13 into 243. A value
++			 * past vertical is not an angle and is not reported. */
++			int trim = (signed char) data[offset + 2];
++			if (trim >= -90 && trim <= 90) {
++				sample.trim = trim;
++				if (callback) callback(DC_SAMPLE_TRIM, &sample, userdata);
++			}
+ 		} else if (type == ID_GAS_CONFIG) {
+ 			unsigned int id = data[offset + 2];
+ 			unsigned int o2 = data[offset + 3];

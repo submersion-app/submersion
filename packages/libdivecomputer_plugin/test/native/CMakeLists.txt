@@ -401,6 +401,23 @@ if(WIN32)
     target_link_libraries(test_shearwater_avelo_samples PRIVATE SetupAPI.lib ws2_32.lib)
 endif()
 
+# Issue #5098: the Halcyon Symbios trim record (a signed byte, degrees),
+# reported as DC_SAMPLE_TRIM. Public API only.
+add_executable(test_halcyon_symbios_trim
+    test_halcyon_symbios_trim.c
+    ${LIBDC_ALL_SOURCES}
+)
+target_include_directories(test_halcyon_symbios_trim PRIVATE
+    ${LIBDC_DIR}/include
+    ${LIBDC_DIR}/src
+    ${PLATFORM_CONFIG_DIR}
+)
+target_compile_definitions(test_halcyon_symbios_trim PRIVATE HAVE_CONFIG_H)
+if(WIN32)
+    target_compile_definitions(test_halcyon_symbios_trim PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_link_libraries(test_halcyon_symbios_trim PRIVATE SetupAPI.lib ws2_32.lib)
+endif()
+
 # Regression test for issue #1223: a sample carrying two transmitter pressures
 # must keep both. Goes through the wrapper, since the loss was in its per-sample
 # accumulator rather than in libdivecomputer.
@@ -585,6 +602,7 @@ add_test(NAME test_shearwater_avelo_hydrotank COMMAND test_shearwater_avelo_hydr
 add_test(NAME test_shearwater_avelo_samples COMMAND test_shearwater_avelo_samples
     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
+add_test(NAME test_halcyon_symbios_trim COMMAND test_halcyon_symbios_trim)
 add_test(NAME test_ratio_ix3m2_record_type COMMAND test_ratio_ix3m2_record_type)
 add_test(NAME test_cressi_leonardo_deco COMMAND test_cressi_leonardo_deco)
 add_test(NAME test_ble_connect_failure COMMAND test_ble_connect_failure)
