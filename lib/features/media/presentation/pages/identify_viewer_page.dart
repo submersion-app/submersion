@@ -9,6 +9,8 @@ import 'package:photo_manager/photo_manager.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/data/scratch/scratch_session.dart';
 import 'package:submersion/features/media/presentation/camera/identify_camera_page.dart';
@@ -82,6 +84,8 @@ Future<List<MediaItem>> pickIdentifyItems(WidgetRef ref) async {
 /// installed, the offer to download one; otherwise files picked from disk,
 /// in the Identify viewer.
 Future<void> launchIdentify(BuildContext context, WidgetRef ref) async {
+  // Keeping a file is an import, which demo mode seals.
+  if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) return;
   final installed = await ref.read(installedSpeciesPackProvider.future);
   if (!context.mounted) return;
   if (installed == null) {

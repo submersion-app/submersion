@@ -21498,26 +21498,26 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_identify_notKeptBanner =>
-      'Nicht in Ihrer Mediathek. Nichts wird behalten, außer Sie behalten es.';
+      'Nicht in deiner Mediathek. Nichts wird behalten, außer du behältst es.';
 
   @override
   String get media_identify_keep => 'Behalten';
 
   @override
-  String get media_identify_kept => 'In Ihrer Mediathek behalten';
+  String get media_identify_kept => 'In deiner Mediathek behalten';
 
   @override
   String get media_identify_leaveTitle => 'Ohne Behalten verlassen?';
 
   @override
   String get media_identify_leaveBody =>
-      'Die Arten, die Sie bei nicht behaltenen Dateien gewählt haben, gehen verloren.';
+      'Die Arten, die du bei nicht behaltenen Dateien gewählt hast, gehen verloren.';
 
   @override
   String get media_identify_leave => 'Verlassen';
 
   @override
-  String get media_identify_keepTitle => 'In Ihrer Mediathek behalten';
+  String get media_identify_keepTitle => 'In deiner Mediathek behalten';
 
   @override
   String get media_identify_keepOnDive => 'Einem Tauchgang zuordnen';
@@ -21548,7 +21548,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_identify_noLocation =>
-      'Nur Vorschläge, von überall: Ihr Standort wird nicht verwendet.';
+      'Nur Vorschläge, von überall: dein Standort wird nicht verwendet.';
 
   @override
   String get media_identify_namesPaused =>
@@ -21556,7 +21556,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_identify_cameraDenied =>
-      'Submersion kann die Kamera nicht verwenden. Erlauben Sie den Kamerazugriff in den Einstellungen oder wählen Sie stattdessen Dateien.';
+      'Submersion kann die Kamera nicht verwenden. Erlaube den Kamerazugriff in den Einstellungen oder wähle stattdessen Dateien.';
 
   @override
   String get media_identify_pickFiles => 'Dateien wählen';
