@@ -192,6 +192,9 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
     final viewMode = ref.watch(diveListViewModeProvider);
     if (viewMode == ListViewMode.table) {
       final showProfile = ref.watch(showProfilePanelProvider);
+      // Watched here, not read in the menu: the installed pack is read only
+      // once something listens (issue #5127).
+      final canFindSpecies = ref.watch(speciesBatchAvailableProvider);
 
       return TableModeLayout(
         sectionKey: 'dives',
@@ -351,7 +354,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
                   ),
                 ),
                 // Issue #5127: where this device can run the models.
-                if (ref.read(speciesBatchAvailableProvider))
+                if (canFindSpecies)
                   PopupMenuItem(
                     value: 'find_species',
                     child: Row(

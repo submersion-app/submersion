@@ -1501,6 +1501,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
   Widget build(BuildContext context) {
     final viewMode = ref.watch(diveListViewModeProvider);
     final filter = ref.watch(diveFilterProvider);
+    // Watched here so the menus, built when they open, read it loaded: the
+    // installed pack is read only once something listens (issue #5127).
+    ref.watch(speciesBatchAvailableProvider);
 
     // Table mode uses a completely different data path (full Dive objects
     // instead of DiveSummary) and renders a DiveTableView widget.
@@ -1666,6 +1669,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               context.push('/dives/match-sites');
             } else if (value == 'data_quality') {
               context.push('/dives/quality');
+            } else if (value == 'find_species') {
+              unawaited(findSpeciesInLogbook(context, ref));
             } else if (value == 'group_trips') {
               ref.read(settingsProvider.notifier).toggleGroupTripsInDiveList();
             } else if (value == 'expand_all_trips') {
@@ -1785,6 +1790,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   ],
                 ),
               ),
+              ?_findSpeciesMenuItem(context),
             ];
           },
         ),
@@ -1862,6 +1868,8 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     context.push('/dives/match-sites');
                   } else if (value == 'data_quality') {
                     context.push('/dives/quality');
+                  } else if (value == 'find_species') {
+                    unawaited(findSpeciesInLogbook(context, ref));
                   } else if (value == 'group_trips') {
                     ref
                         .read(settingsProvider.notifier)
@@ -1993,6 +2001,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                         ],
                       ),
                     ),
+                    ?_findSpeciesMenuItem(context, iconSize: 20),
                   ];
                 },
               ),
@@ -2000,6 +2009,25 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           ),
         );
       },
+    );
+  }
+
+  /// "Find species in all dives" for the list's menu (issue #5127), where
+  /// this device can run the models and a pack is installed.
+  PopupMenuItem<String>? _findSpeciesMenuItem(
+    BuildContext context, {
+    double? iconSize,
+  }) {
+    if (!ref.read(speciesBatchAvailableProvider)) return null;
+    return PopupMenuItem(
+      value: 'find_species',
+      child: Row(
+        children: [
+          Icon(Icons.travel_explore_outlined, size: iconSize),
+          const SizedBox(width: 12),
+          Flexible(child: Text(context.l10n.speciesBatch_findInLogbook)),
+        ],
+      ),
     );
   }
 
