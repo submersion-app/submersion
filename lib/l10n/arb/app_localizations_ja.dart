@@ -64559,4 +64559,28 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'コンパクトはステータスランプ付きの細いバーです。バナーはダイブの合計を表示するウェルカムバナーです。この端末に保存されます。';
+
+  @override
+  String get popOut_openProfileWindow => '新しいウィンドウで開く';
+
+  @override
+  String get popOut_pin => 'このダイブに固定';
+
+  @override
+  String get popOut_unpin => 'メインウィンドウに従う';
+
+  @override
+  String get popOut_selectDivePlaceholder => 'メインウィンドウでダイブを選択してください';
+
+  @override
+  String get popOut_lockedPlaceholder => 'メインウィンドウで Submersion のロックを解除してください';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'プロファイル: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'このウィンドウからログブックにアクセスできませんでした。閉じてからもう一度お試しください。';
 }

@@ -19553,5 +19553,12 @@
   "settings_homeHeader_wide": "Bredere schermen",
   "settings_homeHeader_compact": "Compact",
   "settings_homeHeader_banner": "Banner",
-  "settings_homeHeader_description": "Compact is een smalle balk met statuslampjes. Banner is de welkomstbanner met je duiktotalen. Opgeslagen op dit apparaat."
+  "settings_homeHeader_description": "Compact is een smalle balk met statuslampjes. Banner is de welkomstbanner met je duiktotalen. Opgeslagen op dit apparaat.",
+  "popOut_openProfileWindow": "Openen in een nieuw venster",
+  "popOut_pin": "Vastzetten op deze duik",
+  "popOut_unpin": "Het hoofdvenster volgen",
+  "popOut_selectDivePlaceholder": "Selecteer een duik in het hoofdvenster",
+  "popOut_lockedPlaceholder": "Ontgrendel Submersion in het hoofdvenster",
+  "popOut_windowTitle": "Profiel: {dive}",
+  "popOut_connectFailed": "Dit venster kon het logboek niet bereiken. Sluit het en probeer het opnieuw."
 }

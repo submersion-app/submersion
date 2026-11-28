@@ -68325,4 +68325,29 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'المضغوط شريط رفيع مع مؤشرات الحالة. اللافتة هي لافتة الترحيب مع إجماليات غوصك. يُحفظ على هذا الجهاز.';
+
+  @override
+  String get popOut_openProfileWindow => 'فتح في نافذة جديدة';
+
+  @override
+  String get popOut_pin => 'التثبيت على هذه الغطسة';
+
+  @override
+  String get popOut_unpin => 'متابعة النافذة الرئيسية';
+
+  @override
+  String get popOut_selectDivePlaceholder => 'اختر غطسة في النافذة الرئيسية';
+
+  @override
+  String get popOut_lockedPlaceholder =>
+      'افتح قفل Submersion في النافذة الرئيسية';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'المقطع: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'تعذر على هذه النافذة الوصول إلى السجل. أغلقها وحاول مرة أخرى.';
 }

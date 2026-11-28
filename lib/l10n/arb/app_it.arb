@@ -19553,5 +19553,12 @@
   "settings_homeHeader_wide": "Schermi più ampi",
   "settings_homeHeader_compact": "Compatta",
   "settings_homeHeader_banner": "Banner",
-  "settings_homeHeader_description": "Compatta è una barra sottile con le spie di stato. Banner è il banner di benvenuto con i totali delle tue immersioni. Salvato su questo dispositivo."
+  "settings_homeHeader_description": "Compatta è una barra sottile con le spie di stato. Banner è il banner di benvenuto con i totali delle tue immersioni. Salvato su questo dispositivo.",
+  "popOut_openProfileWindow": "Apri in una nuova finestra",
+  "popOut_pin": "Fissa a questa immersione",
+  "popOut_unpin": "Segui la finestra principale",
+  "popOut_selectDivePlaceholder": "Seleziona un'immersione nella finestra principale",
+  "popOut_lockedPlaceholder": "Sblocca Submersion nella finestra principale",
+  "popOut_windowTitle": "Profilo: {dive}",
+  "popOut_connectFailed": "Questa finestra non ha potuto raggiungere il logbook. Chiudila e riprova."
 }

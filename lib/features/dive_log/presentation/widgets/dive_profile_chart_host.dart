@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/pop_out/presentation/widgets/pop_out_cursor_bridge.dart';
 import 'package:submersion/features/dive_log/presentation/utils/chart_drag_crossing.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
@@ -427,7 +428,7 @@ class DiveProfileChartHost extends ConsumerWidget {
       annotationsInSitting ?? storedAnnotations,
     );
 
-    return MouseRegion(
+    final chart = MouseRegion(
       onExit: (event) {
         // A drag that strays off the chart is still a scrub; the chart
         // clears the cursor through onPointSelected when it ends (#4611).
@@ -574,6 +575,12 @@ class DiveProfileChartHost extends ConsumerWidget {
         viewport: viewport,
         onViewportChanged: onViewportChanged,
       ),
+    );
+    // The profile pop-out shares this chart's cursor (issue #5078).
+    return PopOutCursorBridge(
+      diveId: diveId,
+      chartProfile: chartProfile,
+      child: chart,
     );
   }
 }

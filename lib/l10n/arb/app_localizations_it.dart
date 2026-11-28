@@ -67287,4 +67287,30 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compatta è una barra sottile con le spie di stato. Banner è il banner di benvenuto con i totali delle tue immersioni. Salvato su questo dispositivo.';
+
+  @override
+  String get popOut_openProfileWindow => 'Apri in una nuova finestra';
+
+  @override
+  String get popOut_pin => 'Fissa a questa immersione';
+
+  @override
+  String get popOut_unpin => 'Segui la finestra principale';
+
+  @override
+  String get popOut_selectDivePlaceholder =>
+      'Seleziona un\'immersione nella finestra principale';
+
+  @override
+  String get popOut_lockedPlaceholder =>
+      'Sblocca Submersion nella finestra principale';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Profilo: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'Questa finestra non ha potuto raggiungere il logbook. Chiudila e riprova.';
 }

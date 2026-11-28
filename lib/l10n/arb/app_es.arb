@@ -19553,5 +19553,12 @@
   "settings_homeHeader_wide": "Pantallas más anchas",
   "settings_homeHeader_compact": "Compacto",
   "settings_homeHeader_banner": "Banner",
-  "settings_homeHeader_description": "Compacto es una barra estrecha con luces de estado. Banner es el banner de bienvenida con tus totales de inmersión. Se guarda en este dispositivo."
+  "settings_homeHeader_description": "Compacto es una barra estrecha con luces de estado. Banner es el banner de bienvenida con tus totales de inmersión. Se guarda en este dispositivo.",
+  "popOut_openProfileWindow": "Abrir en una ventana nueva",
+  "popOut_pin": "Fijar a esta inmersión",
+  "popOut_unpin": "Seguir la ventana principal",
+  "popOut_selectDivePlaceholder": "Selecciona una inmersión en la ventana principal",
+  "popOut_lockedPlaceholder": "Desbloquea Submersion en la ventana principal",
+  "popOut_windowTitle": "Perfil: {dive}",
+  "popOut_connectFailed": "Esta ventana no pudo acceder al registro. Ciérrala e inténtalo de nuevo."
 }

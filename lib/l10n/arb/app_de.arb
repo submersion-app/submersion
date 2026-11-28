@@ -19678,5 +19678,12 @@
   "settings_homeHeader_wide": "Breitere Bildschirme",
   "settings_homeHeader_compact": "Kompakt",
   "settings_homeHeader_banner": "Banner",
-  "settings_homeHeader_description": "Kompakt ist eine schmale Leiste mit Statusanzeigen. Banner ist das Begrüßungsbanner mit deinen Tauchsummen. Wird auf diesem Gerät gespeichert."
+  "settings_homeHeader_description": "Kompakt ist eine schmale Leiste mit Statusanzeigen. Banner ist das Begrüßungsbanner mit deinen Tauchsummen. Wird auf diesem Gerät gespeichert.",
+  "popOut_openProfileWindow": "In neuem Fenster öffnen",
+  "popOut_pin": "An diesen Tauchgang anheften",
+  "popOut_unpin": "Dem Hauptfenster folgen",
+  "popOut_selectDivePlaceholder": "Wähle einen Tauchgang im Hauptfenster",
+  "popOut_lockedPlaceholder": "Entsperre Submersion im Hauptfenster",
+  "popOut_windowTitle": "Profil: {dive}",
+  "popOut_connectFailed": "Dieses Fenster konnte das Logbuch nicht erreichen. Schließe es und versuche es erneut."
 }

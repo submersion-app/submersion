@@ -63048,4 +63048,27 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       '紧凑是带状态灯的窄栏。横幅是显示潜水总计的欢迎横幅。保存在此设备上。';
+
+  @override
+  String get popOut_openProfileWindow => '在新窗口中打开';
+
+  @override
+  String get popOut_pin => '固定到此潜水';
+
+  @override
+  String get popOut_unpin => '跟随主窗口';
+
+  @override
+  String get popOut_selectDivePlaceholder => '请在主窗口中选择一次潜水';
+
+  @override
+  String get popOut_lockedPlaceholder => '请在主窗口中解锁 Submersion';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return '剖面图：$dive';
+  }
+
+  @override
+  String get popOut_connectFailed => '此窗口无法访问日志。请关闭后重试。';
 }

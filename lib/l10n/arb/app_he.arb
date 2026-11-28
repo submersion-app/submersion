@@ -19553,5 +19553,12 @@
   "settings_homeHeader_wide": "מסכים רחבים יותר",
   "settings_homeHeader_compact": "דחוס",
   "settings_homeHeader_banner": "באנר",
-  "settings_homeHeader_description": "דחוס הוא סרגל צר עם נורות מצב. באנר הוא באנר הפתיחה עם סיכומי הצלילות שלך. נשמר במכשיר זה."
+  "settings_homeHeader_description": "דחוס הוא סרגל צר עם נורות מצב. באנר הוא באנר הפתיחה עם סיכומי הצלילות שלך. נשמר במכשיר זה.",
+  "popOut_openProfileWindow": "פתיחה בחלון חדש",
+  "popOut_pin": "הצמדה לצלילה זו",
+  "popOut_unpin": "מעקב אחר החלון הראשי",
+  "popOut_selectDivePlaceholder": "בחרו צלילה בחלון הראשי",
+  "popOut_lockedPlaceholder": "בטלו את נעילת Submersion בחלון הראשי",
+  "popOut_windowTitle": "פרופיל: {dive}",
+  "popOut_connectFailed": "החלון הזה לא הצליח לגשת ליומן. סגרו אותו ונסו שוב."
 }

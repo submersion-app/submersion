@@ -19553,5 +19553,12 @@
   "settings_homeHeader_wide": "Szélesebb képernyők",
   "settings_homeHeader_compact": "Kompakt",
   "settings_homeHeader_banner": "Szalag",
-  "settings_homeHeader_description": "A Kompakt egy keskeny sáv állapotjelzőkkel. A Szalag az üdvözlő szalag a merülési összesítőiddel. Ezen az eszközön mentve."
+  "settings_homeHeader_description": "A Kompakt egy keskeny sáv állapotjelzőkkel. A Szalag az üdvözlő szalag a merülési összesítőiddel. Ezen az eszközön mentve.",
+  "popOut_openProfileWindow": "Megnyitás új ablakban",
+  "popOut_pin": "Rögzítés ehhez a merüléshez",
+  "popOut_unpin": "A főablak követése",
+  "popOut_selectDivePlaceholder": "Válassz egy merülést a főablakban",
+  "popOut_lockedPlaceholder": "Oldd fel a Submersiont a főablakban",
+  "popOut_windowTitle": "Profil: {dive}",
+  "popOut_connectFailed": "Ez az ablak nem érte el a merülési naplót. Zárd be, és próbáld újra."
 }

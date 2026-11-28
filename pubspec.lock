@@ -464,6 +464,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.1"
+  desktop_multi_window:
+    dependency: "direct main"
+    description:
+      path: "packages/desktop_multi_window"
+      relative: true
+    source: path
+    version: "0.3.1"
   desktop_webview_window:
     dependency: transitive
     description:
@@ -1987,7 +1994,7 @@ packages:
     source: hosted
     version: "0.28.0"
   screen_retriever:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: screen_retriever
       sha256: ace919117a7520c13a50a6259e60c4a0d4cbe98809468792a91b5c5adada2aa6
@@ -2075,7 +2082,7 @@ packages:
     source: hosted
     version: "2.4.1"
   shared_preferences_platform_interface:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: shared_preferences_platform_interface
       sha256: "649dc798a33931919ea356c4305c2d1f81619ea6e92244070b520187b5140ef9"
