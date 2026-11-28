@@ -29589,7 +29589,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'Meno nomi. Circa $percent% corretti';
+    return 'Meno nomi. Circa $percent% corretti sulle foto';
   }
 
   @override
@@ -29598,12 +29598,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'Più nomi. Circa $percent% corretti';
+    return 'Più nomi. Circa $percent% corretti sulle foto';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'Il maggior numero di nomi. Circa $percent% corretti';
+    return 'Il maggior numero di nomi. Circa $percent% corretti sulle foto';
   }
 
   @override
@@ -56608,8 +56608,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_species_suggested => 'Suggerimenti';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
+  String media_species_suggestedChipLabel(String name) {
+    return 'Suggerimento: $name';
   }
 
   @override

@@ -46890,10 +46890,10 @@ abstract class AppLocalizations {
   /// **'Eager'**
   String get settings_speciesId_levelEager;
 
-  /// Under Surer: how often its names were right when measured
+  /// Under Surer: how often its names were right when measured on held-out still photos (issue #5121); video frames were not measured
   ///
   /// In en, this message translates to:
-  /// **'Fewest names. About {percent}% right'**
+  /// **'Fewest names. About {percent}% right on photos'**
   String settings_speciesId_levelSurerAccuracy(int percent);
 
   /// Under Surer when the model carries no measured accuracy for it
@@ -46902,16 +46902,16 @@ abstract class AppLocalizations {
   /// **'Fewest names, most often right'**
   String get settings_speciesId_levelSurerUnmeasured;
 
-  /// Under Balanced: how often its names were right when measured
+  /// Under Balanced: how often its names were right when measured on held-out still photos (issue #5121); video frames were not measured
   ///
   /// In en, this message translates to:
-  /// **'More names. About {percent}% right'**
+  /// **'More names. About {percent}% right on photos'**
   String settings_speciesId_levelBalancedAccuracy(int percent);
 
-  /// Under Eager: how often its names were right when measured
+  /// Under Eager: how often its names were right when measured on held-out still photos (issue #5121); video frames were not measured
   ///
   /// In en, this message translates to:
-  /// **'Most names. About {percent}% right'**
+  /// **'Most names. About {percent}% right on photos'**
   String settings_speciesId_levelEagerAccuracy(int percent);
 
   /// Under the naming levels when the level the diver chose is not in the installed model: the app names at the nearest surer level it has, and choosing that one keeps it
@@ -88548,11 +88548,11 @@ abstract class AppLocalizations {
   /// **'Suggested'**
   String get media_species_suggested;
 
-  /// No description provided for @media_species_suggestedChip.
+  /// What a screen reader says for a suggested species chip in the viewer: the chip shows the name alone, so this tells it apart from a confirmed tag (issue #5121)
   ///
   /// In en, this message translates to:
-  /// **'{name} {percent}%'**
-  String media_species_suggestedChip(String name, int percent);
+  /// **'Suggested: {name}'**
+  String media_species_suggestedChipLabel(String name);
 
   /// No description provided for @media_species_suggestedCount.
   ///

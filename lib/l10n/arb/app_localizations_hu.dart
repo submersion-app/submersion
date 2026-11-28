@@ -29419,7 +29419,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'Kevesebb név. Kb. $percent%-ban helyes';
+    return 'Kevesebb név. Kb. $percent%-ban helyes fotókon';
   }
 
   @override
@@ -29428,12 +29428,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'Több név. Kb. $percent%-ban helyes';
+    return 'Több név. Kb. $percent%-ban helyes fotókon';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'A legtöbb név. Kb. $percent%-ban helyes';
+    return 'A legtöbb név. Kb. $percent%-ban helyes fotókon';
   }
 
   @override
@@ -56283,8 +56283,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_species_suggested => 'Javaslatok';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
+  String media_species_suggestedChipLabel(String name) {
+    return 'Javaslat: $name';
   }
 
   @override
