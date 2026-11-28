@@ -611,6 +611,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentField_location_short => 'מיקום';
 
   @override
+  String get enum_equipmentField_firmware => 'קושחה';
+
+  @override
+  String get enum_equipmentField_firmware_short => 'קושחה';
+
+  @override
   String get equipment_set_noLongerShared => 'כבר לא משותף';
 
   @override
@@ -17409,6 +17415,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String firmware_home_version(String version) {
     return 'קושחה $version';
+  }
+
+  @override
+  String firmware_column_update(String installed, String latest) {
+    return '$installed (עדכון: $latest)';
   }
 
   @override

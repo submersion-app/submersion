@@ -14,6 +14,7 @@ import 'package:submersion/features/firmware/domain/firmware_catalogue.dart';
 import 'package:submersion/features/firmware/domain/firmware_status.dart';
 import 'package:submersion/features/firmware/presentation/providers/firmware_catalogue_providers.dart';
 import 'package:submersion/features/firmware/presentation/providers/firmware_status_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 /// The firmware status of the active diver's gear (issue #5104).
 void main() {
@@ -174,6 +175,26 @@ void main() {
       isA<FirmwareNotListed>(),
     );
     expect(await c.read(firmwareUpdatesProvider.future), isEmpty);
+  });
+
+  test('the table labels show the newest listed release', () async {
+    final c = container(
+      [
+        item('a', EquipmentType.computer, firmware: '92'),
+        item('b', EquipmentType.computer),
+        item('c', EquipmentType.computer, firmware: 'V95'),
+      ],
+      computers: [registration('b', firmware: 'V94')],
+    );
+    final cells = await c.read(firmwareColumnCellsProvider.future);
+    expect(cells, {
+      'a': (installed: '92', latest: 'V95'),
+      'b': (installed: 'V94', latest: 'V95'),
+      'c': (installed: 'V95', latest: null),
+    });
+    final en = AppLocalizationsEn();
+    expect(firmwareCellLabel(en, cells['a']!), '92 (update: V95)');
+    expect(firmwareCellLabel(en, cells['c']!), 'V95');
   });
 }
 

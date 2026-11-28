@@ -615,6 +615,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentField_location_short => 'Location';
 
   @override
+  String get enum_equipmentField_firmware => 'Firmware';
+
+  @override
+  String get enum_equipmentField_firmware_short => 'Firmware';
+
+  @override
   String get equipment_set_noLongerShared => 'No longer shared';
 
   @override
@@ -17523,6 +17529,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String firmware_home_version(String version) {
     return 'Firmware $version';
+  }
+
+  @override
+  String firmware_column_update(String installed, String latest) {
+    return '$installed (update: $latest)';
   }
 
   @override

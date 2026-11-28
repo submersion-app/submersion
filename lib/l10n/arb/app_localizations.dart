@@ -1060,6 +1060,18 @@ abstract class AppLocalizations {
   /// **'Location'**
   String get enum_equipmentField_location_short;
 
+  /// No description provided for @enum_equipmentField_firmware.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware'**
+  String get enum_equipmentField_firmware;
+
+  /// No description provided for @enum_equipmentField_firmware_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware'**
+  String get enum_equipmentField_firmware_short;
+
   /// No description provided for @equipment_set_noLongerShared.
   ///
   /// In en, this message translates to:
@@ -28191,6 +28203,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Firmware {version}'**
   String firmware_home_version(String version);
+
+  /// No description provided for @firmware_column_update.
+  ///
+  /// In en, this message translates to:
+  /// **'{installed} (update: {latest})'**
+  String firmware_column_update(String installed, String latest);
 
   /// No description provided for @firmware_home_more.
   ///

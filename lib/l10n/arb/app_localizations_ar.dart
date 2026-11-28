@@ -649,6 +649,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentField_location_short => 'الموقع';
 
   @override
+  String get enum_equipmentField_firmware => 'البرنامج الثابت';
+
+  @override
+  String get enum_equipmentField_firmware_short => 'البرنامج الثابت';
+
+  @override
   String get equipment_set_noLongerShared => 'لم يعد مُشارَكًا';
 
   @override
@@ -18069,6 +18075,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String firmware_home_version(String version) {
     return 'البرنامج الثابت $version';
+  }
+
+  @override
+  String firmware_column_update(String installed, String latest) {
+    return '$installed (تحديث: $latest)';
   }
 
   @override

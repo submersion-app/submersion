@@ -597,6 +597,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentField_location_short => '位置';
 
   @override
+  String get enum_equipmentField_firmware => '固件';
+
+  @override
+  String get enum_equipmentField_firmware_short => '固件';
+
+  @override
   String get equipment_set_noLongerShared => '已不再共享';
 
   @override
@@ -16921,6 +16927,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String firmware_home_version(String version) {
     return '固件 $version';
+  }
+
+  @override
+  String firmware_column_update(String installed, String latest) {
+    return '$installed（更新：$latest）';
   }
 
   @override

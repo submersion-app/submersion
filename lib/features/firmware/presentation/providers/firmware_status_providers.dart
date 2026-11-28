@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/firmware/domain/firmware_catalogue.dart';
 import 'package:submersion/features/firmware/domain/firmware_status.dart';
 import 'package:submersion/features/firmware/presentation/providers/firmware_catalogue_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// [registrations] newest download first; a computer never downloaded last.
 List<DiveComputer> _newestFirst(List<DiveComputer> registrations) {
@@ -105,4 +106,41 @@ final firmwareUpdatesProvider = FutureProvider<List<FirmwareUpdateEntry>>((
     return compareTextForSort(a.item.name, b.item.name);
   });
   return updates;
+});
+
+/// One equipment table Firmware cell: the installed version, and the newest
+/// listed release when it is newer.
+typedef FirmwareCell = ({String installed, String? latest});
+
+/// The text of a [FirmwareCell] in the diver's language.
+String firmwareCellLabel(AppLocalizations l10n, FirmwareCell cell) =>
+    switch (cell.latest) {
+      final latest? => l10n.firmware_column_update(cell.installed, latest),
+      null => cell.installed,
+    };
+
+/// The equipment table's Firmware cells by item id (issue #5104). Items with
+/// no version known are absent.
+final firmwareColumnCellsProvider = FutureProvider<Map<String, FirmwareCell>>((
+  ref,
+) async {
+  final items = await ref.watch(allEquipmentProvider.future);
+  final computers = await ref.watch(allDiveComputersProvider.future);
+  final statuses = await ref.watch(firmwareStatusesProvider.future);
+  final byItem = <String, List<DiveComputer>>{};
+  for (final c in computers) {
+    if (c.equipmentId case final id?) byItem.putIfAbsent(id, () => []).add(c);
+  }
+  return {
+    for (final item in items)
+      if (installedFirmwareOf(item, byItem[item.id] ?? const [])
+          case final installed?)
+        item.id: (
+          installed: installed,
+          latest: switch (statuses[item.id]) {
+            FirmwareUpdateAvailable(:final latest) => latest.version,
+            _ => null,
+          },
+        ),
+  };
 });
