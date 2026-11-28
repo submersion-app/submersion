@@ -379,6 +379,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'pp_o2_deco_bands_enabled': 'Per-O2-band deco ppO2 limits: an optional, finer-grained alternative to the single ppO2MaxDeco above, scoped to the Dive Planner only',
     'profile_color_avelo_buoyancy': 'the three Avelo lines',
     'profile_metrics_follow_viewport': 'profile metric overlays follow the zoomed depth window, and the passive-SCR ratio',
+    'profile_zoom_time_only': 'the profile chart zooms time alone',
     'recent_equipment_colors': 'the custom colours the diver picked for their gear, a JSON list, most recent first',
     'reminder_time': 'HH:mm format',
     'safety_review_disabled_rules': 'JSON array of SafetyRuleId.dbValue strings',

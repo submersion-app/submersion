@@ -8,15 +8,31 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
-  Certification cert(String id, {String name = '', String? level}) =>
-      Certification(
-        id: id,
-        name: name,
-        agency: CertificationAgency.padi.name,
-        level: level,
-        createdAt: DateTime(2024),
-        updatedAt: DateTime(2024),
-      );
+  Certification cert(
+    String id, {
+    String name = '',
+    String? level,
+    CertificationAgency agency = CertificationAgency.padi,
+    DateTime? issueDate,
+  }) => Certification(
+    id: id,
+    name: name,
+    agency: agency.name,
+    level: level,
+    issueDate: issueDate,
+    createdAt: DateTime(2024),
+    updatedAt: DateTime(2024),
+  );
+
+  List<String> order(
+    List<Certification> certs,
+    CertificationSortField field,
+    SortDirection direction,
+  ) => applyCertificationSorting(
+    certs,
+    SortState(field: field, direction: direction),
+    l10n: lookupAppLocalizations(const Locale('en')),
+  ).map((c) => c.id).toList();
 
   List<String> titleOrder(
     List<Certification> certs,
@@ -72,6 +88,295 @@ void main() {
         'custom',
         'legacy',
       ]);
+    });
+  });
+
+  // Ties on the sorted key fall through to the other visible keys, so
+  // certifications issued on one day (an agency crossover) come out in a
+  // findable order instead of whatever the unstable sort left (#5070).
+  // "Descending" is each field's reading order (newest first, A to Z) and
+  // the other direction reverses the whole chain, tiebreakers included.
+  group('tiebreakers (#5070)', () {
+    const ssi = CertificationAgency.ssi;
+    final day = DateTime(2019, 5, 4);
+    final padiAow = cert(
+      'padiAow',
+      level: CertificationLevel.advancedOpenWater.name,
+      issueDate: day,
+    );
+    final ssiNitrox = cert(
+      'ssiNitrox',
+      name: 'Nitrox',
+      agency: ssi,
+      issueDate: day,
+    );
+    final ssiDeep = cert('ssiDeep', name: 'Deep', agency: ssi, issueDate: day);
+    final ssiOw = cert(
+      'ssiOw',
+      level: CertificationLevel.openWater.name,
+      agency: ssi,
+      issueDate: DateTime(2018),
+    );
+    final undatedA = cert('undatedA', name: 'Zeta', agency: ssi);
+    final undatedB = cert('undatedB', name: 'Alpha', agency: ssi);
+    final twinX = cert('twinX', name: 'Twin', issueDate: DateTime(2020));
+    final twinY = cert('twinY', name: 'Twin', issueDate: DateTime(2020));
+
+    // Deliberately scrambled, so nothing passes by keeping the input order.
+    final shuffled = [
+      ssiNitrox,
+      undatedA,
+      twinY,
+      ssiOw,
+      padiAow,
+      undatedB,
+      ssiDeep,
+      twinX,
+    ];
+
+    const dateReadingOrder = [
+      'twinX',
+      'twinY',
+      'padiAow', // same day: PADI before SSI
+      'ssiDeep', // then title A to Z
+      'ssiNitrox',
+      'ssiOw',
+      'undatedB', // undated sort as oldest, then by title
+      'undatedA',
+    ];
+
+    test('date newest first: same day by agency then title', () {
+      expect(
+        order(
+          shuffled,
+          CertificationSortField.dateIssued,
+          SortDirection.descending,
+        ),
+        dateReadingOrder,
+      );
+    });
+
+    test('date oldest first reverses the whole chain', () {
+      expect(
+        order(
+          shuffled,
+          CertificationSortField.dateIssued,
+          SortDirection.ascending,
+        ),
+        dateReadingOrder.reversed.toList(),
+      );
+    });
+
+    test('agency A to Z: newest first then title', () {
+      expect(
+        order(
+          shuffled,
+          CertificationSortField.agency,
+          SortDirection.descending,
+        ),
+        [
+          'twinX',
+          'twinY',
+          'padiAow',
+          'ssiDeep',
+          'ssiNitrox',
+          'ssiOw',
+          'undatedB',
+          'undatedA',
+        ],
+      );
+    });
+
+    test('agency Z to A reverses the whole chain', () {
+      expect(
+        order(shuffled, CertificationSortField.agency, SortDirection.ascending),
+        [
+          'undatedA',
+          'undatedB',
+          'ssiOw',
+          'ssiNitrox',
+          'ssiDeep',
+          'padiAow',
+          'twinY',
+          'twinX',
+        ],
+      );
+    });
+
+    // Tied titles fall through to agency, then newest first, then id; the
+    // ssi2021 twins tie on all three keys, so only the id orders them.
+    final tiedTitles = [
+      cert('ssi2020', name: 'Nitrox', agency: ssi, issueDate: DateTime(2020)),
+      cert('ssi2021b', name: 'Nitrox', agency: ssi, issueDate: DateTime(2021)),
+      cert('padi2019', name: 'Nitrox', issueDate: DateTime(2019)),
+      cert('ssi2021a', name: 'Nitrox', agency: ssi, issueDate: DateTime(2021)),
+    ];
+    const titleReadingOrder = ['padi2019', 'ssi2021a', 'ssi2021b', 'ssi2020'];
+
+    test('title A to Z: agency then newest first', () {
+      expect(
+        order(
+          tiedTitles,
+          CertificationSortField.name,
+          SortDirection.descending,
+        ),
+        titleReadingOrder,
+      );
+    });
+
+    test('title Z to A reverses the whole chain', () {
+      expect(
+        order(tiedTitles, CertificationSortField.name, SortDirection.ascending),
+        titleReadingOrder.reversed.toList(),
+      );
+    });
+
+    // A slug-like agency id the catalog does not know falls back to its
+    // slug as the name, and ties between such agencies order by that name.
+    test('unknown agencies on one day order by their fallback names', () {
+      Certification unknown(String id, String agency) => Certification(
+        id: id,
+        name: 'Nitrox',
+        agency: agency,
+        issueDate: day,
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+      expect(
+        order(
+          // Ids run against the agency names, so only the agency key can
+          // put acmeDiving first.
+          [unknown('a', 'blueReef'), unknown('b', 'acmeDiving')],
+          CertificationSortField.dateIssued,
+          SortDirection.descending,
+        ),
+        ['b', 'a'],
+      );
+    });
+
+    // The keys compare the text the rows show, alphabetically: accents fold
+    // in with their base letter and case does not split the alphabet.
+    test('titles fold accents in with their base letter', () {
+      expect(
+        order(
+          [
+            cert('zeta', name: 'Zeta', agency: ssi, issueDate: day),
+            cert('epave', name: '\u00c9pave', agency: ssi, issueDate: day),
+            cert('nitrox', name: 'Nitrox', agency: ssi, issueDate: day),
+          ],
+          CertificationSortField.dateIssued,
+          SortDirection.descending,
+        ),
+        ['epave', 'nitrox', 'zeta'],
+      );
+    });
+
+    test('agencies order by the shown name, ignoring case', () {
+      Certification custom(String id, String agency) => Certification(
+        id: id,
+        name: 'Nitrox',
+        agency: agency,
+        issueDate: day,
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      );
+      expect(
+        order(
+          [
+            cert('padi', name: 'Nitrox', issueDate: day),
+            custom('aqua', 'aquaAcademy'),
+          ],
+          CertificationSortField.dateIssued,
+          SortDirection.descending,
+        ),
+        ['aqua', 'padi'],
+      );
+    });
+
+    // In French "Other" reads "Autre", which sorts before PADI; the English
+    // name would put it after.
+    test('agencies order by their name in the active locale', () {
+      expect(
+        applyCertificationSorting(
+          [
+            cert('padi', name: 'Nitrox', issueDate: day),
+            cert(
+              'other',
+              name: 'Nitrox',
+              agency: CertificationAgency.other,
+              issueDate: day,
+            ),
+          ],
+          const SortState(
+            field: CertificationSortField.dateIssued,
+            direction: SortDirection.descending,
+          ),
+          l10n: lookupAppLocalizations(const Locale('fr')),
+        ).map((c) => c.id),
+        ['other', 'padi'],
+      );
+    });
+
+    // Two agencies showing the same name stay in separate blocks, ordered by
+    // id, as the agency grouping keeps them.
+    test('same-named distinct agencies keep their own blocks', () {
+      Certification unknown(String id, String agency, DateTime date) =>
+          Certification(
+            id: id,
+            name: 'Nitrox',
+            agency: agency,
+            issueDate: date,
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          );
+      // Non-slug ids both fall back to "Unknown agency".
+      expect(
+        order(
+          [
+            unknown('b1', 'b-agency', DateTime(2021)),
+            unknown('a1', 'a-agency', DateTime(2020)),
+            unknown('b2', 'b-agency', DateTime(2019)),
+          ],
+          CertificationSortField.agency,
+          SortDirection.descending,
+        ),
+        ['a1', 'b1', 'b2'],
+      );
+    });
+
+    // The row shows the date only, so certifications stored with different
+    // times of day (an import can carry them) still tie on that date.
+    test('same shown date ties whatever the time of day', () {
+      expect(
+        order(
+          [
+            cert(
+              'rescue',
+              name: 'Rescue',
+              agency: ssi,
+              issueDate: DateTime(2023, 3, 18, 14),
+            ),
+            cert(
+              'deep',
+              name: 'Deep',
+              agency: ssi,
+              issueDate: DateTime(2023, 3, 18, 9),
+            ),
+          ],
+          CertificationSortField.dateIssued,
+          SortDirection.descending,
+        ),
+        ['deep', 'rescue'],
+      );
+    });
+
+    test('identical rows order by id whatever the input order', () {
+      for (final field in CertificationSortField.values) {
+        expect(order([twinY, twinX], field, SortDirection.descending), [
+          'twinX',
+          'twinY',
+        ], reason: field.name);
+      }
     });
   });
 }

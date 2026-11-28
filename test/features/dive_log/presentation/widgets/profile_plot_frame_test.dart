@@ -42,6 +42,49 @@ void main() {
       expect(full.plotKey, frame.plotKey);
       expect(full.viewport.sameWindowAs(ChartViewport.reset), isTrue);
     });
+
+    // Time-only zoom (#5069): the pinned copy of a chart zoomed in time alone
+    // still shows the whole dive's depth.
+    test('keeps full depth for a time-only window', () {
+      final timeOnly = frame.withViewport(
+        const ChartViewport(zoom: 3, zoomY: 1, offsetX: 0.5),
+      );
+      expect(timeOnly.minDepthMeters, closeTo(0, 1e-9));
+      expect(timeOnly.maxDepthMeters, closeTo(24, 1e-9));
+      expect(timeOnly.minSeconds, closeTo(600, 1e-9));
+      expect(timeOnly.maxSeconds, closeTo(1000, 1e-9));
+    });
+
+    test('reads depth through a time-only source frame', () {
+      final source = ProfilePlotFrame(
+        plotKey: frame.plotKey,
+        plotRect: frame.plotRect,
+        minSeconds: 300,
+        maxSeconds: 900,
+        minDepthMeters: 0,
+        maxDepthMeters: 24,
+        viewport: const ChartViewport(zoom: 2, zoomY: 1, offsetX: 0.25),
+      );
+      final full = source.withViewport(ChartViewport.reset);
+      expect(full.minDepthMeters, closeTo(0, 1e-9));
+      expect(full.maxDepthMeters, closeTo(24, 1e-9));
+    });
+  });
+
+  test('frames differing only in depth zoom differ', () {
+    ProfilePlotFrame at(ChartViewport viewport) => ProfilePlotFrame(
+      plotKey: frame.plotKey,
+      plotRect: frame.plotRect,
+      minSeconds: 300,
+      maxSeconds: 900,
+      minDepthMeters: 0,
+      maxDepthMeters: 24,
+      viewport: viewport,
+    );
+    expect(
+      at(const ChartViewport(zoom: 2, zoomY: 1)),
+      isNot(at(const ChartViewport(zoom: 2))),
+    );
   });
 
   test('frames drawn with different windows differ', () {

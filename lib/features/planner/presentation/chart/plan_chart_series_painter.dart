@@ -40,6 +40,10 @@ class PlanChartSeriesPainter extends CustomPainter {
     required this.textDirection,
   });
 
+  /// The gas switches the flags mark: the previewed dive's when one is shown, or
+  /// the live plan's otherwise, as with the stop tags and the ceiling.
+  List<CanvasMarker> get flaggedGasSwitches => (ghost ?? series).gasSwitches;
+
   @override
   void paint(Canvas canvas, Size size) {
     final plot = geometry.plotRect;
@@ -127,7 +131,7 @@ class PlanChartSeriesPainter extends CustomPainter {
     // top with the gas name, dropped a row where it would print over an
     // earlier one.
     final flags = [
-      for (final marker in series.gasSwitches)
+      for (final marker in flaggedGasSwitches)
         (
           marker: marker,
           x: geometry.xFor(marker.timeSeconds),
