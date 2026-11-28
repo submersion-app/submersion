@@ -3653,6 +3653,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddies_linkedProfile_chip => 'Profile';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name, $country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => 'Link';
 
   @override
@@ -17403,6 +17408,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Collapse all';
 
   @override
+  String get equipment_list_showParts => 'Show parts';
+
+  @override
+  String get equipment_list_hideParts => 'Hide parts';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count parts',
+      one: '1 part',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Location';
 
   @override
@@ -17419,6 +17441,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'One heading per place, on this page only';
+
+  @override
+  String get equipment_arrange_nestParts => 'Show parts under their assembly';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Fold each assembly\'s parts under it';
 
   @override
   String get equipment_locations_title => 'Locations';
@@ -27430,7 +27459,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'Map behind site cards';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Country flags';
+  String get settings_conflict_field_showCountryFlags =>
+      'Country flags (sites)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Country flags (dives)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Country flags (buddies)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Country flags (trips)';
 
   @override
   String get settings_conflict_field_countryCode => 'Country code';
@@ -39920,8 +39962,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'Country flags';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'Show a small flag beside site locations and trips';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'Show a small flag beside each site\'s location';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'Show a small flag beside each dive\'s site location';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'Show a small flag on each buddy\'s photo';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'Show the flags of each trip\'s countries';
 
   @override
   String get settings_appearance_mapStyle => 'Map Style';
@@ -52994,6 +53048,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Dive $diveNumber at $siteName';
+  }
+
+  @override
+  String diveLog_listPage_siteWithCountry(String siteName, String country) {
+    return '$siteName, $country';
   }
 
   @override
@@ -66368,4 +66427,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compact is a slim bar with status lights. Banner is the welcome banner with your dive totals. Saved on this device.';
+
+  @override
+  String get popOut_openProfileWindow => 'Open in a new window';
+
+  @override
+  String get popOut_pin => 'Pin to this dive';
+
+  @override
+  String get popOut_unpin => 'Follow the main window';
+
+  @override
+  String get popOut_selectDivePlaceholder => 'Select a dive in the main window';
+
+  @override
+  String get popOut_lockedPlaceholder => 'Unlock Submersion in the main window';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Profile: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'This window could not reach the logbook. Close it and try again.';
 }

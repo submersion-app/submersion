@@ -3711,6 +3711,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get buddies_linkedProfile_chip => 'Profil';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name, $country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => 'Lier';
 
   @override
@@ -17681,6 +17686,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Tout replier';
 
   @override
+  String get equipment_list_showParts => 'Afficher les pièces';
+
+  @override
+  String get equipment_list_hideParts => 'Masquer les pièces';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pièces',
+      one: '$count pièce',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Emplacement';
 
   @override
@@ -17697,6 +17719,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'Un titre par lieu, sur cette page uniquement';
+
+  @override
+  String get equipment_arrange_nestParts =>
+      'Afficher les pièces sous leur ensemble';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Replie les pièces de chaque ensemble sous celui-ci';
 
   @override
   String get equipment_locations_title => 'Emplacements';
@@ -27950,7 +27980,20 @@ class AppLocalizationsFr extends AppLocalizations {
       'Carte derrière les cartes de site';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Drapeaux des pays';
+  String get settings_conflict_field_showCountryFlags =>
+      'Drapeaux des pays (sites)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Drapeaux des pays (plongées)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Drapeaux des pays (binômes)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Drapeaux des pays (voyages)';
 
   @override
   String get settings_conflict_field_countryCode => 'Code pays';
@@ -40687,8 +40730,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'Drapeaux des pays';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'Affiche un petit drapeau à côté de l\'emplacement des sites et des voyages';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'Affiche un petit drapeau à côté de l\'emplacement de chaque site';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'Affiche un petit drapeau à côté de l\'emplacement du site de chaque plongée';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'Affiche un petit drapeau sur la photo de chaque binôme';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'Affiche les drapeaux des pays de chaque voyage';
 
   @override
   String get settings_appearance_mapStyle => 'Style de carte';
@@ -53890,6 +53945,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Plongée $diveNumber sur $siteName';
+  }
+
+  @override
+  String diveLog_listPage_siteWithCountry(String siteName, String country) {
+    return '$siteName, $country';
   }
 
   @override
@@ -67522,4 +67582,30 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compact est une barre fine avec des voyants d\'état. Bannière est la bannière d\'accueil avec vos totaux de plongée. Enregistré sur cet appareil.';
+
+  @override
+  String get popOut_openProfileWindow => 'Ouvrir dans une nouvelle fenêtre';
+
+  @override
+  String get popOut_pin => 'Épingler à cette plongée';
+
+  @override
+  String get popOut_unpin => 'Suivre la fenêtre principale';
+
+  @override
+  String get popOut_selectDivePlaceholder =>
+      'Sélectionnez une plongée dans la fenêtre principale';
+
+  @override
+  String get popOut_lockedPlaceholder =>
+      'Déverrouillez Submersion dans la fenêtre principale';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Profil : $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'Cette fenêtre n\'a pas pu accéder au carnet de plongée. Fermez-la et réessayez.';
 }

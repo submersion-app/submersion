@@ -3632,6 +3632,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_linkedProfile_chip => 'פרופיל';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name, $country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => 'קישור';
 
   @override
@@ -17288,6 +17293,23 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'כווץ הכול';
 
   @override
+  String get equipment_list_showParts => 'הצגת החלקים';
+
+  @override
+  String get equipment_list_hideParts => 'הסתרת החלקים';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count חלקים',
+      one: 'חלק אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'מיקום';
 
   @override
@@ -17304,6 +17326,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'כותרת אחת לכל מקום, רק בעמוד זה';
+
+  @override
+  String get equipment_arrange_nestParts => 'הצגת חלקים תחת המכלול שלהם';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'קיפול החלקים של כל מכלול תחתיו';
 
   @override
   String get equipment_locations_title => 'מיקומים';
@@ -27199,7 +27228,19 @@ class AppLocalizationsHe extends AppLocalizations {
       'מפה מאחורי כרטיסי האתרים';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'דגלי מדינות';
+  String get settings_conflict_field_showCountryFlags => 'דגלי מדינות (אתרים)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'דגלי מדינות (צלילות)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'דגלי מדינות (חברי צלילה)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'דגלי מדינות (טיולים)';
 
   @override
   String get settings_conflict_field_countryCode => 'קוד מדינה';
@@ -39605,8 +39646,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'דגלי מדינות';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'הצגת דגל קטן ליד מיקום האתרים והטיולים';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'הצגת דגל קטן ליד מיקום כל אתר';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'הצגת דגל קטן ליד מיקום האתר של כל צלילה';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'הצגת דגל קטן על התמונה של כל חבר צלילה';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'הצגת הדגלים של מדינות כל טיול';
 
   @override
   String get settings_appearance_mapStyle => 'סגנון מפה';
@@ -52639,6 +52692,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'צלילה $diveNumber באתר $siteName';
+  }
+
+  @override
+  String diveLog_listPage_siteWithCountry(String siteName, String country) {
+    return '$siteName, $country';
   }
 
   @override
@@ -66019,4 +66077,28 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'דחוס הוא סרגל צר עם נורות מצב. באנר הוא באנר הפתיחה עם סיכומי הצלילות שלך. נשמר במכשיר זה.';
+
+  @override
+  String get popOut_openProfileWindow => 'פתיחה בחלון חדש';
+
+  @override
+  String get popOut_pin => 'הצמדה לצלילה זו';
+
+  @override
+  String get popOut_unpin => 'מעקב אחר החלון הראשי';
+
+  @override
+  String get popOut_selectDivePlaceholder => 'בחרו צלילה בחלון הראשי';
+
+  @override
+  String get popOut_lockedPlaceholder => 'בטלו את נעילת Submersion בחלון הראשי';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'פרופיל: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'החלון הזה לא הצליח לגשת ליומן. סגרו אותו ונסו שוב.';
 }

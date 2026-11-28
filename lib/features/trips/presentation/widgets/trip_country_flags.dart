@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_country.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -16,7 +15,7 @@ bool tripHasFlags(WidgetRef ref, String tripId) =>
 /// [tripId]'s countries as its flags show them: none while they load, when
 /// the trip has none, or when the diver has turned flags off.
 List<TripCountry> _shownCountries(WidgetRef ref, String tripId) {
-  if (!ref.watch(showCountryFlagsProvider)) return const [];
+  if (!ref.watch(FlagSection.trips.switchProvider)) return const [];
   final countries = ref.watch(tripCountriesProvider).value?[tripId];
   if (countries == null) return const [];
   // A code the flag package cannot draw would leave an empty slot.

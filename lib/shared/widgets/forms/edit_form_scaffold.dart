@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/discard_dialog.dart';
 
@@ -58,7 +59,7 @@ class EditFormScaffold extends StatelessWidget {
   Widget _saveButton(BuildContext context, {required bool filled}) {
     if (isSaving) {
       return Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(Spacing.s12),
         child: SizedBox(
           width: 22,
           height: 22,
@@ -90,7 +91,10 @@ class EditFormScaffold extends StatelessWidget {
       return Column(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(
+              horizontal: Spacing.s16,
+              vertical: Spacing.s8,
+            ),
             decoration: BoxDecoration(
               color: colorScheme.surface,
               border: Border(
@@ -100,7 +104,7 @@ class EditFormScaffold extends StatelessWidget {
             child: Row(
               children: [
                 Icon(headerIcon ?? Icons.edit, color: colorScheme.primary),
-                const SizedBox(width: 12),
+                const SizedBox(width: Spacing.s12),
                 Expanded(
                   child: Text(
                     title,
@@ -115,7 +119,7 @@ class EditFormScaffold extends StatelessWidget {
                     onPressed: () => _handleCancel(context),
                     child: Text(context.l10n.forms_cancel),
                   ),
-                const SizedBox(width: 8),
+                const SizedBox(width: Spacing.s8),
                 _saveButton(context, filled: true),
               ],
             ),

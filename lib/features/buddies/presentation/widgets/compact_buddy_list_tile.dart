@@ -156,6 +156,7 @@ class CompactBuddyListTile extends ConsumerWidget {
                                 child: Align(
                                   alignment: AlignmentDirectional.centerStart,
                                   child: LocationWithFlag(
+                                    section: FlagSection.buddies,
                                     country: flagBuddy?.country,
                                     countryCode: flagBuddy?.countryCode,
                                     text: Text(

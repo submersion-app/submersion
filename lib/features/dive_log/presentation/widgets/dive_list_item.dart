@@ -15,9 +15,10 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// Renders a single dive in a list according to the active [ListViewMode] and
 /// card configuration, so every dive list honours the same display settings.
 ///
-/// This is the single source of truth for "how a dive row looks" — the Dives
-/// tab and the home screen's Recent dives both use it, which is what keeps the
-/// home list in sync with the list settings (issue #506).
+/// This is the single source of truth for "how a dive row looks": every list
+/// of dives (the Dives tab, a trip's pages, search) draws its rows with it,
+/// so they all honour the list settings (issue #506). The home page's Recent
+/// dives panel is its own small table and does not.
 class DiveListItem extends ConsumerWidget {
   /// Summary used for slot/field extraction (title, date, stats, extra fields).
   final DiveSummary summary;
@@ -122,6 +123,8 @@ class DiveListItem extends ConsumerWidget {
           diveNumber: diveNumber,
           dateTime: summary.dateTime,
           siteName: summary.siteName,
+          siteCountry: summary.siteCountry,
+          siteCountryCode: summary.siteCountryCode,
           maxDepth: summary.maxDepth,
           duration: duration,
           isSelectionMode: isSelectionMode,
@@ -152,6 +155,8 @@ class DiveListItem extends ConsumerWidget {
           dateTime: summary.dateTime,
           siteName: summary.siteName,
           siteLocation: summary.siteLocation,
+          siteCountry: summary.siteCountry,
+          siteCountryCode: summary.siteCountryCode,
           maxDepth: summary.maxDepth,
           duration: duration,
           waterTemp: summary.waterTemp,

@@ -3566,6 +3566,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get buddies_linkedProfile_chip => 'プロフィール';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name、$country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => 'リンク';
 
   @override
@@ -17040,6 +17045,23 @@ class AppLocalizationsJa extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'すべて折りたたむ';
 
   @override
+  String get equipment_list_showParts => 'パーツを表示';
+
+  @override
+  String get equipment_list_hideParts => 'パーツを隠す';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'パーツ$count個',
+      one: 'パーツ1個',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => '場所';
 
   @override
@@ -17056,6 +17078,12 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       '場所ごとに見出しを表示（このページのみ）';
+
+  @override
+  String get equipment_arrange_nestParts => 'パーツを組み合わせの下に表示';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle => '各組み合わせのパーツをその下に折りたたむ';
 
   @override
   String get equipment_locations_title => '場所';
@@ -26692,7 +26720,16 @@ class AppLocalizationsJa extends AppLocalizations {
       'サイトカードの背景に地図';
 
   @override
-  String get settings_conflict_field_showCountryFlags => '国旗';
+  String get settings_conflict_field_showCountryFlags => '国旗（サイト）';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags => '国旗（ダイブ）';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags => '国旗（バディ）';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags => '国旗（トリップ）';
 
   @override
   String get settings_conflict_field_countryCode => '国コード';
@@ -38840,8 +38877,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_appearance_countryFlags_title => '国旗';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'サイトの場所とトリップの横に小さな国旗を表示';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      '各サイトの場所の横に小さな国旗を表示';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      '各ダイブのサイトの場所の横に小さな国旗を表示';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      '各バディの写真に小さな国旗を表示';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips => '各トリップの国の国旗を表示';
 
   @override
   String get settings_appearance_mapStyle => '地図のスタイル';
@@ -51646,6 +51694,11 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return '$siteNameでのダイブ$diveNumber';
+  }
+
+  @override
+  String diveLog_listPage_siteWithCountry(String siteName, String country) {
+    return '$siteName、$country';
   }
 
   @override
@@ -64662,4 +64715,28 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'コンパクトはステータスランプ付きの細いバーです。バナーはダイブの合計を表示するウェルカムバナーです。この端末に保存されます。';
+
+  @override
+  String get popOut_openProfileWindow => '新しいウィンドウで開く';
+
+  @override
+  String get popOut_pin => 'このダイブに固定';
+
+  @override
+  String get popOut_unpin => 'メインウィンドウに従う';
+
+  @override
+  String get popOut_selectDivePlaceholder => 'メインウィンドウでダイブを選択してください';
+
+  @override
+  String get popOut_lockedPlaceholder => 'メインウィンドウで Submersion のロックを解除してください';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'プロファイル: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'このウィンドウからログブックにアクセスできませんでした。閉じてからもう一度お試しください。';
 }

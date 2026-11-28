@@ -23,6 +23,7 @@ import 'package:submersion/core/database/tag_scope_tables.dart';
 import 'package:submersion/core/database/trip_checklist_default.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
 import 'package:submersion/core/services/sync/device_local_fields.dart';
+import 'package:submersion/core/services/sync/diver_settings_flag_switches.dart';
 import 'package:submersion/core/services/sync/held_reference_schema.dart';
 import 'package:submersion/core/services/sync/held_reference_store.dart';
 import 'package:submersion/core/services/sync/held_references.dart';
@@ -6099,11 +6100,14 @@ class SyncDataSerializer {
     data = (await _withDeviceLocalFromHere(entityType, [data])).single;
     data = _withSchemaDefaults(
       entityType,
-      _withDerivedDistanceUnit(
+      withDerivedFlagSwitches(
         entityType,
-        withDiveRatingInScale(
+        _withDerivedDistanceUnit(
           entityType,
-          (await _withLocalForOmitted(entityType, [data])).single,
+          withDiveRatingInScale(
+            entityType,
+            (await _withLocalForOmitted(entityType, [data])).single,
+          ),
         ),
       ),
     );
@@ -7251,9 +7255,12 @@ class SyncDataSerializer {
       for (final record in records)
         _withSchemaDefaults(
           entityType,
-          _withDerivedDistanceUnit(
+          withDerivedFlagSwitches(
             entityType,
-            withDiveRatingInScale(entityType, record),
+            _withDerivedDistanceUnit(
+              entityType,
+              withDiveRatingInScale(entityType, record),
+            ),
           ),
         ),
     ];
@@ -13248,6 +13255,9 @@ class SyncDataSerializer {
       'omitUnusedOcGases': false,
       'showMapBackgroundOnSiteCards': false,
       'showCountryFlags': true,
+      'showDiveCountryFlags': true,
+      'showBuddyCountryFlags': true,
+      'showTripCountryFlags': true,
       // Dive profile markers
       'showMaxDepthMarker': true,
       'showPressureThresholdMarkers': false,

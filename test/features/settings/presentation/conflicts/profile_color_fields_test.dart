@@ -16,11 +16,19 @@ void main() {
     }
   });
 
-  test('the country flags switch is a labelled boolean field', () {
-    final field = diverSettingsFields['showCountryFlags'];
-    expect(field, isNotNull);
-    expect(field!.kind, FieldKind.boolean);
-    expect(field.label(l10n), 'Country flags');
+  test('each country flags switch is a labelled boolean field', () {
+    const labels = {
+      'showCountryFlags': 'Country flags (sites)',
+      'showDiveCountryFlags': 'Country flags (dives)',
+      'showBuddyCountryFlags': 'Country flags (buddies)',
+      'showTripCountryFlags': 'Country flags (trips)',
+    };
+    for (final entry in labels.entries) {
+      final field = diverSettingsFields[entry.key];
+      expect(field, isNotNull, reason: entry.key);
+      expect(field!.kind, FieldKind.boolean, reason: entry.key);
+      expect(field.label(l10n), entry.value);
+    }
   });
 
   test('labels the field with the metric name', () {

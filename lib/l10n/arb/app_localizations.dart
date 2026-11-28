@@ -5622,6 +5622,12 @@ abstract class AppLocalizations {
   /// **'Profile'**
   String get buddies_linkedProfile_chip;
 
+  /// Screen-reader label for a buddy row whose country shows only as a flag on the photo (issue #5001).
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, {country}'**
+  String buddies_listTile_semanticsWithCountry(String name, String country);
+
   /// No description provided for @buddies_linkedProfile_link.
   ///
   /// In en, this message translates to:
@@ -28039,6 +28045,24 @@ abstract class AppLocalizations {
   /// **'Collapse all'**
   String get equipment_list_collapseAllGroups;
 
+  /// Equipment list: tooltip and screen reader label of the chevron that opens a folded assembly to show its parts
+  ///
+  /// In en, this message translates to:
+  /// **'Show parts'**
+  String get equipment_list_showParts;
+
+  /// Equipment list: tooltip and screen reader label of the chevron that folds an open assembly's parts away
+  ///
+  /// In en, this message translates to:
+  /// **'Hide parts'**
+  String get equipment_list_hideParts;
+
+  /// Equipment list assembly view: chip on an assembly row counting the parts listed under it, components and installed parts alike
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 part} other{{count} parts}}'**
+  String equipment_list_partCount(int count);
+
   /// Chip in the active filters bar when the list is filtered by location
   ///
   /// In en, this message translates to:
@@ -28068,6 +28092,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'One heading per place, on this page only'**
   String get equipment_arrange_groupByLocationSubtitle;
+
+  /// Equipment page sort sheet: switch that lists each assembly's parts under the assembly instead of in their own type groups
+  ///
+  /// In en, this message translates to:
+  /// **'Show parts under their assembly'**
+  String get equipment_arrange_nestParts;
+
+  /// Subtitle of the switch that lists each assembly's parts under it
+  ///
+  /// In en, this message translates to:
+  /// **'Fold each assembly\'s parts under it'**
+  String get equipment_arrange_nestPartsSubtitle;
 
   /// Title of the page listing places where gear is kept
   ///
@@ -44025,8 +44061,26 @@ abstract class AppLocalizations {
   /// No description provided for @settings_conflict_field_showCountryFlags.
   ///
   /// In en, this message translates to:
-  /// **'Country flags'**
+  /// **'Country flags (sites)'**
   String get settings_conflict_field_showCountryFlags;
+
+  /// No description provided for @settings_conflict_field_showDiveCountryFlags.
+  ///
+  /// In en, this message translates to:
+  /// **'Country flags (dives)'**
+  String get settings_conflict_field_showDiveCountryFlags;
+
+  /// No description provided for @settings_conflict_field_showBuddyCountryFlags.
+  ///
+  /// In en, this message translates to:
+  /// **'Country flags (buddies)'**
+  String get settings_conflict_field_showBuddyCountryFlags;
+
+  /// No description provided for @settings_conflict_field_showTripCountryFlags.
+  ///
+  /// In en, this message translates to:
+  /// **'Country flags (trips)'**
+  String get settings_conflict_field_showTripCountryFlags;
 
   /// No description provided for @settings_conflict_field_countryCode.
   ///
@@ -63490,11 +63544,29 @@ abstract class AppLocalizations {
   /// **'Country flags'**
   String get settings_appearance_countryFlags_title;
 
-  /// No description provided for @settings_appearance_countryFlags_subtitle.
+  /// No description provided for @settings_appearance_countryFlags_subtitle_sites.
   ///
   /// In en, this message translates to:
-  /// **'Show a small flag beside site locations and trips'**
-  String get settings_appearance_countryFlags_subtitle;
+  /// **'Show a small flag beside each site\'s location'**
+  String get settings_appearance_countryFlags_subtitle_sites;
+
+  /// No description provided for @settings_appearance_countryFlags_subtitle_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a small flag beside each dive\'s site location'**
+  String get settings_appearance_countryFlags_subtitle_dives;
+
+  /// No description provided for @settings_appearance_countryFlags_subtitle_buddies.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a small flag on each buddy\'s photo'**
+  String get settings_appearance_countryFlags_subtitle_buddies;
+
+  /// No description provided for @settings_appearance_countryFlags_subtitle_trips.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the flags of each trip\'s countries'**
+  String get settings_appearance_countryFlags_subtitle_trips;
 
   /// No description provided for @settings_appearance_mapStyle.
   ///
@@ -84624,6 +84696,12 @@ abstract class AppLocalizations {
   /// **'Dive {diveNumber} at {siteName}'**
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName);
 
+  /// A dive row's site with its country, for the screen-reader label when the row shows the country only as a flag (issue #5001).
+  ///
+  /// In en, this message translates to:
+  /// **'{siteName}, {country}'**
+  String diveLog_listPage_siteWithCountry(String siteName, String country);
+
   /// No description provided for @diveLog_listPage_semanticsDraftDiveAtSite.
   ///
   /// In en, this message translates to:
@@ -105210,6 +105288,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Compact is a slim bar with status lights. Banner is the welcome banner with your dive totals. Saved on this device.'**
   String get settings_homeHeader_description;
+
+  /// Dive profile card: button opening the profile in its own desktop window
+  ///
+  /// In en, this message translates to:
+  /// **'Open in a new window'**
+  String get popOut_openProfileWindow;
+
+  /// Pop-out profile window: tooltip of the button that holds the window on the dive it shows
+  ///
+  /// In en, this message translates to:
+  /// **'Pin to this dive'**
+  String get popOut_pin;
+
+  /// Pop-out profile window: tooltip of the pinned button, which goes back to showing the main window's dive
+  ///
+  /// In en, this message translates to:
+  /// **'Follow the main window'**
+  String get popOut_unpin;
+
+  /// Pop-out profile window: shown when the main window has not shown a dive yet
+  ///
+  /// In en, this message translates to:
+  /// **'Select a dive in the main window'**
+  String get popOut_selectDivePlaceholder;
+
+  /// Pop-out profile window: shown while App Lock has locked the app
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Submersion in the main window'**
+  String get popOut_lockedPlaceholder;
+
+  /// Pop-out profile window: the OS window title; dive is the dive's number and site, like #142 Salt Pier
+  ///
+  /// In en, this message translates to:
+  /// **'Profile: {dive}'**
+  String popOut_windowTitle(String dive);
+
+  /// Pop-out profile window: shown when the window could not connect to the main window's database
+  ///
+  /// In en, this message translates to:
+  /// **'This window could not reach the logbook. Close it and try again.'**
+  String get popOut_connectFailed;
 }
 
 class _AppLocalizationsDelegate

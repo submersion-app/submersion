@@ -90,9 +90,31 @@ class BuddyListTile extends ConsumerWidget {
         buddy.name;
     final subtitleField = resolveCardSlot(slots, 'subtitle', BuddyField.email);
     final subtitle = slotText(subtitleField);
-    // A subtitle naming the country gets its flag, as a site row's does
-    // (issue #4457).
-    final flagBuddy = subtitleField == BuddyField.country ? buddy : null;
+    // The buddy's flag is a badge on the avatar, whatever the subtitle shows
+    // (issue #5001), so the subtitle draws none and the row never shows two.
+    // With no country text to name there is no badge.
+    final country = buddy.country?.trim() ?? '';
+    final flagCode = country.isEmpty
+        ? null
+        : shownFlagCode(
+            ref,
+            section: FlagSection.buddies,
+            country: country,
+            code: buddy.countryCode,
+          );
+    // The badge may be the row's only sign of the country, so the label
+    // names it, unless a spoken slot or extra field already shows it.
+    final rowShowsCountry =
+        [
+          resolveCardSlot(slots, 'title', BuddyField.buddyName),
+          subtitleField,
+          resolveCardSlot(slots, 'stat1', BuddyField.diveCount),
+          resolveCardSlot(slots, 'stat2', BuddyField.lastDive),
+        ].contains(BuddyField.country) ||
+        config.extraFields.contains(BuddyField.country);
+    final label = flagCode != null && !rowShowsCountry
+        ? l10n.buddies_listTile_semanticsWithCountry(buddy.name, country)
+        : buddy.name;
 
     String formatStat(BuddyField field, dynamic value) {
       if (field == BuddyField.diveCount) {
@@ -169,7 +191,7 @@ class BuddyListTile extends ConsumerWidget {
       child: Semantics(
         button: true,
         selected: isSelected,
-        label: buddy.name,
+        label: label,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -190,15 +212,26 @@ class BuddyListTile extends ConsumerWidget {
                         child: SizedBox(
                           width: 40,
                           height: 40,
-                          child: Center(
-                            child: _BuddyAvatar(
-                              buddy: buddy,
-                              backgroundColor:
-                                  accent?.withValues(alpha: 0.15) ??
-                                  colorScheme.primaryContainer,
-                              foregroundColor:
-                                  accent ?? colorScheme.onPrimaryContainer,
-                            ),
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Center(
+                                child: _BuddyAvatar(
+                                  buddy: buddy,
+                                  backgroundColor:
+                                      accent?.withValues(alpha: 0.15) ??
+                                      colorScheme.primaryContainer,
+                                  foregroundColor:
+                                      accent ?? colorScheme.onPrimaryContainer,
+                                ),
+                              ),
+                              if (flagCode != null)
+                                PositionedDirectional(
+                                  end: -4,
+                                  bottom: -2,
+                                  child: _AvatarFlagBadge(code: flagCode),
+                                ),
+                            ],
                           ),
                         ),
                       ),
@@ -217,17 +250,13 @@ class BuddyListTile extends ConsumerWidget {
                             ),
                             if (subtitle != null) ...[
                               const SizedBox(height: 2),
-                              LocationWithFlag(
-                                country: flagBuddy?.country,
-                                countryCode: flagBuddy?.countryCode,
-                                text: Text(
-                                  subtitle,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: secondaryTextColor,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                              Text(
+                                subtitle,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: secondaryTextColor,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ],
@@ -323,6 +352,29 @@ class _BuddyAvatar extends ConsumerWidget {
       initials: buddy.initials,
       backgroundColor: backgroundColor,
       foregroundColor: foregroundColor,
+    );
+  }
+}
+
+/// The buddy's flag on the lower trailing corner of the avatar (issue
+/// #5001). A ring in the surface colour parts it from a photo behind it.
+class _AvatarFlagBadge extends StatelessWidget {
+  const _AvatarFlagBadge({required this.code});
+
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      key: const ValueKey('buddy-avatar-flag'),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(3.5),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(1.5),
+        child: CountryFlag(code: code),
+      ),
     );
   }
 }

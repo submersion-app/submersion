@@ -78,8 +78,12 @@ class PlanChartBailoutStatus extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final status = ref.watch(planChartBailoutProvider.select((c) => c.status));
-    final gap = ref.watch(planChartBailoutProvider.select((c) => c.gasGap));
+    final base = ref.watch(planChartBailoutProvider);
+    // The previewed deviation's bailout speaks when the plan's has nothing
+    // to say (#5020).
+    final preview = ref.watch(planChartBailoutPreviewProvider);
+    final status = base.status ?? (base.gasGap == null ? preview.status : null);
+    final gap = base.gasGap ?? (base.status == null ? preview.gasGap : null);
     if (status == null && gap == null) return const SizedBox.shrink();
     final theme = Theme.of(context);
     return IgnorePointer(

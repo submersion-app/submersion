@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/theme/feature_accent_colors.dart';
 import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/buddies/presentation/widgets/buddy_list_tile.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/providers/entity_card_config_providers.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
@@ -458,5 +460,36 @@ void main() {
       bounds: recordCardBounds(tester),
       padding: kRecordCardDetailedPadding,
     );
+  });
+
+  testWidgets('list accents tint the avatar with the buddies accent', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...await _overrides(),
+          accentListIconsProvider.overrideWithValue(true),
+        ],
+        locale: const Locale('en'),
+        child: Builder(
+          builder: (context) => Theme(
+            data: Theme.of(
+              context,
+            ).copyWith(extensions: const [FeatureAccentColors.light]),
+            child: BuddyListTile(
+              entry: BuddyWithDiveCount(buddy: _buddy(), diveCount: 3),
+              onTap: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final accent = FeatureAccentColors.light.of('buddies')!;
+    final avatar = tester.widget<ProfileAvatar>(find.byType(ProfileAvatar));
+    expect(avatar.backgroundColor, accent.withValues(alpha: 0.15));
+    expect(avatar.foregroundColor, accent);
   });
 }

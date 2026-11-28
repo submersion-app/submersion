@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/features/planner/presentation/providers/mission_issue
 import 'package:submersion/features/planner/presentation/providers/mission_outcome_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_headline_figures.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
@@ -195,7 +197,12 @@ class ContingencyPreviewChip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final preview = ref.watch(selectedContingencyProvider);
-    if (preview == null) return const SizedBox.shrink();
+    // In Bailout view the deviated dive's bailout is previewed instead
+    // (#5020), with no plan preview in effect.
+    final bailoutPreview =
+        ref.watch(planBailoutViewProvider) &&
+        ref.watch(planBailoutDeviationProvider) != null;
+    if (preview == null && !bailoutPreview) return const SizedBox.shrink();
 
     final units = ref.watch(unitFormatterProvider);
 
@@ -211,7 +218,7 @@ class ContingencyPreviewChip extends ConsumerWidget {
     ].join(' ');
     final label = [
       if (deviation.isNotEmpty) deviation,
-      for (final tank in preview.lostTanks)
+      for (final tank in preview?.lostTanks ?? const <DiveTank>[])
         context.l10n.plannerCanvas_contingency_lostGas(tank.gasMix.name),
     ].join(' · ');
 

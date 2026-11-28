@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 
@@ -82,7 +83,11 @@ class PlanHeadlineFigures {
 /// [PlanHeadlineFigures] for the readouts, status chips and Results tiles:
 /// the bailout's while the chart draws the bailout picture, else the plan's.
 final planHeadlineFiguresProvider = Provider<PlanHeadlineFigures>((ref) {
-  final chart = ref.watch(planChartBailoutProvider);
+  // The previewed deviation's bailout while it has a picture (#5020), else
+  // the plan's; still dimmed while a preview is on its way.
+  final preview = ref.watch(planChartBailoutPreviewProvider);
+  final base = ref.watch(planChartBailoutProvider);
+  final chart = preview.picture != null ? preview : base;
   final picture = chart.picture;
   if (picture != null) {
     final worst = picture.worstCase;
@@ -96,7 +101,11 @@ final planHeadlineFiguresProvider = Provider<PlanHeadlineFigures>((ref) {
           .fold(0, (sum, stop) => sum + stop.durationSeconds),
       cnsEnd: picture.worstCaseCnsEnd,
       isBailout: true,
-      stale: chart.status != null,
+      // A failed preview has nothing on its way: the figures shown are the
+      // plan's, and current.
+      stale:
+          chart.status != null ||
+          (preview.status != null && preview.status != PlanResultStatus.failed),
     );
   }
   final outcome = ref.watch(activePlanOutcomeProvider);

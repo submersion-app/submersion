@@ -3702,6 +3702,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get buddies_linkedProfile_chip => 'Perfil';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name, $country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => 'Vincular';
 
   @override
@@ -17646,6 +17651,23 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Recolher tudo';
 
   @override
+  String get equipment_list_showParts => 'Mostrar peças';
+
+  @override
+  String get equipment_list_hideParts => 'Ocultar peças';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count peças',
+      one: '$count peça',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Localização';
 
   @override
@@ -17662,6 +17684,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'Um título por local, apenas nesta página';
+
+  @override
+  String get equipment_arrange_nestParts =>
+      'Mostrar as peças sob o seu conjunto';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Recolhe as peças de cada conjunto sob ele';
 
   @override
   String get equipment_locations_title => 'Localizações';
@@ -27868,7 +27898,20 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mapa atrás dos cartões de ponto de mergulho';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Bandeiras dos países';
+  String get settings_conflict_field_showCountryFlags =>
+      'Bandeiras dos países (pontos de mergulho)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Bandeiras dos países (mergulhos)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Bandeiras dos países (companheiros)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Bandeiras dos países (viagens)';
 
   @override
   String get settings_conflict_field_countryCode => 'Código do país';
@@ -40558,8 +40601,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'Bandeiras dos países';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'Mostra uma pequena bandeira ao lado da localização dos locais e das viagens';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'Mostra uma pequena bandeira ao lado da localização de cada ponto de mergulho';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'Mostra uma pequena bandeira ao lado da localização do ponto de cada mergulho';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'Mostra uma pequena bandeira na foto de cada companheiro';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'Mostra as bandeiras dos países de cada viagem';
 
   @override
   String get settings_appearance_mapStyle => 'Estilo do Mapa';
@@ -53762,6 +53817,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Mergulho $diveNumber em $siteName';
+  }
+
+  @override
+  String diveLog_listPage_siteWithCountry(String siteName, String country) {
+    return '$siteName, $country';
   }
 
   @override
@@ -67360,4 +67420,30 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'Compacto é uma barra estreita com luzes de status. Faixa é a faixa de boas-vindas com seus totais de mergulho. Salvo neste dispositivo.';
+
+  @override
+  String get popOut_openProfileWindow => 'Abrir em uma nova janela';
+
+  @override
+  String get popOut_pin => 'Fixar neste mergulho';
+
+  @override
+  String get popOut_unpin => 'Seguir a janela principal';
+
+  @override
+  String get popOut_selectDivePlaceholder =>
+      'Selecione um mergulho na janela principal';
+
+  @override
+  String get popOut_lockedPlaceholder =>
+      'Desbloqueie o Submersion na janela principal';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Perfil: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'Esta janela não conseguiu acessar o logbook. Feche-a e tente novamente.';
 }

@@ -16,6 +16,13 @@ import 'package:submersion/core/constants/enums.dart';
 //
 // A place's fold and the folds of the types inside it are independent:
 // unfolding a place brings its type groups back exactly as they were.
+//
+// An assembly (issue #5071) folds under `asm:<equipmentId>`, one key per
+// item wherever it appears. Assemblies start folded, so the opposite rule
+// holds for them: a stored `asm:` key means the diver OPENED it. While a
+// filter is on every assembly starts open instead, and a key in the
+// session's list means folded. [resolveCollapsedKeys] turns either into the
+// keys folded now.
 
 /// How many folded keys are kept. A key for a deleted place matches nothing
 /// and is never pruned (the group may only be filtered out right now), so
@@ -31,6 +38,32 @@ String locationFoldKey(String? locationId) => 'loc:${locationId ?? 'none'}';
 String typeFoldKey(EquipmentType type, {String? parentKey}) {
   final own = 'type:${type.name}';
   return parentKey == null ? own : '$parentKey/$own';
+}
+
+/// The key of an assembly's fold (issue #5071).
+String assemblyFoldKey(String equipmentId) => 'asm:$equipmentId';
+
+/// Whether [key] is an assembly's fold key.
+bool isAssemblyFoldKey(String key) => key.startsWith('asm:');
+
+/// The keys folded now: the stored place and type keys, plus the key of each
+/// assembly in [assemblyIds] that is folded. Outside a filter an assembly is
+/// folded unless its key is stored; with [assembliesStartOpen] (a filter on)
+/// it is folded only when its key is stored. A stored assembly key for an
+/// id not in [assemblyIds] folds nothing.
+Set<String> resolveCollapsedKeys(
+  Iterable<String> stored,
+  Iterable<String> assemblyIds, {
+  required bool assembliesStartOpen,
+}) {
+  final keys = stored.toSet();
+  return {
+    for (final key in keys)
+      if (!isAssemblyFoldKey(key)) key,
+    for (final id in assemblyIds)
+      if (keys.contains(assemblyFoldKey(id)) == assembliesStartOpen)
+        assemblyFoldKey(id),
+  };
 }
 
 /// The folded keys stored in [raw], a JSON list. Anything else (null, blank,

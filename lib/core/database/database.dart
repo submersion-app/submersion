@@ -342,7 +342,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 395;
+  static const int currentSchemaVersion = 396;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1850,6 +1850,10 @@ class AppDatabase extends _$AppDatabase {
     // v395: media_equipment, gear items linked to photos and videos (issue
     // #5046). A new synced table; the floor does not move.
     395,
+    // v396: diver_settings.show_dive_country_flags, show_buddy_country_flags
+    // and show_trip_country_flags, seeded from show_country_flags (issue
+    // #5001). The floor does not move.
+    396,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

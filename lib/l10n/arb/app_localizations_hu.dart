@@ -3689,6 +3689,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_linkedProfile_chip => 'Profil';
 
   @override
+  String buddies_listTile_semanticsWithCountry(String name, String country) {
+    return '$name, $country';
+  }
+
+  @override
   String get buddies_linkedProfile_link => 'Kapcsolás';
 
   @override
@@ -17593,6 +17598,23 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Összes összecsukása';
 
   @override
+  String get equipment_list_showParts => 'Részek megjelenítése';
+
+  @override
+  String get equipment_list_hideParts => 'Részek elrejtése';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rész',
+      one: '1 rész',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Hely';
 
   @override
@@ -17609,6 +17631,13 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'Helyenként egy fejléc, csak ezen az oldalon';
+
+  @override
+  String get equipment_arrange_nestParts => 'Részek az összeállításuk alatt';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Minden összeállítás részeit alá csukja';
 
   @override
   String get equipment_locations_title => 'Helyek';
@@ -27744,7 +27773,20 @@ class AppLocalizationsHu extends AppLocalizations {
       'Térkép a merülőhely-kártyák mögött';
 
   @override
-  String get settings_conflict_field_showCountryFlags => 'Országzászlók';
+  String get settings_conflict_field_showCountryFlags =>
+      'Országzászlók (merülőhelyek)';
+
+  @override
+  String get settings_conflict_field_showDiveCountryFlags =>
+      'Országzászlók (merülések)';
+
+  @override
+  String get settings_conflict_field_showBuddyCountryFlags =>
+      'Országzászlók (búvártársak)';
+
+  @override
+  String get settings_conflict_field_showTripCountryFlags =>
+      'Országzászlók (utazások)';
 
   @override
   String get settings_conflict_field_countryCode => 'Országkód';
@@ -40355,8 +40397,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_appearance_countryFlags_title => 'Országzászlók';
 
   @override
-  String get settings_appearance_countryFlags_subtitle =>
-      'Kis zászló a merülőhelyek helye és az utak mellett';
+  String get settings_appearance_countryFlags_subtitle_sites =>
+      'Kis zászló minden merülőhely helye mellett';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_dives =>
+      'Kis zászló minden merülés merülőhelyének helye mellett';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_buddies =>
+      'Kis zászló minden búvártárs fényképén';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle_trips =>
+      'Minden utazás országainak zászlói';
 
   @override
   String get settings_appearance_mapStyle => 'Térképstílus';
@@ -53479,6 +53533,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return '$diveNumber. merülés itt: $siteName';
+  }
+
+  @override
+  String diveLog_listPage_siteWithCountry(String siteName, String country) {
+    return '$siteName, $country';
   }
 
   @override
@@ -66995,4 +67054,29 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_homeHeader_description =>
       'A Kompakt egy keskeny sáv állapotjelzőkkel. A Szalag az üdvözlő szalag a merülési összesítőiddel. Ezen az eszközön mentve.';
+
+  @override
+  String get popOut_openProfileWindow => 'Megnyitás új ablakban';
+
+  @override
+  String get popOut_pin => 'Rögzítés ehhez a merüléshez';
+
+  @override
+  String get popOut_unpin => 'A főablak követése';
+
+  @override
+  String get popOut_selectDivePlaceholder =>
+      'Válassz egy merülést a főablakban';
+
+  @override
+  String get popOut_lockedPlaceholder => 'Oldd fel a Submersiont a főablakban';
+
+  @override
+  String popOut_windowTitle(String dive) {
+    return 'Profil: $dive';
+  }
+
+  @override
+  String get popOut_connectFailed =>
+      'Ez az ablak nem érte el a merülési naplót. Zárd be, és próbáld újra.';
 }

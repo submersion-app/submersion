@@ -280,6 +280,7 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
                         if (subtitle != null) ...[
                           const SizedBox(height: 2),
                           LocationWithFlag(
+                            section: FlagSection.sites,
                             country: flagSite?.country,
                             countryCode: flagSite?.countryCode,
                             text: Text(

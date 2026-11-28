@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_card.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
@@ -96,14 +97,14 @@ class _OpenCard<T> extends StatelessWidget {
     final themed = theme.cardTheme.shape;
     final radius = themed is RoundedRectangleBorder
         ? themed.borderRadius
-        : BorderRadius.circular(12);
+        : BorderRadius.circular(Radii.r12);
     final open = Card(
       shape: RoundedRectangleBorder(
         borderRadius: radius,
         side: BorderSide(color: theme.colorScheme.primary, width: 2),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(Spacing.s16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,

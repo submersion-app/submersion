@@ -9,6 +9,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/widgets/card_photo_overlay_slider.dart';
 import 'package:submersion/features/settings/presentation/widgets/dive_details_appearance_tiles.dart';
 import 'package:submersion/features/settings/presentation/widgets/gradient_preset_picker.dart';
+import 'package:submersion/features/settings/presentation/widgets/section_country_flags_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/viewer_fullscreen_mode_tile.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_options_display_rows.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_zoom_mode_labels.dart';
@@ -214,6 +215,9 @@ class SectionAppearancePage extends ConsumerWidget {
         ),
         _buildViewModeDropdown(context, ref, config),
         _buildListFieldsTile(context, config),
+        // Each of these sections has its own flags switch (issue #5001).
+        if (flagSectionFor(config.key) case final section?)
+          SectionCountryFlagsTile(section: section),
 
         // -- Cards section (dives / sites only) --
         if (config.hasCardsSection) ...[

@@ -54,6 +54,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _MockSettingsNotifier() : super(const AppSettings());
 
+  @override
+  Future<void> reload() async {}
+
   /// Already "loaded": the mock's state is supplied up front.
   @override
   Future<void> get initialLoad async {}
@@ -664,6 +667,15 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setShowCountryFlags(bool value) async =>
       state = state.copyWith(showCountryFlags: value);
+  @override
+  Future<void> setShowDiveCountryFlags(bool value) async =>
+      state = state.copyWith(showDiveCountryFlags: value);
+  @override
+  Future<void> setShowBuddyCountryFlags(bool value) async =>
+      state = state.copyWith(showBuddyCountryFlags: value);
+  @override
+  Future<void> setShowTripCountryFlags(bool value) async =>
+      state = state.copyWith(showTripCountryFlags: value);
   @override
   Future<void> setTissueColorScheme(TissueColorScheme scheme) async =>
       state = state.copyWith(tissueColorScheme: scheme);

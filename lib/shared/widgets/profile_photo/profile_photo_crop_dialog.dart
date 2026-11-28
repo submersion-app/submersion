@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:submersion/core/services/images/profile_photo_codec.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_tab_metrics.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_photo_crop_geometry.dart';
@@ -185,7 +186,7 @@ class _ProfilePhotoCropDialogState extends State<_ProfilePhotoCropDialog> {
             // stay on screen next to the only way out.
             ? Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(Spacing.s24),
                   child: Text(
                     l10n.profilePhoto_error_undecodable,
                     textAlign: TextAlign.center,
@@ -249,7 +250,7 @@ class _ProfilePhotoCropDialogState extends State<_ProfilePhotoCropDialog> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(Spacing.s16),
                         child: Text(
                           l10n.profilePhoto_crop_hint,
                           style: Theme.of(context).textTheme.bodySmall,
@@ -257,7 +258,12 @@ class _ProfilePhotoCropDialogState extends State<_ProfilePhotoCropDialog> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                        padding: const EdgeInsets.fromLTRB(
+                          Spacing.s16,
+                          0,
+                          Spacing.s16,
+                          Spacing.s24,
+                        ),
                         child: FilledButton(
                           onPressed: _busy
                               ? null

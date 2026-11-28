@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/shared/widgets/entity_table/entity_table_resize_handle.dart';
@@ -145,7 +146,9 @@ class EntityTableHeaderCell extends StatelessWidget {
                       if (isFiltered)
                         Padding(
                           key: ValueKey('entity-table-filtered-${field.name}'),
-                          padding: const EdgeInsetsDirectional.only(end: 2),
+                          padding: const EdgeInsetsDirectional.only(
+                            end: Spacing.s2,
+                          ),
                           child: Icon(
                             Icons.filter_alt,
                             size: _filterIconWidth - 2,

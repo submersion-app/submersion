@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/add_strip_layout.dart';
 import 'package:submersion/shared/widgets/record_editing/record_card_header.dart';
@@ -61,7 +62,10 @@ class AddStrip extends StatelessWidget {
         width: double.infinity,
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(
+            horizontal: Spacing.s12,
+            vertical: Spacing.s6,
+          ),
           child: Row(
             children: [
               Text(
@@ -71,7 +75,7 @@ class AddStrip extends StatelessWidget {
                 ),
               ),
               for (final entry in entries) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: Spacing.s8),
                 _AddChip(entry: entry, onAdd: onAdd),
               ],
             ],
@@ -100,7 +104,7 @@ class _AddChip extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(entry.label),
-                const SizedBox(width: 6),
+                const SizedBox(width: Spacing.s6),
                 const RecordChangedDot(),
               ],
             )

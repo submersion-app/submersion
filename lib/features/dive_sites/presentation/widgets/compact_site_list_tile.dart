@@ -174,6 +174,7 @@ class CompactSiteListTile extends ConsumerWidget {
                                 child: Align(
                                   alignment: AlignmentDirectional.centerStart,
                                   child: LocationWithFlag(
+                                    section: FlagSection.sites,
                                     country: flagSite?.country,
                                     countryCode: flagSite?.countryCode,
                                     text: Text(

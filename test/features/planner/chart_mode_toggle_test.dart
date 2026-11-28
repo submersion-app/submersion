@@ -7,7 +7,9 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
 import 'package:submersion/features/planner/domain/services/plan_issue_markers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_background_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_issue_marker_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
@@ -70,13 +72,18 @@ final _plan = domain.DivePlan(
   ],
 );
 
-Future<ProviderContainer> _mount(WidgetTester tester, Widget child) async {
+Future<ProviderContainer> _mount(
+  WidgetTester tester,
+  Widget child, {
+  List<Override> overrides = const [],
+}) async {
   await tester.pumpWidget(
     testApp(
       locale: const Locale('en'),
       overrides: [
         ...plannerResultsInline(),
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+        ...overrides,
       ],
       child: Center(child: child),
     ),
@@ -171,13 +178,70 @@ void main() {
     expect(scrimsAbove(find.text('Bailout')), findsOneWidget);
   });
 
+  testWidgets('Base turns the Bailout view off along with the deviations', (
+    tester,
+  ) async {
+    final container = await _mount(
+      tester,
+      const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [ContingencyChips(), ChartModeToggle()],
+      ),
+    );
+    Finder chip(String label) =>
+        find.ancestor(of: find.text(label), matching: find.byType(PlanChip));
+
+    await tester.tap(find.text('Bailout'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<PlanChip>(chip('Base')).emphasized, isFalse);
+
+    container.read(contingencySelectionProvider.notifier).toggleDeeper();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Base'));
+    await tester.pumpAndSettle();
+
+    expect(container.read(chartDisplayModeProvider), ChartDisplayMode.ccr);
+    expect(container.read(contingencySelectionProvider).deeper, isFalse);
+    expect(tester.widget<PlanChip>(chip('Base')).emphasized, isTrue);
+    expect(tester.widget<PlanChip>(_bailoutChip).emphasized, isFalse);
+  });
+
+  testWidgets('Base stays lit when the Bailout view is not in effect', (
+    tester,
+  ) async {
+    // The Bailout chip left on while the plan's bailout comes to nothing:
+    // the view is not in effect, so the plan itself is what is shown.
+    final container = await _mount(
+      tester,
+      const ContingencyChips(),
+      overrides: [
+        planBailoutProvider.overrideWith(
+          (ref) async => const PlanBackgroundResult<BailoutOutcome?>(
+            planId: 'switch',
+            value: null,
+          ),
+        ),
+      ],
+    );
+    container.read(chartDisplayModeProvider.notifier).state =
+        ChartDisplayMode.bailout;
+    await tester.pumpAndSettle();
+
+    expect(container.read(planBailoutViewProvider), isFalse);
+    final base = find.ancestor(
+      of: find.text('Base'),
+      matching: find.byType(PlanChip),
+    );
+    expect(tester.widget<PlanChip>(base).emphasized, isTrue);
+  });
+
   group('the contingencies in Bailout view', () {
     Finder contingencyChips() => find.descendant(
       of: find.byType(ContingencyChips),
       matching: find.byType(PlanChip),
     );
 
-    testWidgets('are dimmed and cannot be toggled', (tester) async {
+    testWidgets('combine with Bailout', (tester) async {
       final container = await _mount(
         tester,
         const Row(
@@ -193,31 +257,49 @@ void main() {
           of: find.byWidget(chip.widget),
           matching: find.byType(Opacity),
         );
-        expect(tester.widget<Opacity>(opacity.first).opacity, 0.4);
+        expect(tester.widget<Opacity>(opacity.first).opacity, 1);
       }
       await tester.tap(contingencyChips().at(1));
       await tester.pumpAndSettle();
-      expect(container.read(contingencySelectionProvider).deeper, isFalse);
+      expect(container.read(contingencySelectionProvider).deeper, isTrue);
+      expect(
+        container.read(chartDisplayModeProvider),
+        ChartDisplayMode.bailout,
+      );
     });
 
-    testWidgets('are not in effect, and come back when it is off', (
+    testWidgets("preview the deviated dive's bailout, not the plan's", (
       tester,
     ) async {
       final container = await _mount(tester, const ChartModeToggle());
+      // Held as the chart holds it, so the preview bailout is worked out.
+      final ghost = container.listen(contingencyGhostSeriesProvider, (_, _) {});
+      addTearDown(ghost.close);
       container.read(contingencySelectionProvider.notifier).toggleDeeper();
       await tester.pumpAndSettle();
-      expect(container.read(selectedContingencyProvider), isNotNull);
+      final planGhost = container.read(contingencyGhostSeriesProvider)!;
 
       await tester.tap(find.text('Bailout'));
       await tester.pumpAndSettle();
+      final delta = container
+          .read(resolvedPlanEngineConfigProvider)
+          .deviationDepthDelta;
       expect(container.read(selectedContingencyProvider), isNull);
-      expect(container.read(contingencyGhostSeriesProvider), isNull);
-      expect(container.read(contingencySelectionProvider).deeper, isTrue);
+      expect(
+        container.read(contingencyGhostSeriesProvider)!.maxDepth,
+        closeTo(
+          container.read(planCanvasSeriesProvider).maxDepth + delta,
+          0.01,
+        ),
+      );
 
       await tester.tap(find.text('Bailout'));
       await tester.pumpAndSettle();
       expect(container.read(selectedContingencyProvider), isNotNull);
-      expect(container.read(contingencyGhostSeriesProvider), isNotNull);
+      expect(
+        container.read(contingencyGhostSeriesProvider)!.maxDepth,
+        planGhost.maxDepth,
+      );
     });
 
     testWidgets('come back when the Bailout chip goes with the last bailout '
@@ -235,39 +317,7 @@ void main() {
       expect(container.read(selectedContingencyProvider), isNotNull);
     });
 
-    testWidgets('a row picked in the results puts it in effect, leaving '
-        'Bailout view', (tester) async {
-      tester.view.physicalSize = const Size(800, 2400);
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      final container = await _mount(
-        tester,
-        SizedBox(
-          width: 500,
-          height: 2400,
-          child: PlanResultsSheet(controller: ScrollController()),
-        ),
-      );
-      container.read(contingenciesExpandedProvider.notifier).state = true;
-      container.read(chartDisplayModeProvider.notifier).state =
-          ChartDisplayMode.bailout;
-      await tester.pumpAndSettle();
-
-      final deeperRow = find.byWidgetPredicate(
-        (w) =>
-            w is PlanChip && w.label.startsWith('+') && !w.label.contains('′'),
-      );
-      await tester.ensureVisible(deeperRow.first);
-      await tester.tap(deeperRow.first);
-      await tester.pumpAndSettle();
-
-      expect(container.read(chartDisplayModeProvider), ChartDisplayMode.ccr);
-      expect(container.read(contingencySelectionProvider).deeper, isTrue);
-      expect(container.read(selectedContingencyProvider), isNotNull);
-    });
-
-    testWidgets('a row already on, picked in Bailout view, stays on', (
+    testWidgets('a row picked in the results toggles it in Bailout view', (
       tester,
     ) async {
       tester.view.physicalSize = const Size(800, 2400);
@@ -283,7 +333,6 @@ void main() {
         ),
       );
       container.read(contingenciesExpandedProvider.notifier).state = true;
-      container.read(contingencySelectionProvider.notifier).toggleDeeper();
       container.read(chartDisplayModeProvider.notifier).state =
           ChartDisplayMode.bailout;
       await tester.pumpAndSettle();
@@ -296,7 +345,10 @@ void main() {
       await tester.tap(deeperRow.first);
       await tester.pumpAndSettle();
 
-      expect(container.read(chartDisplayModeProvider), ChartDisplayMode.ccr);
+      expect(
+        container.read(chartDisplayModeProvider),
+        ChartDisplayMode.bailout,
+      );
       expect(container.read(contingencySelectionProvider).deeper, isTrue);
     });
   });

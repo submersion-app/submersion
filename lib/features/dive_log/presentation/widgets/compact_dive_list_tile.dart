@@ -19,6 +19,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_inset.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 /// The most of line 1's text room the date slot may take, once the number
@@ -41,6 +42,11 @@ class CompactDiveListTile extends ConsumerWidget {
   final bool isPlanned;
   final DateTime dateTime;
   final String? siteName;
+
+  /// The site's country text and stored ISO code, for the flag before a
+  /// title that names the site (issue #5001).
+  final String? siteCountry;
+  final String? siteCountryCode;
   final double? maxDepth;
   final Duration? duration;
   final VoidCallback? onTap;
@@ -99,6 +105,8 @@ class CompactDiveListTile extends ConsumerWidget {
     this.isPlanned = false,
     required this.dateTime,
     this.siteName,
+    this.siteCountry,
+    this.siteCountryCode,
     this.maxDepth,
     this.duration,
     this.onTap,
@@ -278,6 +286,17 @@ class CompactDiveListTile extends ConsumerWidget {
     );
   }
 
+  /// [title] with the site's flag before it when [flagCode] is set; the
+  /// flag centres on the title's line as it does on site rows.
+  Widget _withFlag(String? flagCode, Text title) => flagCode == null
+      ? title
+      : LocationWithFlag(
+          section: FlagSection.dives,
+          country: siteCountry,
+          countryCode: siteCountryCode,
+          text: title,
+        );
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // A dive awaiting its computer data, a plan (issue #2002) or a draft
@@ -331,6 +350,31 @@ class CompactDiveListTile extends ConsumerWidget {
     // so a Dive Type slot honors the active locale (issue #643) and keeps a
     // custom type's own name, without this tile subscribing to the type list.
     final titleText = _buildTitleText(units, context);
+    // The site's flag sits before a title that names the site (issue
+    // #5001), and the label then names the country the flag stands for, so
+    // a site with no country text to name draws no flag.
+    final titleNamesSite =
+        (titleField == DiveField.siteName ||
+            titleField == DiveField.siteLocation) &&
+        (siteCountry?.trim().isNotEmpty ?? false);
+    final flagCode = titleNamesSite
+        ? shownFlagCode(
+            ref,
+            section: FlagSection.dives,
+            country: siteCountry,
+            code: siteCountryCode,
+          )
+        : null;
+    // The title and date slots are spoken (the stats are not), and a site
+    // location in either carries the country, so the label names the
+    // country only when neither shows it and it is never spoken twice.
+    final slotSpeaksCountry =
+        _hasSlotData &&
+        (titleField == DiveField.siteLocation ||
+            dateField == DiveField.siteLocation);
+    final labelCountry = flagCode != null && !slotSpeaksCountry
+        ? siteCountry!.trim()
+        : null;
     final dateText = _buildDateText(units);
     final stat1Text = _buildStatText(stat1Field, DiveField.maxDepth, units);
     final stat2Text = _buildStatText(stat2Field, DiveField.runtime, units);
@@ -370,6 +414,7 @@ class CompactDiveListTile extends ConsumerWidget {
             unfilledState,
             diveNumber,
             siteName,
+            country: labelCountry,
           ),
           child: InkWell(
             onTap: onTap,
@@ -434,16 +479,19 @@ class CompactDiveListTile extends ConsumerWidget {
                             builder: (context, room) => Row(
                               children: [
                                 Expanded(
-                                  child: Text(
-                                    titleText,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                          color: primaryTextColor,
-                                        ),
-                                    overflow: TextOverflow.ellipsis,
+                                  child: _withFlag(
+                                    flagCode,
+                                    Text(
+                                      titleText,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                            color: primaryTextColor,
+                                          ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                 ),
                                 if (showSafetyBadge) ...[
