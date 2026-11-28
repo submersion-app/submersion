@@ -48,8 +48,16 @@ void main() {
       cloud.operationLog.where((e) => e.startsWith('upload:document-')).length;
 
   /// Member a's device, holding site s1 and a shared document on it, synced.
-  Future<String> ownerShares({List<int> bytes = const [1, 2, 3]}) async {
-    final svc = await libraryDevice(cloud, 'a', file: fileOf('a'));
+  Future<String> ownerShares({
+    List<int> bytes = const [1, 2, 3],
+    Set<String> owners = const {'a'},
+  }) async {
+    final svc = await libraryDevice(
+      cloud,
+      'a',
+      file: fileOf('a'),
+      owners: owners,
+    );
     await addLibrarySite('s1', 'a');
     final id = await addSharedDocument('s1', 'a', bytes: bytes);
     final r = await svc.sync('L', diverId: 'd-a');
@@ -115,9 +123,14 @@ void main() {
 
   test('concurrent page edits converge', () async {
     await seedTestLibrary(cloud, owners: {'a', 'b'});
-    final id = await ownerShares();
+    final id = await ownerShares(owners: {'a', 'b'});
 
-    var svc = await libraryDevice(cloud, 'b', file: fileOf('b'));
+    var svc = await libraryDevice(
+      cloud,
+      'b',
+      file: fileOf('b'),
+      owners: {'a', 'b'},
+    );
     await svc.sync('L', diverId: 'd-b');
     Future<void> repage(String member, List<int> bytes) async {
       final repo = DocumentRepository();
@@ -130,14 +143,24 @@ void main() {
     await repage('b', [7, 7]);
     await svc.sync('L', diverId: 'd-b');
 
-    svc = await libraryDevice(cloud, 'a', file: fileOf('a'));
+    svc = await libraryDevice(
+      cloud,
+      'a',
+      file: fileOf('a'),
+      owners: {'a', 'b'},
+    );
     await Future<void>.delayed(const Duration(milliseconds: 5));
     await repage('a', [8, 8]);
     await svc.sync('L', diverId: 'd-a');
     await svc.sync('L', diverId: 'd-a');
     expect((await DocumentRepository().getPages(id)).single.bytes, [8, 8]);
 
-    svc = await libraryDevice(cloud, 'b', file: fileOf('b'));
+    svc = await libraryDevice(
+      cloud,
+      'b',
+      file: fileOf('b'),
+      owners: {'a', 'b'},
+    );
     await svc.sync('L', diverId: 'd-b');
     expect((await DocumentRepository().getPages(id)).single.bytes, [8, 8]);
     // The losing scan's file stays for the grace period.
@@ -147,13 +170,23 @@ void main() {
   test("a page file not fetched keeps an editor's push from overwriting "
       'newer edits', () async {
     await seedTestLibrary(cloud, owners: {'a', 'b'});
-    final id = await ownerShares();
-    var b = await libraryDevice(cloud, 'b', file: fileOf('b'));
+    final id = await ownerShares(owners: {'a', 'b'});
+    var b = await libraryDevice(
+      cloud,
+      'b',
+      file: fileOf('b'),
+      owners: {'a', 'b'},
+    );
     await b.sync('L', diverId: 'd-b');
     // b's own edit, not yet sent.
     await LibraryDocumentStamper().stamp(id, {'title'}, actingDiverId: 'd-b');
 
-    final a = await libraryDevice(cloud, 'a', file: fileOf('a'));
+    final a = await libraryDevice(
+      cloud,
+      'a',
+      file: fileOf('a'),
+      owners: {'a', 'b'},
+    );
     await Future<void>.delayed(const Duration(milliseconds: 5));
     final repo = DocumentRepository();
     await repo.save(
@@ -173,7 +206,7 @@ void main() {
     // b cannot fetch a's new scan yet.
     await t.deletePageFile((await t.findPageFile(newFile))!.id);
 
-    b = await libraryDevice(cloud, 'b', file: fileOf('b'));
+    b = await libraryDevice(cloud, 'b', file: fileOf('b'), owners: {'a', 'b'});
     await b.sync('L', diverId: 'd-b');
     final after = await t.readDocument((await t.listDocuments()).single.id);
     expect(after.fields['notes'], 'North slipway');

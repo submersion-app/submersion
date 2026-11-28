@@ -27,11 +27,12 @@ bool isLibraryDocumentRow(
   Map<String, dynamic> row,
   Set<String> libraryDocuments,
 ) {
-  if (libraryDocuments.isEmpty) return false;
-  if (entityType == 'documents') {
-    return row['sharedLibraryId'] != null ||
-        libraryDocuments.contains(row['id']);
+  // A row that says it is a library's is one, whatever this device holds.
+  if (entityType == 'documents' && row['sharedLibraryId'] != null) {
+    return true;
   }
+  if (libraryDocuments.isEmpty) return false;
+  if (entityType == 'documents') return libraryDocuments.contains(row['id']);
   if (libraryDocumentChildEntities.contains(entityType)) {
     return libraryDocuments.contains(row['documentId']);
   }
@@ -43,9 +44,7 @@ List<Map<String, dynamic>> withoutLibraryDocumentRows(
   String entityType,
   List<Map<String, dynamic>> rows,
   Set<String> libraryDocuments,
-) => libraryDocuments.isEmpty
-    ? rows
-    : [
-        for (final row in rows)
-          if (!isLibraryDocumentRow(entityType, row, libraryDocuments)) row,
-      ];
+) => [
+  for (final row in rows)
+    if (!isLibraryDocumentRow(entityType, row, libraryDocuments)) row,
+];

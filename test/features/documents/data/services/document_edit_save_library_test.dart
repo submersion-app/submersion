@@ -161,4 +161,32 @@ void main() {
     );
     expect(await SharedLibraryStore().getDocumentState('x'), isNull);
   });
+
+  test("a reader's save of a shared document is refused", () async {
+    await service.create(
+      record: record('m', DocumentType.map),
+      changedCardIds: const ['details'],
+    );
+    await SharedLibraryStore().upsertLibrary(
+      const SharedLibrary(
+        id: 'L',
+        name: 'Reef Survey',
+        connectedAccountId: 'acc',
+        prefix: 'site-sync',
+        roles: SharedLibraryRoles(owners: {'o'}),
+      ),
+    );
+    await expectLater(
+      service.save(
+        documentId: 'm',
+        apply: (stored) => stored.copyWith(
+          document: stored.document.copyWith(title: 'Changed'),
+        ),
+        changedCardIds: const ['details'],
+        actingDiverId: 'd1',
+      ),
+      throwsStateError,
+    );
+    expect((await DocumentRepository().getById('m'))!.title, 'Access');
+  });
 }

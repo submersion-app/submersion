@@ -238,4 +238,29 @@ void main() {
     expect(state.clocks['title']!.hlc.physicalTime, greaterThanOrEqualTo(9));
     expect(state.clocks['title']!.memberId, 'm1');
   });
+
+  test('a reader may not share, unshare, remove or stamp a document', () async {
+    final id = await personalDoc();
+    await stamper.share(id, libraryId: 'L', actingDiverId: 'd1');
+    await SharedLibraryStore().putDocumentState(
+      (await SharedLibraryStore().getDocumentState(id))!.copyWith(dirty: false),
+    );
+    await library(editor: false);
+    final other = await personalDoc();
+    await expectLater(
+      stamper.share(other, libraryId: 'L', actingDiverId: 'd1'),
+      throwsStateError,
+    );
+    await expectLater(
+      stamper.unshare(id, actingDiverId: 'd1'),
+      throwsStateError,
+    );
+    await expectLater(
+      stamper.removeFromLibrary(id, actingDiverId: 'd1'),
+      throwsStateError,
+    );
+    await stamper.stamp(id, {'title'}, actingDiverId: 'd1');
+    expect((await SharedLibraryStore().getDocumentState(id))!.dirty, isFalse);
+    expect(await DocumentRepository().getById(id), isNotNull);
+  });
 }

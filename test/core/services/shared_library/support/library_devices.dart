@@ -41,6 +41,7 @@ Future<SharedLibraryService> libraryDevice(
   String member, {
   File? file,
   DateTime Function()? now,
+  Set<String> owners = const {'a'},
 }) async {
   final open = DatabaseService.instance.databaseOrNull;
   if (open != null) {
@@ -65,7 +66,13 @@ Future<SharedLibraryService> libraryDevice(
       ),
     );
     final store = SharedLibraryStore();
-    await store.upsertLibrary(testLibrary);
+    // The roles seedTestLibrary writes for [owners], trusted as a first
+    // sync would: an owner may share before this device has synced.
+    await store.upsertLibrary(
+      testLibrary.copyWith(
+        roles: await signedTestRoles(owners: owners, members: {'a', 'b', 'c'}),
+      ),
+    );
     await store.upsertMembership(
       SharedLibraryMembership(
         id: 'ms-$member',

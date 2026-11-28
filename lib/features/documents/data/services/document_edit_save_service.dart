@@ -69,6 +69,11 @@ class DocumentEditSaveService {
     required Iterable<String> changedCardIds,
     String? actingDiverId,
   }) async {
+    // A shared library document only its editors and owners change, here as
+    // in the screens (issue #4713).
+    if (!await _library.mayEdit(documentId, actingDiverId: actingDiverId)) {
+      throw StateError('document $documentId is read only in its library');
+    }
     final saved = await _writeSitting(
       documentId: documentId,
       apply: apply,

@@ -92,6 +92,10 @@ class LibraryDocumentStamper {
     final row = await _row(documentId);
     final libraryId = row?.sharedLibraryId;
     if (row == null || libraryId == null) return;
+    // A write nobody here may make is never uploaded, as for sites.
+    if (!await _sites.mayEditLibrary(libraryId, actingDiverId: actingDiverId)) {
+      return;
+    }
     final existing = await _store.getDocumentState(documentId);
     final siteId = existing?.siteId ?? row.siteId;
     if (siteId == null) return;
@@ -130,6 +134,14 @@ class LibraryDocumentStamper {
         lastEditedAtMs: DateTime.now().millisecondsSinceEpoch,
       ),
     );
+  }
+
+  /// Throws unless [actingDiverId] may change [libraryId]'s documents: the
+  /// library's roles hold here, not only in the screens that offer these.
+  Future<void> _requireEditor(String libraryId, String? actingDiverId) async {
+    if (!await _sites.mayEditLibrary(libraryId, actingDiverId: actingDiverId)) {
+      throw StateError('only an editor or owner of $libraryId may do this');
+    }
   }
 
   /// Whether a write to [documentId] may go ahead here: always for a
@@ -187,6 +199,7 @@ class LibraryDocumentStamper {
     if (await libraryOfSite(siteId) != libraryId) {
       throw ArgumentError.value(libraryId, 'libraryId', 'not the site\'s');
     }
+    await _requireEditor(libraryId, actingDiverId);
     final pageIds =
         await (_db.selectOnly(_db.documentPages)
               ..addColumns([_db.documentPages.id])
@@ -244,6 +257,7 @@ class LibraryDocumentStamper {
     if (row == null || libraryId == null || document == null) {
       throw StateError('document $documentId is not shared');
     }
+    await _requireEditor(libraryId, actingDiverId);
     final copyId = unsharedDocumentId(documentId, actingDiverId);
     await _keepPrivateCopy(document, copyId, actingDiverId);
     final existing =
@@ -276,6 +290,7 @@ class LibraryDocumentStamper {
     if (row == null || libraryId == null) {
       throw StateError('document $documentId is not shared');
     }
+    await _requireEditor(libraryId, actingDiverId);
     final existing =
         await _store.getDocumentState(documentId) ??
         SharedDocumentState(
