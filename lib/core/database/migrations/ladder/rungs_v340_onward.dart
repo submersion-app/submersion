@@ -380,5 +380,12 @@ extension RungsFromV340 on AppDatabase {
     // in beforeOpen; the floor does not move.
     if (from < 394) await _assertTankPresetRatedCapacityColumn();
     if (from < 394) await reportProgress();
+
+    // v395 (issue #5104): service_records.firmware_version, the version a
+    // firmware update installed. Column only, no backfill; re-asserted in
+    // beforeOpen. The floor does not move. Numbered 395 because open work
+    // claims 388 to 394.
+    if (from < 395) await _assertFirmwareRecordColumn();
+    if (from < 395) await reportProgress();
   }
 }

@@ -615,6 +615,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enum_equipmentField_location_short => 'Location';
 
   @override
+  String get enum_equipmentField_firmware => 'Firmware';
+
+  @override
+  String get enum_equipmentField_firmware_short => 'Firmware';
+
+  @override
   String get equipment_set_noLongerShared => 'No longer shared';
 
   @override
@@ -17764,6 +17770,127 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_serviceCategory_calibration => 'Calibration';
 
   @override
+  String get equipment_serviceCategory_firmwareUpdate => 'Firmware update';
+
+  @override
+  String firmware_history_updatedTo(String version) {
+    return 'Firmware updated to $version';
+  }
+
+  @override
+  String firmware_history_changedTo(String version) {
+    return 'Firmware changed to $version';
+  }
+
+  @override
+  String get firmware_card_title => 'Firmware';
+
+  @override
+  String get firmware_badge_updateAvailable => 'Update available';
+
+  @override
+  String firmware_home_version(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String firmware_column_update(String installed, String latest) {
+    return '$installed (update: $latest)';
+  }
+
+  @override
+  String firmware_home_more(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count more firmware updates',
+      one: '$count more firmware update',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String firmware_notify_title(String item) {
+    return 'Firmware update for $item';
+  }
+
+  @override
+  String firmware_notify_body(String version) {
+    return '$version is available. Tap for release notes.';
+  }
+
+  @override
+  String firmware_notify_bodySafety(String version) {
+    return '$version is a safety update. Tap for release notes.';
+  }
+
+  @override
+  String get firmware_notify_summaryTitle => 'Firmware updates available';
+
+  @override
+  String get firmware_notify_summaryBody =>
+      'Tap to see which gear has newer firmware.';
+
+  @override
+  String get firmware_card_installed => 'Installed';
+
+  @override
+  String get firmware_card_notRecorded => 'Not recorded';
+
+  @override
+  String firmware_card_updateAvailable(String version) {
+    return 'Update available: $version';
+  }
+
+  @override
+  String get firmware_card_upToDate => 'Up to date';
+
+  @override
+  String firmware_card_unknownVersion(String version) {
+    return 'Not in the firmware list. Latest: $version';
+  }
+
+  @override
+  String firmware_card_noVersion(String version) {
+    return 'Latest: $version. Record yours to compare.';
+  }
+
+  @override
+  String get firmware_card_safety => 'Safety';
+
+  @override
+  String get firmware_card_releaseNotes => 'Release notes';
+
+  @override
+  String get firmware_card_howToUpdate => 'How to update';
+
+  @override
+  String firmware_card_showAll(int count) {
+    return 'Show all releases ($count)';
+  }
+
+  @override
+  String get firmware_card_showFewer => 'Show fewer';
+
+  @override
+  String get firmware_card_log => 'Log firmware update';
+
+  @override
+  String get firmware_log_version => 'New version';
+
+  @override
+  String get firmware_log_versionRequired => 'Enter the version';
+
+  @override
+  String get firmware_log_date => 'Date';
+
+  @override
+  String get firmware_log_notes => 'Notes';
+
+  @override
+  String get firmware_log_saveFailed => 'Couldn\'t save the update. Try again.';
+
+  @override
   String get equipment_serviceCategory_warranty => 'Warranty Service';
 
   @override
@@ -30389,6 +30516,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Three days after a draft dive\'s exit, if it is still waiting for a download';
 
   @override
+  String get settings_notifications_firmwareChecks =>
+      'Check for firmware updates';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      'Reads the public firmware list once a day. Nothing about you is sent.';
+
+  @override
+  String get settings_notifications_firmwareNotices =>
+      'Firmware update notifications';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      'Once per new release for each piece of gear';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'Enable Service Reminders';
 
@@ -42332,6 +42475,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrLabel_product_url => 'Web link';
+
+  @override
+  String get attrLabel_firmware_version => 'Firmware version';
+
+  @override
+  String get attrLabel_firmware_page_url => 'Firmware page';
 
   @override
   String get attrLabel_color => 'Color';

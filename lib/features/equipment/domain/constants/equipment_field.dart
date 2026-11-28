@@ -54,7 +54,11 @@ enum EquipmentField implements EntityField {
 
   // Location (issue #3625): the item's current place. Appended for the same
   // reason; never reordered.
-  location;
+  location,
+
+  // Firmware (issue #5104): the version the item runs, and the newest listed
+  // release when there is one. Appended for the same reason.
+  firmware;
 
   @override
   String get name => toString().split('.').last;
@@ -81,6 +85,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.tags => 'Tags',
     EquipmentField.owner => 'Owner',
     EquipmentField.location => 'Location',
+    EquipmentField.firmware => 'Firmware',
   };
 
   @override
@@ -105,6 +110,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.tags => 'Tags',
     EquipmentField.owner => 'Owner',
     EquipmentField.location => 'Location',
+    EquipmentField.firmware => 'Firmware',
   };
 
   @override
@@ -131,6 +137,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.tags => l10n.enum_equipmentField_tags,
     EquipmentField.owner => l10n.enum_equipmentField_owner,
     EquipmentField.location => l10n.enum_equipmentField_location,
+    EquipmentField.firmware => l10n.enum_equipmentField_firmware,
   };
 
   @override
@@ -160,6 +167,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.tags => l10n.enum_equipmentField_tags_short,
     EquipmentField.owner => l10n.enum_equipmentField_owner_short,
     EquipmentField.location => l10n.enum_equipmentField_location_short,
+    EquipmentField.firmware => l10n.enum_equipmentField_firmware_short,
   };
 
   @override
@@ -184,6 +192,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.tags => Icons.sell_outlined,
     EquipmentField.owner => Icons.person_outline,
     EquipmentField.location => Icons.place_outlined,
+    EquipmentField.firmware => Icons.memory,
   };
 
   @override
@@ -208,6 +217,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.tags => 160,
     EquipmentField.owner => 140,
     EquipmentField.location => 140,
+    EquipmentField.firmware => 120,
   };
 
   @override
@@ -232,6 +242,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.tags => 80,
     EquipmentField.owner => 90,
     EquipmentField.location => 90,
+    EquipmentField.firmware => 70,
   };
 
   @override
@@ -256,6 +267,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.tags => false,
     EquipmentField.owner => true,
     EquipmentField.location => true,
+    EquipmentField.firmware => true,
   };
 
   @override
@@ -280,6 +292,7 @@ enum EquipmentField implements EntityField {
     EquipmentField.tags => 'other',
     EquipmentField.owner => 'details',
     EquipmentField.location => 'details',
+    EquipmentField.firmware => 'details',
   };
 
   @override
@@ -316,12 +329,19 @@ class EquipmentFieldAdapter
   /// absent means no recorded place. Same lifecycle as [worstClocks].
   final Map<String, String> locationNames;
 
+  /// Firmware cell text per item id (issue #5104): the installed version,
+  /// read through from a computer's registration where the item has none,
+  /// and the newest listed release when there is one. Absent falls back to
+  /// the item's own recorded version. Same lifecycle as [worstClocks].
+  final Map<String, String> firmwareLabels;
+
   EquipmentFieldAdapter({
     this.worstClocks = const {},
     this.componentCounts = const {},
     this.tagNames = const {},
     this.ownerNames = const {},
     this.locationNames = const {},
+    this.firmwareLabels = const {},
   });
 
   static final instance = EquipmentFieldAdapter();
@@ -368,6 +388,8 @@ class EquipmentFieldAdapter
       // Null, not '', for no place: the table sorts nulls last, so unplaced
       // gear does not head an ascending Location sort.
       EquipmentField.location => locationNames[entity.id],
+      EquipmentField.firmware =>
+        firmwareLabels[entity.id] ?? entity.firmwareVersion,
     };
   }
 
@@ -395,6 +417,7 @@ class EquipmentFieldAdapter
       EquipmentField.tags => _formatTags(value as List<String>),
       EquipmentField.owner => (value as String).isEmpty ? '--' : value,
       EquipmentField.location => value as String,
+      EquipmentField.firmware => value as String,
     };
   }
 

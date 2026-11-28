@@ -473,4 +473,15 @@ void main() {
     expect(fieldOf('thickness_mm'), findsOneWidget);
     expect(fieldOf('connection'), findsNothing);
   });
+  // Issue #5104: electronic gear records its firmware under the serial.
+  testWidgets('a rebreather has firmware fields', (tester) async {
+    await pumpEditor(tester, rebreather);
+    expect(find.text('Firmware version'), findsOneWidget);
+    expect(find.text('Firmware page'), findsOneWidget);
+  });
+
+  testWidgets('a regulator has no firmware fields', (tester) async {
+    await pumpEditor(tester, regulator);
+    expect(find.text('Firmware version'), findsNothing);
+  });
 }

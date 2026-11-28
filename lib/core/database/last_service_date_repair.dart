@@ -15,6 +15,9 @@ import 'package:drift/drift.dart';
 /// device runs this same rewrite over the same records, so they agree
 /// without a sync round.
 ///
+/// A firmware update (`firmwareUpdate`, issue #5104) is not a service and
+/// never counts.
+///
 /// Raw SQL, as the other ladder helpers, so it keeps compiling against any
 /// later shape of the generated classes.
 Future<int> repairLastServiceDates(DatabaseConnectionUser db) =>
@@ -23,10 +26,12 @@ Future<int> repairLastServiceDates(DatabaseConnectionUser db) =>
       SET last_service_date = (
         SELECT MAX(r.service_date) FROM service_records r
         WHERE r.equipment_id = equipment.id
+          AND r.service_category <> 'firmwareUpdate'
       )
       WHERE EXISTS (
         SELECT 1 FROM service_records r
         WHERE r.equipment_id = equipment.id
+          AND r.service_category <> 'firmwareUpdate'
           AND (equipment.last_service_date IS NULL
             OR r.service_date > equipment.last_service_date)
       )

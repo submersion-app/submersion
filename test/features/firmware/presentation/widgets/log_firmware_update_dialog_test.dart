@@ -1,0 +1,171 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
+
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/firmware/data/firmware_update_recorder.dart';
+import 'package:submersion/features/firmware/presentation/providers/firmware_recorder_provider.dart';
+import 'package:submersion/features/firmware/presentation/widgets/log_firmware_update_dialog.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
+
+/// Logging a firmware update by hand (issue #5104).
+void main() {
+  late String? savedIntl;
+  setUp(() {
+    savedIntl = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+  tearDown(() => Intl.defaultLocale = savedIntl);
+
+  const item = EquipmentItem(
+    id: 'dpv',
+    name: 'Seal 2',
+    type: EquipmentType.dpv,
+  );
+
+  Future<_FakeRecorder> open(
+    WidgetTester tester, {
+    String? suggested,
+    bool fails = false,
+  }) async {
+    final recorder = _FakeRecorder(fails: fails);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...await getBaseOverrides(),
+          firmwareUpdateRecorderProvider.overrideWithValue(recorder),
+        ].cast(),
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showLogFirmwareUpdateDialog(
+                  context,
+                  item: item,
+                  suggestedVersion: suggested,
+                ),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    return recorder;
+  }
+
+  testWidgets('an empty version is refused', (tester) async {
+    final recorder = await open(tester);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('Enter the version'), findsOneWidget);
+    expect(recorder.calls, isEmpty);
+  });
+
+  testWidgets('the suggested version is saved with today and the notes', (
+    tester,
+  ) async {
+    final recorder = await open(tester, suggested: '2.4.0');
+    expect(find.text('Log firmware update'), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const ValueKey('firmware-log-notes')),
+      'Updated on the boat',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final call = recorder.calls.single;
+    expect(call.equipmentId, 'dpv');
+    expect(call.version, '2.4.0');
+    expect(call.notes, 'Updated on the boat');
+    final today = DateTime.now();
+    expect(
+      DateTime(call.date.year, call.date.month, call.date.day),
+      DateTime(today.year, today.month, today.day),
+    );
+    expect(find.text('Log firmware update'), findsNothing);
+  });
+
+  testWidgets('a save that fails says so and stays open', (tester) async {
+    await open(tester, suggested: 'V95', fails: true);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text("Couldn't save the update. Try again."), findsOneWidget);
+    expect(find.text('Log firmware update'), findsOneWidget);
+  });
+  testWidgets('cancel closes without logging', (tester) async {
+    final recorder = await open(tester, suggested: 'V95');
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(recorder.calls, isEmpty);
+    expect(find.text('Log firmware update'), findsNothing);
+  });
+
+  testWidgets('the date picker sets the date logged', (tester) async {
+    final recorder = await open(tester, suggested: 'V95');
+    await tester.tap(find.byKey(const ValueKey('firmware-log-date')));
+    await tester.pumpAndSettle();
+    // The 1st is never in the future, which the picker would refuse.
+    const day = 1;
+    await tester.tap(find.text('1').last);
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(recorder.calls.single.date.day, day);
+  });
+
+  testWidgets('typing a version clears the missing-version error', (
+    tester,
+  ) async {
+    await open(tester);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(find.text('Enter the version'), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const ValueKey('firmware-log-version')),
+      'V9',
+    );
+    await tester.pump();
+    expect(find.text('Enter the version'), findsNothing);
+  });
+}
+
+typedef _Call = ({
+  String equipmentId,
+  String version,
+  DateTime date,
+  String notes,
+});
+
+class _FakeRecorder extends FirmwareUpdateRecorder {
+  _FakeRecorder({this.fails = false});
+
+  final bool fails;
+  final List<_Call> calls = [];
+
+  @override
+  Future<void> logUpdate({
+    required String equipmentId,
+    required String version,
+    required DateTime date,
+    String notes = '',
+  }) async {
+    if (fails) throw StateError('disk full');
+    calls.add((
+      equipmentId: equipmentId,
+      version: version,
+      date: date,
+      notes: notes,
+    ));
+  }
+}

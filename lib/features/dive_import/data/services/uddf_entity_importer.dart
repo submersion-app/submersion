@@ -1085,12 +1085,14 @@ class UddfEntityImporter {
         currency: recordData['currency'] as String? ?? 'USD',
         nextServiceDue: recordData['nextServiceDue'] as DateTime?,
         notes: recordData['notes'] as String? ?? '',
+        firmwareVersion: recordData['firmwareVersion'] as String?,
         createdAt: now,
         updatedAt: now,
       );
 
       try {
-        await repository.createRecord(record);
+        // The backup restores the item's firmware version itself (#5104).
+        await repository.createRecord(record, followFirmware: false);
         count++;
       } catch (_) {
         // One bad record must not abort the import.

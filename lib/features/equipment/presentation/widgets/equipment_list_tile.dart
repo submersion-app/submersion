@@ -25,6 +25,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_location.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_tile_location.dart';
+import 'package:submersion/features/firmware/presentation/widgets/firmware_update_badge.dart';
 import 'package:submersion/shared/widgets/record_list_chevron.dart';
 
 /// An [EquipmentListTile]'s card margin in the assembly view (issue #5071):
@@ -208,6 +209,7 @@ class EquipmentListTile extends ConsumerWidget {
               context,
               source == BadgeSource.finding ? null : worstClock,
               source == BadgeSource.finding ? finding : null,
+              firmwareUpdate: hasFirmwareUpdate(ref, item.id),
             ),
           ),
         ),
@@ -218,8 +220,9 @@ class EquipmentListTile extends ConsumerWidget {
   Widget _buildTrailing(
     BuildContext context,
     RollupClock? worstClock,
-    ConditionBadge? finding,
-  ) {
+    ConditionBadge? finding, {
+    bool firmwareUpdate = false,
+  }) {
     final theme = Theme.of(context);
 
     // Every label here is one line: the column is width-capped, and the
@@ -256,6 +259,9 @@ class EquipmentListTile extends ConsumerWidget {
         clock: worstClock,
         subjectId: item.id,
       );
+    } else if (firmwareUpdate) {
+      // A newer firmware release (issue #5104), below a clock or finding.
+      secondLine = const FirmwareUpdateBadge();
     } else if (item.status != EquipmentStatus.active) {
       secondLine = Text(
         item.status.localizedName(context.l10n),

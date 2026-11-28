@@ -10,6 +10,8 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/equipment_service_navigation.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/firmware/presentation/providers/firmware_status_providers.dart';
+import 'package:submersion/features/firmware/presentation/widgets/home_firmware_rows.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -23,6 +25,10 @@ class GearServicePanel extends ConsumerWidget {
     final l10n = context.l10n;
     final bars = ref.watch(homeGearServiceProvider);
     final list = bars.value ?? const <GearServiceBar>[];
+    // Firmware updates follow the service bars (issue #5104).
+    final updates =
+        ref.watch(firmwareUpdatesProvider).value ??
+        const <FirmwareUpdateEntry>[];
     // Only gear with a service schedule has a clock, so an empty list is
     // either no gear at all or gear with no schedule yet.
     final hasGear = ref.watch(homeHasGearProvider).value ?? false;
@@ -61,28 +67,48 @@ class GearServicePanel extends ConsumerWidget {
       fit: HomePanelFit.clip,
       child: HomePanelAsync<List<GearServiceBar>>(
         value: bars,
-        isEmpty: (b) => b.isEmpty,
+        isEmpty: (b) => b.isEmpty && updates.isEmpty,
         emptyText: emptyText,
-        builder: (b) => Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final bar in b.take(max))
-              HomeBarRow(
-                label: bar.itemName,
-                value: gearRemainingText(l10n, bar.status),
-                fraction: bar.fraction,
-                tone: switch (bar.status.severity) {
-                  ServiceClockSeverity.overdue => HomeBarTone.alert,
-                  ServiceClockSeverity.dueSoon => HomeBarTone.warn,
-                  _ => HomeBarTone.ok,
-                },
-              ),
-          ],
-        ),
+        builder: (b) {
+          // Due and overdue clocks first, then firmware updates (issue
+          // #5104), then the clocks with time to spare, within one cap.
+          final due = [
+            for (final bar in b)
+              if (bar.status.severity != ServiceClockSeverity.ok) bar,
+          ].take(max).toList();
+          final firmwareRoom = max - due.length;
+          final firmwareShown = updates.length < firmwareRoom
+              ? updates.length
+              : firmwareRoom;
+          final healthy = [
+            for (final bar in b)
+              if (bar.status.severity == ServiceClockSeverity.ok) bar,
+          ].take(firmwareRoom - firmwareShown);
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final bar in due) _barRow(l10n, bar),
+              if (updates.isNotEmpty)
+                HomeFirmwareRows(updates: updates, limit: firmwareRoom),
+              for (final bar in healthy) _barRow(l10n, bar),
+            ],
+          );
+        },
       ),
     );
   }
 }
+
+Widget _barRow(AppLocalizations l10n, GearServiceBar bar) => HomeBarRow(
+  label: bar.itemName,
+  value: gearRemainingText(l10n, bar.status),
+  fraction: bar.fraction,
+  tone: switch (bar.status.severity) {
+    ServiceClockSeverity.overdue => HomeBarTone.alert,
+    ServiceClockSeverity.dueSoon => HomeBarTone.warn,
+    _ => HomeBarTone.ok,
+  },
+);
 
 /// What is left on a service clock, in the measure that runs out first:
 /// days to the due date, else dives, else hours.

@@ -14,10 +14,11 @@ void main() {
   const item = EquipmentItem(id: 'reg', name: 'Reg', type: EquipmentType.bcd);
   const units = UnitFormatter(AppSettings());
 
-  test('location is appended last so saved layouts keep their order', () {
+  test('location keeps its place so saved layouts keep their order', () {
     const values = EquipmentField.values;
-    expect(values.last, EquipmentField.location);
-    expect(values[values.length - 2], EquipmentField.owner);
+    // Firmware (issue #5104) was appended after it.
+    expect(values[values.length - 2], EquipmentField.location);
+    expect(values[values.length - 3], EquipmentField.owner);
     expect(
       EquipmentFieldAdapter.instance.fieldFromName('location'),
       EquipmentField.location,

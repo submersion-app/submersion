@@ -597,6 +597,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_equipmentField_location_short => '位置';
 
   @override
+  String get enum_equipmentField_firmware => '固件';
+
+  @override
+  String get enum_equipmentField_firmware_short => '固件';
+
+  @override
   String get equipment_set_noLongerShared => '已不再共享';
 
   @override
@@ -17153,6 +17159,125 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_serviceCategory_calibration => '校准';
 
   @override
+  String get equipment_serviceCategory_firmwareUpdate => '固件更新';
+
+  @override
+  String firmware_history_updatedTo(String version) {
+    return '固件已更新至 $version';
+  }
+
+  @override
+  String firmware_history_changedTo(String version) {
+    return '固件已更改为 $version';
+  }
+
+  @override
+  String get firmware_card_title => '固件';
+
+  @override
+  String get firmware_badge_updateAvailable => '有可用更新';
+
+  @override
+  String firmware_home_version(String version) {
+    return '固件 $version';
+  }
+
+  @override
+  String firmware_column_update(String installed, String latest) {
+    return '$installed（更新：$latest）';
+  }
+
+  @override
+  String firmware_home_more(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '还有 $count 个固件更新',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String firmware_notify_title(String item) {
+    return '$item 的固件更新';
+  }
+
+  @override
+  String firmware_notify_body(String version) {
+    return '$version 已可用。点按查看发行说明。';
+  }
+
+  @override
+  String firmware_notify_bodySafety(String version) {
+    return '$version 是安全更新。点按查看发行说明。';
+  }
+
+  @override
+  String get firmware_notify_summaryTitle => '有可用的固件更新';
+
+  @override
+  String get firmware_notify_summaryBody => '点按查看哪些装备有更新的固件。';
+
+  @override
+  String get firmware_card_installed => '已安装';
+
+  @override
+  String get firmware_card_notRecorded => '未记录';
+
+  @override
+  String firmware_card_updateAvailable(String version) {
+    return '有可用更新：$version';
+  }
+
+  @override
+  String get firmware_card_upToDate => '已是最新';
+
+  @override
+  String firmware_card_unknownVersion(String version) {
+    return '不在固件列表中。最新：$version';
+  }
+
+  @override
+  String firmware_card_noVersion(String version) {
+    return '最新：$version。记录您的版本以进行比较。';
+  }
+
+  @override
+  String get firmware_card_safety => '安全';
+
+  @override
+  String get firmware_card_releaseNotes => '发行说明';
+
+  @override
+  String get firmware_card_howToUpdate => '如何更新';
+
+  @override
+  String firmware_card_showAll(int count) {
+    return '显示全部版本（$count）';
+  }
+
+  @override
+  String get firmware_card_showFewer => '收起';
+
+  @override
+  String get firmware_card_log => '记录固件更新';
+
+  @override
+  String get firmware_log_version => '新版本';
+
+  @override
+  String get firmware_log_versionRequired => '请输入版本';
+
+  @override
+  String get firmware_log_date => '日期';
+
+  @override
+  String get firmware_log_notes => '备注';
+
+  @override
+  String get firmware_log_saveFailed => '无法保存更新。请重试。';
+
+  @override
   String get equipment_serviceCategory_warranty => '保修服务';
 
   @override
@@ -29098,6 +29223,20 @@ class AppLocalizationsZh extends AppLocalizations {
       '潜水草稿出水三天后，如果仍在等待下载';
 
   @override
+  String get settings_notifications_firmwareChecks => '检查固件更新';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      '每天读取一次公开的固件列表。不会发送任何关于您的信息。';
+
+  @override
+  String get settings_notifications_firmwareNotices => '固件更新通知';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      '每件装备的每个新版本通知一次';
+
+  @override
   String get settings_notifications_enableServiceReminders => '启用维护提醒';
 
   @override
@@ -40436,6 +40575,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrLabel_product_url => '网页链接';
+
+  @override
+  String get attrLabel_firmware_version => '固件版本';
+
+  @override
+  String get attrLabel_firmware_page_url => '固件页面';
 
   @override
   String get attrLabel_color => '颜色';

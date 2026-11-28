@@ -48,6 +48,7 @@ import 'package:submersion/features/equipment/presentation/editing/gear_item_sit
 import 'package:submersion/features/equipment/presentation/helpers/equipment_web_link_launcher.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/firmware/presentation/widgets/firmware_card.dart';
 import 'package:submersion/features/equipment/presentation/providers/service_clock_snapshot_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
@@ -380,6 +381,11 @@ class _EquipmentDetailContent extends ConsumerWidget {
             _buildDetailsSection(context, ref, equipment, units),
           ),
           const SizedBox(height: 24),
+          // The firmware it runs and the catalogue's word on it (#5104).
+          if (EquipmentAttributeCatalog.hasFirmware(equipment.type)) ...[
+            FirmwareCard(item: equipment),
+            const SizedBox(height: 24),
+          ],
           if (equipment.type == EquipmentType.transmitter) ...[
             TransmitterSection(equipmentId: equipmentId),
             const SizedBox(height: 24),

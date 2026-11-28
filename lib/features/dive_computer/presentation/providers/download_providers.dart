@@ -29,6 +29,7 @@ import 'package:submersion/features/transmitters/presentation/providers/transmit
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
+import 'package:submersion/features/firmware/presentation/providers/firmware_recorder_provider.dart';
 
 /// Provider for the dive computer repository.
 final diveComputerRepositoryProvider = Provider<DiveComputerRepository>((ref) {
@@ -350,16 +351,19 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   /// the next one without rebuilding the notifier. Null means never
   /// (issue #1216).
   final bool Function(String? computerId)? _resolveClockSync;
+  final FirmwareReport? _reportFirmware;
 
   DownloadNotifier({
     required pigeon.DiveComputerService service,
     required DiveComputerRepository repository,
     bool Function()? trimTankPressureAtSurfacing,
     bool Function(String? computerId)? resolveClockSync,
+    FirmwareReport? reportFirmware,
   }) : _service = service,
        _repository = repository,
        _trimTankPressureAtSurfacing = trimTankPressureAtSurfacing,
        _resolveClockSync = resolveClockSync,
+       _reportFirmware = reportFirmware,
        super(const DownloadState());
 
   /// Set whether to download new dives only.
@@ -605,6 +609,14 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
       // onto the wrong one. Only the call that still owns the field may
       // refresh it.
       if (identical(_computer, computer)) _computer = updated;
+      // Firmware history (issue #5104), after the registration's own update,
+      // which a failure here (logged below) never undoes.
+      final report = _reportFirmware;
+      if (report != null &&
+          firmwareVersion != null &&
+          updated.equipmentId != null) {
+        await report(updated, firmwareVersion, computer.firmwareVersion);
+      }
     } catch (e, stackTrace) {
       _log.error(
         'Device info persist failed for ${computer.displayName}',
@@ -710,6 +722,8 @@ final downloadNotifierProvider =
         // on the computers list applies to the very next download.
         resolveClockSync: (computerId) =>
             ref.read(clockSyncSettingsNotifierProvider).resolve(computerId),
+        // Firmware history for a reported version (issue #5104).
+        reportFirmware: ref.read(firmwareReportProvider),
       );
     });
 

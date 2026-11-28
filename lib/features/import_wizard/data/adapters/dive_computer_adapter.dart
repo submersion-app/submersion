@@ -50,6 +50,7 @@ import 'package:submersion/features/transmitters/presentation/providers/transmit
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/downloaded_dive_summary.dart';
+import 'package:submersion/features/firmware/presentation/providers/firmware_recorder_provider.dart';
 
 part 'dive_computer_adapter_connections.dart';
 part 'dive_computer_adapter_import_steps.dart';
@@ -108,7 +109,9 @@ class DiveComputerAdapter
     TransmitterAutoRegistrar? transmitterRegistrar,
     TransmitterGearLinker? transmitterGearLinker,
     TransmitterRepository? transmitterRepository,
+    FirmwareReport? reportFirmware,
   }) : _bindEquipmentId = bindEquipmentId,
+       _reportFirmware = reportFirmware,
        _importService = importService,
        _transmitterRegistrar = transmitterRegistrar,
        _transmitterGearLinker = transmitterGearLinker,
@@ -150,6 +153,10 @@ class DiveComputerAdapter
   /// The hand-added Dive Computer item "Connect and download" started from
   /// (issue #3676): a device seen for the first time is created on it.
   final String? _bindEquipmentId;
+
+  /// Hands a firmware version this adapter writes to the firmware history
+  /// (issue #5104); the app's shared one when not given.
+  final FirmwareReport? _reportFirmware;
 
   /// The other item the discovered device already stands for, when it is not
   /// [_bindEquipmentId]'s. The device stays where it is and the summary says
@@ -346,6 +353,26 @@ class DiveComputerAdapter
     }
   }
 
+  Future<void> _reportFirmwareOf(
+    DiveComputer computer,
+    String? version,
+    String? previous,
+  ) async {
+    final report = _reportFirmware ?? _ref?.read(firmwareReportProvider);
+    final v = version?.trim();
+    if (report == null || v == null || v.isEmpty) return;
+    if (computer.equipmentId == null) return;
+    try {
+      await report(computer, v, previous);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Firmware history update failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
+
   /// Create or find the dive computer record from the discovered device info.
   ///
   /// Called by the download step after a successful download in discovery mode.
@@ -472,6 +499,13 @@ class DiveComputerAdapter
               bluetoothAddress: device.address,
             );
         await _computerRepository.updateComputer(rebound);
+        // Found by serial, so no download notifier had a computer to report
+        // this version for (issue #5104).
+        await _reportFirmwareOf(
+          rebound,
+          firmwareVersion,
+          existing.firmwareVersion,
+        );
         _computer = rebound;
         _noteItemOf(rebound);
         await _recordDirectConnection(device, normalizedSerial);

@@ -49,6 +49,12 @@ class ServiceRecordWrites extends WritableEntry {
     'cost': const FieldCodec.number(min: 0, max: 10000000, nullable: true),
     'currency': requiredCurrencyCodec,
     'notes': const FieldCodec.text(allowBlank: true, trim: true),
+    // The version a firmware update installed (issue #5104).
+    'firmware_version': const FieldCodec.text(
+      maxLength: 60,
+      nullable: true,
+      trim: true,
+    ),
   };
 
   @override
@@ -57,11 +63,39 @@ class ServiceRecordWrites extends WritableEntry {
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
     if (check.kind == ChangeKind.delete) return null;
+    // A firmware update (issue #5104) is the one record with no type.
     if (check.kind == ChangeKind.create &&
-        check.values['service_kind_id'] == null) {
+        check.values['service_kind_id'] == null &&
+        check.values['category'] != ServiceCategory.firmwareUpdate.name) {
       return const PlanBlock(
         BlockReason.invalidValue,
         'service_kind_id: a new record names its service type.',
+      );
+    }
+    // A firmware update is not a service (issue #5104): it resets no clock,
+    // so it names no service type.
+    final category =
+        check.values['category'] as String? ??
+        check.document?['category'] as String?;
+    final kind = check.values.containsKey('service_kind_id')
+        ? check.values['service_kind_id']
+        : check.document?['service_kind_id'];
+    if (category == ServiceCategory.firmwareUpdate.name && kind != null) {
+      return const PlanBlock(
+        BlockReason.invalidValue,
+        'category: a firmware update fulfils no service type; set '
+        'service_kind_id to null.',
+      );
+    }
+    // ...and names the version it installed.
+    final version = check.values.containsKey('firmware_version')
+        ? check.values['firmware_version']
+        : check.document?['firmware_version'];
+    if (category == ServiceCategory.firmwareUpdate.name &&
+        ((version as String?)?.trim() ?? '').isEmpty) {
+      return const PlanBlock(
+        BlockReason.invalidValue,
+        'firmware_version: a firmware update names the version it installed.',
       );
     }
     final now = today();
@@ -144,7 +178,7 @@ class ServiceRecordWrites extends WritableEntry {
       ServiceRecord(
         id: '',
         equipmentId: values['equipment_id']! as String,
-        serviceKindId: values['service_kind_id']! as String,
+        serviceKindId: values['service_kind_id'] as String?,
         serviceCategory: ServiceCategory.values.byName(
           values['category'] as String? ?? ServiceCategory.annual.name,
         ),
@@ -155,6 +189,7 @@ class ServiceRecordWrites extends WritableEntry {
         currency:
             values['currency'] as String? ?? await defaultCurrencyOf(diverId),
         notes: values['notes'] as String? ?? '',
+        firmwareVersion: values['firmware_version'] as String?,
         createdAt: now,
         updatedAt: now,
       ),
@@ -185,6 +220,7 @@ class ServiceRecordWrites extends WritableEntry {
         cost: kept<num>('cost', current.cost)?.toDouble(),
         currency: v['currency'] as String? ?? current.currency,
         notes: v['notes'] as String? ?? current.notes,
+        firmwareVersion: kept('firmware_version', current.firmwareVersion),
         createdAt: current.createdAt,
         updatedAt: current.updatedAt,
       ),
@@ -220,8 +256,10 @@ class ServiceRecordWrites extends WritableEntry {
       itemId,
       _newest([
         for (final r in await _r.serviceRecords.getRecordsForEquipment(itemId))
-          r.serviceDate,
-        ?calendarDay(values['service_date']),
+          if (r.serviceCategory != ServiceCategory.firmwareUpdate)
+            r.serviceDate,
+        if (values['category'] != ServiceCategory.firmwareUpdate.name)
+          ?calendarDay(values['service_date']),
       ]),
     );
   }
@@ -241,9 +279,15 @@ class ServiceRecordWrites extends WritableEntry {
     final itemId = document['equipment_id']! as String;
     final soFar = update.soFar;
     final gone = soFar.deleted[name] ?? const <String>{};
+    // Firmware updates are not services (issue #5104), as edited.
+    String categoryOf(ServiceRecord r) =>
+        (r.id == id ? update.values : soFar.values[(name, r.id)])?['category']
+            as String? ??
+        r.serviceCategory.name;
     final days = [
       for (final r in await _r.serviceRecords.getRecordsForEquipment(itemId))
-        if (!gone.contains(r.id))
+        if (!gone.contains(r.id) &&
+            categoryOf(r) != ServiceCategory.firmwareUpdate.name)
           calendarDay(
                 (r.id == id
                     ? update.values
@@ -269,7 +313,9 @@ class ServiceRecordWrites extends WritableEntry {
       for (final r in await _r.serviceRecords.getRecordsForEquipment(
         current.equipmentId,
       ))
-        if (!gone.contains(r.id)) r.serviceDate,
+        if (!gone.contains(r.id) &&
+            r.serviceCategory != ServiceCategory.firmwareUpdate)
+          r.serviceDate,
     ];
     return DeleteReach(
       touched: await _moved(current.equipmentId, _newest(days)),

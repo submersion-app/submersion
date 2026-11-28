@@ -728,6 +728,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'exposure_intervals': 'JSON object of ExposureUnit name to interval for the units that have no column of their own ({"coldDives": 50})',
   },
   'service_records': {
+    'firmware_version': 'the version a firmware update installed',
     'provider': 'Shop or technician name',
     'service_category': 'renamed from serviceType',
     'service_kind_id': 'which service kind this record fulfills (resets that clock)',

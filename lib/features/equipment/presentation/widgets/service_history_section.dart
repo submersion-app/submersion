@@ -18,6 +18,9 @@ import 'package:submersion/features/equipment/domain/entities/service_kind.dart'
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_category_label.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_record_dialog.dart';
+import 'package:submersion/features/firmware/data/firmware_update_recorder.dart';
+import 'package:submersion/features/firmware/domain/firmware_status.dart';
+import 'package:submersion/features/firmware/presentation/providers/firmware_status_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
@@ -284,6 +287,10 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
                           .map(
                             (record) => _ServiceRecordTile(
                               record: record,
+                              previousFirmware: previousFirmwareOf(
+                                record,
+                                visible,
+                              ),
                               kindsById: kindsById,
                               onTap: !_canAct
                                   ? null
@@ -564,8 +571,13 @@ class _ServiceRecordTile extends ConsumerWidget {
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
 
+  /// The version installed by the firmware update before this one, which
+  /// tells an update from a step back (issue #5104).
+  final String? previousFirmware;
+
   const _ServiceRecordTile({
     required this.record,
+    this.previousFirmware,
     required this.kindsById,
     required this.onTap,
     required this.onDelete,
@@ -582,6 +594,18 @@ class _ServiceRecordTile extends ConsumerWidget {
     // that identifies the row, so it takes the title.
     final kindName = kindsById[record.serviceKindId]?.name;
     final typeLabel = record.serviceCategory.label(l10n);
+    // A firmware update names the version it installed (issue #5104).
+    final status = ref.watch(firmwareStatusProvider(record.equipmentId));
+    final firmwareTitle =
+        record.serviceCategory == ServiceCategory.firmwareUpdate &&
+            record.firmwareVersion != null
+        ? firmwareHistoryLabel(
+            l10n,
+            record,
+            model: status is FirmwareListedStatus ? status.model : null,
+            previous: previousFirmware,
+          )
+        : null;
 
     final providerAndCost = [
       if (record.provider != null && record.provider!.isNotEmpty)
@@ -604,7 +628,7 @@ class _ServiceRecordTile extends ConsumerWidget {
       // text-bearing widget back into trailing, the title ellipsizes instead
       // of rendering one glyph per line (issue #935).
       title: Text(
-        kindName ?? typeLabel,
+        kindName ?? firmwareTitle ?? typeLabel,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
@@ -683,6 +707,8 @@ class _ServiceRecordTile extends ConsumerWidget {
         return Icons.cleaning_services;
       case ServiceCategory.calibration:
         return Icons.tune;
+      case ServiceCategory.firmwareUpdate:
+        return Icons.system_update_alt;
       case ServiceCategory.warranty:
         return Icons.verified_user;
       case ServiceCategory.recall:
@@ -691,4 +717,18 @@ class _ServiceRecordTile extends ConsumerWidget {
         return Icons.handyman;
     }
   }
+}
+
+/// The version the firmware update before [record] installed, from
+/// [records] newest first; null for any other record or the first update.
+String? previousFirmwareOf(ServiceRecord record, List<ServiceRecord> records) {
+  if (record.serviceCategory != ServiceCategory.firmwareUpdate) return null;
+  final index = records.indexOf(record);
+  for (final r in records.skip(index + 1)) {
+    if (r.serviceCategory == ServiceCategory.firmwareUpdate &&
+        r.firmwareVersion != null) {
+      return r.firmwareVersion;
+    }
+  }
+  return null;
 }

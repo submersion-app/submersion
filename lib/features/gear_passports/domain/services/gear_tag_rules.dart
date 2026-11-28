@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
@@ -15,10 +16,12 @@ String? _capped(String? s, int max) {
   return t == null ? null : PassportPayloadCodec.capCharacters(t, max);
 }
 
-/// The calendar date of the newest service record of any kind, or null.
+/// The calendar date of the newest service record of any kind, or null. A
+/// firmware update is not a service (issue #5104) and never counts.
 DateTime? lastServiceDate(Iterable<ServiceRecord> records) {
   DateTime? newest;
   for (final r in records) {
+    if (r.serviceCategory == ServiceCategory.firmwareUpdate) continue;
     if (newest == null || r.serviceDate.isAfter(newest)) newest = r.serviceDate;
   }
   return newest == null ? null : _day(newest);

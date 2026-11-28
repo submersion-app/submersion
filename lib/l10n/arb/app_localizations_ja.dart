@@ -601,6 +601,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get enum_equipmentField_location_short => '場所';
 
   @override
+  String get enum_equipmentField_firmware => 'ファームウェア';
+
+  @override
+  String get enum_equipmentField_firmware_short => 'ファームウェア';
+
+  @override
   String get equipment_set_noLongerShared => '共有が解除されました';
 
   @override
@@ -17393,6 +17399,125 @@ class AppLocalizationsJa extends AppLocalizations {
   String get equipment_serviceCategory_calibration => '校正';
 
   @override
+  String get equipment_serviceCategory_firmwareUpdate => 'ファームウェア更新';
+
+  @override
+  String firmware_history_updatedTo(String version) {
+    return 'ファームウェアを $version に更新';
+  }
+
+  @override
+  String firmware_history_changedTo(String version) {
+    return 'ファームウェアを $version に変更';
+  }
+
+  @override
+  String get firmware_card_title => 'ファームウェア';
+
+  @override
+  String get firmware_badge_updateAvailable => 'アップデートあり';
+
+  @override
+  String firmware_home_version(String version) {
+    return 'ファームウェア $version';
+  }
+
+  @override
+  String firmware_column_update(String installed, String latest) {
+    return '$installed（更新: $latest）';
+  }
+
+  @override
+  String firmware_home_more(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ほか $count 件のファームウェア更新',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String firmware_notify_title(String item) {
+    return '$item のファームウェア更新';
+  }
+
+  @override
+  String firmware_notify_body(String version) {
+    return '$version が利用可能です。タップしてリリースノートを表示。';
+  }
+
+  @override
+  String firmware_notify_bodySafety(String version) {
+    return '$version は安全に関わる更新です。タップしてリリースノートを表示。';
+  }
+
+  @override
+  String get firmware_notify_summaryTitle => 'ファームウェアの更新があります';
+
+  @override
+  String get firmware_notify_summaryBody => 'タップして新しいファームウェアがある器材を確認。';
+
+  @override
+  String get firmware_card_installed => 'インストール済み';
+
+  @override
+  String get firmware_card_notRecorded => '未記録';
+
+  @override
+  String firmware_card_updateAvailable(String version) {
+    return 'アップデートあり: $version';
+  }
+
+  @override
+  String get firmware_card_upToDate => '最新です';
+
+  @override
+  String firmware_card_unknownVersion(String version) {
+    return 'ファームウェア一覧にありません。最新: $version';
+  }
+
+  @override
+  String firmware_card_noVersion(String version) {
+    return '最新: $version。比較するにはお使いのバージョンを記録してください。';
+  }
+
+  @override
+  String get firmware_card_safety => '安全';
+
+  @override
+  String get firmware_card_releaseNotes => 'リリースノート';
+
+  @override
+  String get firmware_card_howToUpdate => '更新方法';
+
+  @override
+  String firmware_card_showAll(int count) {
+    return 'すべてのリリースを表示 ($count)';
+  }
+
+  @override
+  String get firmware_card_showFewer => '表示を減らす';
+
+  @override
+  String get firmware_card_log => 'ファームウェア更新を記録';
+
+  @override
+  String get firmware_log_version => '新しいバージョン';
+
+  @override
+  String get firmware_log_versionRequired => 'バージョンを入力してください';
+
+  @override
+  String get firmware_log_date => '日付';
+
+  @override
+  String get firmware_log_notes => 'メモ';
+
+  @override
+  String get firmware_log_saveFailed => '更新を保存できませんでした。もう一度お試しください。';
+
+  @override
   String get equipment_serviceCategory_warranty => '保証修理';
 
   @override
@@ -29552,6 +29677,20 @@ class AppLocalizationsJa extends AppLocalizations {
       '下書きのダイブのエキジットから3日後、まだダウンロード待ちの場合';
 
   @override
+  String get settings_notifications_firmwareChecks => 'ファームウェア更新を確認';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      '公開ファームウェア一覧を1日1回読み込みます。あなたに関する情報は送信されません。';
+
+  @override
+  String get settings_notifications_firmwareNotices => 'ファームウェア更新の通知';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      '器材ごとに新しいリリースにつき1回';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'メンテナンスのリマインダーを有効にする';
 
@@ -41192,6 +41331,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get attrLabel_product_url => 'ウェブリンク';
+
+  @override
+  String get attrLabel_firmware_version => 'ファームウェアバージョン';
+
+  @override
+  String get attrLabel_firmware_page_url => 'ファームウェアページ';
 
   @override
   String get attrLabel_color => '色';

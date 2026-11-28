@@ -83,6 +83,13 @@ class SettingsKeys {
   static const String healthReviewAnnounced = 'health_review_announced';
   // Device-local: remind about drafts left waiting for a download.
   static const String draftDownloadReminder = 'draft_download_reminder';
+  // Firmware update checks (issue #5104), device-local: whether this device
+  // reads the public firmware catalogue, whether it notifies, and which
+  // item and version pairs it has already notified (`<itemId>|<version>`).
+  static const String firmwareChecksEnabled = 'firmware_checks_enabled';
+  static const String firmwareNotificationsEnabled =
+      'firmware_notifications_enabled';
+  static const String firmwareNotifiedPairs = 'firmware_notified_pairs';
   static const String depthUnit = 'depth_unit';
   static const String temperatureUnit = 'temperature_unit';
   static const String pressureUnit = 'pressure_unit';

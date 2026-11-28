@@ -233,6 +233,8 @@ void main() {
         'product_url',
         'color',
         'figure_position',
+        'firmware_version',
+        'firmware_page_url',
       ]);
     });
 
@@ -552,6 +554,8 @@ void main() {
         'product_url',
         'color',
         'figure_position',
+        'firmware_version',
+        'firmware_page_url',
       ]);
     });
 

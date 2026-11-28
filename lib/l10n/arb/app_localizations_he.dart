@@ -611,6 +611,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_equipmentField_location_short => 'מיקום';
 
   @override
+  String get enum_equipmentField_firmware => 'קושחה';
+
+  @override
+  String get enum_equipmentField_firmware_short => 'קושחה';
+
+  @override
   String get equipment_set_noLongerShared => 'כבר לא משותף';
 
   @override
@@ -17645,6 +17651,128 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceCategory_calibration => 'כיול';
 
   @override
+  String get equipment_serviceCategory_firmwareUpdate => 'עדכון קושחה';
+
+  @override
+  String firmware_history_updatedTo(String version) {
+    return 'הקושחה עודכנה ל-$version';
+  }
+
+  @override
+  String firmware_history_changedTo(String version) {
+    return 'הקושחה שונתה ל-$version';
+  }
+
+  @override
+  String get firmware_card_title => 'קושחה';
+
+  @override
+  String get firmware_badge_updateAvailable => 'עדכון זמין';
+
+  @override
+  String firmware_home_version(String version) {
+    return 'קושחה $version';
+  }
+
+  @override
+  String firmware_column_update(String installed, String latest) {
+    return '$installed (עדכון: $latest)';
+  }
+
+  @override
+  String firmware_home_more(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'עוד $count עדכוני קושחה',
+      two: 'עוד שני עדכוני קושחה',
+      one: 'עוד עדכון קושחה אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String firmware_notify_title(String item) {
+    return 'עדכון קושחה עבור $item';
+  }
+
+  @override
+  String firmware_notify_body(String version) {
+    return '$version זמינה. הקש להערות הגרסה.';
+  }
+
+  @override
+  String firmware_notify_bodySafety(String version) {
+    return '$version היא עדכון בטיחות. הקש להערות הגרסה.';
+  }
+
+  @override
+  String get firmware_notify_summaryTitle => 'עדכוני קושחה זמינים';
+
+  @override
+  String get firmware_notify_summaryBody =>
+      'הקש כדי לראות לאיזה ציוד יש קושחה חדשה יותר.';
+
+  @override
+  String get firmware_card_installed => 'מותקן';
+
+  @override
+  String get firmware_card_notRecorded => 'לא נרשם';
+
+  @override
+  String firmware_card_updateAvailable(String version) {
+    return 'עדכון זמין: $version';
+  }
+
+  @override
+  String get firmware_card_upToDate => 'מעודכן';
+
+  @override
+  String firmware_card_unknownVersion(String version) {
+    return 'לא ברשימת הקושחה. האחרונה: $version';
+  }
+
+  @override
+  String firmware_card_noVersion(String version) {
+    return 'האחרונה: $version. רשום את שלך כדי להשוות.';
+  }
+
+  @override
+  String get firmware_card_safety => 'בטיחות';
+
+  @override
+  String get firmware_card_releaseNotes => 'הערות גרסה';
+
+  @override
+  String get firmware_card_howToUpdate => 'איך לעדכן';
+
+  @override
+  String firmware_card_showAll(int count) {
+    return 'הצג את כל הגרסאות ($count)';
+  }
+
+  @override
+  String get firmware_card_showFewer => 'הצג פחות';
+
+  @override
+  String get firmware_card_log => 'רישום עדכון קושחה';
+
+  @override
+  String get firmware_log_version => 'גרסה חדשה';
+
+  @override
+  String get firmware_log_versionRequired => 'הזן את הגרסה';
+
+  @override
+  String get firmware_log_date => 'תאריך';
+
+  @override
+  String get firmware_log_notes => 'הערות';
+
+  @override
+  String get firmware_log_saveFailed => 'לא ניתן לשמור את העדכון. נסה שוב.';
+
+  @override
   String get equipment_serviceCategory_warranty => 'שירות אחריות';
 
   @override
@@ -30128,6 +30256,20 @@ class AppLocalizationsHe extends AppLocalizations {
       'שלושה ימים אחרי היציאה מהמים של טיוטה, אם היא עדיין ממתינה להורדה';
 
   @override
+  String get settings_notifications_firmwareChecks => 'בדיקת עדכוני קושחה';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      'קורא את רשימת הקושחה הציבורית פעם ביום. שום דבר עליך לא נשלח.';
+
+  @override
+  String get settings_notifications_firmwareNotices => 'התראות על עדכוני קושחה';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      'פעם אחת לכל גרסה חדשה של כל פריט ציוד';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'אפשר תזכורות תחזוקה';
 
@@ -41990,6 +42132,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrLabel_product_url => 'קישור אינטרנט';
+
+  @override
+  String get attrLabel_firmware_version => 'גרסת קושחה';
+
+  @override
+  String get attrLabel_firmware_page_url => 'דף הקושחה';
 
   @override
   String get attrLabel_color => 'צבע';

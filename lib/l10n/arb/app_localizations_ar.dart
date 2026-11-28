@@ -649,6 +649,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_equipmentField_location_short => 'الموقع';
 
   @override
+  String get enum_equipmentField_firmware => 'البرنامج الثابت';
+
+  @override
+  String get enum_equipmentField_firmware_short => 'البرنامج الثابت';
+
+  @override
   String get equipment_set_noLongerShared => 'لم يعد مُشارَكًا';
 
   @override
@@ -18313,6 +18319,132 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_serviceCategory_calibration => 'معايرة';
 
   @override
+  String get equipment_serviceCategory_firmwareUpdate =>
+      'تحديث البرنامج الثابت';
+
+  @override
+  String firmware_history_updatedTo(String version) {
+    return 'تم تحديث البرنامج الثابت إلى $version';
+  }
+
+  @override
+  String firmware_history_changedTo(String version) {
+    return 'تم تغيير البرنامج الثابت إلى $version';
+  }
+
+  @override
+  String get firmware_card_title => 'البرنامج الثابت';
+
+  @override
+  String get firmware_badge_updateAvailable => 'يتوفر تحديث';
+
+  @override
+  String firmware_home_version(String version) {
+    return 'البرنامج الثابت $version';
+  }
+
+  @override
+  String firmware_column_update(String installed, String latest) {
+    return '$installed (تحديث: $latest)';
+  }
+
+  @override
+  String firmware_home_more(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تحديث آخر للبرامج الثابتة',
+      many: '$count تحديثًا آخر للبرامج الثابتة',
+      few: '$count تحديثات أخرى للبرامج الثابتة',
+      two: 'تحديثان آخران للبرنامج الثابت',
+      one: 'تحديث واحد آخر للبرنامج الثابت',
+      zero: 'لا توجد تحديثات أخرى للبرامج الثابتة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String firmware_notify_title(String item) {
+    return 'تحديث البرنامج الثابت لـ $item';
+  }
+
+  @override
+  String firmware_notify_body(String version) {
+    return '$version متاح. انقر لعرض ملاحظات الإصدار.';
+  }
+
+  @override
+  String firmware_notify_bodySafety(String version) {
+    return '$version تحديث أمان. انقر لعرض ملاحظات الإصدار.';
+  }
+
+  @override
+  String get firmware_notify_summaryTitle => 'تتوفر تحديثات للبرامج الثابتة';
+
+  @override
+  String get firmware_notify_summaryBody =>
+      'انقر لمعرفة المعدات التي لها برنامج ثابت أحدث.';
+
+  @override
+  String get firmware_card_installed => 'المثبت';
+
+  @override
+  String get firmware_card_notRecorded => 'غير مسجل';
+
+  @override
+  String firmware_card_updateAvailable(String version) {
+    return 'يتوفر تحديث: $version';
+  }
+
+  @override
+  String get firmware_card_upToDate => 'محدّث';
+
+  @override
+  String firmware_card_unknownVersion(String version) {
+    return 'ليس في قائمة البرامج الثابتة. الأحدث: $version';
+  }
+
+  @override
+  String firmware_card_noVersion(String version) {
+    return 'الأحدث: $version. سجّل إصدارك للمقارنة.';
+  }
+
+  @override
+  String get firmware_card_safety => 'أمان';
+
+  @override
+  String get firmware_card_releaseNotes => 'ملاحظات الإصدار';
+
+  @override
+  String get firmware_card_howToUpdate => 'طريقة التحديث';
+
+  @override
+  String firmware_card_showAll(int count) {
+    return 'عرض كل الإصدارات ($count)';
+  }
+
+  @override
+  String get firmware_card_showFewer => 'عرض أقل';
+
+  @override
+  String get firmware_card_log => 'تسجيل تحديث البرنامج الثابت';
+
+  @override
+  String get firmware_log_version => 'الإصدار الجديد';
+
+  @override
+  String get firmware_log_versionRequired => 'أدخل الإصدار';
+
+  @override
+  String get firmware_log_date => 'التاريخ';
+
+  @override
+  String get firmware_log_notes => 'ملاحظات';
+
+  @override
+  String get firmware_log_saveFailed => 'تعذر حفظ التحديث. حاول مرة أخرى.';
+
+  @override
   String get equipment_serviceCategory_warranty => 'خدمة الضمان';
 
   @override
@@ -31235,6 +31367,22 @@ class AppLocalizationsAr extends AppLocalizations {
       'بعد ثلاثة أيام من خروج مسودة الغوصة من الماء، إذا كانت لا تزال تنتظر التنزيل';
 
   @override
+  String get settings_notifications_firmwareChecks =>
+      'التحقق من تحديثات البرامج الثابتة';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      'يقرأ قائمة البرامج الثابتة العامة مرة يوميًا. لا يُرسل أي شيء عنك.';
+
+  @override
+  String get settings_notifications_firmwareNotices =>
+      'إشعارات تحديثات البرامج الثابتة';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      'مرة واحدة لكل إصدار جديد لكل قطعة معدات';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'تمكين تذكيرات الصيانة';
 
@@ -43636,6 +43784,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrLabel_product_url => 'رابط الويب';
+
+  @override
+  String get attrLabel_firmware_version => 'إصدار البرنامج الثابت';
+
+  @override
+  String get attrLabel_firmware_page_url => 'صفحة البرنامج الثابت';
 
   @override
   String get attrLabel_color => 'اللون';

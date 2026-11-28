@@ -81,6 +81,7 @@ import 'package:submersion/features/equipment/domain/services/equipment_location
 import 'package:submersion/features/equipment/presentation/providers/equipment_location_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_group_header.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_tile.dart';
+import 'package:submersion/features/firmware/presentation/providers/firmware_status_providers.dart';
 
 export 'package:submersion/features/equipment/presentation/widgets/equipment_list_tile.dart';
 
@@ -983,6 +984,13 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent>
                           const <String, EquipmentLocation>{})
                       .entries)
                 e.key: e.value.name,
+            },
+            firmwareLabels: {
+              for (final e
+                  in (ref.watch(firmwareColumnCellsProvider).value ??
+                          const <String, FirmwareCell>{})
+                      .entries)
+                e.key: firmwareCellLabel(context.l10n, e.value),
             },
           ),
           config: config,

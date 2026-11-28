@@ -617,6 +617,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_equipmentField_location_short => 'Hely';
 
   @override
+  String get enum_equipmentField_firmware => 'Firmware';
+
+  @override
+  String get enum_equipmentField_firmware_short => 'Firmware';
+
+  @override
   String get equipment_set_noLongerShared => 'Már nincs megosztva';
 
   @override
@@ -17958,6 +17964,128 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_serviceCategory_calibration => 'Kalibrálás';
 
   @override
+  String get equipment_serviceCategory_firmwareUpdate => 'Firmware-frissítés';
+
+  @override
+  String firmware_history_updatedTo(String version) {
+    return 'Firmware frissítve: $version';
+  }
+
+  @override
+  String firmware_history_changedTo(String version) {
+    return 'Firmware módosítva: $version';
+  }
+
+  @override
+  String get firmware_card_title => 'Firmware';
+
+  @override
+  String get firmware_badge_updateAvailable => 'Frissítés érhető el';
+
+  @override
+  String firmware_home_version(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String firmware_column_update(String installed, String latest) {
+    return '$installed (frissítés: $latest)';
+  }
+
+  @override
+  String firmware_home_more(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'még $count firmware-frissítés',
+      one: 'még $count firmware-frissítés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String firmware_notify_title(String item) {
+    return 'Firmware-frissítés: $item';
+  }
+
+  @override
+  String firmware_notify_body(String version) {
+    return 'Elérhető: $version. Koppints a kiadási megjegyzésekért.';
+  }
+
+  @override
+  String firmware_notify_bodySafety(String version) {
+    return '$version biztonsági frissítés. Koppints a kiadási megjegyzésekért.';
+  }
+
+  @override
+  String get firmware_notify_summaryTitle => 'Firmware-frissítések érhetők el';
+
+  @override
+  String get firmware_notify_summaryBody =>
+      'Koppints, és megnézheted, melyik felszereléshez van újabb firmware.';
+
+  @override
+  String get firmware_card_installed => 'Telepítve';
+
+  @override
+  String get firmware_card_notRecorded => 'Nincs rögzítve';
+
+  @override
+  String firmware_card_updateAvailable(String version) {
+    return 'Frissítés érhető el: $version';
+  }
+
+  @override
+  String get firmware_card_upToDate => 'Naprakész';
+
+  @override
+  String firmware_card_unknownVersion(String version) {
+    return 'Nincs a firmware-listában. Legújabb: $version';
+  }
+
+  @override
+  String firmware_card_noVersion(String version) {
+    return 'Legújabb: $version. Rögzítsd a sajátodat az összevetéshez.';
+  }
+
+  @override
+  String get firmware_card_safety => 'Biztonsági';
+
+  @override
+  String get firmware_card_releaseNotes => 'Kiadási megjegyzések';
+
+  @override
+  String get firmware_card_howToUpdate => 'A frissítés módja';
+
+  @override
+  String firmware_card_showAll(int count) {
+    return 'Összes kiadás ($count)';
+  }
+
+  @override
+  String get firmware_card_showFewer => 'Kevesebb';
+
+  @override
+  String get firmware_card_log => 'Firmware-frissítés rögzítése';
+
+  @override
+  String get firmware_log_version => 'Új verzió';
+
+  @override
+  String get firmware_log_versionRequired => 'Add meg a verziót';
+
+  @override
+  String get firmware_log_date => 'Dátum';
+
+  @override
+  String get firmware_log_notes => 'Megjegyzések';
+
+  @override
+  String get firmware_log_saveFailed =>
+      'Nem sikerült menteni a frissítést. Próbáld újra.';
+
+  @override
   String get equipment_serviceCategory_warranty => 'Garanciális szerviz';
 
   @override
@@ -30735,6 +30863,22 @@ class AppLocalizationsHu extends AppLocalizations {
       'Három nappal azután, hogy egy vázlat kiszállt a vízből, ha még mindig letöltésre vár';
 
   @override
+  String get settings_notifications_firmwareChecks =>
+      'Firmware-frissítések keresése';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      'Naponta egyszer beolvassa a nyilvános firmware-listát. Rólad semmit nem küld el.';
+
+  @override
+  String get settings_notifications_firmwareNotices =>
+      'Firmware-frissítési értesítések';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      'Minden felszereléshez új kiadásonként egyszer';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'Szerviz emlékeztetők engedélyezése';
 
@@ -42782,6 +42926,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrLabel_product_url => 'Webhivatkozás';
+
+  @override
+  String get attrLabel_firmware_version => 'Firmware-verzió';
+
+  @override
+  String get attrLabel_firmware_page_url => 'Firmware-oldal';
 
   @override
   String get attrLabel_color => 'Szín';

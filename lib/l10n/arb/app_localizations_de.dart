@@ -619,6 +619,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_equipmentField_location_short => 'Standort';
 
   @override
+  String get enum_equipmentField_firmware => 'Firmware';
+
+  @override
+  String get enum_equipmentField_firmware_short => 'Firmware';
+
+  @override
   String get equipment_set_noLongerShared => 'Nicht mehr geteilt';
 
   @override
@@ -18000,6 +18006,128 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_serviceCategory_calibration => 'Kalibrierung';
 
   @override
+  String get equipment_serviceCategory_firmwareUpdate => 'Firmware-Update';
+
+  @override
+  String firmware_history_updatedTo(String version) {
+    return 'Firmware aktualisiert auf $version';
+  }
+
+  @override
+  String firmware_history_changedTo(String version) {
+    return 'Firmware geändert auf $version';
+  }
+
+  @override
+  String get firmware_card_title => 'Firmware';
+
+  @override
+  String get firmware_badge_updateAvailable => 'Update verfügbar';
+
+  @override
+  String firmware_home_version(String version) {
+    return 'Firmware $version';
+  }
+
+  @override
+  String firmware_column_update(String installed, String latest) {
+    return '$installed (Update: $latest)';
+  }
+
+  @override
+  String firmware_home_more(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weitere Firmware-Updates',
+      one: '$count weiteres Firmware-Update',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String firmware_notify_title(String item) {
+    return 'Firmware-Update für $item';
+  }
+
+  @override
+  String firmware_notify_body(String version) {
+    return '$version ist verfügbar. Tippe für die Versionshinweise.';
+  }
+
+  @override
+  String firmware_notify_bodySafety(String version) {
+    return '$version ist ein Sicherheitsupdate. Tippe für die Versionshinweise.';
+  }
+
+  @override
+  String get firmware_notify_summaryTitle => 'Firmware-Updates verfügbar';
+
+  @override
+  String get firmware_notify_summaryBody =>
+      'Tippe, um zu sehen, welche Ausrüstung neuere Firmware hat.';
+
+  @override
+  String get firmware_card_installed => 'Installiert';
+
+  @override
+  String get firmware_card_notRecorded => 'Nicht erfasst';
+
+  @override
+  String firmware_card_updateAvailable(String version) {
+    return 'Update verfügbar: $version';
+  }
+
+  @override
+  String get firmware_card_upToDate => 'Aktuell';
+
+  @override
+  String firmware_card_unknownVersion(String version) {
+    return 'Nicht in der Firmware-Liste. Neueste: $version';
+  }
+
+  @override
+  String firmware_card_noVersion(String version) {
+    return 'Neueste: $version. Erfasse deine, um zu vergleichen.';
+  }
+
+  @override
+  String get firmware_card_safety => 'Sicherheit';
+
+  @override
+  String get firmware_card_releaseNotes => 'Versionshinweise';
+
+  @override
+  String get firmware_card_howToUpdate => 'So aktualisierst du';
+
+  @override
+  String firmware_card_showAll(int count) {
+    return 'Alle Versionen zeigen ($count)';
+  }
+
+  @override
+  String get firmware_card_showFewer => 'Weniger zeigen';
+
+  @override
+  String get firmware_card_log => 'Firmware-Update erfassen';
+
+  @override
+  String get firmware_log_version => 'Neue Version';
+
+  @override
+  String get firmware_log_versionRequired => 'Gib die Version ein';
+
+  @override
+  String get firmware_log_date => 'Datum';
+
+  @override
+  String get firmware_log_notes => 'Notizen';
+
+  @override
+  String get firmware_log_saveFailed =>
+      'Das Update konnte nicht gespeichert werden. Versuche es erneut.';
+
+  @override
   String get equipment_serviceCategory_warranty => 'Garantieservice';
 
   @override
@@ -30839,6 +30967,22 @@ class AppLocalizationsDe extends AppLocalizations {
       'Drei Tage nach dem Auftauchen, wenn der Entwurf noch auf einen Download wartet';
 
   @override
+  String get settings_notifications_firmwareChecks =>
+      'Nach Firmware-Updates suchen';
+
+  @override
+  String get settings_notifications_firmwareChecks_subtitle =>
+      'Liest die öffentliche Firmware-Liste einmal am Tag. Nichts über dich wird gesendet.';
+
+  @override
+  String get settings_notifications_firmwareNotices =>
+      'Benachrichtigungen zu Firmware-Updates';
+
+  @override
+  String get settings_notifications_firmwareNotices_subtitle =>
+      'Einmal pro neuer Version und Ausrüstungsteil';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'Serviceerinnerungen aktivieren';
 
@@ -42955,6 +43099,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrLabel_product_url => 'Weblink';
+
+  @override
+  String get attrLabel_firmware_version => 'Firmware-Version';
+
+  @override
+  String get attrLabel_firmware_page_url => 'Firmware-Seite';
 
   @override
   String get attrLabel_color => 'Farbe';

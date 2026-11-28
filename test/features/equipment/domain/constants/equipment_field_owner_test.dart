@@ -5,9 +5,10 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 
 void main() {
   test('owner is appended after tags so saved layouts keep their order', () {
-    // Location (issue #3625) was appended after it; see its own test.
+    // Location (issue #3625) and firmware (issue #5104) were appended after
+    // it; see their own tests.
     const values = EquipmentField.values;
-    expect(values[values.length - 2], EquipmentField.owner);
+    expect(values[values.length - 3], EquipmentField.owner);
     expect(
       EquipmentFieldAdapter.instance.fieldFromName('owner'),
       EquipmentField.owner,

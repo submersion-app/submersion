@@ -28,7 +28,13 @@ class LoggerService {
 
   /// The shared LogFileService instance. Set during app initialization.
   static LogFileService? _fileService;
-  static Future<void> _pendingWrite = Future<void>.value();
+
+  /// The tail of the file write queue, or null when nothing is queued. Idle
+  /// is null rather than a completed future: a future made on first use
+  /// belongs to whatever zone touched it, and a widget test's fake-async zone
+  /// never runs a later awaiter's continuation, which hung a flush in the
+  /// next test of a bundled run.
+  static Future<void>? _pendingWrite;
 
   /// Broadcast stream that emits every [LogEntry] as it is created.
   static final StreamController<LogEntry> _logStreamController =
@@ -67,7 +73,7 @@ class LoggerService {
   /// Pass `null` to disable file logging entirely.
   static void setFileService(LogFileService? fileService) {
     _fileService = fileService;
-    _pendingWrite = Future<void>.value();
+    _pendingWrite = null;
   }
 
   /// Lowest severity currently written to the log file.
@@ -149,7 +155,7 @@ class LoggerService {
     Future<LogEntry> entry,
     String loggerName,
   ) {
-    _pendingWrite = _pendingWrite
+    _pendingWrite = (_pendingWrite ?? Future<void>.value())
         .then((_) async {
           final ready = await entry;
           await service.writeLine(ready.toLogLine());
@@ -405,10 +411,13 @@ class LoggerService {
   static Future<void> flushPendingWrites() async {
     while (true) {
       final current = _pendingWrite;
+      if (current == null) return;
       await current;
-      // If no new write was scheduled while we were waiting, we're done.
+      // If no new write was scheduled while we were waiting, the queue is
+      // empty again.
       if (identical(current, _pendingWrite)) {
-        break;
+        _pendingWrite = null;
+        return;
       }
     }
   }

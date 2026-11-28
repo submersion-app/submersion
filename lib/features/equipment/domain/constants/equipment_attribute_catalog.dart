@@ -51,6 +51,11 @@ enum AttributeGroup {
   /// as its own row on the detail page.
   appearance,
 
+  /// The firmware an electronic item runs and where its maker publishes
+  /// updates (issue #5104). Rendered by the Details editor under the serial
+  /// and on the detail page by the Firmware card, never as a spec row.
+  firmware,
+
   /// Written by the app, never by a form: identifiers a feature owns, such
   /// as a cylinder's passport id (issue #2334). No form section renders this
   /// group, and the detail page's spec rows skip it, but an item's save
@@ -147,6 +152,11 @@ abstract final class EquipmentAttrKeys {
   // once, printed as a QR label and written to an NFC tag. System group,
   // so no form ever shows it as a text field.
   static const passportId = 'passport_id';
+
+  // Firmware (issue #5104): the installed version, which the firmware
+  // catalogue compares, and the maker's firmware page.
+  static const firmwareVersion = 'firmware_version';
+  static const firmwarePageUrl = 'firmware_page_url';
 
   // Purchase record (issue #1517).
   static const sku = 'sku';
@@ -247,6 +257,32 @@ abstract final class EquipmentAttributeCatalog {
       group: AttributeGroup.purchase,
     ),
   ];
+
+  /// The firmware fields (issue #5104), present for [firmwareTypes] only.
+  static const List<EquipmentAttributeDef> firmware = [
+    EquipmentAttributeDef(
+      key: EquipmentAttrKeys.firmwareVersion,
+      kind: AttributeKind.text,
+      group: AttributeGroup.firmware,
+    ),
+    EquipmentAttributeDef(
+      key: EquipmentAttrKeys.firmwarePageUrl,
+      kind: AttributeKind.url,
+      group: AttributeGroup.firmware,
+    ),
+  ];
+
+  /// The types that commonly run firmware their maker updates.
+  static const Set<EquipmentType> firmwareTypes = {
+    EquipmentType.computer,
+    EquipmentType.transmitter,
+    EquipmentType.rebreather,
+    EquipmentType.dpv,
+    EquipmentType.light,
+    EquipmentType.camera,
+    EquipmentType.housing,
+    EquipmentType.strobe,
+  };
 
   /// The item's look (issue #2326), present for every type except the
   /// consumables that live inside another item and `other`, which has no
@@ -983,7 +1019,11 @@ abstract final class EquipmentAttributeCatalog {
     ...universal,
     ...purchase,
     if (!_noAppearance.contains(type)) ...appearance,
+    if (firmwareTypes.contains(type)) ...firmware,
   ];
+
+  /// Whether items of [type] record firmware ([firmware]).
+  static bool hasFirmware(EquipmentType type) => firmwareTypes.contains(type);
 
   /// Whether items of [type] take a colour ([appearance]). A colour that
   /// reaches a type without one is the diver's own field, not the item's
@@ -996,6 +1036,7 @@ abstract final class EquipmentAttributeCatalog {
     for (final def in universal) def.key: def,
     for (final def in purchase) def.key: def,
     for (final def in appearance) def.key: def,
+    for (final def in firmware) def.key: def,
   };
 
   /// Definition for a curated key, or null for unknown/custom keys.

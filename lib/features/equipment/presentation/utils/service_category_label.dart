@@ -18,6 +18,8 @@ extension ServiceCategoryL10n on ServiceCategory {
     ServiceCategory.replacement => l10n.equipment_serviceCategory_replacement,
     ServiceCategory.cleaning => l10n.equipment_serviceCategory_cleaning,
     ServiceCategory.calibration => l10n.equipment_serviceCategory_calibration,
+    ServiceCategory.firmwareUpdate =>
+      l10n.equipment_serviceCategory_firmwareUpdate,
     ServiceCategory.warranty => l10n.equipment_serviceCategory_warranty,
     ServiceCategory.recall => l10n.equipment_serviceCategory_recall,
     ServiceCategory.other => l10n.equipment_serviceCategory_other,

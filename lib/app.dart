@@ -17,6 +17,8 @@ import 'package:submersion/features/dive_log/data/services/derived_metrics_sched
 import 'package:submersion/features/dive_log/presentation/widgets/stale_open_draft_prompt.dart';
 import 'package:submersion/features/documents/presentation/providers/equipment_file_conversion_provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
+import 'package:submersion/features/firmware/presentation/providers/firmware_catalogue_providers.dart';
+import 'package:submersion/features/firmware/presentation/providers/firmware_notification_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/app/app_exit.dart';
@@ -156,6 +158,11 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
   /// Lock screen Entered water and Surfaced taps (issue #637).
   late final StreamSubscription<void> _diveMarks;
+
+  /// Re-checks the firmware catalogue while the app stays open (issue
+  /// #5104): a desktop app may never be hidden and resumed for days. The
+  /// refresh itself is day-gated, so most ticks do nothing.
+  Timer? _firmwareTimer;
   final _staleDrafts = StaleOpenDraftPrompter();
   final _healthImports = HealthAutoImportThrottle();
 
@@ -233,7 +240,14 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     if (hasDesktopWindow()) {
       ref.listenManual(agentAccessControllerProvider, (_, _) {});
     }
+    // Firmware update notifications (issue #5104): one per item and new
+    // release, re-run as the catalogue, the gear or the switches change.
+    ref.listenManual(firmwareNotificationSyncProvider, (_, _) {});
     _diveMarks = startDiveMarkActionBridge(ref);
+    _firmwareTimer = Timer.periodic(
+      const Duration(hours: 6),
+      (_) => _refreshFirmwareCatalogue(),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final launchSync = _maybeSyncOnLaunch();
       _runStorageCleanupAfter(launchSync, StorageGcTrigger.launch);
@@ -243,6 +257,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       _republishOwnedMedia();
       _convertGearFiles();
       _importSiteCatalogue();
+      _refreshFirmwareCatalogue();
       unawaited(runIdentificationLaunchSteps(ref.container));
       _fileShareHandler.initialize();
       _passportLinks.start();
@@ -272,6 +287,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   void dispose() {
     _focusArbiter.dispose();
     unawaited(_diveMarks.cancel());
+    _firmwareTimer?.cancel();
     ChangeLogSettleScheduler.instance.stop();
     _linkRouter.routeInformationProvider.removeListener(_updateNavigationReady);
     _shares.release();
@@ -324,6 +340,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     ref.read(appLockNotifierProvider.notifier).noteResumed();
     _runStorageCleanupAfter(_maybeSyncOnResume(), StorageGcTrigger.resume);
     _resumeMediaTransfers();
+    _refreshFirmwareCatalogue();
     unawaited(_staleDrafts.check(ref, rootNavigatorKey.currentContext));
     unawaited(_runHealthImport());
     // NFC may have been turned on in the system settings meanwhile, as
@@ -385,6 +402,12 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   /// argument as [_resumeMediaTransfers].
   void _importSiteCatalogue() {
     unawaited(ref.read(siteCatalogueImportProvider)());
+  }
+
+  /// Reads the public firmware catalogue at most once a day (issue #5104).
+  /// The notifier decides whether it is due and contains its own failures.
+  void _refreshFirmwareCatalogue() {
+    unawaited(ref.read(firmwareCatalogueProvider.notifier).refreshIfDue());
   }
 
   /// Runs the storage cleanup coordinator (issue #3396) once [syncs] end:

@@ -19,6 +19,9 @@ class ServiceRecord {
   final DateTime? nextServiceDue;
   final String notes;
 
+  /// The version a firmware update installed (issue #5104).
+  final String? firmwareVersion;
+
   const ServiceRecord({
     required this.id,
     required this.equipmentId,
@@ -30,5 +33,6 @@ class ServiceRecord {
     this.currency = 'USD',
     this.nextServiceDue,
     this.notes = '',
+    this.firmwareVersion,
   });
 }

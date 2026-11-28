@@ -7,6 +7,8 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_firmware_version.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart'
     as domain;
 
@@ -89,7 +91,14 @@ class ServiceRecordRepository {
   }
 
   /// Create a new service record
-  Future<domain.ServiceRecord> createRecord(domain.ServiceRecord record) async {
+  ///
+  /// With [followFirmware] false, a firmware update leaves the item's
+  /// recorded version alone: a backup restore brings that back itself, and
+  /// its history may be older than it (issue #5104).
+  Future<domain.ServiceRecord> createRecord(
+    domain.ServiceRecord record, {
+    bool followFirmware = true,
+  }) async {
     final id = record.id.isEmpty ? _uuid.v4() : record.id;
     final now = DateTime.now();
 
@@ -109,6 +118,7 @@ class ServiceRecordRepository {
               record.nextServiceDue?.millisecondsSinceEpoch,
             ),
             notes: Value(record.notes),
+            firmwareVersion: Value(record.firmwareVersion),
             createdAt: Value(now.millisecondsSinceEpoch),
             updatedAt: Value(now.millisecondsSinceEpoch),
           ),
@@ -124,6 +134,7 @@ class ServiceRecordRepository {
     // The newest record's date, so a record back-filled from paper does not
     // move the item's last service date back (issue #4201).
     await _refreshEquipmentLastServiceDate(record.equipmentId);
+    if (followFirmware) await _followFirmware(record.equipmentId, id);
 
     return record.copyWith(id: id, createdAt: now, updatedAt: now);
   }
@@ -144,6 +155,7 @@ class ServiceRecordRepository {
         currency: Value(record.currency),
         nextServiceDue: Value(record.nextServiceDue?.millisecondsSinceEpoch),
         notes: Value(record.notes),
+        firmwareVersion: Value(record.firmwareVersion),
         updatedAt: Value(now),
       ),
     );
@@ -156,6 +168,37 @@ class ServiceRecordRepository {
     SyncEventBus.notifyLocalChange();
 
     await _refreshEquipmentLastServiceDate(record.equipmentId);
+    await _followFirmware(record.equipmentId, record.id);
+  }
+
+  /// When [recordId] is [equipmentId]'s newest firmware update (by date,
+  /// then by when it was entered), its version becomes the item's recorded
+  /// firmware (issue #5104). A back-dated update never overwrites a newer
+  /// version, and deleting one never rolls the version back.
+  Future<void> _followFirmware(String equipmentId, String recordId) async {
+    final newest =
+        await (_db.select(_db.serviceRecords)
+              ..where(
+                (t) =>
+                    t.equipmentId.equals(equipmentId) &
+                    t.serviceCategory.equals(
+                      ServiceCategory.firmwareUpdate.name,
+                    ) &
+                    t.firmwareVersion.isNotNull(),
+              )
+              ..orderBy([
+                (t) => OrderingTerm.desc(t.serviceDate),
+                (t) => OrderingTerm.desc(t.createdAt),
+              ])
+              ..limit(1))
+            .getSingleOrNull();
+    final version = newest?.firmwareVersion?.trim() ?? '';
+    if (newest?.id != recordId || version.isEmpty) return;
+    await setRecordedFirmwareVersion(
+      EquipmentRepository(),
+      equipmentId,
+      version,
+    );
   }
 
   /// Delete a service record
@@ -240,8 +283,21 @@ class ServiceRecordRepository {
   /// is left unwritten, so a record back-filled from paper does not send it
   /// to every peer with nothing changed.
   Future<void> _refreshEquipmentLastServiceDate(String equipmentId) async {
-    final mostRecent = await getMostRecentRecord(equipmentId);
-    final newest = mostRecent?.serviceDate.millisecondsSinceEpoch;
+    // A firmware update is not a service (issue #5104): it never makes an
+    // item look freshly serviced.
+    final mostRecent =
+        await (_db.select(_db.serviceRecords)
+              ..where(
+                (t) =>
+                    t.equipmentId.equals(equipmentId) &
+                    t.serviceCategory
+                        .equals(ServiceCategory.firmwareUpdate.name)
+                        .not(),
+              )
+              ..orderBy([(t) => OrderingTerm.desc(t.serviceDate)])
+              ..limit(1))
+            .getSingleOrNull();
+    final newest = mostRecent?.serviceDate;
     final item = await (_db.select(
       _db.equipment,
     )..where((t) => t.id.equals(equipmentId))).getSingleOrNull();
@@ -274,6 +330,7 @@ class ServiceRecordRepository {
           ? DateTime.fromMillisecondsSinceEpoch(row.nextServiceDue!)
           : null,
       notes: row.notes,
+      firmwareVersion: row.firmwareVersion,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );
@@ -299,6 +356,7 @@ class ServiceRecordRepository {
             )
           : null,
       notes: (row.data['notes'] as String?) ?? '',
+      firmwareVersion: row.data['firmware_version'] as String?,
       createdAt: DateTime.fromMillisecondsSinceEpoch(
         row.data['created_at'] as int,
       ),

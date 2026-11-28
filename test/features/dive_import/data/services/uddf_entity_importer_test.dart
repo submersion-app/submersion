@@ -5092,7 +5092,12 @@ void main() {
         (invocation) async =>
             invocation.positionalArguments[0] as EquipmentItem,
       );
-      when(mockServiceRecordRepo.createRecord(any)).thenAnswer(
+      when(
+        mockServiceRecordRepo.createRecord(
+          any,
+          followFirmware: anyNamed('followFirmware'),
+        ),
+      ).thenAnswer(
         (invocation) async =>
             invocation.positionalArguments[0] as ServiceRecord,
       );
@@ -5124,7 +5129,10 @@ void main() {
       );
 
       final captured = verify(
-        mockServiceRecordRepo.createRecord(captureAny),
+        mockServiceRecordRepo.createRecord(
+          captureAny,
+          followFirmware: anyNamed('followFirmware'),
+        ),
       ).captured;
       expect(captured, hasLength(1));
       final record = captured.single as ServiceRecord;
@@ -5154,7 +5162,12 @@ void main() {
         diverId: diverId,
       );
 
-      verifyNever(mockServiceRecordRepo.createRecord(any));
+      verifyNever(
+        mockServiceRecordRepo.createRecord(
+          any,
+          followFirmware: anyNamed('followFirmware'),
+        ),
+      );
     });
 
     // A skipped duplicate is linked to the existing row so dives keep their
@@ -5172,7 +5185,12 @@ void main() {
         preResolvedEquipmentIds: const {'gear-1': 'existing-eq-1'},
       );
 
-      verifyNever(mockServiceRecordRepo.createRecord(any));
+      verifyNever(
+        mockServiceRecordRepo.createRecord(
+          any,
+          followFirmware: anyNamed('followFirmware'),
+        ),
+      );
     });
 
     test('an item imported despite a seed still gets its service history '
@@ -5188,7 +5206,12 @@ void main() {
       );
 
       final record =
-          verify(mockServiceRecordRepo.createRecord(captureAny)).captured.single
+          verify(
+                mockServiceRecordRepo.createRecord(
+                  captureAny,
+                  followFirmware: anyNamed('followFirmware'),
+                ),
+              ).captured.single
               as ServiceRecord;
       final equipment =
           verify(mockEquipmentRepo.createEquipment(captureAny)).captured.single
@@ -5206,13 +5229,21 @@ void main() {
         diverId: diverId,
       );
 
-      verifyNever(mockServiceRecordRepo.createRecord(any));
+      verifyNever(
+        mockServiceRecordRepo.createRecord(
+          any,
+          followFirmware: anyNamed('followFirmware'),
+        ),
+      );
     });
 
     test('one failing record does not abort the import', () async {
-      when(mockServiceRecordRepo.createRecord(any)).thenAnswer((
-        invocation,
-      ) async {
+      when(
+        mockServiceRecordRepo.createRecord(
+          any,
+          followFirmware: anyNamed('followFirmware'),
+        ),
+      ).thenAnswer((invocation) async {
         final record = invocation.positionalArguments[0] as ServiceRecord;
         if (record.provider == 'boom') throw Exception('write failed');
         return record;
@@ -5236,7 +5267,12 @@ void main() {
         diverId: diverId,
       );
 
-      verify(mockServiceRecordRepo.createRecord(any)).called(2);
+      verify(
+        mockServiceRecordRepo.createRecord(
+          any,
+          followFirmware: anyNamed('followFirmware'),
+        ),
+      ).called(2);
     });
   });
 

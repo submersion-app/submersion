@@ -114,6 +114,9 @@ final reachedThrough = <String, String>{
       'deleteOwnedEquipment',
   'lib/features/equipment/data/repositories/equipment_repository_impl.dart:saveAttributes':
       'updateEquipment',
+  // Saving the newest firmware record sets the item's version (#5104).
+  'lib/features/equipment/data/repositories/equipment_firmware_version.dart:setRecordedFirmwareVersion':
+      'createRecord',
   'lib/features/equipment/data/repositories/service_schedule_repository.dart:applyBaselines':
       'createEquipment',
   'lib/features/planner/data/repositories/dive_plan_mission_store.dart:deleteAll':
@@ -398,6 +401,8 @@ final covered = <String, String>{
   '$gear/service_schedule_repository.dart:applyBaselines': 'equipment',
   for (final method in const ['createRecord', 'updateRecord', 'deleteRecord'])
     '$gear/service_record_repository.dart:$method': 'service_records',
+  '$gear/equipment_firmware_version.dart:setRecordedFirmwareVersion':
+      'service_records',
   '$gear/equipment_repository_impl.dart:replaceChild': 'equipment',
   for (final method in const ['create', 'update', 'delete'])
     '$gear/equipment_observation_repository.dart:$method':

@@ -1060,6 +1060,18 @@ abstract class AppLocalizations {
   /// **'Location'**
   String get enum_equipmentField_location_short;
 
+  /// No description provided for @enum_equipmentField_firmware.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware'**
+  String get enum_equipmentField_firmware;
+
+  /// No description provided for @enum_equipmentField_firmware_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware'**
+  String get enum_equipmentField_firmware_short;
+
   /// No description provided for @equipment_set_noLongerShared.
   ///
   /// In en, this message translates to:
@@ -28600,6 +28612,186 @@ abstract class AppLocalizations {
   /// **'Calibration'**
   String get equipment_serviceCategory_calibration;
 
+  /// No description provided for @equipment_serviceCategory_firmwareUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware update'**
+  String get equipment_serviceCategory_firmwareUpdate;
+
+  /// No description provided for @firmware_history_updatedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware updated to {version}'**
+  String firmware_history_updatedTo(String version);
+
+  /// No description provided for @firmware_history_changedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware changed to {version}'**
+  String firmware_history_changedTo(String version);
+
+  /// No description provided for @firmware_card_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware'**
+  String get firmware_card_title;
+
+  /// No description provided for @firmware_badge_updateAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get firmware_badge_updateAvailable;
+
+  /// No description provided for @firmware_home_version.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware {version}'**
+  String firmware_home_version(String version);
+
+  /// No description provided for @firmware_column_update.
+  ///
+  /// In en, this message translates to:
+  /// **'{installed} (update: {latest})'**
+  String firmware_column_update(String installed, String latest);
+
+  /// No description provided for @firmware_home_more.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} more firmware update} other{{count} more firmware updates}}'**
+  String firmware_home_more(int count);
+
+  /// No description provided for @firmware_notify_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware update for {item}'**
+  String firmware_notify_title(String item);
+
+  /// No description provided for @firmware_notify_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{version} is available. Tap for release notes.'**
+  String firmware_notify_body(String version);
+
+  /// No description provided for @firmware_notify_bodySafety.
+  ///
+  /// In en, this message translates to:
+  /// **'{version} is a safety update. Tap for release notes.'**
+  String firmware_notify_bodySafety(String version);
+
+  /// No description provided for @firmware_notify_summaryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware updates available'**
+  String get firmware_notify_summaryTitle;
+
+  /// No description provided for @firmware_notify_summaryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to see which gear has newer firmware.'**
+  String get firmware_notify_summaryBody;
+
+  /// No description provided for @firmware_card_installed.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed'**
+  String get firmware_card_installed;
+
+  /// No description provided for @firmware_card_notRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get firmware_card_notRecorded;
+
+  /// No description provided for @firmware_card_updateAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available: {version}'**
+  String firmware_card_updateAvailable(String version);
+
+  /// No description provided for @firmware_card_upToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get firmware_card_upToDate;
+
+  /// No description provided for @firmware_card_unknownVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in the firmware list. Latest: {version}'**
+  String firmware_card_unknownVersion(String version);
+
+  /// No description provided for @firmware_card_noVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest: {version}. Record yours to compare.'**
+  String firmware_card_noVersion(String version);
+
+  /// No description provided for @firmware_card_safety.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety'**
+  String get firmware_card_safety;
+
+  /// No description provided for @firmware_card_releaseNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Release notes'**
+  String get firmware_card_releaseNotes;
+
+  /// No description provided for @firmware_card_howToUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'How to update'**
+  String get firmware_card_howToUpdate;
+
+  /// No description provided for @firmware_card_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all releases ({count})'**
+  String firmware_card_showAll(int count);
+
+  /// No description provided for @firmware_card_showFewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Show fewer'**
+  String get firmware_card_showFewer;
+
+  /// No description provided for @firmware_card_log.
+  ///
+  /// In en, this message translates to:
+  /// **'Log firmware update'**
+  String get firmware_card_log;
+
+  /// No description provided for @firmware_log_version.
+  ///
+  /// In en, this message translates to:
+  /// **'New version'**
+  String get firmware_log_version;
+
+  /// No description provided for @firmware_log_versionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the version'**
+  String get firmware_log_versionRequired;
+
+  /// No description provided for @firmware_log_date.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get firmware_log_date;
+
+  /// No description provided for @firmware_log_notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get firmware_log_notes;
+
+  /// No description provided for @firmware_log_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the update. Try again.'**
+  String get firmware_log_saveFailed;
+
   /// No description provided for @equipment_serviceCategory_warranty.
   ///
   /// In en, this message translates to:
@@ -48939,6 +49131,30 @@ abstract class AppLocalizations {
   /// **'Three days after a draft dive\'s exit, if it is still waiting for a download'**
   String get settings_notifications_draftReminder_subtitle;
 
+  /// No description provided for @settings_notifications_firmwareChecks.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for firmware updates'**
+  String get settings_notifications_firmwareChecks;
+
+  /// No description provided for @settings_notifications_firmwareChecks_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reads the public firmware list once a day. Nothing about you is sent.'**
+  String get settings_notifications_firmwareChecks_subtitle;
+
+  /// No description provided for @settings_notifications_firmwareNotices.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware update notifications'**
+  String get settings_notifications_firmwareNotices;
+
+  /// No description provided for @settings_notifications_firmwareNotices_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Once per new release for each piece of gear'**
+  String get settings_notifications_firmwareNotices_subtitle;
+
   /// No description provided for @settings_notifications_enableServiceReminders.
   ///
   /// In en, this message translates to:
@@ -67205,6 +67421,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Web link'**
   String get attrLabel_product_url;
+
+  /// No description provided for @attrLabel_firmware_version.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware version'**
+  String get attrLabel_firmware_version;
+
+  /// No description provided for @attrLabel_firmware_page_url.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware page'**
+  String get attrLabel_firmware_page_url;
 
   /// No description provided for @attrLabel_color.
   ///
