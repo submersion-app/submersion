@@ -62,7 +62,8 @@ void main() {
       expect(first.identificationsByMedia, isEmpty);
 
       await tags.addTag(mediaId: 'p1', speciesId: 'ray');
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+      // Past the 300 ms change tick the tag stream is debounced by.
+      await Future<void>.delayed(const Duration(milliseconds: 600));
       final second = await container.read(
         diveSpeciesMediaInputsProvider('d1').future,
       );
@@ -107,5 +108,43 @@ void main() {
       diveSpeciesMediaInputsProvider('d1').future,
     );
     expect(second.media.single.enrichment?.elapsedSeconds, 600);
+  });
+
+  test('a burst of scan writes refreshes the inputs once', () async {
+    // A video scan stores a run every chunk; the card should not re-read
+    // the dive's media for each one.
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    var refreshes = 0;
+    final sub = container.listen(diveSpeciesMediaInputsProvider('d1'), (
+      _,
+      next,
+    ) {
+      // A settled value: a reload reports one while still loading too.
+      if (next is AsyncData && !next.isLoading) refreshes++;
+    });
+    addTearDown(sub.close);
+    await container.read(diveSpeciesMediaInputsProvider('d1').future);
+    refreshes = 0;
+
+    for (var chunk = 1; chunk <= 5; chunk++) {
+      await db
+          .into(db.mediaIdentificationRuns)
+          .insertOnConflictUpdate(
+            MediaIdentificationRunsCompanion.insert(
+              mediaId: 'p1',
+              packVersion: 'test',
+              detectorId: 'det',
+              classifierId: 'cls',
+              analysedAt: chunk,
+              imageWidth: 100,
+              imageHeight: 100,
+              detectionCount: 0,
+            ),
+          );
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    expect(refreshes, 1);
   });
 }

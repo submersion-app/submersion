@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -15,6 +13,7 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_ser
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/services/consolidation_copy_matcher.dart';
+import 'package:submersion/features/dive_log/data/services/consolidation_sighting_times.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_field_fill.dart';
 import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
@@ -808,14 +807,14 @@ class DiveConsolidationService {
         )) {
           // A time moves onto the target's timeline with the secondary's
           // samples, never before the start (issue #5092).
-          final seenAt = row.seenAtSeconds == null
-              ? null
-              : math.max(0, row.seenAtSeconds! + offset);
+          final seenAt = shiftedSightingTime(row.seenAtSeconds, offset);
           if (!targetSpeciesIds.add(row.speciesId)) {
             // Same species on both: a time from the secondary fills the
             // target's sighting when it has none.
             if (seenAt != null) {
-              await _fillSightingTime(
+              await fillSightingTime(
+                _db,
+                _sync,
                 targetDiveId: targetDiveId,
                 speciesId: row.speciesId,
                 seconds: seenAt,
@@ -1054,34 +1053,6 @@ class DiveConsolidationService {
       recordId: moving.id,
       localUpdatedAt: now,
     );
-  }
-
-  /// Gives the target's sighting of [speciesId] the secondary's time
-  /// [seconds] when it has none (issue #5092). Undo restores the target's
-  /// sighting rows from the snapshot.
-  Future<void> _fillSightingTime({
-    required String targetDiveId,
-    required String speciesId,
-    required int seconds,
-    required int now,
-  }) async {
-    final untimed =
-        await (_db.select(_db.sightings)..where(
-              (t) =>
-                  t.diveId.equals(targetDiveId) &
-                  t.speciesId.equals(speciesId) &
-                  t.seenAtSeconds.isNull(),
-            ))
-            .get();
-    for (final row in untimed) {
-      await (_db.update(_db.sightings)..where((t) => t.id.equals(row.id)))
-          .write(SightingsCompanion(seenAtSeconds: Value(seconds)));
-      await _sync.markRecordPending(
-        entityType: 'sightings',
-        recordId: row.id,
-        localUpdatedAt: now,
-      );
-    }
   }
 
   /// Moves the newest tide record among [secondaryDiveIds] to

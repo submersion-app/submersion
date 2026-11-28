@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/services/species_profile_positions.dart';
@@ -9,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/providers/safety_revie
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
@@ -29,8 +31,11 @@ final diveSpeciesMediaInputsProvider =
     FutureProvider.family<DiveSpeciesMediaInputs, String>((ref, diveId) async {
       final tags = ref.watch(mediaSpeciesRepositoryProvider);
       final identifications = ref.watch(mediaIdentificationRepositoryProvider);
-      ref.invalidateSelfWhen(tags.watchTagChanges());
-      ref.invalidateSelfWhen(identifications.watchChanges());
+      // Debounced like the media tick: a video scan stores a run and its
+      // rows every chunk, and the card need not re-read the dive for each.
+      const tick = MediaRepository.changeTickDebounce;
+      ref.invalidateSelfWhen(tags.watchTagChanges().debounce(tick));
+      ref.invalidateSelfWhen(identifications.watchChanges().debounce(tick));
       // Media, their enrichment (the place on the profile) and links, read
       // here rather than through mediaForDiveProvider: that one refreshes
       // on the dive detail tick, which leaves the enrichment table out.
@@ -112,8 +117,15 @@ Map<String, SpeciesProfilePositions> watchSpeciesPositions(
   final profile = watchChartProfile(ref, dive);
   if (inputs == null) return const {};
   final cached = _positionsMemo[sightings];
+  // Parts compared, not the record: records have no guaranteed identity,
+  // and a rebuilt record over the same lists places nothing new.
   if (cached != null &&
-      identical(cached.inputs, inputs) &&
+      identical(cached.inputs.media, inputs.media) &&
+      identical(cached.inputs.tagsByMedia, inputs.tagsByMedia) &&
+      identical(
+        cached.inputs.identificationsByMedia,
+        inputs.identificationsByMedia,
+      ) &&
       identical(cached.profile, profile)) {
     return cached.positions;
   }
