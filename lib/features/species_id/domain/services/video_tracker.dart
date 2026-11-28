@@ -22,6 +22,24 @@ const int videoTrackerVersion = 6;
 /// How far apart a scan samples a video's frames, in milliseconds.
 const int videoSampleIntervalMs = 250;
 
+/// The longest gap between two sightings the frame-to-frame link
+/// ([TrackLink]) bridges: [VideoTracker.defaultMaxGapSamples] misses.
+const int liveGapMs =
+    (VideoTracker.defaultMaxGapSamples + 1) * videoSampleIntervalMs;
+
+/// How long an animal seen at [ms] (oldest first) was in view: the time
+/// from its first sighting to its last, less each gap longer than
+/// [liveGapMs], where it was out of sight (issue #5120). An animal seen
+/// at every sample is in view for its whole span.
+int seenMs(List<int> ms) {
+  var total = 0;
+  for (var k = 1; k < ms.length; k++) {
+    final step = ms[k] - ms[k - 1];
+    if (step <= liveGapMs) total += step;
+  }
+  return total;
+}
+
 /// What a video's run stores as its detector id: the pack's detector set
 /// and the tracker version. A change to either scans the video again.
 String videoRunDetectorId(String detectorSetId) =>
@@ -269,6 +287,10 @@ class TrackedAnimal {
   int get startMs => points.first.ms;
   int get endMs => points.last.ms;
 
+  /// How long it was in view ([seenMs]): its span less the gaps it was
+  /// lost in.
+  int get inViewMs => seenMs([for (final p in points) p.ms]);
+
   List<TrackSample> get samples => [
     for (final p in points) TrackSample(ms: p.ms, box: p.detection.box),
   ];
@@ -363,14 +385,16 @@ class VideoTracker {
   /// Adds [frame]; returns the tracks it closed.
   List<TrackedAnimal> add(FrameDetections frame) {
     bool isLost(int t) => _open[t].missed > maxGapSamples;
+    bool inReach(int t) => _open[t].missed <= maxLostSamples;
     IdentificationBox last(int t) => _open[t].animal.points.last.detection.box;
     final pairs = matchLinksLiveFirst(
       _open.length,
       frame.boxes.length,
       live: (t, b) =>
           isLost(t) ? null : link.score(last(t), frame.boxes[b].box),
-      lost: (t, b) =>
-          isLost(t) ? lostLink.score(last(t), frame.boxes[b].box) : null,
+      lost: (t, b) => isLost(t) && inReach(t)
+          ? lostLink.score(last(t), frame.boxes[b].box)
+          : null,
     );
     final matchedTracks = <int>{};
     final matchedBoxes = <int>{};
@@ -408,7 +432,8 @@ class VideoTracker {
   }
 
   /// Continues [animal] as an open track, last matched [missed] frames ago:
-  /// one a stopped scan was following when it stopped.
+  /// one a stopped scan was following when it stopped. Past
+  /// [maxLostSamples] it links to nothing and closes on the next frame.
   void resume(TrackedAnimal animal, {int missed = 0}) {
     _open.add(_Open(animal)..missed = missed);
   }

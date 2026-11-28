@@ -457,6 +457,8 @@ void main() {
       expect(tracks, hasLength(1));
       expect(tracks.single.points, hasLength(6));
       expect((tracks.single.startMs, tracks.single.endMs), (0, 2250));
+      // In view 500 ms before and 500 ms after.
+      expect(tracks.single.inViewMs, 1000);
     });
 
     test('hidden for 3 s it is one track; for longer, two', () {
@@ -555,6 +557,30 @@ void main() {
       final hidden = tracks.firstWhere((t) => t.samples.first.box.x == 0.1);
       expect(hidden.points, hasLength(2));
     });
+  });
+
+  test('seenMs is the span less the gaps longer than the live link '
+      'bridges', () {
+    expect(seenMs(const []), 0);
+    expect(seenMs(const [1000]), 0);
+    expect(seenMs(const [0, 250, 500, 1250]), 1250);
+    // 500 seen, then 3 s out of sight, then 250 more.
+    expect(seenMs(const [0, 250, 500, 3750, 4000]), 750);
+  });
+
+  test('a track resumed past the lost reach links nothing and closes on '
+      'the next frame', () {
+    final tracker = VideoTracker();
+    tracker.resume(
+      TrackedAnimal([
+        (ms: 0, detection: DetectedBox(box: _box(0.1), score: 0.8)),
+        (ms: 250, detection: DetectedBox(box: _box(0.1), score: 0.8)),
+      ]),
+      missed: tracker.maxLostSamples + 1,
+    );
+    final closed = tracker.add(frame(20000, [_box(0.1)]));
+    expect(closed.single.endMs, 250);
+    expect(tracker.openTracks.single.startMs, 20000);
   });
 
   group('LostTrackLink', () {

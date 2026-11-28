@@ -357,7 +357,7 @@ class VideoIdentificationScan {
     }
     final early = [
       for (final t in _tracker.openTracks)
-        if (t.endMs - t.startMs >= earlyNamingMs) t,
+        if (t.inViewMs >= earlyNamingMs) t,
     ];
     final toName = <TrackedAnimal>[];
     final toKeep = <TrackedAnimal>[];
@@ -469,7 +469,10 @@ class VideoIdentificationScan {
           pending: row.isPending,
           namedWorth: row.isPending ? null : storedWorth(row),
         ),
-        missed: math.max(0, math.min(missed, _tracker.maxLostSamples)),
+        // A pending row from beyond the lost reach is taken up only to be
+        // named: out of reach, it links to nothing and closes on the next
+        // frame (issue #5120).
+        missed: math.max(0, math.min(missed, _tracker.maxLostSamples + 1)),
       );
     }
     return true;
