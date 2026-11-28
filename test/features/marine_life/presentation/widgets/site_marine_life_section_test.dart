@@ -355,16 +355,10 @@ void main() {
     );
 
     expect(tester.takeException(), isNull);
-    // Names too wide to sit beside the chips in a third of this card go
-    // above them instead, whole, leaving the chips the card's full width.
-    expect(
-      find.descendant(
-        of: find.byType(SiteMarineLifeSection),
-        matching: find.byType(Table),
-      ),
-      findsNothing,
-    );
-    // The collapsed lists leave some categories out.
+    // Every name shown stays whole, beside its chips or above them: which
+    // one depends on the font's widths, so the text-size test forces the
+    // stacked layout instead of relying on this one to reach it. The
+    // collapsed lists leave some categories out.
     final shownNames = SpeciesCategory.values
         .map((category) => category.localizedName(l))
         .where((name) => find.text(name).evaluate().isNotEmpty)
