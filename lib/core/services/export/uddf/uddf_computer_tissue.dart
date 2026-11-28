@@ -45,7 +45,7 @@ abstract final class UddfComputerTissue {
   static const _n2LoadElement = 'n2load';
 
   /// Whether [dive] has anything for the block to carry, the Avelo samples
-  /// that ride in it included (see `UddfAveloSamples`).
+  /// and trim angle that ride in it included (see `UddfAveloSamples`).
   static bool hasData(Dive dive) =>
       dive.computerTissue != null ||
       dive.profile.any((p) => p.n2Load != null) ||

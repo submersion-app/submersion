@@ -87,6 +87,40 @@ void main() {
         expect(profile[1].containsKey('aveloBuoyancy'), isFalse);
       });
 
+      test('restores the trim angle on a dive with no Avelo data '
+          '(#5098)', () async {
+        final xml = await write([
+          dive(
+            profile: const [
+              DiveProfilePoint(timestamp: 0, depth: 1.0, trim: 70.0),
+              DiveProfilePoint(timestamp: 60, depth: 10.0),
+              DiveProfilePoint(timestamp: 120, depth: 12.0, trim: -13.0),
+            ],
+          ),
+        ]);
+
+        final profile = profileOf((await restore(xml)).single);
+        expect(profile.map((p) => p['trim']), [70.0, null, -13.0]);
+        expect(profile[1].containsKey('trim'), isFalse);
+        expect(profile.any((p) => p.containsKey('computerRmv')), isFalse);
+      });
+
+      test('keeps trim and the Avelo values side by side (#5098)', () async {
+        final xml = await write([
+          dive(
+            profile: [
+              for (final p in recorded)
+                p.copyWith(trim: p.timestamp == 120 ? 5.0 : null),
+            ],
+          ),
+        ]);
+
+        final profile = profileOf((await restore(xml)).single);
+        expect(profile[2]['trim'], 5.0);
+        expect(profile[2]['computerRmv'], 10.68);
+        expect(profile[0].containsKey('trim'), isFalse);
+      });
+
       test('a dive without Avelo data writes no block', () async {
         final xml = await write([
           dive(
