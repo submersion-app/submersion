@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/feature_flags.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/media/presentation/widgets/media_console_scaffold.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -9,9 +10,21 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// the Media console offers only the Transfers button there.
 void main() {
   test('natively every action is offered', () {
+    marineLifeIdEnabled = true;
+    addTearDown(resetMarineLifeIdEnabled);
     expect(
       mediaConsoleActionsFor(currentDeviceCapabilities()),
       MediaConsoleAction.values,
+    );
+  });
+
+  test('Identify shows only with marine life identification on '
+      '(issue #5122)', () {
+    marineLifeIdEnabled = false;
+    addTearDown(resetMarineLifeIdEnabled);
+    expect(
+      mediaConsoleActionsFor(currentDeviceCapabilities()),
+      isNot(contains(MediaConsoleAction.identify)),
     );
   });
 
@@ -23,9 +36,10 @@ void main() {
     ]);
   });
 
-  test('the buttons read Import, Transfers, Sources', () {
+  test('the buttons read Import, Identify, Transfers, Sources', () {
     expect(MediaConsoleAction.values, [
       MediaConsoleAction.importMedia,
+      MediaConsoleAction.identify,
       MediaConsoleAction.transfers,
       MediaConsoleAction.sources,
     ]);

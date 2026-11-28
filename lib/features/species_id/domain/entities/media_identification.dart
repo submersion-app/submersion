@@ -310,6 +310,7 @@ class MediaIdentificationRun extends Equatable {
       videoDurationMs != null && scanned.isComplete(videoDurationMs!);
 
   MediaIdentificationRun copyWith({
+    String? mediaId,
     String? packVersion,
     int? Function()? locationCell,
     DateTime? analysedAt,
@@ -321,7 +322,7 @@ class MediaIdentificationRun extends Equatable {
     String? Function()? runId,
     NamingBars? Function()? namingBars,
   }) => MediaIdentificationRun(
-    mediaId: mediaId,
+    mediaId: mediaId ?? this.mediaId,
     packVersion: packVersion ?? this.packVersion,
     detectorId: detectorId,
     classifierId: classifierId,

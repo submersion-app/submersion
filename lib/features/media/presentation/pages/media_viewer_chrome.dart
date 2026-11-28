@@ -21,6 +21,9 @@ extension _ViewerChrome on _MediaViewerPageState {
   }) {
     // Read in the viewer's build, as everything but the labels action is.
     final reuploadable = mediaReuploadAvailable(ref) && !_rowless(currentItem);
+    // A file not kept (issue #5122) has nothing of the logbook's to edit,
+    // move, upload or write to: only its species.
+    final scratch = widget.scratch != null;
     return Consumer(
       // Its own Consumer: the labels action follows analysis as it runs, and
       // only the toolbar is rebuilt for it, not the whole viewer. Only that
@@ -53,7 +56,7 @@ extension _ViewerChrome on _MediaViewerPageState {
           ),
           // A photo held only in a dive's sitting has no row for the store to
           // take again until the dive is saved (issue #4527).
-          onReupload: reuploadable
+          onReupload: reuploadable && !scratch
               ? (anchor) => showMediaReuploadMenu(anchor, ref, currentItem)
               : null,
           onShare: (anchor) => _shareCurrentPhoto(currentItem, anchor),
@@ -65,15 +68,19 @@ extension _ViewerChrome on _MediaViewerPageState {
             if (sitting == null) return;
             showMediaSpeciesSheet(context, currentItem, sitting: sitting);
           },
-          onTagPeople: () => togglePeopleTagging(
-            pauseVideo: _videoControllers[currentItem.id]?.pause,
-          ),
+          onTagPeople: scratch
+              ? null
+              : () => togglePeopleTagging(
+                  pauseVideo: _videoControllers[currentItem.id]?.pause,
+                ),
           peopleTaggingActive: taggingPeople,
-          onAdjustColor: () => openColorPanel(),
-          onUnlock: !photoUnlocked && canUnlock(currentItem, storedPhoto)
+          onAdjustColor: scratch ? null : () => openColorPanel(),
+          onUnlock:
+              !scratch && !photoUnlocked && canUnlock(currentItem, storedPhoto)
               ? () => unlockPhoto(storedPhoto!)
               : null,
-          writeControls: !photoLocked,
+          // A file not kept offers its species, and nothing else.
+          writeControls: scratch || !photoLocked,
           editBar: photoUnlocked
               ? MediaViewerEditBar(
                   title: currentItem.isVideo
@@ -99,14 +106,15 @@ extension _ViewerChrome on _MediaViewerPageState {
                 }())
               : null,
           canWriteMetadata:
+              !scratch &&
               enrichment?.depthMeters != null &&
               _metadataWriter.canWriteTo(currentItem),
-          showPerdixToggle: perdixToggleAvailable,
+          showPerdixToggle: perdixToggleAvailable && !scratch,
           perdixEnabled: perdixEnabled,
           onTogglePerdix: () => ref
               .read(settingsProvider.notifier)
               .setPerdixOverlayEnabled(!perdixEnabled),
-          onOpenInLightroom: _lightroomWebUrl(currentItem) == null
+          onOpenInLightroom: scratch || _lightroomWebUrl(currentItem) == null
               ? null
               : () => unawaited(
                   launchUrl(

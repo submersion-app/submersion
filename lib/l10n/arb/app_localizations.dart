@@ -33825,6 +33825,90 @@ abstract class AppLocalizations {
   /// **'Sources'**
   String get media_console_sources;
 
+  /// Media console button: identify species in photos or videos without keeping them
+  ///
+  /// In en, this message translates to:
+  /// **'Identify species'**
+  String get media_console_identify;
+
+  /// Identify viewer banner over a file that is not in the media library
+  ///
+  /// In en, this message translates to:
+  /// **'Not in your library. Nothing is kept unless you keep it.'**
+  String get media_identify_notKeptBanner;
+
+  /// Identify viewer button: keep this file in the media library
+  ///
+  /// In en, this message translates to:
+  /// **'Keep'**
+  String get media_identify_keep;
+
+  /// Identify viewer banner once the file is kept
+  ///
+  /// In en, this message translates to:
+  /// **'Kept in your library'**
+  String get media_identify_kept;
+
+  /// Identify viewer: dialog title when leaving with species chosen on files not kept
+  ///
+  /// In en, this message translates to:
+  /// **'Leave without keeping?'**
+  String get media_identify_leaveTitle;
+
+  /// Identify viewer: dialog body when leaving with species chosen on files not kept
+  ///
+  /// In en, this message translates to:
+  /// **'The species you chose on files you have not kept will be lost.'**
+  String get media_identify_leaveBody;
+
+  /// Identify viewer: dialog button that leaves without keeping
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get media_identify_leave;
+
+  /// Keep sheet title
+  ///
+  /// In en, this message translates to:
+  /// **'Keep in your library'**
+  String get media_identify_keepTitle;
+
+  /// Keep sheet choice: keep the file on a dive
+  ///
+  /// In en, this message translates to:
+  /// **'Put on a dive'**
+  String get media_identify_keepOnDive;
+
+  /// Keep sheet choice: keep the file on a dive site
+  ///
+  /// In en, this message translates to:
+  /// **'Put on a site'**
+  String get media_identify_keepOnSite;
+
+  /// Keep sheet choice: keep the file with no dive and no site
+  ///
+  /// In en, this message translates to:
+  /// **'Keep without a place'**
+  String get media_identify_keepUnplaced;
+
+  /// Keep sheet scope: only the file on screen
+  ///
+  /// In en, this message translates to:
+  /// **'This file'**
+  String get media_identify_keepThis;
+
+  /// Keep sheet scope: every file in the Identify viewer not kept yet
+  ///
+  /// In en, this message translates to:
+  /// **'All files not kept yet'**
+  String get media_identify_keepAll;
+
+  /// Snackbar when a file in the Identify viewer could not be kept, usually because it was moved or deleted
+  ///
+  /// In en, this message translates to:
+  /// **'{name} could not be kept'**
+  String media_identify_keepFailed(String name);
+
   /// Sources section: per-source browse list header
   ///
   /// In en, this message translates to:

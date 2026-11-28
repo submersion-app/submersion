@@ -21510,6 +21510,52 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_console_sources => 'Orígenes';
 
   @override
+  String get media_console_identify => 'Identify species';
+
+  @override
+  String get media_identify_notKeptBanner =>
+      'Not in your library. Nothing is kept unless you keep it.';
+
+  @override
+  String get media_identify_keep => 'Keep';
+
+  @override
+  String get media_identify_kept => 'Kept in your library';
+
+  @override
+  String get media_identify_leaveTitle => 'Leave without keeping?';
+
+  @override
+  String get media_identify_leaveBody =>
+      'The species you chose on files you have not kept will be lost.';
+
+  @override
+  String get media_identify_leave => 'Leave';
+
+  @override
+  String get media_identify_keepTitle => 'Keep in your library';
+
+  @override
+  String get media_identify_keepOnDive => 'Put on a dive';
+
+  @override
+  String get media_identify_keepOnSite => 'Put on a site';
+
+  @override
+  String get media_identify_keepUnplaced => 'Keep without a place';
+
+  @override
+  String get media_identify_keepThis => 'This file';
+
+  @override
+  String get media_identify_keepAll => 'All files not kept yet';
+
+  @override
+  String media_identify_keepFailed(String name) {
+    return '$name could not be kept';
+  }
+
+  @override
   String get media_sources_browseHeader => 'Explorar por origen';
 
   @override

@@ -94,14 +94,19 @@ extension _ViewerActions on _MediaViewerPageState {
   /// Where [item] was taken, for limiting marine life names to the species
   /// recorded there (issue #4668): its own position, else its dive's site,
   /// else where the dive's computer logged its entry, else the site the
-  /// media itself is placed on ([ownSite], issue #5122).
-  GeoPoint? _photoLocation(MediaItem item, Dive? dive, {GeoPoint? ownSite}) =>
-      mediaLocation(
-        item,
-        siteLocation: dive?.site?.location,
-        entryLocation: dive?.entryLocation,
-        ownSiteLocation: ownSite,
-      );
+  /// media itself is placed on (issue #5122).
+  /// Call from `build`: it watches the item's own site.
+  GeoPoint? _photoLocation(MediaItem item, Dive? dive) {
+    final ownSiteId = item.diveId == null ? item.siteId : null;
+    return mediaLocation(
+      item,
+      siteLocation: dive?.site?.location,
+      entryLocation: dive?.entryLocation,
+      ownSiteLocation: ownSiteId == null
+          ? null
+          : ref.watch(siteProvider(ownSiteId)).value?.location,
+    );
+  }
 
   /// Computes and saves the missing [MediaEnrichment] rows for [diveId], the
   /// same idempotent backfill dive detail runs on open.

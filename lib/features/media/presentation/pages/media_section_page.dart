@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/media/presentation/pages/identify_viewer_page.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/presentation/pages/gear_gallery_view.dart';
 import 'package:submersion/features/media/presentation/pages/media_import_view.dart';
@@ -125,6 +126,8 @@ class _MediaSectionPageState extends ConsumerState<MediaSectionPage> {
           ref,
           pick: widget.importPickOverride,
         );
+      case MediaConsoleAction.identify:
+        await launchIdentify(context, ref);
       case MediaConsoleAction.transfers:
         // Settings calls the same page Uploads; from here it takes the
         // button's name.
