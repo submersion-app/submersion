@@ -34,6 +34,7 @@ class SightingsEditor extends StatelessWidget {
     this.siteName,
     this.excludeDiveId,
     this.showTitle = true,
+    this.time,
   });
 
   final List<Sighting> sightings;
@@ -53,6 +54,10 @@ class SightingsEditor extends StatelessWidget {
 
   /// Whether it draws its own title: a card shows the title in its header.
   final bool showTitle;
+
+  /// Where a sighting's time can be set (issue #5092). Null, as for bulk
+  /// edit, leaves the time out of the edit sheet.
+  final SightingTimeContext? time;
 
   @override
   Widget build(BuildContext context) {
@@ -229,6 +234,7 @@ class SightingsEditor extends StatelessWidget {
       useSafeArea: true,
       builder: (sheetContext) => EditSightingSheet(
         sighting: sightings[index],
+        time: time,
         onSave: (updated) {
           onChanged([...sightings]..[index] = updated);
           Navigator.of(sheetContext).pop();

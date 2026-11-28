@@ -91,6 +91,39 @@ void main() {
     ));
   });
 
+  test('a sighting keeps when in the dive it was seen (issue #5092)', () async {
+    final diveId = await importDive({
+      'dateTime': DateTime.utc(2024, 6, 1, 9, 30),
+      'sightings': [
+        {'speciesName': 'Test Jack', 'seenAtSeconds': 750},
+        {'speciesName': 'Test Grouper'},
+      ],
+    });
+
+    final byName = {
+      for (final s in await SpeciesRepository().getSightingsForDive(diveId))
+        s.speciesName: s.seenAtSeconds,
+    };
+    expect(byName, {'Test Jack': 750, 'Test Grouper': null});
+  });
+
+  test('a time past the imported dive is dropped', () async {
+    final diveId = await importDive({
+      'dateTime': DateTime.utc(2024, 6, 1, 9, 30),
+      'runtime': const Duration(minutes: 20),
+      'sightings': [
+        {'speciesName': 'Test Jack', 'seenAtSeconds': 3600},
+        {'speciesName': 'Test Grouper', 'seenAtSeconds': 600},
+      ],
+    });
+
+    final byName = {
+      for (final s in await SpeciesRepository().getSightingsForDive(diveId))
+        s.speciesName: s.seenAtSeconds,
+    };
+    expect(byName, {'Test Jack': null, 'Test Grouper': 600});
+  });
+
   test('one malformed sighting does not cost the dive its others', () async {
     final diveId = await importDive({
       'dateTime': DateTime.utc(2024, 6, 1, 9, 30),

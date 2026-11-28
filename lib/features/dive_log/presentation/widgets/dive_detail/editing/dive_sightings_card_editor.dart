@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/services/sighting_time_bound.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_sightings_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/edit_sections/sightings_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pickers/edit_sighting_sheet.dart';
 import 'package:submersion/shared/widgets/record_editing/sitting_load_failed.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 
@@ -11,17 +16,18 @@ import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 ///
 /// A species created from the picker exists at once and outlives a
 /// cancelled sitting; only which sightings the dive has is held until Save.
-class DiveSightingsCardEditor extends StatefulWidget {
+class DiveSightingsCardEditor extends ConsumerStatefulWidget {
   const DiveSightingsCardEditor({super.key, required this.session});
 
   final EditSession<Dive> session;
 
   @override
-  State<DiveSightingsCardEditor> createState() =>
+  ConsumerState<DiveSightingsCardEditor> createState() =>
       _DiveSightingsCardEditorState();
 }
 
-class _DiveSightingsCardEditorState extends State<DiveSightingsCardEditor> {
+class _DiveSightingsCardEditorState
+    extends ConsumerState<DiveSightingsCardEditor> {
   @override
   void initState() {
     super.initState();
@@ -65,7 +71,15 @@ class _DiveSightingsCardEditorState extends State<DiveSightingsCardEditor> {
           );
         }
         final site = session.working.site;
+        // When in the dive each was seen, on the profile the chart draws
+        // (issue #5092).
+        final profile = watchChartProfile(ref, session.working);
         return SightingsEditor(
+          time: SightingTimeContext(
+            profile: profile,
+            maxSeconds: sightingTimeMaxSeconds(session.working, profile),
+            units: ref.watch(unitFormatterProvider),
+          ),
           sightings: current,
           onChanged: (sightings) => diveSightingsList.set(session, sightings),
           diveId: session.stored.id,

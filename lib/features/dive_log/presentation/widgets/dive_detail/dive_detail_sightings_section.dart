@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/species_profile_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_sightings_sitting.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_sightings_list.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/sighting_depth_label.dart';
+import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
 import 'package:submersion/features/media/presentation/pages/dive_species_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/species_id/presentation/widgets/dive_find_species_panel.dart';
 import 'package:submersion/features/species_id/presentation/widgets/species_download_prompt.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -46,6 +54,22 @@ class DiveSightingsSection extends ConsumerWidget {
     final photoCounts =
         ref.watch(diveSpeciesPhotoCountsProvider(dive.id)).value ??
         const <String, int>{};
+    // Where on the dive each species was seen (issue #5092).
+    final positions = watchSpeciesPositions(ref, dive);
+    final profile = watchChartProfile(ref, dive);
+    final profileShown =
+        profile.isNotEmpty &&
+        ref.watch(
+          settingsProvider.select(
+            (s) => s.diveDetailSections.shows(
+              DiveDetailSectionId.profile,
+              gauge: dive.isGauge,
+            ),
+          ),
+        );
+    final selected = ref.watch(selectedProfileSpeciesProvider(dive.id));
+    final units = ref.watch(unitFormatterProvider);
+    _dropStaleSelection(context, ref, stored.value, selected);
 
     return sightingsAsync.when(
       data: (sightings) {
@@ -89,6 +113,30 @@ class DiveSightingsSection extends ConsumerWidget {
                       photoCounts: photoCounts,
                       onOpen: (sighting) =>
                           context.push('/species/${sighting.speciesId}'),
+                      whereSeen: (sighting) => (
+                        depthLabel: switch (positions[sighting.speciesId]) {
+                          final p? when !p.isEmpty => sightingDepthLabel(
+                            p,
+                            units,
+                            context.l10n,
+                          ),
+                          _ => null,
+                        },
+                        depthSelected: selected == sighting.speciesId,
+                        onToggleDepth: profileShown
+                            ? () => toggleProfileSpecies(
+                                ref,
+                                dive.id,
+                                sighting.speciesId,
+                              )
+                            : null,
+                        seenAtLabel:
+                            profile.isEmpty && sighting.seenAtSeconds != null
+                            ? context.l10n.diveLog_detail_sightingSeenAt(
+                                formatElapsedMmSs(sighting.seenAtSeconds!),
+                              )
+                            : null,
+                      ),
                       onOpenPhotos: (sighting) => Navigator.of(context).push(
                         MaterialPageRoute(
                           fullscreenDialog: true,
@@ -111,5 +159,26 @@ class DiveSightingsSection extends ConsumerWidget {
       loading: () => const SizedBox.shrink(),
       error: (_, _) => const SizedBox.shrink(),
     );
+  }
+
+  /// Clears the dive's highlighted species once its sighting is gone, so a
+  /// species added back later does not come back highlighted. After the
+  /// frame: a provider is never written during build.
+  void _dropStaleSelection(
+    BuildContext context,
+    WidgetRef ref,
+    List<Sighting>? stored,
+    String? selected,
+  ) {
+    if (selected == null || stored == null) return;
+    if (stored.any((s) => s.speciesId == selected)) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // The card may be gone by then: a ref of an unmounted widget throws.
+      if (!context.mounted) return;
+      final notifier = ref.read(
+        selectedProfileSpeciesProvider(dive.id).notifier,
+      );
+      if (notifier.state == selected) notifier.state = null;
+    });
   }
 }

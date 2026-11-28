@@ -11,6 +11,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/presentation/info/dive_profile_info.dart';
+import 'package:submersion/features/dive_log/presentation/providers/species_profile_providers.dart';
 import 'package:submersion/features/dive_log/presentation/utils/chart_drag_crossing.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
 import 'package:submersion/features/dive_log/presentation/utils/profile_time_domain.dart';
@@ -20,6 +21,7 @@ import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency.dart';
 import 'package:submersion/core/utils/minutes_seconds.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/species_profile_overlay.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/icd_calculator_providers.dart'
     show icdWarningsEnabledProvider;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -484,6 +486,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// instant ranges inflate to a minimum on-screen width.
   final ProfileHighlightRange? highlightRange;
 
+  /// The species selected in the Marine life card (issue #5092): bands for
+  /// the stretches it was in view and dots for its moments, in its colour.
+  final SpeciesProfileHighlight? speciesHighlight;
+
   /// Ranges drawn as plain bands behind [highlightRange], without edge
   /// lines, and only while the O2 cell overlay is on: the cell divergence
   /// runs from the dive's sensor summary (condition phase 2).
@@ -906,6 +912,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.highlightedTimestamp,
     this.playbackIsPlaying = false,
     this.highlightRange,
+    this.speciesHighlight,
     this.secondaryRanges = const [],
     this.safetyFindings,
     this.selectedSafetyFindingId,
@@ -4172,6 +4179,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       commonSig,
       identityHashCode(widget.markers),
       identityHashCode(widget.tankPressures),
+      identityHashCode(widget.speciesHighlight),
     ]);
     _overlaysSig = _sigOf([commonSig, identityHashCode(widget.overlays)]);
   }
@@ -4544,7 +4552,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             minPressure: minPressure,
             maxPressure: maxPressure,
           );
-          return _tagAll(markerLines, null);
+          // The selected species' moments (issue #5092), dots like these.
+          final speciesDots = speciesMomentDots(
+            widget.speciesHighlight,
+            y: (meters) => -units.convertDepth(meters),
+            ring: backdropColorOf(context),
+          );
+          return _tagAll([...markerLines, ?speciesDots], null);
         }),
         ..._barsCache.series('overlays', _overlaysSig, () {
           // Overlaid comparison sources — LAST, so depth bars keep
@@ -4907,6 +4921,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 ...buildHighlightRangeLines(
                   highlightSpan,
                   widget.highlightRange?.color,
+                ),
+                ...speciesMomentLines(
+                  widget.speciesHighlight,
+                  visibleMinX: visibleMinX,
+                  visibleMaxX: visibleMaxX,
                 ),
                 if (_showCounterdiffusion)
                   ...icdSwitchMarkerLines(
@@ -7702,6 +7721,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         );
       }
     }
+    // The selected species (issue #5092), under a selected finding.
+    annotations.addAll(
+      speciesHighlightBands(
+        widget.speciesHighlight,
+        visibleMinX: visibleMinX,
+        visibleMaxX: visibleMaxX,
+      ),
+    );
     final range = widget.highlightRange;
     if (range != null && span != null) {
       annotations.add(

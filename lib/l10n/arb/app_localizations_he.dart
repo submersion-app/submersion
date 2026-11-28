@@ -7798,6 +7798,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_detail_section_marineLife => 'מינים';
 
   @override
+  String diveLog_detail_sightingDepthRange(String from, String to) {
+    return '$from עד $to';
+  }
+
+  @override
+  String diveLog_detail_sightingSeenAt(String time) {
+    return '$time מתחילת הצלילה';
+  }
+
+  @override
+  String diveLog_detail_semantics_showOnProfile(String name, String depth) {
+    return 'הצגת $name בפרופיל, $depth';
+  }
+
+  @override
   String diveLog_detail_sightingPhotos(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -7909,6 +7924,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_diveMode_title => 'מצב צלילה';
+
+  @override
+  String get diveLog_editSighting_seenAt => 'נצפה ב-';
+
+  @override
+  String get diveLog_editSighting_seenAtClear => 'ניקוי הזמן';
 
   @override
   String get diveLog_editSighting_notes => 'הערות';

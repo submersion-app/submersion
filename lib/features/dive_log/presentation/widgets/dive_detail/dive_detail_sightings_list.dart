@@ -23,6 +23,15 @@ const double _columnGap = 16;
 /// the tallest thing on the page (issue #5067). So a wide card lays them out
 /// in two columns, and a list of more than [kSightingsCollapseAbove] shows
 /// the first [kSightingsCollapsedCount] behind a Show all toggle.
+/// What a row shows of where on the dive its species was seen (issue
+/// #5092); see [DiveSightingRow].
+typedef SightingWhereSeen = ({
+  String? depthLabel,
+  bool depthSelected,
+  VoidCallback? onToggleDepth,
+  String? seenAtLabel,
+});
+
 class DiveSightingsList extends StatefulWidget {
   const DiveSightingsList({
     super.key,
@@ -30,6 +39,7 @@ class DiveSightingsList extends StatefulWidget {
     required this.photoCounts,
     required this.onOpen,
     required this.onOpenPhotos,
+    this.whereSeen,
   });
 
   final List<Sighting> sightings;
@@ -42,6 +52,10 @@ class DiveSightingsList extends StatefulWidget {
 
   /// Tapping a row's photo chip.
   final void Function(Sighting sighting) onOpenPhotos;
+
+  /// Where on the dive each was seen (issue #5092): a row's depth chip, its
+  /// selected state and toggle, and its time on a dive with no profile.
+  final SightingWhereSeen Function(Sighting sighting)? whereSeen;
 
   @override
   State<DiveSightingsList> createState() => _DiveSightingsListState();
@@ -111,10 +125,17 @@ class _DiveSightingsListState extends State<DiveSightingsList> {
     );
   }
 
-  Widget _row(Sighting sighting) => DiveSightingRow(
-    sighting: sighting,
-    photoCount: widget.photoCounts[sighting.speciesId] ?? 0,
-    onOpen: () => widget.onOpen(sighting),
-    onOpenPhotos: () => widget.onOpenPhotos(sighting),
-  );
+  Widget _row(Sighting sighting) {
+    final seen = widget.whereSeen?.call(sighting);
+    return DiveSightingRow(
+      sighting: sighting,
+      photoCount: widget.photoCounts[sighting.speciesId] ?? 0,
+      onOpen: () => widget.onOpen(sighting),
+      onOpenPhotos: () => widget.onOpenPhotos(sighting),
+      depthLabel: seen?.depthLabel,
+      depthSelected: seen?.depthSelected ?? false,
+      onToggleDepth: seen?.onToggleDepth,
+      seenAtLabel: seen?.seenAtLabel,
+    );
+  }
 }

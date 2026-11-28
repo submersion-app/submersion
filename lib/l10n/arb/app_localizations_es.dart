@@ -7965,6 +7965,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_detail_section_marineLife => 'Especies';
 
   @override
+  String diveLog_detail_sightingDepthRange(String from, String to) {
+    return '$from a $to';
+  }
+
+  @override
+  String diveLog_detail_sightingSeenAt(String time) {
+    return 'a los $time de inmersión';
+  }
+
+  @override
+  String diveLog_detail_semantics_showOnProfile(String name, String depth) {
+    return 'Mostrar $name en el perfil, $depth';
+  }
+
+  @override
   String diveLog_detail_sightingPhotos(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -8082,6 +8097,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_diveMode_title => 'Modo de buceo';
+
+  @override
+  String get diveLog_editSighting_seenAt => 'Visto a los';
+
+  @override
+  String get diveLog_editSighting_seenAtClear => 'Borrar la hora';
 
   @override
   String get diveLog_editSighting_notes => 'Notas';

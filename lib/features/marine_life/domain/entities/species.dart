@@ -149,6 +149,10 @@ class Sighting extends Equatable {
   final int count;
   final String notes;
 
+  /// When in the dive the diver saw it, in seconds from the dive start, or
+  /// null for no time (issue #5092). Its depth is read from the profile.
+  final int? seenAtSeconds;
+
   const Sighting({
     required this.id,
     required this.diveId,
@@ -158,11 +162,14 @@ class Sighting extends Equatable {
     this.abundance = SightingAbundance.seen,
     this.count = 1,
     this.notes = '',
+    this.seenAtSeconds,
   });
 
   /// [abundance] and [count] together.
   SightingAmount get amount => (abundance: abundance, count: count);
 
+  /// A copy with the fields given. [clearSeenAt] drops the time, which a
+  /// null [seenAtSeconds] cannot say.
   Sighting copyWith({
     String? id,
     String? diveId,
@@ -172,6 +179,8 @@ class Sighting extends Equatable {
     SightingAbundance? abundance,
     int? count,
     String? notes,
+    int? seenAtSeconds,
+    bool clearSeenAt = false,
   }) {
     return Sighting(
       id: id ?? this.id,
@@ -182,6 +191,7 @@ class Sighting extends Equatable {
       abundance: abundance ?? this.abundance,
       count: count ?? this.count,
       notes: notes ?? this.notes,
+      seenAtSeconds: clearSeenAt ? null : seenAtSeconds ?? this.seenAtSeconds,
     );
   }
 
@@ -195,5 +205,6 @@ class Sighting extends Equatable {
     abundance,
     count,
     notes,
+    seenAtSeconds,
   ];
 }

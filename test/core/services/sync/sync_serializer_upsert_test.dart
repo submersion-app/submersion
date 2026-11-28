@@ -254,6 +254,34 @@ void main() {
     expect(restored.abundance, 'few');
   });
 
+  test('a sighting time survives fetch and upsert', () async {
+    // Issue #5092: the v396 column rides the generated toJson/fromJson.
+    await db.customStatement('PRAGMA foreign_keys = OFF');
+    await db
+        .into(db.sightings)
+        .insert(
+          const SightingsCompanion(
+            id: Value('sighting-timed'),
+            diveId: Value('d1'),
+            speciesId: Value('sp1'),
+            seenAtSeconds: Value(720),
+          ),
+        );
+
+    final row = await serializer.fetchRecord('sightings', 'sighting-timed');
+    expect(row!['seenAtSeconds'], 720);
+
+    await (db.delete(
+      db.sightings,
+    )..where((t) => t.id.equals('sighting-timed'))).go();
+    await serializer.upsertRecord('sightings', row);
+
+    final restored = await (db.select(
+      db.sightings,
+    )..where((t) => t.id.equals('sighting-timed'))).getSingle();
+    expect(restored.seenAtSeconds, 720);
+  });
+
   test('a sighting from a peer without abundance reads as exact', () async {
     // A pre-v350 payload has no abundance key at all; null is Exact, so the
     // sighting keeps the count it arrived with.

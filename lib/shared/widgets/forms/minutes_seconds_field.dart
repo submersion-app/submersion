@@ -21,6 +21,7 @@ class MinutesSecondsField extends StatefulWidget {
     this.onSettled,
     this.suffixIcon,
     this.helperText,
+    this.allowEmpty = false,
   });
 
   final int? seconds;
@@ -29,6 +30,10 @@ class MinutesSecondsField extends StatefulWidget {
   final String label;
   final String formatErrorText;
   final String? Function(int seconds)? validator;
+
+  /// Whether empty text is valid, for a time the user may leave out. It
+  /// still reports null through [onChanged].
+  final bool allowEmpty;
 
   /// A control at the end of the field, for another way to set the time.
   final Widget? suffixIcon;
@@ -93,6 +98,7 @@ class _MinutesSecondsFieldState extends State<MinutesSecondsField> {
       ),
       keyboardType: TextInputType.datetime,
       validator: (text) {
+        if (widget.allowEmpty && (text ?? '').trim().isEmpty) return null;
         final seconds = parseMinutesSeconds(text ?? '');
         if (seconds == null) return widget.formatErrorText;
         return widget.validator?.call(seconds);

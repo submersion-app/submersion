@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
 import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_placement_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_annotations_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/species_profile_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_placement_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
@@ -727,17 +728,14 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                 ? null
                                 : laneFindings,
                             selectedSafetyFindingId: visibleSelectedFinding?.id,
-                            onSafetyFindingTap: (finding) {
-                              final selectionNotifier = ref.read(
-                                selectedSafetyFindingProvider(
+                            // The one rule the detail page uses: a finding
+                            // clears a highlighted species (issue #5092).
+                            onSafetyFindingTap: (finding) =>
+                                toggleSafetyFinding(
+                                  ref,
                                   widget.diveId,
-                                ).notifier,
-                              );
-                              selectionNotifier.state =
-                                  selectionNotifier.state?.id == finding.id
-                                  ? null
-                                  : finding;
-                            },
+                                  finding,
+                                ),
                             // No onSafetyFindingDismiss: findings are
                             // dismissed in the open Safety review card
                             // (issue #4527).

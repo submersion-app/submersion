@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/dive_log/presentation/providers/species_profile_providers.dart';
 import 'package:submersion/features/pop_out/presentation/widgets/pop_out_cursor_bridge.dart';
 import 'package:submersion/features/dive_log/presentation/utils/chart_drag_crossing.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
@@ -534,18 +535,19 @@ class DiveProfileChartHost extends ConsumerWidget {
           visibleSelectedFinding,
           Theme.of(context).colorScheme,
         ),
+        speciesHighlight: watchSpeciesHighlight(
+          ref,
+          dive,
+          brightness: Theme.of(context).brightness,
+        ),
         secondaryRanges: cellDivergenceHighlightRanges(
           sensorSummary,
           Theme.of(context).colorScheme,
         ),
         safetyFindings: laneFindings.isEmpty ? null : laneFindings,
         selectedSafetyFindingId: visibleSelectedFinding?.id,
-        onSafetyFindingTap: (finding) {
-          final notifier = ref.read(
-            selectedSafetyFindingProvider(diveId).notifier,
-          );
-          notifier.state = notifier.state?.id == finding.id ? null : finding;
-        },
+        onSafetyFindingTap: (finding) =>
+            toggleSafetyFinding(ref, diveId, finding),
         onSafetyFindingDismiss: findingsDismissable
             ? (finding) => setSafetyFindingDismissed(
                 ref,

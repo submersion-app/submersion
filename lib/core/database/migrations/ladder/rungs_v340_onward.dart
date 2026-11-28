@@ -380,5 +380,11 @@ extension RungsFromV340 on AppDatabase {
     // in beforeOpen; the floor does not move.
     if (from < 394) await _assertTankPresetRatedCapacityColumn();
     if (from < 394) await reportProgress();
+
+    // v396 (issue #5092): sightings.seen_at_seconds, when in the dive the
+    // diver saw the species. Nullable, no backfill, re-asserted in
+    // beforeOpen. The floor rises to 396 (see minimumCompatibleSchemaVersion).
+    if (from < 396) await _assertSightingSeenAtColumn();
+    if (from < 396) await reportProgress();
   }
 }

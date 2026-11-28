@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/data/repositories/safety_findings_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/species_profile_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_review_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -318,6 +319,7 @@ void main() {
             ),
           ],
           child: localizedMaterialApp(
+            locale: const Locale('en'),
             home: Scaffold(
               body: SingleChildScrollView(
                 controller: controller,
@@ -349,6 +351,28 @@ void main() {
         tester,
       ).read(selectedSafetyFindingProvider('dive-1'));
       expect(selected?.id, 'f1');
+    });
+
+    testWidgets('selecting a finding clears the highlighted species', (
+      tester,
+    ) async {
+      // Issue #5092: the chart emphasises one thing at a time.
+      await pumpSelectable(tester, reviewWith([rapidAscent()]));
+      containerOf(
+        tester,
+      ).read(selectedProfileSpeciesProvider('dive-1').notifier).state = 'shark';
+
+      await tester.scrollUntilVisible(
+        find.textContaining('Ascent exceeded'),
+        400,
+      );
+      await tester.tap(find.textContaining('Ascent exceeded'));
+      await tester.pumpAndSettle();
+
+      expect(
+        containerOf(tester).read(selectedProfileSpeciesProvider('dive-1')),
+        isNull,
+      );
     });
 
     testWidgets('tapping the selected finding clears the selection', (

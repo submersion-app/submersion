@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_review_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/species_profile_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_transport_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
@@ -422,6 +423,26 @@ void main() {
       expect(chart.highlightRange!.endTimestamp, 120);
     },
   );
+
+  testWidgets('tapping a lane finding clears the highlighted species '
+      '(issue #5092)', (tester) async {
+    final finding = laneFinding();
+    await tester.pumpWidget(_wrap(reviewOverrides(finding)));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(FullscreenProfilePage)),
+    );
+    container.read(selectedProfileSpeciesProvider('d1').notifier).state =
+        'shark';
+
+    tester
+        .widget<DiveProfileChart>(find.byType(DiveProfileChart))
+        .onSafetyFindingTap!(finding);
+    await tester.pump();
+
+    expect(container.read(selectedSafetyFindingProvider('d1'))?.id, 'f-lane');
+    expect(container.read(selectedProfileSpeciesProvider('d1')), isNull);
+  });
 
   testWidgets('a selection outside the gated lane renders no highlight', (
     tester,

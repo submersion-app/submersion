@@ -47,6 +47,16 @@ void main() {
     expect(sighting.notes, 'On the wall');
   });
 
+  test('carries when in the dive it was seen (issue #5092)', () async {
+    await species.addSighting(
+      diveId: 'd2',
+      speciesId: jackId,
+      seenAtSeconds: 420,
+    );
+    final byDive = await loadMarineSightings(species, ['d2']);
+    expect(byDive['d2']!.single.seenAtSeconds, 420);
+  });
+
   test('hydrates the dives it is given, in order', () async {
     final dives = [
       Dive(id: 'd2', dateTime: DateTime.utc(2026, 3, 1, 9)),

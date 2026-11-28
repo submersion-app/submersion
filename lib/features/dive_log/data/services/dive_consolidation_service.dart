@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_ser
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/data/services/consolidation_copy_matcher.dart';
+import 'package:submersion/features/dive_log/data/services/consolidation_sighting_times.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_field_fill.dart';
 import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
@@ -804,14 +805,35 @@ class DiveConsolidationService {
         for (final row in snapshot.sightingRows.where(
           (r) => r.diveId == secondary.id,
         )) {
-          if (!targetSpeciesIds.add(row.speciesId)) continue;
+          // A time moves onto the target's timeline with the secondary's
+          // samples, never before the start (issue #5092).
+          final seenAt = shiftedSightingTime(row.seenAtSeconds, offset);
+          if (!targetSpeciesIds.add(row.speciesId)) {
+            // Same species on both: a time from the secondary fills the
+            // target's sighting when it has none.
+            if (seenAt != null) {
+              await fillSightingTime(
+                _db,
+                _sync,
+                targetDiveId: targetDiveId,
+                speciesId: row.speciesId,
+                seconds: seenAt,
+                now: now,
+              );
+            }
+            continue;
+          }
           final rowId = _uuid.v4();
           await _db
               .into(_db.sightings)
               .insert(
                 row
                     .toCompanion(false)
-                    .copyWith(id: Value(rowId), diveId: Value(targetDiveId)),
+                    .copyWith(
+                      id: Value(rowId),
+                      diveId: Value(targetDiveId),
+                      seenAtSeconds: Value(seenAt),
+                    ),
               );
           await _sync.markRecordPending(
             entityType: 'sightings',

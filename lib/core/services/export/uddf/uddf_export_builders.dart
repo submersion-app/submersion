@@ -10,6 +10,7 @@ import 'package:submersion/core/services/export/models/export_service_record.dar
 import 'package:submersion/core/services/export/uddf/uddf_sighting_amount.dart';
 import 'package:submersion/core/services/export/uddf/uddf_certification_currency.dart';
 import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
+import 'package:submersion/core/services/export/uddf/uddf_sighting_time.dart';
 import 'package:submersion/core/services/export/uddf/uddf_visibility_range.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_durations.dart';
@@ -518,6 +519,7 @@ class UddfExportBuilders {
                       attributes: {
                         'speciesref': 'species_${sighting.speciesId}',
                         ...UddfSightingAmount.attributes(sighting.amount),
+                        ...UddfSightingTime.attributes(sighting.seenAtSeconds),
                       },
                       nest: () {
                         if (sighting.notes.isNotEmpty) {

@@ -113,6 +113,10 @@ void main() {
     );
   });
 
+  test('the selected species adds no row (issue #5092)', () {
+    expect(_rows({StripLayer.species}), isEmpty);
+  });
+
   test('temperature formats in the diver units', () {
     const imperial = UnitFormatter(
       AppSettings(temperatureUnit: TemperatureUnit.fahrenheit),

@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_analysis
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/species_profile_providers.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
     show ChartSourceOverlay, DiveProfileChart;
@@ -195,6 +196,11 @@ class _PinnedStripLayerHostState extends ConsumerState<PinnedStripLayerHost> {
         context.l10n.diveLog_legend_label_plan,
       ], () => plan?.copyWith(name: context.l10n.diveLog_legend_label_plan)),
       otherSources: _otherSources(id, sourceId),
+      species: watchSpeciesHighlight(
+        ref,
+        dive,
+        brightness: Theme.of(context).brightness,
+      ),
     );
   }
 

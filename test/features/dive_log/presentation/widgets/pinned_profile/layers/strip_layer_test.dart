@@ -4,6 +4,16 @@ import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/layers/strip_layer.dart';
 
 void main() {
+  test('species is drawn whenever selected, not tied to a card', () {
+    // Issue #5092: the diver picks a species in the Marine life card, and
+    // the strip shows it wherever the page is scrolled.
+    expect([
+      for (final layers in kStripLayersByCard.values) ...layers,
+    ], isNot(contains(StripLayer.species)));
+    expect(kAlwaysOnStripLayers, {StripLayer.species});
+    expect(StripLayer.species.isLine, isFalse);
+  });
+
   test('tanks maps to pressure, GTR and gas switches', () {
     expect(stripLayersFor([DiveDetailSectionId.tanks]), {
       StripLayer.tankPressure,
@@ -71,6 +81,7 @@ void main() {
       StripLayer.safetyFindings,
       StripLayer.plannedDepth,
       StripLayer.sourceDepths,
+      StripLayer.species,
     };
     for (final layer in StripLayer.values) {
       expect(layer.isLine, !notLines.contains(layer), reason: layer.name);

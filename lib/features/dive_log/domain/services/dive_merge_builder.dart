@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
@@ -334,11 +336,15 @@ class DiveMergeBuilder {
 
     // Sightings: union; same species merged (amounts combined, notes
     // joined). Two exact counts add up; Seen gives way; otherwise the larger
-    // REEF group wins (issue #4337).
+    // REEF group wins (issue #4337). A time moves onto the merged timeline
+    // with its dive's profile, and the earlier of two is kept (#5092).
     final bySpecies = <String, MarineSighting>{};
     for (final d in sorted) {
       for (final s in sightingsByDive[d.id] ?? const <MarineSighting>[]) {
         final existing = bySpecies[s.speciesId];
+        final seenAt = s.seenAtSeconds == null
+            ? null
+            : s.seenAtSeconds! + offsets[d.id]!;
         if (existing == null) {
           bySpecies[s.speciesId] = MarineSighting(
             id: idGen(),
@@ -347,6 +353,7 @@ class DiveMergeBuilder {
             abundance: s.abundance,
             count: s.count,
             notes: s.notes,
+            seenAtSeconds: seenAt,
           );
         } else {
           final notes = [
@@ -354,6 +361,7 @@ class DiveMergeBuilder {
             s.notes,
           ].where((n) => n.trim().isNotEmpty).join('; ');
           final amount = SightingAbundance.combine(existing.amount, s.amount);
+          final kept = existing.seenAtSeconds;
           bySpecies[s.speciesId] = MarineSighting(
             id: existing.id,
             speciesId: existing.speciesId,
@@ -361,6 +369,9 @@ class DiveMergeBuilder {
             abundance: amount.abundance,
             count: amount.count,
             notes: notes,
+            seenAtSeconds: kept == null || seenAt == null
+                ? kept ?? seenAt
+                : math.min(kept, seenAt),
           );
         }
       }

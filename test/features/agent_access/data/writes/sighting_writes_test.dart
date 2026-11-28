@@ -151,6 +151,76 @@ void main() {
     );
   });
 
+  group('seen at (issue #5092)', () {
+    test('a sighting is added with its time', () async {
+      final result = await h.run([
+        createOp('sightings', {
+          'dive_id': 'd2',
+          'species_id': 'sp2',
+          'seen_at_seconds': 300,
+        }),
+      ]);
+      final doc = (await h.one(
+        'sightings',
+        result.created.single.id,
+        diverId: kDiverB,
+      ))!;
+      expect(doc['seen_at_seconds'], 300);
+    });
+
+    test('an update sets and then clears the time', () async {
+      await h.run([
+        updateOp('sightings', 's1', {'seen_at_seconds': 420}),
+      ]);
+      expect((await h.one('sightings', 's1'))!['seen_at_seconds'], 420);
+
+      await h.run([
+        updateOp('sightings', 's1', {'seen_at_seconds': null}),
+      ]);
+      expect((await h.one('sightings', 's1'))!['seen_at_seconds'], isNull);
+    });
+
+    test('an update that names no time keeps it', () async {
+      await h.run([
+        updateOp('sightings', 's1', {'seen_at_seconds': 420}),
+      ]);
+      await h.run([
+        updateOp('sightings', 's1', {'notes': 'Wall'}),
+      ]);
+      expect((await h.one('sightings', 's1'))!['seen_at_seconds'], 420);
+    });
+
+    test('a time past the end of the dive is not stored', () async {
+      await db.customStatement(
+        "UPDATE dives SET runtime = 2400 WHERE id = 'd1'",
+      );
+      await h.run([
+        updateOp('sightings', 's1', {'seen_at_seconds': 420}),
+      ]);
+      // An update keeps the time it had rather than losing it.
+      await h.run([
+        updateOp('sightings', 's1', {'seen_at_seconds': 3000}),
+      ]);
+      expect((await h.one('sightings', 's1'))!['seen_at_seconds'], 420);
+
+      // A new sighting gets none.
+      final result = await h.run([
+        createOp('sightings', {
+          'dive_id': 'd1',
+          'species_id': 'sp2',
+          'seen_at_seconds': 3000,
+        }),
+      ]);
+      expect(
+        (await h.one(
+          'sightings',
+          result.created.single.id,
+        ))!['seen_at_seconds'],
+        isNull,
+      );
+    });
+  });
+
   test('an update keeps what it does not name', () async {
     await h.run([
       updateOp('sightings', 's1', {'count': 5}),

@@ -5,8 +5,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
 
 /// Draws the pinned strip's bands beneath its depth shading (issue #4562):
-/// the phases of the dive, and the windows of its safety findings with a
-/// solid edge where each starts.
+/// the phases of the dive, and the windows of its safety findings and of the
+/// selected species (issue #5092) with a solid edge where each starts.
 class StripBandPainter extends StripLayerPainter {
   const StripBandPainter({required super.strip, required super.layers});
 
@@ -28,7 +28,8 @@ class StripBandPainter extends StripLayerPainter {
             alpha: band.color.a * band.alpha * strength,
           ),
       );
-      if (band.layer == StripLayer.safetyFindings) {
+      if (band.layer == StripLayer.safetyFindings ||
+          band.layer == StripLayer.species) {
         canvas.drawLine(
           Offset(left, area.top),
           Offset(left, area.bottom),

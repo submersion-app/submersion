@@ -200,6 +200,7 @@ Map<String, Object?> sightingDocument(Sighting s) => {
   'abundance': s.abundance.name,
   'count': s.count,
   'notes': s.notes,
+  'seen_at_seconds': s.seenAtSeconds,
 };
 
 Map<String, Object?> diveCustomFieldDocument(

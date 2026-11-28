@@ -10,6 +10,7 @@ import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_rebreather_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_sighting_time.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -280,6 +281,7 @@ abstract final class UddfSharedDiveWriter {
                       attributes: {
                         'speciesref': 'species_${sighting.speciesId}',
                         ...UddfSightingAmount.attributes(sighting.amount),
+                        ...UddfSightingTime.attributes(sighting.seenAtSeconds),
                       },
                       nest: () {
                         if (sighting.notes.isNotEmpty) {

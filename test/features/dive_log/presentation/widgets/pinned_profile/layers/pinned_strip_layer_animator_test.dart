@@ -193,6 +193,32 @@ void main() {
     expect(_last.grow, 0);
   });
 
+  testWidgets('a species highlight shows with no card in view', (tester) async {
+    // Issue #5092: the always-on layer heads in once the strip settles.
+    const species = PinnedStripLayerData(
+      bands: [
+        StripBand(
+          layer: StripLayer.species,
+          start: 60,
+          end: 120,
+          color: Colors.teal,
+          alpha: 0.22,
+        ),
+      ],
+    );
+    await _pump(tester, data: species);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(_last.strengthOf(StripLayer.species), 1);
+    expect(_last.active, contains(StripLayer.species));
+    expect(_last.grow, 0);
+  });
+
+  testWidgets('no species data, no species layer', (tester) async {
+    await _pump(tester);
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(_last.strengthOf(StripLayer.species), 0);
+  });
+
   testWidgets('a card whose layer has no data shows and grows nothing', (
     tester,
   ) async {

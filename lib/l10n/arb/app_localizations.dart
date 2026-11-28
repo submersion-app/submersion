@@ -12458,6 +12458,24 @@ abstract class AppLocalizations {
   /// **'Species'**
   String get diveLog_detail_section_marineLife;
 
+  /// No description provided for @diveLog_detail_sightingDepthRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String diveLog_detail_sightingDepthRange(String from, String to);
+
+  /// No description provided for @diveLog_detail_sightingSeenAt.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} into the dive'**
+  String diveLog_detail_sightingSeenAt(String time);
+
+  /// No description provided for @diveLog_detail_semantics_showOnProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Show {name} on the profile, {depth}'**
+  String diveLog_detail_semantics_showOnProfile(String name, String depth);
+
   /// No description provided for @diveLog_detail_sightingPhotos.
   ///
   /// In en, this message translates to:
@@ -12637,6 +12655,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive Mode'**
   String get diveLog_diveMode_title;
+
+  /// No description provided for @diveLog_editSighting_seenAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Seen at'**
+  String get diveLog_editSighting_seenAt;
+
+  /// No description provided for @diveLog_editSighting_seenAtClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear time'**
+  String get diveLog_editSighting_seenAtClear;
 
   /// No description provided for @diveLog_editSighting_notes.
   ///

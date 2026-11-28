@@ -139,6 +139,7 @@ void main() {
       speciesId: turtle.id,
       abundance: SightingAbundance.exact,
       count: 2,
+      seenAtSeconds: 420,
     );
     final dives = await listView();
 
@@ -148,6 +149,7 @@ void main() {
     final sighting = chunk.dives[1].sightings.single;
     expect(sighting.speciesName, 'Test Turtle');
     expect(sighting.amount, (abundance: SightingAbundance.exact, count: 2));
+    expect(sighting.seenAtSeconds, 420);
   });
 
   test('reads profiles and sources for the run it is given only', () async {

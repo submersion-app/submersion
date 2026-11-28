@@ -3,6 +3,7 @@ import 'package:submersion/features/agent_access/data/records/record_repositorie
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
+import 'package:submersion/features/dive_log/domain/services/sighting_time_bound.dart';
 import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
@@ -35,6 +36,13 @@ class SightingWrites extends WritableEntry {
     'abundance': FieldCodec.enumName(SightingAbundance.values),
     'count': const FieldCodec.integer(min: 1, max: 100000),
     'notes': const FieldCodec.text(allowBlank: true),
+    // Issue #5092: seconds from the dive start; null clears it. A time past
+    // the end of the dive is dropped, as the editor would not take it.
+    'seen_at_seconds': const FieldCodec.integer(
+      min: 0,
+      max: Duration.secondsPerDay,
+      nullable: true,
+    ),
   };
 
   @override
@@ -53,12 +61,17 @@ class SightingWrites extends WritableEntry {
       values,
       current: (abundance: SightingAbundance.seen, count: 1),
     );
+    final diveId = values['dive_id']! as String;
     final sighting = await _r.species.addSighting(
-      diveId: values['dive_id']! as String,
+      diveId: diveId,
       speciesId: values['species_id']! as String,
       abundance: amount.abundance,
       count: amount.count,
       notes: values['notes'] as String? ?? '',
+      seenAtSeconds: await _withinDive(
+        diveId,
+        values['seen_at_seconds'] as int?,
+      ),
     );
     return sighting.id;
   }
@@ -83,8 +96,37 @@ class SightingWrites extends WritableEntry {
         abundance: amount.abundance,
         count: amount.count,
         notes: v.containsKey('notes') ? v['notes']! as String : current.notes,
+        seenAtSeconds: await _updatedTime(
+          v,
+          diveId: current.diveId,
+          stored: current.seenAtSeconds,
+        ),
       ),
     );
+  }
+
+  /// The time an update leaves: the one it names (null clears it), or the
+  /// [stored] one when it names none, or one past the end of the dive,
+  /// which is dropped rather than wiping the diver's time.
+  Future<int?> _updatedTime(
+    Map<String, Object?> values, {
+    required String diveId,
+    required int? stored,
+  }) async {
+    if (!values.containsKey('seen_at_seconds')) return stored;
+    final named = values['seen_at_seconds'] as int?;
+    if (named == null) return null;
+    return await _withinDive(diveId, named) ?? stored;
+  }
+
+  /// [seconds] when it falls inside [diveId] ([sightingTimeMaxSeconds]),
+  /// else null: a time past the end of the dive is dropped, not stored.
+  Future<int?> _withinDive(String diveId, int? seconds) async {
+    if (seconds == null) return null;
+    final dive = await _r.dives.getDiveById(diveId);
+    if (dive == null) return seconds;
+    final max = sightingTimeMaxSeconds(dive, dive.profile);
+    return seconds <= max ? seconds : null;
   }
 
   @override
@@ -126,6 +168,7 @@ class SightingWrites extends WritableEntry {
       String? abundance,
       int count,
       String notes,
+      int? seenAtSeconds,
     })
   >
   _row(String id) async {
@@ -146,6 +189,7 @@ class SightingWrites extends WritableEntry {
       abundance: row.abundance,
       count: row.count,
       notes: row.notes,
+      seenAtSeconds: row.seenAtSeconds,
     );
   }
 }

@@ -41,6 +41,7 @@ void main() {
         abundance: SightingAbundance.exact,
         count: 2,
         notes: 'Resting under the ledge',
+        seenAtSeconds: 750,
       ),
     ],
     notes: 'Slack tide',
@@ -99,6 +100,7 @@ void main() {
     final sighting = after.findAllElements('sighting').single;
     expect(sighting.getAttribute('speciesref'), 'species_turtle');
     expect(sighting.getAttribute('count'), '2');
+    expect(sighting.getAttribute('seenat'), '750');
     expect(sighting.innerText, 'Resting under the ledge');
     expect(textOf(after.getElement('notes')!, 'para'), 'Slack tide');
   });
@@ -120,6 +122,7 @@ void main() {
 
     expect(sighting.getAttribute('abundance'), 'abundant');
     expect(sighting.getAttribute('count'), isNull);
+    expect(sighting.getAttribute('seenat'), isNull);
   });
 
   test('writes each sample with its temperature, GF99 and tank pressure', () {

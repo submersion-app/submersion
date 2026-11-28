@@ -8099,6 +8099,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_section_marineLife => 'الأنواع';
 
   @override
+  String diveLog_detail_sightingDepthRange(String from, String to) {
+    return '$from إلى $to';
+  }
+
+  @override
+  String diveLog_detail_sightingSeenAt(String time) {
+    return '$time من بداية الغوصة';
+  }
+
+  @override
+  String diveLog_detail_semantics_showOnProfile(String name, String depth) {
+    return 'عرض $name على المخطط، $depth';
+  }
+
+  @override
   String diveLog_detail_sightingPhotos(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -8217,6 +8232,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_diveMode_title => 'وضع الغوص';
+
+  @override
+  String get diveLog_editSighting_seenAt => 'شوهد عند';
+
+  @override
+  String get diveLog_editSighting_seenAtClear => 'مسح الوقت';
 
   @override
   String get diveLog_editSighting_notes => 'ملاحظات';
