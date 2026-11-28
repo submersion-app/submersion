@@ -1,10 +1,11 @@
 # Equipment catalogue, phase 1: foundation
 
 Date: 2026-11-27
-Status: draft for the maintainer's approval (builder check done)
+Status: approved by the maintainer, 2026-11-27
 Program: `2026-11-27-equipment-catalogue-program.md`
 Source: discussion #4118, suggestion 6
 Release: v1.8.7
+Issue: #5118
 
 ## Intent
 
