@@ -171,6 +171,34 @@ void main() {
     expect(scrimsAbove(find.text('Bailout')), findsOneWidget);
   });
 
+  testWidgets('Base turns the Bailout view off along with the deviations', (
+    tester,
+  ) async {
+    final container = await _mount(
+      tester,
+      const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [ContingencyChips(), ChartModeToggle()],
+      ),
+    );
+    Finder chip(String label) =>
+        find.ancestor(of: find.text(label), matching: find.byType(PlanChip));
+
+    await tester.tap(find.text('Bailout'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<PlanChip>(chip('Base')).emphasized, isFalse);
+
+    container.read(contingencySelectionProvider.notifier).toggleDeeper();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Base'));
+    await tester.pumpAndSettle();
+
+    expect(container.read(chartDisplayModeProvider), ChartDisplayMode.ccr);
+    expect(container.read(contingencySelectionProvider).deeper, isFalse);
+    expect(tester.widget<PlanChip>(chip('Base')).emphasized, isTrue);
+    expect(tester.widget<PlanChip>(_bailoutChip).emphasized, isFalse);
+  });
+
   group('the contingencies in Bailout view', () {
     Finder contingencyChips() => find.descendant(
       of: find.byType(ContingencyChips),

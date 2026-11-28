@@ -5,11 +5,13 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_results_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_status_chips.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Contingency toggles for the chart: Base / +depth / +time / one chip per
-/// losable cylinder. All but Base combine freely; Base clears them.
+/// losable cylinder. All but Base combine freely; Base clears them and leaves
+/// the Bailout view.
 class ContingencyChips extends ConsumerWidget {
   const ContingencyChips({super.key, this.overlay = false});
 
@@ -40,6 +42,10 @@ class ContingencyChips extends ConsumerWidget {
         selection.deeper ||
         selection.longer ||
         selection.lostTankIds.any(losableIds.contains);
+    // Base is the plan itself, so the Bailout view counts against it too.
+    final bailoutOn =
+        ref.watch(planMayHaveBailoutProvider) &&
+        ref.watch(chartDisplayModeProvider) == ChartDisplayMode.bailout;
 
     Widget chip(String label, bool on, VoidCallback? onTap) {
       return Semantics(
@@ -68,7 +74,15 @@ class ContingencyChips extends ConsumerWidget {
     }
 
     final chips = [
-      chip(context.l10n.plannerCanvas_contingency_base, !anyOn, notifier.clear),
+      chip(
+        context.l10n.plannerCanvas_contingency_base,
+        !anyOn && !bailoutOn,
+        () {
+          notifier.clear();
+          ref.read(chartDisplayModeProvider.notifier).state =
+              ChartDisplayMode.ccr;
+        },
+      ),
       chip(depthLabel, selection.deeper, notifier.toggleDeeper),
       if (canLengthen) chip(timeLabel, selection.longer, notifier.toggleLonger),
       for (final tank in losable) lostChip(tank),
