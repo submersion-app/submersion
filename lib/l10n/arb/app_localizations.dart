@@ -37368,7 +37368,7 @@ abstract class AppLocalizations {
   /// No description provided for @trim_calculator_cannotModel.
   ///
   /// In en, this message translates to:
-  /// **'This dive has no tanks or exposure suit, so its trim can\'t be worked out. Choose another dive.'**
+  /// **'This dive has no cylinders or exposure suit, so its trim can\'t be worked out. Choose another dive.'**
   String get trim_calculator_cannotModel;
 
   /// No description provided for @trim_calculator_diveMissing.
@@ -37422,7 +37422,7 @@ abstract class AppLocalizations {
   /// No description provided for @trim_tryout_tankHeight.
   ///
   /// In en, this message translates to:
-  /// **'Tank height'**
+  /// **'Cylinder height'**
   String get trim_tryout_tankHeight;
 
   /// No description provided for @trim_tryout_tankUp.
@@ -37542,13 +37542,13 @@ abstract class AppLocalizations {
   /// No description provided for @trim_fix_tankUp.
   ///
   /// In en, this message translates to:
-  /// **'Slide the tank {distance} up the band'**
+  /// **'Slide the cylinder {distance} up the band'**
   String trim_fix_tankUp(String distance);
 
   /// No description provided for @trim_fix_tankDown.
   ///
   /// In en, this message translates to:
-  /// **'Slide the tank {distance} down the band'**
+  /// **'Slide the cylinder {distance} down the band'**
   String trim_fix_tankDown(String distance);
 
   /// No description provided for @trim_fix_lighterFins.

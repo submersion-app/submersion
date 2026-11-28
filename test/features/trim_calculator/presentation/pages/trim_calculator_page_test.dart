@@ -105,7 +105,10 @@ void main() {
       dives: {'d1': dive('d1', 12)},
       outcomes: {'d1': null},
     );
-    expect(find.textContaining('no tanks or exposure suit'), findsOneWidget);
+    expect(
+      find.textContaining('no cylinders or exposure suit'),
+      findsOneWidget,
+    );
     expect(find.byType(TrimTryoutView), findsNothing);
     expect(find.byKey(TrimCalculatorPage.changeDiveKey), findsOneWidget);
   });
@@ -193,7 +196,7 @@ void main() {
       ],
     );
     expect(find.textContaining('model'), findsOneWidget);
-    expect(find.textContaining('no tanks or exposure suit'), findsNothing);
+    expect(find.textContaining('no cylinders or exposure suit'), findsNothing);
   });
 
   testWidgets('a dive handed in later replaces the picked one', (tester) async {

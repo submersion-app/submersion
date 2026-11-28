@@ -23433,7 +23433,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trim_calculator_cannotModel =>
-      'This dive has no tanks or exposure suit, so its trim can\'t be worked out. Choose another dive.';
+      'This dive has no cylinders or exposure suit, so its trim can\'t be worked out. Choose another dive.';
 
   @override
   String get trim_calculator_diveMissing =>
@@ -23462,7 +23462,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trim_tryout_kneesBent => 'Bent 90 degrees';
 
   @override
-  String get trim_tryout_tankHeight => 'Tank height';
+  String get trim_tryout_tankHeight => 'Cylinder height';
 
   @override
   String get trim_tryout_tankUp => 'Up the band';
@@ -23537,12 +23537,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String trim_fix_tankUp(String distance) {
-    return 'Slide the tank $distance up the band';
+    return 'Slide the cylinder $distance up the band';
   }
 
   @override
   String trim_fix_tankDown(String distance) {
-    return 'Slide the tank $distance down the band';
+    return 'Slide the cylinder $distance down the band';
   }
 
   @override

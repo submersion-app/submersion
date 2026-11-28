@@ -56,11 +56,11 @@ void main() {
   test('tank height, up or down the band, in cm or inches', () {
     expect(
       trimFixText(fix(TrimFixKind.tankHeight, metres: -0.05), metric, l10n),
-      'Slide the tank 5 cm up the band',
+      'Slide the cylinder 5 cm up the band',
     );
     expect(
       trimFixText(fix(TrimFixKind.tankHeight, metres: 0.0508), imperial, l10n),
-      'Slide the tank 2 in down the band',
+      'Slide the cylinder 2 in down the band',
     );
   });
 
