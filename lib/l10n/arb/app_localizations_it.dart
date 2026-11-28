@@ -9271,12 +9271,25 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'Pressioni delle bombole';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'Mantieni le sovrapposizioni in vista';
-
-  @override
   String get diveLog_chartOption_tooltipFollowsCursor =>
       'Il tooltip segue il cursore';
+
+  @override
+  String get diveLog_chartOption_zoom => 'Zoom';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify =>
+      'Entrambi gli assi, ingrandisci le sovrapposizioni';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView =>
+      'Entrambi gli assi, mantieni le sovrapposizioni in vista';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => 'Solo tempo';
+
+  @override
+  String get diveLog_chartOption_rightAxis => 'Asse destro';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(stim.)';
@@ -23962,8 +23975,11 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mantieni le sovrapposizioni in vista durante lo zoom';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'Adatta le sovrapposizioni come NDL e ppO2 all\'area visibile invece di ingrandirle con l\'asse della profondità';
+  String get settings_appearance_profileZoom => 'Zoom';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict =>
+      'Zoom del profilo: solo tempo';
 
   @override
   String get settings_appearance_rightYAxisMetric => 'Metrica asse Y destro';

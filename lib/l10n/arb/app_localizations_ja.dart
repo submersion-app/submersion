@@ -8921,10 +8921,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'タンク圧';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport => 'オーバーレイを表示範囲内に保つ';
+  String get diveLog_chartOption_tooltipFollowsCursor => 'ツールチップをカーソルに追従';
 
   @override
-  String get diveLog_chartOption_tooltipFollowsCursor => 'ツールチップをカーソルに追従';
+  String get diveLog_chartOption_zoom => 'ズーム';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify => '両軸、オーバーレイを拡大';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView => '両軸、オーバーレイを表示範囲内に保つ';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => '時間のみ';
+
+  @override
+  String get diveLog_chartOption_rightAxis => '右軸';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '（推定）';
@@ -23072,8 +23084,10 @@ class AppLocalizationsJa extends AppLocalizations {
       'ズーム時にオーバーレイを表示範囲内に保つ';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'NDLやppO2などのオーバーレイを、水深軸と一緒に拡大せずに表示領域に合わせます';
+  String get settings_appearance_profileZoom => 'ズーム';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict => 'プロファイルのズーム: 時間のみ';
 
   @override
   String get settings_appearance_rightYAxisMetric => '右Y軸の指標';

@@ -9213,11 +9213,24 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'Flesdrukken';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'Overlays in beeld houden';
+  String get diveLog_chartOption_tooltipFollowsCursor => 'Tooltip volgt cursor';
 
   @override
-  String get diveLog_chartOption_tooltipFollowsCursor => 'Tooltip volgt cursor';
+  String get diveLog_chartOption_zoom => 'Zoom';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify =>
+      'Beide assen, overlays vergroten';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView =>
+      'Beide assen, overlays in beeld houden';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => 'Alleen tijd';
+
+  @override
+  String get diveLog_chartOption_rightAxis => 'Rechter as';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(gesch.)';
@@ -23818,8 +23831,11 @@ class AppLocalizationsNl extends AppLocalizations {
       'Overlays in beeld houden bij zoomen';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'Overlays zoals NDL en ppO2 aanpassen aan het zichtbare gebied in plaats van ze mee te vergroten met de diepteas';
+  String get settings_appearance_profileZoom => 'Zoom';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict =>
+      'Profielzoom: alleen tijd';
 
   @override
   String get settings_appearance_rightYAxisMetric => 'Metriek rechter Y-as';

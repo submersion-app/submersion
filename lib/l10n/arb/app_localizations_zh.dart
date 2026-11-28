@@ -8795,10 +8795,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => '气瓶压力';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport => '保持叠加层在视图内';
+  String get diveLog_chartOption_tooltipFollowsCursor => '提示框跟随光标';
 
   @override
-  String get diveLog_chartOption_tooltipFollowsCursor => '提示框跟随光标';
+  String get diveLog_chartOption_zoom => '缩放';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify => '双轴，放大叠加层';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView => '双轴，保持叠加层在视图内';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => '仅时间';
+
+  @override
+  String get diveLog_chartOption_rightAxis => '右轴';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(估算)';
@@ -22729,8 +22741,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_appearance_metricsFollowViewport => '缩放时保持叠加层在视图内';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      '将 NDL、ppO2 等叠加层适配到可见区域，而不是随深度轴一起放大';
+  String get settings_appearance_profileZoom => '缩放';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict => '剖面缩放：仅时间';
 
   @override
   String get settings_appearance_rightYAxisMetric => '右Y轴指标';

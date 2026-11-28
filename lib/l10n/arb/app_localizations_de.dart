@@ -9261,11 +9261,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'Flaschendrücke';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'Einblendungen im Sichtbereich halten';
+  String get diveLog_chartOption_tooltipFollowsCursor => 'Tooltip folgt Cursor';
 
   @override
-  String get diveLog_chartOption_tooltipFollowsCursor => 'Tooltip folgt Cursor';
+  String get diveLog_chartOption_zoom => 'Zoom';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify =>
+      'Beide Achsen, Einblendungen vergrößern';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView =>
+      'Beide Achsen, Einblendungen im Sichtbereich halten';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => 'Nur Zeit';
+
+  @override
+  String get diveLog_chartOption_rightAxis => 'Rechte Achse';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(gesch.)';
@@ -23929,8 +23942,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Einblendungen beim Zoomen im Sichtbereich halten';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'Einblendungen wie NDL und ppO2 an den sichtbaren Bereich anpassen, statt sie mit der Tiefenachse zu vergrößern';
+  String get settings_appearance_profileZoom => 'Zoom';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict =>
+      'Profilzoom: nur Zeit';
 
   @override
   String get settings_appearance_rightYAxisMetric => 'Rechte Y-Achsen-Metrik';

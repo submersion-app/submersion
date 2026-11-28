@@ -48,7 +48,7 @@ class ProfilePlotFrame {
   ProfilePlotFrame withViewport(ChartViewport other) {
     final spanSeconds = (maxSeconds - minSeconds) * viewport.zoom;
     final fromSeconds = minSeconds - viewport.offsetX * spanSeconds;
-    final spanDepth = (maxDepthMeters - minDepthMeters) * viewport.zoom;
+    final spanDepth = (maxDepthMeters - minDepthMeters) * viewport.zoomY;
     final fromDepth = minDepthMeters - viewport.offsetY * spanDepth;
     final minS = fromSeconds + other.offsetX * spanSeconds;
     final minD = fromDepth + other.offsetY * spanDepth;
@@ -58,7 +58,7 @@ class ProfilePlotFrame {
       minSeconds: minS,
       maxSeconds: minS + spanSeconds / other.zoom,
       minDepthMeters: minD,
-      maxDepthMeters: minD + spanDepth / other.zoom,
+      maxDepthMeters: minD + spanDepth / other.zoomY,
       viewport: other,
     );
   }
@@ -83,6 +83,7 @@ class ProfilePlotFrame {
     minDepthMeters,
     maxDepthMeters,
     viewport.zoom,
+    viewport.zoomY,
     viewport.offsetX,
     viewport.offsetY,
   );
