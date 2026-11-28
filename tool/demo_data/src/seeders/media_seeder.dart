@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' show Variable;
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/media/data/repositories/media_gear_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_smart_album_repository.dart';
@@ -21,7 +22,7 @@ import 'seed_context.dart';
 
 /// The demo photos, linked (never copied, as the app does with real photos)
 /// to the dives that carried the camera where they belong, up to three a
-/// dive, with their credits, species and tags.
+/// dive, with their credits, species, tags and the gear they show.
 class MediaSeeder implements DemoSeeder {
   @override
   String get name => 'photos';
@@ -32,6 +33,7 @@ class MediaSeeder implements DemoSeeder {
     final species = MediaSpeciesRepository();
     final people = MediaPeopleRepository();
     final tags = TagLinkRepository(TagScope.media);
+    final gear = MediaGearRepository();
     final dives = DiveRepository();
     final cameraDives = ctx.plan.dives
         .where((d) => isPhotoDive(d, ctx.timeline))
@@ -120,6 +122,17 @@ class MediaSeeder implements DemoSeeder {
             buddyId: buddy.read<String>('buddy_id'),
           );
         }
+      }
+      // Every other photo shows a strobe or the video light reaching into
+      // the frame, and is linked to it (issue #5046).
+      if (n % 2 == 0) {
+        final used = await gear.gearOnDive(ctx.diveId(dive.number));
+        final inFrame = [
+          for (final k in const ['strobe-left', 'strobe-right', 'video-light'])
+            if (ctx.equipment[k] case final item? when used.contains(item))
+              item,
+        ];
+        if (inFrame.isNotEmpty) await gear.addGear([id], [inFrame.first]);
       }
     }
 
