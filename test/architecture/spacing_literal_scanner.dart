@@ -121,6 +121,16 @@ Expression? _named(ArgumentList arguments, String name) {
   return null;
 }
 
+/// Whether a `SizedBox` call sizes a child. An explicit `child: null` is as
+/// childless as an omitted one, so it is still a gap.
+bool _hasChild(ArgumentList arguments) {
+  var child = _named(arguments, 'child');
+  while (child is ParenthesizedExpression) {
+    child = child.expression;
+  }
+  return child != null && child is! NullLiteral;
+}
+
 class _SpacingVisitor extends RecursiveAstVisitor<void> {
   _SpacingVisitor(this.file, this.lineInfo);
 
@@ -188,7 +198,7 @@ class _SpacingVisitor extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (name == 'SizedBox' && _named(arguments, 'child') == null) {
+    if (name == 'SizedBox' && !_hasChild(arguments)) {
       final width = _named(arguments, 'width');
       final height = _named(arguments, 'height');
       if ((width == null) != (height == null)) {

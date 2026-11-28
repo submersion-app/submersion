@@ -54,6 +54,8 @@ Widget build() {
       'Radius.elliptical(4, 6)': ('Radius.elliptical', [4, 6]),
       'SizedBox(width: 8)': ('SizedBox.width', [8]),
       'const SizedBox(height: 12)': ('SizedBox.height', [12]),
+      'SizedBox(width: 8, child: null)': ('SizedBox.width', [8]),
+      'const SizedBox(height: 12, child: (null))': ('SizedBox.height', [12]),
       'Wrap(spacing: 24, runSpacing: 12, children: c)': (
         'Wrap.spacing',
         [24, 12],

@@ -19,7 +19,7 @@ final guardedRoots = [p.join('lib', 'shared', 'widgets')];
 /// `BorderRadius.circular(8)`, and the scale drifts the way it had before the
 /// constants existed. A value that is deliberately off the scale is declared
 /// once as a named constant with a doc comment saying why; the scanner does
-/// not look inside top-level or field declarations.
+/// not look inside top-level, `static` or enum constant declarations.
 void main() {
   List<File> dartFilesUnder(String root) => Directory(root)
       .listSync(recursive: true)
@@ -27,13 +27,28 @@ void main() {
       .where((f) => f.path.endsWith('.dart'))
       .toList();
 
-  test('the scanner still matches real code, so the guard cannot pass '
-      'vacuously', () {
+  // A fixture rather than a count over lib/features: that count falls with
+  // every feature migration, so a threshold on it would fail once the work
+  // it guards is done.
+  test('the scanner still matches a real widget file, so the guard cannot '
+      'pass vacuously', () {
     final found = scanForSpacingLiterals(
-      files: dartFilesUnder(p.join('lib', 'features')),
+      files: [
+        File(p.join('test', 'architecture', 'spacing_literal_fixture.dart')),
+      ],
       relativize: p.relative,
     );
-    expect(found.length, greaterThan(1000));
+    expect(
+      [for (final literal in found) '${literal.call} ${literal.value}'],
+      [
+        'EdgeInsets.all 16',
+        'BorderRadius.circular 12',
+        'Column.spacing 4',
+        'SizedBox.height 8',
+        'EdgeInsetsDirectional.only 6',
+        'Radius.circular 2',
+      ],
+    );
   });
 
   test('every guarded folder holds Dart files, so it is really scanned', () {

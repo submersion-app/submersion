@@ -74,7 +74,8 @@ writes a spacing or radius value as a bare number. It checks:
 
 - the `EdgeInsets` and `EdgeInsetsDirectional` constructors;
 - `BorderRadius.circular`, `Radius.circular` and `Radius.elliptical`;
-- a `SizedBox` with only `width` or only `height` and no `child` (a gap);
+- a `SizedBox` with only `width` or only `height` and no `child`, or
+  `child: null` (a gap);
 - the `spacing:`, `runSpacing:`, `mainAxisSpacing:`, `crossAxisSpacing:`,
   `indent:` and `endIndent:` arguments of any call.
 
