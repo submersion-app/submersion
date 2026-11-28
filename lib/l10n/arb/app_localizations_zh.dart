@@ -10449,6 +10449,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_label_startPressure => '起始压力';
 
   @override
+  String get diveLog_tank_managePresets => '管理预设';
+
+  @override
   String get diveLog_tank_label_tankPreset => '气瓶预设';
 
   @override
@@ -13698,6 +13701,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_equipmentType_harness => '背带';
+
+  @override
+  String get equipment_searchWords_cylinder => '罐, 钢瓶, 气罐, 备用瓶';
+
+  @override
+  String get equipment_searchWords_tankBand => '瓶带, cam band';
 
   @override
   String get enum_equipmentType_tankBand => '气瓶绑带';
@@ -17578,6 +17587,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_consumption_diveTime => '潜水时间';
+
+  @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '。警告：超出气瓶容量',
+      'other': '',
+    });
+    return '气体消耗：$volume $volumeSymbol，$pressure $pressureSymbol$_temp0';
+  }
 
   @override
   String gasCalculators_consumption_exceedsTank(
@@ -26445,6 +26469,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_volumeL => '容积';
+
+  @override
+  String get settings_conflict_field_ratedCapacityCuft => '额定容量';
 
   @override
   String get settings_conflict_field_volumeLiters => '容积';
@@ -37393,6 +37420,19 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String tankPresets_deleted(Object name) {
     return '已删除\"$name\"';
+  }
+
+  @override
+  String get tankPresets_duplicatePreset => '复制';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name（副本）';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name（副本 $number）';
   }
 
   @override

@@ -23,6 +23,7 @@ Widget _host({
   double? depthMeters,
   int? minutes,
   double? sacLpm,
+  Locale? locale,
 }) {
   return ProviderScope(
     overrides: [
@@ -33,10 +34,11 @@ Widget _host({
         consumptionTimeProvider.overrideWith((ref) => minutes),
       if (sacLpm != null) consumptionSacProvider.overrideWith((ref) => sacLpm),
     ],
-    child: const MaterialApp(
+    child: MaterialApp(
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(body: GasConsumptionCalculator()),
+      home: const Scaffold(body: GasConsumptionCalculator()),
     ),
   );
 }
@@ -135,5 +137,50 @@ void main() {
     await tester.pumpWidget(_host(settings: _imperial));
     await tester.pumpAndSettle();
     expect(find.byType(InfoButton), findsWidgets);
+  });
+
+  testWidgets('the result reads to a screen reader in the app language '
+      '(#5106)', (tester) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      _host(
+        settings: const AppSettings(),
+        depthMeters: 40.0,
+        minutes: 90,
+        sacLpm: 25.0,
+        locale: const Locale('en'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.bySemanticsLabel(
+        RegExp(r'^Gas consumption: .*Warning: exceeds cylinder capacity$'),
+      ),
+      findsOneWidget,
+    );
+    handle.dispose();
+  });
+
+  testWidgets('each language punctuates the screen reader result itself '
+      '(#5106)', (tester) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      _host(
+        settings: const AppSettings(),
+        depthMeters: 40.0,
+        minutes: 90,
+        sacLpm: 25.0,
+        locale: const Locale('ja'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final label = find.bySemanticsLabel(RegExp('ガス消費量'));
+    expect(label, findsOneWidget);
+    final text = tester.getSemantics(label).label;
+    expect(text, isNot(contains('. ')), reason: text);
+    expect(text, contains('警告'));
+    handle.dispose();
   });
 }

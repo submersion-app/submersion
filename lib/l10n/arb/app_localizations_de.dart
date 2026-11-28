@@ -10998,6 +10998,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Anfangsdruck';
 
   @override
+  String get diveLog_tank_managePresets => 'Vorlagen verwalten';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'Flaschenvorlage';
 
   @override
@@ -14398,6 +14401,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_harness => 'Harness';
+
+  @override
+  String get equipment_searchWords_cylinder =>
+      'Tank, Zylinder, Bottle, Stage, Pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'Tankband, Cam Band';
 
   @override
   String get enum_equipmentType_tankBand => 'Flaschenband';
@@ -18450,6 +18460,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_consumption_diveTime => 'Tauchzeit';
+
+  @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. Warnung: übersteigt die Flaschenkapazität',
+      'other': '',
+    });
+    return 'Gasverbrauch: $volume $volumeSymbol, $pressure $pressureSymbol$_temp0';
+  }
 
   @override
   String gasCalculators_consumption_exceedsTank(
@@ -28033,6 +28058,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_volumeL => 'Volumen';
+
+  @override
+  String get settings_conflict_field_ratedCapacityCuft => 'Nennkapazität';
 
   @override
   String get settings_conflict_field_volumeLiters => 'Volumen';
@@ -39670,7 +39698,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tankPresets_builtInPresets_description =>
-      'Schalte Vorlagen aus, die du nicht verwendest, um sie in der Tankauswahl auszublenden. Die Standardvorlage wird immer angezeigt.';
+      'Schalte Vorlagen aus, die du nicht verwendest, um sie in der Flaschenauswahl auszublenden. Die Standardvorlage wird immer angezeigt.';
 
   @override
   String get tankPresets_currentDefault => 'Aktueller Standard';
@@ -39679,15 +39707,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tankPresets_customPresets => 'Eigene Vorlagen';
 
   @override
-  String get tankPresets_defaultSettings => 'Standardtank';
+  String get tankPresets_defaultSettings => 'Standardflasche';
 
   @override
   String get tankPresets_defaultSettings_description =>
-      'Die mit Stern markierte Vorlage wird als Standardtank beim Erstellen neuer Tauchgänge verwendet.';
+      'Die mit Stern markierte Vorlage wird als Standardflasche beim Erstellen neuer Tauchgänge verwendet.';
 
   @override
   String tankPresets_deleteDefaultMessage(String name) {
-    return 'Möchtest du \"$name\" wirklich löschen? Dies ist deine aktuelle Standardtank-Vorlage und wird auf AL80 zurückgesetzt.';
+    return 'Möchtest du \"$name\" wirklich löschen? Dies ist deine aktuelle Standard-Flaschenvorlage und wird auf AL80 zurückgesetzt.';
   }
 
   @override
@@ -39704,6 +39732,19 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String tankPresets_deleted(Object name) {
     return '\"$name\" gelöscht';
+  }
+
+  @override
+  String get tankPresets_duplicatePreset => 'Duplizieren';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (Kopie)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (Kopie $number)';
   }
 
   @override
@@ -39817,14 +39858,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tankPresets_applyToImports_subtitle =>
-      'Fehlende Tankdaten bei importierten Tauchgängen mit der Standardvorlage ergänzen';
+      'Fehlende Flaschendaten bei importierten Tauchgängen mit der Standardvorlage ergänzen';
 
   @override
   String get tankPresets_defaultStartPressure => 'Standard-Anfangsdruck';
 
   @override
   String get tankPresets_defaultStartPressure_subtitle =>
-      'Wird bei neuen Tanks eingetragen und bei importierten Tanks ohne Anfangsdruck, wenn der Standardtank auf Importe angewendet wird';
+      'Wird bei neuen Flaschen eingetragen und bei importierten Flaschen ohne Anfangsdruck, wenn die Standardflasche auf Importe angewendet wird';
 
   @override
   String tankPresets_defaultStartPressure_range(String max, String min) {
@@ -39841,7 +39882,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tankPresets_setAsDefault => 'Als Standard festlegen';
 
   @override
-  String get tankPresets_showInPickers => 'In der Tankauswahl anzeigen';
+  String get tankPresets_showInPickers => 'In der Flaschenauswahl anzeigen';
 
   @override
   String get tankPresets_title => 'Flaschenvorlagen';

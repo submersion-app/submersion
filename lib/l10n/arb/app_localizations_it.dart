@@ -11009,6 +11009,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Pressione iniziale';
 
   @override
+  String get diveLog_tank_managePresets => 'Gestisci preset';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'Preset bombola';
 
   @override
@@ -14405,6 +14408,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_equipmentType_harness => 'Imbrago';
 
   @override
+  String get equipment_searchWords_cylinder =>
+      'serbatoio, cilindro, stage, pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'cinghia, cam band';
+
+  @override
   String get enum_equipmentType_tankBand => 'Cinghia per bombola';
 
   @override
@@ -14922,7 +14932,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_tankRole_oxygenSupply => 'Riserva O2';
 
   @override
-  String get enum_tankRole_pony => 'Pony bottle';
+  String get enum_tankRole_pony => 'Pony';
 
   @override
   String get enum_tankRole_sidemountLeft => 'Sidemount sinistra';
@@ -18480,6 +18490,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gasCalculators_consumption_diveTime => 'Tempo Immersione';
+
+  @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. Attenzione: supera la capacità della bombola',
+      'other': '',
+    });
+    return 'Consumo di gas: $volume $volumeSymbol, $pressure $pressureSymbol$_temp0';
+  }
 
   @override
   String gasCalculators_consumption_exceedsTank(
@@ -28106,6 +28131,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_volumeL => 'Volume';
+
+  @override
+  String get settings_conflict_field_ratedCapacityCuft => 'Capacità nominale';
 
   @override
   String get settings_conflict_field_volumeLiters => 'Volume';
@@ -39799,6 +39827,19 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String tankPresets_deleted(Object name) {
     return '\"$name\" eliminato';
+  }
+
+  @override
+  String get tankPresets_duplicatePreset => 'Duplica';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (copia)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (copia $number)';
   }
 
   @override

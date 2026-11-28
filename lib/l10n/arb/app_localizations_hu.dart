@@ -10981,6 +10981,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Kezdőnyomás';
 
   @override
+  String get diveLog_tank_managePresets => 'Sablonok kezelése';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'Palack előre beállítás';
 
   @override
@@ -14369,6 +14372,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get enum_equipmentType_harness => 'Heveder';
+
+  @override
+  String get equipment_searchWords_cylinder => 'tartály, henger, stage, pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'tartálypánt, cam band';
 
   @override
   String get enum_equipmentType_tankBand => 'Palackpánt';
@@ -18412,6 +18421,21 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gasCalculators_consumption_diveTime => 'Merülési idő';
+
+  @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. Figyelem: meghaladja a palack kapacitását',
+      'other': '',
+    });
+    return 'Gázfogyasztás: $volume $volumeSymbol, $pressure $pressureSymbol$_temp0';
+  }
 
   @override
   String gasCalculators_consumption_exceedsTank(
@@ -27940,6 +27964,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_volumeL => 'Térfogat';
+
+  @override
+  String get settings_conflict_field_ratedCapacityCuft => 'Névleges kapacitás';
 
   @override
   String get settings_conflict_field_volumeLiters => 'Térfogat';
@@ -39563,6 +39590,19 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String tankPresets_deleted(Object name) {
     return '\"$name\" törölve';
+  }
+
+  @override
+  String get tankPresets_duplicatePreset => 'Másolás';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (másolat)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name ($number. másolat)';
   }
 
   @override

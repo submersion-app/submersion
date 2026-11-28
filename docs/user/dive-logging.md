@@ -100,7 +100,7 @@ has these rows:
 
 The dive's types and mode show on this card too; change them on the
 [Details](#details-dive-types-trip-visibility-and-statistics) and
-[Cylinders](#cylinders-dive-mode-tanks-and-gas) cards.
+[Cylinders](#cylinders-dive-mode-and-gas) cards.
 
 > [!NOTE]
 > **Bottom Time vs. Runtime.** Submersion treats these as two different things.
@@ -171,7 +171,7 @@ editor straight into outlier cleanup. On a narrow screen, **3D View** and
 data, and tissue loading are covered in depth on
 [Dive Profiles & Deco](dive-profiles.md).
 
-## Cylinders: dive mode, tanks, and gas
+## Cylinders: dive mode and gas
 
 <!-- screenshot: images/dive-logging/tanks-gas.png: the Cylinders card open -->
 
@@ -182,27 +182,27 @@ which changes how Submersion calculates oxygen exposure and gas use:
 
 | Mode | Full name | Meaning |
 |------|-----------|---------|
-| **OC** | Open Circuit | Standard scuba: you breathe from a tank and exhale into the water. |
+| **OC** | Open Circuit | Standard scuba: you breathe from a cylinder and exhale into the water. |
 | **CCR** | Closed Circuit Rebreather | The loop recycles your gas and holds a target oxygen pressure (setpoint). |
 | **SCR** | Semi-Closed Rebreather | A partial loop that meters fresh gas in at a fixed rate. |
-| **Gauge** | Gauge | Depth and time only; no gas or decompression tracking. The tank controls are hidden. |
+| **Gauge** | Gauge | Depth and time only; no gas or decompression tracking. The cylinder controls are hidden. |
 
 Choosing **CCR** or **SCR** reveals a dedicated settings panel (see
 [Technical and rebreather diving](#technical-and-rebreather-diving) below).
 
-### Tanks
+### Cylinders
 
-Each dive starts with one tank. Under **Tanks**, each one rests as a compact row
+Each dive starts with one cylinder. Under **Cylinders**, each one rests as a compact row
 showing its number and role over its mix, volume and pressures (start &rarr;
-end). Tap a tank's row to open its editor in place, and **Done** to close it.
-Tap **Add Tank** to add another cylinder; remove an extra tank with the trash
-icon (the last tank cannot be removed).
+end). Tap a cylinder's row to open its editor in place, and **Done** to close it.
+Tap **Add Cylinder** to add another cylinder; remove an extra cylinder with the trash
+icon (the last cylinder cannot be removed).
 
-The tank editor holds:
+The cylinder editor holds:
 
 | Field | Notes |
 |-------|-------|
-| **Tank Preset** | Pick a standard cylinder (for example AL80, HP100) to fill in volume, working pressure, and material at once. Your own saved presets appear first, marked with a star. |
+| **Cylinder Preset** | Pick a standard cylinder (for example AL80, HP100) to fill in volume, working pressure, and material at once. Your own saved presets appear first, marked with a star. The last entry, **Manage presets**, opens your presets without leaving the dive. |
 | **Role** | What the cylinder is for (see roles below). |
 | **Volume** | Cylinder size. In metric this is water volume in litres (L); in imperial it is gas capacity in cubic feet (cuft). |
 | **Material** | Aluminum, Steel, or Carbon Fiber. Optional. |
@@ -211,24 +211,24 @@ The tank editor holds:
 | **MND** | For trimix only: type a target [Maximum Narcotic Depth](glossary.md) and Submersion back-calculates the helium needed. |
 | **Start Pressure** / **End Pressure** | Your cylinder pressure at the start and end of the dive. These drive your SAC and gas-used figures. |
 
-**Fill from my cylinders.** To fill a tank from a cylinder you own, open the
-tank and tap **Fill from my cylinders** (the box icon next to the tag scanner),
+**Fill from my cylinders.** To fill a cylinder from a cylinder you own, open the
+cylinder and tap **Fill from my cylinders** (the box icon next to the tag scanner),
 then choose the cylinder. Submersion copies its size, working pressure, material
-and latest recorded fill into the tank and adds the cylinder to the dive's
+and latest recorded fill into the cylinder and adds the cylinder to the dive's
 **Equipment**. Scanning a cylinder's tag does the same. The button appears when
-your gear catalog has a Tank item in use; a cylinder another diver profile has
+your gear catalog has a Cylinder item in use; a cylinder another diver profile has
 shared with you is listed with its owner's name.
 
 When a dive computer downloads pressures from an air-integrated transmitter you
-have registered, the tank is matched to that cylinder automatically.
+have registered, the cylinder is matched to that cylinder automatically.
 
-The tank's gas name is derived from the mix you enter: 20 to 22% oxygen reads as
+The cylinder's gas name is derived from the mix you enter: 20 to 22% oxygen reads as
 **Air**, anything above that as **EAN** (enriched-air nitrox, e.g. `EAN32`), any helium
 content as **Tx** (trimix, e.g. `Tx 18/45`), and pure oxygen as **O2**. Below the
 gas mix, Submersion shows the **MOD** ([Maximum Operating Depth](glossary.md), at
 your working ppO₂ limit, 1.4 by default) and **MND** for the mix.
 
-**Tank roles:**
+**Cylinder roles:**
 
 | Role | Typical use |
 |------|-------------|
@@ -238,7 +238,7 @@ your working ppO₂ limit, 1.4 by default) and **MND** for the mix.
 | **Deco** | A decompression gas. |
 | **Bailout** | An emergency open-circuit cylinder on a rebreather dive. |
 | **Sidemount Left** / **Sidemount Right** | Cylinders worn at your sides. |
-| **Pony Bottle** | A small independent reserve. |
+| **Pony** | A small independent reserve. |
 | **Diluent** | The diluent cylinder on a closed-circuit rebreather. |
 | **O₂ Supply** | The oxygen cylinder on a closed-circuit rebreather. |
 | **Hydrotank** | The Avelo Dive System's cylinder, which takes in water for buoyancy. Its pressure rises with the water, so it shows no gas used or SAC. |
@@ -247,32 +247,32 @@ On a dive logged by a Shearwater computer in Avelo mode, the Hydrotank also
 shows an **Avelo** summary of what the computer recorded: gas remaining from
 start to end, the buoyancy range and average, the computer's own RMV, and the
 highest Hydrotank pressure, counting only time below the surface as Shearwater
-Cloud does. Its figure is drawn as the tank's contents instead of a pressure
+Cloud does. Its figure is drawn as the cylinder's contents instead of a pressure
 fill: estimated water in blue at the bottom, then the gas left, then the share
 of the gas already breathed, with the water's volume beneath it. The estimate
-assumes the tank held no water at the start of the dive. Move the cursor along
+assumes the cylinder held no water at the start of the dive. Move the cursor along
 the profile and the figure follows it, so you can watch the water rise as you
 pumped in and fall as you purged.
 
 > [!TIP]
-> You can set a **default tank preset** in [Settings](settings.md) so every new tank
-> (and, optionally, imported dives missing tank data) starts from your usual
+> You can set a **default cylinder preset** in [Settings](settings.md) so every new cylinder
+> (and, optionally, imported dives missing cylinder data) starts from your usual
 > cylinder instead of a generic one.
 
-### Tanks or equipment?
+### Cylinders or equipment?
 
 The **Cylinders** and **Equipment** cards can both hold a cylinder. They do
 different jobs:
 
 | List | What it records | What uses it |
 |------|-----------------|--------------|
-| **Tanks** | What you breathed from on this dive: size, gas mix, start and end pressure, role | Gas graphs on the profile, gas consumption (SAC and RMV), gas switches, deco and oxygen calculations, and gas statistics |
+| **Cylinders** | What you breathed from on this dive: size, gas mix, start and end pressure, role | Gas graphs on the profile, gas consumption (SAC and RMV), gas switches, deco and oxygen calculations, and gas statistics |
 | **Equipment** | Which items from your gear catalog you used | Each item's dive count, service reminders, gear statistics |
 
-A cylinder in **Equipment** adds no gas data to the dive: adding a Tank item from
-your gear catalog, on its own or through a set, does not create a tank. To get
+A cylinder in **Equipment** adds no gas data to the dive: adding a Cylinder item from
+your gear catalog, on its own or through a set, does not create a cylinder. To get
 graphs and consumption for it, add it on the **Cylinders** card as well. For a cylinder you
-own, being in both lists is the normal case. The tank copies the cylinder's
+own, being in both lists is the normal case. The cylinder copies the cylinder's
 details when you fill it in and does not stay linked, so later changes to the
 cylinder in your catalog do not rewrite past dives.
 
@@ -428,7 +428,7 @@ used before to suggest them on future dives.
 ## Technical and rebreather diving
 
 Submersion records the data tech divers expect. Open-circuit divers can carry
-multiple **stage** and **deco** cylinders (see [Tanks](#tanks) above) and log
+multiple **stage** and **deco** cylinders (see [Cylinders](#cylinders) above) and log
 **trimix** mixes with helium, MOD, and MND. Choosing **CCR** or **SCR** as the
 dive mode on the **Cylinders** card reveals a settings panel.
 
@@ -590,13 +590,13 @@ mode, then tap dives to select them (or choose a whole date range with
 |--------|--------------|
 | **Delete** | Removes the selected dives, with an **Undo** option for a few seconds. |
 | **Export Selected** | Saves them as a **PDF Logbook**, **CSV** spreadsheet, or **UDDF** (Universal Dive Data Format) file. See [Import / Export](import-export.md). |
-| **Edit Selected** | Opens one page for all of them at once, titled **Edit N dives**. Each field has a switch: turn on the ones to change, and only those are written. Lists such as tags, gear and tanks can be added to, removed from, or replaced; notes can be set or appended. **Save** asks you to confirm. |
+| **Edit Selected** | Opens one page for all of them at once, titled **Edit N dives**. Each field has a switch: turn on the ones to change, and only those are written. Lists such as tags, gear and cylinders can be added to, removed from, or replaced; notes can be set or appended. **Save** asks you to confirm. |
 | **Combine** | Merges dives that are really one dive recorded by different computers. See [Dive Computers](dive-computer.md). |
 
 ### Customising the table columns
 
 In **Table** view, open the column picker to choose which columns appear. Columns
-are grouped by category (Core, Environment, Gas/Tank, Weight, Equipment, Deco,
+are grouped by category (Core, Environment, Gas/Cylinder, Weight, Equipment, Deco,
 Physiology, Rebreather, People, Location, Trip, Rating, Metadata). For each visible
 column you can drag to reorder it, **pin** it to the left so it stays put while you
 scroll, or remove it; drag a header's edge to resize. **Dive #** and **Site** are

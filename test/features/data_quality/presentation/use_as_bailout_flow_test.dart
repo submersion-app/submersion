@@ -153,7 +153,7 @@ void main() {
     // The dive page numbers tanks by position: the transmitter is Tank 2.
     expect(
       find.text(
-        'Removes the duplicate Bailout cylinder (switches move to Tank 2)',
+        'Removes the duplicate Bailout cylinder (switches move to Cylinder 2)',
       ),
       findsOneWidget,
     );

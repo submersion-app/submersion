@@ -6,7 +6,7 @@ label or an NFC tag on the cylinder and anyone with a phone can scan it to see
 what the cylinder is; an NFC tag can also carry its newest fill.
 
 > [!NOTE]
-> **Where to find it:** open a Tank item in **Equipment** and tap
+> **Where to find it:** open a Cylinder item in **Equipment** and tap
 > **Open passport** on its **Cylinder passport** card. A cylinder's passport exists as
 > soon as the item does; there is nothing to create.
 
@@ -40,8 +40,8 @@ the O2 and He you analysed, the fill pressure, and optionally the gas
 temperature, fill station, analyzer and notes. The fill becomes the cylinder's
 current fill and joins its history.
 
-On a dive, open a tank and tap **Fill from my cylinders** to copy a cylinder's
-size and newest fill into the tank. See [Logging Dives](dive-logging.md).
+On a dive, open a cylinder and tap **Fill from my cylinders** to copy a cylinder's
+size and newest fill into the cylinder. See [Logging Dives](dive-logging.md).
 
 ## Labels and tags
 
@@ -75,7 +75,7 @@ tag was written, the **Tag** card says so and offers **Rewrite tag** or
 ## Scanning a tag
 
 Choose **Scan a tag** from the menu on the Equipment list, or tap the
-scan button on a tank on an unlocked dive's **Cylinders** card. Point the camera at the label (iOS,
+scan button on a cylinder on an unlocked dive's **Cylinders** card. Point the camera at the label (iOS,
 Android and macOS), tap an NFC tag (phones with NFC), or paste the tag's link.
 
 - **Your own cylinder** opens its passport. If the tag carries a fill that is
@@ -83,7 +83,7 @@ Android and macOS), tap an NFC tag (phones with NFC), or paste the tag's link.
 - **Someone else's cylinder** opens a read-only page with what the tag says,
   including the last fill when the tag carries one.
   From there, **Add to my gear** adds it to your Equipment, and
-  **Use on a dive** starts a new dive with a tank filled in from the tag.
+  **Use on a dive** starts a new dive with a cylinder filled in from the tag.
 
 Scanning a tag with a phone camera outside the app opens Submersion directly
 where it is installed. Without the app, the link opens a page on
@@ -101,5 +101,5 @@ describes every field.
 ## See also
 
 - [Equipment](equipment.md): service clocks and the rest of your gear
-- [Logging Dives](dive-logging.md): tanks, and filling one from your cylinders
+- [Logging Dives](dive-logging.md): cylinders, and filling one from your cylinders
 - [Trips](trips.md): packing cylinders for a trip

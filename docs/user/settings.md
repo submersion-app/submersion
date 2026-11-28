@@ -54,7 +54,7 @@ Formats** and **Time & Date**. Quick Select changes none of it:
 
 | Setting | What it does | Default |
 |---------|--------------|---------|
-| **Gas consumption** | Show **SAC** (pressure drop per minute, works with any logged pressures), **RMV** (volume per minute at the surface, needs a tank volume), or **Both**. The unit follows your pressure and volume units. | Both |
+| **Gas consumption** | Show **SAC** (pressure drop per minute, works with any logged pressures), **RMV** (volume per minute at the surface, needs a cylinder volume), or **Both**. The unit follows your pressure and volume units. | Both |
 | **Gas calculations** | **Real gas** accounts for compressibility (a 12 L cylinder at 200 bar holds about 2317 L); **Ideal gas** matches hand calculation and dive tables (2400 L). Affects RMV, gas used, gas statistics, the planner and the gas calculators. | Real gas |
 | **Water type** | The default water type for the planner | Salt water |
 | **Default Currency** | For prices and costs | USD |
@@ -105,7 +105,7 @@ computer's figure where there is one and calculates it where there is not. You
 can still switch a single dive from its profile legend; see
 [Dive Profiles & Deco](dive-profiles.md).
 
-**GTR reserve pressure** sets the tank pressure the calculated gas time
+**GTR reserve pressure** sets the cylinder pressure the calculated gas time
 remaining counts down to.
 
 ### Ascent planning
@@ -201,7 +201,7 @@ where you'll run into them:
 
 | Item | What it manages |
 |------|-----------------|
-| **Tank Presets** | Tank configurations and the default tank; see [Equipment](equipment.md#tank-presets) |
+| **Cylinder Presets** | Cylinder configurations and the default cylinder; see [Equipment](equipment.md#cylinder-presets) |
 | **Transmitters** | Air-integration transmitters linked to cylinders |
 | **Weight Presets** | Reusable sets of weights for a dive |
 | **Service types** | The maintenance your gear needs, and how often |
@@ -289,7 +289,7 @@ which opens that step of Set up this device.
 | Setting | What it does |
 |---------|--------------|
 | **Auto site matching** | How readily downloaded dives are matched to your existing sites: **Strict**, **Balanced** or **Relaxed** |
-| **Tank pressure at surfacing** | Read the end pressure from when you reached the surface, not from when the computer stopped recording |
+| **Cylinder pressure at surfacing** | Read the end pressure from when you reached the surface, not from when the computer stopped recording |
 | **Tag imports automatically** | Start every new import with a tag naming its source and date |
 
 **Data tools**

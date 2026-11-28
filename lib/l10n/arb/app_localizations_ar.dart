@@ -11158,6 +11158,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'ضغط البداية';
 
   @override
+  String get diveLog_tank_managePresets => 'إدارة الإعدادات المسبقة';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'إعداد الأسطوانة المسبق';
 
   @override
@@ -14626,6 +14629,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get enum_equipmentType_harness => 'حزام';
+
+  @override
+  String get equipment_searchWords_cylinder => 'خزان, قارورة, ستيج, بوني';
+
+  @override
+  String get equipment_searchWords_tankBand => 'حزام الخزان, cam band';
 
   @override
   String get enum_equipmentType_tankBand => 'حزام الأسطوانة';
@@ -18767,6 +18776,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gasCalculators_consumption_diveTime => 'وقت الغوص';
+
+  @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. تحذير: يتجاوز سعة الأسطوانة',
+      'other': '',
+    });
+    return 'استهلاك الغاز: $volume $volumeSymbol، $pressure $pressureSymbol$_temp0';
+  }
 
   @override
   String gasCalculators_consumption_exceedsTank(
@@ -28403,6 +28427,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_volumeL => 'الحجم';
+
+  @override
+  String get settings_conflict_field_ratedCapacityCuft => 'السعة الاسمية';
 
   @override
   String get settings_conflict_field_volumeLiters => 'الحجم';
@@ -40313,15 +40340,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tankPresets_customPresets => 'الإعدادات المخصصة';
 
   @override
-  String get tankPresets_defaultSettings => 'الخزان الافتراضي';
+  String get tankPresets_defaultSettings => 'الأسطوانة الافتراضية';
 
   @override
   String get tankPresets_defaultSettings_description =>
-      'يُستخدم الإعداد المميز بنجمة كخزان افتراضي عند تسجيل غطسات جديدة.';
+      'يُستخدم الإعداد المميز بنجمة كأسطوانة افتراضية عند تسجيل غطسات جديدة.';
 
   @override
   String tankPresets_deleteDefaultMessage(String name) {
-    return 'هل أنت متأكد من حذف \"$name\"؟ هذا هو إعداد الخزان الافتراضي الحالي وسيتم إعادته إلى AL80.';
+    return 'هل أنت متأكد من حذف \"$name\"؟ هذا هو إعداد الأسطوانة الافتراضي الحالي وسيتم إعادته إلى AL80.';
   }
 
   @override
@@ -40338,6 +40365,19 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String tankPresets_deleted(Object name) {
     return 'تم حذف \"$name\"';
+  }
+
+  @override
+  String get tankPresets_duplicatePreset => 'تكرار';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (نسخة)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (نسخة $number)';
   }
 
   @override
@@ -40448,14 +40488,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tankPresets_applyToImports_subtitle =>
-      'ملء بيانات الخزان المفقودة في الغطسات المستوردة باستخدام الإعداد الافتراضي';
+      'ملء بيانات الأسطوانة المفقودة في الغطسات المستوردة باستخدام الإعداد الافتراضي';
 
   @override
   String get tankPresets_defaultStartPressure => 'ضغط البداية الافتراضي';
 
   @override
   String get tankPresets_defaultStartPressure_subtitle =>
-      'يُملأ في الخزانات الجديدة، وفي الخزانات المستوردة التي ليس لها ضغط بداية عند تطبيق الخزان الافتراضي على الاستيراد';
+      'يُملأ في الأسطوانات الجديدة، وفي الأسطوانات المستوردة التي ليس لها ضغط بداية عند تطبيق الأسطوانة الافتراضية على الاستيراد';
 
   @override
   String tankPresets_defaultStartPressure_range(String max, String min) {

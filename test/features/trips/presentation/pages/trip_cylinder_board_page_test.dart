@@ -230,7 +230,7 @@ void main() {
       find.text('EAN32 · ${units.formatPressure(200)} · Full'),
       findsOneWidget,
     );
-    expect(find.text('Bottle 14'), findsOneWidget);
+    expect(find.text('Cylinder 14'), findsOneWidget);
     expect(
       find.text(
         'Filled ${units.formatDateTime(at, l10n: AppLocalizationsEn())}',
@@ -340,7 +340,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(
       find.text(
-        'Delete this cylinder and its fills? 1 dive used it. That dive keeps its tank; only the link is removed.',
+        'Delete this cylinder and its fills? 1 dive used it. That dive keeps its own record of the cylinder; only the link is removed.',
       ),
       findsOneWidget,
     );

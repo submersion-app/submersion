@@ -369,5 +369,11 @@ extension RungsFromV340 on AppDatabase {
     // v239 built-in backfill is not. The floor does not move.
     if (from < 393) await _backfillWingInspectionServiceKind();
     if (from < 393) await reportProgress();
+
+    // v394 (issue #800): tank_presets.rated_capacity_cuft, the rated capacity
+    // a copy of a built-in preset keeps. Nullable, no backfill, re-asserted
+    // in beforeOpen; the floor does not move.
+    if (from < 394) await _assertTankPresetRatedCapacityColumn();
+    if (from < 394) await reportProgress();
   }
 }

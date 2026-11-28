@@ -10595,6 +10595,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get diveLog_tank_label_startPressure => '開始圧';
 
   @override
+  String get diveLog_tank_managePresets => 'プリセットを管理';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'タンクのプリセット';
 
   @override
@@ -13885,6 +13888,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get enum_equipmentType_harness => 'ハーネス';
+
+  @override
+  String get equipment_searchWords_cylinder => 'ボンベ, シリンダー, ボトル, ステージ, ポニー';
+
+  @override
+  String get equipment_searchWords_tankBand => 'ボンベバンド, カムバンド';
 
   @override
   String get enum_equipmentType_tankBand => 'タンクバンド';
@@ -17826,6 +17835,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get gasCalculators_consumption_diveTime => '潜水時間';
+
+  @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '。警告: タンク容量を超えています',
+      'other': '',
+    });
+    return 'ガス消費量: $volume $volumeSymbol、$pressure $pressureSymbol$_temp0';
+  }
 
   @override
   String gasCalculators_consumption_exceedsTank(
@@ -24851,7 +24875,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings_conflict_field_bookmarkRef => 'ファイルへのアクセス';
 
   @override
-  String get settings_conflict_field_bottleLabel => 'ボトル番号';
+  String get settings_conflict_field_bottleLabel => 'タンク番号';
 
   @override
   String get settings_conflict_field_buddyListViewMode => 'バディ一覧の表示';
@@ -26862,6 +26886,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settings_conflict_field_volumeL => '容量';
+
+  @override
+  String get settings_conflict_field_ratedCapacityCuft => '定格容量';
 
   @override
   String get settings_conflict_field_volumeLiters => '容量';
@@ -35270,7 +35297,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String trips_cylinders_bottle(String label) {
-    return 'ボトル$label';
+    return 'タンク$label';
   }
 
   @override
@@ -35393,7 +35420,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get trips_cylinders_fill_analyzedHe => 'He分析値（%）';
 
   @override
-  String get trips_cylinders_fill_bottle => 'ボトル番号';
+  String get trips_cylinders_fill_bottle => 'タンク番号';
 
   @override
   String get trips_cylinders_fill_cost => '料金';
@@ -38076,6 +38103,19 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String tankPresets_deleted(Object name) {
     return '「$name」を削除しました';
+  }
+
+  @override
+  String get tankPresets_duplicatePreset => '複製';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name（コピー）';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name（コピー $number）';
   }
 
   @override
