@@ -99,7 +99,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final surfacing = tester.getRect(
-        find.widgetWithText(SwitchListTile, 'Tank pressure at surfacing'),
+        find.widgetWithText(SwitchListTile, 'Cylinder pressure at surfacing'),
       );
       expect(tester.getRect(unusedGasSwitch()).top, surfacing.bottom);
     });

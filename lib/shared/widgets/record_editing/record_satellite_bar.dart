@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
@@ -40,7 +41,7 @@ class RecordSatelliteBar extends StatelessWidget
           label: context.l10n.common_action_done,
           onPressed: onDone,
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: Spacing.s4),
       ],
     );
   }

@@ -36,6 +36,15 @@ extension ServiceMigrations on AppDatabase {
     await customStatement(kBackfillRegulatorPartServiceKindsSql);
   }
 
+  /// v393 one-time backfill (issue #5110): the built-in BCD/wing inspection
+  /// applies to wings. Gated on is_built_in, and runs from the v393
+  /// onUpgrade block ONLY, as the v239 backfill does (fresh installs get the
+  /// same list from the seed).
+  Future<void> _backfillWingInspectionServiceKind() async {
+    if (!await _tableExists('service_kinds')) return;
+    await customStatement(kBackfillWingInspectionServiceKindSql);
+  }
+
   /// v122: service ledger -- service_kinds + service_schedules tables,
   /// service_records.service_kind_id, scheduled_notifications.schedule_id,
   /// diver_settings.trip_service_lead_days, built-in kind seed, and the

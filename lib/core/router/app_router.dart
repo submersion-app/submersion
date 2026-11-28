@@ -2187,7 +2187,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'new',
                 name: 'newTankPreset',
                 onExit: confirmLeaveRecordSitting,
-                builder: (context, state) => const TankPresetEditPage(),
+                // `?from=<id>`: a copy of that preset (issue #800).
+                builder: (context, state) => TankPresetEditPage(
+                  duplicateFromId: state.uri.queryParameters['from'],
+                ),
               ),
               GoRoute(
                 path: ':presetId/edit',

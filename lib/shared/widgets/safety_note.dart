@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
+
 /// A standing safety note on a tool's page, such as a disclaimer or the
 /// reminder to analyse a blend: a warning icon beside [text] on a pale
 /// error-coloured panel. Notes like these stay on the page rather than
@@ -14,10 +16,10 @@ class SafetyNote extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(Spacing.s12),
       decoration: BoxDecoration(
         color: colorScheme.errorContainer.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(Radii.r8),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,7 +31,7 @@ class SafetyNote extends StatelessWidget {
               color: colorScheme.error,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: Spacing.s8),
           Expanded(
             child: Text(
               text,

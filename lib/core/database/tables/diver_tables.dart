@@ -457,6 +457,13 @@ class DiverSettings extends Table {
   /// SettingsNotifier). Null reads as off and 100.
   BoolColumn get profileMetricsFollowViewport => boolean().nullable()();
   RealColumn get pscrRatio => real().nullable()();
+
+  /// v389 (issue #5069): the profile chart zooms time alone. Pairs with
+  /// [profileMetricsFollowViewport] as one Zoom choice, so it has the same
+  /// shape: nullable ON PURPOSE, null marking a row that has never held a
+  /// value, adopted from this device's pref like the pair above. Null reads
+  /// as off.
+  BoolColumn get profileZoomTimeOnly => boolean().nullable()();
   // Map style (v67)
   TextColumn get mapStyle =>
       text().withDefault(const Constant('openStreetMap'))();
@@ -616,7 +623,7 @@ class DiverSettings extends Table {
   TextColumn get siteDetailSections => text().nullable()();
   // Site detail page layout: detailed | list (v218). Null reads as detailed.
   TextColumn get siteDetailLayout => text().nullable()();
-  // Gear item page card order and visibility (v391, issue #4975): JSON array
+  // Gear item page card order and visibility (v397, issue #4975): JSON array
   // of {id, visible}. Null reads as the defaults.
   TextColumn get equipmentDetailSections => text().nullable()();
   // Table view profile panel default visibility (v61)

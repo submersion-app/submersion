@@ -12,6 +12,11 @@ final Map<String, ConflictField> siteTripFields = {
     (l) => l.settings_conflict_field_accessNotes,
     FieldKind.longText,
   ),
+  // A dive site's street address (issue #5073).
+  'address': ConflictField(
+    (l) => l.settings_conflict_field_address,
+    FieldKind.longText,
+  ),
   'affiliations': ConflictField(
     (l) => DiveCenterField.affiliations.localizedDisplayName(l),
     FieldKind.shortText,
@@ -329,6 +334,11 @@ final Map<String, ConflictField> siteTripFields = {
   'notedAt': ConflictField(
     (l) => l.settings_conflict_field_notedAt,
     FieldKind.dateTime,
+  ),
+  // A dive site's opening hours as stored JSON, chosen as a whole.
+  'openingHours': ConflictField(
+    (l) => l.settings_conflict_field_openingHours,
+    FieldKind.openingHours,
   ),
   'operatorName': ConflictField(
     (l) => l.settings_conflict_field_operatorName,

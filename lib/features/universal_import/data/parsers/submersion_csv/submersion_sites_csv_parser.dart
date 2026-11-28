@@ -146,6 +146,11 @@ class SubmersionSitesCsvParser implements ImportParser {
           'accessNotes': table.text(row, 'Access Notes'),
           'mooringNumber': table.text(row, 'Mooring Number'),
           'parkingInfo': table.text(row, 'Parking Info'),
+          'address': table.text(row, 'Address'),
+          'phone': table.text(row, 'Phone'),
+          'email': table.text(row, 'Email'),
+          'website': table.text(row, 'Website'),
+          'openingHours': table.text(row, 'Opening Hours'),
           'exitMethod': _methods(table.text(row, 'Exit Type')),
           // Site features (issue #2200) ride in one cell, decoded into the
           // same maps the UDDF parser produces.

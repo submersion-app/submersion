@@ -45,6 +45,8 @@ void main() {
     await item('tank', 'cylinder');
     await item('reg-first', 'regulator');
     await item('reg-extra', 'regulator');
+    // A cylinder whose name says nothing about what it is (issue #5106).
+    await item('AL80', 'tank');
     await db
         .into(db.tags)
         .insert(
@@ -155,6 +157,26 @@ void main() {
     });
     expect(await ids('attributes[key = thickness_mm AND valueNum >= 5]'), {
       'suit',
+    });
+  });
+
+  group('a plain word finds items by type (issue #5106)', () {
+    test('another word for a cylinder finds a cylinder named AL80', () async {
+      expect(await ids('tank'), contains('AL80'));
+      expect(await ids('bottle'), {'AL80'});
+    });
+
+    test('a translated type name finds that type', () async {
+      expect(await ids('Flasche'), {'AL80'});
+    });
+
+    test('a type name finds every item of that type', () async {
+      expect(await ids('regulator'), {'reg', 'reg-first', 'reg-extra'});
+    });
+
+    test('typed type values and name matches are unchanged', () async {
+      expect(await ids('type = tank'), {'AL80'});
+      expect(await ids('AL80'), {'AL80'});
     });
   });
 

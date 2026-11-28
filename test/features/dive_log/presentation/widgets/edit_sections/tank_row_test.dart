@@ -74,7 +74,7 @@ void main() {
   ) async {
     await _pump(tester);
     // Title leads with tank identity.
-    expect(find.textContaining('Tank 1'), findsOneWidget);
+    expect(find.textContaining('Cylinder 1'), findsOneWidget);
     // Subtitle carries mix, volume, and pressure range on one muted line.
     expect(find.textContaining('EAN32'), findsOneWidget);
     expect(find.textContaining('200'), findsOneWidget);
@@ -114,7 +114,7 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     await _pump(tester);
-    await tester.tap(find.textContaining('Tank 1'));
+    await tester.tap(find.textContaining('Cylinder 1'));
     await tester.pumpAndSettle();
     expect(find.byType(TankEditor), findsOneWidget);
     await tester.tap(find.text('Done'));
@@ -129,7 +129,7 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     await _pump(tester, diveMode: DiveMode.ccr);
-    await tester.tap(find.textContaining('Tank 1'));
+    await tester.tap(find.textContaining('Cylinder 1'));
     await tester.pumpAndSettle();
 
     // The diluent's MOD limit depends on it.
@@ -171,7 +171,7 @@ void main() {
         tank: _testTank.copyWith(tripCylinderId: 'a'),
         slots: [truck],
       );
-      expect(find.text('Truck 1 · Bottle 14'), findsOneWidget);
+      expect(find.text('Truck 1 · Cylinder 14'), findsOneWidget);
       expect(find.byIcon(Icons.auto_awesome), findsNothing);
     });
 

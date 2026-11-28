@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/opening_hours/opening_hours.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_catalogue_answers.dart';
 
 /// Site difficulty levels
@@ -59,6 +60,20 @@ class DiveSite extends Equatable {
   final String? accessNotes; // How to access the site, entry/exit points
   final String? mooringNumber; // Mooring buoy number for boat dives
   final String? parkingInfo; // Parking availability and tips
+
+  /// Street address, free text that may span lines (issue #5073). Opens
+  /// in a maps app ahead of the GPS pin.
+  final String? address;
+
+  /// Phone number for the site or its owner, as typed.
+  final String? phone;
+  final String? email;
+
+  /// Website as typed; opened only through `parseWebLink`.
+  final String? website;
+
+  /// When the site is open; null when no hours are recorded.
+  final OpeningHours? openingHours;
   final double?
   altitude; // Altitude above sea level in meters (for altitude diving)
   /// The ways into the water at this site (issues #1104, #2054), in enum
@@ -108,6 +123,11 @@ class DiveSite extends Equatable {
     this.accessNotes,
     this.mooringNumber,
     this.parkingInfo,
+    this.address,
+    this.phone,
+    this.email,
+    this.website,
+    this.openingHours,
     this.altitude,
     this.entryMethods = const [],
     this.exitMethods = const [],
@@ -128,6 +148,14 @@ class DiveSite extends Equatable {
       (mooringNumber?.isNotEmpty ?? false) ||
       entryMethods.isNotEmpty ||
       exitMethods.isNotEmpty;
+
+  /// Whether the site has an address, phone, email or website.
+  bool get hasContactInfo => [
+    address,
+    phone,
+    email,
+    website,
+  ].any((value) => value?.trim().isNotEmpty ?? false);
 
   /// The site's entry method when it lists exactly one, else null: with
   /// several there is no telling which one a given dive used.
@@ -201,6 +229,11 @@ class DiveSite extends Equatable {
     String? accessNotes,
     String? mooringNumber,
     String? parkingInfo,
+    String? address,
+    String? phone,
+    String? email,
+    String? website,
+    OpeningHours? openingHours,
     double? altitude,
     List<EntryMethod>? entryMethods,
     List<EntryMethod>? exitMethods,
@@ -226,6 +259,11 @@ class DiveSite extends Equatable {
     bool clearAccessNotes = false,
     bool clearMooringNumber = false,
     bool clearParkingInfo = false,
+    bool clearAddress = false,
+    bool clearPhone = false,
+    bool clearEmail = false,
+    bool clearWebsite = false,
+    bool clearOpeningHours = false,
     bool clearAltitude = false,
   }) {
     return DiveSite(
@@ -256,6 +294,13 @@ class DiveSite extends Equatable {
           ? null
           : mooringNumber ?? this.mooringNumber,
       parkingInfo: clearParkingInfo ? null : parkingInfo ?? this.parkingInfo,
+      address: clearAddress ? null : address ?? this.address,
+      phone: clearPhone ? null : phone ?? this.phone,
+      email: clearEmail ? null : email ?? this.email,
+      website: clearWebsite ? null : website ?? this.website,
+      openingHours: clearOpeningHours
+          ? null
+          : openingHours ?? this.openingHours,
       altitude: clearAltitude ? null : altitude ?? this.altitude,
       entryMethods: entryMethods ?? this.entryMethods,
       exitMethods: exitMethods ?? this.exitMethods,
@@ -292,6 +337,11 @@ class DiveSite extends Equatable {
     accessNotes,
     mooringNumber,
     parkingInfo,
+    address,
+    phone,
+    email,
+    website,
+    openingHours,
     altitude,
     entryMethods,
     exitMethods,

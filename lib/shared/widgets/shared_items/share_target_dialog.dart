@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -83,7 +84,7 @@ class _ShareTargetDialogState extends State<_ShareTargetDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(widget.body),
-            const SizedBox(height: 12),
+            const SizedBox(height: Spacing.s12),
             CheckboxListTile(
               contentPadding: EdgeInsets.zero,
               value: _sharing.everyone,

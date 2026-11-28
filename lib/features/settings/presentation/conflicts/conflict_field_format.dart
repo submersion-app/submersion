@@ -1,9 +1,14 @@
+import 'package:submersion/features/dive_sites/presentation/opening_hours_summary.dart';
+import 'package:submersion/core/opening_hours/opening_hours_codec.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/elapsed_duration_format.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+/// Litres in a cubic foot, for a capacity stored in cubic feet.
+const double _litresPerCuft = 28.3168;
 
 /// Renders [value] the way the app renders it elsewhere. Never throws: a
 /// value of an unexpected type (an older peer, a hand-edited row) prints as
@@ -66,6 +71,11 @@ String _format(
       final day = _wallClock(value);
       if (day == null) return value.toString();
       return units.formatDate(day);
+    case FieldKind.openingHours:
+      final hours = value is String ? decodeOpeningHours(value) : null;
+      return hours == null || hours.isEmpty
+          ? l10n.settings_conflict_changed
+          : openingHoursSummary(l10n, hours);
     case FieldKind.timeOfDay:
       if (value is int) return units.formatMinutesOfDay(value);
       return value.toString();
@@ -95,6 +105,7 @@ String _format(
     FieldKind.temperature => units.formatTemperature(number),
     FieldKind.weight => units.formatWeight(number),
     FieldKind.volume => units.formatVolume(number),
+    FieldKind.ratedCapacityCuft => units.formatVolume(number * _litresPerCuft),
     FieldKind.speed => units.formatSpeed(number),
     FieldKind.windSpeed => units.formatWindSpeed(number),
     FieldKind.altitude => units.formatAltitude(number),

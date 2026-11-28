@@ -496,15 +496,25 @@ void main() {
       expect(find.byKey(surerKey), findsNothing);
     });
 
-    testWidgets('show each level with its measured accuracy', (tester) async {
+    testWidgets('show each level with its accuracy, measured on photos '
+        '(issue #5121)', (tester) async {
       await pumpLevels(tester, withLevels(const [balanced, eager]));
       expect(find.text('How readily to suggest a species'), findsOneWidget);
       expect(find.text('Surer'), findsOneWidget);
-      expect(find.text('Fewest names. About 85% right'), findsOneWidget);
+      expect(
+        find.text('Fewest names. About 85% right on photos'),
+        findsOneWidget,
+      );
       expect(find.text('Balanced'), findsOneWidget);
-      expect(find.text('More names. About 80% right'), findsOneWidget);
+      expect(
+        find.text('More names. About 80% right on photos'),
+        findsOneWidget,
+      );
       expect(find.text('Eager'), findsOneWidget);
-      expect(find.text('Most names. About 70% right'), findsOneWidget);
+      expect(
+        find.text('Most names. About 70% right on photos'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('choosing one sets the level', (tester) async {

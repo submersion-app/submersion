@@ -164,7 +164,7 @@ void main() {
         .map((f) => f.seconds)
         .toList();
     expect(times, [1200, 600]);
-    expect(find.text('Starts on Tank 1 · Back Gas · Air'), findsOneWidget);
+    expect(find.text('Starts on Cylinder 1 · Back Gas · Air'), findsOneWidget);
   });
 
   testWidgets('leaving a time field reports the settled switch', (
@@ -358,7 +358,7 @@ void main() {
   ) async {
     await _pump(tester, switches: const [], removedWithTankCount: 1);
 
-    expect(find.text('1 gas switch removed with its tank'), findsOneWidget);
+    expect(find.text('1 gas switch removed with its cylinder'), findsOneWidget);
   });
 
   group('vertical spacing', () {

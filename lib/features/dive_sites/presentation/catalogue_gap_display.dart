@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_sites/domain/services/catalogue_site_mapping.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/data/services/catalogue_gap_service.dart';
@@ -30,6 +31,7 @@ String catalogueGapFieldLabel(
   CatalogueGapField.difficulty => l10n.diveSites_edit_section_difficultyLevel,
   CatalogueGapField.hazards => l10n.diveSites_edit_hazards_label,
   CatalogueGapField.description => l10n.diveSites_edit_field_description_label,
+  CatalogueGapField.website => l10n.diveSites_edit_contact_website_label,
 };
 
 /// What [record] holds for [field], as shown beside the site's empty
@@ -57,6 +59,7 @@ String catalogueGapFieldValue(
   CatalogueGapField.difficulty => record.difficulty?.localizedName(l10n) ?? '',
   CatalogueGapField.hazards => record.hazards?.trim() ?? '',
   CatalogueGapField.description => record.description?.trim() ?? '',
+  CatalogueGapField.website => catalogueWebsiteText(record.website) ?? '',
 };
 
 /// A position as latitude and longitude, to about ten metres.

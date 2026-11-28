@@ -9261,11 +9261,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'Flaschendrücke';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'Einblendungen im Sichtbereich halten';
+  String get diveLog_chartOption_tooltipFollowsCursor => 'Tooltip folgt Cursor';
 
   @override
-  String get diveLog_chartOption_tooltipFollowsCursor => 'Tooltip folgt Cursor';
+  String get diveLog_chartOption_zoom => 'Zoom';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify =>
+      'Beide Achsen, Einblendungen vergrößern';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView =>
+      'Beide Achsen, Einblendungen im Sichtbereich halten';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => 'Nur Zeit';
+
+  @override
+  String get diveLog_chartOption_rightAxis => 'Rechte Achse';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(gesch.)';
@@ -10985,6 +10998,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tank_label_startPressure => 'Anfangsdruck';
 
   @override
+  String get diveLog_tank_managePresets => 'Vorlagen verwalten';
+
+  @override
   String get diveLog_tank_label_tankPreset => 'Flaschenvorlage';
 
   @override
@@ -12018,6 +12034,144 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_detail_section_access => 'Zugang & Logistik';
 
   @override
+  String get diveSites_detail_section_contact => 'Kontakt';
+
+  @override
+  String get diveSites_detail_section_openingHours => 'Öffnungszeiten';
+
+  @override
+  String get diveSites_contact_mapsFailed =>
+      'Karten konnten nicht geöffnet werden';
+
+  @override
+  String get diveSites_contact_linkFailed =>
+      'Der Link konnte nicht geöffnet werden';
+
+  @override
+  String get diveSites_contact_directions => 'Route';
+
+  @override
+  String get diveSites_contact_address => 'Adresse';
+
+  @override
+  String get diveSites_contact_phone => 'Telefon';
+
+  @override
+  String get diveSites_contact_email => 'E-Mail';
+
+  @override
+  String get diveSites_contact_website => 'Webseite';
+
+  @override
+  String get diveSites_hours_alwaysOpen => 'Rund um die Uhr geöffnet';
+
+  @override
+  String get diveSites_hours_addSchedule => 'Zeitplan hinzufügen';
+
+  @override
+  String get diveSites_hours_scheduleName => 'Bezeichnung';
+
+  @override
+  String get diveSites_hours_scheduleName_hint => 'Sommer';
+
+  @override
+  String get diveSites_hours_seasonal => 'Saisonal';
+
+  @override
+  String get diveSites_hours_seasonFrom => 'Von';
+
+  @override
+  String get diveSites_hours_seasonTo => 'Bis';
+
+  @override
+  String get diveSites_hours_deleteSchedule => 'Zeitplan löschen';
+
+  @override
+  String get diveSites_hours_closed => 'Geschlossen';
+
+  @override
+  String get diveSites_hours_open24h => '24 Stunden geöffnet';
+
+  @override
+  String get diveSites_hours_kindHours => 'Zeiten';
+
+  @override
+  String get diveSites_hours_addRange => 'Zeiten hinzufügen';
+
+  @override
+  String get diveSites_hours_removeRange => 'Zeiten entfernen';
+
+  @override
+  String get diveSites_hours_copyDay => 'Auf andere Tage kopieren';
+
+  @override
+  String diveSites_hours_copyTitle(String day) {
+    return '$day kopieren nach';
+  }
+
+  @override
+  String get diveSites_hours_selectAll => 'Alle auswählen';
+
+  @override
+  String get diveSites_hours_copy => 'Kopieren';
+
+  @override
+  String get diveSites_hours_note => 'Hinweis';
+
+  @override
+  String get diveSites_hours_note_hint =>
+      'Slots telefonisch buchen, an Feiertagen geschlossen';
+
+  @override
+  String get diveSites_hours_invalid =>
+      'Einige Zeiten überschneiden sich oder enden vor dem Beginn';
+
+  @override
+  String get diveSites_hours_noSchedule => 'Noch keine Wochenzeiten';
+
+  @override
+  String diveSites_hours_openUntil(String time) {
+    return 'Jetzt geöffnet, schließt um $time';
+  }
+
+  @override
+  String get diveSites_hours_openNoClose => 'Jetzt geöffnet';
+
+  @override
+  String diveSites_hours_closedOpensAt(String when) {
+    return 'Geschlossen, öffnet $when';
+  }
+
+  @override
+  String diveSites_hours_closedForSeason(String date) {
+    return 'Saisonpause, öffnet am $date';
+  }
+
+  @override
+  String get diveSites_hours_closedNow => 'Geschlossen';
+
+  @override
+  String diveSites_hours_span(String from, String to) {
+    return '$from bis $to';
+  }
+
+  @override
+  String diveSites_hours_namedSeason(String name, String season) {
+    return '$name, $season';
+  }
+
+  @override
+  String diveSites_merge_hoursSchedules(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zeitpläne',
+      one: '$count Zeitplan',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_detail_section_altitude => 'Höhenlage';
 
   @override
@@ -12133,6 +12287,40 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveSites_edit_access_parkingInfo_hint =>
       'Parkverfügbarkeit, Gebühren, Tipps';
+
+  @override
+  String get diveSites_edit_contact_address_label => 'Adresse';
+
+  @override
+  String get diveSites_edit_contact_address_hint =>
+      'Straße, Ort und Postleitzahl';
+
+  @override
+  String get diveSites_edit_contact_phone_label => 'Telefon';
+
+  @override
+  String get diveSites_edit_contact_phone_hint =>
+      'Buchungs- oder Betreibernummer';
+
+  @override
+  String get diveSites_edit_contact_email_label => 'E-Mail';
+
+  @override
+  String get diveSites_edit_contact_email_hint => 'name@example.com';
+
+  @override
+  String get diveSites_edit_contact_website_label => 'Webseite';
+
+  @override
+  String get diveSites_edit_contact_website_hint => 'example.com';
+
+  @override
+  String get diveSites_edit_contact_emailInvalid =>
+      'Gib eine E-Mail-Adresse wie name@example.com ein';
+
+  @override
+  String get diveSites_edit_contact_websiteInvalid =>
+      'Gib eine Webadresse wie example.com ein';
 
   @override
   String get diveSites_edit_access_parkingInfo_label => 'Parkinformationen';
@@ -14385,6 +14573,13 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_equipmentType_harness => 'Harness';
+
+  @override
+  String get equipment_searchWords_cylinder =>
+      'Tank, Zylinder, Bottle, Stage, Pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'Tankband, Cam Band';
 
   @override
   String get enum_equipmentType_tankBand => 'Flaschenband';
@@ -16978,6 +17173,53 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ein verbundener Tauchcomputer oder Sender behält seinen Typ.';
 
   @override
+  String get equipment_suggest_link =>
+      'Nichts Passendes? Kategorie vorschlagen';
+
+  @override
+  String get equipment_suggest_title => 'Kategorie vorschlagen';
+
+  @override
+  String get equipment_suggest_intro =>
+      'Damit öffnet sich eine vorausgefüllte Funktionsanfrage auf GitHub. Du prüfst sie und sendest sie in deinem Browser ab.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'Was schlägst du vor?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'Neue Ausrüstungsart';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'Neue Variante einer Art';
+
+  @override
+  String get equipment_suggest_nameLabel => 'Name';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'Eine Variante von';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel => 'Nächstliegende Art';
+
+  @override
+  String get equipment_suggest_parentNone => 'Keine';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'Warum wird sie gebraucht?';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'Was unterscheidet sie von den vorhandenen Arten?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'Dieses Teil als Beispiel angeben ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'Auf GitHub öffnen';
+
+  @override
   String get equipment_edit_useCustomReminders =>
       'Eigene Erinnerungen verwenden';
 
@@ -17390,6 +17632,23 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Alle einklappen';
 
   @override
+  String get equipment_list_showParts => 'Teile anzeigen';
+
+  @override
+  String get equipment_list_hideParts => 'Teile ausblenden';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Teile',
+      one: '1 Teil',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Standort';
 
   @override
@@ -17406,6 +17665,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'Eine Überschrift pro Ort, nur auf dieser Seite';
+
+  @override
+  String get equipment_arrange_nestParts =>
+      'Teile unter ihrer Baugruppe zeigen';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Die Teile jeder Baugruppe darunter einklappen';
 
   @override
   String get equipment_locations_title => 'Standorte';
@@ -18390,6 +18657,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_consumption_diveTime => 'Tauchzeit';
+
+  @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. Warnung: übersteigt die Flaschenkapazität',
+      'other': '',
+    });
+    return 'Gasverbrauch: $volume $volumeSymbol, $pressure $pressureSymbol$_temp0';
+  }
 
   @override
   String gasCalculators_consumption_exceedsTank(
@@ -19638,9 +19920,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get marineLife_suggest_couldNotOpen =>
       'Browser konnte nicht geöffnet werden';
-
-  @override
-  String get marineLife_suggest_copyLink => 'Link kopieren';
 
   @override
   String get marineLife_editCard_photos => 'Fotos';
@@ -23751,6 +24030,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ein- und Ausstieg, Parken, Boje, Zugangshinweise';
 
   @override
+  String get siteDetailSection_contact_description =>
+      'Adresse, Telefon, E-Mail und Webseite';
+
+  @override
+  String get siteDetailSection_openingHours_description =>
+      'Öffnungstage und -zeiten, nach Saison';
+
+  @override
   String get siteDetailSection_notes_description => 'Notizen zum Tauchplatz';
 
   @override
@@ -24030,8 +24317,11 @@ class AppLocalizationsDe extends AppLocalizations {
       'Einblendungen beim Zoomen im Sichtbereich halten';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'Einblendungen wie NDL und ppO2 an den sichtbaren Bereich anpassen, statt sie mit der Tiefenachse zu vergrößern';
+  String get settings_appearance_profileZoom => 'Zoom';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict =>
+      'Profilzoom: nur Zeit';
 
   @override
   String get settings_appearance_rightYAxisMetric => 'Rechte Y-Achsen-Metrik';
@@ -27178,6 +27468,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_parkingInfo => 'Parken';
 
   @override
+  String get settings_conflict_field_address => 'Adresse';
+
+  @override
+  String get settings_conflict_field_openingHours => 'Öffnungszeiten';
+
+  @override
   String get settings_conflict_field_passportId => 'Flaschenpass';
 
   @override
@@ -28074,6 +28370,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_volumeL => 'Volumen';
+
+  @override
+  String get settings_conflict_field_ratedCapacityCuft => 'Nennkapazität';
 
   @override
   String get settings_conflict_field_volumeLiters => 'Volumen';
@@ -29553,7 +29852,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'Wenigste Namen. Etwa $percent % richtig';
+    return 'Wenigste Namen. Etwa $percent % richtig bei Fotos';
   }
 
   @override
@@ -29562,12 +29861,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'Mehr Namen. Etwa $percent % richtig';
+    return 'Mehr Namen. Etwa $percent % richtig bei Fotos';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'Die meisten Namen. Etwa $percent % richtig';
+    return 'Die meisten Namen. Etwa $percent % richtig bei Fotos';
   }
 
   @override
@@ -39711,7 +40010,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tankPresets_builtInPresets_description =>
-      'Schalte Vorlagen aus, die du nicht verwendest, um sie in der Tankauswahl auszublenden. Die Standardvorlage wird immer angezeigt.';
+      'Schalte Vorlagen aus, die du nicht verwendest, um sie in der Flaschenauswahl auszublenden. Die Standardvorlage wird immer angezeigt.';
 
   @override
   String get tankPresets_currentDefault => 'Aktueller Standard';
@@ -39720,15 +40019,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tankPresets_customPresets => 'Eigene Vorlagen';
 
   @override
-  String get tankPresets_defaultSettings => 'Standardtank';
+  String get tankPresets_defaultSettings => 'Standardflasche';
 
   @override
   String get tankPresets_defaultSettings_description =>
-      'Die mit Stern markierte Vorlage wird als Standardtank beim Erstellen neuer Tauchgänge verwendet.';
+      'Die mit Stern markierte Vorlage wird als Standardflasche beim Erstellen neuer Tauchgänge verwendet.';
 
   @override
   String tankPresets_deleteDefaultMessage(String name) {
-    return 'Möchtest du \"$name\" wirklich löschen? Dies ist deine aktuelle Standardtank-Vorlage und wird auf AL80 zurückgesetzt.';
+    return 'Möchtest du \"$name\" wirklich löschen? Dies ist deine aktuelle Standard-Flaschenvorlage und wird auf AL80 zurückgesetzt.';
   }
 
   @override
@@ -39745,6 +40044,19 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String tankPresets_deleted(Object name) {
     return '\"$name\" gelöscht';
+  }
+
+  @override
+  String get tankPresets_duplicatePreset => 'Duplizieren';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (Kopie)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (Kopie $number)';
   }
 
   @override
@@ -39858,14 +40170,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tankPresets_applyToImports_subtitle =>
-      'Fehlende Tankdaten bei importierten Tauchgängen mit der Standardvorlage ergänzen';
+      'Fehlende Flaschendaten bei importierten Tauchgängen mit der Standardvorlage ergänzen';
 
   @override
   String get tankPresets_defaultStartPressure => 'Standard-Anfangsdruck';
 
   @override
   String get tankPresets_defaultStartPressure_subtitle =>
-      'Wird bei neuen Tanks eingetragen und bei importierten Tanks ohne Anfangsdruck, wenn der Standardtank auf Importe angewendet wird';
+      'Wird bei neuen Flaschen eingetragen und bei importierten Flaschen ohne Anfangsdruck, wenn die Standardflasche auf Importe angewendet wird';
 
   @override
   String tankPresets_defaultStartPressure_range(String max, String min) {
@@ -39882,7 +40194,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tankPresets_setAsDefault => 'Als Standard festlegen';
 
   @override
-  String get tankPresets_showInPickers => 'In der Tankauswahl anzeigen';
+  String get tankPresets_showInPickers => 'In der Flaschenauswahl anzeigen';
 
   @override
   String get tankPresets_title => 'Flaschenvorlagen';
@@ -43654,17 +43966,17 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'Spitze $rate bei $range';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Durchschnitt $rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => 'Durchschnitt';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return 'Ø $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => 'Spitze';
@@ -44447,6 +44759,86 @@ class AppLocalizationsDe extends AppLocalizations {
       one: '1 Akkuzyklus',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_exposure_lastDivedLabel => 'Zuletzt getaucht';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => 'Tauchgänge';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => 'Stunden';
+
+  @override
+  String get equipmentCondition_exposure_today => 'Heute';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vor $count Tagen',
+      one: 'Vor $count Tag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vor $count Monaten',
+      one: 'Vor $count Monat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vor $count Jahren',
+      one: 'Vor $count Jahr',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return 'Zuletzt getaucht: $ago, am $date';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12 Monate';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => 'Alle Jahre';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge in den letzten 12 Monaten',
+      one: '$count Tauchgang in den letzten 12 Monaten',
+      zero: 'Keine Tauchgänge in den letzten 12 Monaten',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives, $hours';
   }
 
   @override
@@ -47059,6 +47451,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_siteField_mooringNumber => 'Bojen-Nummer';
 
   @override
+  String get enum_siteField_address => 'Adresse';
+
+  @override
+  String get enum_siteField_phone => 'Telefon';
+
+  @override
+  String get enum_siteField_email => 'E-Mail';
+
+  @override
+  String get enum_siteField_website => 'Webseite';
+
+  @override
   String get enum_siteField_hazards => 'Gefahren';
 
   @override
@@ -47132,6 +47536,18 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get enum_siteField_mooringNumber_short => 'Boje';
+
+  @override
+  String get enum_siteField_address_short => 'Adresse';
+
+  @override
+  String get enum_siteField_phone_short => 'Telefon';
+
+  @override
+  String get enum_siteField_email_short => 'E-Mail';
+
+  @override
+  String get enum_siteField_website_short => 'Webseite';
 
   @override
   String get enum_siteField_hazards_short => 'Gefahren';
@@ -56439,8 +56855,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_species_suggested => 'Vorschläge';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent %';
+  String media_species_suggestedChipLabel(String name) {
+    return 'Vorschlag: $name';
   }
 
   @override
@@ -56628,6 +57044,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String media_species_playFrom(String time) {
     return 'Ab $time abspielen';
   }
+
+  @override
+  String get media_species_nextSighting => 'Nächste Sichtung';
 
   @override
   String get media_species_openSpeciesPage => 'Artenseite';
@@ -66102,7 +66521,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get info_equipment_exposure_summary =>
-      'Wie viel dieses Teil genutzt wurde, gezählt in jeder Einheit, die seine Wartungsuhren verwenden.';
+      'Wie viel dieses Teil genutzt wurde, gezählt in jeder Einheit, die seine Wartungsuhren verwenden. Das Diagramm zählt seine Tauchgänge pro Monat oder pro Jahr bis heute.';
 
   @override
   String get info_site_altitude_summary =>

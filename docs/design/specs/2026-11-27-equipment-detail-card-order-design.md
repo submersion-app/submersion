@@ -66,7 +66,7 @@ top. With that rule the default order renders exactly as before.
 ## Storage and sync
 
 - `diver_settings.equipment_detail_sections` (TEXT, nullable), schema
-  v391, JSON in the `site_detail_sections` shape. Null reads as the
+  v397, JSON in the `site_detail_sections` shape. Null reads as the
   defaults. Additive and nullable, so the sync floor does not move; it
   syncs on the diver settings row.
 - `EquipmentDetailSectionConfig` reuses `detail_section_order.dart`: a saved
@@ -93,4 +93,4 @@ top. With that rule the default order renders exactly as before.
   strip, the diver can still bring it in before saving.
 - **Spacing drift:** covered by the one-gap rule; the self-hiding cards
   keep their gaps inside, so a hidden or empty card leaves no gap.
-- **Schema number collision:** renumber on merge if another PR takes 391.
+- **Schema number collision:** renumber on merge if another PR takes 397.

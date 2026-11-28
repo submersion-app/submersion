@@ -232,6 +232,11 @@ final Map<String, ConflictField> equipmentFields = {
     (l) => l.settings_conflict_field_radiusMeters,
     FieldKind.distance,
   ),
+  // A custom cylinder preset's rated capacity (issue #800).
+  'ratedCapacityCuft': ConflictField(
+    (l) => l.settings_conflict_field_ratedCapacityCuft,
+    FieldKind.ratedCapacityCuft,
+  ),
   'serialNumber': ConflictField(
     (l) => EquipmentField.serialNumber.localizedDisplayName(l),
     FieldKind.shortText,

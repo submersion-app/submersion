@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/theme/spacing.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_action.dart';
 
@@ -68,7 +69,7 @@ class RecordEditBar extends StatelessWidget implements PreferredSizeWidget {
             onPressed: isSaving || isBusy ? null : onCancel,
             style: RecordEditActionStyle.ring,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: Spacing.s8),
           Expanded(
             child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
           ),
@@ -81,7 +82,7 @@ class RecordEditBar extends StatelessWidget implements PreferredSizeWidget {
           onPressed: canSave && !isSaving && !isBusy ? onSave : null,
           busy: isSaving,
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: Spacing.s4),
       ],
     );
   }

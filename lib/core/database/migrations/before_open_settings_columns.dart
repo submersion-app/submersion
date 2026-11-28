@@ -51,6 +51,9 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // v359 backstop: diver_settings.pin_profile_on_scroll (issue #4423).
     await _assertPinProfileOnScrollColumn();
 
+    // v389 backstop: diver_settings.profile_zoom_time_only (issue #5069).
+    await _assertProfileZoomTimeOnlyColumn();
+
     // v360 backstop: diver_settings.show_country_flags (issue #4426).
     await _assertShowCountryFlagsColumn();
 
@@ -72,7 +75,7 @@ extension BeforeOpenSettingsColumns on AppDatabase {
     // dive_plans.setpoint_switch_off (issue #3793).
     await _assertCcrSetpointSwitchColumns();
 
-    // v391 backstop: diver_settings.equipment_detail_sections (issue #4975).
+    // v397 backstop: diver_settings.equipment_detail_sections (issue #4975).
     await _assertEquipmentDetailSectionsColumn();
 
     // v371 backstop: diver_settings.favourite_dive_type_ids (issue #4413).

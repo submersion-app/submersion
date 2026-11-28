@@ -1,6 +1,6 @@
 # Moving from DAN DiveCloud to Submersion
 
-When you finish this guide, the dives you keep in DAN DiveCloud (and DiverLog+) will be in Submersion, with their profiles, sites, tanks and photos.
+When you finish this guide, the dives you keep in DAN DiveCloud (and DiverLog+) will be in Submersion, with their profiles, sites, cylinders and photos.
 
 DiveCloud exports your dives as a ZIP of DAN DL7 files, which Submersion reads as it is.
 
@@ -10,7 +10,7 @@ DiveCloud exports your dives as a ZIP of DAN DL7 files, which Submersion reads a
 |---|---|
 | Dives with their profiles and dive numbers | Buddies |
 | Dive sites, with GPS, country and region | Gear |
-| Tanks, with gas and pressures | Notes and tags |
+| Cylinders, with gas and pressures | Notes and tags |
 | Ratings, titles and surface intervals | Trips and dive types |
 | Ascent and deco warnings | Helium in trimix mixes (read as air or nitrox) |
 | Photos from the ZIP | |

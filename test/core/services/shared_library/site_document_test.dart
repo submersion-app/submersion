@@ -62,9 +62,14 @@ void main() {
   });
 
   test('fieldNames covers every site column the spec lists', () {
-    // 27 site columns (with countryCode, issue #4426) less notes and
-    // rating, which stay private.
-    expect(SiteDocument.fieldNames, hasLength(25));
+    // 32 site columns (with countryCode, issue #4426, and the contact
+    // details and opening hours, issue #5073) less notes and rating, which
+    // stay private.
+    expect(SiteDocument.fieldNames, hasLength(30));
+    expect(
+      SiteDocument.fieldNames,
+      containsAll(['address', 'phone', 'email', 'website', 'openingHours']),
+    );
     expect(SiteDocument.fieldNames.last, 'features');
   });
 

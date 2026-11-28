@@ -357,10 +357,34 @@ extension RungsFromV340 on AppDatabase {
     if (from < 387) await _assertCcrSetpointSwitchColumns();
     if (from < 387) await reportProgress();
 
-    // v391 (issue #4975): diver_settings.equipment_detail_sections, the gear
+    // v388 (issue #5073): a dive site's address, phone, email, website and
+    // opening hours. Nullable, no backfill, re-asserted in beforeOpen; the
+    // floor does not move.
+    if (from < 388) await _assertSiteContactHoursColumns();
+    if (from < 388) await reportProgress();
+    // v389 (issue #5069): diver_settings.profile_zoom_time_only, the profile
+    // chart's Time only zoom choice. Nullable, no backfill, re-asserted in
+    // beforeOpen; the floor does not move. Numbered 389 because open work
+    // claims 388.
+    if (from < 389) await _assertProfileZoomTimeOnlyColumn();
+    if (from < 389) await reportProgress();
+
+    // v393 (issue #5110): the built-in BCD/wing inspection applies to wings.
+    // A one-time UPDATE of one built-in row; not in the backstop, as the
+    // v239 built-in backfill is not. The floor does not move.
+    if (from < 393) await _backfillWingInspectionServiceKind();
+    if (from < 393) await reportProgress();
+
+    // v394 (issue #800): tank_presets.rated_capacity_cuft, the rated capacity
+    // a copy of a built-in preset keeps. Nullable, no backfill, re-asserted
+    // in beforeOpen; the floor does not move.
+    if (from < 394) await _assertTankPresetRatedCapacityColumn();
+    if (from < 394) await reportProgress();
+
+    // v397 (issue #4975): diver_settings.equipment_detail_sections, the gear
     // item page's card order and visibility. Nullable column, no backfill;
     // re-asserted in beforeOpen. The floor does not move.
-    if (from < 391) await _assertEquipmentDetailSectionsColumn();
-    if (from < 391) await reportProgress();
+    if (from < 397) await _assertEquipmentDetailSectionsColumn();
+    if (from < 397) await reportProgress();
   }
 }

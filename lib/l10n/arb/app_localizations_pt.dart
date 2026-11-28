@@ -785,7 +785,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get plannerMission_issue_planHasNoTank =>
-      'Adicione uma garrafa de gás principal ao plano';
+      'Adicione um cilindro de gás principal ao plano';
 
   @override
   String get plannerMission_issue_planNotDiveable =>
@@ -807,7 +807,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get plannerMission_issue_tankBudgetUnknown =>
-      'Cada garrafa precisa de um volume e de uma pressão de enchimento';
+      'Cada cilindro precisa de um volume e de uma pressão de enchimento';
 
   @override
   String get plannerMission_issue_unsupportedMode =>
@@ -9270,12 +9270,25 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_chartSection_tankPressures => 'Pressões dos cilindros';
 
   @override
-  String get diveLog_chartOption_metricsFollowViewport =>
-      'Manter as sobreposições visíveis';
-
-  @override
   String get diveLog_chartOption_tooltipFollowsCursor =>
       'O tooltip segue o cursor';
+
+  @override
+  String get diveLog_chartOption_zoom => 'Zoom';
+
+  @override
+  String get diveLog_chartOption_zoom_magnify =>
+      'Ambos os eixos, ampliar as sobreposições';
+
+  @override
+  String get diveLog_chartOption_zoom_keepInView =>
+      'Ambos os eixos, manter as sobreposições visíveis';
+
+  @override
+  String get diveLog_chartOption_zoom_timeOnly => 'Apenas tempo';
+
+  @override
+  String get diveLog_chartOption_rightAxis => 'Eixo direito';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(est.)';
@@ -10958,7 +10971,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_tank_surfaceBreathing_helper =>
-      'Minutos nesta garrafa depois de o computador parar de registar, como oxigénio no barco';
+      'Minutos neste cilindro depois de o computador parar de registar, como oxigénio no barco';
 
   @override
   String get diveLog_tank_surfaceBreathing_unit => 'min';
@@ -10987,6 +11000,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_startPressure => 'Pressão Inicial';
+
+  @override
+  String get diveLog_tank_managePresets => 'Gerenciar presets';
 
   @override
   String get diveLog_tank_label_tankPreset => 'Preset do Cilindro';
@@ -12025,6 +12041,142 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_detail_section_access => 'Acesso e Logística';
 
   @override
+  String get diveSites_detail_section_contact => 'Contato';
+
+  @override
+  String get diveSites_detail_section_openingHours => 'Horário';
+
+  @override
+  String get diveSites_contact_mapsFailed => 'Não foi possível abrir os mapas';
+
+  @override
+  String get diveSites_contact_linkFailed => 'Não foi possível abrir o link';
+
+  @override
+  String get diveSites_contact_directions => 'Como chegar';
+
+  @override
+  String get diveSites_contact_address => 'Endereço';
+
+  @override
+  String get diveSites_contact_phone => 'Telefone';
+
+  @override
+  String get diveSites_contact_email => 'E-mail';
+
+  @override
+  String get diveSites_contact_website => 'Site';
+
+  @override
+  String get diveSites_hours_alwaysOpen => 'Aberto 24/7';
+
+  @override
+  String get diveSites_hours_addSchedule => 'Adicionar horário';
+
+  @override
+  String get diveSites_hours_scheduleName => 'Nome';
+
+  @override
+  String get diveSites_hours_scheduleName_hint => 'Verão';
+
+  @override
+  String get diveSites_hours_seasonal => 'Sazonal';
+
+  @override
+  String get diveSites_hours_seasonFrom => 'De';
+
+  @override
+  String get diveSites_hours_seasonTo => 'Até';
+
+  @override
+  String get diveSites_hours_deleteSchedule => 'Excluir horário';
+
+  @override
+  String get diveSites_hours_closed => 'Fechado';
+
+  @override
+  String get diveSites_hours_open24h => 'Aberto 24 horas';
+
+  @override
+  String get diveSites_hours_kindHours => 'Horas';
+
+  @override
+  String get diveSites_hours_addRange => 'Adicionar horas';
+
+  @override
+  String get diveSites_hours_removeRange => 'Remover horas';
+
+  @override
+  String get diveSites_hours_copyDay => 'Copiar para outros dias';
+
+  @override
+  String diveSites_hours_copyTitle(String day) {
+    return 'Copiar $day para';
+  }
+
+  @override
+  String get diveSites_hours_selectAll => 'Selecionar tudo';
+
+  @override
+  String get diveSites_hours_copy => 'Copiar';
+
+  @override
+  String get diveSites_hours_note => 'Observação';
+
+  @override
+  String get diveSites_hours_note_hint =>
+      'Reserve horários por telefone, fechado em feriados';
+
+  @override
+  String get diveSites_hours_invalid =>
+      'Alguns horários se sobrepõem ou fecham antes de abrir';
+
+  @override
+  String get diveSites_hours_noSchedule => 'Ainda sem horário semanal';
+
+  @override
+  String diveSites_hours_openUntil(String time) {
+    return 'Aberto agora, fecha às $time';
+  }
+
+  @override
+  String get diveSites_hours_openNoClose => 'Aberto agora';
+
+  @override
+  String diveSites_hours_closedOpensAt(String when) {
+    return 'Fechado, abre $when';
+  }
+
+  @override
+  String diveSites_hours_closedForSeason(String date) {
+    return 'Fechado na temporada, abre em $date';
+  }
+
+  @override
+  String get diveSites_hours_closedNow => 'Fechado';
+
+  @override
+  String diveSites_hours_span(String from, String to) {
+    return '$from a $to';
+  }
+
+  @override
+  String diveSites_hours_namedSeason(String name, String season) {
+    return '$name, $season';
+  }
+
+  @override
+  String diveSites_merge_hoursSchedules(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count horários',
+      one: '$count horário',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveSites_detail_section_altitude => 'Altitude';
 
   @override
@@ -12140,6 +12292,40 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveSites_edit_access_parkingInfo_hint =>
       'Disponibilidade de estacionamento, taxas, dicas';
+
+  @override
+  String get diveSites_edit_contact_address_label => 'Endereço';
+
+  @override
+  String get diveSites_edit_contact_address_hint =>
+      'Rua, cidade e código postal';
+
+  @override
+  String get diveSites_edit_contact_phone_label => 'Telefone';
+
+  @override
+  String get diveSites_edit_contact_phone_hint =>
+      'Número para reservas ou do proprietário';
+
+  @override
+  String get diveSites_edit_contact_email_label => 'E-mail';
+
+  @override
+  String get diveSites_edit_contact_email_hint => 'name@example.com';
+
+  @override
+  String get diveSites_edit_contact_website_label => 'Site';
+
+  @override
+  String get diveSites_edit_contact_website_hint => 'example.com';
+
+  @override
+  String get diveSites_edit_contact_emailInvalid =>
+      'Insira um e-mail como name@example.com';
+
+  @override
+  String get diveSites_edit_contact_websiteInvalid =>
+      'Insira um endereço web como example.com';
 
   @override
   String get diveSites_edit_access_parkingInfo_label =>
@@ -14390,6 +14576,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_equipmentType_harness => 'Arnês';
 
   @override
+  String get equipment_searchWords_cylinder => 'garrafa, tanque, stage, pony';
+
+  @override
+  String get equipment_searchWords_tankBand => 'cinta de garrafa, cam band';
+
+  @override
   String get enum_equipmentType_tankBand => 'Cinta de cilindro';
 
   @override
@@ -16414,7 +16606,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get cylinderConfigs_title => 'Configurações de garrafas';
+  String get cylinderConfigs_title => 'Configurações de cilindros';
 
   @override
   String get cylinderConfigs_edit_notFound =>
@@ -16446,7 +16638,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get cylinderConfigs_gasPlans => 'Planos de gás';
 
   @override
-  String get cylinderConfigs_addCylinder => 'Adicionar garrafa';
+  String get cylinderConfigs_addCylinder => 'Adicionar cilindro';
 
   @override
   String get cylinderConfigs_role => 'Função';
@@ -16515,8 +16707,8 @@ class AppLocalizationsPt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count garrafas adicionadas',
-      one: '$count garrafa adicionada',
+      other: '$count cilindros adicionados',
+      one: '$count cilindro adicionado',
     );
     return '$_temp0';
   }
@@ -16549,11 +16741,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get cylinderConfigs_overwriteTitle =>
-      'Substituir os dados das garrafas?';
+      'Substituir os dados dos cilindros?';
 
   @override
   String cylinderConfigs_overwriteBody(String name) {
-    return 'Aplicar $name altera garrafas que já estão neste mergulho:';
+    return 'Aplicar $name altera cilindros que já estão neste mergulho:';
   }
 
   @override
@@ -16994,6 +17186,54 @@ class AppLocalizationsPt extends AppLocalizations {
       'Um computador de mergulho ou transmissor conectado mantém seu tipo.';
 
   @override
+  String get equipment_suggest_link =>
+      'Nenhum tipo serve? Sugira uma categoria';
+
+  @override
+  String get equipment_suggest_title => 'Sugerir uma categoria';
+
+  @override
+  String get equipment_suggest_intro =>
+      'Isso abre uma solicitação de recurso pré-preenchida no GitHub. Você a revisa e a publica pelo seu navegador.';
+
+  @override
+  String get equipment_suggest_kindQuestion => 'O que você está sugerindo?';
+
+  @override
+  String get equipment_suggest_kindCategory => 'Novo tipo de equipamento';
+
+  @override
+  String get equipment_suggest_kindSubcategory => 'Nova variante de um tipo';
+
+  @override
+  String get equipment_suggest_nameLabel => 'Nome';
+
+  @override
+  String get equipment_suggest_parentSubcategoryLabel => 'Uma variante de';
+
+  @override
+  String get equipment_suggest_parentCategoryLabel =>
+      'Tipo existente mais próximo';
+
+  @override
+  String get equipment_suggest_parentNone => 'Nenhum';
+
+  @override
+  String get equipment_suggest_reasonLabel => 'Por que é necessário?';
+
+  @override
+  String get equipment_suggest_reasonHint =>
+      'O que a diferencia dos tipos existentes?';
+
+  @override
+  String equipment_suggest_includeExample(String example) {
+    return 'Incluir este item como exemplo ($example)';
+  }
+
+  @override
+  String get equipment_suggest_open => 'Abrir no GitHub';
+
+  @override
   String get equipment_edit_useCustomReminders =>
       'Usar Lembretes Personalizados';
 
@@ -17406,6 +17646,23 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_list_collapseAllGroups => 'Recolher tudo';
 
   @override
+  String get equipment_list_showParts => 'Mostrar peças';
+
+  @override
+  String get equipment_list_hideParts => 'Ocultar peças';
+
+  @override
+  String equipment_list_partCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count peças',
+      one: '$count peça',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_location_activeFilter => 'Localização';
 
   @override
@@ -17422,6 +17679,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get equipment_arrange_groupByLocationSubtitle =>
       'Um título por local, apenas nesta página';
+
+  @override
+  String get equipment_arrange_nestParts =>
+      'Mostrar as peças sob o seu conjunto';
+
+  @override
+  String get equipment_arrange_nestPartsSubtitle =>
+      'Recolhe as peças de cada conjunto sob ele';
 
   @override
   String get equipment_locations_title => 'Localizações';
@@ -18414,6 +18679,21 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get gasCalculators_consumption_diveTime => 'Tempo de Mergulho';
+
+  @override
+  String gasCalculators_consumption_semantics(
+    String volume,
+    String volumeSymbol,
+    String pressure,
+    String pressureSymbol,
+    String exceeds,
+  ) {
+    String _temp0 = intl.Intl.selectLogic(exceeds, {
+      'yes': '. Aviso: excede a capacidade do cilindro',
+      'other': '',
+    });
+    return 'Consumo de gás: $volume $volumeSymbol, $pressure $pressureSymbol$_temp0';
+  }
 
   @override
   String gasCalculators_consumption_exceedsTank(
@@ -19662,9 +19942,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get marineLife_suggest_couldNotOpen =>
       'Não foi possível abrir o navegador';
-
-  @override
-  String get marineLife_suggest_copyLink => 'Copiar link';
 
   @override
   String get marineLife_editCard_photos => 'Fotos';
@@ -22416,7 +22693,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get plannerSeries_fillAll => 'Encher todas as garrafas';
+  String get plannerSeries_fillAll => 'Encher todos os cilindros';
 
   @override
   String get plannerSeries_createPlannedDive => 'Criar mergulho planeado';
@@ -23774,6 +24051,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Entrada e saída, estacionamento, amarração, notas de acesso';
 
   @override
+  String get siteDetailSection_contact_description =>
+      'Endereço, telefone, e-mail e site';
+
+  @override
+  String get siteDetailSection_openingHours_description =>
+      'Dias e horários de funcionamento, por temporada';
+
+  @override
   String get siteDetailSection_notes_description =>
       'Suas observações sobre o ponto';
 
@@ -24056,8 +24341,11 @@ class AppLocalizationsPt extends AppLocalizations {
       'Manter as sobreposições visíveis ao ampliar';
 
   @override
-  String get settings_appearance_metricsFollowViewport_subtitle =>
-      'Ajustar as sobreposições como NDL e ppO2 à área visível em vez de ampliá-las com o eixo de profundidade';
+  String get settings_appearance_profileZoom => 'Zoom';
+
+  @override
+  String get settings_appearance_zoomTimeOnly_conflict =>
+      'Zoom do perfil: apenas tempo';
 
   @override
   String get settings_appearance_rightYAxisMetric =>
@@ -27208,6 +27496,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_parkingInfo => 'Estacionamento';
 
   @override
+  String get settings_conflict_field_address => 'Endereço';
+
+  @override
+  String get settings_conflict_field_openingHours => 'Horário';
+
+  @override
   String get settings_conflict_field_passportId => 'Passaporte do cilindro';
 
   @override
@@ -27793,7 +28087,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Arquivo ou dispositivo de origem';
 
   @override
-  String get settings_conflict_field_sourceTankId => 'Transportada da garrafa';
+  String get settings_conflict_field_sourceTankId => 'Transportado do cilindro';
 
   @override
   String get settings_conflict_field_sourceTankIndex =>
@@ -28114,6 +28408,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_volumeL => 'Volume';
+
+  @override
+  String get settings_conflict_field_ratedCapacityCuft => 'Capacidade nominal';
 
   @override
   String get settings_conflict_field_volumeLiters => 'Volume';
@@ -29596,7 +29893,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String settings_speciesId_levelSurerAccuracy(int percent) {
-    return 'Menos nomes. Cerca de $percent% corretos';
+    return 'Menos nomes. Cerca de $percent% corretos em fotos';
   }
 
   @override
@@ -29605,12 +29902,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String settings_speciesId_levelBalancedAccuracy(int percent) {
-    return 'Mais nomes. Cerca de $percent% corretos';
+    return 'Mais nomes. Cerca de $percent% corretos em fotos';
   }
 
   @override
   String settings_speciesId_levelEagerAccuracy(int percent) {
-    return 'A maioria dos nomes. Cerca de $percent% corretos';
+    return 'A maioria dos nomes. Cerca de $percent% corretos em fotos';
   }
 
   @override
@@ -33219,7 +33516,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get insights_focus_factor_gas => 'Gás';
 
   @override
-  String get insights_focus_factor_tankVolume => 'Tamanho da garrafa';
+  String get insights_focus_factor_tankVolume => 'Tamanho do cilindro';
 
   @override
   String get insights_focus_factor_suit => 'Fato';
@@ -35584,7 +35881,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get transfer_csvExport_descriptionFills =>
-      'Cada enchimento registado num passaporte de garrafa, com análise, pressão e estação';
+      'Cada enchimento registado num passaporte de cilindro, com análise, pressão e estação';
 
   @override
   String get transfer_csvExport_descriptionObservations =>
@@ -35608,7 +35905,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get transfer_csvExport_optionFillsTitle =>
-      'CSV de enchimentos de garrafa';
+      'CSV de enchimentos de cilindro';
 
   @override
   String get transfer_csvExport_optionObservationsTitle =>
@@ -35629,7 +35926,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get transfer_csvExport_typeEquipment => 'Equipamentos';
 
   @override
-  String get transfer_csvExport_typeFills => 'Enchimentos de garrafa';
+  String get transfer_csvExport_typeFills => 'Enchimentos de cilindro';
 
   @override
   String get transfer_csvExport_typeObservations =>
@@ -39803,6 +40100,19 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get tankPresets_duplicatePreset => 'Duplicar';
+
+  @override
+  String tankPresets_duplicateName(String name) {
+    return '$name (cópia)';
+  }
+
+  @override
+  String tankPresets_duplicateNameNumbered(String name, int number) {
+    return '$name (cópia $number)';
+  }
+
+  @override
   String get tankPresets_editPreset => 'Editar preset';
 
   @override
@@ -39975,7 +40285,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_tankPressureAtSurfacing_title =>
-      'Pressão da garrafa à superfície';
+      'Pressão do cilindro à superfície';
 
   @override
   String get settings_tankPressureAtSurfacing_subtitle =>
@@ -43714,17 +44024,17 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String diveLog_detail_sacSegments_peak(String rate, String range) {
-    return 'Pico de $rate em $range';
-  }
-
-  @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Média $rate';
   }
 
   @override
   String get diveLog_detail_sacSegments_summaryAverage => 'Média';
+
+  @override
+  String diveLog_detail_sacSegments_averageMark(String rate) {
+    return 'média $rate';
+  }
 
   @override
   String get diveLog_detail_sacSegments_summaryPeak => 'Pico';
@@ -44506,6 +44816,86 @@ class AppLocalizationsPt extends AppLocalizations {
       one: '$n ciclo de bateria',
     );
     return '$_temp0';
+  }
+
+  @override
+  String get equipmentCondition_exposure_lastDivedLabel => 'Último mergulho';
+
+  @override
+  String get equipmentCondition_exposure_divesLabel => 'Mergulhos';
+
+  @override
+  String get equipmentCondition_exposure_hoursLabel => 'Horas';
+
+  @override
+  String get equipmentCondition_exposure_today => 'Hoje';
+
+  @override
+  String equipmentCondition_exposure_daysAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dias atrás',
+      one: '$count dia atrás',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_monthsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count meses atrás',
+      one: '$count mês atrás',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_yearsAgo(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count anos atrás',
+      one: '$count ano atrás',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_lastDivedSemantic(
+    String ago,
+    String date,
+  ) {
+    return 'Último mergulho: $ago, em $date';
+  }
+
+  @override
+  String get equipmentCondition_exposure_range12Months => '12 meses';
+
+  @override
+  String get equipmentCondition_exposure_rangeAllYears => 'Todos os anos';
+
+  @override
+  String equipmentCondition_exposure_last12Months(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos nos últimos 12 meses',
+      one: '$count mergulho nos últimos 12 meses',
+      zero: 'Nenhum mergulho nos últimos 12 meses',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipmentCondition_exposure_barTooltip(
+    String period,
+    String dives,
+    String hours,
+  ) {
+    return '$period\n$dives, $hours';
   }
 
   @override
@@ -47119,6 +47509,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get enum_siteField_mooringNumber => 'Número do Fundeadouro';
 
   @override
+  String get enum_siteField_address => 'Endereço';
+
+  @override
+  String get enum_siteField_phone => 'Telefone';
+
+  @override
+  String get enum_siteField_email => 'E-mail';
+
+  @override
+  String get enum_siteField_website => 'Site';
+
+  @override
   String get enum_siteField_hazards => 'Perigos';
 
   @override
@@ -47192,6 +47594,18 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get enum_siteField_mooringNumber_short => 'Fundead.';
+
+  @override
+  String get enum_siteField_address_short => 'Endereço';
+
+  @override
+  String get enum_siteField_phone_short => 'Tel.';
+
+  @override
+  String get enum_siteField_email_short => 'E-mail';
+
+  @override
+  String get enum_siteField_website_short => 'Site';
 
   @override
   String get enum_siteField_hazards_short => 'Perigos';
@@ -56000,7 +56414,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_export_progress_fillsCsv =>
-      'A exportar enchimentos de garrafa para CSV...';
+      'A exportar enchimentos de cilindro para CSV...';
 
   @override
   String get settings_export_progress_pdf =>
@@ -56077,7 +56491,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_export_progress_preparingFillsCsv =>
-      'A preparar CSV de enchimentos de garrafa...';
+      'A preparar CSV de enchimentos de cilindro...';
 
   @override
   String get settings_export_progress_preparingUddf =>
@@ -56102,7 +56516,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_export_empty_fills =>
-      'Sem enchimentos de garrafa para exportar';
+      'Sem enchimentos de cilindro para exportar';
 
   @override
   String get settings_export_empty_data => 'Nenhum dado para exportar';
@@ -56133,7 +56547,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_export_success_fills =>
-      'Enchimentos de garrafa exportados';
+      'Enchimentos de cilindro exportados';
 
   @override
   String get settings_export_success_pdf =>
@@ -56195,7 +56609,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_export_saved_fillsCsv =>
-      'CSV de enchimentos de garrafa guardado';
+      'CSV de enchimentos de cilindro guardado';
 
   @override
   String get settings_export_saved_uddf => 'Arquivo UDDF salvo com sucesso';
@@ -56226,7 +56640,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_export_saveFillsCsvDialogTitle =>
-      'Guardar CSV de enchimentos de garrafa';
+      'Guardar CSV de enchimentos de cilindro';
 
   @override
   String backup_operation_created(String size) {
@@ -56552,8 +56966,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_species_suggested => 'Sugestões';
 
   @override
-  String media_species_suggestedChip(String name, int percent) {
-    return '$name $percent%';
+  String media_species_suggestedChipLabel(String name) {
+    return 'Sugestão: $name';
   }
 
   @override
@@ -56742,6 +57156,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String media_species_playFrom(String time) {
     return 'Reproduzir a partir de $time';
   }
+
+  @override
+  String get media_species_nextSighting => 'Próximo avistamento';
 
   @override
   String get media_species_openSpeciesPage => 'Página da espécie';
@@ -57571,7 +57988,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLab_kind_switchGas => 'Trocar de gás';
 
   @override
-  String get diveLab_kind_loseTank => 'Perder uma garrafa';
+  String get diveLab_kind_loseTank => 'Perder um cilindro';
 
   @override
   String get diveLab_kind_shiftAscent => 'Deslocar a subida';
@@ -57593,11 +58010,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLab_kindDesc_switchGas =>
-      'Respirar de outra garrafa a partir do ponto de ramificação';
+      'Respirar de outro cilindro a partir do ponto de ramificação';
 
   @override
   String get diveLab_kindDesc_loseTank =>
-      'Uma garrafa de deco ou stage perde-se a partir da ramificação';
+      'Um cilindro de deco ou stage perde-se a partir da ramificação';
 
   @override
   String get diveLab_kindDesc_shiftAscent =>
@@ -57613,7 +58030,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLab_kindDesc_shareGas =>
-      'Um parceiro sem gás respira da sua garrafa a partir da ramificação';
+      'Um parceiro sem gás respira do seu cilindro a partir da ramificação';
 
   @override
   String get diveLab_kindDesc_bailOut =>
@@ -57669,10 +58086,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLab_sheet_add => 'Adicionar';
 
   @override
-  String get diveLab_sheet_cylinder => 'Garrafa';
+  String get diveLab_sheet_cylinder => 'Cilindro';
 
   @override
-  String get diveLab_sheet_hypothetical => 'Garrafa hipotética';
+  String get diveLab_sheet_hypothetical => 'Cilindro hipotético';
 
   @override
   String get diveLab_sheet_o2 => 'O2 %';
@@ -57704,7 +58121,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLab_sheet_noCandidates =>
-      'Nenhuma garrafa deste mergulho serve aqui.';
+      'Nenhum cilindro deste mergulho serve aqui.';
 
   @override
   String get diveLab_sheet_allAdded =>
@@ -58032,7 +58449,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLab_buoyancy_unavailable =>
-      'A flutuabilidade precisa de garrafas ou de fato no mergulho.';
+      'A flutuabilidade precisa de cilindros ou de fato no mergulho.';
 
   @override
   String diveLab_sheet_ascentRate(String unit) {
@@ -58049,10 +58466,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLab_sheet_gasSwitchStop => 'Paragem de troca de gás (s)';
 
   @override
-  String get diveLab_sheet_bailoutTank => 'Garrafa de bailout';
+  String get diveLab_sheet_bailoutTank => 'Cilindro de bailout';
 
   @override
-  String get diveLab_sheet_allBailout => 'Todas as garrafas de bailout';
+  String get diveLab_sheet_allBailout => 'Todos os cilindros de bailout';
 
   @override
   String get diveLab_share_pdf => 'Partilhar ficha PDF';
@@ -60406,15 +60823,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveCenters_rental_applied =>
-      'Lastro e garrafas copiados do seu último mergulho aqui.';
+      'Lastro e cilindros copiados do seu último mergulho aqui.';
 
   @override
   String get diveCenters_rental_applyConfirmTitle =>
-      'Substituir lastro e garrafas?';
+      'Substituir lastro e cilindros?';
 
   @override
   String get diveCenters_rental_applyConfirmBody =>
-      'Este mergulho já tem lastro ou garrafas. Substituir pelos do seu último mergulho aqui?';
+      'Este mergulho já tem lastro ou cilindros. Substituir pelos do seu último mergulho aqui?';
 
   @override
   String get diveCenters_rental_applyConfirmReplace => 'Substituir';
@@ -60435,7 +60852,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get diveCenters_rental_tanksLabel => 'Garrafas';
+  String get diveCenters_rental_tanksLabel => 'Cilindros';
 
   @override
   String get diveCenters_rental_verdictWorked => 'Funcionou';
@@ -61265,7 +61682,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLab_handoff_note_lostTankKept =>
-      'A garrafa perdida permanece listada porque foi respirada antes da ramificação; remove-a no planeador se necessário.';
+      'O cilindro perdido permanece listado porque foi respirado antes da ramificação; remove-o no planeador se necessário.';
 
   @override
   String get diveLab_handoff_note_replay =>
@@ -64819,7 +65236,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_gtr_body =>
-      'Minutos à profundidade e ritmo respiratório atuais até a garrafa descer à pressão de reserva. Pressupõe uma subida direta sem paragens.';
+      'Minutos à profundidade e ritmo respiratório atuais até o cilindro descer à pressão de reserva. Pressupõe uma subida direta sem paragens.';
 
   @override
   String get info_term_gf99_label => 'GF99';
@@ -64934,14 +65351,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_sac_body =>
-      'Consumo de gás por minuto convertido para pressão à superfície, mostrado como queda de pressão por minuto. Depende do tamanho da garrafa, por isso compara mergulhos com a mesma garrafa.';
+      'Consumo de gás por minuto convertido para pressão à superfície, mostrado como queda de pressão por minuto. Depende do tamanho do cilindro, por isso compara mergulhos com o mesmo cilindro.';
 
   @override
   String get info_term_rmv_label => 'RMV (volume respiratório por minuto)';
 
   @override
   String get info_term_rmv_body =>
-      'Volume de gás respirado por minuto, convertido para pressão à superfície. Ao contrário do SAC, não depende do tamanho da garrafa.';
+      'Volume de gás respirado por minuto, convertido para pressão à superfície. Ao contrário do SAC, não depende do tamanho do cilindro.';
 
   @override
   String get info_term_ascentRate_label => 'Velocidade de subida';
@@ -65097,7 +65514,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_stage_body =>
-      'Uma garrafa extra presa ao lado, levada para uma parte do mergulho e para a qual se muda pelo caminho.';
+      'Um cilindro extra preso ao lado, levado para uma parte do mergulho e para o qual se muda pelo caminho.';
 
   @override
   String get info_term_decoGas_label => 'Gás de descompressão';
@@ -65111,21 +65528,21 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_pony_body =>
-      'Uma pequena garrafa independente com regulador próprio, levada como reserva de gás.';
+      'Um pequeno cilindro independente com regulador próprio, levado como reserva de gás.';
 
   @override
   String get info_term_sidemount_label => 'Sidemount';
 
   @override
   String get info_term_sidemount_body =>
-      'Garrafas levadas de cada lado em vez de nas costas, cada uma com o seu regulador.';
+      'Cilindros levados de cada lado em vez de nas costas, cada um com o seu regulador.';
 
   @override
   String get info_term_twinBackmount_label => 'Bibotija';
 
   @override
   String get info_term_twinBackmount_body =>
-      'Duas garrafas unidas nas costas, normalmente por um manifold, e respiradas como um só fornecimento.';
+      'Dois cilindros unidos nas costas, normalmente por um manifold, e respirados como um só fornecimento.';
 
   @override
   String get info_term_altitudeGroup_label => 'Grupo de altitude';
@@ -65190,7 +65607,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_turnPressure_body =>
-      'A pressão da garrafa a que o plano faz o mergulho voltar para a saída.';
+      'A pressão do cilindro a que o plano faz o mergulho voltar para a saída.';
 
   @override
   String get info_term_minGas_label => 'Gás mínimo';
@@ -65204,7 +65621,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_rockBottom_body =>
-      'A pressão da garrafa que contém o gás mínimo. Inclui um breve atraso no fundo para resolver o problema antes da subida.';
+      'A pressão do cilindro que contém o gás mínimo. Inclui um breve atraso no fundo para resolver o problema antes da subida.';
 
   @override
   String get info_term_thirds_label => 'Regra dos terços';
@@ -65403,7 +65820,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_gasSwitchMarkers_body =>
-      'Pontos em que o gás respirado mudou de uma garrafa para outra.';
+      'Pontos em que o gás respirado mudou de um cilindro para outro.';
 
   @override
   String get info_term_diveModes_label => 'Modo de mergulho';
@@ -65548,11 +65965,11 @@ class AppLocalizationsPt extends AppLocalizations {
       'Um mergulho em que se respirou mais de uma mistura conta uma vez em cada uma, por isso as barras podem somar mais do que o número de mergulhos.';
 
   @override
-  String get info_term_cylinderRole_label => 'Função da garrafa';
+  String get info_term_cylinderRole_label => 'Função do cilindro';
 
   @override
   String get info_term_cylinderRole_body =>
-      'Para que serviu uma garrafa no mergulho: gás de fundo, stage, descompressão, pony ou bailout. O consumo é agrupado por isso.';
+      'Para que serviu um cilindro no mergulho: gás de fundo, stage, descompressão, pony ou bailout. O consumo é agrupado por isso.';
 
   @override
   String get info_term_colourBy_label => 'Colorir por';
@@ -65594,7 +66011,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_reserveGas_body =>
-      'Gás que o plano guarda em cada garrafa e nunca conta como utilizável.';
+      'Gás que o plano guarda em cada cilindro e nunca conta como utilizável.';
 
   @override
   String get info_term_setpointSwitchDepth_label =>
@@ -65666,7 +66083,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_gasOutTime_body =>
-      'Quando uma garrafa ficaria vazia ao ritmo respiratório que a repetição usa.';
+      'Quando um cilindro ficaria vazio ao ritmo respiratório que a repetição usa.';
 
   @override
   String get info_term_whatIf_label => 'Real e e se';
@@ -65701,7 +66118,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_ascentGasSet_body =>
-      'Para que garrafas levadas a subida simulada pode trocar: todos os gases levados, ou só stages e garrafas de descompressão.';
+      'Para que cilindros levados a subida simulada pode trocar: todos os gases levados, ou só stages e cilindros de descompressão.';
 
   @override
   String get info_diveLog_profile_summary =>
@@ -65761,7 +66178,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_diveLog_cylinders_summary =>
-      'Cada garrafa do mergulho com o seu gás, a pressão usada e os limites de profundidade desse gás.';
+      'Cada cilindro do mergulho com o seu gás, a pressão usada e os limites de profundidade desse gás.';
 
   @override
   String get info_diveLog_sacSegments_summary =>
@@ -65813,7 +66230,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_insights_roleUse_summary =>
-      'Consumo de gás ao longo do tempo para cada tipo de garrafa, para não misturar gás de fundo e stages.';
+      'Consumo de gás ao longo do tempo para cada tipo de cilindro, para não misturar gás de fundo e stages.';
 
   @override
   String get info_insights_ccrUse_summary =>
@@ -65849,7 +66266,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_insights_tankConfig_summary =>
-      'Como as garrafas estavam configuradas em cada mergulho, contado a partir das funções registadas.';
+      'Como os cilindros estavam configurados em cada mergulho, contado a partir das funções registadas.';
 
   @override
   String get info_insights_sacRecords_summary =>
@@ -65978,7 +66395,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_planner_gas_summary =>
-      'Quanto o plano usa de cada garrafa, com a pressão de retorno e o gás mínimo onde a pressão inicial é conhecida.';
+      'Quanto o plano usa de cada cilindro, com a pressão de retorno e o gás mínimo onde a pressão inicial é conhecida.';
 
   @override
   String get info_planner_bailout_summary =>
@@ -66022,7 +66439,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_plannerSetup_gas_howToUse =>
-      'Introduza um ritmo respiratório de fundo, ou use o dos mergulhos registados, e a reserva a manter em cada garrafa.';
+      'Introduza um ritmo respiratório de fundo, ou use o dos mergulhos registados, e a reserva a manter em cada cilindro.';
 
   @override
   String get info_plannerSetup_environment_summary =>
@@ -66078,7 +66495,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_plannerSetup_gear_howToUse =>
-      'Adicione o fato, as garrafas e o lastro para ver a flutuabilidade prevista.';
+      'Adicione o fato, os cilindros e o lastro para ver a flutuabilidade prevista.';
 
   @override
   String get info_diveLab_tiles_summary =>
@@ -66122,7 +66539,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_calculators_consumption_howToUse =>
-      'Introduza a profundidade, o tempo, o ritmo respiratório e a garrafa.';
+      'Introduza a profundidade, o tempo, o ritmo respiratório e o cilindro.';
 
   @override
   String get info_calculators_rockBottom_summary =>
@@ -66130,11 +66547,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_calculators_rockBottom_background =>
-      'Usa um ritmo respiratório sob stress, normalmente duas a três vezes o normal, e conta os dois mergulhadores numa garrafa. A paragem de segurança é incluída quando essa opção está ligada.';
+      'Usa um ritmo respiratório sob stress, normalmente duas a três vezes o normal, e conta os dois mergulhadores num cilindro. A paragem de segurança é incluída quando essa opção está ligada.';
 
   @override
   String get info_calculators_rockBottom_howToUse =>
-      'Defina a profundidade, o ritmo respiratório sob stress, a velocidade de subida e a garrafa.';
+      'Defina a profundidade, o ritmo respiratório sob stress, a velocidade de subida e o cilindro.';
 
   @override
   String get info_calculators_mnd_summary =>
@@ -66174,11 +66591,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_calculators_blender_background =>
-      'Cada gás é adicionado até à pressão indicada e a garrafa estabiliza antes do seguinte. Os gases de enchimento e a sua ordem são configuráveis, por isso o último pode ser EAN32 em vez de ar.';
+      'Cada gás é adicionado até à pressão indicada e o cilindro estabiliza antes do seguinte. Os gases de enchimento e a sua ordem são configuráveis, por isso o último pode ser EAN32 em vez de ar.';
 
   @override
   String get info_calculators_blender_howToUse =>
-      'Introduza o que já está na garrafa e a mistura-alvo. O último passo de cada mistura é analisar a mistura final.';
+      'Introduza o que já está no cilindro e a mistura-alvo. O último passo de cada mistura é analisar a mistura final.';
 
   @override
   String get info_decoCalculator_summary =>
@@ -66210,7 +66627,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_equipment_exposure_summary =>
-      'Quanto uso este equipamento teve, contado em cada unidade usada pelos seus relógios de manutenção.';
+      'Quanto uso este equipamento teve, contado em cada unidade usada pelos seus relógios de manutenção. O gráfico conta os seus mergulhos por mês ou por ano, até hoje.';
 
   @override
   String get info_site_altitude_summary =>
@@ -66324,19 +66741,19 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get equipment_setEdit_tanks_title => 'Garrafas';
+  String get equipment_setEdit_tanks_title => 'Cilindros';
 
   @override
   String get equipment_setEdit_tanks_add =>
-      'Adicionar configuração de garrafas';
+      'Adicionar configuração de cilindros';
 
   @override
   String get equipment_setEdit_tanks_empty =>
-      'Nenhuma configuração de garrafas';
+      'Nenhuma configuração de cilindros';
 
   @override
   String get equipment_setEdit_tanks_noneAvailable =>
-      'Ainda não há configurações de garrafas';
+      'Ainda não há configurações de cilindros';
 
   @override
   String get equipment_setEdit_bundle_remove => 'Remover do conjunto';
@@ -66348,7 +66765,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_setEdit_bundle_noGearHint =>
-      'Um conjunto sem equipamento não aparece como conjunto no mergulho, por isso os seus pesos e garrafas têm de ser removidos à mão.';
+      'Um conjunto sem equipamento não aparece como conjunto no mergulho, por isso os seus pesos e cilindros têm de ser removidos à mão.';
 
   @override
   String equipment_setDetail_fromSet(String setName) {
@@ -66365,8 +66782,8 @@ class AppLocalizationsPt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count garrafas',
-      one: '$count garrafa',
+      other: '$count cilindros',
+      one: '$count cilindro',
     );
     return '$_temp0';
   }
@@ -66394,7 +66811,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get rules_change_weights => 'Lastro';
 
   @override
-  String get rules_change_tanks => 'Garrafas';
+  String get rules_change_tanks => 'Cilindros';
 
   @override
   String preDive_setChecks_weights(String total, String breakdown) {

@@ -4,7 +4,7 @@ name: Submersion CodeQL config
 # an exclusion is a permanent hole in the analysis, so it needs to be as
 # defensible in a year as it is today.
 query-filters:
-  # py/weak-sensitive-data-hashing fires on scripts/check_apk_signing_cert.py
+  # py/weak-sensitive-data-hashing fires on scripts/checks/check_apk_signing_cert.py
   # and its test, which SHA-1 the APK's signing certificate.
   #
   # The algorithm is fixed by Google, not chosen by us. An Android app carries

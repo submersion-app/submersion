@@ -27,7 +27,11 @@ import '../../helpers/global_test_defaults.dart';
 const _macOS = TargetPlatformVariant({TargetPlatform.macOS});
 
 /// One call the drop target made to its media importer.
-typedef _MediaDrop = ({MediaDropDestination destination, List<String> paths});
+typedef _MediaDrop = ({
+  MediaDropDestination destination,
+  List<String> paths,
+  Set<String> folderPaths,
+});
 
 /// Build a test app that places [GlobalDropTarget] inside a GoRouter.
 ///
@@ -45,9 +49,20 @@ Widget _buildTestApp({
       ShellRoute(
         builder: (context, state, child) => Scaffold(
           body: GlobalDropTarget(
-            onMediaDrop: (context, ref, destination, paths) async {
-              mediaDrops?.add((destination: destination, paths: paths));
-            },
+            onMediaDrop:
+                (
+                  context,
+                  ref,
+                  destination,
+                  paths, {
+                  Set<String> folderPaths = const {},
+                }) async {
+                  mediaDrops?.add((
+                    destination: destination,
+                    paths: paths,
+                    folderPaths: folderPaths,
+                  ));
+                },
             child: child,
           ),
         ),
@@ -597,6 +612,8 @@ void main() {
           const MediaDropDestination(target: DiveAttachTarget('dive-1')),
         );
         expect(drops.single.paths, [photo.path, video.path]);
+        // Files dropped one by one are a choice of these files for the dive.
+        expect(drops.single.folderPaths, isEmpty);
       },
     );
 
@@ -638,7 +655,34 @@ void main() {
         );
 
         expect(drops.single.paths, [photo.path]);
+        // Issue #5063: a dive takes the files of a folder only once the
+        // matcher or the user places them.
+        expect(drops.single.folderPaths, {photo.path});
         expect(find.text('Import Wizard'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'a drop of a folder and a loose file marks only the folder\'s files',
+      variant: _macOS,
+      (tester) async {
+        final drops = <_MediaDrop>[];
+        await tester.pumpWidget(
+          _buildTestApp(initialLocation: '/media', mediaDrops: drops),
+        );
+        await tester.pumpAndSettle();
+
+        final card = Directory(p.join(_tempDir.path, 'card'))..createSync();
+        final scanned = File(p.join(card.path, 'P4204060.jpg'))
+          ..writeAsBytesSync(_pngBytes);
+        final loose = _dropItemFromBytes(_pngBytes, 'GX010100.MP4');
+        await _triggerDrop(
+          tester,
+          drop([DropItemDirectory(card.path, []), loose]),
+        );
+
+        expect(drops.single.paths, unorderedEquals([scanned.path, loose.path]));
+        expect(drops.single.folderPaths, {scanned.path});
       },
     );
 

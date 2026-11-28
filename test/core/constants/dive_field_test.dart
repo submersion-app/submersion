@@ -133,7 +133,7 @@ void main() {
     test('returns expected display names for gas and tank fields', () {
       expect(DiveField.primaryGas.displayName, equals('Primary Gas'));
       expect(DiveField.diluentGas.displayName, equals('Diluent Gas'));
-      expect(DiveField.tankCount.displayName, equals('Tank Count'));
+      expect(DiveField.tankCount.displayName, equals('Cylinder Count'));
       expect(DiveField.startPressure.displayName, equals('Start Pressure'));
       expect(DiveField.endPressure.displayName, equals('End Pressure'));
       expect(DiveField.sac.displayName, equals('SAC (pressure rate)'));

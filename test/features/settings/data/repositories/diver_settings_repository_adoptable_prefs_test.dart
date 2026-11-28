@@ -105,6 +105,59 @@ void main() {
     expect((await row()).updatedAt, greaterThan(before));
   });
 
+  // v389 (issue #5069): the Time only zoom choice joins the pair, with the
+  // same never-set null and the same adopt-only-into-null rule.
+  group('profileZoomTimeOnly', () {
+    test('a new row leaves it unset and reads false', () async {
+      final created = await repository.createSettingsForDiver('d1');
+      expect(created.profileZoomTimeOnly, isFalse);
+      expect((await row()).profileZoomTimeOnly, isNull);
+      final unset = await repository.unsetAdoptableColumns('d1');
+      expect(unset.profileZoomTimeOnly, isTrue);
+    });
+
+    test('adopting fills only a null column and queues the row', () async {
+      await repository.createSettingsForDiver('d1');
+      final before = (await row()).updatedAt;
+      await Future<void>.delayed(const Duration(milliseconds: 2));
+      final adopted = await repository.adoptDeviceLocalValues(
+        'd1',
+        profileZoomTimeOnly: true,
+      );
+      expect(adopted, isTrue);
+      expect((await row()).profileZoomTimeOnly, isTrue);
+      expect((await row()).updatedAt, greaterThan(before));
+      expect(
+        (await repository.unsetAdoptableColumns('d1')).profileZoomTimeOnly,
+        isFalse,
+      );
+    });
+
+    test('adopting never overwrites a value the row already holds', () async {
+      await repository.createSettingsForDiver('d1');
+      await db.customStatement(
+        'UPDATE diver_settings SET profile_zoom_time_only = 0',
+      );
+      final adopted = await repository.adoptDeviceLocalValues(
+        'd1',
+        profileZoomTimeOnly: true,
+      );
+      expect(adopted, isFalse);
+      expect((await row()).profileZoomTimeOnly, isFalse);
+    });
+
+    test('a changed value round-trips through a partial write', () async {
+      final created = await repository.createSettingsForDiver('d1');
+      await repository.updateSettingsForDiver(
+        'd1',
+        created.copyWith(profileZoomTimeOnly: true),
+        previous: created,
+      );
+      final loaded = await repository.getSettingsForDiver('d1');
+      expect(loaded!.profileZoomTimeOnly, isTrue);
+    });
+  });
+
   test('a changed value round-trips through a partial write', () async {
     final created = await repository.createSettingsForDiver('d1');
     await repository.updateSettingsForDiver(
