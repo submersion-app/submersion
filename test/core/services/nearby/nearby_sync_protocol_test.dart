@@ -237,6 +237,11 @@ void main() {
 
         expect(lOut.error, isNull);
         expect(laptop.engine.holdRequests, [holds]);
+        // Rows held back before go to a peer that keeps them, stamped
+        // again first so the watermarks show them.
+        expect(laptop.engine.heldMediaReleases, holds ? 0 : 1);
+        // Its deletes are weighed by its build.
+        expect(phone.engine.appliedPeerSchemas, [320]);
       },
     );
   }

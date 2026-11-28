@@ -274,9 +274,14 @@ class NearbySyncProtocol {
         result = await _engine.applyPayload(
           decoded.payload,
           peerDeviceId: _peerId,
+          peerSchemaVersion: _channel.peer.schemaVersion,
         );
       } else {
-        result = await _engine.applyBaseFile(gz.path, peerDeviceId: _peerId);
+        result = await _engine.applyBaseFile(
+          gz.path,
+          peerDeviceId: _peerId,
+          peerSchemaVersion: _channel.peer.schemaVersion,
+        );
       }
       _applied += result.recordsApplied;
       // Rows the merge could not take: not a clean session, as on the cloud
@@ -481,6 +486,12 @@ class NearbySyncProtocol {
 
   /// What this direction sends, or null for nothing.
   Future<NearbyOutgoing?> _prepare(NearbyWatermarks theirs) async {
+    // Media kept with no place stays away from a peer whose build would
+    // delete it (issue #5122). A peer that keeps it is sent what was held
+    // back before: stamped again, so the watermarks below show it.
+    final holdUnplacedMedia =
+        _channel.peer.schemaVersion < heldMediaSchemaVersion;
+    if (!holdUnplacedMedia) await _engine.releaseHeldMedia();
     final mine = await _engine.watermarks();
     var kind = NearbyExportPlanner.decide(mine: mine, peers: theirs);
     String? from;
@@ -491,13 +502,8 @@ class NearbySyncProtocol {
         kind = NearbyExportKind.full;
       }
     }
-    // Media kept with no place stays away from a peer whose build would
-    // delete it (issue #5122). A full copy kept for reuse is this peer's
-    // own, and a peer never moves to an older build, so reusing one is safe.
-    // Rows the cloud held back earlier reach a newer peer here only once
-    // the cloud releases them (which stamps them again) or in a full copy.
-    final holdUnplacedMedia =
-        _channel.peer.schemaVersion < heldMediaSchemaVersion;
+    // A full copy kept for reuse is this peer's own, and a peer never moves
+    // to an older build, so reusing one is safe.
     switch (kind) {
       case NearbyExportKind.nothing:
         return null;

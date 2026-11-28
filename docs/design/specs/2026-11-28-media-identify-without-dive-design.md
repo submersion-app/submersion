@@ -257,9 +257,18 @@ over the system camera alone, in this PR rather than a later one.
 - **Released.** When a held row becomes safe to send (no older peer remains,
   or it has gained a dive or site), the device stamps the row and its
   children with a new HLC so the next export carries them, then forgets the
-  id.
-- **Remote deletes.** While a row is held, a remote delete of that media row
-  is not applied. It can only come from an older device's cascade or sweep.
+  id. A cloud sync releases before it publishes. A nearby session with a
+  peer that keeps such media releases before it compares watermarks, so a
+  library that syncs only nearby sends them too.
+- **Remote deletes.** While a row is held, a delete of the row or one of its
+  children is applied only when the delete's clock names a device known to
+  run this schema or later: its manifest in this pull, or its hello in a
+  nearby session. That is a delete the diver made. A delete from an older
+  device (its cascade or sweep), or from a device not known, is not applied.
+- **Resumed bases.** An interrupted base export records whether it held
+  media back. One that did not is made again when the publish must hold;
+  one that did is resumed once nothing is held, and the release sends what
+  it left out.
 
 ### 5. The site as location
 

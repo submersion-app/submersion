@@ -315,6 +315,17 @@ class SyncService {
 
   /// What the running apply has deleted for [_onIdentificationsDeleted].
   final List<DeletedIdentification> _deletedIdentifications = [];
+
+  /// Each device's schema, by id, as its manifest or a nearby hello gave
+  /// it: whose delete of held media is the diver's (issue #5122). Kept for
+  /// the app's run; each pull reads every manifest again before applying.
+  Map<String, int> _writerSchemas = const {};
+
+  void _recordWriterSchema(String? deviceId, int? schema) {
+    if (deviceId == null || schema == null) return;
+    _writerSchemas = {..._writerSchemas, deviceId: schema};
+  }
+
   final _log = LoggerService.forClass(SyncService);
   final _uuid = const Uuid();
 
@@ -446,11 +457,17 @@ class SyncService {
   /// when this device last synced with that peer: it scopes the two-sided
   /// edit conflict and the tombstone age guard to the peer, as the cloud
   /// path scopes them to its backend.
+  ///
+  /// [peerSchemaVersion] is the peer's build, from its hello: a delete of
+  /// held media it made is applied only from a build that keeps such media.
   Future<NearbyApplyResult> applyNearbyPayload(
     SyncPayload payload, {
     required DateTime? lastSync,
+    String? peerDeviceId,
+    int? peerSchemaVersion,
   }) {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+    _recordWriterSchema(peerDeviceId, peerSchemaVersion);
     return SyncCoordinator.run(() async {
       final r = await _applyRemotePayload(payload, lastSync);
       return (
@@ -468,9 +485,11 @@ class SyncService {
     String filePath, {
     required DateTime? lastSync,
     String? peerDeviceId,
+    int? peerSchemaVersion,
     void Function(double fraction)? onProgress,
   }) {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.sync);
+    _recordWriterSchema(peerDeviceId, peerSchemaVersion);
     return SyncCoordinator.run(() async {
       final r = await _applyRemoteBaseFile(
         filePath,
@@ -785,6 +804,10 @@ class SyncService {
         // the folder and needs a fresh view).
         preListedFiles: fence.files,
         peerNames: _peerNames,
+        onPeerManifest: (manifest) => _recordWriterSchema(
+          manifest.deviceId,
+          manifest.writerSchemaVersion ?? manifest.schemaVersion,
+        ),
         apply: (payload) async {
           final r = await _applyRemotePayload(payload, lastSyncTime);
           recordsSynced += r.recordsApplied;
@@ -2986,8 +3009,9 @@ class SyncService {
     var failed = 0;
     // A library site ignores a personal tombstone (issue #2567).
     final librarySites = await _serializer.librarySiteIds();
-    // Media held back from an older device ignores a delete (issue #5122):
-    // only that device's orphan sweep or a delete cascade could send one.
+    // Media held back from an older device ignores that device's delete
+    // (issue #5122): its orphan sweep or a delete cascade. A delete the
+    // diver made on a device that keeps such media is applied.
     final heldMedia = await HeldMediaStore().heldIds();
 
     for (final entry in deletions.entries) {
@@ -3032,7 +3056,8 @@ class SyncService {
               continue;
             }
           }
-          if (heldMedia.isNotEmpty) {
+          if (heldMedia.isNotEmpty &&
+              !isDeliberateHeldMediaDelete(deletion.hlc, _writerSchemas)) {
             if (entityType == 'media' && heldMedia.contains(recordId)) {
               continue;
             }

@@ -38,6 +38,7 @@ class ResumableBasePublish {
     this.epochId,
     this.uploadNonce,
     this.toHlc,
+    this.heldUnplacedMedia,
   });
 
   final String providerId;
@@ -72,6 +73,12 @@ class ResumableBasePublish {
   /// watermark and go out as the next changeset.
   final String? toHlc;
 
+  /// Whether the export left out media kept with no place (issue #5122).
+  /// One that did not must not be resumed once an older device is in the
+  /// library: it carries rows that device would delete. Null from a build
+  /// before held media, whose exports left nothing out.
+  final bool? heldUnplacedMedia;
+
   String get sidecarPath => sidecarPathFor(dataPath);
 
   static const String sidecarSuffix = '.publish';
@@ -97,6 +104,7 @@ class ResumableBasePublish {
     'epochId': epochId,
     'uploadNonce': uploadNonce,
     'toHlc': toHlc,
+    'heldUnplacedMedia': heldUnplacedMedia,
   };
 
   static ResumableBasePublish fromJson(Map<String, dynamic> json) =>
@@ -110,6 +118,7 @@ class ResumableBasePublish {
         epochId: json['epochId'] as String?,
         uploadNonce: json['uploadNonce'] as String?,
         toHlc: json['toHlc'] as String?,
+        heldUnplacedMedia: json['heldUnplacedMedia'] as bool?,
       );
 }
 

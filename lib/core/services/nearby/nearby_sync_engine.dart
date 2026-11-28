@@ -7,6 +7,7 @@ import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.da
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
+import 'package:submersion/core/services/sync/held_media_releaser.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_device_metadata.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
@@ -41,15 +42,24 @@ abstract class NearbySyncEngine {
   /// [holdUnplacedMedia] as in [exportDelta].
   Future<StreamedBase> exportFull({bool holdUnplacedMedia = true});
 
+  /// Stamps again the media held back from an older device (issue #5122),
+  /// above every watermark, so a peer that keeps such media is sent it.
+  /// Run before reading [watermarks] for that peer.
+  Future<void> releaseHeldMedia();
+
+  ///
+  /// [peerSchemaVersion] is the peer's build, from its hello (issue #5122).
   Future<NearbyApplyResult> applyPayload(
     SyncPayload payload, {
     required String peerDeviceId,
+    int? peerSchemaVersion,
   });
 
   /// Applies the gzipped full copy at [path] without expanding it on disk.
   Future<NearbyApplyResult> applyBaseFile(
     String path, {
     required String peerDeviceId,
+    int? peerSchemaVersion,
     void Function(double fraction)? onProgress,
   });
 
@@ -155,6 +165,12 @@ class DatabaseNearbySyncEngine implements NearbySyncEngine {
     holdUnplacedMedia: holdUnplacedMedia,
   );
 
+  // Held media sits below every peer's watermark: without this, a library
+  // synced only nearby would never send it.
+  @override
+  Future<void> releaseHeldMedia() =>
+      HeldMediaReleaser(db: _db, sync: _repo).release(holding: false);
+
   @override
   Future<StreamedBase> exportFull({bool holdUnplacedMedia = true}) async =>
       _serializer.exportBaseToTempFile(
@@ -174,20 +190,25 @@ class DatabaseNearbySyncEngine implements NearbySyncEngine {
   Future<NearbyApplyResult> applyPayload(
     SyncPayload payload, {
     required String peerDeviceId,
+    int? peerSchemaVersion,
   }) async => _sync().applyNearbyPayload(
     payload,
     lastSync: await _lastSync(peerDeviceId),
+    peerDeviceId: peerDeviceId,
+    peerSchemaVersion: peerSchemaVersion,
   );
 
   @override
   Future<NearbyApplyResult> applyBaseFile(
     String path, {
     required String peerDeviceId,
+    int? peerSchemaVersion,
     void Function(double fraction)? onProgress,
   }) async => _sync().applyNearbyBaseFile(
     path,
     lastSync: await _lastSync(peerDeviceId),
     peerDeviceId: peerDeviceId,
+    peerSchemaVersion: peerSchemaVersion,
     onProgress: onProgress,
   );
 

@@ -11,6 +11,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/held_media_store.dart';
+import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart'
     show SyncData;
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
@@ -39,6 +40,23 @@ const Set<String> heldMediaChildEntities = {
 bool isOlderThanHeldMedia(SyncManifest manifest) =>
     (manifest.writerSchemaVersion ?? manifest.schemaVersion ?? 0) <
     heldMediaSchemaVersion;
+
+/// Whether a delete stamped [hlc] of a row held here is one the diver made:
+/// its clock names the device that deleted, and [writerSchemas] (each
+/// device's schema, by id) says that device's build keeps media with no
+/// place. A delete from an older build is its orphan sweep or a delete
+/// cascade, and one from a device not known may be: the row stays.
+bool isDeliberateHeldMediaDelete(String? hlc, Map<String, int> writerSchemas) {
+  if (hlc == null || hlc.isEmpty) return false;
+  final String deviceId;
+  try {
+    deviceId = Hlc.parse(hlc).nodeId;
+  } on FormatException {
+    return false;
+  }
+  final schema = writerSchemas[deviceId];
+  return schema != null && schema >= heldMediaSchemaVersion;
+}
 
 /// Whether any of [peers] other than [fencedPeerIds] would delete media kept
 /// with no place.

@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
@@ -11,11 +12,15 @@ import 'package:submersion/core/services/nearby/nearby_peer_store.dart';
 import 'package:submersion/core/services/nearby/nearby_sync_engine.dart';
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/changeset_log/publish_state_store.dart';
+import 'package:submersion/core/services/sync/held_media_store.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_database.dart';
@@ -218,6 +223,46 @@ void main() {
     expect(delta.data.dives.map((d) => d['id']), ['d2']);
     expect(delta.epochId, 'epoch-z');
     expect(SyncDataSerializer.checksumIsValid(delta), isTrue);
+  });
+
+  test('a delta for a newer peer carries media held back from an older one '
+      '(issue #5122)', () async {
+    await DiveRepository().createDive(
+      createTestDiveWithBottomTime(id: 'd0', diveNumber: 1),
+    );
+    final before = await serializer.fetchRecord('dives', 'd0');
+    await MediaRepository().createMedia(
+      MediaItem(
+        id: 'clip',
+        mediaType: MediaType.video,
+        sourceType: MediaSourceType.localFile,
+        filePath: p.join(Directory.systemTemp.path, 'clips', 'clip.mp4'),
+        localPath: p.join(Directory.systemTemp.path, 'clips', 'clip.mp4'),
+        retainInLibrary: true,
+        takenAt: DateTime.utc(2026, 11, 1),
+        createdAt: DateTime.utc(2026, 11, 1),
+        updatedAt: DateTime.utc(2026, 11, 1),
+      ),
+    );
+    // An older peer gets everything but the clip, and has it all to here.
+    final older = await engine.exportDelta(
+      before!['hlc'] as String,
+      holdUnplacedMedia: true,
+    );
+    expect(older.data.media, isEmpty);
+    expect(await HeldMediaStore().isHeld('clip'), isTrue);
+    final clip = await serializer.fetchRecord('media', 'clip');
+
+    // Updated, it is sent what was held back, stamped again; its next
+    // delta starts after the clip's own clock.
+    await engine.releaseHeldMedia();
+    final newer = await engine.exportDelta(
+      clip!['hlc'] as String,
+      holdUnplacedMedia: false,
+    );
+
+    expect(newer.data.media.map((m) => m['id']), ['clip']);
+    expect(await HeldMediaStore().isHeld('clip'), isFalse);
   });
 
   test('exportFull streams every row to a temp file', () async {

@@ -41,6 +41,9 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
   int exportFullCalls = 0;
   final appliedPayloads = <SyncPayload>[];
 
+  /// The peer's build passed with each apply, payload or full copy.
+  final appliedPeerSchemas = <int?>[];
+
   /// The content of each full copy applied, unpacked.
   final appliedFiles = <String>[];
 
@@ -70,6 +73,12 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
 
   /// The `holdUnplacedMedia` each export was asked for, in order.
   final holdRequests = <bool>[];
+
+  /// How many times held media was released.
+  int heldMediaReleases = 0;
+
+  @override
+  Future<void> releaseHeldMedia() async => heldMediaReleases++;
 
   @override
   Future<SyncPayload> exportDelta(
@@ -123,10 +132,12 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
   Future<NearbyApplyResult> applyPayload(
     SyncPayload payload, {
     required String peerDeviceId,
+    int? peerSchemaVersion,
   }) async {
     final error = applyError;
     if (error != null) throw error;
     appliedPayloads.add(payload);
+    appliedPeerSchemas.add(peerSchemaVersion);
     _moveMarks();
     return (recordsApplied: 1, conflictsFound: 0, recordsFailed: recordsFailed);
   }
@@ -135,10 +146,12 @@ class FakeNearbySyncEngine implements NearbySyncEngine {
   Future<NearbyApplyResult> applyBaseFile(
     String path, {
     required String peerDeviceId,
+    int? peerSchemaVersion,
     void Function(double fraction)? onProgress,
   }) async {
     final error = applyError;
     if (error != null) throw error;
+    appliedPeerSchemas.add(peerSchemaVersion);
     final file = File(path);
     stagedAtApply.add([
       for (final e in file.parent.listSync()) p.basename(e.path),
