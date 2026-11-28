@@ -231,7 +231,6 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
   build_runner: ^2.10.4
   drift_dev: ^2.35.2
-  json_serializable: ^6.11.2
   # 4.0.8 is the generator that matches riverpod_annotation 4.0.6, and the
   # reason the analyzer floor below is ^13.
   riverpod_generator: ^4.0.8
